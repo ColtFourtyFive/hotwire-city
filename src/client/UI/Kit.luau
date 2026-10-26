@@ -63,7 +63,12 @@ function Kit.gradient(top: Color3, bottom: Color3, rotation: number?): UIGradien
 	})
 end
 
-function Kit.list(direction: Enum.FillDirection?, padding: number?, hAlign: Enum.HorizontalAlignment?, vAlign: Enum.VerticalAlignment?): UIListLayout
+function Kit.list(
+	direction: Enum.FillDirection?,
+	padding: number?,
+	hAlign: Enum.HorizontalAlignment?,
+	vAlign: Enum.VerticalAlignment?
+): UIListLayout
 	return Kit.new("UIListLayout", {
 		FillDirection = direction or Enum.FillDirection.Vertical,
 		Padding = UDim.new(0, padding or 8),
@@ -286,7 +291,8 @@ function Kit.window(parent: Instance, title: string, accent: Color3?, size: UDim
 		Position = UDim2.fromOffset(20, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		ZIndex = 2,
-	}).Parent = header
+	}).Parent =
+		header
 	local close = Kit.button("X", Theme.Colors.Danger, {
 		Name = "Close",
 		AnchorPoint = Vector2.new(1, 0.5),
