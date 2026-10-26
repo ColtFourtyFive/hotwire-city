@@ -1,0 +1,102 @@
+--!strict
+-- Gamepass + Developer Product definitions. Replace the 0 ids with your real asset ids after creating
+-- them on the Creator Dashboard. Any entry with id 0 is hidden from the store and treated as not owned.
+
+export type PassDef = { key: string, id: number, name: string, description: string, icon: string }
+export type ProductDef = { key: string, id: number, name: string, description: string, icon: string }
+
+local Monetization = {}
+
+Monetization.Passes = {
+	vip = {
+		key = "vip",
+		id = 0,
+		name = "VIP",
+		description = "2x cash forever, VIP tag, double offline earnings.",
+		icon = "👑",
+	},
+	slots = {
+		key = "slots",
+		id = 0,
+		name = "+2 Garage Slots",
+		description = "Two extra garage slots on top of the max.",
+		icon = "🅿️",
+	},
+	nitro = {
+		key = "nitro",
+		id = 0,
+		name = "Infinite Nitro",
+		description = "Your nitro never runs out. Ever.",
+		icon = "🔥",
+	},
+	hotwire = {
+		key = "hotwire",
+		id = 0,
+		name = "Master Thief",
+		description = "Hotwire every car 40% faster.",
+		icon = "🔧",
+	},
+	taser = {
+		key = "taser",
+		id = 0,
+		name = "Zapper Pass",
+		description = "Own the Zapper instantly, with half cooldown.",
+		icon = "⚡",
+	},
+} :: { [string]: PassDef }
+
+Monetization.PassOrder = { "vip", "slots", "hotwire", "nitro", "taser" }
+Monetization.MASTER_THIEF_MULT = 0.6
+
+Monetization.Products = {
+	cash_small = {
+		key = "cash_small",
+		id = 0,
+		name = "Stack of Cash",
+		description = "10 minutes of your income (min $5,000).",
+		icon = "💵",
+	},
+	cash_big = {
+		key = "cash_big",
+		id = 0,
+		name = "Briefcase of Cash",
+		description = "1 hour of your income (min $50,000).",
+		icon = "💼",
+	},
+	lock_10 = {
+		key = "lock_10",
+		id = 0,
+		name = "Lockdown",
+		description = "Lock your garage for 10 minutes.",
+		icon = "🔒",
+	},
+	clear_wanted = {
+		key = "clear_wanted",
+		id = 0,
+		name = "Lose the Cops",
+		description = "Instantly clear your wanted level.",
+		icon = "🚔",
+	},
+	server_luck = {
+		key = "server_luck",
+		id = 0,
+		name = "Server Luck x2",
+		description = "Doubles rare car spawns for EVERYONE for 15 minutes.",
+		icon = "🍀",
+	},
+	diamond_dragster = {
+		key = "diamond_dragster",
+		id = 0,
+		name = "Diamond Dragster",
+		description = "Exclusive unstealable hypercar. $15,000/s.",
+		icon = "💎",
+	},
+} :: { [string]: ProductDef }
+
+Monetization.ProductOrder = { "cash_small", "cash_big", "server_luck", "lock_10", "clear_wanted", "diamond_dragster" }
+
+Monetization.VIP_CASH_MULT = 2
+Monetization.SERVER_LUCK_DURATION = 15 * 60
+Monetization.LOCKDOWN_DURATION = 10 * 60
+
+return Monetization

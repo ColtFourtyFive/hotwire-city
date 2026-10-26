@@ -1,0 +1,6 @@
+# Toolchain (install with `rokit install`)
+[tools]
+rojo = "rojo-rbx/rojo@7.6.1"
+selene = "Kampfkarren/selene@0.29.0"
+stylua = "JohnnyMorganz/StyLua@2.3.0"
+lune = "lune-org/lune@0.10.4"
