@@ -1,0 +1,2123 @@
+[
+  {
+    "role": "police_car",
+    "id": 6418230807,
+    "name": "Police Car",
+    "creator": "Roblox",
+    "upVotePercent": 92,
+    "voteCount": 2000,
+    "triangles": 18969,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'Police Car' (2021 Endorsed set, original design, no real brand: black/white livery, 'POLICE' + '777'). Single variant (root Model 'Police Car'), native bbox 9.4 x 6.5 x 21.1 studs (Body 9 x 7 x 21), ~19k tris total. Light bar = Neon MeshParts light_rack_red, light_rack_red_front, light_red (red) and light_rack_blue, light_rack_blue_front, light_blue1 (blue): rename/tag them SirenRed/SirenBlue so EffectsController can flash them. Bodywork color 60,60,60 (F_bumper, roof, hood, *_fender, R_bumper) + white doors. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 59524656,
+        "name": "Police Car",
+        "note": "Roblox classic blocky Police Car (84%/300, ~1.1k tris) - cartoon fallback, also loads reliably (Roblox-owned)"
+      },
+      {
+        "id": 4128343988,
+        "name": "Police Car (Mesh)",
+        "note": "Police Car (Mesh) by bearduckmonkey, 94%/100, 5.2k tris, scriptless textured single-mesh family (generic 90s cruiser shape, no logos)"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.4,
+      "y": 6.5,
+      "z": 21.1
+    },
+    "variants": [
+      "Police Car"
+    ],
+    "shellPath": "Police Car/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "police"
+    ],
+    "scriptCountParsed": 14
+  },
+  {
+    "role": "helicopter",
+    "id": 17797349765,
+    "name": "Police Helicopter",
+    "creator": "Top_GamesGeneral",
+    "upVotePercent": 96,
+    "voteCount": 40,
+    "triangles": 5272,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 30
+    },
+    "orientationNote": "Thumbnail is a front 3/4 view (nose toward camera, white nose + navy tail boom) => nose is most likely local -Z. Verify at runtime: tail boom is the long thin end; if bbox longest horizontal axis is X, rotate 90 deg.",
+    "notes": "White + navy police helicopter (Bell-407-like silhouette, no agency logos visible), 96%/40, 5.3k tris, 7 MeshParts. Has 5 scripts + 3 sounds (strip). Main rotor + tail rotor are separate parts: spin the rotor client-side for the police chopper (5-star wanted). Hover it ~60-80 studs up with a SpotLight searchlight.",
+    "alternates": [
+      {
+        "id": 5758788772,
+        "name": "Helicopter",
+        "note": "Helicopter by soccerhunter12345, 82%/2000, 13.5k tris, black MD-500 style - recolor body navy/white"
+      },
+      {
+        "id": 164804323,
+        "name": "Police Helicopter",
+        "note": "Police Helicopter by Enchiladus, 87%/40, 4.9k tris, dark blue Huey style; NOTE model includes a large helipad disc - remove the flat round part before scaling"
+      }
+    ],
+    "carStyles": []
+  },
+  {
+    "role": "car_body_compact",
+    "id": 14215126016,
+    "name": "Car",
+    "creator": "Roblox Resources",
+    "upVotePercent": 88,
+    "voteCount": 10000,
+    "triangles": null,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 15
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "'Car' by Roblox Resources (88%/10,000 votes - the default Roblox driving-template car; original design). Single variant (root Model 'Car'), native 8.6 x 6.2 x 20.6, red paint (roof_hood/doors/bumpers, Metal material 255,70,70). Scale down to compact length; for Rustbucket recolor to dull rust + Material Rust/CorrodedMetal, for Mini Bean recolor bright. Triangle count not reported by the API (package), similar to Sedan (~15k). Has 4 headlight 'bulb' Neon parts (bulbLeft/bulbRight/rearBulbsLeft/rearBulbsRight). Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts. (Triangle count unavailable from the API; structurally ~15k like the Sedan.)",
+    "alternates": [
+      {
+        "id": 6433323089,
+        "name": "Sports Car",
+        "note": "Roblox 'Sports Car' - its own keywords are 'Coupe, Compact'; use variant 'Sports Car (red)' for Hot Hatch"
+      },
+      {
+        "id": 4128268044,
+        "name": "White Car (Mesh)",
+        "note": "White Car (Mesh) by bearduckmonkey 97%/60, weathered textured boxy sedan - perfect 'Rustbucket' vibe (textured, not recolorable)"
+      }
+    ],
+    "nativeSize": {
+      "x": 8.6,
+      "y": 6.2,
+      "z": 20.6
+    },
+    "variants": [
+      "Car"
+    ],
+    "shellPath": "Car/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "compact"
+    ],
+    "scriptCountParsed": 14,
+    "trianglesPerVariant": null
+  },
+  {
+    "role": "car_body_sedan",
+    "id": 6418239833,
+    "name": "Sedan",
+    "creator": "Roblox",
+    "upVotePercent": 92,
+    "voteCount": 100,
+    "triangles": 75644,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'Sedan' (2021 Endorsed set). Asset contains 5 variant Models side by side: 'Sedan (aqua)', 'Sedan (black)', 'Sedan (orange)', 'Sedan (red)', 'Sedan (white)' -> pick ONE child by name and discard the rest (75.6k tris total = ~15k per variant). Native 8.6-9.4 x 6.2 x 20.6. Use 'Sedan (white)' and recolor paint parts per CarDef.color (Grandma's Sedan = pastel). Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 14215126016,
+        "name": "Car",
+        "note": "'Car' by Roblox Resources (same family/structure)"
+      },
+      {
+        "id": 4128268044,
+        "name": "White Car (Mesh)",
+        "note": "White Car (Mesh) by bearduckmonkey - textured fallback"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.4,
+      "y": 6.3,
+      "z": 20.6
+    },
+    "variants": [
+      "Sedan (aqua)",
+      "Sedan (black)",
+      "Sedan (orange)",
+      "Sedan (red)",
+      "Sedan (white)"
+    ],
+    "shellPath": "Sedan (white)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "sedan"
+    ],
+    "scriptCountParsed": 70,
+    "trianglesPerVariant": 15129
+  },
+  {
+    "role": "car_body_taxi",
+    "id": 6418239833,
+    "name": "Sedan",
+    "creator": "Roblox",
+    "upVotePercent": 92,
+    "voteCount": 100,
+    "triangles": 75644,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Same official Roblox Sedan, variant 'Sedan (orange)' (or white) recolored taxi yellow (255,200,0) on paint parts + accent checker stripe; add the procedural roof 'TAXI' sign part on top (Body top ~ y+3.1 from pivot). No free original-design taxi met the quality bar. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 4128336629,
+        "name": "Taxi (Mesh)",
+        "note": "Taxi (Mesh) by bearduckmonkey, 91%/10, 2.8k tris, yellow textured cab with roof sign, scriptless (generic 90s cab shape)"
+      },
+      {
+        "id": 14215126016,
+        "name": "Car",
+        "note": "'Car' by Roblox Resources recolored yellow"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.4,
+      "y": 6.3,
+      "z": 20.5
+    },
+    "variants": [
+      "Sedan (orange)"
+    ],
+    "shellPath": "Sedan (orange)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "taxi"
+    ],
+    "scriptCountParsed": 70,
+    "trianglesPerVariant": 15129
+  },
+  {
+    "role": "car_body_van",
+    "id": 6433316269,
+    "name": "Van",
+    "creator": "Roblox",
+    "upVotePercent": 96,
+    "voteCount": 200,
+    "triangles": 30544,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 20
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'Van' (2021 Endorsed set). 3 variants: 'Van (1970)' (brown retro w/ orange stripe), 'Van (pro)', 'Van (white)'. 30.5k tris total (~10k each). Native 11.6 x 9.7 x 26.2. Pizza Van: use 'Van (white)', recolor paint parts (roof_hood, sides, R_door, L_door) red/white + procedural pizza sign on roof. Also the base for the Ice Cream Truck fallback (white + giant cone roof prop). Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 6418234850,
+        "name": "SUV",
+        "note": "Roblox 'SUV' - closest boxy official shape if Van fails"
+      },
+      {
+        "id": 14365809782,
+        "name": "kawaii icecream truck",
+        "note": "kawaii icecream truck (boxy food-truck silhouette) - textured pastel"
+      }
+    ],
+    "nativeSize": {
+      "x": 11.6,
+      "y": 9.7,
+      "z": 26.2
+    },
+    "variants": [
+      "Van (1970)",
+      "Van (pro)",
+      "Van (white)"
+    ],
+    "shellPath": "Van (white)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "van",
+      "icecream(fallback)"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 10181
+  },
+  {
+    "role": "car_body_pickup",
+    "id": 6418225759,
+    "name": "Pickup Truck",
+    "creator": "Roblox",
+    "upVotePercent": 93,
+    "voteCount": 200,
+    "triangles": 50516,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 20
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'Pickup Truck'. 3 variants: 'Pickup Truck (blue)', 'Pickup Truck (bronze)', 'Pickup Truck (white)'. 50.5k tris total (~17k each). Native 10.6 x 9.6 x 26.6. Dirt Hauler: 'Pickup Truck (bronze)'. Also the primary shell for monster trucks (see car_body_monster). Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 59524606,
+        "name": "Truck",
+        "note": "Roblox classic blocky 'Truck' (93%/200, 1.1k tris) - cartoon fallback"
+      },
+      {
+        "id": 6418221666,
+        "name": "Light Utility Vehicle",
+        "note": "Roblox 'Light Utility Vehicle' (jeep-like)"
+      }
+    ],
+    "nativeSize": {
+      "x": 10.6,
+      "y": 9.6,
+      "z": 26.6
+    },
+    "variants": [
+      "Pickup Truck (blue)",
+      "Pickup Truck (bronze)",
+      "Pickup Truck (white)"
+    ],
+    "shellPath": "Pickup Truck (bronze)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "pickup"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 16839
+  },
+  {
+    "role": "car_body_suv",
+    "id": 6418234850,
+    "name": "SUV",
+    "creator": "Roblox",
+    "upVotePercent": 96,
+    "voteCount": 200,
+    "triangles": 42960,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 19
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'SUV'. 3 variants: 'SUV (black)', 'SUV (blue)', 'SUV (white)'. 43k tris total (~14k each). Native 9.8 x 8.1 x 20.9. Soccer Mom SUV: 'SUV (white)' recolored per CarDef. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 6418221666,
+        "name": "Light Utility Vehicle",
+        "note": "Roblox 'Light Utility Vehicle' (4 variants incl. pink!)"
+      },
+      {
+        "id": 6418225759,
+        "name": "Pickup Truck",
+        "note": "Roblox 'Pickup Truck'"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.8,
+      "y": 8.1,
+      "z": 20.9
+    },
+    "variants": [
+      "SUV (black)",
+      "SUV (blue)",
+      "SUV (white)"
+    ],
+    "shellPath": "SUV (white)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "suv"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 14320
+  },
+  {
+    "role": "car_body_muscle",
+    "id": 6433323089,
+    "name": "Sports Car",
+    "creator": "Roblox",
+    "upVotePercent": 95,
+    "voteCount": 700,
+    "triangles": 54816,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "APPROXIMATE match: official Roblox 'Sports Car' variant 'Sports Car (red)' (long-hood GT coupe) recolored per CarDef with the accent color on 'trim_red'-style parts for racing stripes (Stallion GT). Every free 'muscle car' that met the vote bar was a 1969 Dodge Charger replica (real-brand) and was rejected. 3 variants: 'Sports Car (blue)', 'Sports Car (red)', 'Sports Car (white)'; 54.8k tris total (~18k each); native 9.1 x 5.6 x 19.5. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 14215126016,
+        "name": "Car",
+        "note": "'Car' by Roblox Resources"
+      },
+      {
+        "id": 6433330180,
+        "name": "Supercar",
+        "note": "Roblox 'Supercar'"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.1,
+      "y": 5.6,
+      "z": 19.5
+    },
+    "variants": [
+      "Sports Car (blue)",
+      "Sports Car (red)",
+      "Sports Car (white)"
+    ],
+    "shellPath": "Sports Car (red)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "muscle"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 18272
+  },
+  {
+    "role": "car_body_sports",
+    "id": 6433323089,
+    "name": "Sports Car",
+    "creator": "Roblox",
+    "upVotePercent": 95,
+    "voteCount": 700,
+    "triangles": 54816,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'Sports Car' (95%/700). Use 'Sports Car (white)' (white/blue splash livery) or '(blue)' for Viper Strike / Neon Drift; recolor body parts (body, bumper, left_door, right_door) per CarDef. ~18k tris per variant. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 169095747,
+        "name": "KZ Zeal",
+        "note": "KZ Zeal (fictional 'KZ' brand super coupe, 92%/30)"
+      },
+      {
+        "id": 14215126016,
+        "name": "Car",
+        "note": "'Car' by Roblox Resources"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.1,
+      "y": 5.6,
+      "z": 19.5
+    },
+    "variants": [
+      "Sports Car (blue)",
+      "Sports Car (red)",
+      "Sports Car (white)"
+    ],
+    "shellPath": "Sports Car (white)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "sports"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 18272
+  },
+  {
+    "role": "car_body_super",
+    "id": 6433330180,
+    "name": "Supercar",
+    "creator": "Roblox",
+    "upVotePercent": 97,
+    "voteCount": 100,
+    "triangles": 33728,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 19
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Official Roblox 'Supercar' (97%/100): low wedge exotic with hood scoop - original design (reads 'Raging Bull' without being a real Lamborghini). 3 variants: 'Supercar (blue)', 'Supercar (green)', 'Supercar (yellow)'; 33.7k tris total (~11k each); native 9.3 x 5.3 x 20.7. Paint parts in yellow variant: hood_scoop, trunk, roof, fenders, bumper, L_door, R_door. Gold Rush = yellow variant + Gold mutation. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 169095747,
+        "name": "KZ Zeal",
+        "note": "KZ Zeal"
+      },
+      {
+        "id": 6433323089,
+        "name": "Sports Car",
+        "note": "Roblox 'Sports Car'"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.3,
+      "y": 5.3,
+      "z": 20.7
+    },
+    "variants": [
+      "Supercar (blue)",
+      "Supercar (green)",
+      "Supercar (yellow)"
+    ],
+    "shellPath": "Supercar (yellow)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "super"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 11243
+  },
+  {
+    "role": "car_body_hyper",
+    "id": 169095747,
+    "name": "KZ Zeal",
+    "creator": "Aeuri",
+    "upVotePercent": 92,
+    "voteCount": 30,
+    "triangles": 31394,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 19
+    },
+    "orientationNote": "Thumbnail is a SIDE profile with the nose (grille + headlights) at image-right => the length axis is probably local X, not Z. The model ships a drivable chassis: if a VehicleSeat exists use VehicleSeat.CFrame.LookVector as forward; otherwise use the longest horizontal bbox axis and the end with the grille/headlight parts as front.",
+    "notes": "KZ Zeal by Aeuri (92%/30, 31.4k tris): white futuristic hyper coupe of a fictional brand ('KZ'), aggressive grille, blue glass. 37 scripts + 10 sounds (strip all). Recolor: largest white BaseParts are paint (Midnight Phantom/Night Raven = black, Hyperion X = chrome). Diamond Dragster = Diamond mutation.",
+    "alternates": [
+      {
+        "id": 6433330180,
+        "name": "Supercar",
+        "note": "Roblox 'Supercar' (verified -Z front)"
+      },
+      {
+        "id": 12170205416,
+        "name": "Flying Car",
+        "note": "Flying Car (white sci-fi body) for an extra-futuristic hyper"
+      }
+    ],
+    "carStyles": [
+      "hyper"
+    ]
+  },
+  {
+    "role": "car_body_police",
+    "id": 6418230807,
+    "name": "Police Car",
+    "creator": "Roblox",
+    "upVotePercent": 92,
+    "voteCount": 2000,
+    "triangles": 18969,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Same as role police_car (duplicate row so style->asset lookup is complete). Retired Cop Car: use the same shell with faded paint (Color lerp to grey) and siren parts disabled.",
+    "alternates": [
+      {
+        "id": 59524656,
+        "name": "Police Car",
+        "note": "Roblox classic Police Car"
+      },
+      {
+        "id": 4128343988,
+        "name": "Police Car (Mesh)",
+        "note": "Police Car (Mesh)"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.4,
+      "y": 6.5,
+      "z": 21.1
+    },
+    "variants": [
+      "Police Car"
+    ],
+    "shellPath": "Police Car/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "police"
+    ],
+    "scriptCountParsed": 14
+  },
+  {
+    "role": "car_body_monster",
+    "id": 6418225759,
+    "name": "Pickup Truck",
+    "creator": "Roblox",
+    "upVotePercent": 93,
+    "voteCount": 200,
+    "triangles": 50516,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 22,
+      "y": 13
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "Monster truck = official Roblox Pickup Truck BODY ('Pickup Truck (blue)' for Bigfoot, '(white)' recolored dark for Crusher) lifted high on huge procedural wheels: delete Body.FL/FR/RL/RR wheel sub-models, scale body to ~22 long, raise 4-6 studs above the axle line. No free original monster-truck body met the bar (the only hit was a 'Lamborghini Urus' replica). Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 6418221666,
+        "name": "Light Utility Vehicle",
+        "note": "Roblox 'Light Utility Vehicle' body, same lift treatment"
+      },
+      {
+        "id": 52158011,
+        "name": "Monster Truck",
+        "note": "Roblox 'Monster Truck' gear: a single Part 'MonstaTruckHandle' (2.7 x 2.3 x 2.1) with SpecialMesh - scale the SpecialMesh.Scale up ~8x; it carries deprecated BodyGyro/BodyVelocity/BodyAngularVelocity -> DELETE them"
+      }
+    ],
+    "nativeSize": {
+      "x": 10.6,
+      "y": 9.6,
+      "z": 26.6
+    },
+    "variants": [
+      "Pickup Truck (blue)",
+      "Pickup Truck (bronze)",
+      "Pickup Truck (white)"
+    ],
+    "shellPath": "Pickup Truck (blue)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "monster"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 16839
+  },
+  {
+    "role": "car_body_armored",
+    "id": 191370532,
+    "name": "Bank Security Truck",
+    "creator": "Enchiladus",
+    "upVotePercent": 86,
+    "voteCount": 10,
+    "triangles": 6934,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 21
+    },
+    "orientationNote": "Thumbnail shows the front (grille, flat windshield) facing the camera => front is most likely local -Z. Verify with the VehicleSeat LookVector if present (model has 12 scripts, likely a drivable rig).",
+    "notes": "Bank Security Truck by Enchiladus (86%/10, 6.9k tris): green/white armored cash truck, chunky & cartoony - exactly the 'Bank Truck - literally full of money' fantasy. 12 scripts, 17 decals, 3 sounds (strip scripts/sounds; keep decals). Built from Parts (recolorable).",
+    "alternates": [
+      {
+        "id": 1961653516,
+        "name": "Swat Truck",
+        "note": "Swat Truck by JuriaanT, 87%/40, 16.4k tris, scriptless, dark armored BearCat-style"
+      },
+      {
+        "id": 6418221666,
+        "name": "Light Utility Vehicle",
+        "note": "Roblox 'Light Utility Vehicle (black)' - verified -Z front"
+      }
+    ],
+    "carStyles": [
+      "armored"
+    ]
+  },
+  {
+    "role": "car_body_icecream",
+    "id": 14365809782,
+    "name": "kawaii icecream truck",
+    "creator": "R4C3x",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 17318,
+    "hasScripts": false,
+    "targetSize": {
+      "z": 20
+    },
+    "orientationNote": "Thumbnail is a SIDE view with the cab/windshield at image-left and the serving window on the visible side => length axis is probably local X. Orient with longest horizontal bbox axis; cab end = front.",
+    "notes": "'kawaii icecream truck' by R4C3x (100%/10, 17.3k tris, 35 MeshParts, 0 scripts): pastel pink + mint food truck with a soft-serve swirl and a lollipop on the roof, awning over the serving window. Instantly readable and very on-brand for the Ice Cream Truck. Wheels are part of the model (hide procedural wheels or delete its 4 wheel meshes).",
+    "alternates": [
+      {
+        "id": 6433316269,
+        "name": "Van",
+        "note": "Roblox 'Van (white)' + giant_ice_cream_cone roof prop (verified -Z front)"
+      },
+      {
+        "id": 1761191125,
+        "name": "Ice Cream",
+        "note": "giant_ice_cream_cone prop only (mount on procedural icecream body)"
+      }
+    ],
+    "carStyles": [
+      "icecream"
+    ]
+  },
+  {
+    "role": "car_body_tank",
+    "id": 15414558277,
+    "name": "Simple working tank with turret",
+    "creator": "Singularity Interactive Studios",
+    "upVotePercent": 97,
+    "voteCount": 70,
+    "triangles": 1256,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "Thumbnail is a SIDE view with the gun barrel pointing to image-left => barrel axis is probably local X. Forward = barrel direction; orient by longest horizontal axis of the hull (treads).",
+    "notes": "'Simple working tank with turret' by Singularity Interactive Studios (97%/70, 1.3k tris): cute chunky low-poly toy tank (tan hull, dark treads, short blue barrel) - reads as a toy, matches 'Mini Tank' Mythic. 4 scripts (strip; the turret raycast gun logic must NOT ship). Parts-based -> recolor hull per CarDef (accent = treads).",
+    "alternates": [
+      {
+        "id": 6087787236,
+        "name": "Old Roblox Tank",
+        "note": "Old Roblox Tank by tehnoXbuilder 93%/70, 1.2k tris, classic green brick tank (3 scripts)"
+      }
+    ],
+    "carStyles": [
+      "tank"
+    ]
+  },
+  {
+    "role": "car_body_hover",
+    "id": 12170205416,
+    "name": "Flying Car",
+    "creator": "olythesquish",
+    "upVotePercent": 89,
+    "voteCount": 50,
+    "triangles": 23668,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 19
+    },
+    "orientationNote": "Thumbnail is a front 3/4 view (twin cockpit bubbles toward camera, cyan hover pods underneath) => front most likely local -Z. Verify: cockpit bubbles are nearer the front.",
+    "notes": "'Flying Car' (89%/50, 23.7k tris, 8 MeshParts): white sci-fi hover car with glass canopy and glowing cyan hover pods - perfect Mythic Hover Car (no wheels). Uploader says 'NOT MINE' (re-upload of an unknown original) - acceptable for a free public asset but prefer replacing with a commissioned mesh before launch. 9 scripts + 1 sound (strip). Keep its ParticleEmitters/Neon (hover glow) if any - they are the effect.",
+    "alternates": [
+      {
+        "id": 169095747,
+        "name": "KZ Zeal",
+        "note": "KZ Zeal with wheels hidden"
+      },
+      {
+        "id": 6433330180,
+        "name": "Supercar",
+        "note": "Roblox 'Supercar' with Body.FL/FR/RL/RR deleted + procedural neon underglow"
+      }
+    ],
+    "carStyles": [
+      "hover"
+    ]
+  },
+  {
+    "role": "car_body_rocket",
+    "id": 6433272094,
+    "name": "Dune Buggy",
+    "creator": "Roblox",
+    "upVotePercent": 97,
+    "voteCount": 200,
+    "triangles": 43753,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "APPROXIMATE: official Roblox 'Dune Buggy' (97%/200) open tube-frame body + procedural rocket nozzle/flame at the rear = 'Rocket Car - brakes sold separately'. No free rocket/jet-car model met the bar. 3 variants: 'Dune Buggy (beige)', 'Dune Buggy (blue)', 'Dune Buggy (orange)'; 43.8k tris total (~15k each); native 9.4 x 7.0 x 16.7. Paint parts in orange variant: fender_front, fender_rear. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 6433330180,
+        "name": "Supercar",
+        "note": "Roblox 'Supercar' + rocket"
+      },
+      {
+        "id": 169095747,
+        "name": "KZ Zeal",
+        "note": "KZ Zeal + rocket"
+      }
+    ],
+    "nativeSize": {
+      "x": 9.4,
+      "y": 7.0,
+      "z": 16.7
+    },
+    "variants": [
+      "Dune Buggy (beige)",
+      "Dune Buggy (blue)",
+      "Dune Buggy (orange)"
+    ],
+    "shellPath": "Dune Buggy (orange)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "rocket"
+    ],
+    "scriptCountParsed": 42,
+    "trianglesPerVariant": 14584
+  },
+  {
+    "role": "car_body_utility",
+    "id": 6418221666,
+    "name": "Light Utility Vehicle",
+    "creator": "Roblox",
+    "upVotePercent": 97,
+    "voteCount": 300,
+    "triangles": 41647,
+    "hasScripts": true,
+    "targetSize": {
+      "z": 17
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: front = local -Z. VehicleSeat.CFrame.LookVector = (0,0,-1) and front bumper/front wheels sit at -Z. Pivot/PrimaryPart = Chassis.FloorPanel (LookVector (0,0,-1)). Identity rotation when you PivotTo a CFrame whose LookVector is the car's forward.",
+    "notes": "BONUS official Roblox 'Light Utility Vehicle' (97%/300): boxy jeep with 4 variants 'Light Utility Vehicle (black)', '(green camo)', '(pink)', '(white camo)'; 41.6k tris total (~10k each); native 8.2 x 7.9 x 17.6. Useful as extra street traffic variety, armored/monster alternate, or a beach jeep. Official Roblox 2021 'Endorsed Vehicle' structure: each variant Model has children Chassis (physics: FloorPanel, VehicleSeat/Seats w/ ProximityPrompts, Suspension*/Wheel, constraints), Body (visual MeshParts, including visual wheel sub-models FL/FR/RL/RR with 'tire' MeshParts), plus Folders Constraints/Remotes/BindableEvents/Animations/Scripts/Effects. Visual shell = <variant>.Body only: clone Body, drop everything else; delete Body.FL/FR/RL/RR if the procedural chassis shows its own wheels (or keep them and hide the procedural wheel cylinders). Paint parts (MeshPart.Color, no textures, SmoothPlastic/Metal) match name pattern ^(body|roof|roof_hood|hood|hood_scoop|trunk|sides|fenders?|fender_%w+|%u%u?_fender|bumper%w*|bumper_front|bumper_back|F_bumper|R_bumper|%u%u?_door|left_door|right_door|L_door|R_door)$ (exclude *_int, *_glass, *_mirror*, *_trim, *wheel*). Neon light parts: light_white/headlights (front), light_red/light_tail_red/tail_light (rear). Pure recolor => mutations (Gold/Diamond/Rainbow/Galaxy) work by setting Color/Material on paint parts.",
+    "alternates": [
+      {
+        "id": 6418234850,
+        "name": "SUV",
+        "note": "Roblox 'SUV'"
+      }
+    ],
+    "nativeSize": {
+      "x": 8.2,
+      "y": 7.9,
+      "z": 17.6
+    },
+    "variants": [
+      "Light Utility Vehicle (black)",
+      "Light Utility Vehicle (green camo)",
+      "Light Utility Vehicle (pink)",
+      "Light Utility Vehicle (white camo)"
+    ],
+    "shellPath": "Light Utility Vehicle (pink)/Body",
+    "frontVerified": true,
+    "carStyles": [
+      "suv(alt)",
+      "armored(alt)"
+    ],
+    "scriptCountParsed": 56,
+    "trianglesPerVariant": 10412
+  },
+  {
+    "role": "meme_duck",
+    "id": 5134201685,
+    "name": "Rubber Duck",
+    "creator": "Kenekaise",
+    "upVotePercent": 99,
+    "voteCount": 300,
+    "triangles": 442,
+    "hasScripts": false,
+    "targetSize": {
+      "z": 13,
+      "y": 11
+    },
+    "orientationNote": "Thumbnail: duck faces image-left/front (beak toward camera-left) => beak points roughly local -X or -Z. Orient so the beak is car-forward: compute bbox; the beak is the narrow protrusion at mid-height on one end of the longest horizontal axis.",
+    "notes": "Classic Roblox-style rubber duck mesh (99%/300, 442 tris, scriptless, likely a single Part w/ SpecialMesh): glossy yellow, orange beak, black eyes - maximally readable at any distance. Scale to ~13 long, sit it on the chassis with wheels peeking out. Rubber Ducky (Secret).",
+    "alternates": [
+      {
+        "id": 9434926,
+        "name": "toy duck!",
+        "note": "toy duck! by aval5, 100%/50, same 442-tri mesh"
+      },
+      {
+        "id": 5274933317,
+        "name": "Rubber Duck",
+        "note": "Rubber Duck by ScaIedo, 100%/70, 880 tris - duck wearing a TOP HAT (great Gold/Diamond mutation flex)"
+      }
+    ],
+    "carStyles": [
+      "duck"
+    ]
+  },
+  {
+    "role": "meme_hotdog",
+    "id": 4589353527,
+    "name": "Hotdog (Model)",
+    "creator": "seasonedwatercubes",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 5532,
+    "hasScripts": false,
+    "targetSize": {
+      "z": 18
+    },
+    "orientationNote": "Thumbnail: side profile, long axis horizontal across the image => length axis is probably local X. Orient so the long axis is car-forward (either end works - it's a hot dog).",
+    "notes": "Hotdog (Model) by seasonedwatercubes (100%/10, 5.5k tris, 1 MeshPart, scriptless): toasted bun, sausage, mustard zig-zag - big readable silhouette. Mount on the chassis at ~18 long; the bun becomes the 'car body'. Hotdog Wagon (Secret).",
+    "alternates": [
+      {
+        "id": 2297705614,
+        "name": "Hot Dog With Ketchup",
+        "note": "Hot Dog With Ketchup by griffin_mp5, 86%/10, 796 tris"
+      },
+      {
+        "id": 30164540,
+        "name": "Hot Dog",
+        "note": "Hot Dog by bones027561, 82%/10 (legacy mesh)"
+      }
+    ],
+    "carStyles": [
+      "hotdog"
+    ]
+  },
+  {
+    "role": "meme_couch",
+    "id": 28454,
+    "name": "Retro-styled Leather Couch",
+    "creator": "Roblox",
+    "upVotePercent": 99,
+    "voteCount": 60,
+    "triangles": 5520,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 10,
+      "z": 6
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: Model 'Couch', native bbox 7.0 x 6.6 x 14.0 - the LONG axis is local Z (14 studs); the seat faces local -X or +X (PrimaryPart LookVector (0,0,-1) runs along the couch length). For a couch car rotate 90 deg so the seat faces car-forward: couch length becomes car WIDTH (~10), depth becomes car length (~6-7). Driver sits in it!",
+    "notes": "Retro-styled Leather Couch by Roblox (99%/60, 5.5k tris, 15 SpecialMesh smooth-block parts, scriptless): big chunky glossy RED cartoon couch - perfect Couch Cruiser. Roblox-owned => loads reliably. Parts are recolorable (mutations).",
+    "alternates": [
+      {
+        "id": 7053075271,
+        "name": "Aesthetic Couch",
+        "note": "Aesthetic Couch by homies_wrld, 92%/300, 1k tris, modern grey fabric sofa"
+      },
+      {
+        "id": 11290198233,
+        "name": "Couch (Old Sofa) Seatable Seat",
+        "note": "Couch (Old Sofa) by BlkMatt, 99%/80, 8k tris, brown vintage tufted sofa"
+      }
+    ],
+    "nativeSize": {
+      "x": 7.0,
+      "y": 6.6,
+      "z": 14.0
+    },
+    "frontVerified": false,
+    "carStyles": [
+      "couch"
+    ],
+    "scriptCountParsed": 0
+  },
+  {
+    "role": "meme_toilet",
+    "id": 2091145711,
+    "name": "Bathroom Toilet",
+    "creator": "camcool12354",
+    "upVotePercent": 91,
+    "voteCount": 800,
+    "triangles": 10638,
+    "hasScripts": true,
+    "targetSize": {
+      "y": 9
+    },
+    "orientationNote": "Thumbnail: front view, open lid toward the camera with the tank at the back => bowl front likely local -Z. Toilet Turbo drives bowl-first; the tank is the 'engine' at the rear.",
+    "notes": "Bathroom Toilet by camcool12354 (91%/800, 10.6k tris): glossy white porcelain toilet with open seat/lid - instantly readable. 1 script + 1 flush sound (strip script; the flush Sound could be reused as the horn!). Scale ~9 tall.",
+    "alternates": [
+      {
+        "id": 3250540154,
+        "name": "Home Toilet (working) READ DIS ",
+        "note": "Home Toilet (working) - a re-upload of camcool's toilet with bright blue water (91%/90, 7.2k tris), more cartoony"
+      },
+      {
+        "id": 56449594,
+        "name": "Toilet",
+        "note": "Toilet by Roblox (94%/100, 148 tris, classic blocky; VERIFIED seat LookVector = -X so it faces local -X)"
+      }
+    ],
+    "carStyles": [
+      "toilet"
+    ]
+  },
+  {
+    "role": "giant_ice_cream_cone",
+    "id": 1761191125,
+    "name": "Ice Cream",
+    "creator": "eqqulate",
+    "upVotePercent": 83,
+    "voteCount": 70,
+    "triangles": 4120,
+    "hasScripts": true,
+    "targetSize": {
+      "y": 8
+    },
+    "orientationNote": "Upright cone: +Y up (thumbnail shows it standing). Asset is a Tool: the visual is the Tool's Handle part (mesh). Take Handle, set Anchored/CanCollide false, weld to the ice cream truck roof.",
+    "notes": "Ice Cream by eqqulate (83%/70, 4.1k tris): white soft-serve swirl in a waffle cone - classic ice-cream-truck roof prop. 1 script + 2 sounds (strip). Scale to ~8 studs tall; slowly spin it client-side for juice.",
+    "alternates": [
+      {
+        "id": 3499522944,
+        "name": "ice cream",
+        "note": "ice cream by Bluezillaa, 89%/10, 1.1k tris, waffle cone with chocolate scoop"
+      },
+      {
+        "id": 7887038346,
+        "name": "Bing Chilling Ice Cream (CHECK DESCRIPTION)",
+        "note": "Bing Chilling Ice Cream, 92%/10, 4.7k tris, tall soft-serve cone (Tool w/ Health script - strip)"
+      }
+    ],
+    "carStyles": [
+      "icecream(roof prop)"
+    ]
+  },
+  {
+    "role": "tool_chest",
+    "id": 11464827472,
+    "name": "Toolbox",
+    "creator": "Filpaaaaa",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 464,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 4
+    },
+    "orientationNote": "Box prop; thumbnail shows the lid handle on top, front face toward camera => front -Z (rotationally forgiving).",
+    "notes": "Toolbox by Filpaaaaa (100%/10, 464 tris, scriptless): glossy red metal cartoon toolbox. Scale to ~4 wide for a bench-top toolbox, or ~6 wide x 2 stacked for a rolling chest look.",
+    "alternates": [
+      {
+        "id": 1363268720,
+        "name": "Toolbox",
+        "note": "Toolbox by Ashbashthesmash 96%/20 - open wooden tote full of tools (14.2k tris: use sparingly, 1 per garage)"
+      },
+      {
+        "id": 221836526,
+        "name": "Miyazu Garage Socket Wrench Set",
+        "note": "Miyazu Garage Socket Wrench Set 92%/10, 3.2k tris (fictional brand case)"
+      }
+    ]
+  },
+  {
+    "role": "tire_stack",
+    "id": 9504148189,
+    "name": "Tire Stack",
+    "creator": "RealgrumpyKitten1",
+    "upVotePercent": 91,
+    "voteCount": 20,
+    "triangles": 2720,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 4.5
+    },
+    "orientationNote": "Upright stack, +Y up; rotationally symmetric.",
+    "notes": "Tire Stack by RealgrumpyKitten1 (91%/20, 2.7k tris, scriptless): 4 stacked black tires. Place in garage corners, chop shop, stunt park edges.",
+    "alternates": [
+      {
+        "id": 8448337398,
+        "name": "Realistic Tire",
+        "note": "Realistic Tire by SubXero_X 91%/50, 7.2k tris (single tire; stack 3 procedurally)"
+      },
+      {
+        "id": 4642914603,
+        "name": "Spare Tire",
+        "note": "Spare Tire 95%/10, 2.6k tris (tire on steel rim)"
+      }
+    ]
+  },
+  {
+    "role": "car_lift",
+    "id": 10130240891,
+    "name": "### Car Lift",
+    "creator": "l0rd_mem3",
+    "upVotePercent": 84,
+    "voteCount": 10,
+    "triangles": 6438,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 12
+    },
+    "orientationNote": "Two-post lift: thumbnail shows posts left/right with arms toward the camera => the car drives in along local Z between the posts. Verify post spacing (needs ~10-11 studs clear width after scaling).",
+    "notes": "Car Lift by l0rd_mem3 (84%/10, 6.4k tris, scriptless): red two-post hydraulic lift with swing arms. Scale so the posts are ~12 tall and ~11 apart. Put a display car raised on it in the garage / chop shop.",
+    "alternates": []
+  },
+  {
+    "role": "oil_barrel",
+    "id": 9021582812,
+    "name": "PBR Oil Barrel",
+    "creator": "Wabbiits",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 906,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 4.2
+    },
+    "orientationNote": "Upright cylinder, +Y up; rotationally symmetric (flammable sticker on one side).",
+    "notes": "PBR Oil Barrel by Wabbiits (100%/10, 906 tris, scriptless): red 55-gal drum with flammable label.",
+    "alternates": [
+      {
+        "id": 14452389275,
+        "name": "Barrel Metal",
+        "note": "Barrel Metal by JSCHRISP 100%/10, 1.7k tris, red drum"
+      },
+      {
+        "id": 13304723548,
+        "name": "Rusty Barrel",
+        "note": "Rusty Barrel by 2BeeSupreme 100%/20, 1.5k tris, blue rusty drum (variety)"
+      }
+    ]
+  },
+  {
+    "role": "neon_sign",
+    "id": 491723807,
+    "name": "Open Neon Sign",
+    "creator": "KALEID0SC0PIK",
+    "upVotePercent": 86,
+    "voteCount": 20,
+    "triangles": 1116,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 10
+    },
+    "orientationNote": "Flat sign facing the camera in the thumbnail => readable face is likely local -Z. Mount on walls with the face outward.",
+    "notes": "Open Neon Sign by KALEID0SC0PIK (86%/20, 1.1k tris, scriptless): classic red 'OPEN' + blue oval neon. Generic for shops, garages, chop shop. Pair with a PointLight in the sign color.",
+    "alternates": [
+      {
+        "id": 300171087,
+        "name": "Neon Palm Tree Sign",
+        "note": "Neon Palm Tree Sign by PSY0PZ 93%/50, 120 tris, round purple palm neon - island-city brand motif"
+      },
+      {
+        "id": 269085542,
+        "name": "Palm Tree Neon Sign",
+        "note": "Palm Tree Neon Sign by KALEID0SC0PIK 80%/50, 756 tris, magenta palm outline (same creator family as primary)"
+      }
+    ]
+  },
+  {
+    "role": "neon_sign_icecream",
+    "id": 12589473151,
+    "name": "Ice Cream Neon Sign",
+    "creator": "Harlium",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 1296,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 6
+    },
+    "orientationNote": "Flat sign; face toward local -Z (front-facing thumbnail).",
+    "notes": "BONUS: Ice Cream Neon Sign by Harlium (100%/10, 1.3k tris, scriptless): pink/yellow neon cone outline - for the ice cream truck side panel or a beach kiosk.",
+    "alternates": [
+      {
+        "id": 2747553978,
+        "name": "Flamingo neon sign",
+        "note": "Flamingo neon sign 86%/10, 1.9k tris (beach vibe)"
+      }
+    ]
+  },
+  {
+    "role": "garage_shelf",
+    "id": 3533861281,
+    "name": "[PROP] Storage Shelves",
+    "creator": "antoxa_13371",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 6228,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 9
+    },
+    "orientationNote": "Long rack; the open face (boxes visible) faces the camera => front -Z; place against walls with back to the wall.",
+    "notes": "[PROP] Storage Shelves by antoxa_13371 (100%/10, 6.2k tris, scriptless): long pallet rack STOCKED with cardboard boxes - adds lived-in detail to garage walls.",
+    "alternates": [
+      {
+        "id": 7559833310,
+        "name": "Garage Shelf",
+        "note": "Garage Shelf by Tanakob12345 97%/100, 96 tris, empty diamond-plate metal shelf (very cheap)"
+      },
+      {
+        "id": 424419353,
+        "name": "Basic Storage Shelf",
+        "note": "Basic Storage Shelf by plvty 91%/30, 6.1k tris, chrome wire shelf"
+      }
+    ]
+  },
+  {
+    "role": "workbench",
+    "id": 306281238,
+    "name": "Workbench.",
+    "creator": "GLTCHED",
+    "upVotePercent": 100,
+    "voteCount": 20,
+    "triangles": 2316,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 8
+    },
+    "orientationNote": "Bench with vise; work surface faces the camera => front -Z; back against the wall.",
+    "notes": "Workbench. by GLTCHED (100%/20, 2.3k tris, scriptless): red cartoon mechanic workbench with vise, drawers and tools - fits the bright style.",
+    "alternates": [
+      {
+        "id": 1363268720,
+        "name": "Toolbox",
+        "note": "Toolbox (open wooden tote) as bench-top dressing"
+      }
+    ]
+  },
+  {
+    "role": "traffic_cone",
+    "id": 23153487,
+    "name": "Traffic Cone",
+    "creator": "Roblox",
+    "upVotePercent": 94,
+    "voteCount": 400,
+    "triangles": 326,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 2.6
+    },
+    "orientationNote": "VERIFIED by parsing the .rbxm: the asset root is a single Part 'Traffic Cone' (NOT a Model) with a SpecialMesh, size 2.0 x 2.4 x 2.0, +Y up. Wrap it in a Model before Model:ScaleTo, or scale Part.Size + SpecialMesh.Scale together.",
+    "notes": "Traffic Cone by Roblox (94%/400, 326 tris, scriptless; has a StockSound child - delete). Roblox-owned => always loads. Use for stunt park lanes, police roadblocks, construction.",
+    "alternates": [
+      {
+        "id": 23153483,
+        "name": "Stack of Cones",
+        "note": "Stack of Cones by Roblox (94%/50): Model of 21 'Traffic Cone' parts, 2.0 x 14.4 x 12.0 - decorative cone pyramid"
+      }
+    ],
+    "nativeSize": {
+      "x": 2.0,
+      "y": 2.4,
+      "z": 2.0
+    },
+    "frontVerified": true,
+    "scriptCountParsed": 0
+  },
+  {
+    "role": "money_stack",
+    "id": 9507277429,
+    "name": "Stack of Cash/Money",
+    "creator": "ChevyCamaroSS12",
+    "upVotePercent": 91,
+    "voteCount": 100,
+    "triangles": 2522,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 3
+    },
+    "orientationNote": "Rectangular stack of banded bundles, +Y up.",
+    "notes": "Stack of Cash/Money by ChevyCamaroSS12 (91%/100, 2.5k tris, scriptless): big brick of banded green bills - the garage 'COLLECT' pad cash pile, dealership flex, Cash Rain pickups.",
+    "alternates": [
+      {
+        "id": 439712421,
+        "name": "stack of money",
+        "note": "stack of money by Jaim_e 92%/70, 704 tris, single banded bundle"
+      },
+      {
+        "id": 4559341798,
+        "name": "Stack of Cash",
+        "note": "Stack of Cash 94%/10, 704 tris, single bundle"
+      }
+    ]
+  },
+  {
+    "role": "cash_pile",
+    "id": 8835683505,
+    "name": "Pile of money",
+    "creator": "drainspeeder",
+    "upVotePercent": 95,
+    "voteCount": 20,
+    "triangles": 7744,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 4
+    },
+    "orientationNote": "Loose pile, +Y up.",
+    "notes": "Pile of money by drainspeeder (95%/20, 7.7k tris, scriptless): heap of banded bundles - vault floor / Hot Drop reward / garage collect pad overflow.",
+    "alternates": [
+      {
+        "id": 4953906523,
+        "name": "money stack for gfx",
+        "note": "money stack for gfx 93%/40, 5.6k tris, tall banded stack"
+      },
+      {
+        "id": 177672341,
+        "name": "Money Stack",
+        "note": "Money Stack 89%/10, 1.6k tris, messy loose-bill tower"
+      }
+    ]
+  },
+  {
+    "role": "money_bag",
+    "id": 18303013374,
+    "name": "Money bag",
+    "creator": "esteban85137",
+    "upVotePercent": 83,
+    "voteCount": 10,
+    "triangles": 4248,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 3
+    },
+    "orientationNote": "Duffel lying flat, +Y up.",
+    "notes": "BONUS: Money bag by esteban85137 (83%/10, 4.2k tris, scriptless): black duffel stuffed with cash - for the dropped 'cash bags' in Workspace.Effects (SPEC) and heist flavor.",
+    "alternates": []
+  },
+  {
+    "role": "safe",
+    "id": 8166287648,
+    "name": "Bank Vault Door",
+    "creator": "Filipe799",
+    "upVotePercent": 88,
+    "voteCount": 30,
+    "triangles": 4946,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 10
+    },
+    "orientationNote": "Round vault door; thumbnail shows it edge-on/3-4 with the hinge side visible => the door face normal is probably local X. Orient so the wheel-handle face points into the room.",
+    "notes": "Bank Vault Door by Filipe799 (88%/30, 4.9k tris, scriptless): iconic round steel vault door with spoke handle and bolts - the most readable 'vault/safe' silhouette available. Mount on a wall (Bank Truck / dealership vault / garage upgrade). No free stand-alone safe box met the bar - procedural fallback: dark box + dial cylinder + handle.",
+    "alternates": [
+      {
+        "id": 4666110134,
+        "name": "Code Safe",
+        "note": "Code Safe by TheParabeIIum 92%/10, 552 tris, plain grey safe box (6 scripts - strip; keypad face not visible in thumbnail)"
+      }
+    ]
+  },
+  {
+    "role": "gold_bars",
+    "id": 14817572863,
+    "name": "Gold Bars (Union)",
+    "creator": "BlkMatt",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 846,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 4
+    },
+    "orientationNote": "Pyramid stack, +Y up.",
+    "notes": "Gold Bars (Union) by BlkMatt (100%/10, 846 tris, scriptless): pyramid stack of gold ingots - vault / Gold mutation showcase / rebirth reward.",
+    "alternates": [
+      {
+        "id": 133071893713929,
+        "name": "Gold Bar",
+        "note": "Gold Bar by Avengineering 100%/20, 108 tris, single glossy bar"
+      },
+      {
+        "id": 3168646743,
+        "name": "Gold Bar",
+        "note": "Gold Bar by NameIsNormal 94%/30, 20 tris, single bar (cheapest)"
+      }
+    ]
+  },
+  {
+    "role": "trophy",
+    "id": 1331624495,
+    "name": "Trophy",
+    "creator": "Ashbashthesmash",
+    "upVotePercent": 89,
+    "voteCount": 100,
+    "triangles": 4738,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 5
+    },
+    "orientationNote": "Upright cup, +Y up; nameplate on the base faces the camera => local -Z.",
+    "notes": "Trophy by Ashbashthesmash (89%/100, 4.7k tris, scriptless): gold two-handled cup on a wooden base with plaque - leaderboard podium at Spawn Plaza, Car Index completion.",
+    "alternates": [
+      {
+        "id": 246291205,
+        "name": "Trophy",
+        "note": "Trophy by Dirzic 97%/60, 2.3k tris, gold cup on black base"
+      },
+      {
+        "id": 9183670087,
+        "name": "You Win! Trophy",
+        "note": "You Win! Trophy 88%/70, 5.7k tris, gold cup with 'You win!' text"
+      }
+    ]
+  },
+  {
+    "role": "spray_can",
+    "id": 5403252616,
+    "name": "Spray Paint Can (Decoration Only)",
+    "creator": "GenXspawn",
+    "upVotePercent": 80,
+    "voteCount": 20,
+    "triangles": 652,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 1.6
+    },
+    "orientationNote": "Upright can, +Y up; graffiti label faces camera.",
+    "notes": "Spray Paint Can (Decoration Only) by GenXspawn (80%/20, 652 tris, scriptless): colorful graffiti-wrapped spray can with red cap - Spray Shop counter dressing, or scale to ~10 tall as the Spray Shop rooftop sign.",
+    "alternates": [
+      {
+        "id": 564659385,
+        "name": "Spray Paint Cans",
+        "note": "Spray Paint Cans by fidIar 86%/20, 1.3k tris, pair of graffiti cans (one standing, one lying)"
+      }
+    ]
+  },
+  {
+    "role": "car_crusher",
+    "id": 14341099875,
+    "name": "Rotating Shredder",
+    "creator": "jaytmek2",
+    "upVotePercent": 90,
+    "voteCount": 10,
+    "triangles": 3560,
+    "hasScripts": true,
+    "targetSize": {
+      "x": 24
+    },
+    "orientationNote": "Open-top box: blades visible from above, +Y up; rotationally forgiving (drive/drop cars in from the top).",
+    "notes": "Rotating Shredder by jaytmek2 (90%/10, 3.6k tris): chunky purple box with rows of grey shredder teeth - cartoony and readable as a car destroyer for the Chop Shop. 21 scripts (strip ALL - they are kill-brick logic). Recolor the box hazard-yellow with black accents if parts allow. No free hydraulic car-crusher met the bar (only 'Car Crushers 2' fan IP).",
+    "alternates": [
+      {
+        "id": 1091064941,
+        "name": "Shredder",
+        "note": "Shredder by 3_cs 90%/40, 8.1k tris, blue industrial hopper (69 scripts - strip)"
+      }
+    ]
+  },
+  {
+    "role": "police_barricade",
+    "id": 11114201246,
+    "name": "street barrier police sign",
+    "creator": "jedimaster1235",
+    "upVotePercent": 93,
+    "voteCount": 90,
+    "triangles": 1826,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 8
+    },
+    "orientationNote": "Barrier is a long fence along its local X; the POLICE sign faces the camera => sign face -Z.",
+    "notes": "street barrier police sign by jedimaster1235 (93%/90, 1.8k tris, scriptless): silver crowd-control fence with a blue POLICE plate - Police HQ perimeter, roadblocks during chases.",
+    "alternates": [
+      {
+        "id": 299027737,
+        "name": "Police Barrier",
+        "note": "Police Barrier by AccountPlacement 93%/50, 1.9k tris, A-frame sawhorse with blue light + cone (very readable)"
+      },
+      {
+        "id": 305215570,
+        "name": "Police Barricade",
+        "note": "Police Barricade by cotooth 89%/10, 312 tris, navy blue fence"
+      }
+    ]
+  },
+  {
+    "role": "donut",
+    "id": 13742217239,
+    "name": "Obby Spinning Donut",
+    "creator": "redDevi1",
+    "upVotePercent": 89,
+    "voteCount": 100,
+    "triangles": 536,
+    "hasScripts": false,
+    "targetSize": {
+      "x": 14
+    },
+    "orientationNote": "Torus lying flat in the thumbnail with frosting on top => +Y up; for a rooftop sign rotate 90 deg to stand it on its edge.",
+    "notes": "Obby Spinning Donut by redDevi1 (89%/100, 536 tris, scriptless): pink frosted donut with rainbow sprinkles - maximally cartoony. Giant (~14 wide) on the Police HQ roof, slowly spinning = the joke prop.",
+    "alternates": [
+      {
+        "id": 4596018959,
+        "name": "Donut",
+        "note": "Donut by Sakuya Izayoi 89%/10, 8.9k tris, pink glaze, softer look"
+      },
+      {
+        "id": 13137212247,
+        "name": "chocolate donut",
+        "note": "chocolate donut by vlustrousv 94%/10, 10.9k tris (heavy - one instance only)"
+      }
+    ]
+  },
+  {
+    "role": "hotdog_stand",
+    "id": 186713241,
+    "name": "Hotdog Stand",
+    "creator": "racermigs123",
+    "upVotePercent": 96,
+    "voteCount": 20,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "y": 10
+    },
+    "orientationNote": "Cart: thumbnail shows the serving side + umbrella; wheel on the right => push handle on the left. Face the hotdog/condiment side toward the sidewalk.",
+    "notes": "BONUS: Hotdog Stand by racermigs123 (96%/20, scriptless): steel food cart with red/blue umbrella, hot dogs, ketchup + mustard bottles - the chef/vendor NPC's stand at Spawn Plaza / Pier (and a teaser for the Secret Hotdog Wagon).",
+    "alternates": []
+  },
+  {
+    "role": "garage_door_rollup",
+    "id": 10163587378,
+    "name": "Rollup Garage Door",
+    "creator": "SubXero_X",
+    "upVotePercent": 94,
+    "voteCount": 600,
+    "triangles": 5012,
+    "hasScripts": true,
+    "targetSize": {
+      "x": 24
+    },
+    "orientationNote": "Flat door panel facing the camera => face -Z; slides up along +Y.",
+    "notes": "BONUS: Rollup Garage Door by SubXero_X (94%/600, 5k tris, 1 script - strip): corrugated roll-up door with side motor box - drop-in for PlotService garage fronts / chop shop / spray shop bays (tween it up when the owner arrives).",
+    "alternates": []
+  },
+  {
+    "role": "scrap_car",
+    "id": 8027653806,
+    "name": "PBR Wrecked Car",
+    "creator": "eatnoodls",
+    "upVotePercent": 90,
+    "voteCount": 20,
+    "triangles": 9998,
+    "hasScripts": false,
+    "targetSize": {
+      "z": 16
+    },
+    "orientationNote": "Wrecked sedan, front 3/4 thumbnail => front likely -Z.",
+    "notes": "BONUS: PBR Wrecked Car by eatnoodls (90%/20, 10k tris, scriptless): crumpled blue sedan - chop shop scrap pile / junkyard dressing next to the crusher.",
+    "alternates": [
+      {
+        "id": 4128315411,
+        "name": "Wrecked White Car (Mesh)",
+        "note": "Wrecked White Car (Mesh) by bearduckmonkey 96%/20, 5.3k tris"
+      }
+    ]
+  },
+  {
+    "role": "npc_police_officer",
+    "id": 4196154381,
+    "name": "Police",
+    "creator": "Alien Appocolypse Preparation Group",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Bright royal-blue uniform shirt with black tie + gold badge (reads 'cartoon cop' instantly, no real agency patch) + navy uniform pants with duty belt + Roblox 'Police Sergeants Cap' (blue cap w/ gold badge). Optional Sleek Sunglasses for chase units. Use for police car drivers, Police HQ guards, impound clerk.",
+    "outfit": {
+      "Shirt": {
+        "id": 4196154381,
+        "name": "Police",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 9670576178,
+        "name": "Police Uniform",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HatAccessory": [
+        {
+          "id": 1081392,
+          "name": "Police Sergeants Cap",
+          "assetType": 8,
+          "humanoidDescriptionProperty": "HatAccessory"
+        }
+      ],
+      "FaceAccessory": [
+        {
+          "id": 51245241,
+          "name": "Sleek Sunglasses",
+          "assetType": 42,
+          "humanoidDescriptionProperty": "FaceAccessory"
+        }
+      ]
+    },
+    "alternates": [
+      {
+        "id": 2430770336,
+        "name": "Police+ / Police- (Abandoned Era) navy set",
+        "outfit": {
+          "Shirt": {
+            "id": 2430770336,
+            "name": "Police+",
+            "assetType": 11,
+            "humanoidDescriptionProperty": "Shirt"
+          },
+          "Pants": {
+            "id": 2430769797,
+            "name": "Police-",
+            "assetType": 12,
+            "humanoidDescriptionProperty": "Pants"
+          },
+          "HatAccessory": [
+            {
+              "id": 1081392,
+              "name": "Police Sergeants Cap",
+              "assetType": 8,
+              "humanoidDescriptionProperty": "HatAccessory"
+            }
+          ]
+        }
+      },
+      {
+        "id": 6098143235,
+        "name": "Generic '90s Police Uniform + Trooper pants (Emergency Response Customs)",
+        "outfit": {
+          "Shirt": {
+            "id": 6098143235,
+            "name": "Generic '90s Police Uniform",
+            "assetType": 11,
+            "humanoidDescriptionProperty": "Shirt"
+          },
+          "Pants": {
+            "id": 4586598212,
+            "name": "Generic State Police \"Trooper\" Uniform Pants",
+            "assetType": 12,
+            "humanoidDescriptionProperty": "Pants"
+          },
+          "HatAccessory": [
+            {
+              "id": 1081392,
+              "name": "Police Sergeants Cap",
+              "assetType": 8,
+              "humanoidDescriptionProperty": "HatAccessory"
+            }
+          ]
+        }
+      }
+    ],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_tourist",
+    "id": 7024381748,
+    "name": "Summer Hawaiian Shirt (Blue)",
+    "creator": "K00L KIDS CLOTHING",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Island tourist: blue floral Hawaiian shirt + Roblox Jean Shorts + Roblox 'Beach Day Straw Hat and Hair' (hat incl. hair). Beach ring / Pier / Spawn Plaza.",
+    "outfit": {
+      "Shirt": {
+        "id": 7024381748,
+        "name": "Summer Hawaiian Shirt (Blue)",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 382537806,
+        "name": "Jean Shorts",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HatAccessory": [
+        {
+          "id": 236398519,
+          "name": "Beach Day Straw Hat and Hair",
+          "assetType": 8,
+          "humanoidDescriptionProperty": "HatAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_beach",
+    "id": 7024382762,
+    "name": "Summer Hawaiian Shirt (Red)",
+    "creator": "K00L KIDS CLOTHING",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Red Hawaiian shirt + Roblox Jean Shorts with White Shoes + Pal Hair + Sleek Sunglasses. Beach / boardwalk.",
+    "outfit": {
+      "Shirt": {
+        "id": 7024382762,
+        "name": "Summer Hawaiian Shirt (Red)",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 382537950,
+        "name": "Jean Shorts with White Shoes",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HairAccessory": [
+        {
+          "id": 63690008,
+          "name": "Pal Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ],
+      "FaceAccessory": [
+        {
+          "id": 51245241,
+          "name": "Sleek Sunglasses",
+          "assetType": 42,
+          "humanoidDescriptionProperty": "FaceAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_teal",
+    "id": 382537702,
+    "name": "Teal Shirt",
+    "creator": "Roblox",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Roblox Teal Shirt (teal top w/ purple hem) + Roblox Beautiful You Jeans (patched denim) + True Blue Hair. Bright, readable.",
+    "outfit": {
+      "Shirt": {
+        "id": 382537702,
+        "name": "Teal Shirt",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 398634487,
+        "name": "Beautiful You Jeans",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HairAccessory": [
+        {
+          "id": 451221329,
+          "name": "True Blue Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_plaid",
+    "id": 398635081,
+    "name": "Blue Plaid Shirt",
+    "creator": "Roblox",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Roblox Blue Plaid Shirt + Dark Green Jeans + Brown Charmer Hair + Buddy's red Baseball Cap. Suburban dad / garage regular.",
+    "outfit": {
+      "Shirt": {
+        "id": 398635081,
+        "name": "Blue Plaid Shirt",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 144076760,
+        "name": "Dark Green Jeans",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HairAccessory": [
+        {
+          "id": 376548738,
+          "name": "Brown Charmer Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ],
+      "HatAccessory": [
+        {
+          "id": 68259961,
+          "name": "Buddy's Baseball Cap",
+          "assetType": 8,
+          "humanoidDescriptionProperty": "HatAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_pizza",
+    "id": 382537085,
+    "name": "I <3 Pizza Shirt",
+    "creator": "Roblox",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Roblox 'I <3 Pizza Shirt' (denim jacket over pizza tee) + Black Jeans with White Shoes + Blonde Spiked Hair. Doubles as the Pizza Van driver.",
+    "outfit": {
+      "Shirt": {
+        "id": 382537085,
+        "name": "I <3 Pizza Shirt",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 398633812,
+        "name": "Black Jeans with White Shoes",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HairAccessory": [
+        {
+          "id": 376524487,
+          "name": "Blonde Spiked Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_hoodie",
+    "id": 398633584,
+    "name": "Denim Jacket with White Hoodie",
+    "creator": "Roblox",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Roblox Denim Jacket with White Hoodie + Ripped Skater Pants (teal/black) + Belle Of Belfast Long Red Hair. Skater / stunt park spectator.",
+    "outfit": {
+      "Shirt": {
+        "id": 398633584,
+        "name": "Denim Jacket with White Hoodie",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 398635338,
+        "name": "Ripped Skater Pants",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HairAccessory": [
+        {
+          "id": 2956239660,
+          "name": "Belle Of Belfast Long Red Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_civilian_pastel",
+    "id": 398634295,
+    "name": "Pastel Starburst Top with Gray Jacket",
+    "creator": "Roblox",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Roblox Pastel Starburst Top with Gray Jacket + Black Jeans with Sneakers + Straight Blonde Hair. Downtown shopper.",
+    "outfit": {
+      "Shirt": {
+        "id": 398634295,
+        "name": "Pastel Starburst Top with Gray Jacket",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 382538503,
+        "name": "Black Jeans with Sneakers",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HairAccessory": [
+        {
+          "id": 376526888,
+          "name": "Straight Blonde Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ]
+    },
+    "alternates": [],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_chef_vendor",
+    "id": 6602162100,
+    "name": "White Chef Jacket",
+    "creator": "FileSaved (verified)",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Hotdog stand vendor: White Chef Jacket (double-breasted) + Grey Chef Pants (matching set by verified creator FileSaved) + Roblox 'The Star Chef' tall white toque + Brown Hair. Stand him behind hotdog_stand (186713241).",
+    "outfit": {
+      "Shirt": {
+        "id": 6602162100,
+        "name": "White Chef Jacket",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 6602166195,
+        "name": "Grey Chef Pants",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HatAccessory": [
+        {
+          "id": 96678446,
+          "name": "The Star Chef",
+          "assetType": 8,
+          "humanoidDescriptionProperty": "HatAccessory"
+        }
+      ],
+      "HairAccessory": [
+        {
+          "id": 62234425,
+          "name": "Brown Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ]
+    },
+    "alternates": [
+      {
+        "id": 10476359,
+        "name": "Swap hat -> Roblox 'Paper Hat' (newspaper street-vendor hat)",
+        "outfit": {
+          "HatAccessory": [
+            {
+              "id": 10476359,
+              "name": "Paper Hat",
+              "assetType": 8,
+              "humanoidDescriptionProperty": "HatAccessory"
+            }
+          ]
+        }
+      },
+      {
+        "id": 12314404,
+        "name": "Swap hat -> Roblox 'Gourmet Chef' (puffy white toque)",
+        "outfit": {
+          "HatAccessory": [
+            {
+              "id": 12314404,
+              "name": "Gourmet Chef",
+              "assetType": 8,
+              "humanoidDescriptionProperty": "HatAccessory"
+            }
+          ]
+        }
+      }
+    ],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_car_salesman",
+    "id": 6554200369,
+    "name": "Grey Suit w/ Black Vest [+]",
+    "creator": "TIX Clothing + (verified)",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Avatar catalog items for a HumanoidDescription (R15). Build with Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15) on the server; classic Shirt/Pants are asset ids (assetType 11 = Shirt, 12 = Pants); HatAccessory/HairAccessory/FaceAccessory are comma-separated id strings (assetType 8 = Hat, 41 = Hair, 42 = Face).",
+    "notes": "Dealership salesman: 'Grey Suit w/ Black Vest' [+]/[-] matching set by verified TIX Clothing + (523k favorites) + Roblox 'Perfectly Legitimate Business Hat' (pinstripe fedora - shady-dealer joke) + Brown Hair.",
+    "outfit": {
+      "Shirt": {
+        "id": 6554200369,
+        "name": "Grey Suit w/ Black Vest [+]",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      },
+      "Pants": {
+        "id": 6555797786,
+        "name": "Grey Suit w/ Black Vest [-]",
+        "assetType": 12,
+        "humanoidDescriptionProperty": "Pants"
+      },
+      "HatAccessory": [
+        {
+          "id": 19027209,
+          "name": "Perfectly Legitimate Business Hat",
+          "assetType": 8,
+          "humanoidDescriptionProperty": "HatAccessory"
+        }
+      ],
+      "HairAccessory": [
+        {
+          "id": 62234425,
+          "name": "Brown Hair",
+          "assetType": 41,
+          "humanoidDescriptionProperty": "HairAccessory"
+        }
+      ]
+    },
+    "alternates": [
+      {
+        "id": 6553589977,
+        "name": "White Suit w/ Black Vest [+] / White Suit 'n' Black Vest [-] (TIX Clothing +) - flashier",
+        "outfit": {
+          "Shirt": {
+            "id": 6553589977,
+            "name": "White Suit w/ Black Vest [+]",
+            "assetType": 11,
+            "humanoidDescriptionProperty": "Shirt"
+          },
+          "Pants": {
+            "id": 6555794614,
+            "name": "White Suit 'n' Black Vest [-]",
+            "assetType": 12,
+            "humanoidDescriptionProperty": "Pants"
+          },
+          "HatAccessory": [
+            {
+              "id": 1029025,
+              "name": "The Classic ROBLOX Fedora",
+              "assetType": 8,
+              "humanoidDescriptionProperty": "HatAccessory"
+            }
+          ]
+        }
+      }
+    ],
+    "source": "catalog"
+  },
+  {
+    "role": "npc_accessory_pool",
+    "id": 63690008,
+    "name": "Pal Hair",
+    "creator": "Roblox",
+    "upVotePercent": null,
+    "voteCount": null,
+    "triangles": null,
+    "hasScripts": false,
+    "targetSize": {
+      "height": 5.2
+    },
+    "orientationNote": "Accessory ids for randomizing civilian HumanoidDescriptions (HairAccessory = assetType 41, HatAccessory = 8, FaceAccessory = 42). All are Roblox-made except the Urbanize straw hat.",
+    "notes": "Pick 1 hair + optional 1 hat per civilian. Hats that already include hair (Beach Day Straw Hat and Hair) should be used without a separate hair.",
+    "hair": [
+      {
+        "id": 63690008,
+        "name": "Pal Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 451221329,
+        "name": "True Blue Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 376526888,
+        "name": "Straight Blonde Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 376524487,
+        "name": "Blonde Spiked Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 376548738,
+        "name": "Brown Charmer Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 2956239660,
+        "name": "Belle Of Belfast Long Red Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 1103003368,
+        "name": "Orange Beanie with Black Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      },
+      {
+        "id": 62234425,
+        "name": "Brown Hair",
+        "assetType": 41,
+        "humanoidDescriptionProperty": "HairAccessory"
+      }
+    ],
+    "hats": [
+      {
+        "id": 607702162,
+        "name": "Roblox Baseball Cap",
+        "assetType": 8,
+        "humanoidDescriptionProperty": "HatAccessory"
+      },
+      {
+        "id": 68259961,
+        "name": "Buddy's Baseball Cap",
+        "assetType": 8,
+        "humanoidDescriptionProperty": "HatAccessory"
+      },
+      {
+        "id": 236398519,
+        "name": "Beach Day Straw Hat and Hair",
+        "assetType": 8,
+        "humanoidDescriptionProperty": "HatAccessory"
+      },
+      {
+        "id": 5063815350,
+        "name": "\"Generic Straw Hat\"",
+        "assetType": 8,
+        "humanoidDescriptionProperty": "HatAccessory"
+      },
+      {
+        "id": 1029025,
+        "name": "The Classic ROBLOX Fedora",
+        "assetType": 8,
+        "humanoidDescriptionProperty": "HatAccessory"
+      },
+      {
+        "id": 10476359,
+        "name": "Paper Hat",
+        "assetType": 8,
+        "humanoidDescriptionProperty": "HatAccessory"
+      }
+    ],
+    "face": [
+      {
+        "id": 51245241,
+        "name": "Sleek Sunglasses",
+        "assetType": 42,
+        "humanoidDescriptionProperty": "FaceAccessory"
+      }
+    ],
+    "extraShirts": [
+      {
+        "id": 144076358,
+        "name": "Blue and Black Motorcycle Shirt",
+        "assetType": 11,
+        "humanoidDescriptionProperty": "Shirt"
+      }
+    ],
+    "alternates": [],
+    "source": "catalog"
+  }
+]

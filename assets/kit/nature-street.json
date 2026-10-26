@@ -1,0 +1,212 @@
+{
+  "palm_tree_a": {
+    "assetId": 110680256553424,
+    "file": "assets/kit/nature-street/palm_tree_a.glb",
+    "name": "HC Palm Tree A",
+    "yaw": 0.0,
+    "length": 34.0,
+    "fit": "height",
+    "role": "palm_tree_a",
+    "moderation": "Approved"
+  },
+  "pine_tree": {
+    "assetId": 110984583829450,
+    "file": "assets/kit/nature-street/pine_tree.glb",
+    "name": "HC Pine Tree",
+    "yaw": 0.0,
+    "length": 26.0,
+    "fit": "height",
+    "role": "pine_tree",
+    "moderation": "Approved"
+  },
+  "rock": {
+    "assetId": 124248644353930,
+    "file": "assets/kit/nature-street/rock.glb",
+    "name": "HC Boulder",
+    "yaw": 0.0,
+    "length": 6.0,
+    "fit": "maxDim",
+    "role": "rock",
+    "moderation": "Approved"
+  },
+  "street_lamp": {
+    "assetId": 97961613878373,
+    "file": "assets/kit/nature-street/street_lamp.glb",
+    "name": "HC Street Lamp",
+    "yaw": 180.0,
+    "length": 18.0,
+    "fit": "height",
+    "role": "street_lamp",
+    "moderation": "Approved"
+  },
+  "traffic_light": {
+    "assetId": 99965539907552,
+    "file": "assets/kit/nature-street/traffic_light.glb",
+    "name": "HC Traffic Light",
+    "yaw": 180.0,
+    "length": 20.0,
+    "fit": "height",
+    "role": "traffic_light",
+    "moderation": "Approved"
+  },
+  "bench": {
+    "assetId": 136432573607618,
+    "file": "assets/kit/nature-street/bench.glb",
+    "name": "HC Park Bench",
+    "yaw": 180.0,
+    "length": 8.0,
+    "fit": "maxDim",
+    "role": "bench",
+    "moderation": "Approved"
+  },
+  "fire_hydrant": {
+    "assetId": 114961407772066,
+    "file": "assets/kit/nature-street/fire_hydrant.glb",
+    "name": "HC Fire Hydrant",
+    "yaw": 0.0,
+    "length": 3.5,
+    "fit": "height",
+    "role": "fire_hydrant",
+    "moderation": "Approved"
+  },
+  "bus_stop": {
+    "assetId": 119117098016654,
+    "file": "assets/kit/nature-street/bus_stop.glb",
+    "name": "HC Bus Stop",
+    "yaw": 180.0,
+    "length": 16.0,
+    "fit": "maxDim",
+    "role": "bus_stop",
+    "moderation": "Approved"
+  },
+  "billboard": {
+    "assetId": 114772042601208,
+    "file": "assets/kit/nature-street/billboard.glb",
+    "name": "HC Billboard",
+    "yaw": 0.0,
+    "length": 40.0,
+    "fit": "height",
+    "role": "billboard",
+    "moderation": "Approved"
+  },
+  "fountain": {
+    "assetId": 75095778830314,
+    "file": "assets/kit/nature-street/fountain.glb",
+    "name": "HC Plaza Fountain",
+    "yaw": 0.0,
+    "length": 30.0,
+    "fit": "footprint",
+    "role": "fountain",
+    "moderation": "Approved"
+  },
+  "water_tower": {
+    "assetId": 115392992764228,
+    "file": "assets/kit/nature-street/water_tower.glb",
+    "name": "HC Water Tower",
+    "yaw": 0.0,
+    "length": 60.0,
+    "fit": "height",
+    "role": "water_tower",
+    "moderation": "Approved"
+  },
+  "road_barrier": {
+    "assetId": 129396054892600,
+    "file": "assets/kit/nature-street/road_barrier.glb",
+    "name": "HC Road Barrier",
+    "yaw": 90.0,
+    "length": 8.0,
+    "fit": "maxDim",
+    "role": "road_barrier",
+    "moderation": "Approved"
+  },
+  "newspaper_box": {
+    "assetId": 71497296792767,
+    "file": "assets/kit/nature-street/newspaper_box.glb",
+    "name": "HC Newspaper Box",
+    "yaw": 180.0,
+    "length": 4.0,
+    "fit": "height",
+    "role": "newspaper_box",
+    "moderation": "Approved"
+  },
+  "ferris_wheel": {
+    "assetId": 125709542843565,
+    "file": "assets/kit/nature-street/ferris_wheel.glb",
+    "name": "HC Ferris Wheel",
+    "yaw": 0.0,
+    "length": 90.0,
+    "fit": "height",
+    "role": "ferris_wheel",
+    "moderation": "Approved"
+  },
+  "palm_tree_b": {
+    "assetId": 129715816814065,
+    "file": "assets/kit/nature-street/palm_tree_b.glb",
+    "name": "HC Palm Tree B",
+    "yaw": 0.0,
+    "length": 30.0,
+    "fit": "height",
+    "role": "palm_tree_b",
+    "moderation": "Approved"
+  },
+  "bush": {
+    "assetId": 135605525314160,
+    "file": "assets/kit/nature-street/bush.glb",
+    "name": "HC Hedge Bush",
+    "yaw": 0.0,
+    "length": 5.0,
+    "fit": "maxDim",
+    "role": "bush",
+    "moderation": "Approved"
+  },
+  "round_tree": {
+    "assetId": 100614181052484,
+    "file": "assets/kit/nature-street/round_tree.glb",
+    "name": "HC Round Tree",
+    "yaw": 0.0,
+    "length": 24.0,
+    "fit": "height",
+    "role": "round_tree",
+    "moderation": "Approved"
+  },
+  "trash_can": {
+    "assetId": 120431887412857,
+    "file": "assets/kit/nature-street/trash_can.glb",
+    "name": "HC Trash Can",
+    "yaw": 90.0,
+    "length": 4.5,
+    "fit": "height",
+    "role": "trash_can",
+    "moderation": "Approved"
+  },
+  "traffic_cone": {
+    "assetId": 80331275564441,
+    "file": "assets/kit/nature-street/traffic_cone.glb",
+    "name": "HC Traffic Cone",
+    "yaw": 0.0,
+    "length": 2.5,
+    "fit": "height",
+    "role": "traffic_cone",
+    "moderation": "Approved"
+  },
+  "mailbox": {
+    "assetId": 125138540039790,
+    "file": "assets/kit/nature-street/mailbox.glb",
+    "name": "HC Mailbox",
+    "yaw": 180.0,
+    "length": 4.0,
+    "fit": "height",
+    "role": "mailbox",
+    "moderation": "Approved"
+  },
+  "hotdog_stand": {
+    "assetId": 93258067399426,
+    "file": "assets/kit/nature-street/hotdog_stand.glb",
+    "name": "HC Hot Dog Stand",
+    "yaw": 180.0,
+    "length": 10.0,
+    "fit": "height",
+    "role": "hotdog_stand",
+    "moderation": "Approved"
+  }
+}

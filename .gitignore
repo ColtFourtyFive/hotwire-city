@@ -3,3 +3,6 @@
 /build/
 sourcemap.json
 roblox.yml.bak
+build/
+*.rbxlx
+*.rbxl

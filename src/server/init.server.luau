@@ -10,6 +10,7 @@ local Net = require(ReplicatedStorage.Shared.Net)
 -- Explicit order: world first, data second, then everything that depends on them.
 local ORDER = {
 	"MapBuilder",
+	"AssetLibrary",
 	"LightingService",
 	"DataService",
 	"MonetizationService",

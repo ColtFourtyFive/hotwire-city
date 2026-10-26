@@ -1,0 +1,2384 @@
+[
+  {
+    "role": "skyscraper_1",
+    "group": "skyscraper",
+    "id": 277678404,
+    "name": "City Tower Building",
+    "creator": "Zephyred",
+    "upVotePercent": 83,
+    "voteCount": 200,
+    "triangles": 1044,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 200
+    },
+    "orientationNote": "Square tower, symmetric; any yaw works. Entrance/lobby glazing at ground on all sides.",
+    "notes": "Blue-glass setback tower, very light (~1k tris) so it can repeat downtown. Hero filler.",
+    "alternates": [
+      {
+        "id": 885594485,
+        "name": "Roblox City Building",
+        "creator": "77nallek77",
+        "upVotePercent": 90,
+        "voteCount": 70,
+        "triangles": 10404,
+        "hasScripts": false
+      },
+      {
+        "id": 2109282230,
+        "name": "City Office Building #20",
+        "creator": "visionpsyche7",
+        "upVotePercent": 83,
+        "voteCount": 1000,
+        "triangles": 5852,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "skyscraper_2",
+    "group": "skyscraper",
+    "id": 6903024213,
+    "name": "City House",
+    "creator": "cheerfuldudeknife",
+    "upVotePercent": 91,
+    "voteCount": 600,
+    "triangles": 3576,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 180
+    },
+    "orientationNote": "Rectangular slab; long faces = front/back. Put a long face toward the main road.",
+    "notes": "NEON downtown tower: dark facade with glowing cyan window blocks (Neon material) - reads great at night with Bloom. Alt 17173031108 is a re-upload of the same model.",
+    "alternates": [
+      {
+        "id": 17173031108,
+        "name": "city building blue",
+        "creator": "ottomastery2",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 3576,
+        "hasScripts": false
+      },
+      {
+        "id": 368735037,
+        "name": "Neon Buildings [ Blue ] ",
+        "creator": "CaikSlyce",
+        "upVotePercent": 95,
+        "voteCount": 50,
+        "triangles": 7440,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "skyscraper_3",
+    "group": "skyscraper",
+    "id": 8359165862,
+    "name": "Twisted Skyscraper",
+    "creator": "Melismyx",
+    "upVotePercent": 87,
+    "voteCount": 50,
+    "triangles": 6156,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 250
+    },
+    "orientationNote": "Twisted tower, rotationally symmetric enough for any yaw.",
+    "notes": "Landmark 'twisted' glass skyscraper for the tallest downtown block (skyline silhouette). Part-based; keep to 1-2 instances.",
+    "alternates": [
+      {
+        "id": 405471712,
+        "name": "Modern Skyscraper",
+        "creator": "camcool12354",
+        "upVotePercent": 83,
+        "voteCount": 40,
+        "triangles": 40042,
+        "hasScripts": false
+      },
+      {
+        "id": 2008416275,
+        "name": "Retro Skyscraper",
+        "creator": "DJLCyber",
+        "upVotePercent": 90,
+        "voteCount": 20,
+        "triangles": 26880,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "skyscraper_4",
+    "group": "skyscraper",
+    "id": 65405535,
+    "name": "SkyScraper",
+    "creator": "Cedallion",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 2364,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 220
+    },
+    "orientationNote": "Square tower with roof antenna; any yaw.",
+    "notes": "Blue tower with antenna spire; light (~2.4k tris). Alt 2109247054 (visionpsyche7 #12) is darker glass w/ antenna; 4496164717 art-deco spire.",
+    "alternates": [
+      {
+        "id": 2109247054,
+        "name": "City Office Building #12",
+        "creator": "visionpsyche7",
+        "upVotePercent": 94,
+        "voteCount": 30,
+        "triangles": 38060,
+        "hasScripts": false
+      },
+      {
+        "id": 4496164717,
+        "name": "really tall building",
+        "creator": "sai736",
+        "upVotePercent": 87,
+        "voteCount": 20,
+        "triangles": 65976,
+        "hasScripts": true
+      }
+    ]
+  },
+  {
+    "role": "midrise_1",
+    "group": "midrise",
+    "id": 18408766607,
+    "name": "City Buildings",
+    "creator": "GnomeCode",
+    "upVotePercent": 96,
+    "voteCount": 90,
+    "triangles": 12372,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 70
+    },
+    "orientationNote": "Two joined brick buildings; storefront/fire-escape side is the front (faces the thumbnail camera, front-left). Long axis = X.",
+    "notes": "GnomeCode 'City Buildings': bright red + blue brick walk-ups with shopfronts and rooftop water tank - the most cartoon-colorful midrise found. Alt 201709891 is the earlier Phoqus original of the same build (91%/500v).",
+    "alternates": [
+      {
+        "id": 201709891,
+        "name": "Buildings",
+        "creator": "Phoqus",
+        "upVotePercent": 91,
+        "voteCount": 500,
+        "triangles": 12372,
+        "hasScripts": false
+      },
+      {
+        "id": 16422242250,
+        "name": "City Buildings",
+        "creator": "ksiuwir",
+        "upVotePercent": 86,
+        "voteCount": 100,
+        "triangles": 21384,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "midrise_2",
+    "group": "midrise",
+    "id": 2744631571,
+    "name": "Apartments (colored)",
+    "creator": "logoffkid",
+    "upVotePercent": 84,
+    "voteCount": 50,
+    "triangles": 24432,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based; likely heavy - cap instances",
+    "targetSize": {
+      "height": 60
+    },
+    "orientationNote": "Row of four apartments; facade with fire escapes is the front. Long axis = X.",
+    "notes": "Colored apartment row (red/blue/green/yellow) - great for residential/mid-city blocks.",
+    "alternates": [
+      {
+        "id": 16422242250,
+        "name": "City Buildings",
+        "creator": "ksiuwir",
+        "upVotePercent": 86,
+        "voteCount": 100,
+        "triangles": 21384,
+        "hasScripts": false
+      },
+      {
+        "id": 201708073,
+        "name": "Building #2",
+        "creator": "Phoqus",
+        "upVotePercent": 94,
+        "voteCount": 60,
+        "triangles": 5736,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "midrise_3",
+    "group": "midrise",
+    "id": 10368934263,
+    "name": "City Building",
+    "creator": "poopy64",
+    "upVotePercent": 90,
+    "voteCount": 50,
+    "triangles": 12924,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 65
+    },
+    "orientationNote": "Front = facade with fire escape and ground shops.",
+    "notes": "Red-brick walk-up with fire escapes and awnings; classic city midrise.",
+    "alternates": [
+      {
+        "id": 2113199198,
+        "name": "City Building #25",
+        "creator": "visionpsyche7",
+        "upVotePercent": 91,
+        "voteCount": 100,
+        "triangles": 16886,
+        "hasScripts": false
+      },
+      {
+        "id": 201708073,
+        "name": "Building #2",
+        "creator": "Phoqus",
+        "upVotePercent": 94,
+        "voteCount": 60,
+        "triangles": 5736,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "midrise_4",
+    "group": "midrise",
+    "id": 2109231816,
+    "name": "City Office Building #8",
+    "creator": "visionpsyche7",
+    "upVotePercent": 86,
+    "voteCount": 200,
+    "triangles": 5968,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 80
+    },
+    "orientationNote": "Symmetric glass office; any yaw.",
+    "notes": "Modern office (visionpsyche7 'City Office Building' family, 86%/200v). Alt 2109282230 is the same family (#20, 1000 votes) for cohesion.",
+    "alternates": [
+      {
+        "id": 2109282230,
+        "name": "City Office Building #20",
+        "creator": "visionpsyche7",
+        "upVotePercent": 83,
+        "voteCount": 1000,
+        "triangles": 5852,
+        "hasScripts": false
+      },
+      {
+        "id": 6855063285,
+        "name": "City Building",
+        "creator": "Xonuz",
+        "upVotePercent": 88,
+        "voteCount": 30,
+        "triangles": 6456,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "midrise_5",
+    "group": "midrise",
+    "id": 11060633677,
+    "name": "Tall Apartment Building",
+    "creator": "EnvirobIox",
+    "upVotePercent": 80,
+    "voteCount": 200,
+    "triangles": 17746,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 2,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 90
+    },
+    "orientationNote": "Slender tower; balcony side is the front.",
+    "notes": "Tall apartment with balconies and white spire; only 2 MeshParts (cheap on part budget).",
+    "alternates": [
+      {
+        "id": 14399154877,
+        "name": "City Building",
+        "creator": "cincincin13",
+        "upVotePercent": 94,
+        "voteCount": 50,
+        "triangles": 35575,
+        "hasScripts": false
+      },
+      {
+        "id": 12423243620,
+        "name": "Office Building",
+        "creator": "iLegend66",
+        "upVotePercent": 94,
+        "voteCount": 90,
+        "triangles": 49607,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "beach_motel",
+    "group": "midrise",
+    "id": 584148748,
+    "name": "The Flamingo Motel",
+    "creator": "EvePawley",
+    "upVotePercent": 84,
+    "voteCount": 40,
+    "triangles": 52274,
+    "hasScripts": true,
+    "scriptCount": 2,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 32
+    },
+    "orientationNote": "Front = side with the pink neon 'THE FLAMINGO MOTEL' sign.",
+    "notes": "Optional beach-strip hero: retro Miami motel with pink neon trim (fictional name). Fits the neon/beach vibe.",
+    "alternates": []
+  },
+  {
+    "role": "shop_1",
+    "group": "shop",
+    "id": 1869427525,
+    "name": "Low-poly Store",
+    "creator": "Wishtap",
+    "upVotePercent": 82,
+    "voteCount": 10,
+    "triangles": 3566,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 28
+    },
+    "orientationNote": "Front = side under the orange/white striped awning (faces thumbnail camera).",
+    "notes": "Bright low-poly corner store with striped awning.",
+    "alternates": [
+      {
+        "id": 8932724224,
+        "name": "synty city corner shop",
+        "creator": "InuB30",
+        "upVotePercent": 0,
+        "voteCount": 0,
+        "triangles": 680,
+        "hasScripts": false
+      },
+      {
+        "id": 2310029676,
+        "name": "Shop",
+        "creator": "H4_L0",
+        "upVotePercent": 94,
+        "voteCount": 600,
+        "triangles": 9620,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "shop_2",
+    "group": "shop",
+    "id": 10799539223,
+    "name": "City Building Prop",
+    "creator": "alex_06240899",
+    "upVotePercent": 81,
+    "voteCount": 20,
+    "triangles": 3370,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 30
+    },
+    "orientationNote": "Front = wall with red/white awnings and windows.",
+    "notes": "Red-brick storefront with candy-stripe awnings.",
+    "alternates": [
+      {
+        "id": 8938662512,
+        "name": "synty city shop 2",
+        "creator": "InuB30",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 720,
+        "hasScripts": false
+      },
+      {
+        "id": 4532555666,
+        "name": "Building Shop",
+        "creator": "FinisMaps",
+        "upVotePercent": 84,
+        "voteCount": 40,
+        "triangles": 3480,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "shop_3",
+    "group": "shop",
+    "id": 5365756549,
+    "name": "Small Cafe",
+    "creator": "AdminSpaceCat",
+    "upVotePercent": 83,
+    "voteCount": 60,
+    "triangles": 31460,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 26
+    },
+    "orientationNote": "Front = glass wall below the pink striped awning.",
+    "notes": "Glass-walled cafe with pink striped awning (1 MeshPart). Use for cafes / coffee.",
+    "alternates": [
+      {
+        "id": 3122426301,
+        "name": "Pizza shop",
+        "creator": "MahiruShiinaLover",
+        "upVotePercent": 93,
+        "voteCount": 20,
+        "triangles": 31283,
+        "hasScripts": false
+      },
+      {
+        "id": 9520307807,
+        "name": "cafe",
+        "creator": "AgpFan5",
+        "upVotePercent": 86,
+        "voteCount": 20,
+        "triangles": 46192,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "shop_4",
+    "group": "shop",
+    "id": 6237817363,
+    "name": "Low Poly Simulator Shop",
+    "creator": "mewtwo868",
+    "upVotePercent": 90,
+    "voteCount": 50,
+    "triangles": 6050,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 42,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "many MeshParts",
+    "targetSize": {
+      "height": 32
+    },
+    "orientationNote": "Front = side with door, awnings and 3D 'SHOP' letters.",
+    "notes": "Pink simulator-style shop with big 3D SHOP letters - very cartoon. Good for Gear Shop / generic store.",
+    "alternates": [
+      {
+        "id": 5299997385,
+        "name": "Simulator Shop",
+        "creator": "dodiop",
+        "upVotePercent": 80,
+        "voteCount": 10,
+        "triangles": null,
+        "hasScripts": false
+      },
+      {
+        "id": 1003340039,
+        "name": "Shop!",
+        "creator": "YojSwoK",
+        "upVotePercent": 84,
+        "voteCount": 60,
+        "triangles": 746,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "shop_5",
+    "group": "shop",
+    "id": 199277661,
+    "name": "DINER",
+    "creator": "TsunamiDonut",
+    "upVotePercent": 92,
+    "voteCount": 10,
+    "triangles": 16896,
+    "hasScripts": true,
+    "scriptCount": 5,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based; likely heavy - cap instances",
+    "targetSize": {
+      "height": 25
+    },
+    "orientationNote": "Long diner; front = long glazed side with entrance steps.",
+    "notes": "Retro long diner. Has 5 scripts (stripped by loader). Alt 479353898 burger joint, 9838787774 red/yellow fast-food box.",
+    "alternates": [
+      {
+        "id": 479353898,
+        "name": "Ben's Burgers Restaurant",
+        "creator": "Terminox989",
+        "upVotePercent": 90,
+        "voteCount": 10,
+        "triangles": 14004,
+        "hasScripts": false
+      },
+      {
+        "id": 9838787774,
+        "name": "Fast Food Restaurant",
+        "creator": "1InternetExplorer1",
+        "upVotePercent": 85,
+        "voteCount": 10,
+        "triangles": 27570,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "house_1",
+    "group": "house",
+    "id": 12468173054,
+    "name": "Cartoon House",
+    "creator": "Terolax",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 2934,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 26
+    },
+    "orientationNote": "Front = side with door and lit windows (faces thumbnail camera).",
+    "notes": "Cartoon house with bright blue roof and warm windows - beach-town feel.",
+    "alternates": [
+      {
+        "id": 13026333581,
+        "name": "Home (Welcome Home)",
+        "creator": "chuqiri",
+        "upVotePercent": 90,
+        "voteCount": 20,
+        "triangles": 20102,
+        "hasScripts": false
+      },
+      {
+        "id": 643101967,
+        "name": "Cartoon House",
+        "creator": "StylishFreak",
+        "upVotePercent": 95,
+        "voteCount": 50,
+        "triangles": 1638,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "house_2",
+    "group": "house",
+    "id": 17786124120,
+    "name": "Modern House",
+    "creator": "pl0vka",
+    "upVotePercent": 91,
+    "voteCount": 30,
+    "triangles": 5580,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 30
+    },
+    "orientationNote": "Front = side with big glass windows and balcony.",
+    "notes": "White modern villa (boxy, flat roof) for beachfront lots. Alt 984809285 is the famous 10k-vote modern house (heavier, more realistic).",
+    "alternates": [
+      {
+        "id": 9501870830,
+        "name": "High by the Beach House (Small Detail Changed)",
+        "creator": "anthonythecarmaster1",
+        "upVotePercent": 94,
+        "voteCount": 10,
+        "triangles": 36234,
+        "hasScripts": false
+      },
+      {
+        "id": 984809285,
+        "name": "Two-Story Modern House",
+        "creator": "SunnyBunny10123",
+        "upVotePercent": 84,
+        "voteCount": 10000,
+        "triangles": 9912,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "house_3",
+    "group": "house",
+    "id": 643101967,
+    "name": "Cartoon House",
+    "creator": "StylishFreak",
+    "upVotePercent": 95,
+    "voteCount": 50,
+    "triangles": 1638,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 24
+    },
+    "orientationNote": "Front = side with white door frame and steps.",
+    "notes": "Chunky cartoon red-brick house with navy roof.",
+    "alternates": [
+      {
+        "id": 14628362521,
+        "name": "Home / house",
+        "creator": "Sm0k1ch",
+        "upVotePercent": 92,
+        "voteCount": 60,
+        "triangles": 11844,
+        "hasScripts": false
+      },
+      {
+        "id": 8959904556,
+        "name": "Classic House",
+        "creator": "hjunaid2007",
+        "upVotePercent": 88,
+        "voteCount": 8000,
+        "triangles": 6816,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "house_4",
+    "group": "house",
+    "id": 8959904556,
+    "name": "Classic House",
+    "creator": "hjunaid2007",
+    "upVotePercent": 88,
+    "voteCount": 8000,
+    "triangles": 6816,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 24
+    },
+    "orientationNote": "Front = side with entrance steps (faces thumbnail camera); includes green lawn base.",
+    "notes": "Classic red-roof house (8000 votes). Alt 18440426312 adds yard/trees.",
+    "alternates": [
+      {
+        "id": 18440426312,
+        "name": "Classic House with exterior",
+        "creator": "Aperacre",
+        "upVotePercent": 97,
+        "voteCount": 70,
+        "triangles": 19992,
+        "hasScripts": false
+      },
+      {
+        "id": 15080775171,
+        "name": "classic house",
+        "creator": "BuildintoGames12395",
+        "upVotePercent": 94,
+        "voteCount": 100,
+        "triangles": 18876,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "gas_station",
+    "group": "poi",
+    "id": 1298550478,
+    "name": "Gas station without convenience store",
+    "creator": "turntechSanshead",
+    "upVotePercent": 83,
+    "voteCount": 80,
+    "triangles": 57032,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based; likely heavy - cap instances",
+    "targetSize": {
+      "x": 90,
+      "z": 70
+    },
+    "orientationNote": "Canopy long axis = X; pumps under canopy. Drive lanes run along X.",
+    "notes": "Unbranded canopy + pump islands on slab (no oil-company logos). Part-heavy: single instance only. Alt 176361559 is a compact island w/ red pumps.",
+    "alternates": [
+      {
+        "id": 176361559,
+        "name": "Gas Station (650+ Sales)",
+        "creator": "loserrhaenyra",
+        "upVotePercent": 80,
+        "voteCount": 10,
+        "triangles": 47218,
+        "hasScripts": true
+      },
+      {
+        "id": 12236801865,
+        "name": "Gas Station (New)",
+        "creator": "s1ix6 Productions",
+        "upVotePercent": 85,
+        "voteCount": 10,
+        "triangles": 33854,
+        "hasScripts": true
+      }
+    ]
+  },
+  {
+    "role": "police_station",
+    "group": "poi",
+    "id": 13441086000,
+    "name": "Police Station",
+    "creator": "6dcry",
+    "upVotePercent": 89,
+    "voteCount": 200,
+    "triangles": 62756,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 20,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "many MeshParts",
+    "targetSize": {
+      "x": 110,
+      "z": 70
+    },
+    "orientationNote": "Front = curved glass entrance with 'POLICE DEPARTMENT' lettering.",
+    "notes": "Modern police HQ (89%/200v). Realistic-leaning; 20 MeshParts + parts, single instance for Police HQ block.",
+    "alternates": [
+      {
+        "id": 1340664709,
+        "name": "Sheriff Station",
+        "creator": "NLANLACo",
+        "upVotePercent": 81,
+        "voteCount": 20,
+        "triangles": 17594,
+        "hasScripts": true
+      },
+      {
+        "id": 8492070946,
+        "name": "Police Station",
+        "creator": "Brighten Development",
+        "upVotePercent": 88,
+        "voteCount": 10,
+        "triangles": 44652,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "car_dealership",
+    "group": "poi",
+    "id": 8861925904,
+    "name": "car shop with platforms and desk",
+    "creator": "notprowishnoobsalt",
+    "upVotePercent": 86,
+    "voteCount": 70,
+    "triangles": 13370,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 100,
+      "z": 70
+    },
+    "orientationNote": "Front = glazed showroom side under the 'Cars Shop' roof sign.",
+    "notes": "Clean modern showroom building with generic 'Cars Shop' roof lettering (no brands). Alt 244885537 includes lot + glass showroom (93%/200v).",
+    "alternates": [
+      {
+        "id": 244885537,
+        "name": "Car Dealership ",
+        "creator": "TremoIo",
+        "upVotePercent": 93,
+        "voteCount": 200,
+        "triangles": 47542,
+        "hasScripts": false
+      },
+      {
+        "id": 12550796670,
+        "name": "Car Dealership",
+        "creator": "hornmatfp",
+        "upVotePercent": 90,
+        "voteCount": 10,
+        "triangles": 56670,
+        "hasScripts": true
+      }
+    ]
+  },
+  {
+    "role": "palm_tree_1",
+    "group": "palm_tree",
+    "id": 10354687850,
+    "name": "Low Poly Palm Tree",
+    "creator": "LoucDu44",
+    "upVotePercent": 97,
+    "voteCount": 100,
+    "triangles": 1368,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 9,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 32
+    },
+    "orientationNote": "Trunk leans slightly; randomize yaw.",
+    "notes": "Low-poly bright-green palm (97%/100v, 1.4k tris). Main street/beach palm.",
+    "alternates": [
+      {
+        "id": 10674079086,
+        "name": "Palm Tree",
+        "creator": "Happy_WindowsEpic57",
+        "upVotePercent": 92,
+        "voteCount": 10,
+        "triangles": 572,
+        "hasScripts": false
+      },
+      {
+        "id": 2933497107,
+        "name": "Palm tree low poly (ish)",
+        "creator": "Simoon68",
+        "upVotePercent": 93,
+        "voteCount": 10,
+        "triangles": 650,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "palm_tree_2",
+    "group": "palm_tree",
+    "id": 14410101480,
+    "name": "Palm Tree.",
+    "creator": "Tapo_Blox",
+    "upVotePercent": 84,
+    "voteCount": 90,
+    "triangles": 3229,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 4,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 28
+    },
+    "orientationNote": "Curved trunk; randomize yaw.",
+    "notes": "Chunky cartoon palm with coconuts and segmented trunk - mix with palm_tree_1 for variety.",
+    "alternates": [
+      {
+        "id": 8556183988,
+        "name": "Low-Poly Palm Trees Asset Pack",
+        "creator": "Cliosow",
+        "upVotePercent": 87,
+        "voteCount": 10,
+        "triangles": 10523,
+        "hasScripts": false
+      },
+      {
+        "id": 2321007231,
+        "name": "Cartoon_Palm Tree",
+        "creator": "bestgamer_inroblox",
+        "upVotePercent": 92,
+        "voteCount": 10,
+        "triangles": 2532,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "palm_tree_3",
+    "group": "palm_tree",
+    "id": 5787017175,
+    "name": "Palm Trees",
+    "creator": "MarquisSamuel",
+    "upVotePercent": 92,
+    "voteCount": 10,
+    "triangles": 2288,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 8,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 30
+    },
+    "orientationNote": "Cluster of 3 palms; randomize yaw.",
+    "notes": "Low-poly palm cluster for beach and plaza corners.",
+    "alternates": [
+      {
+        "id": 12392856366,
+        "name": "Palm Tree",
+        "creator": "Leandre_0311",
+        "upVotePercent": 95,
+        "voteCount": 40,
+        "triangles": 6252,
+        "hasScripts": false
+      },
+      {
+        "id": 1567799120,
+        "name": "Coconut Palm Tree Set",
+        "creator": "DJLCyber",
+        "upVotePercent": 87,
+        "voteCount": 100,
+        "triangles": 12608,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "round_tree_1",
+    "group": "round_tree",
+    "id": 3287226226,
+    "name": "Low-Poly Tree.",
+    "creator": "akbarbinta",
+    "upVotePercent": 95,
+    "voteCount": 600,
+    "triangles": 306,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 2,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 24
+    },
+    "orientationNote": "Radially symmetric; randomize yaw.",
+    "notes": "Faceted round canopy tree (95%/600v, 306 tris). Park / residential street tree.",
+    "alternates": [
+      {
+        "id": 4893246329,
+        "name": "Low Poly Tree",
+        "creator": "Abishpc",
+        "upVotePercent": 93,
+        "voteCount": 1000,
+        "triangles": 668,
+        "hasScripts": false
+      },
+      {
+        "id": 9281027181,
+        "name": "Cartoon Tree",
+        "creator": "piperstrong1114",
+        "upVotePercent": 95,
+        "voteCount": 60,
+        "triangles": 668,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "round_tree_2",
+    "group": "round_tree",
+    "id": 8429286974,
+    "name": "Cartoon Tree",
+    "creator": "TheFlamzl",
+    "upVotePercent": 97,
+    "voteCount": 30,
+    "triangles": 850,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 10,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 24
+    },
+    "orientationNote": "Randomize yaw.",
+    "notes": "Multi-ball cartoon tree; same low-poly language as round_tree_1.",
+    "alternates": [
+      {
+        "id": 7014570769,
+        "name": "Meekdrip's Low poly tree",
+        "creator": "luizguipro",
+        "upVotePercent": 92,
+        "voteCount": 60,
+        "triangles": null,
+        "hasScripts": false
+      },
+      {
+        "id": 13870570014,
+        "name": "Low Poly Tree - Cartoon",
+        "creator": "lukabricks",
+        "upVotePercent": 93,
+        "voteCount": 10,
+        "triangles": 3240,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "round_tree_3",
+    "group": "round_tree",
+    "id": 5950446599,
+    "name": "dark pink low poly tree",
+    "creator": "anyxria",
+    "upVotePercent": 96,
+    "voteCount": 20,
+    "triangles": 1147,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 22
+    },
+    "orientationNote": "Randomize yaw.",
+    "notes": "Pink blossom accent tree for the Park/Spawn Plaza (use sparingly for color pops).",
+    "alternates": [
+      {
+        "id": 4535370000,
+        "name": "Low Poly Tree",
+        "creator": "ElectroTK",
+        "upVotePercent": 94,
+        "voteCount": 200,
+        "triangles": 1338,
+        "hasScripts": false
+      },
+      {
+        "id": 11936541863,
+        "name": "Lowpoly Cartoon Tree",
+        "creator": "FROGGO487",
+        "upVotePercent": 100,
+        "voteCount": 20,
+        "triangles": 723,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "bush",
+    "group": "bush",
+    "id": 11209863116,
+    "name": "Cartoon Bush",
+    "creator": "Pommesqamer_YT",
+    "upVotePercent": 91,
+    "voteCount": 70,
+    "triangles": 480,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 6,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 5
+    },
+    "orientationNote": "Randomize yaw.",
+    "notes": "Low-poly cartoon bush (91%/70v, 480 tris).",
+    "alternates": [
+      {
+        "id": 14720410685,
+        "name": "Low poly big bush",
+        "creator": "Tanakob12345",
+        "upVotePercent": 93,
+        "voteCount": 30,
+        "triangles": 296,
+        "hasScripts": false
+      },
+      {
+        "id": 9422149588,
+        "name": "Cartoon Bush",
+        "creator": "BlueKingMark0",
+        "upVotePercent": 96,
+        "voteCount": 20,
+        "triangles": 480,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "flower_bed",
+    "group": "flower_bed",
+    "id": 4542793421,
+    "name": "Pink Flower Pot",
+    "creator": "TheOkayest",
+    "upVotePercent": 88,
+    "voteCount": 100,
+    "triangles": 2928,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 12
+    },
+    "orientationNote": "Long axis = X; place parallel to curb.",
+    "notes": "Concrete planter box full of pink flowers (88%/100v) - sidewalk/plaza planter.",
+    "alternates": [
+      {
+        "id": 11435173475,
+        "name": "a bed of pink flowers,plants",
+        "creator": "seG1as",
+        "upVotePercent": 95,
+        "voteCount": 10,
+        "triangles": 2940,
+        "hasScripts": false
+      },
+      {
+        "id": 275874830,
+        "name": "Flower Bed",
+        "creator": "ImpossibleVoid",
+        "upVotePercent": 94,
+        "voteCount": 30,
+        "triangles": 19872,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "rock",
+    "group": "rock",
+    "id": 14603612772,
+    "name": "Low Poly Rocks",
+    "creator": "neervu",
+    "upVotePercent": 95,
+    "voteCount": 70,
+    "triangles": 54,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 5
+    },
+    "orientationNote": "Randomize yaw and scale 0.6-1.6.",
+    "notes": "Low-poly grey boulder pair (54 tris). Beach edges, park.",
+    "alternates": [
+      {
+        "id": 7299047040,
+        "name": "Low Poly Rock",
+        "creator": "linktimehero",
+        "upVotePercent": 94,
+        "voteCount": 50,
+        "triangles": null,
+        "hasScripts": false
+      },
+      {
+        "id": 4051478252,
+        "name": "Low-Poly Rock",
+        "creator": "rausim0",
+        "upVotePercent": 100,
+        "voteCount": 20,
+        "triangles": 288,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "street_lamp",
+    "group": "street_lamp",
+    "id": 8938444111,
+    "name": "synty city street lamp",
+    "creator": "InuB30",
+    "upVotePercent": 80,
+    "voteCount": 10,
+    "triangles": 348,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 20
+    },
+    "orientationNote": "Arm points along the model's local axis toward the head; rotate so the head overhangs the road.",
+    "notes": "Synty modern curved street lamp (80%/10v). Add your own PointLight at the head (tag StreetLight). Alt 2638589614 has 300 votes (its day/night script is stripped).",
+    "alternates": [
+      {
+        "id": 2638589614,
+        "name": "*WORKING* Day and Night cycle street light",
+        "creator": "IIRebelll",
+        "upVotePercent": 90,
+        "voteCount": 300,
+        "triangles": 324,
+        "hasScripts": true
+      },
+      {
+        "id": 16537633163,
+        "name": "Street Light Pole",
+        "creator": "M16_Darkstar",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 900,
+        "hasScripts": true
+      }
+    ]
+  },
+  {
+    "role": "street_lamp_classic",
+    "group": "street_lamp",
+    "id": 14212653287,
+    "name": "Street Lamp",
+    "creator": "9bsts",
+    "upVotePercent": 100,
+    "voteCount": 60,
+    "triangles": 378,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 2,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 14
+    },
+    "orientationNote": "Symmetric; any yaw.",
+    "notes": "Black lantern-style lamp post for Spawn Plaza, Park and pier boardwalk.",
+    "alternates": [
+      {
+        "id": 12462175904,
+        "name": "Lamp Post",
+        "creator": "thighwinder",
+        "upVotePercent": 94,
+        "voteCount": 30,
+        "triangles": 578,
+        "hasScripts": false
+      },
+      {
+        "id": 565846542,
+        "name": "Street Lamp",
+        "creator": "Dimmy_Turner",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 2032,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "traffic_light",
+    "group": "traffic_light",
+    "id": 1291063760,
+    "name": "Traffic Signal",
+    "creator": "StarModelX",
+    "upVotePercent": 95,
+    "voteCount": 20,
+    "triangles": 3342,
+    "hasScripts": true,
+    "scriptCount": 2,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 20
+    },
+    "orientationNote": "Mast-arm: pole at one end, signal head hangs over the road at the arm tip. Pole at corner, arm over the lane.",
+    "notes": "US mast-arm traffic signal (95%/20v). Scripts stripped; drive lamp colors yourself if desired. Alt 2044205773 is a chunky cartoon pole signal.",
+    "alternates": [
+      {
+        "id": 3043754982,
+        "name": "Traffic Light [SHORT]",
+        "creator": "Aiimaxx",
+        "upVotePercent": 93,
+        "voteCount": 10,
+        "triangles": 6932,
+        "hasScripts": true
+      },
+      {
+        "id": 2044205773,
+        "name": "Traffic Light",
+        "creator": "MinethekidR5",
+        "upVotePercent": 93,
+        "voteCount": 20,
+        "triangles": 1188,
+        "hasScripts": true
+      }
+    ]
+  },
+  {
+    "role": "bench",
+    "group": "bench",
+    "id": 8924251735,
+    "name": "Low poly Bench",
+    "creator": "I4supraa",
+    "upVotePercent": 91,
+    "voteCount": 50,
+    "triangles": 168,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 2,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "x": 7
+    },
+    "orientationNote": "Seat faces local front; back rest behind. Place facing the sidewalk/road.",
+    "notes": "Low-poly wood+steel bench (91%/50v, 168 tris). Alt 8932791887 Synty park bench for cohesion.",
+    "alternates": [
+      {
+        "id": 8932791887,
+        "name": "synty city park bench",
+        "creator": "InuB30",
+        "upVotePercent": 86,
+        "voteCount": 0,
+        "triangles": 552,
+        "hasScripts": false
+      },
+      {
+        "id": 23153972,
+        "name": "Park Bench",
+        "creator": "Roblox",
+        "upVotePercent": 92,
+        "voteCount": 70,
+        "triangles": 168,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "fire_hydrant",
+    "group": "fire_hydrant",
+    "id": 8938611164,
+    "name": "synty city fire hydrant",
+    "creator": "InuB30",
+    "upVotePercent": 100,
+    "voteCount": 0,
+    "triangles": 400,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": false,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 3.2
+    },
+    "orientationNote": "Symmetric; any yaw.",
+    "notes": "Red Synty hydrant (single mesh). Verbatim single-mesh extract of Roblox's official 'Synty City Pack' (6933556508, 96%/1000 votes) by InuB30; quality-bar exception (few/no votes on this upload) accepted for style cohesion with the rest of the Synty street-prop family.",
+    "alternates": [
+      {
+        "id": 398237268,
+        "name": "Fire Hydrant",
+        "creator": "UntamedCow",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 3622,
+        "hasScripts": false
+      },
+      {
+        "id": 128747015,
+        "name": "Fire Hydrant",
+        "creator": "blobbyblob",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 2064,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "trash_can",
+    "group": "trash_can",
+    "id": 11508587471,
+    "name": "Trash Can",
+    "creator": "RTopix",
+    "upVotePercent": 94,
+    "voteCount": 40,
+    "triangles": 4284,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 3,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 4.5
+    },
+    "orientationNote": "Symmetric; any yaw.",
+    "notes": "Blue slatted city litter bin (94%/40v). Alt 8933970679 Synty green bin.",
+    "alternates": [
+      {
+        "id": 8933970679,
+        "name": "synty city trash bin",
+        "creator": "InuB30",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 584,
+        "hasScripts": false
+      },
+      {
+        "id": 4632589693,
+        "name": "Modern Trash Can",
+        "creator": "Flox_ed",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 240,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "bus_stop",
+    "group": "bus_stop",
+    "id": 8932659327,
+    "name": "synty city bus stop",
+    "creator": "InuB30",
+    "upVotePercent": 90,
+    "voteCount": 10,
+    "triangles": 648,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 2,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "x": 16
+    },
+    "orientationNote": "Open side (bench) faces the road; ad panel at one end.",
+    "notes": "Synty bus shelter with bench + ad panel (90%/10v, 648 tris). Alt 12408068940 glass shelter (98%/100v).",
+    "alternates": [
+      {
+        "id": 12408068940,
+        "name": "Bus stop",
+        "creator": "asurzin",
+        "upVotePercent": 98,
+        "voteCount": 100,
+        "triangles": 3322,
+        "hasScripts": false
+      },
+      {
+        "id": 8690810714,
+        "name": "Bus Stop",
+        "creator": "xavier2007",
+        "upVotePercent": 91,
+        "voteCount": 10,
+        "triangles": 2314,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "billboard",
+    "group": "billboard",
+    "id": 3426443119,
+    "name": "Billboard Advertisement ",
+    "creator": "StarModelX",
+    "upVotePercent": 85,
+    "voteCount": 70,
+    "triangles": 5392,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 36
+    },
+    "orientationNote": "Board face = local front (blank white panel); lamps on top lean forward.",
+    "notes": "Blank roadside billboard with lamps (85%/70v) - attach SurfaceGui ads (game ads, 'Hot Drop' teasers).",
+    "alternates": [
+      {
+        "id": 3632828454,
+        "name": "Blank Billboard",
+        "creator": "CFalcon075",
+        "upVotePercent": 80,
+        "voteCount": 10,
+        "triangles": 684,
+        "hasScripts": false
+      },
+      {
+        "id": 8933881770,
+        "name": "synty city billboard frame",
+        "creator": "InuB30",
+        "upVotePercent": 0,
+        "voteCount": 0,
+        "triangles": 460,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "traffic_cone",
+    "group": "traffic_cone",
+    "id": 23153487,
+    "name": "Traffic Cone",
+    "creator": "Roblox",
+    "upVotePercent": 94,
+    "voteCount": 400,
+    "triangles": 326,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 2.5
+    },
+    "orientationNote": "Any yaw.",
+    "notes": "Roblox official traffic cone (94%/400v).",
+    "alternates": [
+      {
+        "id": 8615958435,
+        "name": "Traffic Cone",
+        "creator": "Zynkuru",
+        "upVotePercent": 96,
+        "voteCount": 20,
+        "triangles": 406,
+        "hasScripts": false
+      },
+      {
+        "id": 8933886206,
+        "name": "synty city cone",
+        "creator": "InuB30",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 184,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "barrier",
+    "group": "barrier",
+    "id": 2766525411,
+    "name": "road barrier",
+    "creator": "SiameseMouse",
+    "upVotePercent": 95,
+    "voteCount": 700,
+    "triangles": 368,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 10
+    },
+    "orientationNote": "Long axis = X; lay end-to-end for road blocks.",
+    "notes": "Concrete jersey barrier (95%/700v, 368 tris). Use for roadblocks, stunt-park edges, impound lot.",
+    "alternates": [
+      {
+        "id": 4128301030,
+        "name": "textured mesh road barrier",
+        "creator": "bearduckmonkey",
+        "upVotePercent": 97,
+        "voteCount": 60,
+        "triangles": 1608,
+        "hasScripts": false
+      },
+      {
+        "id": 10893846481,
+        "name": "Good road block",
+        "creator": "Formaggioso41100",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 1320,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "construction_barrier",
+    "group": "barrier",
+    "id": 10558582668,
+    "name": "Construction Barrier",
+    "creator": "Kenzie_7406",
+    "upVotePercent": 92,
+    "voteCount": 50,
+    "triangles": 1312,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 4,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "x": 8
+    },
+    "orientationNote": "Long axis = X; stripes face traffic.",
+    "notes": "Orange/white striped A-frame barricade with warning lamps (92%/50v) - colorful roadwork/chase flavor.",
+    "alternates": []
+  },
+  {
+    "role": "mailbox",
+    "group": "mailbox",
+    "id": 8938613724,
+    "name": "synty city mailbox",
+    "creator": "InuB30",
+    "upVotePercent": 100,
+    "voteCount": 0,
+    "triangles": 377,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": false,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 4.5
+    },
+    "orientationNote": "Slot side = front; face the sidewalk.",
+    "notes": "Blue street mailbox (no postal logos). Verbatim single-mesh extract of Roblox's official 'Synty City Pack' (6933556508, 96%/1000 votes) by InuB30; quality-bar exception (few/no votes on this upload) accepted for style cohesion with the rest of the Synty street-prop family.",
+    "alternates": [
+      {
+        "id": 56449011,
+        "name": "Mailbox",
+        "creator": "Roblox",
+        "upVotePercent": 85,
+        "voteCount": 40,
+        "triangles": 80,
+        "hasScripts": false
+      },
+      {
+        "id": 6586730447,
+        "name": "Mailbox",
+        "creator": "InuB30",
+        "upVotePercent": 93,
+        "voteCount": 10,
+        "triangles": null,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "phone_booth",
+    "group": "phone_booth",
+    "id": 8932794862,
+    "name": "synty city payphones",
+    "creator": "InuB30",
+    "upVotePercent": 100,
+    "voteCount": 0,
+    "triangles": 1036,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": false,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 9
+    },
+    "orientationNote": "Phones on the open front side; face the sidewalk.",
+    "notes": "Twin payphone stand with generic 'PHONE' header. Verbatim single-mesh extract of Roblox's official 'Synty City Pack' (6933556508, 96%/1000 votes) by InuB30; quality-bar exception (few/no votes on this upload) accepted for style cohesion with the rest of the Synty street-prop family.",
+    "alternates": [
+      {
+        "id": 4141557671,
+        "name": "Realistic Phone Booth",
+        "creator": "bearduckmonkey",
+        "upVotePercent": 93,
+        "voteCount": 10,
+        "triangles": 3294,
+        "hasScripts": false
+      },
+      {
+        "id": 3623454412,
+        "name": "Kiosk  (FREE)",
+        "creator": "CheaterBlocker2019",
+        "upVotePercent": 86,
+        "voteCount": 10,
+        "triangles": 86,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "parking_meter",
+    "group": "parking_meter",
+    "id": 8932663219,
+    "name": "synty city parking meter",
+    "creator": "InuB30",
+    "upVotePercent": 100,
+    "voteCount": 10,
+    "triangles": 310,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 5
+    },
+    "orientationNote": "Screen/keypad side faces the sidewalk.",
+    "notes": "Synty pay-station meter (100%/10v). Alt 8938509759 classic single-head coin meter (Synty).",
+    "alternates": [
+      {
+        "id": 8938509759,
+        "name": "synty city sidewalk parking meter",
+        "creator": "InuB30",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 180,
+        "hasScripts": false
+      },
+      {
+        "id": 143790562,
+        "name": "Parking meter",
+        "creator": "morinabinks",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 2184,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "food_cart",
+    "group": "food_cart",
+    "id": 8932694406,
+    "name": "synty city hotdog stand",
+    "creator": "InuB30",
+    "upVotePercent": 100,
+    "voteCount": 0,
+    "triangles": 1362,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": false,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "x": 8
+    },
+    "orientationNote": "Serving side (umbrella tilt) faces sidewalk.",
+    "notes": "Hot-dog cart with yellow/red umbrella - street flavor near plaza/pier. Verbatim single-mesh extract of Roblox's official 'Synty City Pack' (6933556508, 96%/1000 votes) by InuB30; quality-bar exception (few/no votes on this upload) accepted for style cohesion with the rest of the Synty street-prop family.",
+    "alternates": [
+      {
+        "id": 14232203404,
+        "name": "Food stand",
+        "creator": "Rxni_zzz",
+        "upVotePercent": 86,
+        "voteCount": 40,
+        "triangles": 36653,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "dumpster",
+    "group": "dumpster",
+    "id": 8933830009,
+    "name": "synty city open dumpster",
+    "creator": "InuB30",
+    "upVotePercent": 90,
+    "voteCount": 20,
+    "triangles": 1328,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "x": 7
+    },
+    "orientationNote": "Lid hinge at back; place against building walls/alleys.",
+    "notes": "Open green dumpster (90%/20v) - Chop Shop alley dressing.",
+    "alternates": [
+      {
+        "id": 8933826663,
+        "name": "synty city closed dumpster",
+        "creator": "InuB30",
+        "upVotePercent": 90,
+        "voteCount": 10,
+        "triangles": 1352,
+        "hasScripts": false
+      },
+      {
+        "id": 14047779298,
+        "name": "Dirty Garbage Bin",
+        "creator": "lowqualityqwerty",
+        "upVotePercent": 91,
+        "voteCount": 10,
+        "triangles": 2702,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "beach_umbrella",
+    "group": "beach_umbrella",
+    "id": 733589460,
+    "name": "Beach Umbrella",
+    "creator": "nhiclz10",
+    "upVotePercent": 89,
+    "voteCount": 10,
+    "triangles": 1225,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 10
+    },
+    "orientationNote": "Any yaw; tilt 5-15 deg randomly for life.",
+    "notes": "Rainbow beach umbrella (89%/10v). Alt 256963177 blue/green/purple version of the same mesh.",
+    "alternates": [
+      {
+        "id": 256963177,
+        "name": "Beach Umbrella ",
+        "creator": "SebtiBlox",
+        "upVotePercent": 92,
+        "voteCount": 20,
+        "triangles": 1225,
+        "hasScripts": false
+      },
+      {
+        "id": 9017391415,
+        "name": "Beach chair and umbrella",
+        "creator": "mrtrolldos",
+        "upVotePercent": 88,
+        "voteCount": 40,
+        "triangles": 1740,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "beach_chair",
+    "group": "beach_chair",
+    "id": 5372383677,
+    "name": "Beach chair",
+    "creator": "aaazeil",
+    "upVotePercent": 96,
+    "voteCount": 20,
+    "triangles": 324,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 7
+    },
+    "orientationNote": "Backrest end = head; point toward ocean.",
+    "notes": "Green/white striped sun lounger (96%/20v, 324 tris). Alt 461595777 pastel lounger row.",
+    "alternates": [
+      {
+        "id": 461595777,
+        "name": "Beach Chairs",
+        "creator": "ditziseal",
+        "upVotePercent": 88,
+        "voteCount": 20,
+        "triangles": 768,
+        "hasScripts": false
+      },
+      {
+        "id": 5408939293,
+        "name": "Beach Chair",
+        "creator": "Planispheric",
+        "upVotePercent": 90,
+        "voteCount": 60,
+        "triangles": 1284,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "lifeguard_tower",
+    "group": "lifeguard_tower",
+    "id": 10969289501,
+    "name": "[FREE] Lifeguard Tower By: Weather",
+    "creator": "WeatherMan51",
+    "upVotePercent": 90,
+    "voteCount": 10,
+    "triangles": 5272,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 16
+    },
+    "orientationNote": "Hut windows + ramp: ramp side faces inland, hut front faces ocean.",
+    "notes": "Baywatch-style blue lifeguard hut on stilts with access ramp (90%/10v).",
+    "alternates": [
+      {
+        "id": 1550949869,
+        "name": "Lifeguard Chair",
+        "creator": "Aelerity",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 1825,
+        "hasScripts": false
+      },
+      {
+        "id": 384966731,
+        "name": "LifeGuard Beach Shack",
+        "creator": "SickcallRanger",
+        "upVotePercent": 100,
+        "voteCount": 10,
+        "triangles": 5248,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "surfboard_rack",
+    "group": "surfboard_rack",
+    "id": 13378140618,
+    "name": "Art Surfboards #6-#9 By Devawesomely",
+    "creator": "DWSH0CKZ",
+    "upVotePercent": 100,
+    "voteCount": 0,
+    "triangles": 8938,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 5,
+    "price": 0,
+    "qualityBarPass": false,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 9
+    },
+    "orientationNote": "Boards stand in a wooden rack; any yaw, face boards to the boardwalk.",
+    "notes": "Wooden rack with 5 colorful art surfboards (quality-bar exception: 0 votes; nothing passing exists for racks). Alt 237543668 single blue board (83%/10v).",
+    "alternates": [
+      {
+        "id": 5561729910,
+        "name": "Surfboards",
+        "creator": "xProSurfer",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 4764,
+        "hasScripts": false
+      },
+      {
+        "id": 237543668,
+        "name": "Surf's up Surfboard!",
+        "creator": "bigcrazycarboy",
+        "upVotePercent": 83,
+        "voteCount": 10,
+        "triangles": 654,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "fountain",
+    "group": "fountain",
+    "id": 13782728612,
+    "name": "Better Low Poly Fountain",
+    "creator": "ComputerLider123",
+    "upVotePercent": 94,
+    "voteCount": 30,
+    "triangles": 12952,
+    "hasScripts": true,
+    "scriptCount": 1,
+    "meshPartCount": 23,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "many MeshParts",
+    "targetSize": {
+      "x": 40
+    },
+    "orientationNote": "Radially symmetric.",
+    "notes": "Tiered low-poly fountain with bright blue water and green shrub ring (94%/30v) - Spawn Plaza centerpiece. Script stripped; add your own ParticleEmitter spray.",
+    "alternates": [
+      {
+        "id": 9488006372,
+        "name": "Fountain",
+        "creator": "Sy0_G8",
+        "upVotePercent": 100,
+        "voteCount": 20,
+        "triangles": 5890,
+        "hasScripts": false
+      },
+      {
+        "id": 11423259371,
+        "name": "Fountain",
+        "creator": "MR_MohamedTarek",
+        "upVotePercent": 88,
+        "voteCount": 200,
+        "triangles": 12870,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "ferris_wheel",
+    "group": "ferris_wheel",
+    "id": 3332821067,
+    "name": "Theme Park Ride",
+    "creator": "hunter_mae",
+    "upVotePercent": 86,
+    "voteCount": 300,
+    "triangles": 59120,
+    "hasScripts": true,
+    "scriptCount": 1,
+    "meshPartCount": 119,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "many MeshParts",
+    "targetSize": {
+      "height": 110
+    },
+    "orientationNote": "Wheel plane = local XY; A-frame legs along Z. Face the wheel side toward the boardwalk.",
+    "notes": "Red-frame ferris wheel with multicolor gondolas + ticket booth (86%/300v). Rotation script stripped: spin the wheel assembly yourself (TweenService / HingeConstraint). Alts are re-uploads of the same model.",
+    "alternates": [
+      {
+        "id": 7159480504,
+        "name": "Theme Park Ferris Wheel",
+        "creator": "innso123",
+        "upVotePercent": 89,
+        "voteCount": 100,
+        "triangles": 59120,
+        "hasScripts": true
+      },
+      {
+        "id": 2877567305,
+        "name": "Big Fun Wheel",
+        "creator": "atanasofski",
+        "upVotePercent": 87,
+        "voteCount": 10,
+        "triangles": 59120,
+        "hasScripts": true
+      }
+    ]
+  },
+  {
+    "role": "water_tower",
+    "group": "water_tower",
+    "id": 8933747414,
+    "name": "synty city water tower",
+    "creator": "InuB30",
+    "upVotePercent": 100,
+    "voteCount": 0,
+    "triangles": 1520,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": false,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 60
+    },
+    "orientationNote": "Symmetric.",
+    "notes": "Wooden-tank city water tower (Synty). Verbatim single-mesh extract of Roblox's official 'Synty City Pack' (6933556508, 96%/1000 votes) by InuB30; quality-bar exception (few/no votes on this upload) accepted for style cohesion with the rest of the Synty street-prop family.",
+    "alternates": [
+      {
+        "id": 4112607290,
+        "name": "Water Tower 2 (Mesh)",
+        "creator": "bearduckmonkey",
+        "upVotePercent": 86,
+        "voteCount": 10,
+        "triangles": 1204,
+        "hasScripts": false
+      },
+      {
+        "id": 11555132922,
+        "name": "Water tower (ORIGINAL)",
+        "creator": "3DThunderbolt",
+        "upVotePercent": 94,
+        "voteCount": 10,
+        "triangles": 22610,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "radio_tower",
+    "group": "radio_tower",
+    "id": 8788183000,
+    "name": "radio tower",
+    "creator": "meryless",
+    "upVotePercent": 97,
+    "voteCount": 60,
+    "triangles": 5600,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 1,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "mesh-based, cheap",
+    "targetSize": {
+      "height": 140
+    },
+    "orientationNote": "Lattice; any yaw.",
+    "notes": "Red/white lattice radio mast (97%/60v, single mesh) - skyline marker on a hill/outer block.",
+    "alternates": [
+      {
+        "id": 8767598565,
+        "name": "Radio Tower",
+        "creator": "AlperAtak68CR7FFF",
+        "upVotePercent": 86,
+        "voteCount": 20,
+        "triangles": 3384,
+        "hasScripts": false
+      },
+      {
+        "id": 4112689682,
+        "name": "Radio Tower (Mesh)",
+        "creator": "bearduckmonkey",
+        "upVotePercent": 82,
+        "voteCount": 30,
+        "triangles": 929,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "big_sign_letters",
+    "group": "big_sign_letters",
+    "id": 9636956202,
+    "name": "3D Letters",
+    "creator": "Coffee_lover202122",
+    "upVotePercent": 91,
+    "voteCount": 70,
+    "triangles": 7380,
+    "hasScripts": true,
+    "scriptCount": 1,
+    "meshPartCount": 26,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "many MeshParts",
+    "targetSize": {
+      "height": 20
+    },
+    "orientationNote": "Each child is one letter; letters face local -Z/front in the thumbnail. Verify child names at runtime (expected 'A'..'Z').",
+    "notes": "Optional: chunky white 3D alphabet (91%/70v) to spell 'HOTWIRE CITY' on the hillside/pier. Paint letters by recoloring MeshParts.",
+    "alternates": [
+      {
+        "id": 440473963,
+        "name": "Alphabetical 3D Letters",
+        "creator": "HarrowwInk",
+        "upVotePercent": 89,
+        "voteCount": 60,
+        "triangles": 14968,
+        "hasScripts": false
+      },
+      {
+        "id": 968396043,
+        "name": "Unioned Letters",
+        "creator": "SigmaHD",
+        "upVotePercent": 98,
+        "voteCount": 100,
+        "triangles": 15130,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "ramp",
+    "group": "ramp",
+    "id": 2607453087,
+    "name": "Ramp",
+    "creator": "zDoIin",
+    "upVotePercent": 91,
+    "voteCount": 90,
+    "triangles": 228,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 24,
+      "y": 8,
+      "z": 30
+    },
+    "orientationNote": "Low edge = entry, rises along +Z toward the lip (check in Studio and add 180 yaw if reversed).",
+    "notes": "Orange curved kicker ramp (91%/90v, part-based so collisions are exact for cars).",
+    "alternates": [
+      {
+        "id": 23155195,
+        "name": "Long Ramp",
+        "creator": "Roblox",
+        "upVotePercent": 85,
+        "voteCount": 10,
+        "triangles": 140,
+        "hasScripts": false
+      },
+      {
+        "id": 7897735938,
+        "name": "Ramp",
+        "creator": "Btwcodyyy",
+        "upVotePercent": 83,
+        "voteCount": 100,
+        "triangles": 126,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "halfpipe",
+    "group": "halfpipe",
+    "id": 23153925,
+    "name": "Half Pipe",
+    "creator": "Roblox",
+    "upVotePercent": 91,
+    "voteCount": 20,
+    "triangles": 492,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "x": 60,
+      "y": 16,
+      "z": 40
+    },
+    "orientationNote": "Pipe runs along the model's long axis; coping rails at both top edges.",
+    "notes": "Roblox official concrete half pipe (91%/20v). Alt 14386310899 bright orange classic halfpipe (0 votes).",
+    "alternates": [
+      {
+        "id": 14386310899,
+        "name": "Classic SkatePark Half Pipe.",
+        "creator": "CJGunter",
+        "upVotePercent": 0,
+        "voteCount": 0,
+        "triangles": 1604,
+        "hasScripts": false
+      },
+      {
+        "id": 101943490,
+        "name": "Skate Ramp Bowl (Very smooth)",
+        "creator": "merlin156",
+        "upVotePercent": 100,
+        "voteCount": 0,
+        "triangles": 4200,
+        "hasScripts": false
+      }
+    ]
+  },
+  {
+    "role": "stunt_loop",
+    "group": "ramp",
+    "id": 6158872764,
+    "name": "The Loop",
+    "creator": "ping0rs",
+    "upVotePercent": 83,
+    "voteCount": 10,
+    "triangles": 2868,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 50
+    },
+    "orientationNote": "Entry ramp is the long tail; loop exit continues along the same axis.",
+    "notes": "Full car loop-the-loop (83%/10v) - viral clip magnet. Part-based collision; test car speed needed to complete.",
+    "alternates": []
+  },
+  {
+    "role": "skatepark_sign",
+    "group": "ramp",
+    "id": 23154002,
+    "name": "Skatepark Sign",
+    "creator": "Roblox",
+    "upVotePercent": 93,
+    "voteCount": 10,
+    "triangles": 40,
+    "hasScripts": false,
+    "scriptCount": 0,
+    "meshPartCount": 0,
+    "price": 0,
+    "qualityBarPass": true,
+    "partBudgetHint": "part-based, light",
+    "targetSize": {
+      "height": 10
+    },
+    "orientationNote": "Sign face = front.",
+    "notes": "Roblox official yellow 'SKATE PARK' sign for the Stunt Park entrance.",
+    "alternates": []
+  }
+]

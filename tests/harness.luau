@@ -123,6 +123,9 @@ for _, m in { "FillBlock", "FillBall", "FillCylinder", "FillWedge", "FillRegion"
 		table.insert(Harness.terrainOps, { m, ... })
 	end)
 end
+pcall(roblox.implementMethod, "Instance", "WaitForChild", function(self, name)
+	return self:FindFirstChild(name)
+end)
 pcall(roblox.implementMethod, "BasePart", "SetNetworkOwner", function() end)
 pcall(roblox.implementMethod, "BasePart", "SetNetworkOwnershipAuto", function() end)
 pcall(roblox.implementMethod, "BasePart", "ApplyImpulse", function() end)
@@ -221,6 +224,40 @@ local TweenServiceShim = {
 }
 
 Harness.isServer = true
+
+-- "Magic" stub: any member access returns another stub, calls return stubs, Connect returns a connection.
+-- Lets modules that touch engine services at require-time load headlessly.
+local function magic(label: string)
+	local t = {}
+	return setmetatable(t, {
+		__index = function(_, k)
+			if k == "Connect" or k == "Once" or k == "ConnectParallel" then
+				return function()
+					return { Disconnect = function() end, Connected = true }
+				end
+			elseif k == "Wait" then
+				return function() end
+			end
+			local child = magic(label .. "." .. tostring(k))
+			rawset(t, k, child)
+			return child
+		end,
+		__call = function()
+			return magic(label .. "()")
+		end,
+		__tostring = function()
+			return "Magic(" .. label .. ")"
+		end,
+	})
+end
+Harness.magic = magic
+local MAGIC_SERVICES = {
+	"DataStoreService", "MarketplaceService", "UserInputService", "ContextActionService", "TextChatService",
+	"ProximityPromptService", "ContentProvider", "AssetService", "GuiService", "PhysicsService", "SocialService",
+	"PolicyService", "GroupService", "MessagingService", "MemoryStoreService", "BadgeService", "InsertService",
+	"HttpService", "Debris", "StarterGui", "TeleportService", "PathfindingService", "VRService", "HapticService",
+	"Chat", "AnalyticsService", "LocalizationService", "StarterPlayer", "ServerStorage", "ServerScriptService",
+}
 
 -- Virtual Rojo tree ----------------------------------------------------------------------------------------------
 local ROOT = (function()
@@ -367,6 +404,28 @@ local services = {
 	Players = PlayersShim,
 	TweenService = TweenServiceShim,
 }
+
+for _, name in MAGIC_SERVICES do
+	if services[name] == nil then
+		services[name] = magic(name)
+	end
+end
+
+-- client-mode LocalPlayer
+local localPlayer = roblox.Instance.new("Player")
+localPlayer.Name = "HarnessPlayer"
+for _, cls in { "PlayerGui", "Backpack", "PlayerScripts" } do
+	local c = roblox.Instance.new(cls)
+	c.Parent = localPlayer
+end
+Harness.localPlayer = localPlayer
+
+-- Switch between server and client emulation (clears the module cache).
+function Harness.setMode(mode: string)
+	Harness.isServer = mode == "server"
+	PlayersShim.LocalPlayer = if mode == "client" then localPlayer else nil
+	table.clear(moduleCache)
+end
 
 local gameProxy = setmetatable({}, {
 	__index = function(_, k)

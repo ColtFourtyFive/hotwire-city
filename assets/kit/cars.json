@@ -1,0 +1,172 @@
+{
+  "grandma_sedan": {
+    "assetId": 125004684536558,
+    "file": "assets/kit/cars/grandma_sedan.glb",
+    "name": "HC Grandma Sedan",
+    "yaw": -90.0,
+    "length": 14.0,
+    "fit": "length",
+    "role": "grandma_sedan",
+    "moderation": "Approved"
+  },
+  "yellow_cab": {
+    "assetId": 133563404247410,
+    "file": "assets/kit/cars/yellow_cab.glb",
+    "name": "HC Yellow Cab",
+    "yaw": 180.0,
+    "length": 14.0,
+    "fit": "length",
+    "role": "yellow_cab",
+    "moderation": "Approved"
+  },
+  "mini_bean": {
+    "assetId": 128070737278044,
+    "file": "assets/kit/cars/mini_bean.glb",
+    "name": "HC Mini Bean",
+    "yaw": 180.0,
+    "length": 12.0,
+    "fit": "length",
+    "role": "mini_bean",
+    "moderation": "Approved"
+  },
+  "hot_hatch": {
+    "assetId": 107359297953950,
+    "file": "assets/kit/cars/hot_hatch.glb",
+    "name": "HC Hot Hatch",
+    "yaw": 180.0,
+    "length": 12.0,
+    "fit": "length",
+    "role": "hot_hatch",
+    "moderation": "Approved"
+  },
+  "bull_charger": {
+    "assetId": 129097020644709,
+    "file": "assets/kit/cars/bull_charger.glb",
+    "name": "HC Bull Charger",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "bull_charger",
+    "moderation": "Approved"
+  },
+  "stretch_limo": {
+    "assetId": 128471550662515,
+    "file": "assets/kit/cars/stretch_limo.glb",
+    "name": "HC Stretch Limo",
+    "yaw": 180.0,
+    "length": 18.0,
+    "fit": "length",
+    "role": "stretch_limo",
+    "moderation": "Approved"
+  },
+  "raging_bull": {
+    "assetId": 110891985950292,
+    "file": "assets/kit/cars/raging_bull.glb",
+    "name": "HC Raging Bull",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "raging_bull",
+    "moderation": "Approved"
+  },
+  "phantom_gt": {
+    "assetId": 84376633244806,
+    "file": "assets/kit/cars/phantom_gt.glb",
+    "name": "HC Phantom GT",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "phantom_gt",
+    "moderation": "Approved"
+  },
+  "neon_drift": {
+    "assetId": 86286290360164,
+    "file": "assets/kit/cars/neon_drift.glb",
+    "name": "HC Neon Drift",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "neon_drift",
+    "moderation": "Approved"
+  },
+  "viper_strike": {
+    "assetId": 104359226400550,
+    "file": "assets/kit/cars/viper_strike.glb",
+    "name": "HC Viper Strike",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "viper_strike",
+    "moderation": "Approved"
+  },
+  "rustbucket": {
+    "assetId": 139759221539718,
+    "file": "assets/kit/cars/rustbucket.glb",
+    "name": "HC Rustbucket",
+    "yaw": 180.0,
+    "length": 12.0,
+    "fit": "length",
+    "role": "rustbucket",
+    "moderation": "Approved"
+  },
+  "pizza_van": {
+    "assetId": 70762042693755,
+    "file": "assets/kit/cars/pizza_van.glb",
+    "name": "HC Pizza Van",
+    "yaw": 180.0,
+    "length": 14.0,
+    "fit": "length",
+    "role": "pizza_van",
+    "moderation": "Approved"
+  },
+  "family_suv": {
+    "assetId": 121890247527896,
+    "file": "assets/kit/cars/family_suv.glb",
+    "name": "HC Family SUV",
+    "yaw": 180.0,
+    "length": 14.0,
+    "fit": "length",
+    "role": "family_suv",
+    "moderation": "Approved"
+  },
+  "bigfoot": {
+    "assetId": 80067016260602,
+    "file": "assets/kit/cars/bigfoot.glb",
+    "name": "HC Bigfoot",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "bigfoot",
+    "moderation": "Approved"
+  },
+  "retired_cruiser": {
+    "assetId": 129341424773968,
+    "file": "assets/kit/cars/retired_cruiser.glb",
+    "name": "HC Retired Cruiser",
+    "yaw": 180.0,
+    "length": 14.0,
+    "fit": "length",
+    "role": "retired_cruiser",
+    "moderation": "Approved"
+  },
+  "dirt_hauler": {
+    "assetId": 133671772322331,
+    "file": "assets/kit/cars/dirt_hauler.glb",
+    "name": "HC Dirt Hauler",
+    "yaw": 180.0,
+    "length": 14.0,
+    "fit": "length",
+    "role": "dirt_hauler",
+    "moderation": "Approved"
+  },
+  "stallion_gt": {
+    "assetId": 99936070220028,
+    "file": "assets/kit/cars/stallion_gt.glb",
+    "name": "HC Stallion GT",
+    "yaw": 180.0,
+    "length": 15.0,
+    "fit": "length",
+    "role": "stallion_gt",
+    "moderation": "Approved"
+  }
+}

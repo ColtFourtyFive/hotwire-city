@@ -1,0 +1,222 @@
+{
+  "office_block": {
+    "assetId": 137281558360232,
+    "file": "assets/kit/buildings/office_block.glb",
+    "name": "HC Office Block",
+    "yaw": 180.0,
+    "length": 80.0,
+    "fit": "height",
+    "role": "office_block",
+    "moderation": "Approved"
+  },
+  "skyscraper_neon": {
+    "assetId": 133283744578331,
+    "file": "assets/kit/buildings/skyscraper_neon.glb",
+    "name": "HC Neon Skyscraper",
+    "yaw": 0.0,
+    "length": 200.0,
+    "fit": "height",
+    "role": "skyscraper_neon",
+    "moderation": "Approved"
+  },
+  "skyscraper_deco": {
+    "assetId": 85109070426469,
+    "file": "assets/kit/buildings/skyscraper_deco.glb",
+    "name": "HC Deco Skyscraper",
+    "yaw": 0.0,
+    "length": 220.0,
+    "fit": "height",
+    "role": "skyscraper_deco",
+    "moderation": "Approved"
+  },
+  "skyscraper_twist": {
+    "assetId": 109885448834475,
+    "file": "assets/kit/buildings/skyscraper_twist.glb",
+    "name": "HC Twist Skyscraper",
+    "yaw": 0.0,
+    "length": 240.0,
+    "fit": "height",
+    "role": "skyscraper_twist",
+    "moderation": "Approved"
+  },
+  "apartment_balcony": {
+    "assetId": 135882957318853,
+    "file": "assets/kit/buildings/apartment_balcony.glb",
+    "name": "HC Balcony Apartments",
+    "yaw": 0.0,
+    "length": 70.0,
+    "fit": "height",
+    "role": "apartment_balcony",
+    "moderation": "Approved"
+  },
+  "brick_loft": {
+    "assetId": 81064844944613,
+    "file": "assets/kit/buildings/brick_loft.glb",
+    "name": "HC Brick Loft",
+    "yaw": 0.0,
+    "length": 60.0,
+    "fit": "height",
+    "role": "brick_loft",
+    "moderation": "Approved"
+  },
+  "convenience_store": {
+    "assetId": 100494932403416,
+    "file": "assets/kit/buildings/convenience_store.glb",
+    "name": "HC Corner Store",
+    "yaw": 180.0,
+    "length": 22.0,
+    "fit": "height",
+    "role": "convenience_store",
+    "moderation": "Approved"
+  },
+  "beach_villa": {
+    "assetId": 128939028758957,
+    "file": "assets/kit/buildings/beach_villa.glb",
+    "name": "HC Beach Villa",
+    "yaw": 0.0,
+    "length": 30.0,
+    "fit": "height",
+    "role": "beach_villa",
+    "moderation": "Approved"
+  },
+  "suburban_house": {
+    "assetId": 79095679639420,
+    "file": "assets/kit/buildings/suburban_house.glb",
+    "name": "HC Suburban House",
+    "yaw": 180.0,
+    "length": 26.0,
+    "fit": "height",
+    "role": "suburban_house",
+    "moderation": "Approved"
+  },
+  "police_hq": {
+    "assetId": 97738719879167,
+    "file": "assets/kit/buildings/police_hq.glb",
+    "name": "HC Police HQ",
+    "yaw": 180.0,
+    "length": 45.0,
+    "fit": "height",
+    "role": "police_hq",
+    "moderation": "Approved"
+  },
+  "car_showroom": {
+    "assetId": 83974576505747,
+    "file": "assets/kit/buildings/car_showroom.glb",
+    "name": "HC Car Showroom",
+    "yaw": 180.0,
+    "length": 100.0,
+    "fit": "footprint",
+    "role": "car_showroom",
+    "moderation": "Approved"
+  },
+  "pizza_shop": {
+    "assetId": 94207549419234,
+    "file": "assets/kit/buildings/pizza_shop.glb",
+    "name": "HC Pizza Shop",
+    "yaw": 180.0,
+    "length": 24.0,
+    "fit": "height",
+    "role": "pizza_shop",
+    "moderation": "Approved"
+  },
+  "lighthouse": {
+    "assetId": 95904687488361,
+    "file": "assets/kit/buildings/lighthouse.glb",
+    "name": "HC Lighthouse",
+    "yaw": 180.0,
+    "length": 70.0,
+    "fit": "height",
+    "role": "lighthouse",
+    "moderation": "Approved"
+  },
+  "spray_booth": {
+    "assetId": 122378982559801,
+    "file": "assets/kit/buildings/spray_booth.glb",
+    "name": "HC Spray Booth",
+    "yaw": 180.0,
+    "length": 22.0,
+    "fit": "height",
+    "role": "spray_booth",
+    "moderation": "Approved"
+  },
+  "gear_shop": {
+    "assetId": 109821139919069,
+    "file": "assets/kit/buildings/gear_shop.glb",
+    "name": "HC Gear Shop",
+    "yaw": 180.0,
+    "length": 28.0,
+    "fit": "height",
+    "role": "gear_shop",
+    "moderation": "Approved"
+  },
+  "warehouse": {
+    "assetId": 125047818646373,
+    "file": "assets/kit/buildings/warehouse.glb",
+    "name": "HC Warehouse",
+    "yaw": 0.0,
+    "length": 35.0,
+    "fit": "height",
+    "role": "warehouse",
+    "moderation": "Approved"
+  },
+  "diner": {
+    "assetId": 128048405858739,
+    "file": "assets/kit/buildings/diner.glb",
+    "name": "HC Diner",
+    "yaw": 0.0,
+    "length": 22.0,
+    "fit": "height",
+    "role": "diner",
+    "moderation": "Approved"
+  },
+  "hotel_beach": {
+    "assetId": 123312818892511,
+    "file": "assets/kit/buildings/hotel_beach.glb",
+    "name": "HC Beach Hotel",
+    "yaw": 180.0,
+    "length": 60.0,
+    "fit": "height",
+    "role": "hotel_beach",
+    "moderation": "Approved"
+  },
+  "gas_station": {
+    "assetId": 84236317094177,
+    "file": "assets/kit/buildings/gas_station.glb",
+    "name": "HC Gas Station",
+    "yaw": 0.0,
+    "length": 60.0,
+    "fit": "footprint",
+    "role": "gas_station",
+    "moderation": "Approved"
+  },
+  "donut_shop": {
+    "assetId": 110799039766838,
+    "file": "assets/kit/buildings/donut_shop.glb",
+    "name": "HC Donut Shop",
+    "yaw": 180.0,
+    "length": 28.0,
+    "fit": "height",
+    "role": "donut_shop",
+    "moderation": "Approved"
+  },
+  "surf_shack": {
+    "assetId": 120191646577657,
+    "file": "assets/kit/buildings/surf_shack.glb",
+    "name": "HC Surf Shack",
+    "yaw": 90.0,
+    "length": 18.0,
+    "fit": "height",
+    "role": "surf_shack",
+    "moderation": "Approved"
+  },
+  "chop_shop": {
+    "assetId": 134559325763106,
+    "file": "assets/kit/buildings/chop_shop.glb",
+    "name": "HC Chop Shop",
+    "yaw": 0.0,
+    "length": 60.0,
+    "fit": "footprint",
+    "role": "chop_shop",
+    "moderation": "Approved"
+  }
+}
