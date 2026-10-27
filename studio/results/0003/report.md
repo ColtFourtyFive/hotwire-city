@@ -39,9 +39,9 @@ The camera is pulled far back because #2 is a whole diorama.
 - Creator **yiypoo1024** is consistently the most realistic car uploader found so far: 1998 Elantra, Mariner, Sorento, Murano.
 
 ### cars_police
-- **3/5:** #1 `16390639371` Realistic Police Car (reachin4stars). 237 parts, with **114 scripts removed** (a heavy chassis or ELS). It has a black-and-white livery and a lightbar, but its proportions are chunky.
+- **4/5:** #1 `16390639371` Realistic Police Car (reachin4stars). **The Explorer-style police interceptor SUV**, with a good livery. 237 parts, with 114 scripts removed (a heavy chassis or ELS). *(Corrected in job 0004: the first version of this report swapped the descriptions of #1 and #3.)*
 - **4/5:** #2 `103123587729335` "Police Car Decoration Detailed" (StarNeon5292). A Peugeot-style French police hatchback with a clean livery. It is static decor, which suits parked props.
-- **4/5:** #3 `113053967699143` Police Car Cop City Pursuit (KingJames_the67). An Explorer-style police interceptor SUV, with 23 textures and a good livery. It is slightly oversized at 27 studs long.
+- **2/5:** #3 `113053967699143` Police Car Cop City Pursuit (KingJames_the67). A blocky black sedan built from plain parts, with an Ohio State Highway Patrol hood decal. Oversized at 27 studs long. *(Corrected in job 0004.)*
 - **1/5:** #4 `73440173280832` "Police Car Siren Vehicle". The Folder contains **one 4×4×2 part**, a pink blob. It is unusable.
 
 ### cars_truck
@@ -136,7 +136,7 @@ See also `bld_shop_close.png`.
 ## Summary for the lead
 
 - **Use:**
-  - Cars: Jaguar `11881862706`; yiypoo1024's SUVs `117276253886376` and `73893179863762`; Nissan Patrol `14746413121`; F-150 `89890547548224`; Tundra `126180570128588`; Explorer police `113053967699143`; box truck `131180706902259`.
+  - Cars: Jaguar `11881862706`; yiypoo1024's SUVs `117276253886376` and `73893179863762`; Nissan Patrol `14746413121`; F-150 `89890547548224`; Tundra `126180570128588`; Explorer police `16390639371` (corrected from `113053967699143` in job 0004); box truck `131180706902259`.
   - Guns: AK47 PBR `86516814029259`; Remington 870 `126959125460533`.
   - Street: streetlight `12117717385`; traffic light `4477106901` and `13752790025`; palm `8626962700` and pack `99808919561383`; bus stop `93408078240744`; dumpster `114651969370411`.
   - Port: blue container `120215648673966`.
