@@ -32,12 +32,15 @@ CORE = {"Walls", "Walls2", "Trim", "Glass", "Roof", "WindowsLit"}
 # scene: district to centre on (densest cluster of its buildings) or a fixed Roblox point, inclusion radius,
 # camera offset from the centre (Roblox studs: dx, dy, dz), look-at height, lens, sky, sun azimuth
 SCENES = {
-    "downtown": dict(center=(150, 12, -300), radius=1100, cam=(-760, 210, 820), look=(120, 140, -380), lens=30),
-    "downtown_street": dict(district="downtown", radius=520, cam=(-150, 9, 210), look_d=(60, 70, -120), lens=24),
-    "midtown": dict(district="midtown", radius=520, cam=(-260, 70, 300), look_d=(20, 30, -40), lens=26),
-    "beach": dict(district="beach", radius=520, cam=(260, 60, 300), look_d=(-30, 25, -40), lens=26),
-    "suburbs": dict(district="southgate", radius=420, cam=(-200, 90, 230), look_d=(10, 0, -30), lens=26),
-    "downtown_night": dict(center=(150, 12, -300), radius=1100, cam=(-760, 210, 820), look=(120, 140, -380), lens=30,
+    "downtown": dict(center=(150, 12, -300), radius=1500, cam=(-1650, 330, 1500), look=(150, 210, -420), lens=34),
+    "downtown_street": dict(center=(150, 12, -300), radius=900, street=(0, 0), eye=8.0, aim=90.0, lens=22),
+    "midtown": dict(district="midtown", radius=620, street=(0, 0), eye=9.0, aim=30.0, lens=24),
+    "midtown_aerial": dict(district="midtown", radius=620, cam=(-330, 150, 380), look_d=(20, 20, -60), lens=26),
+    "beach": dict(district="beach", family="deco", dense=180, radius=620, street=(0, 0), eye=8.0, aim=24.0, lens=24),
+    "beach_aerial": dict(district="beach", family="deco", dense=180, radius=620, cam=(330, 130, 260),
+                         look_d=(-40, 10, -40), lens=26),
+    "suburbs": dict(district="southgate", radius=480, cam=(-190, 70, 210), look_d=(20, 0, -40), lens=26),
+    "downtown_night": dict(center=(150, 12, -300), radius=1500, cam=(-1650, 330, 1500), look=(150, 210, -420), lens=34,
                            night=True),
 }
 
@@ -252,7 +255,7 @@ def roads(col, data, center, radius):
     walk = material({"material": "Pavement", "variant": None, "color": [200, 197, 188], "texture": None})
     paint = material({"material": "SmoothPlastic", "variant": None, "color": [236, 196, 70], "texture": None})
     cx, cz = center[0], center[2]
-    lamps = []
+    lamps, cars, street = [], [], []
     for e in data["roads"]:
         pts = e["points"]
         if not any((p[0] - cx) ** 2 + (p[2] - cz) ** 2 < (radius + 300) ** 2 for p in pts):
@@ -287,6 +290,24 @@ def roads(col, data, center, radius):
             ob = bpy.data.objects.new("Road", me)
             col.objects.link(ob)
         if e["class"] in ("boulevard", "avenue", "street") and not e.get("elevated") and not e.get("bridge"):
+            for i in range(1, len(pts)):
+                p, q = pts[i - 1], pts[i]
+                seg = math.hypot(q[0] - p[0], q[2] - p[2])
+                if seg < 1:
+                    continue
+                tx, tz = (q[0] - p[0]) / seg, (q[2] - p[2]) / seg
+                street.append((p, (tx, tz), hw, e["class"]))
+                k = 0.0
+                while k < seg - 20:
+                    k += 26.0
+                    h = (hash((round(p[0]), round(p[2]), int(k))) % 1000) / 1000.0
+                    if h < 0.45:
+                        side = 1 if h < 0.22 else -1
+                        off = (hw - 4.6) * side
+                        x, z = p[0] + tx * k - tz * off, p[2] + tz * k + tx * off
+                        if (x - cx) ** 2 + (z - cz) ** 2 < radius ** 2:
+                            heading = math.degrees(math.atan2(tz * side, -tx * side))
+                            cars.append((x, p[1] + 0.05, z, heading, int(h * 1e4)))
             acc = 0.0
             for i in range(1, len(pts)):
                 p, q = pts[i - 1], pts[i]
@@ -301,7 +322,7 @@ def roads(col, data, center, radius):
                         lx, lz = q[0] + nx * off * side, q[2] + nz * off * side
                         if (lx - cx) ** 2 + (lz - cz) ** 2 < radius ** 2:
                             lamps.append((lx, q[1] + 0.6, lz, -nx * side, -nz * side))
-    return lamps
+    return lamps, cars, street
 
 
 def ground(col, center, radius, y, kind):
@@ -316,11 +337,11 @@ def ground(col, center, radius, y, kind):
     col.objects.link(ob)
 
 
-def densest(data, district, radius=260):
+def densest(data, district, radius=260, family=None):
     pts = []
     for b in data["buildings"]:
         p = data["parcels"][b["parcel"] - 1]
-        if p["district"] == district and b["kind"] == "template":
+        if p["district"] == district and b["kind"] == "template" and (family is None or b["family"] == family):
             pts.append(b["cframe"][:3])
     best, bc = None, -1
     for q in pts[:: max(1, len(pts) // 300)]:
@@ -339,7 +360,7 @@ def render_scene(name, data, cat, samples, out_dir):
     else:
         S.world("sky_late_afternoon", sun_az=sc.get("sun", -35.0))
     col = bpy.context.scene.collection
-    center = sc.get("center") or densest(data, sc["district"])
+    center = sc.get("center") or densest(data, sc["district"], sc.get("dense", 260), sc.get("family"))
     radius = sc["radius"]
     ys = []
     nb = nparts = 0
@@ -354,7 +375,7 @@ def render_scene(name, data, cat, samples, out_dir):
             place_massing(col, b, night)
         nb += 1
     gy = (sorted(ys)[len(ys) // 2] if ys else center[1]) - 0.4
-    lamps = roads(col, data, center, radius)
+    lamps, cars, street = roads(col, data, center, radius)
     district = sc.get("district") or "downtown"
     ground(col, center, radius, gy, "grass" if district in ("southgate", "hills") else "concrete")
     for k, (x, y, z, fx, fz) in enumerate(lamps[:220]):
@@ -372,13 +393,30 @@ def render_scene(name, data, cat, samples, out_dir):
             S.palm(pc, 0.0, 0.0, h=44 + (k % 5) * 4, seed=k)
             for ob in pc.objects:
                 ob.location = ob.location + Vector((bp.x, bp.y, bp.z))
-    if "look" in sc:
+    if sc.get("street"):
+        # on a sidewalk-side lane of the road nearest the centre, looking down the street
+        best = min(street, key=lambda r: (r[0][0] - center[0] - sc["street"][0]) ** 2 + (r[0][2] - center[2] - sc["street"][1]) ** 2)
+        p, (tx, tz), hw, _ = best
+        sgn = sc.get("dir", 1)
+        tx, tz = tx * sgn, tz * sgn
+        off = hw * 0.55
+        cam = to_b((p[0] - tz * off, p[1] + sc.get("eye", 7.0), p[2] + tx * off))
+        tgt = to_b((p[0] + tx * 260 + tz * off * 0.4, p[1] + sc.get("aim", 40.0), p[2] + tz * 260 - tx * off * 0.4))
+    elif "look" in sc:
         cam = to_b(tuple(center[i] + sc["cam"][i] for i in range(3)))
         tgt = to_b(sc["look"])
     else:
         cam = to_b((center[0] + sc["cam"][0], gy + sc["cam"][1], center[2] + sc["cam"][2]))
         tgt = to_b((center[0] + sc["look_d"][0], gy + sc["look_d"][1], center[2] + sc["look_d"][2]))
     S.camera(tuple(cam), tuple(tgt), sc.get("lens", 28))
+    placed_cars = 0
+    for x, y, z, heading, seed in cars:
+        bp = to_b((x, y, z))
+        if (bp - cam).length < 40 or placed_cars >= 160:
+            continue
+        root = S.car(col, bp.x, bp.y, heading=heading, seed=seed)
+        root.location.z = bp.z
+        placed_cars += 1
     S.haze(night=night, amount=0.35 if not night else 0.2)
     path = os.path.join(out_dir, name + ".png")
     S.render(path, samples=samples)
@@ -388,7 +426,8 @@ def render_scene(name, data, cat, samples, out_dir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--scene", nargs="+", default=["downtown", "midtown", "beach", "suburbs", "downtown_night"])
+    ap.add_argument("--scene", nargs="+", default=["downtown", "downtown_street", "midtown", "midtown_aerial", "beach",
+                                                   "suburbs", "downtown_night"])
     ap.add_argument("--placements", default=os.path.join(HERE, "_cache", "placements.json"))
     ap.add_argument("--samples", type=int, default=40)
     ap.add_argument("--out", default=OUT)

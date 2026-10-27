@@ -1,0 +1,243 @@
+{
+ "materialService": [
+  "HC_Asphalt:Asphalt",
+  "HC_AsphaltWet:Asphalt",
+  "HC_AsphaltWorn:Asphalt",
+  "HC_BrickRed:Brick",
+  "HC_BrickTan:Brick",
+  "HC_Concrete:Concrete",
+  "HC_ConcreteModern:Concrete",
+  "HC_CorrugatedMetal:Metal",
+  "HC_DryGrass:Ground",
+  "HC_Grass:Grass",
+  "HC_GrassLeafy:LeafyGrass",
+  "HC_GravelRoof:Pebble",
+  "HC_Rock:Rock",
+  "HC_RockSlate:Slate",
+  "HC_RoofTiles:ClayRoofTiles",
+  "HC_RustyMetal:CorrodedMetal",
+  "HC_Sand:Sand",
+  "HC_Sidewalk:Pavement",
+  "HC_Stucco:Plaster",
+  "HC_Terrazzo:Marble",
+  "HC_WindowGlass:SmoothPlastic",
+  "HC_WoodPlanks:WoodPlanks"
+ ],
+ "models": [
+  {
+   "frontZ": -80.0199966430664,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 79380051568242,
+   "key": "tower_hero640",
+   "meshParts": 10,
+   "missing": [],
+   "models": 12,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.26591661002021283,
+   "wallsSize": [
+    160.00001525878906,
+    639.5999755859375,
+    160.00001525878906
+   ]
+  },
+  {
+   "frontZ": -80.0199966430664,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 128945459957720,
+   "key": "tower_p290a",
+   "meshParts": 11,
+   "missing": [],
+   "models": 13,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.3165275560459122,
+   "wallsSize": [
+    134.50001525878906,
+    235.6999969482422,
+    134.50001525878906
+   ]
+  },
+  {
+   "frontZ": -42.02000045776367,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 130852794609660,
+   "key": "office_w90f7",
+   "meshParts": 10,
+   "missing": [],
+   "models": 12,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.316651271074079,
+   "wallsSize": [
+    90.00000762939453,
+    100.4000015258789,
+    84.00000762939453
+   ]
+  },
+  {
+   "frontZ": -33.125,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 90872450024414,
+   "key": "midtown_w60f4",
+   "meshParts": 10,
+   "missing": [],
+   "models": 12,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.23370582005009055,
+   "wallsSize": [
+    60.000003814697266,
+    56.019996643066406,
+    62.000003814697266
+   ]
+  },
+  {
+   "frontZ": -27.125,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 79347327740630,
+   "key": "midtown_w44f0b",
+   "meshParts": 10,
+   "missing": [],
+   "models": 12,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.299388068029657,
+   "wallsSize": [
+    44.000003814697266,
+    2.6000003814697266,
+    50.000003814697266
+   ]
+  },
+  {
+   "frontZ": -26,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 114937428303505,
+   "key": "deco_w66f4",
+   "meshParts": 12,
+   "missing": [],
+   "models": 14,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.36661673500202596,
+   "wallsSize": [
+    66,
+    63,
+    64.80000305175781
+   ]
+  },
+  {
+   "frontZ": 2.5299999713897705,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 132231225438386,
+   "key": "retail_store50",
+   "meshParts": 16,
+   "missing": [],
+   "models": 18,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.3166711990488693,
+   "wallsSize": [
+    50,
+    17,
+    0.0010000000474974513
+   ]
+  },
+  {
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 129932399637558,
+   "key": "house_spanish58",
+   "meshParts": 12,
+   "missing": [],
+   "models": 14,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.31651574396528304,
+   "wallsSize": [
+    51,
+    24.1200008392334,
+    34
+   ]
+  },
+  {
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 81664313545389,
+   "key": "mansion_w130a",
+   "meshParts": 16,
+   "missing": [],
+   "models": 18,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.24990244302898645,
+   "wallsSize": [
+    110,
+    26.200000762939453,
+    60.00000762939453
+   ]
+  },
+  {
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 84402046373442,
+   "key": "house_villa96",
+   "meshParts": 14,
+   "missing": [],
+   "models": 16,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.23321876698173583,
+   "wallsSize": [
+    81,
+    36.91999816894531,
+    44.00000762939453
+   ]
+  },
+  {
+   "frontZ": -25.320003509521484,
+   "glassMaterial": "Plastic",
+   "glassTexture": "",
+   "hasSurfaceAppearance": false,
+   "id": 111093224018488,
+   "key": "industrial_wh130",
+   "meshParts": 16,
+   "missing": [],
+   "models": 18,
+   "ok": true,
+   "otherClasses": [],
+   "seconds": 0.31654597097076476,
+   "wallsSize": [
+    130,
+    33.43333435058594,
+    80.00001525878906
+   ]
+  }
+ ],
+ "probedAt": "2026-10-27T21:13:52",
+ "surface": {
+  "glassSet": true,
+  "glassTexture": "rbxassetid://136930987872533",
+  "wallsMaterial": "Brick",
+  "wallsSet": true,
+  "wallsVariant": "HC_BrickTan"
+ },
+ "taskVersion": "30"
+}

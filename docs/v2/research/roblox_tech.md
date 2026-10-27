@@ -215,6 +215,27 @@ The maps are the same as MaterialVariant: Color, Normal (OpenGL, tangent space),
   - `AssetService:CreateSurfaceAppearanceAsync({ColorMap=Content.fromObject(editableImage), ...})` (Security None) **only accepts EditableImage content today**. Editable images are memory-expensive. Avoid it except for player decals or liveries.
 - Publish caveat: see §1. SurfaceAppearances should reach the game inside **Model assets**, or through a Studio or bake publish.
 
+### MeshPart.TextureID vs SurfaceAppearance for uploaded buildings (A3, verified 2026-10-27)
+
+- **`MeshPart.TextureID` (`TextureContent`) is scriptable at runtime**; `MeshId` is not, and SurfaceAppearance maps are
+  not (see above). So one uploaded Image can texture any number of MeshParts set from a game script.
+- **What the Open Cloud GLB importer makes** [EVID: probe upload `95401734300558`, downloaded and inspected with Lune]:
+  - glTF base-colour / roughness / metallic **factors are dropped**: every MeshPart arrives grey `Plastic`.
+  - A material with only a base-colour image becomes `MeshPart.TextureID` (the image is uploaded as a new asset).
+  - A full PBR set (colour + normal + roughness) becomes a **SurfaceAppearance** (four new image assets).
+  - Hierarchy: `Model(displayName) > Model(root) > Model "<object>_Node" > MeshPart "<object>"`; positions in studs;
+    a 180° turn about Y (glTF +Z front -> Roblox -Z front; Blender x -> Roblox -x).
+- **Decision for buildings:** upload geometry + UVs only and surface the parts at runtime: tiling roles use
+  `Enum.Material` + the place's global MaterialVariants tinted by `BasePart.Color` (community reports and the open
+  "MaterialVariant obey MeshPart UV maps" feature request agree that MaterialVariants on MeshParts are projected per
+  face at StudsPerTile, not UV-mapped, so texel density stays constant when a building is scaled); atlas roles
+  (window interiors, signs, brands, awnings) use `TextureID` with four shared Images. Embedding textures would have
+  cost ~5 image assets per building and no reuse.
+- **Real-engine check** [EVID: `tools/blender/buildkit/cloud_probe.py` -> `docs/v2/early/buildings/cloud_probe.json`]:
+  11 building Models load with `InsertService:LoadAsset` in 0.23-0.37 s each, every expected MeshPart is present, the
+  front sits at -Z, and `Material` / `MaterialVariant = "HC_BrickTan"` / `TextureID` writes read back.
+- `TextureID` alpha is a hard cut-out (ROBLOX_CARS §3), so soft grime decals are not shipped on buildings.
+
 ### Budgets
 
 | Asset | Map sizes |

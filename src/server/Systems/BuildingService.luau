@@ -875,10 +875,15 @@ local runtimePlans: { Plan } = {}
 local parcelsCache: { Parcel } = {}
 local skipped = false
 
--- The parcel list: the baked v2 world data when present, else Config/WorldLayout.
+-- The parcel list: the baked v2 world data when present (server-only or shared), else Config/WorldLayout.
 function BuildingService.parcels(): { Parcel }
-	local config = Shared:FindFirstChild("Config")
-	for _, name in { "WorldData", "WorldLayout" } do
+	local sources: { { any } } = {
+		{ script.Parent.Parent:FindFirstChild("Config"), "WorldServerData" },
+		{ Shared:FindFirstChild("Config"), "WorldData" },
+		{ Shared:FindFirstChild("Config"), "WorldLayout" },
+	}
+	for _, src in sources do
+		local config, name = src[1], src[2]
 		local m = config and config:FindFirstChild(name)
 		if m and m:IsA("ModuleScript") then
 			local ok, data = pcall(require, m)
