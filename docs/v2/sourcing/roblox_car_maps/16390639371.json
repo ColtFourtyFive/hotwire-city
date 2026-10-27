@@ -110,9 +110,9 @@
  },
  "groups": {
   "Body": {
-   "count": 84,
+   "count": 80,
    "rules": {
-    "default": 84
+    "default": 80
    },
    "paths": [
     "T488/Body/CarShell/MeshPart#1",
@@ -130,9 +130,7 @@
     "T488/Body/CarShell/MeshPart#23",
     "T488/Body/CarShell/MeshPart#24",
     "T488/Body/CarShell/MeshPart#25",
-    "T488/Body/CarShell/MeshPart#26",
     "T488/Body/CarShell/MeshPart#27",
-    "T488/Body/CarShell/MeshPart#28",
     "T488/Body/CarShell/MeshPart#3",
     "T488/Body/CarShell/MeshPart#4",
     "T488/Body/CarShell/MeshPart#5",
@@ -190,8 +188,6 @@
     "T488/Body/Model#2/Part#1",
     "T488/Body/Model#2/Part#2",
     "T488/Body/Model#2/Part#3",
-    "T488/Body/Municipal Gov. License Plates (New Format)/FrontPlate/Plate",
-    "T488/Body/Municipal Gov. License Plates (New Format)/RearPlate/Plate",
     "T488/Body/radio1/MeshPart",
     "T488/Body/radio1/Radio1/MeshPart",
     "T488/Body/radio1/Radio1/PalmMic",
@@ -201,7 +197,7 @@
     "T488/Misc/Wheel/Parts/MeshPart#4"
    ],
    "selectors": [
-    "Body/CarShell/{MeshPart#1, MeshPart#11, MeshPart#12, MeshPart#13, MeshPart#14, MeshPart#15, +20 more}",
+    "Body/CarShell/{MeshPart#1, MeshPart#11, MeshPart#12, MeshPart#13, MeshPart#14, MeshPart#15, +18 more}",
     "Body/Interceptor Badge/**",
     "Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#1",
     "Body/Interior oufit/Motorola XTL 5000/Mic/Body/Interior oufit/Motorola XTL 5000/Mic",
@@ -209,7 +205,6 @@
     "Body/Interior oufit/Printer/**",
     "Body/Interior oufit/PolicePad/**",
     "Body/Interior oufit/Cage/**",
-    "Body/Municipal Gov. License Plates (New Format)/**",
     "Body/Model#1/{Feniex#1, Feniex#2, Feniex#3, Feniex#4, Feniex#5, Feniex#6, +24 more}",
     "Body/Model#2/**",
     "Body/radio1/**",
@@ -356,14 +351,18 @@
    ]
   },
   "Lights_Head": {
-   "count": 1,
+   "count": 3,
    "rules": {
+    "shares lamp texture 4462082889": 2,
     "light: name/light child": 1
    },
    "paths": [
+    "T488/Body/CarShell/MeshPart#26",
+    "T488/Body/CarShell/MeshPart#28",
     "T488/Body/Fog Lights/Glass/MeshPart"
    ],
    "selectors": [
+    "Body/CarShell/{MeshPart#26, MeshPart#28}",
     "Body/Fog Lights/**"
    ]
   },
@@ -416,6 +415,19 @@
    ],
    "selectors": [
     "Body/Paint/**"
+   ]
+  },
+  "Plate": {
+   "count": 2,
+   "rules": {
+    "licence plate name": 2
+   },
+   "paths": [
+    "T488/Body/Municipal Gov. License Plates (New Format)/FrontPlate/Plate",
+    "T488/Body/Municipal Gov. License Plates (New Format)/RearPlate/Plate"
+   ],
+   "selectors": [
+    "Body/Municipal Gov. License Plates (New Format)/**"
    ]
   },
   "Wheel_FL": {

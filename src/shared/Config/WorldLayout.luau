@@ -2112,7 +2112,7 @@ local function generateGrid(g: GridSpec)
 	end
 	local minU, maxU = g.us[1], g.us[#g.us]
 	local minV, maxV = g.vs[1], g.vs[#g.vs]
-	local padU, padV = 400, 400
+	local padU, padV = 1200, 1200
 	local function emit(fam: string, idx: number, pts: { P2 })
 		-- clip to the district clip polygon (by segments), keep pieces
 		local pieces: { { P2 } } = {}
@@ -2287,6 +2287,7 @@ local RESERVED_AREAS: { { poly: { P2 }, name: string } } = {
 	{ name = "Rail Yard", poly = poly({ { 2110, 1180 }, { 3700, 1180 }, { 3700, 1520 }, { 2110, 1520 } }) },
 	{ name = "Hotwire Plaza", poly = poly({ { 175, -240 }, { 470, -240 }, { 470, 55 }, { 175, 55 } }) },
 	{ name = "Echo Park", poly = poly({ { -2050, 1600 }, { -1450, 1600 }, { -1450, 2000 }, { -2050, 2000 } }) },
+	{ name = "Iron Bay Arena", poly = poly({ { 1000, 2340 }, { 1480, 2340 }, { 1480, 2800 }, { 1000, 2800 } }) },
 }
 do
 	local ch = WorldLayout.Channel
@@ -3415,7 +3416,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Hotwire Plaza",
 		kind = "plaza",
 		at = { 320, -100 },
-		size = { 280, 0, 260 },
+		size = { 226, 0, 220 },
 		road = "Crown Boulevard",
 		setback = 0,
 		tags = { "events", "cashRain", "defaultSpawn" },
@@ -3426,7 +3427,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Hotwire Motors",
 		kind = "dealership",
 		at = { -2000, -400 },
-		size = { 260, 40, 190 },
+		size = { 220, 40, 170 },
 		road = "Crown Boulevard",
 		setback = 10,
 		tags = { "showroom" },
@@ -3577,7 +3578,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Pinnacle Reserve Bank",
 		kind = "bank",
 		at = { -500, -250 },
-		size = { 220, 160, 170 },
+		size = { 200, 160, 170 },
 		road = "Crown Boulevard",
 		setback = 10,
 		tags = { "heist", "vault" },
@@ -3811,7 +3812,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "HCPD Headquarters",
 		kind = "police",
 		at = { -700, 350 },
-		size = { 220, 90, 180 },
+		size = { 206, 90, 170 },
 		setback = 10,
 		tags = { "policeSpawn", "jail", "bustedRelease", "helipad" },
 	},
@@ -3880,7 +3881,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Mount Mercy Medical Center",
 		kind = "hospital",
 		at = { 1000, -900 },
-		size = { 240, 150, 200 },
+		size = { 216, 150, 180 },
 		setback = 12,
 		tags = { "respawn", "helipad" },
 	},
@@ -3926,7 +3927,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Pinnacle Tower",
 		kind = "landmark",
 		at = { 330, -560 },
-		size = { 160, 760, 150 },
+		size = { 150, 760, 150 },
 		setback = 6,
 		tags = { "tallest", "helipad", "skyline" },
 	},
@@ -3935,7 +3936,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Lucky Seven Casino",
 		kind = "landmark",
 		at = { -2250, -1450 },
-		size = { 260, 120, 200 },
+		size = { 200, 120, 160 },
 		road = "Gilded Mile",
 		setback = 20,
 		tags = { "futureHeist" },
@@ -3944,8 +3945,9 @@ local POI_DEFS: { PoiDef } = {
 		id = "Arena",
 		name = "Iron Bay Arena",
 		kind = "landmark",
-		at = { 1150, 2700 },
-		size = { 320, 60, 280 },
+		at = { 1240, 2450 },
+		road = "Southgate Avenue",
+		size = { 320, 60, 300 },
 		setback = 30,
 	},
 	{
@@ -3981,7 +3983,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "HCI Terminal",
 		kind = "airport_terminal",
 		at = { -4100, 2330 },
-		size = { 520, 70, 220 },
+		size = { 440, 70, 200 },
 		road = "Terminal Drive",
 		setback = 10,
 		tags = { "rareSpawns" },

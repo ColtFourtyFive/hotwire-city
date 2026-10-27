@@ -383,10 +383,38 @@ def analyze(model_id):
             group[n["id"]] = "Glass"
             rule[n["id"]] = "glass: " + ("Material=Glass" if mat == "Glass" else ("name" if RE_GLASS.search(" ".join(chain_names[:2])) else f"T={tr}"))
             continue
+        if any(re.search(r"plate|licen[cs]e|plaque|matr[ií]cula|kennzeichen", x, re.I) for x in chain_names[:3]):
+            group[n["id"]] = "Plate"
+            rule[n["id"]] = "licence plate name"
+            continue
         if any(RE_INTERIOR.search(x) for x in chain_names[:2]):
             group[n["id"]] = "Interior"
             rule[n["id"]] = "interior name"
             continue
+
+    # colour/position lights: saturated red parts in the rear quarter are tail lamps; parts that share
+    # a TextureID with an already-classified lamp are lamps too (photo-textured light atlases)
+    for n in vis:
+        if n["id"] in group:
+            continue
+        c = n["props"].get("Color", [0, 0, 0])
+        q = local(n["props"]["CFrame"][:3])
+        if c[0] > 0.45 and c[1] < 0.2 and c[2] < 0.2 and q[2] < -0.3 * dims["length"]:
+            group[n["id"]] = "Lights_Tail"
+            rule[n["id"]] = "red part in rear quarter"
+    tex_users = Counter(rbxdl.parse_asset_id(n["props"].get("TextureID")) for n in vis)
+    tex_lamps = Counter(rbxdl.parse_asset_id(byid[i]["props"].get("TextureID")) for i, g in group.items()
+                        if g.startswith("Lights_"))
+    # only dedicated lamp textures (few users, a good share already lamps), never shared body atlases
+    lamp_tex = {t for t, k in tex_lamps.items() if t and tex_users[t] <= 6 and k / tex_users[t] >= 0.3}
+    for n in vis:
+        if n["id"] in group:
+            continue
+        t = rbxdl.parse_asset_id(n["props"].get("TextureID"))
+        if t and t in lamp_tex:
+            q = local(n["props"]["CFrame"][:3])
+            group[n["id"]] = "Lights_Head" if q[2] > 0 else "Lights_Tail"
+            rule[n["id"]] = f"shares lamp texture {t}"
 
     # --- paint -----------------------------------------------------------------------------------
     def has_tex(n):

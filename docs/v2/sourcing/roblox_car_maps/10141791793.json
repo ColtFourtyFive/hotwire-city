@@ -112,14 +112,13 @@
  },
  "groups": {
   "Body": {
-   "count": 104,
+   "count": 101,
    "rules": {
-    "default": 104
+    "default": 101
    },
    "paths": [
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/underbody",
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/underbody2",
-    "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/plate",
     "2020 GMC 2500 AT4/Body/AS1234#1",
     "2020 GMC 2500 AT4/Body/AS1234#2",
     "2020 GMC 2500 AT4/Body/Feniex#1",
@@ -209,10 +208,8 @@
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#7",
     "2020 GMC 2500 AT4/Body/Toolbox/Metal#1",
     "2020 GMC 2500 AT4/Body/Toolbox/Metal#2",
-    "2020 GMC 2500 AT4/Body/Whelen Talon#1/FlashPlate",
     "2020 GMC 2500 AT4/Body/Whelen Talon#1/Holder",
     "2020 GMC 2500 AT4/Body/Whelen Talon#1/Module",
-    "2020 GMC 2500 AT4/Body/Whelen Talon#2/FlashPlate",
     "2020 GMC 2500 AT4/Body/Whelen Talon#2/Holder",
     "2020 GMC 2500 AT4/Body/Whelen Talon#2/Module",
     "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#1",
@@ -224,13 +221,13 @@
    ],
    "selectors": [
     "Misc/**",
-    "Body/2020 Silverado WT/PPV package/{Meshes/underbody, Meshes/underbody2, plate}",
+    "Body/2020 Silverado WT/PPV package/{Meshes/underbody, Meshes/underbody2}",
     "Body/HG2 Side Runners 4 Set/{Union#1, Union#2}",
     "Body/Hook/**",
     "Body/Rappel/**",
     "Body/Toolbox/**",
-    "Body/Whelen Talon#1/**",
-    "Body/Whelen Talon#2/**",
+    "Body/Whelen Talon#1/{Holder, Module}",
+    "Body/Whelen Talon#2/{Holder, Module}",
     "Body/XLP LINZ6/{MeshPart#1, MeshPart#3, MeshPart#4, MeshPart#5}",
     "Body/Rough Country Shock Absorber#1/{Part#1, Part#2, Part#3, Part#4, Part#5, Part#6}",
     "Body/Rough Country Shock Absorber#2/{Part#1, Part#2, Part#3, Part#4, Part#5, Part#6}",
@@ -495,6 +492,22 @@
     "Body/Rough Country Shock Absorber#3/{PAINT#1, PAINT#2, PAINT#3, PAINT#4, PAINT#5, PAINT#6, +2 more}",
     "Body/Rough Country Shock Absorber#4/{PAINT#1, PAINT#10, PAINT#11, PAINT#12, PAINT#13, PAINT#14, +9 more}",
     "Body/{Base#1, Base#2, MeshPart#3, MeshPart#4, Part}"
+   ]
+  },
+  "Plate": {
+   "count": 3,
+   "rules": {
+    "licence plate name": 3
+   },
+   "paths": [
+    "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/plate",
+    "2020 GMC 2500 AT4/Body/Whelen Talon#1/FlashPlate",
+    "2020 GMC 2500 AT4/Body/Whelen Talon#2/FlashPlate"
+   ],
+   "selectors": [
+    "Body/2020 Silverado WT/PPV package/plate",
+    "Body/Whelen Talon#1/FlashPlate",
+    "Body/Whelen Talon#2/FlashPlate"
    ]
   },
   "Wheel_FL": {

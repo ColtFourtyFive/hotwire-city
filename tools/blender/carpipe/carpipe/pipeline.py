@@ -35,6 +35,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     reset_scene()
     importer.import_any(model_path, cfg)
     objs = importer.flatten(subsurf_cap=cfg.get("subsurf_cap", 1))
+    if cfg.get("select"):  # multi-car packs: keep only objects whose hierarchy path matches the regex
+        objs = importer.select(objs, cfg["select"])
     mdir = os.path.dirname(os.path.abspath(model_path))
     for d in (mdir, os.path.dirname(mdir)):
         importer.discover_textures(d, cfg.get("textures"))

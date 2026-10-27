@@ -108,9 +108,9 @@
  },
  "groups": {
   "Body": {
-   "count": 96,
+   "count": 95,
    "rules": {
-    "default": 96
+    "default": 95
    },
    "paths": [
     "XKR-S GT/Body/Model/Meshes/Black (5)",
@@ -199,7 +199,6 @@
     "XKR-S GT/Misc/TK/Model/Meshes/LP Boot",
     "XKR-S GT/Misc/TK/Model/Meshes/LP Boot.001",
     "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.018",
-    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.019",
     "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.020",
     "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.021",
     "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.022",
@@ -216,7 +215,7 @@
     "Misc/FL/Door/Model/{Meshes/Black.011 (1), Meshes/Mirror.001 (1), Meshes/Silver (1), Meshes/Tex TR.024, Meshes/Tex TR.025, Meshes/Tex TR.026, +12 more}",
     "Misc/HK/Model/{Meshes/Black_Transparency.006_bonnet_ok.002, Meshes/Stripes_Transparency.006_bonnet_ok.004}",
     "Misc/FR/Door/Model/{Meshes/Black.012, Meshes/Mirror.002 (1), Meshes/Silver.001 (1), Meshes/Tex TR.028, Meshes/Tex TR.029, Meshes/Tex TR.030, +11 more}",
-    "Misc/TK/Model/{Meshes/Black.003 (2), Meshes/LP Black, Meshes/LP Boot, Meshes/LP Boot.001, Meshes/Tex TR.018, Meshes/Tex TR.019, +8 more}",
+    "Misc/TK/Model/{Meshes/Black.003 (2), Meshes/LP Black, Meshes/LP Boot, Meshes/LP Boot.001, Meshes/Tex TR.018, Meshes/Tex TR.020, +7 more}",
     "Body/Model/{Meshes/Black (5), Meshes/Black.001 (3), Meshes/Black.002 (2), Meshes/Black.004 (2), Meshes/Black.005 (2), Meshes/Black.006 (2), +37 more}"
    ]
   },
@@ -312,9 +311,10 @@
    ]
   },
   "Lights_Tail": {
-   "count": 17,
+   "count": 18,
    "rules": {
-    "light: name/light child": 17
+    "light: name/light child": 17,
+    "red part in rear quarter": 1
    },
    "paths": [
     "XKR-S GT/Body/Model/Meshes/Light(s) (2)",
@@ -333,10 +333,11 @@
     "XKR-S GT/Misc/TK/Model/Meshes/Light(s).016",
     "XKR-S GT/Misc/TK/Model/Meshes/Light(s).017",
     "XKR-S GT/Misc/TK/Model/Meshes/Light(s).018",
-    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).019"
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).019",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.019"
    ],
    "selectors": [
-    "Misc/TK/Model/{Meshes/Light(s).014 (1), Meshes/Light(s).015 (1), Meshes/Light(s).016, Meshes/Light(s).017, Meshes/Light(s).018, Meshes/Light(s).019}",
+    "Misc/TK/Model/{Meshes/Light(s).014 (1), Meshes/Light(s).015 (1), Meshes/Light(s).016, Meshes/Light(s).017, Meshes/Light(s).018, Meshes/Light(s).019, +1 more}",
     "Body/Model/{Meshes/Light(s) (2), Meshes/Light(s).001 (1), Meshes/Light(s).002 (1), Meshes/Light(s).004 (2), Meshes/Light(s).010 (2), Meshes/Light(s).011 (2), +5 more}"
    ]
   },

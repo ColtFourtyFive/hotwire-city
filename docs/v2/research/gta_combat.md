@@ -1049,3 +1049,88 @@ Acceptance:
 - `economy.roblox.com/v2/assets/{id}/details`
 - `assetdelivery.roblox.com/v2/assetId/{id}`: kit .rbxm files parsed with Lune; Pro Sound Effects audio decoded with ffmpeg for the envelope analysis
 - `catalog.roblox.com/v1/search/items/details` (vest accessories)
+
+---
+
+## Verification
+
+Skeptical re-check done 2026-10-27 by a second agent. **Tally: 30 CONFIRMED, 15 WRONG (each fixed in place and marked "corrected in verification"), 6 UNVERIFIABLE.** About 57 asset IDs were re-queried live.
+
+**Methods:**
+- `apis.roblox.com/toolbox-service/v1/items/details`
+- `economy.roblox.com/v2/assets/{id}/details`
+- `thumbnails.roblox.com/v1/assets`: thumbnails were downloaded and viewed for the Beretta, Desert Eagle, Mossberg, M4, vest, bat, knuckles and baton. All match their descriptions.
+- `games.roblox.com/v1/games`
+- the age-recommendation POST endpoint
+- `assetdelivery.roblox.com/v2/assetId/{id}`, with the kit `.rbxm` files parsed in Lune 0.11 and audio decoded with ffmpeg for a fresh RMS-envelope pass
+- WebFetch of every cited doc page
+
+### Assets
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| A1 | 15 Regole_CKC models (136698099681966, 8991279287, 17767820926, 17760940350, 16725069816, 102505705333696, 8974619704, 108333428640727, 16708385075, 17746420462, 77441363162209, 17670016388, 110670778436939, 18775287777, 18948705106) exist, are by user 48023292, are free, script-free, with the stated triangle counts | **CONFIRMED** | Names and triangle counts match exactly. `isFree=true`, `hasScripts=false`, 0 Script instances. The creator is flagged `isVerifiedCreator: true`. |
+| A2 | The creator has uploads titled after commercial games; the MP7 says "Original model uploaded by Kamishiro_Sanagi" | **CONFIRMED** | 89547458979031, 107393748543268 (Insurgency: Sandstorm); 79061848163997 and the **gun** 121056901779530 "QSZ92G \| Delta Force"; MP7A1 16685731338. The provenance risk is real and slightly worse than stated. |
+| A3 | Melee: 16428159315 (Alika0946, 892 tris), 88603423552264 (KoBoIce, 7.6k), 13826913704 (Jakel_6666), 113217623332553 (SodaBreadle), 9282872148 (OfficialSpyWorksHD) | **CONFIRMED** | All free with 0 scripts. The crowbar is 522 tris. |
+| A4 | Vest 103113428495694 by DIVISIVE is a front accessory | **CONFIRMED, with a caveat** | Asset type 45 (FrontAccessory) from the DIVISIVE group. It is a **55 R$ UGC catalog item**, not a free model, and the alt 91301921946676 is the same. In-game `ApplyDescription` works without ownership, but the creator controls the item, so replace it with our own vest mesh (note added in 12.2). |
+| A5 | Rejected vests 16554530715 (8O8Mph) and 1167407301 (AgentRyanTech) | **CONFIRMED** | Creators match. |
+| A6 | Kit models 4842197274…4842218829 are by Roblox (user 1), 4.4k–6.2k tris, 3 skins, 9 animations, 39 audio | **CONFIRMED** | 4,410–6,246 tris; instanceCounts show tool 3, animation 9, audio 39. Each has 6 scripts. |
+| A7 | Kit tuning table (Pistol 20/0.2/10, AR 14/0.125/30 Auto MaxSpread 0.6, SMG 9/0.05/30, Shotgun 20×5/0.4/5 with 25/250, Sniper 100/1.5/5 Zoom 4.5) | **CONFIRMED** | Re-extracted independently from the `.rbxm` files with Lune. |
+| A8 | Roblox Resources (group 3529469) re-release 118912302094201 / 96131146947811, and Behaviors 132369215737591 | **CONFIRMED** | Same triangle counts as the 2019 kit. |
+| A9 | Other candidates: 9327209214 (RedWood Roleplay GROUP, 411k tris) and 13324950652 (J_Suteinua Glock) | **CONFIRMED** | 411,312 tris; the Glock is 4,458 tris. |
+| A10 | 9 animation IDs (17747125537, 17747128593, 17747123905, 17747384020, 17747381445, 17747385966, 3972164452, 3972157449, 3972131105) are owned by Roblox (user 1) | **CONFIRMED** | Economy API: Creator Id 1 "Roblox", asset type 24 (Animation). The names match. |
+| A11 | PSE user 7462895450 and Audioscape group 34159607 are the uploaders; Siren 9119165131 is already used | **CONFIRMED** | PSE items show `IsPublicDomain=true`. 9119165131 is at `Config/Sounds.luau:37`. |
+| A12 | Waveform verdicts | **CONFIRMED** (3 re-analysed) | 9116361236: 0.52 s, onsets at about 0 / 0.09 / 0.18 s (3 rounds, 90 ms apart). 9113104176: clicks at 0.05 and 0.35 s. 9112910245: clicks at 0.08, 0.92 and 1.70 s. |
+| A13 | Weapons Kit audio is "public" | **WRONG** | 3806566911, 4812801977 and 3821789416 (DarthfuzzyX) and 3909012115 (Reference Games) all return `IsPublicDomain=false` and `isFree=false, purchasable=false`. They probably play under the 2022 short-audio exemption, which is unconfirmed. Ranked below PSE/Audioscape; must be tested in Studio (fixed in 12.4). |
+
+### Policy and API
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| B1 | Maturity label quotes (Minimal through Restricted) | **CONFIRMED** | content-maturity page. |
+| B2 | Violence-intensity and blood definitions | **CONFIRMED** | Verbatim. Frequency: "Repeated" applies even to one short burst of violence. |
+| B3 | Re-submit the questionnaire when guns ship | **CONFIRMED** | Required: "you must update your answers and resubmit the questionnaire to remain compliant." |
+| B4 | Ratings of the comparable games | **CONFIRMED** | All 13 universes were re-queried and every label and descriptor matches. Universe names were confirmed through games.roblox.com. |
+| B5 | "13+ can access Moderate by default; under-9s need parental consent" | **WRONG** (outdated) | The tiers are now Kids 5–8, Select 9–15 and standard 16+. Moderate is allowed for Select and standard. New games run a 16+-only trial, and reaching 13–15 needs a verified creator with 2FA, a fee or a 2-month Plus/Premium subscription, and 250 engaged unique plays in 60 days (fixed in 1.5 and 14). |
+| B6 | Community Standards quotes (gore, "Realistic modern firearms outside of in-game items", sensitive events) | **CONFIRMED** | |
+| B7 | Laser Tag function and constant names, the walls quote and the "No anti-exploit strategy" quote | **CONFIRMED** | All 7 identifiers are present. The tutorial does **no** lag compensation: the decision summary's "rewind by ping … is the Laser Tag pattern" was **WRONG** and is fixed in section 0. |
+| B8 | Game Security article quotes | **UNVERIFIABLE** | The URL redirects to security-tactics, which lacks those sentences. |
+| B9 | Security tactics quote: "Fire or invoke … arbitrary arguments" | **CONFIRMED** | |
+| B10 | Server Authority needs `StreamingEnabled`; our place has it off; player cars are client-owned | **CONFIRMED** | The docs list all 6 Workspace settings. `default.project.json:42` has `StreamingEnabled: false`. `VehicleService.luau:1205` calls `SetNetworkOwner(player)`. |
+| B11 | Weapons Kit config names, ShoulderCamera, touch frames, hit marker, directional indicator, sprint | **CONFIRMED** | The fetch returned only the first sentence of the StartupTime description. |
+| B12 | Unreliable payload limit is 900 bytes | **WRONG** | The current docs give 1,000 bytes. 900 is kept as the budget (fixed in 10.6). |
+| B13 | Animation sharing post t/3892540 | **CONFIRMED** | 2025-08-21: sharing with connections and groups only, not public. |
+| B14 | FastCast thread quotes | **WRONG** | A 3-post thread. "Bullets often don't need to be projectiles…" is not in it (fixed in 2.1). |
+| B15 | Rewind victims to the client trigger time `t` | **WRONG** (design) | `GetNetworkPing()` is round-trip, in seconds (Player API). The shooter sees victims about RTT/2 plus interpolation older than `t`, so sampling at `t` rejects valid hits on fast cars. Fixed: sample at `t − (ping/2 + INTERP_DELAY)` (10.2 step 9). |
+
+### GTA references
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| C1 | GTA V wanted table, evade times of 30/45/60/75/90 s, vision cones, arrests almost impossible at 3★+ | **CONFIRMED** | The quotes were paraphrases and are now replaced with the wiki's wording (2.5). |
+| C2 | GTA V takes all ammo and armor on BUSTED | **CONFIRMED** | Same wiki page. |
+| C3 | GTA V hospital bill and 50% health regen | **UNVERIFIABLE** | Not on the cited page. They are common knowledge, but unsourced. |
+| C4 | mp1st article: four mode descriptions and "removed hard lock … too disorientating" | **WRONG** | The article describes 3 modes and has no hard-lock quote. Only "every aim mode now has a timer that breaks lock" is confirmed, with no duration. The 2.5 s is our value (fixed in 2.3 and 11.2). |
+| C5 | NPC lock versus player friction is "Rockstar's own targeting-mode split" | **WRONG** | GTA Online splits lobbies by targeting mode. The NPC/player split is our design (fixed in section 0). |
+| C6 | Rivals aim assist (progameguides), Jailbreak wiki, Sportskeeda passive mode | **UNVERIFIABLE** ×3 | HTTP 403, 402 and 403. |
+| C7 | WASTED in lowercase red and BUSTED in lowercase blue, on a translucent band | **CONFIRMED** | Checked visually against `ref_gtawiki_Wasted-GTAV-EnhancedVersion.jpg` and `ref_gtawiki_Busted-GTAV.jpg`. |
+
+### Numbers and codebase
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| D1 | Body-shot TTK column in 4.2 (all 11 weapons) | **CONFIRMED** | Recomputed as (shots − 1) × 60 / RPM. |
+| D2 | "Fastest kill is about 0.4 s; nothing faster except a marksman headshot" | **WRONG** | True for body shots only. With headshots: Carbine 0.26 s, Comrade 0.30 s, P9 0.33 s. The test assertion in 13.1 would have failed (fixed). |
+| D3 | Full armor doubles TTK to about 0.8 s | **WRONG** | About 0.9 s (Comrade, 10 shots). |
+| D4 | "Nothing one-shots at close range; the pump needs two blasts" | **WRONG** | With a ×1.2 pellet headshot, 8 head pellets plus 3 torso pellets = 100.8, a one-shot. Fixed: pellet head ×1.0, so a blast does at most 88. |
+| D5 | HitboxHistory at 1,840 writes/s, ≤600 raycasts/s; fMotion 0.53 and 0.29 | **CONFIRMED** | Arithmetic. |
+| D6 | 1 stud ≈ 0.35 m | **WRONG** (versus official) | Roblox's official conversion is 1 stud = 28 cm. 0.35 m is kept only as a visual heuristic (4.2). |
+| D7 | Codebase constants and hooks | **CONFIRMED** | `DECAY_DELAY {15,20,25,32,40}`, `DECAY_STEP 10`, `UNITS_PER_STAR {1,2,3,4,6}`, `HELI_AT_STARS 4`, `HELI_SIGHT 110`, `CLOSE_SEE_RANGE 60`, `NEWBIE_PROTECTION_CARS 3`, `STARTING_CASH 150`, taser $15,000, spikes $6,000. Every named function exists (`_ragdoll`, `ejectComic`, `_fleeDecision`, `bustPass`, `shouldAddAssaultHeat`, `segmentCrossesStrip`, `VehicleService.damage(car, amount, sourcePlayer)` and the rest). |
+| D8 | Line counts | **CONFIRMED / WRONG** | CombatService 1,521, WantedService 969 and PoliceService 2,409 are confirmed. CombatClient is **1,001**, not 978 (fixed). |
+| D9 | "Late-game cars $220–320/s" | **WRONG** | That range is the Epic tier. Legendary is $900–1,300/s, Mythic $4,000–6,000/s and Secret up to $40,000/s, so every gun costs only minutes of income from Legendary on (fixed in section 3). |
+| D10 | The 30-minute bounty pair cooldown "mirrors `BONUS_PAIR_COOLDOWN`" | **WRONG** (value) | The existing constant is 600 s. A new 1,800 s constant is needed (fixed in 8). |
+| D11 | Comrade at $55k is about the price of an Epic car | **CONFIRMED** | Epic cars cost $40k–65k. |
+
+**Also not re-verified:**
+- The default `Health` script's 1%/s regen is known engine behaviour but was not re-fetched; it counts as the 6th UNVERIFIABLE.
+- No animation or kit/Audioscape audio has been played in Studio, so those verdicts still need the Studio operator.

@@ -142,9 +142,9 @@
  },
  "groups": {
   "Body": {
-   "count": 72,
+   "count": 68,
    "rules": {
-    "default": 72
+    "default": 68
    },
    "paths": [
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#1",
@@ -153,10 +153,8 @@
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#12",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#13",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#14",
-    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#15",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#16",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#17",
-    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#19",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#2",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#20",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#22",
@@ -203,7 +201,6 @@
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#64",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#65",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#66",
-    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#67",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#68",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#70",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#71",
@@ -217,11 +214,10 @@
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#79",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#80",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#81",
-    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#82",
-    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#9"
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#82"
    ],
    "selectors": [
-    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#1, MeshPart#10, MeshPart#11, MeshPart#12, MeshPart#13, MeshPart#14, +66 more}"
+    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#1, MeshPart#10, MeshPart#11, MeshPart#12, MeshPart#13, MeshPart#14, +62 more}"
    ]
   },
   "Glass": {
@@ -267,6 +263,21 @@
    ],
    "selectors": [
     "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#28, MeshPart#69}"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 4,
+   "rules": {
+    "red part in rear quarter": 4
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#15",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#19",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#67",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#9"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#15, MeshPart#19, MeshPart#67, MeshPart#9}"
    ]
   },
   "Paint": {

@@ -113,12 +113,11 @@
  },
  "groups": {
   "Body": {
-   "count": 24,
+   "count": 21,
    "rules": {
-    "default": 24
+    "default": 21
    },
    "paths": [
-    "Maxima/Body/BL",
     "Maxima/Body/HLH",
     "Maxima/Body/HLL",
     "Maxima/Body/Li",
@@ -138,13 +137,11 @@
     "Maxima/Body/MeshPart#6",
     "Maxima/Body/MeshPart#7",
     "Maxima/Body/MeshPart#8",
-    "Maxima/Body/MeshPart#9",
-    "Maxima/Body/RRL",
     "Maxima/Body/RevL",
     "Maxima/Body/Ri"
    ],
    "selectors": [
-    "Body/{BL, HLH, HLL, Li, MeshPart#1, MeshPart#10, +18 more}"
+    "Body/{HLH, HLL, Li, MeshPart#1, MeshPart#10, MeshPart#11, +15 more}"
    ]
   },
   "Glass": {
@@ -157,6 +154,20 @@
    ],
    "selectors": [
     "Body/MeshPart#17"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 3,
+   "rules": {
+    "red part in rear quarter": 3
+   },
+   "paths": [
+    "Maxima/Body/BL",
+    "Maxima/Body/MeshPart#9",
+    "Maxima/Body/RRL"
+   ],
+   "selectors": [
+    "Body/{BL, MeshPart#9, RRL}"
    ]
   },
   "Paint": {

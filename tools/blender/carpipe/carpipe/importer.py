@@ -262,3 +262,16 @@ def fix_underspecified_materials():
     if n:
         log(f"material presets applied to {n} under-specified materials")
     return n
+
+
+def select(objs, regex):
+    """Keep objects whose cp_path matches `regex` (e.g. one car out of a multi-car pack); delete the rest."""
+    rx = re.compile(regex, re.I)
+    keep = [o for o in objs if rx.search(o.get("cp_path", o.name))]
+    for o in objs:
+        if o not in keep:
+            bpy.data.objects.remove(o, do_unlink=True)
+    log(f"select '{regex}': kept {len(keep)}/{len(objs)} objects")
+    if not keep:
+        raise ValueError(f"select regex {regex!r} matched nothing")
+    return keep

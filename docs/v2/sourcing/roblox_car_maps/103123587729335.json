@@ -129,9 +129,9 @@
  },
  "groups": {
   "Body": {
-   "count": 15,
+   "count": 8,
    "rules": {
-    "default": 15
+    "default": 8
    },
    "paths": [
     "LeoRosa44's Car/Body/Body/Avant 1",
@@ -141,18 +141,10 @@
     "LeoRosa44's Car/Body/Body/R\u00e9troviseurs",
     "LeoRosa44's Car/Body/Body/Soubassement",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/Part",
-    "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/[UnionOperation] Union",
-    "LeoRosa44's Car/Body/Plaques/Plaque#1/Left/Part",
-    "LeoRosa44's Car/Body/Plaques/Plaque#1/PlaqueNumber",
-    "LeoRosa44's Car/Body/Plaques/Plaque#1/Right/Part",
-    "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#1",
-    "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#2",
-    "LeoRosa44's Car/Body/Plaques/Plaque#2/PlaqueNumber",
-    "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Part"
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/[UnionOperation] Union"
    ],
    "selectors": [
     "Body/Body/{Avant 1, Avant 2, Avant 3, Contours de vitre, R\u00e9troviseurs, Soubassement}",
-    "Body/Plaques/**",
     "Body/Emergency/Antennes/Model#1/**"
    ]
   },
@@ -250,6 +242,24 @@
    ],
    "selectors": [
     "Body/Body/Carrosserie"
+   ]
+  },
+  "Plate": {
+   "count": 7,
+   "rules": {
+    "licence plate name": 7
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Plaques/Plaque#1/Left/Part",
+    "LeoRosa44's Car/Body/Plaques/Plaque#1/PlaqueNumber",
+    "LeoRosa44's Car/Body/Plaques/Plaque#1/Right/Part",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#1",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#2",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/PlaqueNumber",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Part"
+   ],
+   "selectors": [
+    "Body/Plaques/**"
    ]
   },
   "WheelStatic_FL": {

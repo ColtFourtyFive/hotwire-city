@@ -83,7 +83,7 @@
    17
   ],
   "method": "named paint/body parts",
-  "parts": 22,
+  "parts": 20,
   "sameColourButTextured": 0
  },
  "security": {
@@ -289,14 +289,12 @@
    ]
   },
   "Paint": {
-   "count": 22,
+   "count": 20,
    "rules": {
-    "Color == rgb(17, 17, 17)": 22
+    "Color == rgb(17, 17, 17)": 20
    },
    "paths": [
     "2005 Nissan Patrol/Body/6b8a_SUB0",
-    "2005 Nissan Patrol/Body/Front Plate/Part",
-    "2005 Nissan Patrol/Body/Rear Plate/Part",
     "2005 Nissan Patrol/Body/bodyshell_SUB0",
     "2005 Nissan Patrol/Body/bodyshell_SUB1",
     "2005 Nissan Patrol/Body/chassis_SUB4",
@@ -318,9 +316,21 @@
     "2005 Nissan Patrol/Body/safari_grill_SUB0"
    ],
    "selectors": [
-    "Body/Front Plate/**",
-    "Body/Rear Plate/**",
     "Body/{6b8a_SUB0, bodyshell_SUB0, bodyshell_SUB1, chassis_SUB4, door_dside_f001_SUB0, door_dside_f001_SUB1, +14 more}"
+   ]
+  },
+  "Plate": {
+   "count": 2,
+   "rules": {
+    "licence plate name": 2
+   },
+   "paths": [
+    "2005 Nissan Patrol/Body/Front Plate/Part",
+    "2005 Nissan Patrol/Body/Rear Plate/Part"
+   ],
+   "selectors": [
+    "Body/Front Plate/**",
+    "Body/Rear Plate/**"
    ]
   },
   "Wheel_FL": {
@@ -405,14 +415,14 @@
    "path": "2005 Nissan Patrol/Body/Front Plate/Part/Qatar Plate 10",
    "face": "Front",
    "image": 16626386735,
-   "parentGroup": "Paint",
+   "parentGroup": "Plate",
    "transparency": 0
   },
   {
    "path": "2005 Nissan Patrol/Body/Rear Plate/Part/6588802003",
    "face": "Front",
    "image": 16614652644,
-   "parentGroup": "Paint",
+   "parentGroup": "Plate",
    "transparency": 0
   }
  ],

@@ -84,7 +84,7 @@
   ],
   "method": "named paint/body parts",
   "parts": 3,
-  "sameColourButTextured": 2
+  "sameColourButTextured": 0
  },
  "security": {
   "flaggedScripts": [],
@@ -102,30 +102,25 @@
  },
  "groups": {
   "Body": {
-   "count": 16,
+   "count": 11,
    "rules": {
-    "default": 16
+    "default": 11
    },
    "paths": [
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.001",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.003",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.004",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.005",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.007",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.008",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.010",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.011",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.012",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.013",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.014",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.015",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.016",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.018",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.019"
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.015"
    ],
    "selectors": [
-    "Body/Model/{Meshes/sorento_Plane, Meshes/sorento_Plane.001, Meshes/sorento_Plane.003, Meshes/sorento_Plane.004, Meshes/sorento_Plane.005, Meshes/sorento_Plane.007, +10 more}"
+    "Body/Model/{Meshes/sorento_Plane, Meshes/sorento_Plane.001, Meshes/sorento_Plane.003, Meshes/sorento_Plane.004, Meshes/sorento_Plane.008, Meshes/sorento_Plane.010, +5 more}"
    ]
   },
   "Glass": {
@@ -142,6 +137,34 @@
    ],
    "selectors": [
     "Body/Model/{Meshes/sorento_Plane.020, Meshes/sorento_Plane.021 (1), Meshes/sorento_Plane.022 (1), Meshes/sorento_Plane.023 (1), Meshes/sorento_Plane.024}"
+   ]
+  },
+  "Lights_Head": {
+   "count": 1,
+   "rules": {
+    "shares lamp texture 6860781390": 1
+   },
+   "paths": [
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.016"
+   ],
+   "selectors": [
+    "Body/Model/Meshes/sorento_Plane.016"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 4,
+   "rules": {
+    "red part in rear quarter": 3,
+    "shares lamp texture 6860781390": 1
+   },
+   "paths": [
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.005",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.007",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.018",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.019"
+   ],
+   "selectors": [
+    "Body/Model/{Meshes/sorento_Plane.005, Meshes/sorento_Plane.007, Meshes/sorento_Plane.018, Meshes/sorento_Plane.019}"
    ]
   },
   "Paint": {

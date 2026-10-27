@@ -20,7 +20,7 @@ Date: 2026-10-27. Binding context: `docs/v2/research/00_LEAD_DIRECTION.md` (grou
   - Verified badges: `users.roblox.com/v1/users`
   - Sketchfab: `api.sketchfab.com/v3/search` and `/v3/models?user=` (GLB downloads use the token in `~/.config/hotwire`, never printed)
   - Poly Haven: `api.polyhaven.com`
-- **"Verified"**: the Creator Store v2 search marks almost every publisher `verified:true`, which means ID-verified. That is not the blue badge. Real blue badges are marked **(badge)** below. Of the creators checked, only Andru7rs, Natalie_Clabo, Stickmasterluke and CRRAANNNEEEEEEE have one.
+- **"Verified"**: the Creator Store v2 search marks almost every publisher `verified:true`, which means ID-verified. That is not the blue badge. Real blue badges are marked **(badge)** below. Of the creators checked, only Andru7rs, Natalie_Clabo, Stickmasterluke and CRRAANNNEEEEEEE have one. In the avatar tables (§3), **(V)** means the catalog's `creatorHasVerifiedBadge` flag, which is the real badge.
 - **Repeats**: nothing below repeats an ID from `assets/curation/*.json` or from `src/shared/Config/Sounds.luau`, unless it is marked *(already in repo)*. The gun models, gun SFX and placeholder gun animations chosen in `gta_combat.md` §11 are not repeated here (see §2).
 
 ## Decision summary
@@ -124,7 +124,7 @@ Contact sheet: `img_gta/assets_cars_sketchfab_misc.jpg`.
 | Use | uid | Name — author | Tris | Thumb | R |
 |---|---|---|---|---|---|
 | **City bus** | 14fe03d792914d51b6c6250b393c44fd | Generic Town Bus — own.guest (1,085 likes) | 55.5k | ![](img_gta/assets/sf_14fe03d792.jpg) | 4 |
-| **SWAT van (5★)** | 5b9076973cda47e98609640d745bb8ce | SWAT Police Van — Zack_Hawley | 23.5k | ![](img_gta/assets/sf_5b90769739.jpg) | 5 |
+| **SWAT van (5★)** | 5b9076973cda47e98609640d745bb8ce | SWAT Police Van — Zack_Hawley | 23.5k | ![](img_gta/assets/sf_5b9076973c.jpg) | 5 |
 | Fire engine | 27a6b95f768d415282e2f5de48ba6d99 | Firetruck — OzerGokmen | 26.5k | ![](img_gta/assets/sf_27a6b95f76.jpg) | 4 |
 | Garbage truck | 21d0c35687894e3aa2ee2814da21fcf2 | Autocar McNeilus Refuse Truck — Trashbulldogproductions (debadge) | 47.8k | ![](img_gta/assets/sf_21d0c35687.jpg) | 4 |
 | Modern SUV | edc994ad28ed438cb365c0e0389ac177 | Lowpoly Generic SUV — mk2design | 8.0k | ![](img_gta/assets/sf_edc994ad28.jpg) | 4 |

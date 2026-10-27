@@ -506,46 +506,81 @@ CAR_COLORS = [(0.62, 0.63, 0.64), (0.03, 0.03, 0.035), (0.85, 0.85, 0.84), (0.05
               (0.25, 0.26, 0.27), (0.75, 0.75, 0.73), (0.08, 0.15, 0.1), (0.45, 0.38, 0.28)]
 
 
+CAR_PROFILES = {
+    # lower body side profile (x forward, z up) and greenhouse profile, in studs (sedan ~16.6 long)
+    "sedan": dict(L=16.6, W=6.7, body=[(8.2, 1.15), (8.35, 2.1), (8.05, 3.05), (5.0, 3.55), (-5.4, 3.75), (-8.0, 3.55),
+                                         (-8.35, 2.3), (-8.2, 1.15)],
+                  cabin=[(4.7, 3.55), (1.5, 5.2), (-2.7, 5.25), (-5.5, 3.75)], wheels=(5.15, -5.0), r=1.35),
+    "suv": dict(L=17.0, W=7.1, body=[(8.4, 1.5), (8.55, 2.6), (8.3, 3.9), (5.4, 4.4), (-7.9, 4.5), (-8.5, 4.2),
+                                       (-8.5, 2.4), (-8.3, 1.5)],
+                cabin=[(5.1, 4.4), (2.6, 6.6), (-7.6, 6.6), (-8.1, 4.5)], wheels=(5.4, -5.4), r=1.6),
+    "hatch": dict(L=14.4, W=6.5, body=[(7.1, 1.15), (7.25, 2.1), (6.95, 3.0), (4.2, 3.55), (-6.5, 3.75), (-7.2, 3.5),
+                                         (-7.25, 2.2), (-7.1, 1.15)],
+                  cabin=[(3.9, 3.55), (1.0, 5.25), (-5.6, 5.3), (-6.9, 3.75)], wheels=(4.6, -4.5), r=1.3),
+}
+
+
+def _extrude_profile(buf, prof, w0, w1=None):
+    """Prism of a convex side profile [(x, z)] across y in [-w/2, w/2]; w1 = width at the top (tumblehome)."""
+    w1 = w0 if w1 is None else w1
+    zs = [p[1] for p in prof]
+    zmin, zmax = min(zs), max(zs)
+    def hw(z):
+        t = (z - zmin) / max(1e-6, zmax - zmin)
+        return (w0 + (w1 - w0) * t) / 2
+    L = [(x, -hw(z), z) for x, z in prof]
+    R = [(x, hw(z), z) for x, z in prof]
+    n = len(prof)
+    P = L + R
+    faces = []
+    for i in range(n):
+        j = (i + 1) % n
+        faces.append((i, j, n + j, n + i))
+    faces.append(tuple(range(n)))
+    faces.append(tuple(range(n, 2 * n))[::-1])
+    cx = sum(p[0] for p in prof) / n
+    cz = sum(p[1] for p in prof) / n
+    buf.add(P, G._orient(P, faces, (cx, 0.0, cz)))
+
+
 def car(col, x, y, heading=0.0, seed=0, kind=None, rgb=None):
-    """Scale-reference parked car (~16.5 studs). heading in degrees (0 = nose to +X)."""
+    """Scale-reference parked car (sedan ~16.6 studs). heading in degrees (0 = nose to +X)."""
     r = random.Random(seed)
     kind = kind or r.choice(["sedan", "sedan", "suv", "hatch"])
     rgb = rgb or r.choice(CAR_COLORS)
-    L, Wd = {"sedan": (16.4, 6.6), "suv": (16.8, 7.0), "hatch": (14.2, 6.4)}[kind]
-    zb, zt = 1.05, (3.5 if kind != "suv" else 4.3)
-    roof = {"sedan": 5.3, "suv": 6.6, "hatch": 5.4}[kind]
+    P = CAR_PROFILES[kind]
+    Wd = P["W"]
     body, glass, wheels, rims, lights_f, lights_r = (G.MeshBuf(n, 4) for n in ("CarBody", "CarGlass", "Tire", "Rim", "Head", "Tail"))
-    G.box(body, -L / 2, -Wd / 2, zb, L / 2, Wd / 2, zt, bevel=0.55)
-    # cabin
-    if kind == "sedan":
-        prof = [(-L / 2 + 3.4, zt), (L / 2 - 4.6, zt), (L / 2 - 7.6, roof), (-L / 2 + 5.8, roof)]
-    elif kind == "suv":
-        prof = [(-L / 2 + 0.8, zt), (L / 2 - 4.2, zt), (L / 2 - 6.4, roof), (-L / 2 + 1.0, roof)]
-    else:
-        prof = [(-L / 2 + 0.9, zt), (L / 2 - 4.0, zt), (L / 2 - 6.6, roof), (-L / 2 + 1.6, roof)]
-    hw0, hw1 = Wd / 2 - 0.35, Wd / 2 - 0.85
-    P = [(px, -hw0 if k < 2 else -hw1, pz) for k, (px, pz) in enumerate(prof)] + \
-        [(px, hw0 if k < 2 else hw1, pz) for k, (px, pz) in enumerate(prof)]
-    faces = [(0, 1, 2, 3), (7, 6, 5, 4), (1, 5, 6, 2), (0, 3, 7, 4)]
-    glass.add(P, G._orient(P, faces, (0, 0, (zt + roof) / 2)))
-    G.quad(body, P[3], P[2], P[6], P[7])  # roof panel
-    G.quad(body, (P[3][0], P[3][1], P[3][2] + 0.06), (P[2][0], P[2][1], P[2][2] + 0.06), (P[6][0], P[6][1], P[6][2] + 0.06), (P[7][0], P[7][1], P[7][2] + 0.06))
-    ax = L / 2 - 3.3
-    for sx in (-1, 1):
+    _extrude_profile(body, P["body"], Wd, Wd - 0.35)
+    _extrude_profile(glass, P["cabin"], Wd - 0.5, Wd - 1.7)
+    # roof skin in body colour, slightly above the glass top edge
+    cab = P["cabin"]
+    zr = max(c[1] for c in cab) + 0.04
+    x0r, x1r = cab[2][0] + 0.2, cab[1][0] - 0.25
+    G.box(body, x0r, -(Wd - 1.75) / 2, zr - 0.12, x1r, (Wd - 1.75) / 2, zr)
+    # pillars (B-pillar) in body colour
+    zb = cab[0][1]
+    G.box(body, -0.6, -(Wd - 0.6) / 2, zb, -0.1, (Wd - 0.6) / 2, zr - 0.1)
+    rr = P["r"]
+    for ax in P["wheels"]:
         for sy in (-1, 1):
-            cx, cy = sx * ax, sy * (Wd / 2 - 0.55)
-            G.hcylinder(wheels, (cx, cy - 0.55, 1.35), (cx, cy + 0.55, 1.35), 1.35, seg=14)
-            G.hcylinder(rims, (cx, cy + sy * 0.5, 1.35), (cx, cy + sy * 0.58, 1.35), 0.85, seg=10)
+            cy = sy * (Wd / 2 - 0.62)
+            G.hcylinder(wheels, (ax, cy - 0.58, rr), (ax, cy + 0.58, rr), rr, seg=16)
+            G.hcylinder(rims, (ax, cy + sy * 0.56, rr), (ax, cy + sy * 0.64, rr), rr * 0.62, seg=12)
+    fx = P["body"][2][0]
+    rx = P["body"][6][0]
+    zf = P["body"][2][1]
     for sy in (-1, 1):
-        G.box(lights_f, L / 2 - 0.25, sy * (Wd / 2 - 1.6) - 0.7, zt - 0.9, L / 2 + 0.05, sy * (Wd / 2 - 1.6) + 0.7, zt - 0.4)
-        G.box(lights_r, -L / 2 - 0.05, sy * (Wd / 2 - 1.3) - 0.8, zt - 0.8, -L / 2 + 0.25, sy * (Wd / 2 - 1.3) + 0.8, zt - 0.3)
+        G.box(lights_f, fx - 0.3, sy * (Wd / 2 - 1.5) - 0.75, zf - 0.75, fx + 0.12, sy * (Wd / 2 - 1.5) + 0.75, zf - 0.3)
+        G.box(lights_r, rx - 0.12, sy * (Wd / 2 - 1.2) - 0.85, zf - 0.55, rx + 0.3, sy * (Wd / 2 - 1.2) + 0.85, zf - 0.1)
+        G.box(body, 3.4, sy * (Wd / 2 + 0.35) - 0.3, zb + 0.2, 4.0, sy * (Wd / 2 + 0.35) + 0.3, zb + 0.8)   # mirrors
     root = bpy.data.objects.new("Car", None)
     col.objects.link(root)
     root.location = (x, y, 0)
     root.rotation_euler = (0, 0, math.radians(heading))
     for b, m in ((body, car_paint(rgb)), (glass, _m("carglass")), (wheels, _m("tire")), (rims, _m("rim")),
                  (lights_f, _m("head")), (lights_r, _m("tail"))):
-        G.to_object(b, m, col, parent=root, weighted=(b is body), sharp_deg=40)
+        G.to_object(b, m, col, parent=root, weighted=(b is body), sharp_deg=35)
     return root
 
 

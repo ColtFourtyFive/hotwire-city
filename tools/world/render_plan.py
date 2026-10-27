@@ -203,6 +203,20 @@ def terrain_image(data, view):
     return big.crop((ox, oz, ox + view.w, oz + view.h))
 
 
+def land_mask(data, view):
+    """L-mode mask: 255 on land (heightmap above sea level), resampled into the view."""
+    hm = data["heightmap"]
+    H = np.array(hm["rows"], dtype=np.float32)
+    m = Image.fromarray(((H > data["meta"]["sea"]) * 255).astype(np.uint8), "L")
+    step = hm["step"]
+    full_w = (hm["nx"] - 1) * step
+    full_h = (hm["nz"] - 1) * step
+    big = m.resize((max(1, int(full_w * view.s)), max(1, int(full_h * view.s))), Image.BILINEAR)
+    ox = int(round((view.minx - hm["minX"]) * view.s))
+    oz = int(round((view.minz - hm["minZ"]) * view.s))
+    return big.crop((ox, oz, ox + view.w, oz + view.h))
+
+
 def poly_draw(draw, view, pts, fill=None, outline=None, width=1):
     xy = view.pts(pts)
     if len(xy) >= 3:
@@ -261,6 +275,7 @@ def render(data, view, opts):
     for d in sorted(data["districts"], key=lambda d: d["priority"]):
         c = d["color"]
         poly_draw(td, view, d["polygon"], fill=(c[0], c[1], c[2], 34))
+    tint.putalpha(Image.fromarray(np.minimum(np.array(tint.split()[3]), np.array(land_mask(data, view)))))
     img = Image.alpha_composite(img, tint)
     draw = ImageDraw.Draw(img, "RGBA")
 
@@ -676,7 +691,10 @@ def gameplay_overlay(img, data, view, scale):
     # restricted zones
     for z in data["restricted"]:
         poly = obb_corners(z)
-        draw.polygon(view.pts(poly), outline=(220, 40, 40, 255), width=max(2, int(4 * ss * scale)), fill=(220, 40, 40, 40))
+        xy = view.pts(poly)
+        for k in range(len(xy)):
+            a, b = xy[k], xy[(k + 1) % len(xy)]
+            draw.line([a, b], fill=(255, 60, 60, 255), width=max(2, int(5 * ss * scale)))
     # hot drops
     for z in data["hotDrops"]:
         x, _, zz = z["pos"]

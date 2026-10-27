@@ -30,6 +30,8 @@ def load_before(path, cfg):
     """Raw import with the source materials, only oriented/grounded/scaled (call BEFORE building the stage)."""
     importer.import_any(path, cfg)
     objs = importer.flatten(subsurf_cap=cfg.get("subsurf_cap", 1))
+    if cfg.get("select"):
+        objs = importer.select(objs, cfg["select"])
     mdir = os.path.dirname(os.path.abspath(path))
     for d in (mdir, os.path.dirname(mdir)):
         importer.discover_textures(d, cfg.get("textures"))
