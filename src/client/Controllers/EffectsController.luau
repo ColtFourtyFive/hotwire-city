@@ -8,7 +8,12 @@
 --    rarity order >= 3 (Rare+), within 150 studs: "EPIC • Phantom GT • $260/s" with a rarity-colored glow,
 --    mutation label on top. Steal prompts (Hotwire / Carjack / StealPrompt) on those cars get their HoldDuration
 --    scaled locally by the player attribute HoldMultiplier (the server validates with the same multiplier).
---  * Police lights: SirenRed / SirenBlue neon flashing + one local PointLight flipping red/blue (~6 Hz, <= 300 studs).
+--    Tags are scaled like the HUD on small screens; Legendary+ tags pulse only within 60 studs. While we drive, steal
+--    prompts on other cars are hidden locally (the server refuses them anyway).
+--  * Police lights: SirenRed / SirenBlue neon flashing + one local PointLight flipping red/blue (~6 Hz, <= 300 studs);
+--    a unit whose Siren attribute is false (leaving / wrecked) goes dark.
+--  * Police helicopters ("PoliceHeli" tag): rendered here from the server's HeliCFrame / SpotPos attributes (body pose
+--    smoothing, searchlight disc, rotor spin, siren blink); the server never animates them.
 --
 -- Everything is pooled: one Heartbeat drives all moving bits (BulkMoveTo), bolts and comic billboards are reused,
 -- particle bursts come from a ring of emitter hosts. Built-in textures only.
@@ -49,7 +54,11 @@ local TAG_RANGE = 150
 local TAG_MIN_ORDER = 3 -- Rare+
 local TAG_POOL_MAX = 30
 local TAG_TICK = 0.25
+local TAG_PULSE_RANGE = 60 -- Legendary+ tags only pulse (a UIScale tween = per-frame relayout) this close
+local TAG_SIZE = Vector2.new(460, 66) -- design size; scaled like the HUD on small screens (see billboardScale)
+local COMIC_SIZE = Vector2.new(220, 140)
 local SIREN_RANGE = 300
+local SIREN_OFF_TRANSPARENCY = 0.8
 local SIREN_INTERVAL = 1 / 6
 local MAX_PARTS = 420
 local HOST_COUNT = 6
@@ -68,6 +77,14 @@ local CONFETTI_COLORS = {
 }
 local SIREN_RED = Color3.fromRGB(255, 40, 60)
 local SIREN_BLUE = Color3.fromRGB(40, 110, 255)
+local HELI_ROTOR_SPEED = 16 -- rad/s
+local HELI_BLINK = 0.35 -- seconds per siren phase
+local HELI_SMOOTH = 10 -- 1/s exponential approach toward the predicted pose
+local HELI_SPOT_SMOOTH = 8
+local HELI_EXTRAPOLATE = 0.25 -- max seconds we extrapolate past the last published pose
+local HELI_SNAP = 80 -- farther than this from the target: snap (first sight / teleport)
+local HELI_MAX_EST_SPEED = 400 -- discard velocity estimates above this (missed samples / respawn)
+local AXIS_Y = CFrame.Angles(0, 0, math.rad(90)) -- cylinder axis X -> Y (rotor hub, spot disc)
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests)
@@ -617,6 +634,12 @@ type Comic = {
 }
 local comics: { Comic } = {}
 
+-- World BillboardGuis are sized in GUI pixels and ignore the ScreenGuis' UIScale, so on a phone a 460 px tag covered
+-- a third of the screen. They get the HUD's scale (with the touch readability floor), never above design size.
+local function billboardScale(): number
+	return math.min(1, Kit.uiScale(Theme.TouchMinScale))
+end
+
 local function buildComic(): Comic
 	local anchor = Instance.new("Part")
 	anchor.Name = "ComicAnchor"
@@ -631,7 +654,7 @@ local function buildComic(): Comic
 	local gui = Kit.new("BillboardGui", {
 		Name = "Comic",
 		Adornee = anchor,
-		Size = UDim2.fromOffset(220, 140),
+		Size = UDim2.fromOffset(COMIC_SIZE.X, COMIC_SIZE.Y),
 		AlwaysOnTop = true,
 		LightInfluence = 0,
 		MaxDistance = 260,
@@ -726,7 +749,8 @@ local function showComic(position: Vector3, text: string, textColor: Color3, bur
 	local token = c.token
 	c.startedAt = os.clock()
 	c.anchor.CFrame = CFrame.new(position)
-	c.gui.Size = UDim2.fromOffset(220 * size, 140 * size)
+	local k = size * billboardScale()
+	c.gui.Size = UDim2.fromOffset(COMIC_SIZE.X * k, COMIC_SIZE.Y * k)
 	c.gui.StudsOffsetWorldSpace = Vector3.zero
 	c.label.Text = text
 	c.label.TextColor3 = textColor
@@ -1100,16 +1124,29 @@ type TagRec = {
 	gui: BillboardGui?,
 	key: string?,
 	pulse: Tween?,
+	pulses: boolean, -- Legendary+ (pulses while the car is within TAG_PULSE_RANGE)
 }
 local tracked: { [Model]: TagRec } = {}
 local tagPool: { BillboardGui } = {}
 local tagCount = 0
 local playerGui: Instance? = nil
+local tagScale = 1
+
+-- Sizes a tag for the current billboardScale: the BillboardGui shrinks and the Holder (design size, centered) gets the
+-- same factor through its "Pulse" UIScale, so pill, text and mutation label scale together.
+local function applyTagScale(gui: BillboardGui)
+	gui.Size = UDim2.fromOffset(TAG_SIZE.X * tagScale, TAG_SIZE.Y * tagScale)
+	local holder = gui:FindFirstChild("Holder")
+	local pulse = holder and holder:FindFirstChild("Pulse")
+	if pulse and pulse:IsA("UIScale") then
+		pulse.Scale = tagScale
+	end
+end
 
 local function buildTag(): BillboardGui
 	local gui = Kit.new("BillboardGui", {
 		Name = "RarityTag",
-		Size = UDim2.fromOffset(460, 66),
+		Size = UDim2.fromOffset(TAG_SIZE.X * tagScale, TAG_SIZE.Y * tagScale),
 		AlwaysOnTop = true,
 		LightInfluence = 0,
 		MaxDistance = TAG_RANGE + 15,
@@ -1120,10 +1157,12 @@ local function buildTag(): BillboardGui
 	local holder = Kit.new("Frame", {
 		Name = "Holder",
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 1),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(TAG_SIZE.X, TAG_SIZE.Y),
 		Parent = gui,
 	})
-	Kit.new("UIScale", { Name = "Pulse", Parent = holder })
+	Kit.new("UIScale", { Name = "Pulse", Scale = tagScale, Parent = holder })
 	local pill = Kit.new("Frame", {
 		Name = "Pill",
 		AnchorPoint = Vector2.new(0.5, 1),
@@ -1178,6 +1217,7 @@ local function releaseTag(rec: TagRec)
 	end
 	rec.gui = nil
 	rec.key = nil
+	rec.pulses = false
 	if rec.pulse then
 		rec.pulse:Cancel()
 		rec.pulse = nil
@@ -1195,6 +1235,7 @@ end
 local function acquireTag(): BillboardGui?
 	local gui = table.remove(tagPool)
 	if gui and gui.Parent then
+		applyTagScale(gui)
 		return gui
 	end
 	if tagCount >= TAG_POOL_MAX then
@@ -1230,16 +1271,34 @@ local function styleTag(rec: TagRec, gui: BillboardGui, carId: string, mutation:
 		mut.Visible = false
 	end
 	local pulse = holder:FindFirstChild("Pulse") :: UIScale
-	pulse.Scale = 1
+	pulse.Scale = tagScale
 	if rec.pulse then
 		rec.pulse:Cancel()
 		rec.pulse = nil
 	end
-	if rdef.order >= 5 then
+	rec.pulses = rdef.order >= 5 -- started / stopped by distance in updateTags
+end
+
+-- Legendary+ pulse: an endless UIScale tween relayouts the tag every frame, so it only runs for nearby cars.
+local function setTagPulse(rec: TagRec, gui: BillboardGui, on: boolean)
+	if on == (rec.pulse ~= nil) then
+		return
+	end
+	local holder = gui:FindFirstChild("Holder")
+	local pulse = holder and holder:FindFirstChild("Pulse")
+	if not pulse or not pulse:IsA("UIScale") then
+		return
+	end
+	if rec.pulse then
+		rec.pulse:Cancel()
+		rec.pulse = nil
+	end
+	pulse.Scale = tagScale
+	if on then
 		local tw = TweenService:Create(
 			pulse,
 			TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-			{ Scale = 1.08 }
+			{ Scale = tagScale * 1.08 }
 		)
 		tw:Play()
 		rec.pulse = tw
@@ -1267,7 +1326,7 @@ end
 
 local function trackVehicle(inst: Instance)
 	if inst:IsA("Model") and not tracked[inst] then
-		tracked[inst] = { model = inst }
+		tracked[inst] = { model = inst, pulses = false }
 	end
 end
 
@@ -1286,6 +1345,19 @@ local function updateTags()
 	if not cam then
 		return
 	end
+	local scale = billboardScale()
+	if scale ~= tagScale then
+		tagScale = scale
+		for _, r in tracked do
+			local g = r.gui
+			if g then
+				applyTagScale(g)
+				if r.pulse then
+					setTagPulse(r, g, false) -- restarted below with the new base scale
+				end
+			end
+		end
+	end
 	local focus = cam
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -1300,6 +1372,7 @@ local function updateTags()
 		end
 		local chassis = model.PrimaryPart or model:FindFirstChild("Chassis")
 		local show = false
+		local dist = math.huge
 		local carId = model:GetAttribute("CarId")
 		local mutation = model:GetAttribute("Mutation")
 		local mut = if typeof(mutation) == "string" then mutation else "None"
@@ -1309,11 +1382,12 @@ local function updateTags()
 				local rid = model:GetAttribute("Rarity")
 				local rdef = Rarity.Tiers[if typeof(rid) == "string" then rid :: any else def.rarity]
 					or Rarity.Tiers[def.rarity]
+				dist = (chassis.Position - focus).Magnitude
 				show = EffectsController.shouldShowRarityTag(
 					model:GetAttribute("Kind"),
 					rdef.order,
 					isOccupied(model),
-					(chassis.Position - focus).Magnitude
+					dist
 				)
 			end
 		end
@@ -1333,6 +1407,7 @@ local function updateTags()
 					rec.key = key
 					styleTag(rec, gui, carId :: string, mut)
 				end
+				setTagPulse(rec, gui, rec.pulses and dist <= TAG_PULSE_RANGE)
 				gui.Adornee = chassis
 				gui.Enabled = true
 			end
@@ -1404,6 +1479,32 @@ local function applyHold(prompt: ProximityPrompt)
 	end
 end
 
+-- While we drive, steal prompts on cars we pass are pure bait (the server refuses: "You're already driving!"), so
+-- they are hidden locally by zeroing MaxActivationDistance (not Enabled: the server toggles that one itself).
+-- ProximityPromptService.Enabled stays CombatClient's (stuns).
+local drivingHidden: { [ProximityPrompt]: number } = setmetatable({}, { __mode = "k" }) :: any
+
+local function isDrivingNow(): boolean
+	return player:GetAttribute("Driving") == true
+end
+
+local function hideWhileDriving(prompt: ProximityPrompt)
+	if drivingHidden[prompt] == nil then
+		drivingHidden[prompt] = prompt.MaxActivationDistance
+	end
+	prompt.MaxActivationDistance = 0
+end
+
+local function restoreDrivingHidden()
+	for prompt, dist in drivingHidden do
+		-- a server-side change since then (replicated over our 0) wins
+		if prompt.Parent and prompt.MaxActivationDistance == 0 then
+			prompt.MaxActivationDistance = dist
+		end
+	end
+	table.clear(drivingHidden)
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Police siren lights
 -------------------------------------------------------------------------------------------------------------------------
@@ -1414,6 +1515,7 @@ type PoliceRec = {
 	blues: { BasePart },
 	light: PointLight?,
 	scannedAt: number,
+	off: boolean, -- server turned the siren off (Siren attribute false: unit leaving or wrecked)
 }
 local policeCars: { [Model]: PoliceRec } = {}
 local sirenPhase = false
@@ -1443,7 +1545,8 @@ end
 local function trackPolice(inst: Instance)
 	local model = policeModelOf(inst)
 	if model and not policeCars[model] then
-		local rec: PoliceRec = { model = model, reds = {}, blues = {}, light = nil, scannedAt = -math.huge }
+		local rec: PoliceRec =
+			{ model = model, reds = {}, blues = {}, light = nil, scannedAt = -math.huge, off = false }
 		scanSirens(rec)
 		policeCars[model] = rec
 	end
@@ -1476,6 +1579,23 @@ local function updateSirens()
 			policeCars[model] = nil
 			continue
 		end
+		-- leaving / wrecked units: lights off (nil = on, so units that spawned before the attribute replicated flash)
+		if model:GetAttribute("Siren") == false then
+			if not rec.off then
+				rec.off = true
+				for _, p in rec.reds do
+					p.Transparency = SIREN_OFF_TRANSPARENCY
+				end
+				for _, p in rec.blues do
+					p.Transparency = SIREN_OFF_TRANSPARENCY
+				end
+			end
+			if rec.light then
+				rec.light.Enabled = false
+			end
+			continue
+		end
+		rec.off = false
 		local near = (model:GetPivot().Position - cam).Magnitude <= SIREN_RANGE
 		if not near then
 			if rec.light then
@@ -1488,10 +1608,10 @@ local function updateSirens()
 		end
 		local redOn = sirenPhase
 		for _, p in rec.reds do
-			p.Transparency = if redOn then 0 else 0.8
+			p.Transparency = if redOn then 0 else SIREN_OFF_TRANSPARENCY
 		end
 		for _, p in rec.blues do
-			p.Transparency = if redOn then 0.8 else 0
+			p.Transparency = if redOn then SIREN_OFF_TRANSPARENCY else 0
 		end
 		local light = rec.light
 		if not light or not light.Parent then
@@ -1509,6 +1629,158 @@ local function updateSirens()
 		if light then
 			light.Enabled = true
 			light.Color = if redOn then SIREN_RED else SIREN_BLUE
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Police helicopter renderer
+-------------------------------------------------------------------------------------------------------------------------
+-- PoliceService only publishes the chopper's pose (model attributes HeliCFrame at ~10 Hz, SpotPos when it moves) and
+-- never moves its parts after spawning. Here we extrapolate + smooth the anchored Body (welded parts follow), place
+-- the searchlight SpotDisc, spin RotorWeld.C0 and blink the sirens, all locally.
+
+type HeliRec = {
+	model: Model,
+	body: BasePart?,
+	disc: BasePart?,
+	rotorWeld: Weld?,
+	rotorBase: CFrame,
+	reds: { BasePart },
+	blues: { BasePart },
+	resolved: boolean,
+	cf: CFrame?,
+	target: CFrame?,
+	targetAt: number,
+	vel: Vector3,
+	spot: Vector3?,
+	rotor: number,
+	blinkOn: boolean?,
+}
+local helis: { [Model]: HeliRec } = {}
+
+-- Predicted heli pose: the last published pose carried forward along the estimated velocity for at most
+-- HELI_EXTRAPOLATE seconds (pure; exported for tests).
+function EffectsController.heliGoal(target: CFrame, vel: Vector3, sinceUpdate: number): CFrame
+	local lead = math.clamp(sinceUpdate, 0, HELI_EXTRAPOLATE)
+	return target + vel * lead
+end
+
+local function resolveHeli(rec: HeliRec)
+	local model = rec.model
+	local body = model.PrimaryPart or model:FindFirstChild("Body")
+	rec.body = if body and body:IsA("BasePart") then body else nil
+	local disc = model:FindFirstChild("SpotDisc")
+	rec.disc = if disc and disc:IsA("BasePart") then disc else nil
+	local hub = model:FindFirstChild("RotorHub")
+	local weld = hub and hub:FindFirstChild("RotorWeld")
+	if weld and weld:IsA("Weld") then
+		rec.rotorWeld = weld
+		rec.rotorBase = CFrame.new(weld.C0.Position)
+	end
+	table.clear(rec.reds)
+	table.clear(rec.blues)
+	for _, child in model:GetChildren() do
+		if child:IsA("BasePart") then
+			if child.Name == "SirenRed" then
+				table.insert(rec.reds, child)
+			elseif child.Name == "SirenBlue" then
+				table.insert(rec.blues, child)
+			end
+		end
+	end
+	rec.resolved = rec.body ~= nil
+end
+
+local function trackHeli(inst: Instance)
+	if inst:IsA("Model") and not helis[inst] then
+		local rec: HeliRec = {
+			model = inst,
+			rotorBase = CFrame.identity,
+			reds = {},
+			blues = {},
+			resolved = false,
+			targetAt = os.clock(),
+			vel = Vector3.zero,
+			rotor = rng:NextNumber(0, math.pi),
+		}
+		helis[inst] = rec
+		resolveHeli(rec)
+	end
+end
+
+local function untrackHeli(inst: Instance)
+	if inst:IsA("Model") then
+		helis[inst] = nil
+	end
+end
+
+local function stepHelis(dt: number)
+	local now = os.clock()
+	local blinkOn = math.floor(now / HELI_BLINK) % 2 == 0
+	local alpha = 1 - math.exp(-dt * HELI_SMOOTH)
+	local spotAlpha = 1 - math.exp(-dt * HELI_SPOT_SMOOTH)
+	for model, rec in helis do
+		if not model.Parent then
+			helis[model] = nil
+			continue
+		end
+		if not rec.resolved then
+			resolveHeli(rec)
+			if not rec.resolved then
+				continue
+			end
+		end
+		local body = rec.body :: BasePart
+		-- body pose
+		local target = model:GetAttribute("HeliCFrame")
+		if typeof(target) == "CFrame" then
+			local last = rec.target
+			if last == nil or target ~= last then
+				if last then
+					local gap = math.max(now - rec.targetAt, 1 / 30)
+					local v = (target.Position - last.Position) / gap
+					rec.vel = if v.Magnitude <= HELI_MAX_EST_SPEED then v else Vector3.zero
+				end
+				rec.target = target
+				rec.targetAt = now
+			end
+			local goal = EffectsController.heliGoal(target, rec.vel, now - rec.targetAt)
+			local cf = rec.cf
+			if cf == nil or (cf.Position - goal.Position).Magnitude > HELI_SNAP then
+				cf = goal
+			else
+				cf = cf:Lerp(goal, alpha)
+			end
+			rec.cf = cf
+			body.CFrame = cf
+		end
+		-- rotor
+		rec.rotor = (rec.rotor + dt * HELI_ROTOR_SPEED) % (2 * math.pi)
+		local weld = rec.rotorWeld
+		if weld and weld.Parent then
+			weld.C0 = rec.rotorBase * CFrame.Angles(0, rec.rotor, 0) * AXIS_Y
+		end
+		-- searchlight disc
+		local disc = rec.disc
+		local spotTarget = model:GetAttribute("SpotPos")
+		if disc and typeof(spotTarget) == "Vector3" then
+			local spot = rec.spot
+			spot = if spot == nil or (spot - spotTarget).Magnitude > HELI_SNAP
+				then spotTarget
+				else spot:Lerp(spotTarget, spotAlpha)
+			rec.spot = spot
+			disc.CFrame = CFrame.new(spot) * AXIS_Y
+		end
+		-- sirens (written only when the phase flips)
+		if rec.blinkOn ~= blinkOn then
+			rec.blinkOn = blinkOn
+			for _, p in rec.reds do
+				p.Transparency = if blinkOn then 0 else 0.75
+			end
+			for _, p in rec.blues do
+				p.Transparency = if blinkOn then 0.75 else 0
+			end
 		end
 	end
 end
@@ -1544,11 +1816,33 @@ function EffectsController.start()
 		trackPolice(inst)
 	end
 
+	-- police helicopters (rendered from PoliceService's pose attributes)
+	CollectionService:GetInstanceAddedSignal("PoliceHeli"):Connect(trackHeli)
+	CollectionService:GetInstanceRemovedSignal("PoliceHeli"):Connect(untrackHeli)
+	for _, inst in CollectionService:GetTagged("PoliceHeli") do
+		trackHeli(inst)
+	end
+
 	-- prompt hold scaling
 	ProximityPromptService.PromptShown:Connect(function(prompt: ProximityPrompt)
 		if isStealPrompt(prompt) and vehicleOf(prompt) then
+			if isDrivingNow() then
+				hideWhileDriving(prompt)
+				return
+			end
 			shownPrompts[prompt] = true
 			applyHold(prompt)
+		end
+	end)
+	player:GetAttributeChangedSignal("Driving"):Connect(function()
+		if isDrivingNow() then
+			for prompt in shownPrompts do
+				if prompt.Parent then
+					hideWhileDriving(prompt)
+				end
+			end
+		else
+			restoreDrivingHidden()
 		end
 	end)
 	ProximityPromptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
@@ -1568,6 +1862,9 @@ function EffectsController.start()
 		stepBits(dt)
 		if #bolts > 0 then
 			stepBolts(dt)
+		end
+		if next(helis) ~= nil then
+			stepHelis(dt)
 		end
 		tagAcc += dt
 		if tagAcc >= TAG_TICK then

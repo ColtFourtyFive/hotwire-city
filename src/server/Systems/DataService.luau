@@ -374,7 +374,19 @@ local function sanitize(data: { [string]: any }, now: number): { [string]: any }
 			end
 		end
 	end
-	data.contracts = { day = nonNegInt(data.contracts.day, 0), list = list }
+	local contracts: { [string]: any } = { day = nonNegInt(data.contracts.day, 0), list = list }
+	if data.contracts.rerolled == true then
+		contracts.rerolled = true -- today's free contract swap is used up (RewardsService)
+	end
+	data.contracts = contracts
+
+	-- inviter referral cap (RewardsService): { day, count } or absent
+	local rp = data.referralsPaid
+	if typeof(rp) == "table" then
+		data.referralsPaid = { day = nonNegInt(rp.day, 0), count = nonNegInt(rp.count, 0) }
+	else
+		data.referralsPaid = nil
+	end
 
 	-- playtime gifts (per UTC day): claimed keys are reward indexes as strings ("1".."N")
 	local claimed = {}

@@ -4,8 +4,8 @@
 --    aim: mouse hit (PC), last tap / screen center (touch), camera look (gamepad) + gentle aim assist.
 --  * Local juice: real swing/lunge animation through the default Animate script's "toolanim" StringValue (replicates
 --    to everyone because it plays on our own Animator), bat swing trail, Zapper coil flash.
---  * Big round touch button with a cooldown ring for the equipped tool, and a SPIKES button while driving
---    (also key G / gamepad L1).
+--  * Big round touch button with a cooldown ring for the equipped tool (also from a car seat, next to DrivingUI's
+--    cluster), and a SPIKES button while driving (also key G / gamepad L1); both bottom-anchored like DrivingUI.
 --  * Knockback remote -> AssemblyLinearVelocity on our HumanoidRootPart + PlatformStand ragdoll-lite, camera shake.
 --  * While our player attribute Stunned is true: WalkSpeed/Jump 0 and prompts off; restored afterwards.
 --  * Cartoon stars spin above the head of EVERY stunned player (attribute replicated by the server).
@@ -43,6 +43,16 @@ local TOUCH_AIM_MEMORY = 0.45 -- seconds a tap position stays the aim point
 local ASSIST_RADIUS_MOUSE = 60 -- px
 local ASSIST_RADIUS_TOUCH = 170 -- px (touch + gamepad are imprecise)
 local BAT_AUTO_TARGET = Economy.BAT_RANGE + 1.5
+-- SPIKES touch button (92 px): spans x W-236..W-144, y H-262..H-170 on the design canvas, left of VehicleClient's
+-- HORN (x W-124..W-40) and EXIT (H-354..H-270), above DRIFT (top H-128) and NITRO (top H-150).
+local SPIKE_BUTTON_SIZE = 92
+local SPIKE_BUTTON_ANCHOR = Vector2.new(1, 1)
+local SPIKE_BUTTON_POSITION = UDim2.new(1, -144, 1, -170)
+-- Action (BONK / ZAP) button: on foot it clears the touch jump button; in a car (tool still equipped: a victim can
+-- swing at the thief from the seat) it moves left of EXIT, above SPIKES (x W-244..W-144, y H-382..H-282).
+local ACTION_BUTTON_SIZE = 100
+local ACTION_BUTTON_POSITION = UDim2.new(1, -28, 1, -290)
+local ACTION_BUTTON_DRIVING_POSITION = UDim2.new(1, -144, 1, -282)
 
 -- state
 local cooldownEnds: { [string]: number } = {}
@@ -618,10 +628,11 @@ refreshButtons = function()
 	local id = equippedToolId()
 	local keyboard = UserInputService.KeyboardEnabled
 	if actionButton then
-		local show = id ~= nil and not driving
+		local show = id ~= nil
 		if show and id then
 			styleButton(actionButton, id, nil)
 		end
+		actionButton.button.Position = if driving then ACTION_BUTTON_DRIVING_POSITION else ACTION_BUTTON_POSITION
 		actionButton.button.Visible = show
 	end
 	if spikeButton then
@@ -832,9 +843,9 @@ end
 function CombatClient.start()
 	-- UI
 	local gui = Kit.screen("CombatHUD", Theme.Layers.HUD)
-	local ab = makeRoundButton(gui, "ActionButton", Theme.Colors.Primary, 100)
+	local ab = makeRoundButton(gui, "ActionButton", Theme.Colors.Primary, ACTION_BUTTON_SIZE)
 	ab.button.AnchorPoint = Vector2.new(1, 1)
-	ab.button.Position = UDim2.new(1, -28, 1, -290) -- clears the touch jump button on phones and tablets
+	ab.button.Position = ACTION_BUTTON_POSITION -- clears the touch jump button on phones and tablets
 	actionButton = ab
 	ab.button.Activated:Connect(function()
 		local tool = equippedTool
@@ -842,9 +853,11 @@ function CombatClient.start()
 			tool:Activate()
 		end
 	end)
-	local sb = makeRoundButton(gui, "SpikeButton", Theme.Colors.Warning, 92)
-	sb.button.AnchorPoint = Vector2.new(1, 0.5)
-	sb.button.Position = UDim2.new(1, -28, 0.36, 0)
+	local sb = makeRoundButton(gui, "SpikeButton", Theme.Colors.Warning, SPIKE_BUTTON_SIZE)
+	-- bottom-anchored like the rest of DrivingUI's touch cluster: left of HORN, above DRIFT, clear of EXIT at every
+	-- canvas height (a Scale-anchored button slid onto EXIT on phones, where the UIScale floor shrinks the canvas)
+	sb.button.AnchorPoint = SPIKE_BUTTON_ANCHOR
+	sb.button.Position = SPIKE_BUTTON_POSITION
 	spikeButton = sb
 	sb.button.Activated:Connect(function()
 		activate("spikes", findOwnedTool("spikes"))

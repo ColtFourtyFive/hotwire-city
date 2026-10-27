@@ -4,33 +4,45 @@
 --  * spawn(carId | CarDef, mutation, groundCFrame, kind, opts?) builds a car with Shared/Vehicle/CarBuilder, rests its
 --    wheels on groundCFrame, parents it to Workspace.Vehicles, tags it "Vehicle" (+ "Police") and sets the model
 --    attributes VehicleId / CarId / Mutation / Kind / Rarity / OwnerUserId / Health / DriverUserId.
---    Parked / Dealership / HotDrop cars spawn anchored; everything else is unanchored and server-owned until driven.
+--    Parked / Dealership / HotDrop cars spawn anchored with their wheels exactly on the ground; everything else is
+--    unanchored (dropped from 0.3 studs) and server-owned until driven.
 --  * Seats are Disabled (no touch-to-sit, ever). seat(car, player) is the ONLY way in: it authorizes that player for a
---    short window, unanchors, enables the seat, hands network ownership to the driver and calls Sit. Any other
---    occupant is ejected on sight. Exit -> seat disabled, server takes ownership back, the car is anchored once it has
---    been at rest for PARK_ANCHOR_AFTER seconds.
+--    short window, unanchors, enables the seat, hands network ownership to the driver and calls Sit. It never
+--    throws: callers must check its (ok, reason) result. Any other occupant is ejected on sight. Exit (jump or
+--    eject) -> the character is put beside the car, seat disabled, server takes ownership back and runs a settling
+--    VehicleController (zero input, SETTLE_MAX at most) so the car rests on its suspension; it is anchored, levelled
+--    onto flat ground, once it has been at rest for PARK_ANCHOR_AFTER seconds.
 --  * addStealPrompt(car, opts) -> ProximityPrompt with server-side hold validation: the server records
 --    PromptButtonHoldBegan per (prompt, player) and rejects Triggered unless the button was held for at least
---    base * getHoldMultiplier(player) * HOLD_TOLERANCE seconds, plus a distance check. Clients only scale
---    HoldDuration locally for display (player attribute "HoldMultiplier", prompt attribute "BaseHoldDuration").
+--    base * getHoldMultiplier(player) * HOLD_TOLERANCE seconds (and the hold began recently: no pre-charged holds),
+--    plus a distance check. Clients only scale HoldDuration locally for display (player attribute
+--    "HoldMultiplier", prompt attribute "BaseHoldDuration").
 --  * Zones (0.2s, driven cars): own drop-off -> DeliveryAttempt (on entry, retried every DELIVERY_RETRY s while
---    inside), Chop Shop -> ChopAttempt, Spray Shops -> SprayAttempt. Owned cars only count at the drop-off after
---    they have left the garage interior once (car.data.leftGarage); if GarageService does not park it, ReturnedHome
---    fires as a fallback.
---  * Abandon rules (1s), crash damage (0.1s, armor-scaled), wreck (KAPOW + smoke, destroyed after 2s) and the
---    anti-cheat watchdog (0.5s: speed cap + teleport check -> server rewinds the car and keeps ownership for
---    WATCHDOG_REVOKE_SECONDS; logs, never kicks).
+--    inside), Chop Shop -> ChopAttempt (after CHOP_DWELL s stopped inside), Spray Shops -> SprayAttempt. Owned cars
+--    only count at the drop-off after they have left the garage interior once (car.data.leftGarage); if
+--    GarageService does not park it, ReturnedHome fires as a fallback. Zone events only fire for a car whose
+--    position passes the watchdog check that tick (else it is rewound), that is not tainted, and that could have
+--    got there from where its drive started (minTravelTime).
+--  * Abandon rules (1s; sunk below LOST_Y for LOST_AFTER s = lost), crash damage (0.1s, armor-scaled, scaled by the
+--    real time between samples), wreck (KAPOW + smoke, destroyed after 2s) and the anti-cheat watchdog (0.5s:
+--    speed cap, horizontal + upward teleport, fling spin / vertical speed, flying with no ground below -> server
+--    rewinds the car, keeps ownership for WATCHDOG_REVOKE_SECONDS and taints it; logs, never kicks).
 --  * Unoccupied Owned / Loot cars get VehicleService-managed prompts so players can get back in:
 --      "EnterPrompt" (F / ButtonY, instant, attribute OnlyUserId = owner / claimer, server re-checks) and, on Loot,
---      a "Hotwire" steal prompt for everybody else (attribute HideForUserId = claimer).
+--      a "Hotwire" steal prompt for everybody else (attribute HideForUserId = claimer; the server refuses it to the
+--      claimer too).
+--  * A leaving player's Owned cars are destroyed (they never outlive the session).
 --
 -- Public API (SPEC): spawn, seat, eject, addStealPrompt, damage, destroy, get, fromModel, getDriving, all, setKind,
 --   getHoldMultiplier; signals Spawned, DriverChanged, Destroyed, DeliveryAttempt, ChopAttempt, SprayAttempt,
 --   ReturnedHome, Stolen.
 -- Extra public helpers: wreck(car), teleport(car, cframe), resetWatchdog(car), getSpeedCap(car),
+--   minTravelTime(car, targetPos), isTainted(car), settle(car), allInto(buffer),
 --   refreshHoldMultiplier(player), addStealHeat(player, stars, reason) -> applied, isFirstSteal(player),
 --   contractProgress(player, stat, amount), announceSteal(player, car, verb), carLabel(car), getFolder();
---   signal Wrecked(car). Pure helpers prefixed with _ are exposed for tests/spec/vehicleservice.spec.luau.
+--   signal Wrecked(car) (fired before the driver is ejected). Drive-start tracking: car.data.driveStartAt /
+--   car.data.driveStartPos are set whenever a player starts driving the car.
+--   Pure helpers prefixed with _ are exposed for tests/spec/vehicleservice.spec.luau.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -83,8 +95,9 @@ export type StealPromptOpts = {
 	holdDuration: number,
 	objectText: string?,
 	canSteal: (Player) -> (boolean, string?),
-	onStolen: (Player) -> (),
+	onStolen: (Player) -> ...any, -- return false when nothing was taken (e.g. seat() refused): no Stolen signal
 	name: string?, -- default "Hotwire" / "Carjack" (from actionText) or "StealPrompt"
+	managed: boolean?, -- VehicleService's own re-created prompts: not added to the car's trove (PERF-14)
 	scaleWithHotwire: boolean?, -- default true: required hold = base * getHoldMultiplier(player)
 	maxDistance: number?, -- default PROMPT_DISTANCE
 	keyCode: Enum.KeyCode?,
@@ -107,15 +120,21 @@ type CarState = {
 	authorized: Player?,
 	authorizedUntil: number,
 	lastVel: Vector3,
+	lastVelAt: number,
 	damageGraceUntil: number,
 	wdCFrame: CFrame,
 	wdAt: number,
 	wdRevokedUntil: number,
 	wdSpeedStrikes: number,
+	wdFlingStrikes: number,
+	airSince: number?,
 	restSince: number?,
+	sunkSince: number?,
 	inDropoff: boolean,
 	dropoffFiredAt: number,
-	inChop: boolean,
+	inChop: boolean, -- ChopAttempt already fired for this visit
+	chopEntered: boolean,
+	chopSince: number?,
 	inSpray: number?,
 	returnFired: boolean,
 	shownHealth: number,
@@ -131,16 +150,36 @@ local VehicleService = {}
 VehicleService.PROMPT_DISTANCE = 12
 VehicleService.PROMPT_SLACK = 4 -- server distance check = MaxActivationDistance + this
 VehicleService.HOLD_TOLERANCE = 0.85 -- fraction of the required hold the server insists on (latency jitter)
+VehicleService.HOLD_MAX_EXTRA = 1.5 -- a hold that began longer ago than the full hold + this is stale (SEC-2)
 VehicleService.SEAT_AUTH_WINDOW = 3 -- seconds a seat() authorization stays valid while the Sit replicates
 VehicleService.DELIVERY_RETRY = 3 -- re-fire DeliveryAttempt this often while parked in the drop-off
 VehicleService.OWNED_FALLBACK_DELAY = 1 -- Owned car still alive this long after DeliveryAttempt -> ReturnedHome
 VehicleService.RETURN_DESTROY_DELAY = 3 -- ReturnedHome not handled -> destroy the car ourselves after this
 VehicleService.WRECK_DESTROY_AFTER = 2
 VehicleService.DAMAGE_GRACE = 1 -- no crash damage this long after seating / rewinds
+VehicleService.DAMAGE_WINDOW = 0.2 -- velocity samples further apart than this need a proportionally bigger change
 VehicleService.REST_SPEED = 0.75 -- studs/s: below this an empty car counts as "at rest"
-VehicleService.LOST_Y = MapConfig.WATER_LEVEL - 28 -- sank / fell off the island
-VehicleService.WATCHDOG_MAX_DT = 3 -- lag tolerance: displacement allowance accrues for at most this long
+VehicleService.SPAWN_DROP = 0.3 -- unanchored cars spawn this far above their rest height and settle onto it
+VehicleService.SETTLE_MAX = 15 -- seconds a driverless car runs the server settling controller at most
+-- Sunk: the seabed is at WATER_LEVEL - 14 and nothing drivable is below WATER_LEVEL - 6 (same line as TheftService
+-- and the police rubber-band), so a car down there for LOST_AFTER seconds is lost. Police are PoliceService's job.
+VehicleService.LOST_Y = MapConfig.WATER_LEVEL - 6
+VehicleService.LOST_AFTER = 1.5
+VehicleService.VOID_Y = MapConfig.WATER_LEVEL - 28 -- fell out of the world: lost at once, police included
+VehicleService.CHOP_DWELL = 1.2 -- seconds stopped inside the Chop Shop before ChopAttempt (no drive-through chops)
+VehicleService.CHOP_MAX_SPEED = 8 -- studs/s: "stopped" for the chop dwell
+-- lag tolerance: displacement allowance accrues for at most this long (a stalled client may jump by its catch-up,
+-- but a car held still can no longer bank seconds of allowance for one big hop, F5)
+VehicleService.WATCHDOG_MAX_DT = 1
 VehicleService.WATCHDOG_BLATANT = 1.5 -- speed above cap * this is a violation on the first strike
+-- Fling (SEC-6): spin or vertical speed no driving produces (MAX_YAW_RATE 2.4, upright 6 rad/s; a 160-stud fall
+-- for 250 studs/s), on two consecutive samples
+VehicleService.WATCHDOG_FLING_SPIN = 40
+VehicleService.WATCHDOG_FLING_VERTICAL = 250
+-- Flying (F5): no ground (or water) within this many studs under the chassis for WATCHDOG_AIR_SECONDS in a row.
+-- The biggest ramp (MegaRamp, 14 high) keeps a car airborne for about a second.
+VehicleService.WATCHDOG_AIR_CLEARANCE = 14
+VehicleService.WATCHDOG_AIR_SECONDS = 3
 
 local DAMAGE_TICK = 0.1
 local ZONE_TICK = 0.2
@@ -171,7 +210,8 @@ VehicleService.ChopAttempt = Signal.new() -- (player, car)
 VehicleService.SprayAttempt = Signal.new() -- (player, car)
 VehicleService.ReturnedHome = Signal.new() -- (car)
 VehicleService.Stolen = Signal.new() -- (player, car, previousKind)
-VehicleService.Wrecked = Signal.new() -- (car) extra: fired when health hits 0 (destroyed WRECK_DESTROY_AFTER later)
+-- (car) extra: fired when health hits 0, BEFORE the driver is ejected (destroyed WRECK_DESTROY_AFTER later)
+VehicleService.Wrecked = Signal.new()
 
 -- STATE --------------------------------------------------------------------------------------------------------------
 
@@ -183,6 +223,11 @@ local freeStealUsed: { [Player]: boolean } = {}
 local nextId = 0
 local vehiclesFolder: Folder? = nil
 local ejectParams: RaycastParams? = nil
+local groundParams: RaycastParams? = nil
+local groundFilter: { Instance } = {}
+local settling: { [Car]: any } = {} -- car -> server VehicleController (zero input) while it settles after exit
+local settleUntil: { [Car]: number } = {}
+local heatRng = Random.new()
 
 local setDriver: (car: Car, player: Player?) -> ()
 local refreshManagedPrompts: (car: Car) -> ()
@@ -361,15 +406,32 @@ function VehicleService._canDrive(kind: string, ownerUserId: number?, theft: any
 	return true
 end
 
--- Server-side hold check. began = os.clock() of PromptButtonHoldBegan (nil = never began).
-function VehicleService._holdOk(began: number?, now: number, required: number, tolerance: number?): boolean
+-- Server-side hold check. began = os.clock() of PromptButtonHoldBegan (nil = never began). maxAge (optional): a hold
+-- that began longer ago than this is stale (tapped earlier, then triggered with a locally zeroed HoldDuration).
+function VehicleService._holdOk(
+	began: number?,
+	now: number,
+	required: number,
+	tolerance: number?,
+	maxAge: number?
+): boolean
 	if required <= 0.05 then
 		return true
 	end
 	if began == nil then
 		return false
 	end
-	return now - began >= required * (tolerance or VehicleService.HOLD_TOLERANCE)
+	local held = now - began
+	if maxAge ~= nil and held > maxAge then
+		return false
+	end
+	return held >= required * (tolerance or VehicleService.HOLD_TOLERANCE)
+end
+
+-- Longest a legit hold can take from HoldBegan to Triggered: the client shows at most the unscaled base duration
+-- (HoldMultiplier <= 1, possibly a stale copy), plus latency jitter.
+function VehicleService._holdMaxAge(required: number, base: number): number
+	return math.max(required, base) * 1.25 + VehicleService.HOLD_MAX_EXTRA
 end
 
 -- Hotwire hold multiplier from the upgrade level and the Master Thief pass.
@@ -392,11 +454,21 @@ function VehicleService._speedCap(topSpeed: number, speedMultiplier: number?): n
 end
 
 -- nil = fine, "teleport" = moved farther than physically possible, "speed" = over the cap.
-function VehicleService._watchdogVerdict(hSpeed: number, displacement: number, dt: number, cap: number): string?
-	if hSpeed ~= hSpeed or displacement ~= displacement then
+-- displacement is horizontal; rise (optional) is the upward displacement over the same dt, held to the same bound
+-- (a ramp turns at most the car's speed into climb).
+function VehicleService._watchdogVerdict(
+	hSpeed: number,
+	displacement: number,
+	dt: number,
+	cap: number,
+	rise: number?
+): string?
+	local up = rise or 0
+	if hSpeed ~= hSpeed or displacement ~= displacement or up ~= up then
 		return "teleport"
 	end
-	if displacement > cap * math.max(dt, 0) + VehicleConfig.WATCHDOG_TELEPORT_SLACK then
+	local allowance = cap * math.max(dt, 0) + VehicleConfig.WATCHDOG_TELEPORT_SLACK
+	if displacement > allowance or up > allowance then
 		return "teleport"
 	end
 	if hSpeed > cap then
@@ -405,13 +477,51 @@ function VehicleService._watchdogVerdict(hSpeed: number, displacement: number, d
 	return nil
 end
 
--- Crash damage from two horizontal velocity samples (before armor).
-function VehicleService._crashDamage(prevVel: Vector3, vel: Vector3): number
+-- One fling sample: spin (rad/s) or vertical speed (studs/s) beyond anything driving produces.
+function VehicleService._flingSample(angularSpeed: number, verticalSpeed: number): boolean
+	if angularSpeed ~= angularSpeed or verticalSpeed ~= verticalSpeed then
+		return true
+	end
+	return angularSpeed > VehicleService.WATCHDOG_FLING_SPIN
+		or math.abs(verticalSpeed) > VehicleService.WATCHDOG_FLING_VERTICAL
+end
+
+-- Crash damage from two horizontal velocity samples (before armor). elapsed = real seconds between the samples
+-- (default one DAMAGE_TICK): after a hitch / replication gap the change must be proportionally bigger, so hard
+-- braking or a nitro launch spread over a long gap never reads as an impact.
+function VehicleService._crashDamage(prevVel: Vector3, vel: Vector3, elapsed: number?): number
 	local dv = (flat(vel) - flat(prevVel)).Magnitude
-	if dv ~= dv or dv <= VehicleConfig.CRASH_DAMAGE_THRESHOLD then
+	local gap = num(elapsed, DAMAGE_TICK)
+	local threshold = VehicleConfig.CRASH_DAMAGE_THRESHOLD * math.max(1, gap / VehicleService.DAMAGE_WINDOW)
+	if dv ~= dv or dv <= threshold then
 		return 0
 	end
-	return (dv - VehicleConfig.CRASH_DAMAGE_THRESHOLD) * VehicleConfig.CRASH_DAMAGE_SCALE
+	return (dv - threshold) * VehicleConfig.CRASH_DAMAGE_SCALE
+end
+
+-- Fastest any car of this top speed can cover `distance` studs (watchdog speed band incl. nitro, no lag grace).
+function VehicleService._minTravelTime(distance: number, topSpeed: number, speedMultiplier: number?): number
+	if distance ~= distance then
+		return math.huge
+	end
+	local maxSpeed = num(topSpeed, 100)
+		* VehicleConfig.SPEED_CAP_MULT
+		* VehicleConfig.NITRO_SPEED_MULT
+		* math.max(1, num(speedMultiplier, 1))
+	if maxSpeed <= 0 then
+		return 0
+	end
+	return math.max(0, distance) / maxSpeed
+end
+
+-- Stars for a street hotwire (DECISIONS §1): a witness sees it with probability wantedChance, and then it is worth
+-- at least one star. roll in [0, 1). The free first steal is applied later by addStealHeat.
+function VehicleService._streetStars(wantedOnSteal: number, wantedChance: number?, roll: number): number
+	local chance = num(wantedChance, 1)
+	if roll >= chance then
+		return 0
+	end
+	return math.max(1, math.floor(num(wantedOnSteal, 0)))
 end
 
 local chopCF, chopSize = MapLayout.chopZone()
@@ -571,6 +681,33 @@ function VehicleService.all(): { Car }
 	return out
 end
 
+-- Non-allocating all(): clears and refills a caller-owned buffer (hot loops, PERF-09). Returns the buffer.
+function VehicleService.allInto(out: { Car }): { Car }
+	table.clear(out)
+	for _, car in cars do
+		table.insert(out, car)
+	end
+	return out
+end
+
+function VehicleService.isTainted(car: Car): boolean
+	return type(car) == "table" and type(car.data) == "table" and car.data.tainted == true
+end
+
+-- Shortest legal time to reach targetPos from where the current drive started (car.data.driveStartPos); 0 when the
+-- car has never been driven.
+function VehicleService.minTravelTime(car: Car, targetPos: Vector3): number
+	if type(car) ~= "table" or type(car.data) ~= "table" or typeof(targetPos) ~= "Vector3" then
+		return 0
+	end
+	local start = car.data.driveStartPos
+	if typeof(start) ~= "Vector3" then
+		return 0
+	end
+	local top = if car.def then num(car.def.topSpeed, 100) else 100
+	return VehicleService._minTravelTime(flat(targetPos - start).Magnitude, top, car.model:GetAttribute("SpeedMultiplier"))
+end
+
 -- SPAWN --------------------------------------------------------------------------------------------------------------
 
 local function newState(car: Car): CarState
@@ -580,15 +717,21 @@ local function newState(car: Car): CarState
 		authorized = nil,
 		authorizedUntil = 0,
 		lastVel = Vector3.zero,
+		lastVelAt = now,
 		damageGraceUntil = now + VehicleService.DAMAGE_GRACE,
 		wdCFrame = car.chassis.CFrame,
 		wdAt = now,
 		wdRevokedUntil = 0,
 		wdSpeedStrikes = 0,
+		wdFlingStrikes = 0,
+		airSince = nil,
 		restSince = nil,
+		sunkSince = nil,
 		inDropoff = false,
 		dropoffFiredAt = -math.huge,
 		inChop = false,
+		chopEntered = false,
+		chopSince = nil,
 		inSpray = nil,
 		returnFired = false,
 		shownHealth = math.ceil(car.health),
@@ -620,8 +763,10 @@ function VehicleService.spawn(
 		model:Destroy()
 		error("VehicleService.spawn: CarBuilder model is missing Chassis / DriverSeat")
 	end
+	-- anchored kinds never drop, so they sit exactly at rest height (F10); physics cars settle the last few tenths
+	local anchored = if o.anchored ~= nil then o.anchored == true else ANCHORED_KINDS[kind :: string] == true
 	local ride = num(model:GetAttribute("RideHeight"), 2)
-	model:PivotTo(groundCFrame * CFrame.new(0, ride + 0.3, 0))
+	model:PivotTo(groundCFrame * CFrame.new(0, ride + (if anchored then 0 else VehicleService.SPAWN_DROP), 0))
 
 	nextId += 1
 	local now = os.clock()
@@ -672,7 +817,6 @@ function VehicleService.spawn(
 	end
 
 	seat.Disabled = true
-	local anchored = if o.anchored ~= nil then o.anchored == true else ANCHORED_KINDS[kind :: string] == true
 	chassis.Anchored = anchored
 	model.Parent = VehicleService.getFolder()
 	CollectionService:AddTag(model, "Vehicle")
@@ -771,6 +915,148 @@ local function destroySeatWelds(seat: VehicleSeat)
 			child:Destroy()
 		end
 	end
+end
+
+-- Raycast straight down from the chassis, ignoring every car and `extra` (e.g. the driver). Water counts as ground.
+-- Returns (ok, hit); ok = false when the ray could not be cast (callers treat that as "no evidence").
+local function groundBelow(car: Car, depth: number, extra: Instance?): (boolean, any)
+	local params = groundParams
+	if not params then
+		params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.IgnoreWater = false
+		params.RespectCanCollide = true
+		groundParams = params
+	end
+	groundFilter[1] = VehicleService.getFolder()
+	groundFilter[2] = extra :: any
+	params.FilterDescendantsInstances = groundFilter
+	return pcall(Workspace.Raycast, Workspace, car.chassis.CFrame.Position, Vector3.new(0, -depth, 0), params)
+end
+
+-- SETTLING (SPEC §8: the server keeps a controller for cars settling after exit) ---------------------------------------
+-- A driverless physics car would otherwise drop onto CarBuilder's two centreline bump stops and tip over. A server
+-- VehicleController (isServer: impulses, no replicated VectorForces) holds it on its suspension and brakes it to a
+-- stop, until it is rest-anchored, gets a driver, is destroyed, or SETTLE_MAX runs out.
+
+local controllerModule: any = nil -- false once loading failed
+local function getControllerModule(): any
+	if controllerModule == nil then
+		local ok, mod = pcall(function(): any
+			return require(Shared.Vehicle.VehicleController) :: any
+		end)
+		if ok and type(mod) == "table" and typeof(mod.new) == "function" then
+			controllerModule = mod
+		else
+			controllerModule = false
+			warn("[VehicleService] VehicleController unavailable, cars won't settle: " .. tostring(mod))
+		end
+	end
+	return if controllerModule then controllerModule else nil
+end
+
+local SETTLE_BRAKE = 0.35 -- throttle fraction used as a brake while a driverless car still rolls
+local settleInput = { throttle = 0, steer = 0, handbrake = false, nitro = false }
+
+local function stopSettling(car: Car)
+	local ctrl = settling[car]
+	if ctrl == nil then
+		return
+	end
+	settling[car] = nil
+	settleUntil[car] = nil
+	pcall(function()
+		ctrl:destroy()
+	end)
+end
+
+-- Starts (or extends) the settling controller of a driverless physics car. Returns true while one runs.
+-- Also called by TrafficService for rammed / knocked traffic.
+function VehicleService.settle(car: Car): boolean
+	if type(car) ~= "table" or car.destroyed or car.wrecked or car.driver ~= nil or states[car] == nil then
+		return false
+	end
+	if SELF_DRIVEN_KINDS[car.kind :: string] then
+		return false
+	end
+	local chassis = car.chassis
+	if chassis.Anchored or chassis.Parent == nil then
+		return false
+	end
+	if settling[car] ~= nil then
+		settleUntil[car] = os.clock() + VehicleService.SETTLE_MAX
+		return true
+	end
+	local VC = getControllerModule()
+	if not VC then
+		return false
+	end
+	local ok, ctrl = pcall(VC.new, car.model, car.def, { isServer = true })
+	if not ok or type(ctrl) ~= "table" then
+		warn("[VehicleService] settling controller failed: " .. tostring(ctrl))
+		return false
+	end
+	settling[car] = ctrl
+	settleUntil[car] = os.clock() + VehicleService.SETTLE_MAX
+	return true
+end
+
+local settleErrorAt = -math.huge
+local function settleStep(dt: number)
+	local now = os.clock()
+	for car, ctrl in settling do -- stopSettling only clears existing keys (safe while iterating)
+		local chassis = car.chassis
+		if
+			car.destroyed
+			or car.wrecked
+			or car.driver ~= nil
+			or chassis.Parent == nil
+			or chassis.Anchored
+			or now > (settleUntil[car] or 0)
+		then
+			stopSettling(car)
+			continue
+		end
+		local vF = num(ctrl.forwardSpeed, 0)
+		settleInput.throttle = if vF > 3 then -SETTLE_BRAKE elseif vF < -3 then SETTLE_BRAKE else 0
+		local ok, err = pcall(function()
+			ctrl:setInput(settleInput)
+			ctrl:step(dt)
+		end)
+		if not ok then
+			stopSettling(car)
+			if now - settleErrorAt > 10 then
+				settleErrorAt = now
+				warn("[VehicleService] settling step failed: " .. tostring(err))
+			end
+		end
+	end
+end
+
+-- Before rest-anchoring: put a tipped (or hovering) car level on flat ground at exactly its rest height, so parked
+-- and abandoned cars never freeze at an angle. Slopes / ramps are left alone.
+local function restPose(car: Car)
+	local chassis = car.chassis
+	local cf = chassis.CFrame
+	local ride = num(car.model:GetAttribute("RideHeight"), 2)
+	local ok, hit = groundBelow(car, ride + 3, nil)
+	if not ok or hit == nil or hit.Normal.Y < 0.98 then
+		return
+	end
+	local look = flat(cf.LookVector)
+	if look.Magnitude < 0.1 then
+		return
+	end
+	local target = hit.Position + Vector3.new(0, ride, 0)
+	local dy = math.abs(cf.Position.Y - target.Y)
+	if dy > 3 or (cf.UpVector.Y >= 0.98 and dy < 0.05) then
+		return
+	end
+	pcall(function()
+		car.model:PivotTo(CFrame.lookAt(target, target + look.Unit))
+		chassis.AssemblyLinearVelocity = Vector3.zero
+		chassis.AssemblyAngularVelocity = Vector3.zero
+	end)
 end
 
 -- Removes whoever sits in the seat (server-authoritative) without touching driver bookkeeping.

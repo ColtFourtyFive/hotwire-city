@@ -11,8 +11,8 @@
 --     replicated property change, every frame, to every client (PERF-01); impulses are not replicated.
 --   * While a controller runs, CarBuilder's "BumpStop" balls are non-collidable (they ride below the 0.6 curb and
 --     would snag every curb, F1); destroy() restores them for cars resting without a controller.
---   * Frames longer than Config.Vehicle.MAX_DT soften the spring around the static load so the held force can't
---     pump the suspension on a low-FPS device (F13, see VMath.suspensionAccel).
+--   * Frames longer than SPRING_HOLD_DT (below 15 FPS) soften the spring around the static load so the held force
+--     can't pump the suspension on a low-FPS device (F13, see VMath.suspensionAccel).
 --   * Every acceleration is multiplied by the live Chassis.AssemblyMass, so tuning is mass-independent.
 --   * Pure math lives in VehicleController.math (unit-tested in Lune: tests/spec/vehicle.spec.luau).
 --
@@ -56,6 +56,10 @@ local MAX_VISUAL_BUMP = 0.6
 local ATTRIBUTE_POLL = 0.2 -- seconds between TiresPopped / SpeedMultiplier reads
 local FILTER_REFRESH = 1 -- seconds between raycast filter rebuilds (characters come and go)
 local MAX_FRAME_DT = 0.5 -- sanity bound on the real frame time (impulse length / low-FPS spring scaling)
+-- Longest frame the plain spring is evaluated for (F13). The force is held for the whole frame (zero-order hold): the
+-- plain K/C spring stays well damped down to 15 FPS (per-frame spectral radius <= 0.69) and only diverges below ~8.6 FPS.
+-- Softening from Config.Vehicle.MAX_DT (30 FPS) instead would change the ride on every 15-30 FPS phone for no gain.
+local SPRING_HOLD_DT = 1 / 15
 local MOVER_ATTRIBUTE = "HCVehicleMover" -- marks instances created by a controller
 local BUMP_STOP_NAME = "BumpStop" -- CarBuilder's collidable balls under the axles
 
@@ -108,10 +112,11 @@ function VMath.mountOffset(rest: number, staticComp: number, lift: number): numb
 end
 
 -- Spring + damper acceleration of one wheel (studs/s^2, multiply by mass for force). compVel > 0 = compressing.
--- Low FPS (F13): the force is computed once per frame and held for the whole frame, so above ~9 FPS-long frames the
--- sampled spring pumps energy in. With stiffScale s = MAX_DT/frameDt < 1 the spring is evaluated as
+-- Low FPS (F13): the force is computed once per frame and held for the whole frame, so frames longer than ~1/8.6 s
+-- make the sampled spring pump energy in (the car hops, then launches). With stiffScale s = holdDt/frameDt < 1 (see
+-- lowFpsScale, holdDt = SPRING_HOLD_DT) the spring is evaluated as
 --   K*staticComp + K*(comp - staticComp)*s^2 + C*compVel*s
--- i.e. the static load is carried unchanged while omega*frameDt and c*frameDt stay at their MAX_DT (30 FPS) values.
+-- i.e. the static load is carried unchanged while omega*frameDt and c*frameDt stay at their 15 FPS values.
 -- staticComp/stiffScale omitted (or s >= 1) = the plain K*comp + C*compVel.
 function VMath.suspensionAccel(
 	comp: number,
@@ -132,12 +137,12 @@ function VMath.suspensionAccel(
 	return clamp(k * staticComp + k * (comp - staticComp) * s * s + c * compVel * s, 0, maxAccel)
 end
 
--- Spring softening factor for a frame of `frameDt` seconds (1 at or below maxDt). See suspensionAccel.
-function VMath.lowFpsScale(frameDt: number, maxDt: number): number
-	if frameDt <= maxDt or frameDt ~= frameDt then
+-- Spring softening factor for a frame of `frameDt` seconds (1 at or below holdDt). See suspensionAccel.
+function VMath.lowFpsScale(frameDt: number, holdDt: number): number
+	if frameDt <= holdDt or frameDt ~= frameDt then
 		return 1
 	end
-	return maxDt / frameDt
+	return holdDt / frameDt
 end
 
 -- Arcade drift test shared by the driving controller and observers' cosmetic FX (WheelAnimator).
@@ -386,6 +391,7 @@ VehicleController.WHEEL_NAMES = WHEEL_NAMES
 VehicleController.MOVER_ATTRIBUTE = MOVER_ATTRIBUTE
 VehicleController.RIDE_LIFT = RIDE_LIFT
 VehicleController.BUMP_STOP_NAME = BUMP_STOP_NAME
+VehicleController.SPRING_HOLD_DT = SPRING_HOLD_DT
 
 function VehicleController.new(model: Model, def: CarDef, opts: Options?): Controller
 	local o: Options = opts or { isServer = false }
@@ -678,7 +684,7 @@ function Controller.step(self: Controller, dtIn: number)
 	-- dt: the clamped step the arcade math integrates with.
 	local frameDt = clamp(finite(dtIn), 1 / 240, MAX_FRAME_DT)
 	local dt = math.min(frameDt, Tuning.MAX_DT)
-	local stiffScale = VMath.lowFpsScale(frameDt, Tuning.MAX_DT)
+	local stiffScale = VMath.lowFpsScale(frameDt, SPRING_HOLD_DT)
 
 	self._attrTimer += dt
 	if self._attrTimer >= ATTRIBUTE_POLL then
@@ -883,6 +889,15 @@ function Controller.destroy(self: Controller)
 		end
 	end
 	table.clear(self._foreign)
+	-- F1: a car resting without a controller sits on its bump stops again (only the ones this controller turned off)
+	for _, stop in self._bumpOff do
+		if stop.Parent then
+			pcall(function()
+				stop.CanCollide = true
+			end)
+		end
+	end
+	table.clear(self._bumpOff)
 end
 
 return VehicleController

@@ -1,0 +1,479 @@
+{
+ "B1": {
+  "results": [
+   {
+    "uid": "secperf:security:SEC-3",
+    "status": "fixed",
+    "note": "CombatService doBat raycasts for line of sight from the attacker's Head (or root +1.5Y) to the victim's root. It respects CanCollide and excludes characters, Effects, Workspace.Vehicles, DisplayCar models and both players' cars. A blocked target falls through to the next nearest candidate."
+   },
+   {
+    "uid": "secperf:performance:PERF-01",
+    "status": "not-needed",
+    "note": "PoliceService already builds the controller with isServer=true, so it needs no change. The fix lives in VehicleController (A1b), which is mid-edit; the 2 failing vehicle.spec mover tests belong to that work."
+   },
+   {
+    "uid": "secperf:performance:PERF-03",
+    "status": "fixed",
+    "note": "PoliceService.updateHeli no longer writes body/disc CFrame, RotorWeld.C0 or siren Transparency. It publishes the HeliCFrame (pose incl. pitch/roll) attribute at ~10 Hz and the SpotPos attribute when it moves more than 0.25 studs. A new EffectsController renderer (tag PoliceHeli) extrapolates and smooths the body, places the disc, spins the rotor and blinks the sirens. The extrapolation helper heliGoal is tested."
+   },
+   {
+    "uid": "secperf:performance:PERF-10",
+    "status": "fixed",
+    "note": "findSpawnLane collects unit and vehicle positions once, lazily, when the first lane passes the cheap distance/bounds checks. The clearance check (new pure helper _isClearOf, tested) now runs before the LOS raycast."
+   },
+   {
+    "uid": "secperf:performance:PERF-11",
+    "status": "fixed",
+    "note": "LightingService CLOCK_INTERVAL changed 0.1 -> 1 and ENV_INTERVAL 0.5 -> 2. The header comment is updated."
+   },
+   {
+    "uid": "secperf:performance:PERF-12",
+    "status": "partially",
+    "note": "B1 part done: in EffectsController the Legendary+ tag pulse tween now runs only within 60 studs and is cancelled otherwise. Remaining: PlotService SurfaceGui PixelsPerStud/MaxDistance (A2b)."
+   },
+   {
+    "uid": "secperf:performance:PERF-13",
+    "status": "partially",
+    "note": "B1 part done: MapBuilder streetLight puts a PointLight on every 3rd lamp at Range 32 (was every 2nd at 48), and map.spec's ratio was updated. Remaining: distance-gating Sparkles emitters (WheelAnimator, A1b)."
+   },
+   {
+    "uid": "contracts:server-core:theft-eject-before-fail-spurious-drop",
+    "status": "partially",
+    "note": "B1 part done: WantedService.handleCar calls TheftService.fail(car,'busted') before VehicleService.eject for Stolen cars (police.spec checks the order). Remaining: the wreck/markDropped guards in TheftService (A2a) and VehicleService (A1a)."
+   },
+   {
+    "uid": "contracts:server-core:combat-onthiefhit-after-eject",
+    "status": "fixed",
+    "note": "CombatService.applyHit calls TheftService.onThiefHit before VehicleService.eject, as DECISIONS.md requires."
+   },
+   {
+    "uid": "contracts:server-core:assetlibrary-unconsumed-role-mismatch",
+    "status": "deferred",
+    "note": "DECISIONS.md #12 hands AssetLibrary consumption and role naming to the art pass. No MapBuilder change now."
+   },
+   {
+    "uid": "contracts:server-meta:CLEAR-WANTED-NOOP-PURCHASE",
+    "status": "fixed",
+    "note": "WantedService.clear now returns a boolean (false at 0 stars) and getStars is available. B2's MonetizationService handler already refuses at 0 stars, and MenuController gating is B2's."
+   },
+   {
+    "uid": "contracts:server-meta:MAPBUILDER-DEALER-TAG-CONTRACT-UNUSED",
+    "status": "partially",
+    "note": "B1 part done: the unused RestockBoard part and DealerRestockBoard tag are removed from MapBuilder.buildDealership, and the DealerPad discs are kept as DealershipService's floor. Remaining: lower DealershipService's sign below the canopy at CURB_TOP+18 (A2b)."
+   },
+   {
+    "uid": "contracts:client-server:POLICE-SIREN-ATTR-IGNORED",
+    "status": "partially",
+    "note": "B1 part done: EffectsController.updateSirens turns lights off (transparency 0.8, flash light disabled) when Siren==false; nil still counts as on, and flashing resumes on Siren=true. Remaining: SoundController siren candidate loop (C1)."
+   },
+   {
+    "uid": "flows:first-60s:EXIT-ON-E",
+    "status": "partially",
+    "note": "B1 optional part done: EffectsController hides Hotwire/Carjack/StealPrompt prompts on vehicles while Driving by zeroing MaxActivationDistance locally and restores them on exit. It does not touch Enabled or ProximityPromptService.Enabled. Remaining: drop KeyCode.E from HC_Exit in VehicleClient (A1b)."
+   },
+   {
+    "uid": "flows:first-60s:SPAWN-FLASH",
+    "status": "not-needed",
+    "note": "Nothing changes in MapBuilder: the verified fix keeps the plaza SpawnLocation for unassigned players. Per-plot spawn and RespawnLocation belong to PlotService (A2b)."
+   },
+   {
+    "uid": "flows:player-theft:F3-victim-cannot-fight-back",
+    "status": "partially",
+    "note": "B1 part: CombatClient keeps the BONK/ZAP ActionButton visible while driving when a tool is equipped, moved left of EXIT and above SPIKES. The server already allows bat/taser from a seat. The verified minimal fix (hotwire-hold warning in GarageService, alert countdown) belongs to A2a/C1."
+   },
+   {
+    "uid": "flows:player-theft:F4-knockout-feed-never-fires",
+    "status": "fixed",
+    "note": "Same change as combat-onthiefhit-after-eject: onThiefHit now runs before the eject, so markDropped sees lastHitBy."
+   },
+   {
+    "uid": "flows:player-theft:F8-bonk3-contract-near-impossible",
+    "status": "fixed",
+    "note": "New pure helper CombatService.countsAsThiefBonk(kind, wanted), tested. Progress('defend') is counted for any hit that ejects a Stolen-car driver, or a Loot driver with Wanted>=1, per DECISIONS #6. The 'THIEF BONKED' toast stays victim-only."
+   },
+   {
+    "uid": "flows:player-theft:F12-misleading-dropped-state-on-wreck-bust-leave",
+    "status": "partially",
+    "note": "B1 part done: on a bust, fail happens before eject. Remaining: the wreck and leave paths in TheftService.markDropped and the RecoverPrompt (A2a), and VehicleService Wrecked ordering (A1a)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F2",
+    "status": "partially",
+    "note": "B1 support: WantedService publishes a new player attribute SprayCost (current spray price, 0 when clean, refreshed ~1 Hz) so the waypoint can show the real income-scaled price. Remaining: the auto 'spray' waypoint to the nearest MapLayout.sprayZones() booth in WaypointController (C1)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F3",
+    "status": "partially",
+    "note": "Server side done: Humanoid.Died while wanted (outside your own garage) is a bust, using bust(player,'died'). WantedService.consumeRespawnAtHQ(player) is exposed (tested). Remaining: PlotService.onCharacter must pivot to Police HQ when consumeRespawnAtHQ is true (A2b); optional reset-button disable (C1)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F4",
+    "status": "fixed",
+    "note": "onSprayAttempt refuses while PoliceService.isSeen. The car is kept pending and sprayed once the cops lose sight while it is still in the booth. Cost is stars*max(SPRAY_COST_PER_STAR, income*SPRAY_INCOME_SECONDS) via the _sprayCost helper (tested)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F5",
+    "status": "fixed",
+    "note": "Police match the suspect's car. Cruiser SpeedMultiplier = max(star base, suspectTop/118*(0.8+0.05*stars)) + catch-up, capped at 2.5 and rounded; the chopper flies at max(95, 0.9*suspectTop). New helpers _carTopSpeed/_unitSpeedMult/_heliMaxSpeed are tested: a 175 Legendary beats 1-3 star cops but not 5."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F6",
+    "status": "partially",
+    "note": "B1 part done: WantedDecayAt (server time of the next star loss while hidden) is published next to WantedSeen and tested. Remaining: HUD star blink and decay ring (C1)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F7",
+    "status": "not-needed",
+    "note": "No PoliceService change is needed. The verified fix is TrafficService treating HotDrop/anchored cars as non-ghostable blockers (A1a), with an optional move of the HotDropPoints in Map config (lead)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F12",
+    "status": "not-needed",
+    "note": "No PoliceService change is needed: TrafficService.scanPass can already see car.kind=='Police' and should never ghost into it (A1a)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F13",
+    "status": "partially",
+    "note": "Duplicate of POLICE-SIREN-ATTR-IGNORED. The EffectsController side is done; SoundController remains (C1)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F17",
+    "status": "fixed",
+    "note": "Duplicate of CLEAR-WANTED-NOOP-PURCHASE. WantedService.clear returns a boolean, and B2's handler already checks getStars."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F19",
+    "status": "partially",
+    "note": "Server side done: Busted(lostCash, carLabel?) carries a 'GOLD Phantom GT'-style label when a theft failed or a Loot car was impounded, and nil for own cars (tested). Remaining: the HUDController listener and showBusted carLabel line (C1). It still reads only lostCash."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F20",
+    "status": "fixed",
+    "note": "WantedService._repaint uses CarBuilder.repaint (lazy pcall require), which keeps the mutation look. It falls back to the old loop only if CarBuilder is unavailable."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F22",
+    "status": "fixed",
+    "note": "Duplicate of the dealer-board finding. MapBuilder's RestockBoard part and DealerRestockBoard tag are deleted and the comment fixed."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F25",
+    "status": "fixed",
+    "note": "bust() stuns the player via CombatService.stun for RELEASE_DELAY+0.3s, falling back to a raw Stunned attribute that is cleared after release, so busted players can't hop into a car before the HQ teleport. A died-bust skips the stun."
+   },
+   {
+    "uid": "flows:economy-monetization:F7",
+    "status": "fixed",
+    "note": "Same as CLEAR-WANTED: the WantedService side returns a boolean from clear. DECISIONS #7 makes NotProcessedYet at 0 stars binding; the handler and Store button are B2's."
+   },
+   {
+    "uid": "flows:economy-monetization:F10",
+    "status": "partially",
+    "note": "B1 part done: the CombatService 'defend' stat is broadened (any Stolen-car or wanted Loot driver bonked out). Remaining: contract goal and reroll in Economy/RewardsService/MenuController (B2/lead)."
+   },
+   {
+    "uid": "flows:driving-physics:F5",
+    "status": "not-needed",
+    "note": "PoliceService needs no change for the watchdog fixes, which live in VehicleService (A1a). The watchdog only checks player-driven cars and multiplies the cap by SpeedMultiplier, so the faster F5 police multipliers can't trip it."
+   },
+   {
+    "uid": "flows:driving-physics:F9",
+    "status": "not-needed",
+    "note": "No PoliceService or MapBuilder change is needed. The fix is VehicleService.LOST_Y = WATER_LEVEL-6 (A1a); PoliceService already rubber-bands units below WATER_LEVEL-6."
+   },
+   {
+    "uid": "flows:client-ux:UI-SPIKE-EXIT-OVERLAP",
+    "status": "fixed",
+    "note": "SpikeButton is bottom-anchored: AnchorPoint (1,1), Position (1,-144,1,-170), spanning x W-236..W-144 and y H-262..H-170 left of HORN/EXIT and above DRIFT/NITRO, so it is clear at any canvas height. Layout constants are named at the top of CombatClient."
+   },
+   {
+    "uid": "flows:client-ux:UI-TOASTS-COVER-CONTROLS",
+    "status": "not-needed",
+    "note": "No CombatClient change is needed. The verified fix is in NotificationController: no full-size Dismiss button on touch, and/or a toast anchor left of the control column (C1)."
+   },
+   {
+    "uid": "flows:client-ux:UI-PIXEL-BILLBOARDS-PHONE",
+    "status": "partially",
+    "note": "B1 part done: the EffectsController RarityTag and comic bubbles scale by min(1, Kit.uiScale(Theme.TouchMinScale)), with the tag holder centered at design size under its UIScale and re-scaled on viewport change. Remaining: WaypointController marker and NotificationController CashPopup (C1)."
+   }
+  ],
+  "crossGroupNotes": [
+   "Interface added by B1, not in DECISIONS.md: player attribute SprayCost (number). It is the current Spray Shop price, 0 when clean, refreshed ~1 Hz while wanted. C1 should use it for the F2 spray waypoint label instead of SPRAY_COST_PER_STAR*stars, because the price now scales with income.",
+   "Other new attributes the HUD can read: player WantedDecayAt (Workspace:GetServerTimeNow() time of the next star loss while hidden, 0 while seen or clean) and WantedSeen (already existed). The heli model now carries HeliCFrame (CFrame) and SpotPos (Vector3); EffectsController renders the heli, so nobody else should animate PoliceHeli.",
+   "C1 HUDController: the Busted listener (around line 2088) still reads only lostCash. WantedService now fires Busted(lostCash, carLabel?) per DECISIONS.md. C1 SoundController must also skip Police models with GetAttribute('Siren') == false.",
+   "A2b PlotService (F3 reset exploit): in onCharacter, lazily require WantedService and call consumeRespawnAtHQ(player). It returns true once, within 60s of a died-while-wanted bust; when true, PivotTo MapLayout.bustedReleaseCFrame() instead of moveCharacterHome. Without this the bust penalty still applies, but the respawn lands in the garage.",
+   "A2b DealershipService: MapBuilder no longer builds RestockBoard / the DealerRestockBoard tag; the DealerPad discs remain as the raycast floor. The sign still needs lowering below the canopy underside at CURB_TOP+18: SIGN_BOTTOM=7, or SIGN_SIZE height 8.",
+   "A1b VehicleClient: SPIKES and the in-car ActionButton are laid out in the same bottom-right design canvas as DrivingUI's touch cluster. If DrivingUI ever passes touchMin to Kit.screen, CombatHUD (CombatClient.start) must pass the same value, or the clusters drift apart on phones. A1b also owns removing KeyCode.E from HC_Exit (EXIT-ON-E).",
+   "A1b: the 2 remaining lune failures are in vehicle.spec ('new() creates the movers', 'foreign movers are suppressed'), from the in-progress VehicleController PERF-01 change; the fix text says to update those specs. No failures in B1 modules.",
+   "Lead (docs): docs/SPEC.md \u00a76 CombatService 'contract defend' line should read 'any hit that ejects a Stolen-car driver, or a Loot driver with Wanted>=1' (DECISIONS #6). The Remotes.luau comment for Busted should mention carLabel. docs/integration/vehicles-world.md:173 and :215 still mention RestockBoard/DealerRestockBoard. vehicles-world/gameplay docs should note the police heli is client-rendered from HeliCFrame/SpotPos.",
+   "B2 MonetizationService clear_wanted already checks getStars > 0 before clear. WantedService.clear now also returns true/false if a direct check is wanted (callSystem returns pcall ok, not the result).",
+   "Police balance note: cruiser SpeedMultiplier can now reach ~1.56 (5 stars vs a 175 car) plus 0.12 catch-up. Acceleration is not scaled, so cops still close slowly. The watchdog ignores police (player-driven only) and scales the cap by SpeedMultiplier anyway."
+  ],
+  "verification": "stylua --check passes on all 7 B1 files and the edited specs (police, combat, map). selene reports 0 errors and 0 warnings on all 7 B1 files. rojo build -o /tmp/claude-0/fix-B1.rbxlx succeeds. lune run tests/run.luau gives 368 passed, 2 failed. Both failures are in vehicle.spec (A1b's in-progress VehicleController PERF-01 mover changes); every B1 test passes. The rewards.spec failures from the start of this run are now fixed by B2. New and updated tests: police.spec covers unit speed matching, heli and suspect top speed, _isClearOf, and the SprayCost attribute; the earlier partial-run tests for bust order, carLabel, the stun, clear's boolean, died-while-wanted, WantedDecayAt, _sprayCost and the seen-spray retry still pass. combat.spec covers heliGoal extrapolation and countsAsThiefBonk. map.spec's lamp ratio is updated for every-3rd-lamp lights. I re-read every diff hunk in PoliceService, EffectsController, CombatClient, CombatService, WantedService, MapBuilder and LightingService. Two things are not verified: no Luau type checker is installed, so strict typing was only reviewed by hand, and the client heli renderer, phone layouts and billboard scaling were not run in Studio. Files: /home/user/HotwireCity/src/server/Systems/{WantedService,PoliceService,CombatService,LightingService,MapBuilder}.luau, /home/user/HotwireCity/src/client/Controllers/{CombatClient,EffectsController}.luau, /home/user/HotwireCity/tests/spec/{police,combat,map}.spec.luau.\""
+ },
+ "B2": {
+  "results": [
+   {
+    "uid": "flows:player-theft:F2-recovery-revenge-farm",
+    "status": "not-needed",
+    "note": "Nothing to change in B2 files. The fix is in TheftService (A2a), and the lead already added the Economy constants BONUS_PAIR_COOLDOWN and RECOVERY_MIN_SECONDS."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F1",
+    "status": "not-needed",
+    "note": "Nothing to change in B2 files. Dealer heat and pad restock belong to DealershipService (A2b) and GarageService (A2a), and spray cost to WantedService (B1). Economy/Police are lead files. EconomyMath needs no change."
+   },
+   {
+    "uid": "flows:economy-monetization:F1",
+    "status": "fixed",
+    "note": "Rebirth is registered at 1/s. Net.allow now starts new buckets at max(1, rate) tokens and caps them at max(1, 2*rate). A test confirms the first Rebirth call passes even at 0.5/s."
+   },
+   {
+    "uid": "flows:client-ux:UI-PLAYERLIST-COVERS-WANTED",
+    "status": "not-needed",
+    "note": "LeaderboardService keeps leaderstats as SPEC requires. C1 needs to call SetCoreGuiEnabled(PlayerList, false) or move the HUD."
+   },
+   {
+    "uid": "secperf:security:SEC-2",
+    "status": "fixed",
+    "note": "B2 part, the EventService fallback hot-drop prompt: an early release (PromptButtonHoldEnded) cancels the hold, _holdValid rejects holds that are too short or too old (more than req/0.9 + 1.5s), the server checks distance, and the hold table is weak-keyed. The Garage, Dealership and VehicleService prompts belong to A2a, A2b and A1a."
+   },
+   {
+    "uid": "secperf:security:ECON-1",
+    "status": "not-needed",
+    "note": "Belongs to TheftService (A2a). RewardsService.progress stays the single entry point; moving 'steal' to complete() is A2a's choice."
+   },
+   {
+    "uid": "secperf:performance:PERF-03",
+    "status": "not-needed",
+    "note": "Heli rendering is PoliceService (B1). The verified fix says EventService dropIn is a ~1s one-off and not worth changing."
+   },
+   {
+    "uid": "contracts:server-meta:REBIRTH-RATE-LIMIT-DROPS-FIRST",
+    "status": "fixed",
+    "note": "Rebirth rate is 1/s and Net buckets start with at least 1 token (see economy F1). Tested."
+   },
+   {
+    "uid": "contracts:server-meta:CLEAR-WANTED-NOOP-PURCHASE",
+    "status": "fixed",
+    "note": "The clear_wanted handler checks WantedService.getStars and returns false (NotProcessedYet) at 0 stars. The Store shows the item disabled as '\ud83d\ude07 NOT WANTED', re-checks when tapped, and refreshes when the Wanted attribute changes."
+   },
+   {
+    "uid": "flows:player-theft:F8-bonk3-contract-near-impossible",
+    "status": "not-needed",
+    "note": "The counting change is in CombatService (B1, DECISIONS #6). RewardsService.progress('defend') is unchanged."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F4",
+    "status": "not-needed",
+    "note": "Spray cost and the isSeen gate are in WantedService (B1). The lead already set SPRAY_INCOME_SECONDS in Economy."
+   },
+   {
+    "uid": "flows:economy-monetization:F3",
+    "status": "not-needed",
+    "note": "Rarity-scaled dealer heat belongs to DealershipService (A2b)."
+   },
+   {
+    "uid": "flows:economy-monetization:F4",
+    "status": "fixed",
+    "note": "The Dragster is one per account. MonetizationService._ownsExclusive refuses it, without charging, when one is parked or still owed. The Store shows OWNED when the garage snapshot holds one. Rebirth always keeps exclusives and never counts them toward the keep limit. Owed exclusives are not in the snapshot, so in that case the server refusal is what protects the player."
+   },
+   {
+    "uid": "flows:economy-monetization:F6",
+    "status": "fixed",
+    "note": "Removed the luck line from the Rebirth menu; the showcase now reads '+50% income \u2022 +10s garage lock'. The RebirthService header no longer claims luck, and the lead removed REBIRTH_LUCK_BONUS."
+   },
+   {
+    "uid": "flows:economy-monetization:F7",
+    "status": "fixed",
+    "note": "Same fix as CLEAR-WANTED-NOOP-PURCHASE: the server refuses at 0 stars and the Store disables the item, as DECISIONS #7 requires. I used refusal instead of the verifier's stored-credit idea because DECISIONS #7 asks for refusal."
+   },
+   {
+    "uid": "flows:economy-monetization:F10",
+    "status": "partially",
+    "note": "Server and client are ready but switched off. RewardsService._rerollContract/rerollContract allow one free swap per UTC day to a stat no other contract uses. The flag is data.contracts.rerolled, kept by DataService sanitize and exposed in the contracts view. The menu has a 2-tap '\ud83c\udfb2 SWAP' button. Both stay off until the lead adds 'RerollContract' to Remotes.ClientToServer. Changing bonk3 to goal 1 is a lead Economy change."
+   },
+   {
+    "uid": "flows:client-ux:UI-PHONE-MENU-GRID-THUMBSTICK",
+    "status": "not-needed",
+    "note": "Layout and feed fixes belong to HUDController and NotificationController (C1). I did not auto-close menus while driving, because the Store's Lose the Cops is meant to be used mid-chase."
+   },
+   {
+    "uid": "flows:client-ux:UI-REBIRTH-FIRST-TAP-DROPPED",
+    "status": "fixed",
+    "note": "The root cause is fixed (Net bucket seed plus 1/s rate). The client still fires once per confirm, which is now always accepted."
+   },
+   {
+    "uid": "secperf:security:DATA-1",
+    "status": "not-needed",
+    "note": "The save ordering is in TheftService.complete (A2a). The verifier rated a DataService transfer log as out of proportion."
+   },
+   {
+    "uid": "secperf:security:ECON-2",
+    "status": "fixed",
+    "note": "Playtime is now per UTC day and persisted in data.playtime {day, seconds, claimed}. Claims are checked on the server against stored plus unbanked session seconds. Seconds are banked every 5s, on Releasing and on PlayerRemoving. The inviter's referral car is paid only after the invitee has played 600s, capped at 3 per UTC day (data.referralsPaid, sanitized)."
+   },
+   {
+    "uid": "secperf:security:SEC-4",
+    "status": "not-needed",
+    "note": "SellCar proximity is GarageService (A2a). The verifier calls ShopService's lack of proximity by design (SPEC)."
+   },
+   {
+    "uid": "secperf:security:SEC-5",
+    "status": "fixed",
+    "note": "RewardsService reads the server-only Config/Codes. A test asserts Economy.Codes is nil."
+   },
+   {
+    "uid": "secperf:performance:PERF-08",
+    "status": "fixed",
+    "note": "B2 part: the Index summary tween only runs when the count changes. DataService needs no change because autosave writes whether or not the profile is dirty, so A2a can safely drop the every-3-ticks markDirty."
+   },
+   {
+    "uid": "contracts:server-core:seat-result-misread-as-pcall-ok",
+    "status": "fixed",
+    "note": "B2 part: EventService.claimHotDrop now reads seat's second return value. On failure the drop becomes claimable again with no heat, stats or contract credit. AdminService spawn now reads the seat result. Theft, Dealership, Garage and Traffic belong to their owners."
+   },
+   {
+    "uid": "contracts:server-meta:ADMIN-FALSE-SUCCESS",
+    "status": "fixed",
+    "note": "callFirst treats a false return as a refusal and includes the reason. The rebirth, event, serverLuck and spawn commands report failures."
+   },
+   {
+    "uid": "contracts:server-meta:REBIRTH-LUCK-NOT-APPLIED",
+    "status": "fixed",
+    "note": "Same fix as economy F6: all luck claims removed from the UI and RebirthService."
+   },
+   {
+    "uid": "flows:first-60s:TUT-DAILY-TOAST",
+    "status": "fixed",
+    "note": "The daily-reward reminder is skipped while tutorialDone ~= true, and its text now says 'Tap \ud83c\udf81 DAILY' to match the HUD icon."
+   },
+   {
+    "uid": "flows:first-60s:OFFLINE-PAYOFF",
+    "status": "not-needed",
+    "note": "Client-only feel fix in NotificationController and HUDController (C1). The server payout is unchanged."
+   },
+   {
+    "uid": "flows:player-theft:F6-victim-ragequit-denies-theft",
+    "status": "not-needed",
+    "note": "Allowed by SPEC. Any consolation payment would go in TheftService (A2a). The verifier advises against moving the car record on DataService.Releasing."
+   },
+   {
+    "uid": "flows:player-theft:F8-bonk3-contract-near-impossible",
+    "status": "not-needed",
+    "note": "Duplicate entry; see above (B1 CombatService)."
+   },
+   {
+    "uid": "flows:player-theft:F11-nonatomic-transfer-save",
+    "status": "not-needed",
+    "note": "The fix is sequential saves in TheftService.complete (A2a). DataService needs no change."
+   },
+   {
+    "uid": "flows:player-theft:F14-lock-uptime-afk",
+    "status": "not-needed",
+    "note": "Proportional lock re-arm belongs to PlotService (A2b, DECISIONS #8)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F7",
+    "status": "not-needed",
+    "note": "The traffic hard-blocker fix belongs to TrafficService (A1a); hot-drop cars already use kind 'HotDrop'. EventService already clears the landing spot (F16). Hot-drop point positions are in a lead Map file."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F9",
+    "status": "fixed",
+    "note": "Duplicate of the rebirth-luck finding; luck line removed."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F10",
+    "status": "not-needed",
+    "note": "The chop waypoint on a full-garage delivery is GarageService (A2a), and the cash rain waypoint is EventsClient (C1). I did not fire a chop waypoint from EventService, because nothing in B2 would clear it."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F14",
+    "status": "fixed",
+    "note": "EventService part: seat result is checked and the claim rolls back on failure. Dealership and Traffic belong to A2b and A1a."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F15",
+    "status": "fixed",
+    "note": "After a successful hot-drop claim, if GarageService.freeSlots <= 0 the player gets a 'garage full: sell or chop' warning. The claim is never blocked."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F16",
+    "status": "fixed",
+    "note": "Added clearLandingSpot before the spawn. Players on foot within 10 studs are pushed to 14. Driverless traffic and unowned loot within 16 studs are released and destroyed. Owned or claimed cars are moved aside with VehicleService.teleport. Tested via _pushOut."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F17",
+    "status": "fixed",
+    "note": "Duplicate of CLEAR-WANTED-NOOP-PURCHASE; fixed on both server and client."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F18",
+    "status": "fixed",
+    "note": "canClaim refuses silently (nil reason) for gone and stunned, and shows a friendly message while loading."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F21",
+    "status": "fixed",
+    "note": "EventService part: startRushHour and activateServerLuck call StreetSpawnService.rerollOutOfView(0.5) lazily. It is a no-op until A1a adds that function."
+   },
+   {
+    "uid": "flows:economy-monetization:F2",
+    "status": "fixed",
+    "note": "B2 part: MonetizationService warns once on live servers that pass/product ids are 0. The Store already hides id-0 items, and the group bonus is off while GROUP_ID is 0. Filling in real ids is a release-checklist item. The GarageClient pad label belongs to A2b."
+   },
+   {
+    "uid": "flows:economy-monetization:F5",
+    "status": "fixed",
+    "note": "RebirthService pays uncollected garage cash out (cash and totalEarned) before the reset. The menu's YOU LOSE list now says 'Cash (resets to $150)', 'Garage cash (paid out, then reset)', and 'Spend it on upgrades first!'."
+   },
+   {
+    "uid": "flows:economy-monetization:F9",
+    "status": "fixed",
+    "note": "Playtime is per UTC day and persisted (see ECON-2). The Gifts menu shows 'Played today' and the time until reset, replacing the old 'timers restart when you rejoin' text."
+   },
+   {
+    "uid": "flows:economy-monetization:F12",
+    "status": "fixed",
+    "note": "B2 part: removed the server-wide steal/playerSteal fallback (DERIVED_COUNTERS/statWatch). The canHotwireLoot self-claim fix belongs to VehicleService (A1a)."
+   },
+   {
+    "uid": "flows:economy-monetization:F14",
+    "status": "fixed",
+    "note": "MonetizationService.passesReady(player) is set when the pass lookup finishes or gives up, and cleared on leave. grantOffline waits for it for up to 10s before paying."
+   },
+   {
+    "uid": "flows:economy-monetization:F15",
+    "status": "fixed",
+    "note": "VIPs get a \ud83d\udc51 on their overhead name (Humanoid.DisplayName), applied when passes change and on every respawn. A chat tag from C1 is optional."
+   },
+   {
+    "uid": "flows:economy-monetization:F16",
+    "status": "fixed",
+    "note": "The lead switched the daily rewards and codes to incomeMinutes. RewardsService honours each entry's `min`, and the menu estimates use the same floor. Tests check both against each other."
+   },
+   {
+    "uid": "flows:client-ux:UI-ESCAPE-BACK",
+    "status": "fixed",
+    "note": "GuiService.MenuOpened closes the open menu, and Backspace also closes it (ignored while typing in the Codes box). Esc and gamepad B work as before."
+   },
+   {
+    "uid": "flows:client-ux:UI-GEAR-BADGE-ZAPPER-PASS",
+    "status": "not-needed",
+    "note": "MenuController.toolRows already treats the Zapper Pass as owning the Zapper. The badge fix is in HUDController (C1)."
+   }
+  ],
+  "crossGroupNotes": [
+   "LEAD: the daily contract swap stays off until you add the remote. Add `\"RerollContract\", -- (contractId: string) daily free contract swap` to Remotes.ClientToServer; the RewardsService handler and the MenuController SWAP button both check for it. For F10 you may also set Economy bonk3 to goal 1.",
+   "LEAD: src/shared/Net.luau now exposes Net._allow as a test seam.",
+   "LEAD: I added `rerolled: boolean` to the contracts view and `data.contracts.rerolled` / `data.referralsPaid` to the profile, both sanitized in DataService. You may want to add them to Types.ContractState / Types.PlayerData / Snapshot.contracts.",
+   "A1a: EventService calls `StreetSpawnService.rerollOutOfView(fraction)` lazily. Please implement it (F21). EventService also uses VehicleService.teleport, VehicleService.destroy(car, 'cleared') and TrafficService.release(car, 'cleared') to clear the hot-drop landing spot. TrafficService should treat kind 'HotDrop' as a hard blocker (F7).",
+   "B1: MonetizationService's clear_wanted handler calls `WantedService.getStars(player) -> number`; 0 or less is refused and the receipt stays NotProcessedYet. The Store reads the `Wanted` player attribute. CombatService should keep calling RewardsService.progress(attacker, 'defend', 1).",
+   "A2a: removing GarageService's every-3-ticks markDirty is safe for persistence, because DataService autosave writes whether or not the profile is dirty. RebirthService relies on removeSlot not paying out uncollected and storeCar returning (true, slot) or (false, reason).",
+   "C1: HUD playtime badges still use snapshot.playtime.sessionSeconds, which now means seconds played TODAY (UTC, kept across rejoins). The HUDController.playtimeClaimable logic is unchanged. The overhead VIP crown is done on the server; a chat tag is optional. Turning off the PlayerList CoreGui is still yours.",
+   "Behaviour note (DECISIONS #7): a refused clear_wanted or second Dragster receipt is NotProcessedYet, so Roblox redelivers it on later joins and the player sees the refusal toast again. The Store disables both buttons up front, so this only happens in a race."
+  ],
+  "verification": "I couldn't run a Luau type checker (none is installed), so strict typing in my diffs was only checked by reading them. selene: 0 errors and 0 warnings on all B2 files plus the three specs I edited. stylua --check passes on the same files. rojo build to /tmp/claude-0/fix-B2.rbxlx succeeds. lune run tests/run.luau: 368 passed, 2 failed. Both failures are in vehicle.spec (VehicleController suspension and foreign movers), which A1b is editing right now, not in B2 modules. Every rewards, menus and data test passes. That covers the updated rewards.spec (codes from server Config/Codes, keep-2 rebirth with exclusives on top and uncollected payout, incomeMinutes with min, per-day playtime, referral cap, contract swap, hot-drop hold and push-out). It also covers the new data.spec tests (Net first-call and bucket cap, sanitize of playtime/rerolled/referralsPaid, one Dragster per account, VIP overhead name) and menus.spec tests (keptCars matches RebirthService._plan, store block rules, swap rules, min-floored reward estimates match the server). I re-read every diff hunk for runtime errors. Files changed this run: src/client/Controllers/MenuController.luau, src/server/Systems/RewardsService.luau, src/server/Systems/DataService.luau, src/server/Systems/MonetizationService.luau, src/server/Systems/AdminService.luau (formatting only), src/shared/Net.luau, tests/spec/rewards.spec.luau, tests/spec/data.spec.luau, tests/spec/menus.spec.luau. The interrupted run's work in RebirthService, EventService, AdminService, Net and DataService was already committed in 2b0e1b7; I reviewed it, kept it, and found no corrections needed.\""
+ }
+}

@@ -16,6 +16,10 @@
 --   So no rollback is needed: rolling back would be strictly worse (a later redelivery could double-grant
 --   if the rollback raced a successful autosave).
 --   Concurrent deliveries of the same PurchaseId are rejected with NotProcessedYet while one is in flight.
+--   Handlers refuse (false -> NotProcessedYet, never charged) what can't be delivered: Lose the Cops with 0 stars,
+--   a second Diamond Dragster (one per account). The Store disables both buttons up front.
+--
+-- VIP: player attribute "VIP" (local HUD crown) + a 👑 on the overhead name every player sees.
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -45,6 +49,7 @@ local passesReady: { [Player]: boolean } = {} -- the join-time gamepass lookup f
 
 local RECEIPT_CAP = 50
 local EXCLUSIVE_CHECK_INTERVAL = 5
+local VIP_TAG = "👑 " -- prefix on a VIP's overhead name
 
 ---------------------------------------------------------------------------------------------------------------
 -- Pure receipt helpers (tested)
@@ -183,6 +188,24 @@ local function incomeOf(player: Player): number
 	return 0
 end
 
+-- Overhead name (pure): VIPs get a crown everyone can see (the "VIP tag" the pass promises).
+function MonetizationService._overheadName(displayName: string, vip: boolean): string
+	return if vip then VIP_TAG .. displayName else displayName
+end
+
+-- Applies the VIP crown to the character's overhead name (Humanoid.DisplayName replicates to every client).
+local function applyVipTag(player: Player)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+	local want = MonetizationService._overheadName(player.DisplayName, player:GetAttribute("VIP") == true)
+	if humanoid.DisplayName ~= want then
+		humanoid.DisplayName = want
+	end
+end
+
 local function applyPassAttributes(player: Player)
 	if player.Parent ~= Players then
 		return
@@ -191,6 +214,7 @@ local function applyPassAttributes(player: Player)
 	if player:GetAttribute("VIP") ~= vip then
 		player:SetAttribute("VIP", vip)
 	end
+	applyVipTag(player)
 end
 
 local function setOwned(player: Player, key: string, value: boolean)
@@ -582,6 +606,15 @@ local function onPlayerAdded(player: Player)
 	owned[player] = {}
 	unconfirmed[player] = {}
 	applyPassAttributes(player)
+	-- every respawn gets the crown back (the Humanoid can arrive a moment after the character)
+	player.CharacterAdded:Connect(function(character: Model)
+		if character:WaitForChild("Humanoid", 10) and player.Character == character then
+			applyVipTag(player)
+		end
+	end)
+	if player.Character then
+		applyVipTag(player)
+	end
 	task.spawn(refreshPasses, player)
 	-- deliver exclusives owed from a previous session once data is in
 	task.spawn(function()
@@ -602,6 +635,7 @@ local function onPlayerRemoving(player: Player)
 			overrides[player] = nil
 			unconfirmed[player] = nil
 			delivering[player] = nil
+			passesReady[player] = nil
 		end
 	end)
 end

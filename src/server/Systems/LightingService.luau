@@ -4,7 +4,8 @@
 -- * Lighting: Future technology (also set in default.project.json), Atmosphere, default Sky (no custom ids),
 --   Bloom, vibrant ColorCorrection, SunRays, Terrain Clouds.
 -- * Cycle: 12 real minutes of day (ClockTime 06:00 -> 18:00) then 4 minutes of night (18:00 -> 06:00). ClockTime is
---   advanced smoothly on the server (10 Hz); ambient/atmosphere/tint/bloom are blended from keyframes (2 Hz).
+--   advanced on the server at 1 Hz (steps of ~0.017 h by day: invisible, but every replicated ClockTime change makes
+--   each client re-evaluate sun + shadows); ambient/atmosphere/tint/bloom are blended from keyframes every 2 s.
 -- * Night (ClockTime >= NIGHT_ON or < NIGHT_OFF): street lights (tag "StreetLight") turn their PointLights on, and
 --   every part tagged "NightGlow" swaps to its NightColor/NightMaterial attributes (windows light up, lamp heads go
 --   Neon). Swaps are spread over a few frames. Lighting attribute "IsNight" mirrors the state for clients
@@ -27,8 +28,8 @@ LightingService.SUNSET = 18 -- ClockTime where the night segment starts
 LightingService.NIGHT_ON = 17.75 -- lights on (dusk) ...
 LightingService.NIGHT_OFF = 6.25 -- ... lights off (dawn)
 LightingService.START_HOUR = 14 -- new servers start in the afternoon
-LightingService.CLOCK_INTERVAL = 0.1
-LightingService.ENV_INTERVAL = 0.5
+LightingService.CLOCK_INTERVAL = 1
+LightingService.ENV_INTERVAL = 2
 LightingService.GLOW_BATCH = 150 -- NightGlow parts swapped per frame
 
 LightingService.TAG_STREET_LIGHT = "StreetLight"

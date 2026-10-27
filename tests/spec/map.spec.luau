@@ -352,8 +352,8 @@ return function(t)
 		end
 		t.ok(lamps >= 300, "street lights: " .. lamps)
 		t.ok(
-			lights >= lamps * 0.4 and lights <= lamps * 0.6,
-			("every other lamp has a light (%d/%d)"):format(lights, lamps)
+			lights >= lamps * 0.25 and lights <= lamps * 0.42,
+			("about every third lamp has a light (%d/%d)"):format(lights, lamps)
 		)
 		local glows = 0
 		for _, p in CollectionService:GetTagged("NightGlow") do

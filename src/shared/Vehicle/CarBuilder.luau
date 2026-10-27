@@ -10,10 +10,14 @@
 --     are WeldConstraint-ed to their wheel, so they follow any C0 change.
 --   * "DriverSeat" VehicleSeat (Disabled, CanTouch=false, MaxSpeed/Torque/TurnSpeed=0, no HUD, invisible).
 --   * Two invisible collidable Ball "BumpStop"s under the axles (bottoms 0.25 above the ground in the built pose).
+--     They only carry a car that rests WITHOUT a VehicleController: a running controller makes them non-collidable
+--     (they sit below the 0.6 curb and would snag every curb) and restores them on destroy.
 --     DriverSeat + BumpStops are omitted when opts.forDisplay = true (garage/dealer/Index display cars).
 --   * Every other part: CanCollide/CanQuery/CanTouch=false, Massless, unanchored, WeldConstraint to Chassis.
 --   * Paint attribute on paintable parts: "primary" | "accent" | "glass". Primary parts also store
 --     "BaseColor"/"BaseMaterial" so applyMutation(model, "None") can restore them.
+--   * Diamond/Galaxy: a ParticleEmitter CarBuilder.SPARKLES_NAME on the biggest primary part (clients gate it by
+--     distance, WheelAnimator).
 --   * Lights: "Headlight" (neon, child SpotLight "Beam" disabled by default), "Taillight" (neon red);
 --     police: "SirenRed" / "SirenBlue" (neon). Extras: "Blinker", "TaxiSign", "RoofLight", "Beacon",
 --     "Thruster", "HoverGlow", "Underglow" (all neon).
@@ -154,6 +158,7 @@ local SMOOTH = Enum.Material.SmoothPlastic
 local NEON = Enum.Material.Neon
 
 local SPARKLES_NAME = "MutationSparkles"
+CarBuilder.SPARKLES_NAME = SPARKLES_NAME
 local SPARKLES_TEXTURE = "rbxasset://textures/particles/sparkles_main.dds"
 local WHEEL_KEYS = { "FL", "FR", "RL", "RR" }
 local BUMPSTOP_SIZE = 1 -- ball diameter (radius 0.5)

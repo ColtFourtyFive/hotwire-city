@@ -653,6 +653,50 @@ return function(t)
 		t.ok(model:HasTag("PoliceHeli"))
 	end)
 
+	-- PURSUIT SPEED (fast getaway cars) -------------------------------------------------------------------
+
+	t.test("unit speed: per-star base, matched to fast suspect cars, catch-up bonus", function()
+		local Cars = H.require("src/shared/Config/Cars")
+		local cop = Cars.Police.topSpeed
+		local mult = Police._unitSpeedMult
+		-- on foot / slow cars: the old per-star table
+		t.near(mult(1, 0, false), 0.82, 1e-9, "1 star on foot")
+		t.near(mult(5, 0, false), 1.08, 1e-9, "5 stars on foot")
+		t.near(mult(3, 70, false), 0.97, 1e-9, "slow car: star base wins")
+		t.near(mult(3, 0, true), 0.97 + 0.12, 1e-9, "catch-up bonus")
+		-- a 175 studs/s Legendary: 1-star cops stay beatable, 5-star cops are faster than the car
+		t.ok(mult(1, 175, false) * cop < 175, "1-star cops are slower than a Legendary")
+		t.ok(mult(3, 175, false) * cop < 175, "3-star cops still a bit slower")
+		t.ok(mult(5, 175, false) * cop > 175, "5-star cops catch a Legendary")
+		t.ok(mult(5, 175, false) > mult(3, 175, false) and mult(3, 175, false) > mult(1, 175, false), "monotonic")
+		-- sane bounds / junk input
+		t.ok(mult(5, 10000, true) <= 2.5, "capped")
+		t.near(mult(0, 0, false), 0.82, 1e-9, "stars clamp to 1")
+		t.near(mult(9, 0 / 0, false), 1.08, 1e-9, "NaN top speed ignored, stars clamp to 5")
+		t.eq(mult(4, 150, false), math.floor(mult(4, 150, false) * 100 + 0.5) / 100, "rounded (attribute churn)")
+	end)
+
+	t.test("heli speed + suspect car top speed", function()
+		t.eq(Police._heliMaxSpeed(0), 95, "on foot: base chopper speed")
+		t.eq(Police._heliMaxSpeed(70), 95, "slow car: base")
+		t.near(Police._heliMaxSpeed(175), 175 * 0.9, 1e-9, "fast car: 90% of its top speed")
+		t.eq(Police._heliMaxSpeed(0 / 0), 95)
+		local Cars = H.require("src/shared/Config/Cars")
+		local def = Cars.List[1]
+		t.eq(Police._carTopSpeed({ def = def }), def.topSpeed, "from the record's def")
+		t.eq(Police._carTopSpeed({ carId = def.id }), def.topSpeed, "from the carId")
+		t.eq(Police._carTopSpeed({ carId = "nope" }), 0)
+		t.eq(Police._carTopSpeed(nil), 0)
+	end)
+
+	t.test("spawn lane clearance against pre-collected blockers", function()
+		local blockers = { Vector3.new(0, 0, 0), Vector3.new(100, 0, 0) }
+		t.ok(not Police._isClearOf(Vector3.new(5, 30, 5), blockers), "flat distance (height ignored)")
+		t.ok(not Police._isClearOf(Vector3.new(110, 0, 0), blockers), "second blocker")
+		t.ok(Police._isClearOf(Vector3.new(50, 0, 0), blockers), "between them")
+		t.ok(Police._isClearOf(Vector3.new(0, 0, 0), {}), "nothing around")
+	end)
+
 	-- WANTED SERVICE -----------------------------------------------------------------------------------------
 
 	t.test("wanted pure helpers", function()
@@ -1024,6 +1068,27 @@ return function(t)
 		t.eq(p._attrs.WantedDecayAt, at, "not rewritten while it holds")
 		Wanted.clear(p, "admin")
 		t.eq(p._attrs.WantedDecayAt, 0)
+		seenMap[p] = nil
+		Wanted._removePlayer(p)
+	end)
+
+	t.test("SprayCost attribute: current Spray Shop price while wanted, 0 when clean", function()
+		clock = 6900
+		local p = fakePlayer("Pricey", 10)
+		datas[p] = newData(1000, true)
+		Wanted._addPlayer(p)
+		t.eq(p._attrs.SprayCost, 0)
+		Wanted.addHeat(p, 2, "carjack")
+		seenMap[p] = true
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(p._attrs.SprayCost, Wanted._sprayCost(2, 10), "2 stars at the mocked income")
+		Wanted.addHeat(p, 1, "carjack")
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(p._attrs.SprayCost, Wanted._sprayCost(3, 10), "refreshed at once when the stars change")
+		Wanted.clear(p, "admin")
+		t.eq(p._attrs.SprayCost, 0, "clean")
 		seenMap[p] = nil
 		Wanted._removePlayer(p)
 	end)

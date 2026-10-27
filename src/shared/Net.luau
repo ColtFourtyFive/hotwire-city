@@ -114,6 +114,7 @@ local function allow(player: Player, name: string, perSecond: number): boolean
 	b.tokens -= 1
 	return true
 end
+Net._allow = allow -- test seam (Lune harness)
 
 if IS_SERVER then
 	Players.PlayerRemoving:Connect(function(player)

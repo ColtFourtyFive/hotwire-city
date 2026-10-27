@@ -4,10 +4,14 @@
 --     Shared/Vehicle/VehicleController on RunService.PreSimulation (this client is the network owner).
 --   * Input: VehicleSeat.ThrottleFloat/SteerFloat (keyboard, gamepad and touch thumbstick via the PlayerModule)
 --     + handbrake (Space / ButtonX / DRIFT button), nitro (LeftShift / ButtonR1 / NITRO button),
---     horn (H / ButtonY / HORN button), exit (F / E / ButtonA / EXIT button). Auto-accelerate setting.
+--     horn (H / ButtonY / HORN button), exit (F / ButtonA / EXIT button; not E, the hold-to-steal key, so a
+--     "Hotwire [E]" prompt on a passing car can't throw the driver out). Auto-accelerate setting.
 --   * Driving HUD ("DrivingUI"): speedometer (MPH), rev bar, nitro bar, car health, drift banner, touch buttons.
+--     The CoreGui backpack hotbar is hidden while driving (it sat on top of the speedometer; tools can't be used
+--     from the seat, spikes have their own button/key) and restored on exit.
 --   * Feel: FOV kick with speed + nitro, camera shake on crashes, tire smoke + screech while drifting,
---     nitro flame + glow while boosting. Purely local; no remotes fired from here.
+--     nitro flame + glow while boosting. Purely local; no remotes fired from here (other players' drift smoke and
+--     screech come from WheelAnimator, derived from the replicated chassis velocity).
 -- Wheels of the driven car are posed by WheelAnimator from getController() data (VehicleClient.positionsWheels=false).
 
 local CollectionService = game:GetService("CollectionService")
@@ -15,6 +19,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
@@ -60,6 +65,13 @@ local HORN_COOLDOWN = 0.35
 local REV_SEGMENTS = 16
 local HINT_SECONDS = 10
 local SETTINGS_REFRESH = 1
+-- Drift banner bottom, relative to the speedometer top (H-168): above HUDController's theft panel (H-260..H-184,
+-- its countdown sits under the old -46 spot) and clear of the desktop tutorial card (top H-296).
+local DRIFT_BANNER_Y = -150
+-- Phones sit at Kit's 0.55 UIScale floor, where 17 px text is ~9 real px. DrivingUI can't simply use a larger
+-- scale: its touch cluster shares the design canvas with CombatHUD's buttons and the speedometer footprint with
+-- HUDController's theft panel. So on touch screens the small labels get a bigger TextSize instead (same boxes).
+local PHONE_TEXT_MAX_BOOST = 1.4
 
 type Session = {
 	model: Model,
@@ -106,6 +118,8 @@ local touch = { handbrake = false, nitro = false }
 local lastHorn = 0
 local fovTween: Tween? = nil
 local normalFov: number? = nil -- the player's on-foot FOV, restored on exit
+local textBoost = 1 -- TextSize multiplier for small DrivingUI labels on phones (set in buildUI)
+local hidBackpack = false -- true while WE disabled the CoreGui backpack (only ever restore what we hid)
 
 ----------------------------------------------------------------------------------------------------------------------
 -- Lazy access to other controllers (pcall: never let a missing/broken sibling break driving)
@@ -197,6 +211,26 @@ end
 ----------------------------------------------------------------------------------------------------------------------
 -- UI
 ----------------------------------------------------------------------------------------------------------------------
+-- TextSize multiplier that lifts small labels to the touchMin effective scale on touch screens (1 elsewhere, and on
+-- tablets whose canvas scale is already >= touchMin). Pure, unit-tested.
+function VehicleClient.textBoost(isTouch: boolean, uiScale: number, touchMin: number): number
+	if not isTouch or uiScale ~= uiScale or uiScale <= 0 then
+		return 1
+	end
+	return math.clamp(touchMin / uiScale, 1, PHONE_TEXT_MAX_BOOST)
+end
+
+local function phoneTextBoost(): number
+	local ok, boost = pcall(function(): number
+		return VehicleClient.textBoost(Kit.isTouch(), Kit.uiScale(), Theme.TouchMinScale)
+	end)
+	return if ok then boost else 1
+end
+
+local function ts(size: number): number
+	return math.floor(size * textBoost + 0.5)
+end
+
 local function lerpColor(a: Color3, b: Color3, t: number): Color3
 	return a:Lerp(b, math.clamp(t, 0, 1))
 end
@@ -227,7 +261,7 @@ local function roundButton(
 	end
 	local cap = btn:FindFirstChild("Caption")
 	if cap and cap:IsA("TextLabel") then
-		cap.TextSize = math.max(13, math.floor(size / 7))
+		cap.TextSize = ts(math.max(13, math.floor(size / 7)))
 		cap.Position = UDim2.new(0, 0, 1, -(cap.TextSize + 10))
 		cap.Size = UDim2.new(1, 0, 0, cap.TextSize + 2)
 	end
@@ -270,6 +304,7 @@ local function bindHold(btn: GuiButton, field: string)
 end
 
 local function buildUI()
+	textBoost = phoneTextBoost()
 	local gui = Kit.screen("DrivingUI", Theme.Layers.HUD + 1)
 	gui.Enabled = false
 	local root = Kit.new("Frame", {
@@ -304,7 +339,7 @@ local function buildUI()
 		Parent = strip,
 	})
 
-	local carName = Kit.label("", 17, {
+	local carName = Kit.label("", ts(17), {
 		Name = "CarName",
 		Position = UDim2.fromOffset(0, 12),
 		Size = UDim2.new(1, 0, 0, 20),
@@ -323,7 +358,7 @@ local function buildUI()
 	})
 	speedLabel.Parent = speedo
 	Kit.new("UIScale", { Parent = speedLabel })
-	local mphLabel = Kit.label("MPH", 22, {
+	local mphLabel = Kit.label("MPH", ts(22), {
 		Name = "Unit",
 		Position = UDim2.new(0.5, 62, 0, 62),
 		Size = UDim2.fromOffset(80, 26),
@@ -332,7 +367,7 @@ local function buildUI()
 		TextWrapped = false,
 	})
 	mphLabel.Parent = speedo
-	local boostBadge = Kit.label("NITRO!", 18, {
+	local boostBadge = Kit.label("NITRO!", ts(18), {
 		Name = "Boost",
 		Position = UDim2.new(0.5, 62, 0, 38),
 		Size = UDim2.fromOffset(90, 22),
@@ -413,11 +448,11 @@ local function buildUI()
 	})
 	Kit.new("UIScale", { Parent = healthBar })
 
-	-- drift banner (above the speedometer)
+	-- drift banner, well above the speedometer (see DRIFT_BANNER_Y)
 	local drift = Kit.label("DRIFT!", 38, {
 		Name = "Drift",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 0, -46), -- clears the control hint line
+		Position = UDim2.new(0.5, 0, 0, DRIFT_BANNER_Y),
 		Size = UDim2.fromOffset(320, 44),
 		TextColor3 = Theme.Colors.Primary,
 		TextWrapped = false,
@@ -426,7 +461,7 @@ local function buildUI()
 	})
 	drift.Parent = speedo
 	local driftScale = Kit.new("UIScale", { Parent = drift })
-	local driftSub = Kit.label("+NITRO", 16, {
+	local driftSub = Kit.label("+NITRO", ts(16), {
 		Name = "Sub",
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 1, -4),
@@ -449,6 +484,9 @@ local function buildUI()
 	hint.Parent = speedo
 
 	-- Touch buttons -------------------------------------------------------------------------------------------
+	-- Design-canvas footprints (AnchorPoint 1,1): NITRO x W-140..W-24 y H-150..H-34, DRIFT x W-256..W-156
+	-- y H-128..H-28, HORN x W-124..W-40 y H-254..H-170, EXIT x W-124..W-40 y H-354..H-270. CombatClient places
+	-- SPIKES (x W-236..W-144, y H-262..H-170) in this gap on the same 0.55..1.6 canvas: move them together.
 	local touchFrame = Kit.new("Frame", {
 		Name = "Touch",
 		BackgroundTransparency = 1,
@@ -531,7 +569,25 @@ local function updateHealthUI(s: Session, animate: boolean)
 	end
 end
 
+-- The CoreGui backpack hotbar stays on top of every ScreenGui while seated, right over the speedometer's bars. Hide
+-- it for the drive; restore it only if we were the ones who hid it (another system may keep it off on purpose).
+local function hideBackpack()
+	local okGet, enabled = pcall(StarterGui.GetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack)
+	if okGet and enabled == true then
+		local okSet = pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false)
+		hidBackpack = okSet
+	end
+end
+
+local function restoreBackpack()
+	if hidBackpack then
+		hidBackpack = false
+		pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, true)
+	end
+end
+
 local function showUI(s: Session)
+	hideBackpack()
 	if not ui then
 		return
 	end
@@ -557,6 +613,7 @@ local function showUI(s: Session)
 end
 
 local function hideUI()
+	restoreBackpack()
 	if ui then
 		ui.gui.Enabled = false
 	end
@@ -720,8 +777,8 @@ local function bindActions()
 		end),
 		false,
 		ACTION_PRIORITY,
+		-- not E: it is the steal prompts' hold key, and "Hotwire [E]" stays on screen next to parked cars
 		Enum.KeyCode.F,
-		Enum.KeyCode.E,
 		Enum.KeyCode.ButtonA -- gamepad "jump" = leave the seat (Jumping is disabled while driving)
 	)
 end
@@ -1076,7 +1133,7 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 	session = s
 
 	-- Space is our handbrake: with Jumping disabled the default jump can't throw us out of the seat.
-	-- Exit is explicit (F / E / ButtonA / EXIT button) and re-enables jumping first.
+	-- Exit is explicit (F / ButtonA / EXIT button) and re-enables jumping first.
 	humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
 	bindActions()
 	local okFx, fxErr = pcall(buildFx, s)

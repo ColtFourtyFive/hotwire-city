@@ -916,8 +916,9 @@ end
 -- Tool actions
 -------------------------------------------------------------------------------------------------------------------------
 
--- Melee line of sight: no bonks through garage walls, glass or buildings. Characters, the effects folder and both
--- players' cars are ignored (a driver is hit through their own car door; you can swing from your own seat).
+-- Melee line of sight: no bonks through garage walls, glass or buildings. Characters, the effects folder and cars
+-- are ignored (a driver is hit through their own car door, you can swing from your own seat, and a garage owner can
+-- still bonk a thief over the hood of the display car he is hotwiring).
 local function batLineOfSight(attacker: Player, attackerRoot: BasePart, victim: Player, victimRoot: BasePart): boolean
 	local params = batParams
 	if not params then
@@ -932,6 +933,13 @@ local function batLineOfSight(attacker: Player, attackerRoot: BasePart, victim: 
 		if p.Character then
 			table.insert(exclude, p.Character)
 		end
+	end
+	local vehicles = Workspace:FindFirstChild("Vehicles")
+	if vehicles then
+		table.insert(exclude, vehicles)
+	end
+	for _, model in CollectionService:GetTagged("DisplayCar") do
+		table.insert(exclude, model)
 	end
 	for _, p in { attacker, victim } do
 		local car = getDrivingCar(p)

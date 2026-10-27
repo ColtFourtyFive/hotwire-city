@@ -9,7 +9,9 @@
 --   * steering law, brake-on-sharp-angle, corner speed control, reverse-into-target, unstuck
 -- Rubber-banding repositions hidden far-away units onto a lane behind the suspect, out of view.
 -- At HELI_AT_STARS a cartoon chopper hovers over the suspect with a searchlight (keeps them "seen" while it has
--- line of sight; fast cars can outrun it and buildings break its view).
+-- line of sight; it matches 90% of a fast car's top speed, so nitro and buildings break its view). The server keeps
+-- the heli's logical state and publishes HeliCFrame / SpotPos model attributes at ~10 Hz; EffectsController renders.
+-- Cruisers' top speed scales with stars AND with the suspect's car (a Legendary can't just outrun a 5-star chase).
 --
 -- Public API (docs/SPEC.md §6):
 --   isSeen(player): boolean      any unit / the heli currently sees this suspect (WantedService decay)
@@ -17,12 +19,13 @@
 -- Pure helpers (tests/spec/police.spec.luau, incl. kinematic driving + chase simulations): _steerToward,
 --   _nextWaypoint (grid routing w/ turn feasibility + hysteresis), _drive (control law: corner speed, K-turns,
 --   anti-orbit), _usePursuit, _roadAnchor, _roadLines, _updateStuck, _newStuck, _isRam, _allocateUnits,
---   _orientedLane, _spawnCandidates
+--   _orientedLane, _spawnCandidates, _carTopSpeed, _unitSpeedMult, _heliMaxSpeed, _isClearOf
 -- Fairness: cops spawn behind you out of view, 1-star cops are slower than you, rubber-banding only happens out
 -- of sight, ramming heat only counts when YOU hit THEM, hiding in your own garage is a safe house (cops wait
 -- outside, no bust, no "seen"), and cops overshoot corners if you juke them at speed.
 -- Player attribute written here: BustProgress (0..1) for the HUD bust ring.
--- Police car model attributes: SuspectUserId, Siren (bool), SpeedMultiplier (VehicleController hook).
+-- Police car model attributes: SuspectUserId, Siren (bool; false = leaving / wrecked, clients stop the lights),
+-- SpeedMultiplier (VehicleController hook). PoliceHeli model attributes: SuspectUserId, HeliCFrame, SpotPos.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -107,16 +110,22 @@ local POLICE_NITRO_SECONDS = 3
 -- Stars -> top speed multiplier: 1-star cops are beatable, 5-star cops are relentless.
 local SPEED_MULT_BY_STARS = { 0.82, 0.9, 0.97, 1.03, 1.08 }
 local CATCHUP_BONUS = 0.12 -- extra multiplier while a unit is far behind and can't see the suspect
+-- Fast getaway cars: cruisers are also tuned to the suspect's car top speed, at 85% (1 star) .. 105% (5 stars),
+-- so a Legendary still outruns 1-3 star cops but not a 5-star pursuit (nitro still buys a gap).
+local SUSPECT_MATCH_BASE = 0.8
+local SUSPECT_MATCH_PER_STAR = 0.05
+local MAX_SPEED_MULT = 2.5 -- VehicleController clamps SpeedMultiplier to 3
 
 local HELI_ALTITUDE = 80
 local HELI_CLEARANCE = 30 -- above the tallest thing below / ahead of it
-local HELI_MAX_SPEED = 95 -- fast cars (and nitro) can outrun the chopper
+local HELI_MAX_SPEED = 95 -- slow and mid cars can't outrun the chopper...
+local HELI_SUSPECT_SPEED = 0.9 -- ...and it flies at 90% of a faster car's top speed (nitro can still outrun it)
 local HELI_SIGHT = 110 -- horizontal radius in which the chopper's searchlight "sees"
 local MAX_HELIS = 3
 local HELI_SCALE = 1.25
-local HELI_ROTOR_SPEED = 16 -- rad/s
 local HELI_LEAVE_TIME = 5
-local HELI_BLINK = 0.35
+local HELI_PUBLISH = 0.1 -- pose attributes for EffectsController's renderer (rotor, sirens and smoothing are client-side)
+local HELI_SPOT_EPSILON = 0.25 -- republish SpotPos only when it moved more than this
 
 -- TYPES -------------------------------------------------------------------------------------------------
 
@@ -162,17 +171,11 @@ type Unit = {
 type Heli = {
 	model: Model,
 	body: BasePart,
-	rotorWeld: Weld?,
-	rotorBase: CFrame,
-	hubOrient: CFrame,
 	disc: BasePart?,
 	beam: Beam?,
-	sirenRed: BasePart?,
-	sirenBlue: BasePart?,
 	pos: Vector3,
 	vel: Vector3,
 	yaw: number,
-	rotorAngle: number,
 	spot: Vector3,
 	ceiling: number,
 	nextCeilingAt: number,
@@ -180,8 +183,8 @@ type Heli = {
 	leaving: boolean,
 	leaveAt: number,
 	awayDir: Vector3,
-	blinkOn: boolean,
-	blinkAt: number,
+	publishAt: number,
+	publishedSpot: Vector3?,
 }
 
 type Suspect = {
@@ -197,6 +200,7 @@ type Suspect = {
 	vel: Vector3,
 	look: Vector3,
 	onFoot: boolean,
+	topSpeed: number, -- top speed of the car the suspect drives (0 on foot)
 	safe: boolean,
 	plotIndex: number?,
 }
@@ -535,6 +539,43 @@ function PoliceService._isRam(
 	return rel > RAM_SPEED and playerClosing > 10 and playerClosing > copClosing, rel
 end
 
+-- Top speed (studs/s) of a VehicleService car record: its def, else the Cars config by carId; 0 when unknown.
+function PoliceService._carTopSpeed(car: any): number
+	if typeof(car) ~= "table" then
+		return 0
+	end
+	local def = car.def
+	if typeof(def) ~= "table" and typeof(car.carId) == "string" then
+		def = Cars.get(car.carId)
+	end
+	local top = if typeof(def) == "table" then def.topSpeed else nil
+	if typeof(top) ~= "number" or top ~= top or top <= 0 then
+		return 0
+	end
+	return top
+end
+
+-- SpeedMultiplier for a chasing unit: the per-star base, raised so cruisers keep up with fast getaway cars
+-- (suspect top speed vs a cruiser's, scaled 85% at 1 star .. 105% at 5 stars), plus the catch-up bonus while the
+-- unit is far behind and out of sight. Rounded so the replicated attribute only changes when it means something.
+function PoliceService._unitSpeedMult(stars: number, suspectTopSpeed: number, farBehind: boolean): number
+	local s = math.clamp(math.floor(if stars == stars then stars else 1), 1, #SPEED_MULT_BY_STARS)
+	local match = 0
+	if suspectTopSpeed == suspectTopSpeed and suspectTopSpeed > 0 then
+		match = suspectTopSpeed / Cars.Police.topSpeed * (SUSPECT_MATCH_BASE + SUSPECT_MATCH_PER_STAR * s)
+	end
+	local mult = math.max(SPEED_MULT_BY_STARS[s], match) + (if farBehind then CATCHUP_BONUS else 0)
+	return math.min(math.floor(mult * 100 + 0.5) / 100, MAX_SPEED_MULT)
+end
+
+-- Chopper top speed: HELI_MAX_SPEED, or 90% of a faster suspect car's top speed.
+function PoliceService._heliMaxSpeed(suspectTopSpeed: number): number
+	if suspectTopSpeed ~= suspectTopSpeed or suspectTopSpeed <= 0 then
+		return HELI_MAX_SPEED
+	end
+	return math.max(HELI_MAX_SPEED, suspectTopSpeed * HELI_SUSPECT_SPEED)
+end
+
 -- Fair share of the global unit cap. desired[i] = units suspect i wants (ordered by priority).
 function PoliceService._allocateUnits(desired: { number }, cap: number): { number }
 	local alloc = table.create(#desired, 0)
@@ -653,6 +694,7 @@ local function getSuspect(player: Player): Suspect
 			vel = Vector3.zero,
 			look = Vector3.new(0, 0, -1),
 			onFoot = true,
+			topSpeed = 0,
 			safe = false,
 			plotIndex = nil,
 		}
@@ -673,12 +715,14 @@ local function updateSuspectInfo(st: Suspect)
 		end
 	end
 	local chassis = car and car.chassis
+	st.topSpeed = 0
 	if typeof(chassis) == "Instance" and chassis:IsA("BasePart") and chassis.Parent then
 		st.pos = chassis.Position
 		st.vel = chassis.AssemblyLinearVelocity
 		st.look = chassis.CFrame.LookVector
 		st.onFoot = false
 		st.valid = true
+		st.topSpeed = PoliceService._carTopSpeed(car)
 	else
 		local char = player.Character
 		local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -786,25 +830,38 @@ local function damageUnit(unit: Unit, amount: number, now: number)
 	end
 end
 
-local function isClearOfVehicles(pos: Vector3): boolean
-	for _, u in units do
-		if u.chassis.Parent and flatDist(u.chassis.Position, pos) < SPAWN_CLEARANCE then
+-- Is `pos` at least SPAWN_CLEARANCE (flat) away from every blocker position?
+function PoliceService._isClearOf(pos: Vector3, blockers: { Vector3 }): boolean
+	for _, b in blockers do
+		if flatDist(b, pos) < SPAWN_CLEARANCE then
 			return false
+		end
+	end
+	return true
+end
+
+-- Positions of every police unit and every vehicle, gathered once per lane search (one VehicleService.all() call
+-- instead of one per candidate lane).
+local function collectBlockers(): { Vector3 }
+	local list: { Vector3 } = {}
+	for _, u in units do
+		if u.chassis.Parent then
+			table.insert(list, u.chassis.Position)
 		end
 	end
 	local VehicleService = sys("VehicleService")
 	if VehicleService and typeof(VehicleService.all) == "function" then
-		local ok, list = pcall(VehicleService.all)
-		if ok and typeof(list) == "table" then
-			for _, car in list do
+		local ok, cars = pcall(VehicleService.all)
+		if ok and typeof(cars) == "table" then
+			for _, car in cars do
 				local ch = car.chassis
-				if typeof(ch) == "Instance" and ch:IsA("BasePart") and flatDist(ch.Position, pos) < SPAWN_CLEARANCE then
-					return false
+				if typeof(ch) == "Instance" and ch:IsA("BasePart") then
+					table.insert(list, ch.Position)
 				end
 			end
 		end
 	end
-	return true
+	return list
 end
 
 -- Finds a lane CFrame between minD and maxD from the suspect, preferably behind them and out of their view.
@@ -828,17 +885,21 @@ local function findSpawnLane(st: Suspect, minD: number, maxD: number, allowHQ: b
 		table.insert(lanes, PoliceService._orientedLane(p, st.pos))
 	end
 	local eye = st.pos + UP3
+	local blockers: { Vector3 }? = nil -- collected lazily, once, when the first lane passes the cheap checks
 	for pass = 1, 2 do
 		for _, lane in lanes do
 			local lp = lane.Position
 			local d = flatDist(lp, st.pos)
+			if d < minD * 0.85 or d > maxD or math.abs(lp.X) > EXT + 1 or math.abs(lp.Z) > EXT + 1 then
+				continue
+			end
+			if not blockers then
+				blockers = collectBlockers()
+			end
+			-- clearance before the line-of-sight raycast: the ray only runs for lanes we could actually use
 			if
-				d >= minD * 0.85
-				and d <= maxD
-				and math.abs(lp.X) <= EXT + 1
-				and math.abs(lp.Z) <= EXT + 1
+				PoliceService._isClearOf(lp, blockers :: { Vector3 })
 				and (pass == 2 or not hasLineOfSight(eye, lp + UP3))
-				and isClearOfVehicles(lp)
 			then
 				return lane
 			end
@@ -1326,7 +1387,8 @@ end
 
 -- Builds the cartoon police chopper at the origin (forward = -Z). Pure instance construction (Lune-safe).
 -- Root "Body" is anchored; every other part is welded to it except "SpotDisc" (anchored, moved separately).
--- The rotor hub hangs off a Weld named "RotorWeld" whose C0 is spun by the server.
+-- The rotor hub hangs off a Weld named "RotorWeld". At runtime the server only publishes the pose attributes
+-- HeliCFrame / SpotPos; EffectsController moves Body + SpotDisc, spins RotorWeld.C0 and blinks the sirens locally.
 function PoliceService.buildHeli(): Model
 	local model = Instance.new("Model")
 	model.Name = "PoliceHeli"
@@ -1562,11 +1624,35 @@ local function groundUnder(p: Vector3, fallbackY: number): Vector3
 	return Vector3.new(p.X, y + 0.12, p.Z)
 end
 
+-- Heli pose (body CFrame incl. pitch / roll) for its logical state.
+local function heliPose(heli: Heli): CFrame
+	local yawCF = CFrame.Angles(0, heli.yaw, 0)
+	local localVel = yawCF:VectorToObjectSpace(flat(heli.vel))
+	local pitch = math.clamp(localVel.Z / HELI_MAX_SPEED, -1, 1) * math.rad(14)
+	local roll = -math.clamp(localVel.X / HELI_MAX_SPEED, -1, 1) * math.rad(10)
+	return CFrame.new(heli.pos) * yawCF * CFrame.Angles(pitch, 0, roll)
+end
+
+-- Publishes the heli's pose for EffectsController (attributes HeliCFrame / SpotPos, ~10 Hz). The server never
+-- moves the body / disc parts after spawning: per-frame anchored CFrame + rotor C0 writes replicated ~180 property
+-- changes/s per chopper and looked choppy; the client interpolates, spins the rotor and blinks the sirens.
+local function publishHeli(heli: Heli, now: number, force: boolean?)
+	if not force and now < heli.publishAt then
+		return
+	end
+	heli.publishAt = now + HELI_PUBLISH
+	local model = heli.model
+	model:SetAttribute("HeliCFrame", heliPose(heli))
+	local last = heli.publishedSpot
+	if force or not last or (last - heli.spot).Magnitude > HELI_SPOT_EPSILON then
+		heli.publishedSpot = heli.spot
+		model:SetAttribute("SpotPos", heli.spot)
+	end
+end
+
 local function spawnHeli(st: Suspect, now: number)
 	local model = PoliceService.buildHeli()
 	local body = model.PrimaryPart :: BasePart
-	local hub = model:FindFirstChild("RotorHub")
-	local rotorWeld = hub and hub:FindFirstChild("RotorWeld")
 	local disc = model:FindFirstChild("SpotDisc")
 	local searchlight = model:FindFirstChild("Searchlight")
 	local beam = searchlight and searchlight:FindFirstChild("LightCone")
@@ -1579,17 +1665,11 @@ local function spawnHeli(st: Suspect, now: number)
 	local heli: Heli = {
 		model = model,
 		body = body,
-		rotorWeld = if rotorWeld and rotorWeld:IsA("Weld") then rotorWeld else nil,
-		rotorBase = if rotorWeld and rotorWeld:IsA("Weld") then CFrame.new(rotorWeld.C0.Position) else CFrame.identity,
-		hubOrient = CFrame.Angles(0, 0, math.rad(90)),
 		disc = if disc and disc:IsA("BasePart") then disc else nil,
 		beam = if beam and beam:IsA("Beam") then beam else nil,
-		sirenRed = model:FindFirstChild("SirenRed") :: BasePart?,
-		sirenBlue = model:FindFirstChild("SirenBlue") :: BasePart?,
 		pos = startPos,
 		vel = base * HELI_MAX_SPEED * 0.8,
 		yaw = math.atan2(-base.X, -base.Z),
-		rotorAngle = 0,
 		spot = groundUnder(st.pos, st.pos.Y - 2.5),
 		ceiling = 0,
 		nextCeilingAt = 0,
@@ -1597,14 +1677,16 @@ local function spawnHeli(st: Suspect, now: number)
 		leaving = false,
 		leaveAt = 0,
 		awayDir = -base,
-		blinkOn = false,
-		blinkAt = now,
+		publishAt = now,
+		publishedSpot = nil,
 	}
 	model:SetAttribute("SuspectUserId", st.player.UserId)
-	model:PivotTo(CFrame.new(startPos) * CFrame.Angles(0, heli.yaw, 0))
+	-- initial pose only (replicates once with the model); from here on the client renders from the attributes
+	model:PivotTo(heliPose(heli))
 	if heli.disc then
 		heli.disc.CFrame = CFrame.new(heli.spot) * CFrame.Angles(0, 0, math.rad(90))
 	end
+	publishHeli(heli, now, true)
 	model.Parent = getEffectsFolder()
 	st.heli = heli
 	table.insert(helis, heli)
@@ -1683,9 +1765,10 @@ local function updateHeli(heli: Heli, st: Suspect?, dt: number, now: number)
 		target = Vector3.new(lagged.X, alt, lagged.Z)
 	end
 
+	local maxSpeed = PoliceService._heliMaxSpeed(if st and st.valid then st.topSpeed else 0)
 	local desiredVel = (target - heli.pos) * 1.8
-	if desiredVel.Magnitude > HELI_MAX_SPEED then
-		desiredVel = desiredVel.Unit * HELI_MAX_SPEED
+	if desiredVel.Magnitude > maxSpeed then
+		desiredVel = desiredVel.Unit * maxSpeed
 	end
 	heli.vel = heli.vel:Lerp(desiredVel, math.min(1, dt * 2.5))
 	heli.pos += heli.vel * dt
@@ -1699,35 +1782,11 @@ local function updateHeli(heli: Heli, st: Suspect?, dt: number, now: number)
 		local unit = face.Unit
 		heli.yaw = lerpAngle(heli.yaw, math.atan2(-unit.X, -unit.Z), math.min(1, dt * 2.2))
 	end
-	local yawCF = CFrame.Angles(0, heli.yaw, 0)
-	local localVel = yawCF:VectorToObjectSpace(hv)
-	local pitch = math.clamp(localVel.Z / HELI_MAX_SPEED, -1, 1) * math.rad(14)
-	local roll = -math.clamp(localVel.X / HELI_MAX_SPEED, -1, 1) * math.rad(10)
-	body.CFrame = CFrame.new(heli.pos) * yawCF * CFrame.Angles(pitch, 0, roll)
 
-	heli.rotorAngle = (heli.rotorAngle + dt * HELI_ROTOR_SPEED) % (2 * math.pi)
-	local rotorWeld = heli.rotorWeld
-	if rotorWeld then
-		rotorWeld.C0 = heli.rotorBase * CFrame.Angles(0, heli.rotorAngle, 0) * heli.hubOrient
-	end
-
-	local disc = heli.disc
-	if disc and st and st.valid and not heli.leaving then
+	if st and st.valid and not heli.leaving then
 		heli.spot = heli.spot:Lerp(groundUnder(st.pos, st.pos.Y - 2.5), math.min(1, dt * 5))
-		disc.CFrame = CFrame.new(heli.spot) * CFrame.Angles(0, 0, math.rad(90))
 	end
-
-	if now >= heli.blinkAt then
-		heli.blinkAt = now + HELI_BLINK
-		heli.blinkOn = not heli.blinkOn
-		local red, blue = heli.sirenRed, heli.sirenBlue
-		if red then
-			red.Transparency = if heli.blinkOn then 0 else 0.75
-		end
-		if blue then
-			blue.Transparency = if heli.blinkOn then 0.75 else 0
-		end
-	end
+	publishHeli(heli, now)
 
 	if heli.leaving and now >= heli.leaveAt then
 		destroyHeli(heli)
@@ -1864,9 +1923,8 @@ local function maintainUnit(unit: Unit, st: Suspect, stars: number, now: number)
 		rubberBand(unit, st, now)
 	end
 
-	local base = SPEED_MULT_BY_STARS[math.clamp(stars, 1, #SPEED_MULT_BY_STARS)] or 1
 	local farBehind = unit.dist > PoliceConfig.SIGHT_RANGE and not unit.hasLOS
-	local mult = base + (if farBehind then CATCHUP_BONUS else 0)
+	local mult = PoliceService._unitSpeedMult(stars, if st.valid then st.topSpeed else 0, farBehind)
 	if mult ~= unit.speedMult then
 		unit.speedMult = mult
 		unit.model:SetAttribute("SpeedMultiplier", mult)
@@ -2136,7 +2194,7 @@ function PoliceService.start()
 				warn("[PoliceService] bust pass failed: " .. tostring(err))
 			end
 		end
-		for _, heli in table.clone(helis) do
+		for _, heli in if helis[1] then table.clone(helis) else helis do
 			local owner: Suspect? = nil
 			for _, st in suspects do
 				if st.heli == heli then

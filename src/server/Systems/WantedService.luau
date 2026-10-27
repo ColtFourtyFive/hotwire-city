@@ -17,7 +17,8 @@
 -- Remotes: Busted(lostCash: number, carLabel: string?) carLabel = the impounded car (failed theft / loot) if any.
 -- Player attributes written here: Wanted (0..5), WantedSeen (bool: a cop currently sees you; HUD can flash the
 -- stars GTA-style while you are hidden and the decay timer is running), WantedDecayAt (number: server time
--- (Workspace:GetServerTimeNow) when the next star drops if you stay hidden; 0 while seen / not wanted).
+-- (Workspace:GetServerTimeNow) when the next star drops if you stay hidden; 0 while seen / not wanted), SprayCost
+-- (number: what a Spray Shop charges right now, refreshed ~1 Hz while wanted since it follows income; 0 when clean).
 --
 -- Spray Shops only work while no cop sees you: a seen car waiting in the booth is sprayed as soon as they lose you.
 -- Dying while wanted (e.g. resetting to get home) is a bust, unless it happens inside your own garage.
@@ -51,6 +52,7 @@ local RESPAWN_AT_HQ_WINDOW = 60 -- a died-while-wanted bust sends the next spawn
 local SPRAY_COOLDOWN = 1.5
 local SPRAY_FAIL_NOTIFY_COOLDOWN = 4
 local DECAY_ATTR_EPSILON = 0.5 -- rewrite WantedDecayAt only when it moves by more than this (seconds)
+local SPRAY_COST_REFRESH = 1 -- seconds between SprayCost attribute refreshes while wanted
 
 type State = {
 	stars: number,
@@ -65,6 +67,9 @@ type State = {
 	lastSprayWatchNotify: number,
 	pendingSpray: any?, -- car waiting in a Spray Shop for the cops to lose sight of it
 	decayAttr: number, -- last WantedDecayAt written
+	sprayCostAttr: number, -- last SprayCost written
+	sprayCostStars: number, -- stars that SprayCost was computed for
+	sprayCostAt: number, -- next SprayCost refresh (clock)
 	respawnAtHQ: number?, -- clock time of a died-while-wanted bust (consumed by PlotService on respawn)
 	busting: boolean,
 }
@@ -222,6 +227,9 @@ local function newState(): State
 		lastSprayWatchNotify = -math.huge,
 		pendingSpray = nil,
 		decayAttr = 0,
+		sprayCostAttr = 0,
+		sprayCostStars = 0,
+		sprayCostAt = -math.huge,
 		respawnAtHQ = nil,
 		busting = false,
 	}
@@ -303,9 +311,12 @@ local function applyStars(player: Player, st: State, newStars: number, reason: s
 		st.seen = false
 		st.pendingSpray = nil
 		st.decayAttr = 0
+		st.sprayCostAttr = 0
+		st.sprayCostStars = 0
 		pcall(function()
 			player:SetAttribute("WantedSeen", false)
 			player:SetAttribute("WantedDecayAt", 0)
+			player:SetAttribute("SprayCost", 0)
 		end)
 		if old >= 1 and (reason == "decay" or reason == "spray") then
 			progress(player, "escape", 1)
@@ -821,6 +832,23 @@ local function publishDecayAt(player: Player, st: State, now: number)
 	end
 end
 
+-- SprayCost: the current Spray Shop price for the HUD / spray waypoint (it follows income, so it is refreshed about
+-- once a second while wanted, and immediately when the star count changes). Written only when the value changes.
+local function publishSprayCost(player: Player, st: State, now: number)
+	if st.stars == st.sprayCostStars and now < st.sprayCostAt then
+		return
+	end
+	st.sprayCostAt = now + SPRAY_COST_REFRESH
+	st.sprayCostStars = st.stars
+	local cost = WantedService._sprayCost(st.stars, getIncome(player))
+	if cost ~= st.sprayCostAttr then
+		st.sprayCostAttr = cost
+		pcall(function()
+			player:SetAttribute("SprayCost", cost)
+		end)
+	end
+end
+
 -- One pass of the decay loop (public for tests via _decayPass).
 function WantedService._decayPass()
 	local now = hooks.clock()
@@ -845,6 +873,9 @@ function WantedService._decayPass()
 				end
 			end
 			publishDecayAt(player, st, now)
+			if st.stars > 0 then
+				publishSprayCost(player, st, now)
+			end
 		end
 	end
 end
@@ -855,6 +886,7 @@ local function onPlayerAdded(player: Player)
 		player:SetAttribute("Wanted", st.stars)
 		player:SetAttribute("WantedSeen", false)
 		player:SetAttribute("WantedDecayAt", 0)
+		player:SetAttribute("SprayCost", 0)
 	end)
 end
 

@@ -7,12 +7,19 @@
 --   * The car the local player drives is posed from VehicleClient.getController() instead (exact suspension offsets
 --     and steer input, no extra raycasts); VehicleClient.positionsWheels=false hands that job to this module.
 --   * Mutation "Rainbow": hue-cycles Paint="primary" parts on Vehicle / DisplayCar / DealerCar models.
---   * Budget: the HOT_COUNT nearest cars update every frame, the rest round-robin COLD_PER_FRAME per frame.
+--   * Mutation "Diamond"/"Galaxy": the server-built CarBuilder.SPARKLES_NAME emitter only emits within SPARKLE_RANGE.
+--   * Other players' / AI cars that drift (sideways slip from the replicated chassis velocity, same test as the
+--     driving controller) get local tire smoke + a SoundController screech loop; the driver's own FX are VehicleClient's.
+--   * Budget: the HOT_COUNT nearest on-screen cars update every frame, the rest round-robin COLD_PER_FRAME per frame.
+--     Cars behind the camera are skipped; only Vehicles and rainbow cars take a slot; bob rays are cast every other
+--     update (every TRAFFIC_BOB_EVERY for Traffic, which holds a fixed height); unchanged wheel poses are not
+--     rewritten. Phones (touch, no keyboard/mouse) use the smaller LOW_TIER budget.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -26,12 +33,16 @@ local WheelAnimator = {}
 WheelAnimator.RANGE = 250
 WheelAnimator.HOT_COUNT = 25
 WheelAnimator.COLD_PER_FRAME = 6
+WheelAnimator.BOB_RANGE = 140 -- raycast suspension only this close; farther wheels ease back to the built pose
+-- Phones (PERF-07): fewer, closer cars; bob rays only where a 0.3-stud gap is visible at all.
+WheelAnimator.LOW_TIER = { RANGE = 160, HOT_COUNT = 10, COLD_PER_FRAME = 4, BOB_RANGE = 60 }
+WheelAnimator.SPARKLE_RANGE = 120
+WheelAnimator.SPARKLES_NAME = "MutationSparkles" -- = CarBuilder.SPARKLES_NAME (asserted in tests)
 
 local REBUILD_INTERVAL = 0.25 -- seconds between nearest-car list rebuilds
 local FILTER_INTERVAL = 2
 local MAX_STEER = math.rad(30)
 local STEER_RESPONSE = 10
-local BOB_RANGE = 140 -- raycast suspension only this close; farther wheels ease back to the built pose
 local BOB_UP = 1 -- ray starts this far above the hub
 local BOB_RESPONSE = 18
 local MAX_DROOP = 0.7
@@ -41,6 +52,13 @@ local RAINBOW_SPREAD = 0.07 -- hue offset between parts -> a flowing rainbow
 local MAX_BUILD_ATTEMPTS = 3
 local BASE_C0_ATTRIBUTE = "HC_BaseC0"
 local TAGS = { "Vehicle", "DisplayCar", "DealerCar" }
+local CULL_BEHIND = 12 -- studs behind the camera plane before a car stops animating (half a long car + margin)
+local BOB_EVERY = 2 -- cast the bob rays every Nth update of a rig (the eased offset hides it)
+local TRAFFIC_BOB_EVERY = 8 -- traffic floats at a fixed height on its AlignPosition: its ground gap barely changes
+local POSE_EPS = 1e-4 -- radians / studs: smaller pose changes skip the Weld.C0 write
+local SPARKLE_RETRY = 2 -- seconds before searching a Diamond/Galaxy model for its emitter again
+local DRIFT_FX_RANGE = 150 -- observers' drift smoke / screech only this close
+local DRIFT_MAX_VERTICAL = 10 -- studs/s: faster vertical motion = airborne (no smoke)
 
 type WheelRig = {
 	index: number,
@@ -52,6 +70,14 @@ type WheelRig = {
 	rear: boolean,
 	spinSign: number,
 	offset: number,
+	target: number, -- last bob-ray target (reused between casts)
+	written: number, -- offset of the last C0 write (NaN = never written)
+}
+
+type DriftFx = {
+	smoke: { ParticleEmitter },
+	screech: Sound?,
+	on: boolean,
 }
 
 type Rig = {
@@ -72,16 +98,30 @@ type Rig = {
 	phase: number,
 	lastT: number,
 	dist: number,
+	pos: Vector3, -- chassis position at the last rebuildNear (fallback for the on-screen test)
+	traffic: boolean, -- Kind == "Traffic" (refreshed in rebuildNear)
+	bobTick: number,
+	wSpin: number, -- spin / rearSpin / steer of the last C0 write (NaN = never written)
+	wRearSpin: number,
+	wSteer: number,
+	sparkles: ParticleEmitter?,
+	sparkleSearchAt: number,
+	fx: DriftFx?,
+	fxFrame: number, -- frame in which the car was last seen drifting
 }
 
 local rigs: { [Model]: Rig } = {}
 local nearList: { Rig } = {}
+local fxActive: { [Rig]: boolean } = {}
 local coldCursor = 0
+local frameId = 0
 local rebuildTimer = math.huge
 local filterTimer = math.huge
 local rayParams: RaycastParams? = nil -- created in start() (keeps the module requirable headlessly)
 local filterList: { Instance } = {}
 local vehicleClient: any = nil
+local soundController: any = nil
+local NAN = 0 / 0
 
 -- Pure pose math (unit-tested): the weld C0 that puts a wheel (built at basePos/baseRot in chassis space, weld C1 = c1)
 -- `offset` studs up along chassis Y, steered `steer` rad around chassis Y (+ = left) and spun `spin` rad about its axle.
@@ -104,6 +144,29 @@ end
 -- is a negative rotation about chassis +X, so flip when the cylinder axis points along -X.
 function WheelAnimator.spinSign(baseRot: CFrame): number
 	return if baseRot.RightVector.X < -0.5 then 1 else -1
+end
+
+-- Phone tier: a touch screen with neither keyboard nor mouse.
+function WheelAnimator.isLowTier(touch: boolean, keyboard: boolean, mouse: boolean): boolean
+	return touch and not keyboard and not mouse
+end
+
+-- True when `pos` is more than `margin` studs behind the camera plane (can't be on screen).
+function WheelAnimator.behindCamera(pos: Vector3, camPos: Vector3, look: Vector3, margin: number): boolean
+	return (pos - camPos):Dot(look) < -margin
+end
+
+-- F10: an anchored car first posed from beyond bobRange settled with the built pose (no ray); re-pose it with the
+-- bob ray once the camera comes into range.
+function WheelAnimator.enteredBobRange(oldDist: number, newDist: number, bobRange: number): boolean
+	return oldDist > bobRange and newDist <= bobRange
+end
+
+-- Observer drift test from replicated physics: forward/sideways speed in the car's frame, "grounded" = upright and
+-- not flying up/down. Same thresholds as the driving controller (VehicleController.math.isDrifting).
+function WheelAnimator.observedDrift(cf: CFrame, vel: Vector3): boolean
+	local grounded = cf.UpVector.Y > 0.6 and math.abs(vel.Y) < DRIFT_MAX_VERTICAL
+	return VMath.isDrifting(vel:Dot(cf.LookVector), vel:Dot(cf.RightVector), grounded)
 end
 
 local function byDistance(a: Rig, b: Rig): boolean
@@ -129,6 +192,16 @@ local function newRig(model: Model): Rig
 		phase = math.random(),
 		lastT = os.clock(),
 		dist = math.huge,
+		pos = Vector3.zero,
+		traffic = false,
+		bobTick = 0,
+		wSpin = NAN,
+		wRearSpin = NAN,
+		wSteer = NAN,
+		sparkles = nil,
+		sparkleSearchAt = 0,
+		fx = nil,
+		fxFrame = 0,
 	}
 end
 
@@ -168,6 +241,8 @@ local function buildRig(rig: Rig, now: number)
 				rear = not front,
 				spinSign = WheelAnimator.spinSign(wheelCF.Rotation),
 				offset = 0,
+				target = 0,
+				written = NAN,
 			})
 			if front then
 				frontZ = wheelCF.Position.Z
@@ -251,8 +326,38 @@ local function untrack(inst: Instance)
 	rigs[inst] = nil
 end
 
-local function rebuildNear(camPos: Vector3)
+-- PERF-13: Diamond/Galaxy sparkles (server-built, Enabled by default) emit only near the camera. The emitter is
+-- re-found when the server rebuilds it (CarBuilder.repaint / applyMutation replace it).
+local function refreshSparkles(rig: Rig, now: number)
+	local mutation = rig.model:GetAttribute("Mutation")
+	if mutation ~= "Diamond" and mutation ~= "Galaxy" then
+		rig.sparkles = nil
+		return
+	end
+	local pe = rig.sparkles
+	if (pe == nil or pe.Parent == nil) and now >= rig.sparkleSearchAt then
+		local found = rig.model:FindFirstChild(WheelAnimator.SPARKLES_NAME, true)
+		if found and found:IsA("ParticleEmitter") then
+			pe = found
+		else
+			pe = nil
+		end
+		rig.sparkles = pe
+		if not pe then
+			rig.sparkleSearchAt = now + SPARKLE_RETRY
+		end
+	end
+	if pe and pe.Parent then
+		local want = rig.dist <= WheelAnimator.SPARKLE_RANGE
+		if pe.Enabled ~= want then
+			pe.Enabled = want
+		end
+	end
+end
+
+local function rebuildNear(camPos: Vector3, now: number)
 	table.clear(nearList)
+	local bobRange = WheelAnimator.BOB_RANGE
 	for model, rig in rigs do
 		if model.Parent == nil then
 			rigs[model] = nil
@@ -267,11 +372,21 @@ local function rebuildNear(camPos: Vector3)
 			end
 		end
 		local pos = if chassis and chassis.Parent then chassis.Position else model:GetPivot().Position
+		local oldDist = rig.dist
+		rig.pos = pos
 		rig.dist = (pos - camPos).Magnitude
+		if WheelAnimator.enteredBobRange(oldDist, rig.dist, bobRange) then
+			rig.settled = false
+		end
+		refreshSparkles(rig, now)
 		if rig.dist <= WheelAnimator.RANGE then
 			rig.isVehicle = CollectionService:HasTag(model, "Vehicle")
+			rig.traffic = model:GetAttribute("Kind") == "Traffic"
 			refreshRainbow(rig)
-			table.insert(nearList, rig)
+			-- only cars with something to animate take a slot (plain display / dealer cars have none)
+			if rig.isVehicle or rig.rainbow then
+				table.insert(nearList, rig)
+			end
 		end
 	end
 	table.sort(nearList, byDistance)
@@ -288,8 +403,81 @@ local function applyRainbow(rig: Rig, now: number)
 	end
 end
 
+----------------------------------------------------------------------------------------------------------------------
+-- Observers' drift FX (F11): other cars' smoke + screech, derived from replicated velocity
+----------------------------------------------------------------------------------------------------------------------
+local function buildDriftFx(rig: Rig): DriftFx?
+	local chassis = rig.chassis
+	if not chassis then
+		return nil
+	end
+	local fx: DriftFx = { smoke = {}, screech = nil, on = false }
+	for _, w in rig.wheels do
+		if w.rear then
+			local att = Instance.new("Attachment")
+			att.Name = "HC_ObserverSmoke"
+			att.Position = w.basePos - Vector3.new(0, rig.radius * 0.85, 0)
+			att.Parent = chassis
+			local pe = Instance.new("ParticleEmitter")
+			pe.Name = "TireSmoke"
+			pe.Texture = "rbxasset://textures/particles/smoke_main.dds"
+			pe.Color = ColorSequence.new(Color3.fromRGB(240, 240, 245), Color3.fromRGB(185, 185, 200))
+			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 6) })
+			pe.Transparency =
+				NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1) })
+			pe.Lifetime = NumberRange.new(0.6, 1.1)
+			pe.Rate = 30
+			pe.Speed = NumberRange.new(2, 6)
+			pe.SpreadAngle = Vector2.new(35, 35)
+			pe.Acceleration = Vector3.new(0, 4, 0)
+			pe.Drag = 2
+			pe.Rotation = NumberRange.new(0, 360)
+			pe.RotSpeed = NumberRange.new(-60, 60)
+			pe.LightInfluence = 0.6
+			pe.EmissionDirection = Enum.NormalId.Back
+			pe.Enabled = false
+			pe.Parent = att
+			table.insert(fx.smoke, pe)
+		end
+	end
+	return fx
+end
+
+local function setDriftFx(rig: Rig, on: boolean)
+	local fx = rig.fx
+	if on and not fx then
+		fx = buildDriftFx(rig)
+		rig.fx = fx
+	end
+	if not fx or fx.on == on then
+		return
+	end
+	fx.on = on
+	for _, pe in fx.smoke do
+		if pe.Parent then
+			pe.Enabled = on
+		end
+	end
+	local sc = soundController
+	if on then
+		fxActive[rig] = true
+		if sc and not fx.screech and rig.chassis then
+			local ok, snd = pcall(sc.playLoop, "TireScreech", rig.chassis)
+			fx.screech = if ok and typeof(snd) == "Instance" and snd:IsA("Sound") then snd else nil
+		end
+	else
+		fxActive[rig] = nil
+		local snd = fx.screech
+		fx.screech = nil
+		if snd and sc then
+			pcall(sc.stopLoop, snd)
+		end
+	end
+end
+
 -- controller: the local VehicleController when this is the car we drive (exact data), else nil (estimate).
-local function animateWheels(rig: Rig, dt: number, controller: any)
+-- hot: updated every frame (only hot rigs may start drift FX; they are switched off when not seen for a frame).
+local function animateWheels(rig: Rig, dt: number, controller: any, hot: boolean)
 	local chassis = rig.chassis
 	if not chassis or chassis.Parent == nil or #rig.wheels == 0 then
 		return
@@ -313,6 +501,10 @@ local function animateWheels(rig: Rig, dt: number, controller: any)
 		else
 			local vel = chassis.AssemblyLinearVelocity
 			vF = vel:Dot(cf.LookVector)
+			if hot and rig.dist <= DRIFT_FX_RANGE and WheelAnimator.observedDrift(cf, vel) then
+				rig.fxFrame = frameId
+				setDriftFx(rig, true)
+			end
 			local yawRate = chassis.AssemblyAngularVelocity:Dot(cf.UpVector)
 			steerTarget = VMath.estimateSteerAngle(yawRate, vF, rig.wheelbase, MAX_STEER)
 			if
@@ -336,37 +528,53 @@ local function animateWheels(rig: Rig, dt: number, controller: any)
 
 	local up = cf.UpVector
 	local params = rayParams
-	local doBob = controller == nil and params ~= nil and rig.dist <= BOB_RANGE
+	local doBob = controller == nil and params ~= nil and rig.dist <= WheelAnimator.BOB_RANGE
+	local castNow = false
+	if doBob then
+		-- between casts the last ray target is reused (the offset eases toward it anyway)
+		rig.bobTick += 1
+		castNow = rig.bobTick % (if rig.traffic then TRAFFIC_BOB_EVERY else BOB_EVERY) == 1
+	end
 	local response = math.min(1, BOB_RESPONSE * dt)
 	local moving = false
+	-- not (x <= eps) is also true for NaN (never written yet)
+	local poseChanged = not (math.abs(rig.spin - rig.wSpin) <= POSE_EPS)
+		or not (math.abs(rig.rearSpin - rig.wRearSpin) <= POSE_EPS)
+		or not (math.abs(rig.steer - rig.wSteer) <= POSE_EPS)
 	for _, w in rig.wheels do
-		local target = 0
 		if controller then
 			local o = controller.wheelOffset and controller.wheelOffset[w.index]
-			target = if typeof(o) == "number" then o else 0
-			w.offset = target
+			w.offset = if typeof(o) == "number" then o else 0
 		else
-			if doBob then
+			if not doBob then
+				w.target = 0
+			elseif castNow then
 				local hub = cf * w.basePos
 				local hit = Workspace:Raycast(hub + up * BOB_UP, up * -(BOB_UP + rig.radius + MAX_DROOP), params)
-				target = if hit
+				w.target = if hit
 					then math.clamp(BOB_UP - hit.Distance + rig.radius, -MAX_DROOP, MAX_BUMP)
 					else -MAX_DROOP
 			end
 			local before = w.offset
-			w.offset += (target - w.offset) * response
+			w.offset += (w.target - w.offset) * response
 			if math.abs(w.offset - before) > 1e-3 then
 				moving = true
 			end
 		end
-		local steerA = if w.front then rig.steer else 0
-		local spin = if w.rear then rig.rearSpin else rig.spin
-		w.weld.C0 = WheelAnimator.wheelC0(w.basePos, w.baseRot, w.c1, w.offset, steerA, spin * w.spinSign)
+		if poseChanged or not (math.abs(w.offset - w.written) <= POSE_EPS) then
+			local steerA = if w.front then rig.steer else 0
+			local spin = if w.rear then rig.rearSpin else rig.spin
+			w.weld.C0 = WheelAnimator.wheelC0(w.basePos, w.baseRot, w.c1, w.offset, steerA, spin * w.spinSign)
+			w.written = w.offset
+		end
+	end
+	if poseChanged then
+		rig.wSpin, rig.wRearSpin, rig.wSteer = rig.spin, rig.rearSpin, rig.steer
 	end
 	rig.settled = controller == nil and not moving and math.abs(vF) < 0.05 and math.abs(rig.steer) < 1e-3
 end
 
-local function updateRig(rig: Rig, now: number, controller: any)
+local function updateRig(rig: Rig, now: number, controller: any, hot: boolean)
 	local dt = math.clamp(now - rig.lastT, 0, 0.5)
 	rig.lastT = now
 	if rig.rainbow then
@@ -384,7 +592,26 @@ local function updateRig(rig: Rig, now: number, controller: any)
 			return
 		end
 	end
-	animateWheels(rig, dt, controller)
+	animateWheels(rig, dt, controller, hot)
+end
+
+-- A hot car with drift FX that went behind the camera: keep its (audible) screech while it still drifts.
+local function keepDriftFx(rig: Rig)
+	local chassis = rig.chassis
+	if
+		chassis
+		and chassis.Parent
+		and not chassis.Anchored
+		and WheelAnimator.observedDrift(chassis.CFrame, chassis.AssemblyLinearVelocity)
+	then
+		rig.fxFrame = frameId
+	end
+end
+
+local function onScreen(rig: Rig, camPos: Vector3, look: Vector3): boolean
+	local chassis = rig.chassis
+	local pos = if chassis and chassis.Parent then chassis.Position else rig.pos
+	return not WheelAnimator.behindCamera(pos, camPos, look, CULL_BEHIND)
 end
 
 local function onPreRender(dt: number)
@@ -393,6 +620,9 @@ local function onPreRender(dt: number)
 		return
 	end
 	local now = os.clock()
+	frameId += 1
+	local camCF = cam.CFrame
+	local camPos, look = camCF.Position, camCF.LookVector
 
 	filterTimer += dt
 	if filterTimer >= FILTER_INTERVAL then
@@ -402,7 +632,7 @@ local function onPreRender(dt: number)
 	rebuildTimer += dt
 	if rebuildTimer >= REBUILD_INTERVAL then
 		rebuildTimer = 0
-		rebuildNear(cam.CFrame.Position)
+		rebuildNear(camPos, now)
 	end
 
 	-- the car we drive: always, with exact controller data
@@ -418,25 +648,42 @@ local function onPreRender(dt: number)
 				rigs[model] = rig
 			end
 			local okController, controller = pcall(vehicleClient.getController)
-			updateRig(rig, now, if okController then controller else nil)
+			updateRig(rig, now, if okController then controller else nil, false)
 		end
 	end
 
-	local hot = math.min(WheelAnimator.HOT_COUNT, #nearList)
-	for i = 1, hot do
+	-- hot: the HOT_COUNT nearest cars that can be on screen (behind-camera ones don't use up the budget)
+	local n = #nearList
+	local budget = WheelAnimator.HOT_COUNT
+	local i = 0
+	while i < n and budget > 0 do
+		i += 1
 		local rig = nearList[i]
 		if rig.model ~= drivenModel then
-			updateRig(rig, now, nil)
+			if onScreen(rig, camPos, look) then
+				updateRig(rig, now, nil, true)
+				budget -= 1
+			elseif fxActive[rig] then
+				keepDriftFx(rig)
+			end
 		end
 	end
-	local coldCount = #nearList - hot
+	-- cold: round-robin through the rest
+	local coldCount = n - i
 	if coldCount > 0 then
 		for _ = 1, math.min(WheelAnimator.COLD_PER_FRAME, coldCount) do
 			coldCursor = (coldCursor % coldCount) + 1
-			local rig = nearList[hot + coldCursor]
-			if rig.model ~= drivenModel then
-				updateRig(rig, now, nil)
+			local rig = nearList[i + coldCursor]
+			if rig.model ~= drivenModel and onScreen(rig, camPos, look) then
+				updateRig(rig, now, nil, false)
 			end
+		end
+	end
+
+	-- drift FX of cars not seen drifting this frame (stopped drifting, left the hot set, now driven by us, removed)
+	for rig in fxActive do
+		if rig.fxFrame ~= frameId then
+			setDriftFx(rig, false)
 		end
 	end
 end
@@ -452,23 +699,43 @@ end
 
 function WheelAnimator.init() end
 
+local function sibling(name: string): any
+	local ms = script.Parent:FindFirstChild(name)
+	if ms and ms:IsA("ModuleScript") then
+		local ok, mod = pcall(require, ms)
+		if ok and type(mod) == "table" then
+			return mod
+		end
+	end
+	return nil
+end
+
 function WheelAnimator.start()
+	if
+		WheelAnimator.isLowTier(
+			UserInputService.TouchEnabled,
+			UserInputService.KeyboardEnabled,
+			UserInputService.MouseEnabled
+		)
+	then
+		local tier = WheelAnimator.LOW_TIER
+		WheelAnimator.RANGE = tier.RANGE
+		WheelAnimator.HOT_COUNT = tier.HOT_COUNT
+		WheelAnimator.COLD_PER_FRAME = tier.COLD_PER_FRAME
+		WheelAnimator.BOB_RANGE = tier.BOB_RANGE
+	end
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.IgnoreWater = true
 	params.RespectCanCollide = true
 	rayParams = params
-	local ms = script.Parent:FindFirstChild("VehicleClient")
-	if ms and ms:IsA("ModuleScript") then
-		local ok, mod = pcall(require, ms)
-		if
-			ok
-			and type(mod) == "table"
-			and type(mod.getModel) == "function"
-			and type(mod.getController) == "function"
-		then
-			vehicleClient = mod
-		end
+	local vc = sibling("VehicleClient")
+	if vc and type(vc.getModel) == "function" and type(vc.getController) == "function" then
+		vehicleClient = vc
+	end
+	local sc = sibling("SoundController")
+	if sc and type(sc.playLoop) == "function" and type(sc.stopLoop) == "function" then
+		soundController = sc
 	end
 	for _, tag in TAGS do
 		CollectionService:GetInstanceAddedSignal(tag):Connect(track)

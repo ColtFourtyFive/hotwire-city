@@ -14,9 +14,12 @@
 --   Opened: Signal(name), Closed: Signal(name)
 --   Canonical names: GearShop, Store, Index, Daily, Contracts, Gifts, Rebirth, Codes, Settings.
 --
--- Remotes: listens to OpenUI(name). Sends BuyUpgrade, BuyTool, ClaimDaily, ClaimPlaytime, RedeemCode, Rebirth and
--- SetSetting (all re-validated by the server). Store buttons call MarketplaceService prompts; the server grants.
--- State is read ONLY from StateController (snapshot + Changed) and player attributes (Cash, IncomePerSec, Rebirths).
+-- Remotes: listens to OpenUI(name). Sends BuyUpgrade, BuyTool, ClaimDaily, ClaimPlaytime, RedeemCode, Rebirth,
+-- SetSetting and (once Shared.Remotes lists it) RerollContract, all re-validated by the server. Store buttons call
+-- MarketplaceService prompts; the server grants. Store items the server would refuse (owned one-per-account car,
+-- Lose the Cops with 0 stars) are disabled. Menus close on Esc / gamepad B / Backspace and when the Roblox menu opens.
+-- State is read ONLY from StateController (snapshot + Changed) and player attributes (Cash, IncomePerSec, Rebirths,
+-- Wanted).
 -- The open menu refreshes on every snapshot and on Cash changes; countdowns tick once per second.
 -- Index car previews (ViewportFrames via CarBuilder) are built lazily, a few per frame, only once the Index opens.
 -- Pure helpers (resolveName, dailyTileStates, playtimeTiles, contractRows, upgradeRows, ...) are exported for tests.
@@ -32,6 +35,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
+local Remotes = require(Shared:WaitForChild("Remotes"))
 local Config = Shared:WaitForChild("Config")
 local Cars = require(Config:WaitForChild("Cars"))
 local Rarity = require(Config:WaitForChild("Rarity"))
@@ -64,7 +68,7 @@ local player = Players.LocalPlayer
 -------------------------------------------------------------------------------------------------------------------------
 
 local MIN_CONTRACT_REWARD = 500 -- RewardsService pays max($500, reward seconds x income)
-local MIN_INCOME_REWARD = 500 -- incomeMinutes rewards pay at least $500
+local MIN_INCOME_REWARD = 500 -- incomeMinutes rewards without their own `min` pay at least $500
 local VIEW_FOV = 30
 local CARD_YAW = 38 -- 3/4 front view
 local CARD_PITCH = 20
@@ -77,6 +81,8 @@ local MODELS_PER_FRAME = 3 -- Index viewport builds per frame
 local INDEX_DETAIL_W = 270
 local INDEX_CARD = Vector2.new(112, 140) -- 5 per row
 local SETTINGS_OVERRIDE_TTL = 4 -- optimistic setting values expire if the server never confirms them
+local SWAP_REMOTE = "RerollContract" -- (contractId) daily free contract swap; the button hides until it exists
+local SWAP_AVAILABLE = table.find(Remotes.ClientToServer, SWAP_REMOTE) ~= nil
 
 local WHITE = Color3.new(1, 1, 1)
 local SILHOUETTE = Color3.fromRGB(6, 6, 14)
@@ -208,7 +214,8 @@ end
 
 export type RewardInfo = { icon: string, text: string, sub: string?, color: Color3 }
 
--- Display info for a daily / playtime reward entry ({kind="cash"|"incomeMinutes"|"car", amount?, rarity?}).
+-- Display info for a daily / playtime reward entry ({kind="cash"|"incomeMinutes"|"car", amount?, min?, rarity?}).
+-- incomeMinutes estimates mirror RewardsService: minutes of income, never less than the entry's `min`.
 function MenuController.rewardInfo(reward: any, incomePerSec: number?): RewardInfo
 	if typeof(reward) ~= "table" then
 		return { icon = "🎁", text = "GIFT", sub = nil, color = Theme.Colors.Text }
@@ -218,7 +225,8 @@ function MenuController.rewardInfo(reward: any, incomePerSec: number?): RewardIn
 		return { icon = "💵", text = Format.cash(num(reward.amount, 0)), sub = "CASH", color = Theme.Colors.Cash }
 	elseif kind == "incomeMinutes" then
 		local minutes = num(reward.amount, 0)
-		local estimate = math.max(MIN_INCOME_REWARD, math.floor(minutes * 60 * math.max(0, num(incomePerSec, 0))))
+		local floor = if finite(reward.min) then math.max(0, reward.min) else MIN_INCOME_REWARD
+		local estimate = math.max(floor, math.floor(minutes * 60 * math.max(0, num(incomePerSec, 0))))
 		return {
 			icon = "⏱️",
 			text = `{fmtNum(minutes)} MIN`,
@@ -370,6 +378,15 @@ function MenuController.contractRows(contracts: any, incomePerSec: number?): { C
 		return a.order < b.order
 	end)
 	return rows
+end
+
+-- Daily free contract swap: offered on unfinished cards while today's swap is unused (contracts.rerolled) and the
+-- server exposes the remote.
+function MenuController.canSwapContract(contracts: any, row: any, remoteAvailable: boolean): boolean
+	if not remoteAvailable or typeof(row) ~= "table" or row.done == true then
+		return false
+	end
+	return typeof(contracts) == "table" and contracts.rerolled ~= true
 end
 
 -- "3/5", "$4.2K / $10K", "12s / 30s"
@@ -593,6 +610,39 @@ function MenuController.storeItems(
 	return { passes = passes, products = products, comingSoon = #passes == 0 and #products == 0 }
 end
 
+-- One-per-account products: product key -> the Exclusive car it grants (MonetizationService refuses a second one).
+local ONE_PER_ACCOUNT: { [string]: string } = { diamond_dragster = "diamond_dragster" }
+
+-- Why a Store item can't be bought right now (nil = buyable). Mirrors the server's refusals so nobody is prompted
+-- for something that would be refused: "owned" = a pass you own, or a one-per-account car already in your garage;
+-- "notWanted" = Lose the Cops with 0 stars.
+function MenuController.storeBlock(item: any, snapshot: any, wantedStars: number?): string?
+	if typeof(item) ~= "table" then
+		return nil
+	end
+	if item.kind == "pass" then
+		local passes: any = if typeof(snapshot) == "table" and typeof(snapshot.passes) == "table"
+			then snapshot.passes
+			else {}
+		return if passes[item.key] == true then "owned" else nil
+	end
+	if item.key == "clear_wanted" then
+		return if num(wantedStars, 0) <= 0 then "notWanted" else nil
+	end
+	local carId = ONE_PER_ACCOUNT[item.key]
+	local garage: any = if typeof(snapshot) == "table" and typeof(snapshot.garage) == "table"
+		then snapshot.garage
+		else nil
+	if carId and garage then
+		for _, slot in garage do
+			if typeof(slot) == "table" and slot.carId == carId then
+				return "owned"
+			end
+		end
+	end
+	return nil
+end
+
 -- Index ------------------------------------------------------------------------------------------------------------------
 
 export type IndexGroup = {
@@ -743,23 +793,61 @@ function MenuController.rebirthView(cash: number, rebirths: number): RebirthView
 	}
 end
 
--- The car a rebirth keeps (best base income, ties -> lowest slot), mirroring RebirthService. Returns (carId, mutation).
-function MenuController.bestCar(garage: any): (string?, string?)
+export type KeptCar = { carId: string, mutation: string }
+
+-- The regular cars a rebirth keeps, mirroring RebirthService._plan: the best `keep` (default
+-- Economy.REBIRTH_KEEP_CARS) non-Exclusive cars by income, ties -> lowest slot. Robux Exclusives are always kept on
+-- top and never count toward the limit, so they are not listed here.
+function MenuController.keptCars(garage: any, keep: number?): { KeptCar }
 	if typeof(garage) ~= "table" then
-		return nil, nil
+		return {}
 	end
-	local bestId, bestMut, bestIncome, bestSlot = nil, nil, -1, math.huge
+	local entries: { { carId: string, mutation: string, income: number, slot: number } } = {}
 	for key, slot in garage do
-		if typeof(slot) == "table" and typeof(slot.carId) == "string" and Cars.get(slot.carId) then
+		local def = if typeof(slot) == "table" and typeof(slot.carId) == "string" then Cars.get(slot.carId) else nil
+		if def and def.rarity ~= "Exclusive" then
 			local mut = if typeof(slot.mutation) == "string" then slot.mutation else "None"
-			local income = EconomyMath.carIncome(slot.carId, mut :: any)
-			local slotNumber = tonumber(key) or math.huge
-			if income > bestIncome or (income == bestIncome and slotNumber < bestSlot) then
-				bestId, bestMut, bestIncome, bestSlot = slot.carId, mut, income, slotNumber
-			end
+			table.insert(entries, {
+				carId = slot.carId,
+				mutation = mut,
+				income = EconomyMath.carIncome(slot.carId, mut :: any),
+				slot = tonumber(key) or math.huge,
+			})
 		end
 	end
-	return bestId, bestMut
+	table.sort(entries, function(a, b)
+		if a.income ~= b.income then
+			return a.income > b.income
+		end
+		return a.slot < b.slot
+	end)
+	local limit = math.max(1, math.floor(num(keep, Economy.REBIRTH_KEEP_CARS)))
+	local out: { KeptCar } = {}
+	for i = 1, math.min(limit, #entries) do
+		table.insert(out, { carId = entries[i].carId, mutation = entries[i].mutation })
+	end
+	return out
+end
+
+-- The best car a rebirth keeps (first of keptCars). Returns (carId, mutation).
+function MenuController.bestCar(garage: any): (string?, string?)
+	local best = MenuController.keptCars(garage, 1)[1]
+	if not best then
+		return nil, nil
+	end
+	return best.carId, best.mutation
+end
+
+-- "Gold Hot Hatch + Rustbucket" for the Rebirth menu's keep list ("" when nothing would be kept).
+function MenuController.keptCarsText(kept: { KeptCar }): string
+	local names: { string } = {}
+	for _, k in kept do
+		local def = Cars.get(k.carId)
+		local mut = (Rarity.Mutations :: any)[k.mutation]
+		local label = if mut and mut.label ~= "" then mut.label .. " " else ""
+		table.insert(names, label .. (if def then def.name else k.carId))
+	end
+	return table.concat(names, " + ")
 end
 
 -- RebirthService refuses while a garage car is out driving or being stolen.
@@ -1456,18 +1544,25 @@ local function buildStoreCard(parent: Instance, item: StoreItem, order: number):
 		Parent = c,
 	})
 	onPress(button, function()
+		-- re-checked at tap time: the button may not have refreshed yet (e.g. stars just ran out)
+		if MenuController.storeBlock(item, getSnapshot(), attrNumber("Wanted")) ~= nil then
+			shake(button)
+			return
+		end
 		promptPurchase(item)
 	end)
 	return { card = c, button = button, item = item }
 end
 
 local function refreshStore(ctx: Ctx, snapshot: any)
-	local passes: any = if snapshot and typeof(snapshot.passes) == "table" then snapshot.passes else {}
+	local wanted = attrNumber("Wanted")
 	for _, entry in ctx.ui.cards do
 		local item: StoreItem = entry.item
-		local owned = item.kind == "pass" and passes[item.key] == true
-		if owned then
+		local block = MenuController.storeBlock(item, snapshot, wanted)
+		if block == "owned" then
 			setButton(entry.button, "✅ OWNED", Theme.Colors.CashDark, false, true)
+		elseif block == "notWanted" then
+			setButton(entry.button, "😇 NOT WANTED", Theme.Colors.Cash, false)
 		else
 			local price = priceCache[priceKey(item)]
 			setButton(
@@ -1975,9 +2070,12 @@ local function refreshIndex(ctx: Ctx, snapshot: any)
 		end
 	end
 	local found, total, bonus = MenuController.indexTotals(disc)
-	Kit.tweenNumber(ui.summaryText, found, function(n: number): string
-		return `📖 COLLECTED {math.floor(n + 0.5)}/{total}`
-	end)
+	-- only animate real changes: snapshots arrive often and each tween is a per-frame thread
+	if ui.summaryText:GetAttribute("Value") ~= found then
+		Kit.tweenNumber(ui.summaryText, found, function(n: number): string
+			return `📖 COLLECTED {math.floor(n + 0.5)}/{total}`
+		end)
+	end
 	ui.setSummary(found / math.max(1, total), true)
 	ui.bonusText.Text = if bonus > 0
 		then `🏆 INDEX BONUS +{math.floor(bonus * 100 + 0.5)}% INCOME`
@@ -2414,6 +2512,15 @@ local function buildContractCard(parent: Instance, order: number): any
 		ZIndex = 6,
 		Parent = c,
 	})
+	-- daily free swap (only shown while the server offers it; see MenuController.canSwapContract)
+	local swap = Kit.button("🎲 SWAP", Theme.Colors.Secondary, {
+		Name = "Swap",
+		Position = UDim2.fromOffset(106, 82),
+		Size = UDim2.fromOffset(150, 24),
+		TextSize = 15,
+		Visible = false,
+		Parent = c,
+	})
 	return {
 		card = c,
 		icon = icon:FindFirstChild("Icon"),
@@ -2423,15 +2530,34 @@ local function buildContractCard(parent: Instance, order: number): any
 		reward = reward,
 		rewardSub = rewardSub,
 		stamp = stamp,
+		swap = swap,
+		swapArmedUntil = 0,
+		swapPendingUntil = 0,
 	}
 end
 
 local function refreshContracts(ctx: Ctx, snapshot: any)
 	local ui = ctx.ui
-	local rows = MenuController.contractRows(if snapshot then snapshot.contracts else nil, currentIncome())
+	local contracts = if snapshot then snapshot.contracts else nil
+	local rows = MenuController.contractRows(contracts, currentIncome())
+	local now = os.clock()
 	for i, slot in ui.cards do
 		local row = rows[i]
 		slot.card.Visible = row ~= nil
+		local canSwap = row ~= nil
+			and now >= slot.swapPendingUntil
+			and MenuController.canSwapContract(contracts, row, SWAP_AVAILABLE)
+		slot.swap.Visible = canSwap
+		if canSwap then
+			local armed = now < slot.swapArmedUntil
+			setButton(
+				slot.swap,
+				if armed then "🎲 TAP TO SWAP" else "🎲 SWAP",
+				if armed then Theme.Colors.Danger else Theme.Colors.Secondary,
+				true
+			)
+		end
+		slot.rowId = if row then row.id else nil
 		if row then
 			if slot.icon then
 				slot.icon.Text = row.icon
@@ -2482,7 +2608,25 @@ BUILDERS.Contracts = function(ctx: Ctx)
 	ui.timerChip = timerChip
 	ui.timer = timerText
 	for i = 1, Economy.CONTRACTS_PER_DAY do
-		ui.cards[i] = buildContractCard(body, i)
+		local slot = buildContractCard(body, i)
+		ui.cards[i] = slot
+		onPress(slot.swap, function()
+			local id = slot.rowId
+			if typeof(id) ~= "string" then
+				return
+			end
+			local now = os.clock()
+			if now < slot.swapArmedUntil then
+				-- second tap: swap (one per day, the server decides which job you get)
+				slot.swapArmedUntil = 0
+				slot.swapPendingUntil = now + PENDING_SECONDS
+				Net.fire(SWAP_REMOTE, id)
+			else
+				slot.swapArmedUntil = now + CONFIRM_WINDOW
+				shake(slot.swap)
+			end
+			refreshContracts(ctx, getSnapshot())
+		end)
 	end
 	ui.empty = bodyLabel("📭 Your contracts are on the way. Check back in a moment!", 17, {
 		Name = "Empty",
@@ -2496,6 +2640,19 @@ BUILDERS.Contracts = function(ctx: Ctx)
 	ctx.tick = function(c: Ctx)
 		c.ui.timer.Text =
 			`🔄 NEW CONTRACTS IN {MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))}`
+		-- a swap confirm / pending state just ran out: redraw so the button resets
+		local now = os.clock()
+		for _, slot in c.ui.cards do
+			if
+				(slot.swapArmedUntil > 0 and now >= slot.swapArmedUntil)
+				or (slot.swapPendingUntil > 0 and now >= slot.swapPendingUntil)
+			then
+				slot.swapArmedUntil = 0
+				slot.swapPendingUntil = 0
+				refreshContracts(c, getSnapshot())
+				return
+			end
+		end
 	end
 end
 
@@ -2568,8 +2725,11 @@ local function refreshGifts(ctx: Ctx, snapshot: any)
 	local base = playtimeBase or (if snapshot then snapshot.playtime else nil)
 	local extra = if playtimeBase then sessionExtra() else 0
 	local tiles = MenuController.playtimeTiles(base, extra)
+	-- sessionSeconds = seconds played TODAY (UTC, saved across rejoins), not just this session
 	local session = (if typeof(base) == "table" then num(base.sessionSeconds, 0) else 0) + extra
-	ui.session.Text = `🕒 Playing for {Format.clock(session)}`
+	ui.session.Text = `🕒 Played today: {Format.clock(session)}`
+	local resetIn = MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))
+	ui.footer.Text = `Play time counts all day, even if you rejoin. New gifts in {resetIn}!`
 	for i, t in ui.tiles do
 		local st = tiles[i]
 		if st then
@@ -2615,7 +2775,7 @@ BUILDERS.Gifts = function(ctx: Ctx)
 		LayoutOrder = 1,
 		Parent = body,
 	})
-	ui.session = bodyLabel("🕒 Playing for 0:00", 15, {
+	ui.session = bodyLabel("🕒 Played today: 0:00", 15, {
 		Name = "Session",
 		LayoutOrder = 2,
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -2633,7 +2793,7 @@ BUILDERS.Gifts = function(ctx: Ctx)
 			refreshGifts(ctx, getSnapshot())
 		end)
 	end
-	bodyLabel("Gift timers restart when you rejoin, so stay a while!", 13, {
+	ui.footer = bodyLabel("Play time counts all day, even if you rejoin. New gifts every day!", 13, {
 		LayoutOrder = 4,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = body,
@@ -2648,6 +2808,10 @@ end
 -- Rebirth
 -------------------------------------------------------------------------------------------------------------------------
 
+local KEEP_CARS_LINE = if Economy.REBIRTH_KEEP_CARS == 1
+	then "🚗 Your best car"
+	else `🚗 Your best {Economy.REBIRTH_KEEP_CARS} cars`
+
 local function refreshRebirth(ctx: Ctx, snapshot: any)
 	local ui = ctx.ui
 	local view = MenuController.rebirthView(currentCash(), currentRebirths())
@@ -2658,9 +2822,8 @@ local function refreshRebirth(ctx: Ctx, snapshot: any)
 	ui.cost.Text = "COST: " .. Format.cash(view.cost)
 	ui.setBar(view.fraction, true)
 	ui.barText.Text = `{Format.cash(view.cash)} / {Format.cash(view.cost)}`
-	local bestId = MenuController.bestCar(if snapshot then snapshot.garage else nil)
-	local bestDef = if bestId then Cars.get(bestId) else nil
-	ui.keepCar.Text = "🚗 Your best car" .. (if bestDef then ` ({bestDef.name})` else "")
+	local keptText = MenuController.keptCarsText(MenuController.keptCars(if snapshot then snapshot.garage else nil))
+	ui.keepCar.Text = KEEP_CARS_LINE .. (if keptText ~= "" then ` ({keptText})` else "")
 	local busy = MenuController.garageBusy(if snapshot then snapshot.garage else nil)
 	local now = os.clock()
 	if now < (ui.pendingUntil or 0) then
@@ -2733,8 +2896,9 @@ BUILDERS.Rebirth = function(ctx: Ctx)
 		TextWrapped = false,
 		Parent = showcase,
 	})
+	-- perks are income + lock time only: rebirths never change spawn luck (world spawns are shared)
 	bodyLabel(
-		`🍀 +{math.floor(Economy.REBIRTH_LUCK_BONUS * 100 + 0.5)}% rare car luck   •   🔒 +10s garage lock   (every rebirth)`,
+		`💰 +{math.floor(Economy.REBIRTH_INCOME_BONUS * 100 + 0.5)}% income   •   🔒 +10s garage lock   (every rebirth)`,
 		13,
 		{
 			Position = UDim2.fromOffset(0, 82),
@@ -2781,17 +2945,20 @@ BUILDERS.Rebirth = function(ctx: Ctx)
 	Kit.list(Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Top).Parent =
 		cols
 	local keep = listCard(cols, "✅ YOU KEEP", Theme.Colors.Cash, {
-		"🚗 Your best car",
+		KEEP_CARS_LINE,
 		"🔧 All upgrades & tools",
 		"📖 Your Car Index",
 		"💎 Passes & Robux cars",
 		"♻️ Bigger income, forever",
 	}, 1)
 	ui.keepCar = keep[1]
+	-- RebirthService pays uncollected garage cash out first (it counts toward Total Earned), then cash resets
 	listCard(cols, "❌ YOU LOSE", Theme.Colors.Danger, {
-		`💵 Cash (back to {Format.cash(Economy.STARTING_CASH)})`,
+		`💵 Cash (resets to {Format.cash(Economy.STARTING_CASH)})`,
+		"💰 Garage cash (paid out, then reset)",
 		"🚗 Every other car",
 		"🅿️ Bought garage slots",
+		"💡 Spend it on upgrades first!",
 	}, 2)
 
 	local footer = Kit.new("Frame", {
@@ -3451,18 +3618,31 @@ function MenuController.start()
 	if existing then
 		onSnapshot(existing)
 	end
-	for _, attr in { "Cash", "IncomePerSec", "Rebirths" } do
+	-- Wanted: the Store's "Lose the Cops" button is only enabled while you have stars
+	for _, attr in { "Cash", "IncomePerSec", "Rebirths", "Wanted" } do
 		player:GetAttributeChangedSignal(attr):Connect(queueRefresh)
 	end
 
-	UserInputService.InputBegan:Connect(function(input: InputObject, _gameProcessed: boolean)
+	UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
 		if current == nil then
 			return
 		end
 		local key = input.KeyCode
-		if key == Enum.KeyCode.Escape or key == Enum.KeyCode.ButtonB then
+		-- Backspace = keyboard "back" (Esc is mostly eaten by the Roblox menu); never while typing in the Codes box
+		local back = key == Enum.KeyCode.Escape
+			or key == Enum.KeyCode.ButtonB
+			or (key == Enum.KeyCode.Backspace and not gameProcessed)
+		if back then
 			MenuController.close()
 		end
+	end)
+	-- Esc / Android back open the Roblox menu instead of reaching InputBegan: close ours so it isn't left behind it
+	pcall(function()
+		GuiService.MenuOpened:Connect(function()
+			if current ~= nil then
+				MenuController.close()
+			end
+		end)
 	end)
 
 	-- Net.listen waits for the remote; never let that block the ticker below.

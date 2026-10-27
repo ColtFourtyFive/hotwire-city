@@ -17,6 +17,7 @@ return function(t)
 	local Rebirth = H.require("src/server/Systems/RebirthService")
 	local Shop = H.require("src/server/Systems/ShopService")
 	local EventService = H.require("src/server/Systems/EventService")
+	local Codes = H.require("src/server/Config/Codes")
 
 	local DAY = 20000
 
@@ -150,12 +151,65 @@ return function(t)
 		t.eq(#done4, 0, "unknown stat ignored")
 	end)
 
+	t.test("contracts: daily swap replaces an unfinished job with a new kind of job", function()
+		local r = H.Random.new(9)
+		local seen = {}
+		for _ = 1, 60 do
+			local list = {
+				{ id = "rob1", progress = 0, claimed = false },
+				{ id = "steal5", progress = 2, claimed = false },
+				{ id = "chop2", progress = 2, claimed = true },
+			}
+			local newId = Rewards._rerollContract(list, "rob1", r)
+			t.ok(newId ~= nil and byId[newId] ~= nil, "valid replacement")
+			t.eq(list[1].id, newId, "swapped in place")
+			t.eq(list[1].progress, 0, "progress reset")
+			t.eq(list[1].claimed, false, "not claimed")
+			local stat = byId[newId].stat
+			t.ok(stat ~= "playerSteal" and stat ~= "steal" and stat ~= "chop", "a stat nobody tracks yet: " .. stat)
+			t.eq(list[2].id, "steal5", "others untouched")
+			seen[newId] = true
+		end
+		t.ok(next(seen, next(seen)) ~= nil, "random picks vary")
+		local list = { { id = "chop2", progress = 2, claimed = true }, { id = "rob1", progress = 0, claimed = false } }
+		t.eq(Rewards._rerollContract(list, "chop2", r), nil, "finished contracts stay")
+		t.eq(Rewards._rerollContract(list, "hotdrop", r), nil, "not in today's list")
+		t.eq(Rewards._rerollContract(list, "nope", r), nil, "unknown id")
+		t.eq(list[1].id, "chop2", "unchanged")
+	end)
+
 	t.test("contracts/income rewards have a $500 floor", function()
 		t.eq(Rewards._contractReward(300, 0), 500, "zero income")
 		t.eq(Rewards._contractReward(300, 10), 3000, "300s x $10")
 		t.eq(Rewards._contractReward(300, 0 / 0), 500, "NaN income")
 		t.eq(Rewards._incomeMinutesReward(15, 0), 500, "zero income minutes")
 		t.eq(Rewards._incomeMinutesReward(15, 100), 90000, "15 min x $100/s")
+		t.eq(Rewards._incomeMinutesReward(5, 0, 750), 750, "entry floor (min) replaces the $500 default")
+		t.eq(Rewards._incomeMinutesReward(5, 100, 750), 30000, "income beats the floor")
+		t.eq(Rewards._incomeMinutesReward(5, 1, 0 / 0), 500, "junk min -> default floor")
+	end)
+
+	t.test("daily/codes/playtime: every incomeMinutes entry is well-formed", function()
+		local lists = { Economy.DAILY_REWARDS, Economy.PLAYTIME_REWARDS }
+		local codeList = {}
+		for _, def in Codes do
+			table.insert(codeList, def)
+		end
+		table.insert(lists, codeList)
+		for _, list in lists do
+			for _, r in list do
+				t.ok(r.kind == "cash" or r.kind == "incomeMinutes" or r.kind == "car", "kind " .. tostring(r.kind))
+				if r.kind == "incomeMinutes" then
+					t.ok(typeof(r.amount) == "number" and r.amount > 0, "minutes")
+					t.ok(r.min == nil or (typeof(r.min) == "number" and r.min >= 0), "min floor")
+				elseif r.kind == "car" then
+					t.ok(Rarity.Tiers[r.rarity] ~= nil, "car rarity " .. tostring(r.rarity))
+				end
+			end
+		end
+		t.eq(Economy.DAILY_REWARDS[4].kind, "car", "day 4 is a car")
+		t.eq(Economy.DAILY_REWARDS[7].kind, "car", "day 7 is a car")
+		t.eq(Economy.Codes, nil, "codes are not in the replicated Economy config")
 	end)
 
 	-- Playtime -------------------------------------------------------------------------------------------------------
@@ -178,6 +232,41 @@ return function(t)
 		)
 	end)
 
+	t.test("playtime: stored per UTC day, a new day starts a fresh ladder", function()
+		local pt = { day = DAY, seconds = 900, claimed = { ["1"] = true } }
+		local same = Rewards._playtimeFor(pt, DAY)
+		t.eq(same, pt, "today's table is reused (rejoin keeps progress)")
+		t.eq(same.seconds, 900, "seconds kept")
+		t.eq(same.claimed["1"], true, "claims kept")
+		local fresh = Rewards._playtimeFor(pt, DAY + 1)
+		t.eq(fresh.day, DAY + 1, "new day")
+		t.eq(fresh.seconds, 0, "seconds reset")
+		t.eq(next(fresh.claimed), nil, "claims reset")
+		local junk = Rewards._playtimeFor({ day = DAY, seconds = 0 / 0, claimed = "x" }, DAY)
+		t.eq(junk.seconds, 0, "NaN seconds")
+		t.eq(typeof(junk.claimed), "table", "claimed table")
+		t.eq(Rewards._playtimeFor({ day = DAY, seconds = 1e9, claimed = {} }, DAY).seconds, Rewards.PLAYTIME_DAY_CAP)
+		t.eq(Rewards._playtimeFor(nil, DAY).seconds, 0, "missing")
+	end)
+
+	t.test("referral: inviter rewards are capped per UTC day", function()
+		local cap = Rewards.REFERRAL_INVITER_DAILY_CAP
+		local state = nil
+		for i = 1, cap do
+			local ok, nextState = Rewards._referralAllowance(state, DAY, cap)
+			t.eq(ok, true, "invite " .. i)
+			t.eq(nextState.count, i, "count")
+			state = nextState
+		end
+		local okOver, over = Rewards._referralAllowance(state, DAY, cap)
+		t.eq(okOver, false, "over the cap")
+		t.eq(over.count, cap, "count unchanged")
+		local okNext, nextDay = Rewards._referralAllowance(state, DAY + 1, cap)
+		t.eq(okNext, true, "a new day resets the cap")
+		t.eq(nextDay.count, 1, "fresh count")
+		t.eq((Rewards._referralAllowance({ day = DAY, count = 0 / 0 }, DAY, cap)), true, "junk state")
+	end)
+
 	-- Codes ----------------------------------------------------------------------------------------------------------
 	t.test("codes: normalization is case + space insensitive and rejects junk", function()
 		t.eq(Rewards._normalizeCode("release"), "RELEASE", "lower")
@@ -189,7 +278,7 @@ return function(t)
 		t.eq(Rewards._normalizeCode(nil), nil, "nil")
 		t.eq(Rewards._normalizeCode("bad!code"), nil, "punctuation")
 		t.eq(Rewards._normalizeCode(string.rep("A", 200)), nil, "too long")
-		for code in Economy.Codes do
+		for code in Codes do
 			t.eq(Rewards._normalizeCode(string.lower(code)), code, "config code " .. code)
 		end
 	end)
@@ -246,11 +335,46 @@ return function(t)
 		return nonExclusive
 	end
 
-	t.test("rebirth: reset keeps only the best car (by income incl. mutation)", function()
+	-- the cars a reset should keep: top REBIRTH_KEEP_CARS non-exclusives by income (ties -> lowest slot)
+	local function expectedKept(garage)
+		local entries = {}
+		for key, rec in garage do
+			local def = Cars.get(rec.carId)
+			if def and def.rarity ~= "Exclusive" then
+				table.insert(
+					entries,
+					{ slot = tonumber(key), rec = rec, income = EconomyMath.carIncome(rec.carId, rec.mutation) }
+				)
+			end
+		end
+		table.sort(entries, function(a, b)
+			if a.income ~= b.income then
+				return a.income > b.income
+			end
+			return a.slot < b.slot
+		end)
+		local out = {}
+		for i = 1, math.min(Economy.REBIRTH_KEEP_CARS, #entries) do
+			table.insert(out, entries[i].rec)
+		end
+		return out
+	end
+
+	local function firstExclusive()
+		for _, def in Cars.List do
+			if def.rarity == "Exclusive" then
+				return def
+			end
+		end
+		return nil
+	end
+
+	t.test("rebirth: reset keeps the best REBIRTH_KEEP_CARS cars and pays out uncollected cash", function()
 		local sorted = bestCarIds()
 		local top, second = sorted[1], sorted[2]
 		local data = {
 			cash = 99999999,
+			totalEarned = 1000,
 			rebirths = 1,
 			slotsUnlocked = 8,
 			upgrades = { lock = 2, hotwire = 1, nitro = 0, armor = 3 },
@@ -259,24 +383,27 @@ return function(t)
 			garage = {
 				["1"] = { carId = "rustbucket", mutation = "None", uncollected = 50 },
 				["3"] = { carId = top.id, mutation = "None", uncollected = 999 },
-				["6"] = { carId = second.id, mutation = "Galaxy", uncollected = 5 },
+				["6"] = { carId = second.id, mutation = "Galaxy", uncollected = 5.7 },
 			},
 		}
-		local expectBest = if EconomyMath.carIncome(second.id, "Galaxy") > EconomyMath.carIncome(top.id, "None")
-			then second.id
-			else top.id
+		local expect = expectedKept(data.garage)
 		local kept = Rebirth._applyReset(data, Economy.START_SLOTS)
+		t.eq(Economy.REBIRTH_KEEP_CARS, 2, "DECISIONS: keep the best 2")
 		t.eq(data.rebirths, 2, "rebirths +1")
 		t.eq(data.cash, Economy.STARTING_CASH, "cash reset")
+		t.eq(data.totalEarned, 1000 + 50 + 999 + 5, "uncollected paid out (counts toward totalEarned)")
 		t.eq(data.slotsUnlocked, Economy.START_SLOTS, "slots reset")
-		t.eq(#kept, 1, "one car kept")
-		t.eq(data.garage["1"].carId, expectBest, "best car in slot 1")
-		t.eq(data.garage["1"].uncollected, 0, "uncollected cleared")
+		t.eq(#kept, Economy.REBIRTH_KEEP_CARS, "best N kept")
+		for i, rec in expect do
+			t.eq(data.garage[tostring(i)].carId, rec.carId, "kept car " .. i)
+			t.eq(data.garage[tostring(i)].mutation, rec.mutation, "kept mutation " .. i)
+			t.eq(data.garage[tostring(i)].uncollected, 0, "uncollected cleared " .. i)
+		end
 		local n = 0
 		for _ in data.garage do
 			n += 1
 		end
-		t.eq(n, 1, "garage has one car")
+		t.eq(n, Economy.REBIRTH_KEEP_CARS, "the rest is gone")
 		t.eq(data.upgrades.lock, 2, "upgrades kept")
 		t.eq(data.upgrades.armor, 3, "upgrades kept")
 		t.eq(data.tools.taser, true, "tools kept")
@@ -284,13 +411,19 @@ return function(t)
 	end)
 
 	t.test("rebirth: ties go to the lowest slot; empty garage keeps the starter", function()
-		local plan = Rebirth._plan({
+		local g = {
 			["4"] = { carId = "yellow_cab", mutation = "None", uncollected = 0 },
-			["2"] = { carId = "yellow_cab", mutation = "None", uncollected = 0 },
+			["2"] = { carId = "yellow_cab", mutation = "Gold", uncollected = 0 },
 			["9"] = { carId = "rustbucket", mutation = "None", uncollected = 0 },
-		})
-		t.eq(#plan, 1, "one kept")
-		t.eq(plan[1].carId, "yellow_cab", "best")
+			["7"] = { carId = "yellow_cab", mutation = "None", uncollected = 0 },
+		}
+		local plan = Rebirth._plan(g)
+		t.eq(#plan, 2, "two kept")
+		t.eq(plan[1].mutation, "Gold", "best first")
+		t.eq(plan[2].carId, "yellow_cab", "then the next best")
+		t.eq(plan[2].mutation, "None", "plain cab (the rustbucket earns less)")
+		t.eq(#Rebirth._plan(g, 1), 1, "keep override")
+		t.eq(Rebirth._plan(g, 1)[1].mutation, "Gold", "keep 1 = the best")
 		local empty = Rebirth._plan({})
 		t.eq(#empty, 1, "starter kept")
 		t.eq(empty[1].carId, Economy.STARTER_CAR, "starter car")
@@ -298,14 +431,8 @@ return function(t)
 		t.eq(junk[1].carId, Economy.STARTER_CAR, "unknown cars dropped")
 	end)
 
-	t.test("rebirth: Robux exclusives are never lost", function()
-		local exclusive
-		for _, def in Cars.List do
-			if def.rarity == "Exclusive" then
-				exclusive = def
-				break
-			end
-		end
+	t.test("rebirth: Robux exclusives are never lost and never count toward the keep limit", function()
+		local exclusive = firstExclusive()
 		if not exclusive then
 			return -- no exclusive cars configured
 		end
@@ -320,10 +447,9 @@ return function(t)
 				["5"] = { carId = exclusive.id, mutation = "None", uncollected = 0 },
 			},
 		}
-		-- the exclusive out-earns a Galaxy Rustbucket, so it is "the best car"; the 2nd exclusive is kept on top
 		local kept = Rebirth._applyReset(data, 1)
-		t.eq(#kept, 2, "best + the other exclusive kept")
-		t.eq(kept[1].carId, exclusive.id, "best first")
+		t.eq(#kept, 3, "the regular car + both exclusives")
+		t.eq(kept[1].carId, "rustbucket", "regular cars first (the exclusive doesn't take its spot)")
 		local inGarage = 0
 		for _ in data.garage do
 			inGarage += 1
@@ -334,7 +460,47 @@ return function(t)
 			t.ok(key:match("^([^#]+)") == exclusive.id, "pending key format")
 			pending += 1
 		end
-		t.eq(pending, 1, "overflow exclusive owed")
+		t.eq(pending, 2, "overflow exclusives owed")
+
+		-- 3 regular cars + 1 exclusive with room: best 2 regular + the exclusive
+		local data2 = {
+			cash = 1e12,
+			rebirths = 0,
+			exclusives = {},
+			garage = {
+				["1"] = { carId = "rustbucket", mutation = "None", uncollected = 0 },
+				["2"] = { carId = "yellow_cab", mutation = "None", uncollected = 0 },
+				["3"] = { carId = exclusive.id, mutation = "None", uncollected = 0 },
+				["4"] = { carId = "yellow_cab", mutation = "Gold", uncollected = 0 },
+			},
+		}
+		local kept2 = Rebirth._applyReset(data2, Economy.START_SLOTS)
+		t.eq(#kept2, Economy.REBIRTH_KEEP_CARS + 1, "exclusive on top of the limit")
+		t.eq(kept2[#kept2].carId, exclusive.id, "exclusive kept")
+		t.eq(next(data2.exclusives), nil, "nothing owed")
+		for _, rec in kept2 do
+			t.ok(rec.carId ~= "rustbucket", "the worst regular car is dropped")
+		end
+	end)
+
+	t.test("rebirth: uncollected total + kept label", function()
+		t.eq(
+			Rebirth._uncollectedTotal({
+				["1"] = { carId = "rustbucket", mutation = "None", uncollected = 10.6 },
+				["2"] = { carId = "rustbucket", mutation = "None", uncollected = 0 / 0 },
+				["3"] = { carId = "rustbucket", mutation = "None", uncollected = -5 },
+				["4"] = { carId = "rustbucket", mutation = "None", uncollected = math.huge },
+				["5"] = { carId = "rustbucket", mutation = "None", uncollected = 4.5 },
+			}),
+			15,
+			"junk ignored, floored"
+		)
+		t.eq(Rebirth._uncollectedTotal({}), 0)
+		local label = Rebirth._keptLabel({
+			{ carId = "yellow_cab", mutation = "Gold", uncollected = 0 },
+			{ carId = "rustbucket", mutation = "None", uncollected = 0 },
+		})
+		t.eq(label, "GOLD " .. Cars.get("yellow_cab").name .. " + " .. Cars.get("rustbucket").name)
 	end)
 
 	t.test("rebirth: affordability + multiplier labels", function()
@@ -393,6 +559,27 @@ return function(t)
 		t.eq(EventService._stack(0, 1000, 900), 1900, "fresh")
 		t.eq(EventService._stack(1500, 1000, 900), 2400, "stacks onto remaining")
 		t.eq(EventService._stack(900, 1000, 900), 1900, "expired timer restarts from now")
+	end)
+
+	t.test("events: fallback hot drop prompt rejects short, missing and stale holds", function()
+		local hold = Events.HOT_DROP_HOLD
+		t.eq(EventService._holdValid(nil, 100, hold), false, "no HoldBegan")
+		t.eq(EventService._holdValid(100, 100 + hold, hold), true, "full hold")
+		t.eq(EventService._holdValid(100, 100 + hold * 0.9, hold), true, "within tolerance")
+		t.eq(EventService._holdValid(100, 100 + hold * 0.5, hold), false, "too short")
+		t.eq(EventService._holdValid(100, 100 + hold / 0.9 + 1.4, hold), true, "a little slow")
+		t.eq(EventService._holdValid(100, 100 + hold + 60, hold), false, "stale arm (tap long ago)")
+	end)
+
+	t.test("events: landing spot push-out", function()
+		local center = Vector3.new(160, 0, 320)
+		local p = EventService._pushOut(center, Vector3.new(163, 5, 320), 14)
+		t.near(p.X, 174, 1e-6, "straight out along +X")
+		t.near(p.Z, 320, 1e-6)
+		t.eq(p.Y, 5, "height kept")
+		local q = EventService._pushOut(center, Vector3.new(160, 2, 320), 14, H.Random.new(3))
+		local flat = Vector3.new(q.X - center.X, 0, q.Z - center.Z).Magnitude
+		t.near(flat, 14, 1e-6, "dead center -> random direction at the radius")
 	end)
 
 	t.test("events: cash bag value", function()
@@ -581,9 +768,10 @@ return function(t)
 		end,
 	}
 	local slotStates = {}
+	local fakeIncome = 10
 	local fakeGarage = {
 		incomePerSec = function()
-			return 10
+			return fakeIncome
 		end,
 		getSlotState = function(_p, slot)
 			return slotStates[slot] or "Parked"
@@ -632,7 +820,8 @@ return function(t)
 		t.eq(ok, true, "claimed")
 		t.eq(data.daily.streak, 3, "streak 3")
 		t.eq(data.daily.lastClaimDay, today, "last claim today")
-		t.eq(cashLog[1].amount, Economy.DAILY_REWARDS[3].amount, "day 3 cash")
+		local r3 = Economy.DAILY_REWARDS[3]
+		t.eq(cashLog[1].amount, Rewards._incomeMinutesReward(r3.amount, 10, r3.min), "day 3 reward")
 		t.eq(cashLog[1].reason, "daily", "reason")
 		local again = Rewards.claimDaily(player)
 		t.eq(again, false, "second claim refused")
@@ -642,11 +831,20 @@ return function(t)
 		t.eq(view.nextDay, 4, "view: tomorrow is day 4")
 	end)
 
-	t.test("flow: incomeMinutes daily reward scales with income", function()
+	t.test("flow: incomeMinutes daily reward scales with income, floored by its min", function()
+		local r5 = Economy.DAILY_REWARDS[5]
+		t.eq(r5.kind, "incomeMinutes", "day 5 is income minutes")
 		data = freshData()
-		data.daily = { streak = 3, lastClaimDay = today - 1 } -- next is day 4 = incomeMinutes 15
+		data.daily = { streak = 4, lastClaimDay = today - 1 } -- next is day 5
+		fakeIncome = 1
 		Rewards.claimDaily(player)
-		t.eq(cashLog[1].amount, 15 * 60 * 10, "15 min x $10/s")
+		t.eq(cashLog[1].amount, r5.min, "poor player gets the floor")
+		data = freshData()
+		data.daily = { streak = 4, lastClaimDay = today - 1 }
+		fakeIncome = 1000
+		Rewards.claimDaily(player)
+		t.eq(cashLog[1].amount, r5.amount * 60 * 1000, "minutes x income")
+		fakeIncome = 10
 	end)
 
 	t.test("flow: day-7 car reward goes into the garage", function()
@@ -683,7 +881,11 @@ return function(t)
 		data = freshData()
 		local ok = Rewards.redeemCode(player, "  release ")
 		t.eq(ok, true, "redeemed")
-		t.eq(cashLog[1].amount, Economy.Codes.RELEASE.amount, "code cash")
+		t.eq(
+			cashLog[1].amount,
+			Rewards._incomeMinutesReward(Codes.RELEASE.amount, 10, Codes.RELEASE.min),
+			"code reward (income minutes)"
+		)
 		t.eq(data.codes.RELEASE, true, "remembered")
 		local ok2, why = Rewards.redeemCode(player, "RELEASE")
 		t.eq(ok2, false, "second use refused")
@@ -714,7 +916,7 @@ return function(t)
 		t.eq(#cashLog, 1, "junk progress ignored")
 	end)
 
-	t.test("flow: playtime gift needs the session minutes", function()
+	t.test("flow: playtime gift needs today's minutes (stored across sessions)", function()
 		data = freshData()
 		local ok, why = Rewards.claimPlaytime(player, 1)
 		t.eq(ok, false, "too early in a fresh session")
@@ -722,12 +924,54 @@ return function(t)
 		local view = Rewards.getPlaytimeView(player)
 		t.eq(next(view.claimed), nil, "nothing claimed")
 		t.ok(view.sessionSeconds >= 0, "session seconds")
+
+		-- minutes banked earlier today (another session) count after a rejoin
+		local first = Economy.PLAYTIME_REWARDS[1]
+		data.playtime = { day = today, seconds = first.minutes * 60, claimed = {} }
+		local ok2 = Rewards.claimPlaytime(player, 1)
+		t.eq(ok2, true, "claimable with stored seconds")
+		t.eq(data.playtime.claimed["1"], true, "claim persisted in data.playtime")
+		t.eq(cashLog[1].amount, Rewards._incomeMinutesReward(first.amount, 10, first.min), "gift amount")
+		local ok3, why3 = Rewards.claimPlaytime(player, 1)
+		t.eq(ok3, false, "once per day")
+		t.eq(why3, "claimed", "reason claimed")
+		local view2 = Rewards.getPlaytimeView(player)
+		t.eq(view2.claimed["1"], true, "view shows the claim")
+		t.ok(view2.sessionSeconds >= first.minutes * 60, "view shows today's seconds")
+
+		-- yesterday's seconds don't count today
+		data.playtime = { day = today - 1, seconds = 999999, claimed = { ["2"] = true } }
+		local ok4, why4 = Rewards.claimPlaytime(player, 1)
+		t.eq(ok4, false, "new day, new ladder")
+		t.eq(why4, "early", "reason")
+		t.eq(data.playtime.day, today, "rolled over to today")
+		t.eq(data.playtime.claimed["2"], nil, "yesterday's claims cleared")
+	end)
+
+	t.test("flow: one free contract swap per day", function()
+		data = freshData()
+		local view = Rewards.getContractsView(player)
+		t.eq(view.rerolled, false, "swap available")
+		local oldId = view.list[1].id
+		local okBad, whyBad = Rewards.rerollContract(player, "nope")
+		t.eq(okBad, false, "unknown id")
+		t.eq(whyBad, "invalid")
+		local ok, newId = Rewards.rerollContract(player, oldId)
+		t.eq(ok, true, "swapped")
+		t.ok(newId ~= oldId, "a different contract")
+		t.eq(data.contracts.list[1].id, newId, "stored")
+		t.eq(data.contracts.rerolled, true, "flag set")
+		t.eq(Rewards.getContractsView(player).rerolled, true, "view flag")
+		local ok2, why2 = Rewards.rerollContract(player, data.contracts.list[2].id)
+		t.eq(ok2, false, "only once a day")
+		t.eq(why2, "used")
 	end)
 
 	t.test("flow: rebirth resets the garage through GarageService", function()
 		data = freshData()
 		data.cash = EconomyMath.rebirthCost(0)
 		data.upgrades.hotwire = 2
+		data.garage["3"] = { carId = "rustbucket", mutation = "None", uncollected = 7 }
 		slotStates = {}
 		local ok = Rebirth.rebirth(player)
 		t.eq(ok, true, "rebirthed")
@@ -735,7 +979,10 @@ return function(t)
 		t.eq(data.cash, Economy.STARTING_CASH, "cash reset")
 		t.eq(data.slotsUnlocked, Economy.START_SLOTS, "slots reset")
 		t.eq(data.garage["1"].carId, "yellow_cab", "best car (Gold cab) kept in slot 1")
-		t.eq(data.garage["2"], nil, "others gone")
+		t.eq(data.garage["2"].carId, "rustbucket", "2nd best kept (ties -> lowest slot)")
+		t.eq(data.garage["3"], nil, "others gone")
+		t.eq(cashLog[1].amount, 10 + 7, "uncollected garage cash paid out first")
+		t.eq(cashLog[1].reason, "rebirth", "payout reason")
 		t.eq(data.upgrades.hotwire, 2, "upgrades kept")
 		t.eq(player:GetAttribute("Rebirths"), 1, "attribute")
 		t.ok(#sentNamed("Announce") > 0, "announced")

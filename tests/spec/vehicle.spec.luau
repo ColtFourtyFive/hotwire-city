@@ -6,6 +6,7 @@ return function(t)
 	local Tuning = H.require("src/shared/Config/Vehicle")
 	local Cars = H.require("src/shared/Config/Cars")
 	local Economy = H.require("src/shared/Config/Economy")
+	local Map = H.require("src/shared/Config/Map")
 	local M = VC.math
 	local Vector3 = H.roblox.Vector3
 	local CFrame = H.roblox.CFrame
@@ -14,8 +15,10 @@ return function(t)
 
 	-- Vertical-only simulation of a car on flat ground: zero-order-hold forces per frame (like VectorForce updated in
 	-- PreSimulation), integrated at 240 Hz inside the frame (like the physics solver). Returns final y, vy, max |y|.
-	local function simulateVertical(frameDt: number, seconds: number, y0: number, wheelRadius: number)
+	-- lowFps = true evaluates the spring like the controller does (softened above VC.SPRING_HOLD_DT, F13).
+	local function simulateVertical(frameDt: number, seconds: number, y0: number, wheelRadius: number, lowFps: boolean?)
 		local sc = M.staticCompression(G, Tuning.SPRING_K, Tuning.DOWNFORCE_BASE_G)
+		local s = if lowFps then M.lowFpsScale(frameDt, VC.SPRING_HOLD_DT) else 1
 		local mount = M.mountOffset(Tuning.SUSPENSION_REST, sc, VC.RIDE_LIFT)
 		local L = M.rayLength(Tuning.SUSPENSION_REST, wheelRadius)
 		local y, vy = y0, 0
@@ -28,7 +31,7 @@ return function(t)
 			local a = -G
 			if d <= L then
 				local comp = L - d
-				a += 4 * M.suspensionAccel(comp, -vy, Tuning.SPRING_K, Tuning.SPRING_C, maxA)
+				a += 4 * M.suspensionAccel(comp, -vy, Tuning.SPRING_K, Tuning.SPRING_C, maxA, sc, s)
 				a -= M.downforce(G, 0)
 			end
 			local substeps = math.max(1, math.floor(frameDt * 240 + 0.5))
@@ -262,9 +265,9 @@ return function(t)
 		return model, chassis
 	end
 
-	t.test("new() creates the movers, destroy() removes them", function()
+	t.test("client new() creates the VectorForce movers, destroy() removes them", function()
 		local model, chassis = fakeCar(true)
-		local c = VC.new(model, Cars.get("rustbucket"), { isServer = true, nitroSeconds = 3.5 })
+		local c = VC.new(model, Cars.get("rustbucket"), { isServer = false, nitroSeconds = 3.5 })
 		for _, n in { "FL", "FR", "RL", "RR" } do
 			local f = chassis:FindFirstChild("Suspension_" .. n)
 			t.ok(f and f:IsA("VectorForce"), "suspension " .. n)
@@ -291,6 +294,89 @@ return function(t)
 		t.ok(chassis:FindFirstChild("Suspension_FL") == nil, "suspension removed")
 		t.ok(chassis:FindFirstChild("WheelFL") ~= nil, "CarBuilder attachments kept")
 		c:step(1 / 60) -- no-op after destroy
+		model:Destroy()
+	end)
+
+	-- PERF-01: a server write to VectorForce.Force replicates to every client every frame, so server controllers
+	-- (police, settling cars) create no VectorForces and apply the same forces as impulses.
+	t.test("server new() creates no VectorForces; impulses carry force * frame dt", function()
+		local model, chassis = fakeCar(true)
+		local c = VC.new(model, Cars.Police, { isServer = true })
+		for _, d in chassis:GetDescendants() do
+			t.ok(not d:IsA("VectorForce"), "no replicated VectorForce on the server: " .. d.Name)
+		end
+		t.ok(chassis:FindFirstChild("DriveAttachment") == nil, "no drive attachment")
+		local upright = chassis:FindFirstChild("Upright")
+		t.ok(
+			upright and upright:IsA("AlignOrientation") and not upright.Enabled,
+			"upright kept (toggled on change only)"
+		)
+		t.eq(c.drive, nil, "no drive mover")
+		for _, w in c.wheels do
+			t.eq(w.force, nil, "no wheel mover " .. w.name)
+		end
+		-- _applyServerImpulses: wheel impulses at the hubs, drive at the COM, buffers cleared for the next frame
+		local calls = {}
+		local recorder = {
+			ApplyImpulseAtPosition = function(_, impulse, at)
+				table.insert(calls, { "at", impulse, at })
+			end,
+			ApplyImpulse = function(_, impulse)
+				table.insert(calls, { "com", impulse })
+			end,
+		}
+		local realChassis = c.chassis
+		c.chassis = recorder
+		local hub = Vector3.new(2.8, -1, -4)
+		c._wheelForce[2] = Vector3.new(0, 600, 0)
+		c._wheelAt[2] = hub
+		c._driveForce = Vector3.new(0, 0, -1200)
+		c:_applyServerImpulses(1 / 30)
+		c.chassis = realChassis
+		t.eq(#calls, 2, "one wheel impulse + the drive impulse (zero forces skipped)")
+		t.eq(calls[1][1], "at", "wheel impulse at a position")
+		t.near((calls[1][2] - Vector3.new(0, 20, 0)).Magnitude, 0, 1e-4, "wheel impulse = force * dt")
+		t.near((calls[1][3] - hub).Magnitude, 0, 1e-4, "applied at the hub")
+		t.eq(calls[2][1], "com", "drive impulse at the COM")
+		t.near((calls[2][2] - Vector3.new(0, 0, -40)).Magnitude, 0, 1e-4, "drive impulse = force * dt")
+		t.eq(c._wheelForce[2], Vector3.zero, "wheel buffer cleared")
+		t.eq(c._driveForce, Vector3.zero, "drive buffer cleared")
+		c:destroy()
+		t.ok(chassis:FindFirstChild("Upright") == nil, "upright removed")
+		model:Destroy()
+	end)
+
+	-- F1: the balls ride below the curb, so they must not collide while a controller holds the car up.
+	t.test("bump stops are non-collidable while a controller runs and restored on destroy", function()
+		local model, chassis = fakeCar(true)
+		local stops = {}
+		for _, z in { -4, 4 } do
+			local stop = Instance.new("Part")
+			stop.Name = VC.BUMP_STOP_NAME
+			stop.Size = Vector3.new(1, 1, 1)
+			stop.CFrame = chassis.CFrame * CFrame.new(0, -1.75, z)
+			stop.CanCollide = true
+			stop.Parent = model
+			table.insert(stops, stop)
+		end
+		local c = VC.new(model, Cars.get("rustbucket"), { isServer = false })
+		for _, stop in stops do
+			t.eq(stop.CanCollide, false, "bump stop off while driving")
+		end
+		-- something else (e.g. a replicated server change) turns one back on: the next attribute poll catches it
+		stops[1].CanCollide = true
+		c:_pollAttributes()
+		t.eq(stops[1].CanCollide, false, "re-disabled on poll")
+		c:destroy()
+		for _, stop in stops do
+			t.eq(stop.CanCollide, true, "bump stop restored")
+		end
+		-- a stop that was already non-collidable is left alone
+		stops[2].CanCollide = false
+		local c2 = VC.new(model, Cars.get("rustbucket"), { isServer = true })
+		c2:destroy()
+		t.eq(stops[1].CanCollide, true, "restored")
+		t.eq(stops[2].CanCollide, false, "not ours: untouched")
 		model:Destroy()
 	end)
 
@@ -332,22 +418,132 @@ return function(t)
 			-- chassis must clear the 0.6 curb at ride height or cars bump instead of climbing
 			local bottom = chassisY - chassis.Size.Y / 2 + VC.RIDE_LIFT
 			t.ok(bottom > 0.6, def.id .. " chassis bottom clears curbs: " .. bottom)
+			-- the bump stops ride below the curb even with the lift: that's why a controller disables them (F1)
+			local stops = {}
+			for _, child in model:GetChildren() do
+				if child.Name == VC.BUMP_STOP_NAME and child:IsA("BasePart") then
+					table.insert(stops, child)
+					local stopBottom = child.CFrame.Position.Y - child.Size.Y / 2 + VC.RIDE_LIFT
+					t.ok(stopBottom < Map.CURB_HEIGHT, def.id .. " bump stop rides below the curb: " .. stopBottom)
+				end
+			end
+			t.eq(#stops, 2, def.id .. " two bump stops")
 			local c = VC.new(model, def, { isServer = true })
 			t.ok(chassis:FindFirstChild("WheelFL_Fallback") == nil, def.id .. " no fallback attachments")
+			for _, stop in stops do
+				t.eq(stop.CanCollide, false, def.id .. " bump stop off under a controller")
+			end
 			c:destroy()
+			for _, stop in stops do
+				t.eq(stop.CanCollide, true, def.id .. " bump stop back on")
+			end
 			model:Destroy()
 		end
 	end)
 
 	t.test("foreign movers are suppressed and restored", function()
 		local model, chassis = fakeCar(true)
-		local a = VC.new(model, Cars.get("rustbucket"), { isServer = true })
+		local a = VC.new(model, Cars.get("rustbucket"), { isServer = false })
 		local foreignDrive = chassis:FindFirstChild("Drive")
 		local b = VC.new(model, Cars.get("rustbucket"), { isServer = false })
 		t.eq(foreignDrive.Enabled, false, "other controller's drive disabled locally")
 		b:destroy()
 		t.eq(foreignDrive.Enabled, true, "restored")
 		a:destroy()
+		-- a server controller's Upright replicates to the driver: suppressed while it is enabled
+		local server = VC.new(model, Cars.Police, { isServer = true })
+		local serverUpright = chassis:FindFirstChild("Upright")
+		serverUpright.Enabled = true
+		local driver = VC.new(model, Cars.Police, { isServer = false })
+		t.eq(serverUpright.Enabled, false, "server upright disabled in the driver's simulation")
+		driver:destroy()
+		t.eq(serverUpright.Enabled, true, "restored")
+		server:destroy()
 		model:Destroy()
+	end)
+
+	t.test("low FPS: the held spring is softened only below 15 FPS and then stays stable (F13)", function()
+		t.eq(M.lowFpsScale(1 / 60, VC.SPRING_HOLD_DT), 1, "60 FPS untouched")
+		t.eq(M.lowFpsScale(1 / 20, VC.SPRING_HOLD_DT), 1, "20 FPS untouched")
+		t.eq(M.lowFpsScale(0 / 0, VC.SPRING_HOLD_DT), 1, "NaN frame time")
+		t.near(M.lowFpsScale(1 / 5, 1 / 15), 1 / 3, 1e-9, "5 FPS scale")
+		local sc = M.staticCompression(G, Tuning.SPRING_K, Tuning.DOWNFORCE_BASE_G)
+		local maxA = Tuning.MAX_SUSPENSION_ACCEL_G * G
+		t.near(
+			M.suspensionAccel(sc, 0, Tuning.SPRING_K, Tuning.SPRING_C, maxA, sc, 0.3),
+			Tuning.SPRING_K * sc,
+			1e-9,
+			"static load carried unchanged"
+		)
+		t.eq(
+			M.suspensionAccel(0.5, 1, Tuning.SPRING_K, Tuning.SPRING_C, maxA, sc, 1),
+			M.suspensionAccel(0.5, 1, Tuning.SPRING_K, Tuning.SPRING_C, maxA),
+			"scale 1 = plain spring"
+		)
+		-- the plain held spring diverges at 8 FPS (the car hops, then launches) ...
+		local _, _, plainMax = simulateVertical(1 / 8, 10, 0.3, 1.2)
+		t.ok(plainMax > 4, "plain spring is unstable at 8 FPS: " .. plainMax)
+		-- ... the softened one settles at the same ride height
+		for _, frameDt in { 1 / 8, 1 / 6, 1 / 4 } do
+			for _, y0 in { 0.3, -0.4 } do
+				local y, vy, maxAbs = simulateVertical(frameDt, 12, y0, 1.2, true)
+				t.near(y, VC.RIDE_LIFT, 0.02, ("low-FPS settle (dt=%.3f y0=%.1f)"):format(frameDt, y0))
+				t.ok(math.abs(vy) < 0.05, "settled velocity " .. vy)
+				t.ok(maxAbs < 1, "bounded motion " .. maxAbs)
+			end
+		end
+		-- and nothing changes at 15+ FPS
+		for _, frameDt in { 1 / 60, 1 / 30, 1 / 15 } do
+			local y1 = simulateVertical(frameDt, 2, 0.6, 1.2)
+			local y2 = simulateVertical(frameDt, 2, 0.6, 1.2, true)
+			t.eq(y1, y2, "identical ride at dt=" .. frameDt)
+		end
+	end)
+
+	t.test("drift test shared with observers", function()
+		t.ok(M.isDrifting(40, 20, true), "fast + sliding + grounded")
+		t.ok(not M.isDrifting(40, 20, false), "airborne")
+		t.ok(not M.isDrifting(5, 20, true), "too slow forward")
+		t.ok(not M.isDrifting(40, Tuning.DRIFT_SLIP_SPEED - 1, true), "below slip threshold")
+		local WA = H.require("src/client/Controllers/WheelAnimator")
+		local cf = CFrame.new() -- facing -Z, right = +X
+		t.ok(WA.observedDrift(cf, Vector3.new(20, 0, -40)), "observer sees the slide")
+		t.ok(not WA.observedDrift(cf, Vector3.new(2, 0, -40)), "straight line")
+		t.ok(not WA.observedDrift(cf, Vector3.new(20, -30, -40)), "falling = airborne")
+		t.ok(not WA.observedDrift(CFrame.Angles(0, 0, math.rad(80)), Vector3.new(20, 0, -40)), "on its side")
+	end)
+
+	t.test("WheelAnimator budget helpers (PERF-07, F10, PERF-13)", function()
+		local WA = H.require("src/client/Controllers/WheelAnimator")
+		t.ok(WA.isLowTier(true, false, false), "phone")
+		t.ok(not WA.isLowTier(true, true, false), "touch laptop")
+		t.ok(not WA.isLowTier(true, false, true), "tablet with mouse")
+		t.ok(not WA.isLowTier(false, true, true), "desktop")
+		local tier = WA.LOW_TIER
+		t.ok(tier.HOT_COUNT < WA.HOT_COUNT and tier.RANGE < WA.RANGE and tier.BOB_RANGE < WA.BOB_RANGE, "smaller")
+		local camPos, look = Vector3.zero, Vector3.new(0, 0, -1)
+		t.ok(not WA.behindCamera(Vector3.new(0, 0, -50), camPos, look, 12), "ahead")
+		t.ok(not WA.behindCamera(Vector3.new(40, 0, 5), camPos, look, 12), "beside, within the margin")
+		t.ok(WA.behindCamera(Vector3.new(0, 0, 30), camPos, look, 12), "behind")
+		t.ok(WA.enteredBobRange(math.huge, 100, 140), "first seen in range")
+		t.ok(WA.enteredBobRange(200, 139, 140), "walked into range: re-pose the settled car")
+		t.ok(not WA.enteredBobRange(100, 90, 140), "already in range")
+		t.ok(not WA.enteredBobRange(200, 180, 140), "still far")
+		local ok, CarBuilder = pcall(H.require, "src/shared/Vehicle/CarBuilder")
+		if ok then
+			t.eq(WA.SPARKLES_NAME, CarBuilder.SPARKLES_NAME, "sparkles emitter name matches CarBuilder")
+		end
+	end)
+
+	t.test("VehicleClient: phone text boost (UI-PHONE-TEXT-TOO-SMALL)", function()
+		H.setMode("client")
+		local ok, VClient = pcall(H.require, "src/client/Controllers/VehicleClient")
+		H.setMode("server")
+		t.ok(ok, "VehicleClient loads headlessly: " .. tostring(VClient))
+		t.eq(VClient.textBoost(false, 0.55, 0.72), 1, "no boost without touch")
+		t.near(VClient.textBoost(true, 0.55, 0.72), 0.72 / 0.55, 1e-9, "phone at the 0.55 floor")
+		t.eq(VClient.textBoost(true, 0.8, 0.72), 1, "tablet already large enough")
+		t.eq(VClient.textBoost(true, 0.3, 0.72), 1.4, "capped")
+		t.eq(VClient.textBoost(true, 0 / 0, 0.72), 1, "NaN scale")
 	end)
 end

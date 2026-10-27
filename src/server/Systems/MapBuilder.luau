@@ -11,7 +11,7 @@
 --   Map/Buildings  one Model per building, tag "AssetSlot" (Category="Buildings", Role="building_<class>", Fit,
 --                  Footprint) so a later MapDresser can swap in art.
 --   Map/POIs       SpawnPlaza, Dealership, PoliceHQ, GearShop, SprayShopA/B, ChopShop, StuntPark, Park, Pier
---   Map/Props      street lights (lamp parts tagged "StreetLight"; every other one holds a PointLight), palm /
+--   Map/Props      street lights (lamp parts tagged "StreetLight"; every third one holds a PointLight), palm /
 --                  round trees (Models tagged "AssetSlot", Category="Props"), hydrants, benches
 --   Map/Beach      promenade, sand, slopes, corner dunes, umbrellas, lifeguard towers
 --   Map/Boundary   invisible collidable walls at ±BOUNDARY
@@ -578,10 +578,12 @@ local function streetLight(ctx: Ctx, ground: Vector3, outward: Vector3)
 	)
 	nightGlow(lamp, C.lampNight)
 	tag(lamp, MapBuilder.TAG_STREET_LIGHT)
-	if ctx.lightIndex % 2 == 0 then
+	-- PERF: a light on every third lamp only, short range (the Neon lamp heads carry the night look; ~200 overlapping
+	-- Range-48 lights cost mobile GPUs during the night segment)
+	if ctx.lightIndex % 3 == 0 then
 		local light = Instance.new("PointLight")
 		light.Name = "Light"
-		light.Range = 48
+		light.Range = 32
 		light.Brightness = 1.6
 		light.Color = rgb(255, 210, 150)
 		light.Shadows = false
@@ -1445,16 +1447,7 @@ local function buildDealership(_ctx: Ctx, f: Folder, o: Vector3)
 			glow = C.pink,
 		}
 	)
-	-- restock countdown board on the inside of the back glass wall (DealershipService draws on it)
-	local restock = part(
-		f,
-		"RestockBoard",
-		Vector3.new(18, 6, 0.6),
-		facing(Vector3.new(o.X, o.Y + 11, o.Z + 45.2), Vector3.new(0, 0, -1)),
-		rgb(20, 22, 40)
-	)
-	restock:SetAttribute("Face", "Front")
-	tag(restock, "DealerRestockBoard")
+	-- (no restock board here: DealershipService builds and draws its own countdown sign in front of the back glass)
 end
 
 local function buildPoliceHQ(_ctx: Ctx, f: Folder, o: Vector3)

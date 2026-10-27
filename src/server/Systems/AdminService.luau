@@ -464,7 +464,8 @@ command("rebirth", "rebirth", function(player, _args)
 	if data.cash < cost then
 		DataService.addCash(player, cost - data.cash, "admin")
 	end
-	local ok, used, found = callFirst("RebirthService", { "rebirth", "doRebirth", "performRebirth", "forceRebirth" }, player)
+	local ok, used, found =
+		callFirst("RebirthService", { "rebirth", "doRebirth", "performRebirth", "forceRebirth" }, player)
 	if ok then
 		return true, "Rebirthed via " .. used
 	elseif found then

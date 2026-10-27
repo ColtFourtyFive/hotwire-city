@@ -17,6 +17,7 @@
 --     progress(player, stat, amount) is called by every system (the single entry point); completed contracts
 --     auto-claim with cash (max($500, reward seconds of income)) + Notify + Sound. "driftSeconds"/"topSpeedHit"
 --     are derived here by sampling the player's car unless some system reports them explicitly.
+--     One free swap per UTC day (rerollContract; RerollContract remote, registered once Shared.Remotes lists it).
 --   * Group / friends - isInGroup(player) and friendsInServer(player) are cached (never yield) for the multiplier.
 --   * Referral - GetJoinData().ReferredByPlayerId: the invitee gets a random REFERRAL_REWARD_RARITY car once per
 --     account. The inviter (if in this server) gets one after the invitee has played REFERRAL_INVITER_MIN_SECONDS,
@@ -34,10 +35,13 @@ local MapLayout = require(Shared.Util.MapLayout)
 local Net = require(Shared.Net)
 local Rarity = require(Shared.Config.Rarity)
 local Rolls = require(Shared.Util.Rolls)
+local Remotes = require(Shared.Remotes)
 local VehicleConfig = require(Shared.Config.Vehicle)
 
 -- server-only (ServerScriptService.Server.Config.Codes); never in ReplicatedStorage
 local Codes = require(script.Parent.Parent.Config.Codes)
+
+local REROLL_REMOTE = "RerollContract" -- (contractId: string) daily free contract swap
 
 local RewardsService = {}
 
@@ -197,6 +201,45 @@ function RewardsService._rollContracts(userId: number, day: number): { string }
 	return out
 end
 
+-- Daily free reroll (pure): swaps the unclaimed contract `contractId` in `list` (in place) for a random pool contract
+-- of a stat nobody in the list tracks yet (so a dead "rob a player" job never comes back as another social job of the
+-- same kind), progress reset. Returns the new id, or nil when the id isn't in the list, is already done, or nothing
+-- is left to swap in.
+function RewardsService._rerollContract(
+	list: { { id: string, progress: number, claimed: boolean } },
+	contractId: string,
+	r: Random
+): string?
+	local target: { id: string, progress: number, claimed: boolean }? = nil
+	local usedStats: { [string]: boolean } = {}
+	for _, c in list do
+		local def = contractById[c.id]
+		if def then
+			usedStats[def.stat] = true
+		end
+		if c.id == contractId and not c.claimed and target == nil then
+			target = c
+		end
+	end
+	if not target then
+		return nil
+	end
+	local choices: { Economy.ContractDef } = {}
+	for _, def in Economy.Contracts do
+		if not usedStats[def.stat] then
+			table.insert(choices, def)
+		end
+	end
+	if #choices == 0 then
+		return nil
+	end
+	local pick = choices[r:NextInteger(1, #choices)]
+	target.id = pick.id
+	target.progress = 0
+	target.claimed = false
+	return pick.id
+end
+
 function RewardsService._contractReward(rewardSeconds: number, incomePerSec: number): number
 	local income = if finite(incomePerSec) then math.max(0, incomePerSec) else 0
 	return math.max(RewardsService.MIN_CONTRACT_REWARD, math.floor(rewardSeconds * income))
@@ -210,7 +253,11 @@ function RewardsService._incomeMinutesReward(minutes: number, incomePerSec: numb
 end
 
 -- Inviter referral cap (pure): (canPay, newState). state = data.referralsPaid ({ day, count }) or nil.
-function RewardsService._referralAllowance(state: any, day: number, cap: number): (boolean, { day: number, count: number })
+function RewardsService._referralAllowance(
+	state: any,
+	day: number,
+	cap: number
+): (boolean, { day: number, count: number })
 	local count = 0
 	if typeof(state) == "table" and state.day == day and finite(state.count) then
 		count = math.max(0, math.floor(state.count))
@@ -569,10 +616,11 @@ function RewardsService.getPlaytimeView(player: Player): { claimed: { [string]: 
 	return { claimed = table.clone(pt.claimed), sessionSeconds = math.floor(pt.seconds) }
 end
 
-function RewardsService.getContractsView(player: Player): { day: number, list: { any } }
+-- rerolled = today's free contract swap is used up (the client hides its SWAP buttons).
+function RewardsService.getContractsView(player: Player): { day: number, list: { any }, rerolled: boolean }
 	local data = getData(player)
 	if not data then
-		return { day = 0, list = {} }
+		return { day = 0, list = {}, rerolled = false }
 	end
 	ensureContracts(player, data) -- snapshot is being built right now; no markDirty needed
 	local list = {}
@@ -581,7 +629,32 @@ function RewardsService.getContractsView(player: Player): { day: number, list: {
 			table.insert(list, { id = c.id, progress = c.progress, claimed = c.claimed })
 		end
 	end
-	return { day = data.contracts.day, list = list }
+	return { day = data.contracts.day, list = list, rerolled = data.contracts.rerolled == true }
+end
+
+-- One free swap per UTC day: replaces an unfinished contract (e.g. a social one nobody in this server can help with)
+-- with a different kind of job. The flag lives in today's data.contracts, so a new day's roll resets it.
+function RewardsService.rerollContract(player: Player, contractId: any): (boolean, string?)
+	local data = getData(player)
+	if not data then
+		return false, "loading"
+	end
+	if typeof(contractId) ~= "string" or not contractById[contractId] then
+		return false, "invalid"
+	end
+	ensureContracts(player, data)
+	if data.contracts.rerolled == true then
+		notify(player, "error", "You already swapped a contract today! 🎲")
+		return false, "used"
+	end
+	local newId = RewardsService._rerollContract(data.contracts.list, contractId, rng)
+	if not newId then
+		return false, "invalid"
+	end
+	data.contracts.rerolled = true
+	markDirty(player)
+	notify(player, "info", `🎲 New contract: {contractById[newId].text}`, 4)
+	return true, newId
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -1004,6 +1077,15 @@ function RewardsService.init()
 		end
 		RewardsService.redeemCode(player, code)
 	end, 1)
+	-- the contract swap remote is optional (registered only once it is listed in Shared.Remotes)
+	if table.find(Remotes.ClientToServer, REROLL_REMOTE) then
+		Net.on(REROLL_REMOTE, function(player: Player, contractId: any)
+			if not Net.isString(contractId, 32) then
+				return
+			end
+			RewardsService.rerollContract(player, contractId)
+		end, 1)
+	end
 
 	local DataService = sys("DataService")
 	if DataService and DataService.Loaded then

@@ -164,6 +164,45 @@ return function(t)
 		t.eq(d.deep.nested.value, 0, "deep inf scrubbed")
 	end)
 
+	t.test("sanitize: per-day playtime, contract swap flag, referral cap", function()
+		local d = DataService._prepare(nil, NOW)
+		t.eq(d.playtime.day, 0, "template playtime day")
+		t.eq(d.playtime.seconds, 0, "template playtime seconds")
+		t.eq(next(d.playtime.claimed), nil, "template playtime claims")
+		t.eq(d.contracts.rerolled, nil, "no swap flag by default")
+		t.eq(d.referralsPaid, nil, "no referral state by default")
+
+		local raw = DataService._template()
+		raw.playtime = {
+			day = 20000,
+			seconds = 1e9,
+			claimed = { ["1"] = true, ["2"] = "yes", ["99"] = true, ["1.5"] = true, x = true },
+		}
+		raw.contracts = { day = 20000, list = { { id = "steal5", progress = 1, claimed = false } }, rerolled = true }
+		raw.referralsPaid = { day = 20000.7, count = -2 }
+		local s = DataService._prepare(raw, NOW)
+		t.eq(s.playtime.day, 20000)
+		t.eq(s.playtime.seconds, 86400, "seconds capped at a day")
+		t.eq(s.playtime.claimed["1"], true, "valid claim kept")
+		t.eq(s.playtime.claimed["2"], nil, "non-true claim dropped")
+		t.eq(s.playtime.claimed["99"], nil, "out-of-range index dropped")
+		t.eq(s.playtime.claimed["1.5"], nil, "fractional index dropped")
+		t.eq(s.playtime.claimed.x, nil, "junk key dropped")
+		t.eq(s.contracts.rerolled, true, "swap flag survives a reload")
+		t.eq(s.referralsPaid.day, 20000)
+		t.eq(s.referralsPaid.count, 0, "negative count clamped")
+
+		local bad = DataService._template()
+		bad.playtime = "nope"
+		bad.referralsPaid = 5
+		bad.contracts = { day = 1, list = {}, rerolled = "yes" }
+		local b = DataService._prepare(bad, NOW)
+		t.eq(typeof(b.playtime), "table", "wrong-typed playtime replaced")
+		t.eq(b.playtime.seconds, 0)
+		t.eq(b.referralsPaid, nil, "junk referral state dropped")
+		t.eq(b.contracts.rerolled, nil, "non-true swap flag dropped")
+	end)
+
 	t.test("serialize is JSON-safe and stamps lastOnline", function()
 		local d = DataService._prepare(nil, NOW)
 		d.weird = { fn = function() end, inst = H.roblox.Instance.new("Folder"), n = 0 / 0 }
@@ -227,6 +266,44 @@ return function(t)
 		t.eq(Monetization._cashAmount("cash_big", 100), 360000)
 		t.eq(Monetization._cashAmount("cash_small", 0 / 0), 5000, "NaN income safe")
 		t.eq(Monetization._cashAmount("nope", 100), 0)
+	end)
+
+	t.test("Net rate limit: the first call always passes, even below 1/s", function()
+		local Net = H.require("src/shared/Net")
+		t.eq(Net._bucketCap(0.5), 1, "sub-1 rates can still refill to one token")
+		t.eq(Net._bucketCap(4), 8, "2 seconds of burst")
+		local p = { Name = "RateTester", UserId = 31337 }
+		t.eq(Net._allow(p, "Rebirth", 0.5), true, "first Rebirth goes through")
+		t.eq(Net._allow(p, "Rebirth", 0.5), false, "an instant second one is limited")
+		t.eq(Net._allow(p, "Other", 1), true, "buckets are per remote")
+		t.eq(Net._allow(p, "Other", 1), false)
+	end)
+
+	t.test("Diamond Dragster is one per account (garage or owed)", function()
+		local own = Monetization._ownsExclusive
+		t.eq(own(nil, "diamond_dragster"), false)
+		t.eq(own({ garage = {}, exclusives = {} }, "diamond_dragster"), false, "nothing")
+		t.eq(
+			own({ garage = { ["3"] = { carId = "diamond_dragster" } }, exclusives = {} }, "diamond_dragster"),
+			true,
+			"parked"
+		)
+		t.eq(own({ garage = {}, exclusives = { diamond_dragster = true } }, "diamond_dragster"), true, "owed")
+		t.eq(own({ garage = {}, exclusives = { ["diamond_dragster#2"] = true } }, "diamond_dragster"), true, "owed #n")
+		t.eq(own({ garage = {}, exclusives = { diamond_dragster = false } }, "diamond_dragster"), false, "false flag")
+		t.eq(
+			own(
+				{ garage = { ["1"] = { carId = "rustbucket" } }, exclusives = { other_car = true } },
+				"diamond_dragster"
+			),
+			false
+		)
+	end)
+
+	t.test("VIP overhead tag", function()
+		t.eq(Monetization._overheadName("Bob", true), "👑 Bob")
+		t.eq(Monetization._overheadName("Bob", false), "Bob")
+		t.eq(Monetization.passesReady({}), false, "unknown player: lookup not finished")
 	end)
 
 	t.test("pass/product id helpers + every product has a built-in handler", function()

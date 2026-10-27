@@ -192,6 +192,20 @@ return function(t)
 		t.eq(mins.sub, "≈ $9K", "15 min x $10/s")
 		local poor = Menu.rewardInfo({ kind = "incomeMinutes", amount = 15 }, 0)
 		t.eq(poor.sub, "≈ $500", "minimum payout")
+		local floored = Menu.rewardInfo({ kind = "incomeMinutes", amount = 5, min = 15000 }, 10)
+		t.eq(floored.sub, "≈ $15K", "the entry's own min floor (like RewardsService)")
+		for _, r in Economy.DAILY_REWARDS do
+			if r.kind == "incomeMinutes" then
+				for _, income in { 0, 3, 250, 1e5 } do
+					local server = Rewards._incomeMinutesReward(r.amount, income, r.min)
+					t.eq(
+						Menu.rewardInfo(r, income).sub,
+						"≈ " .. H.require("src/shared/Util/Format").cash(server),
+						"daily estimate"
+					)
+				end
+			end
+		end
 		local car = Menu.rewardInfo({ kind = "car", rarity = "Epic" })
 		t.eq(car.text, "EPIC CAR")
 		t.eq(car.color, Rarity.Tiers.Epic.color)
@@ -513,6 +527,84 @@ return function(t)
 		end
 		t.eq(Menu.bestCar(nil), nil)
 		t.eq(Menu.bestCar({}), nil)
+	end)
+
+	t.test("menus: kept cars match RebirthService._plan (best N regular cars, exclusives extra)", function()
+		local exclusive
+		for _, def in Cars.List do
+			if def.rarity == "Exclusive" then
+				exclusive = def.id
+				break
+			end
+		end
+		local garages = {
+			{
+				["1"] = { carId = "rustbucket", mutation = "None" },
+				["2"] = { carId = "mini_bean", mutation = "None" },
+				["3"] = { carId = "yellow_cab", mutation = "Gold" },
+			},
+			{
+				["4"] = { carId = "yellow_cab", mutation = "None" },
+				["2"] = { carId = "yellow_cab", mutation = "Gold" },
+				["7"] = { carId = "rustbucket", mutation = "Galaxy" },
+			},
+			{ ["1"] = { carId = "not_a_car", mutation = "None" }, ["5"] = { carId = "pizza_van", mutation = "Gold" } },
+		}
+		if exclusive then
+			table.insert(garages, {
+				["1"] = { carId = exclusive, mutation = "None" },
+				["2"] = { carId = "rustbucket", mutation = "None" },
+				["3"] = { carId = "mini_bean", mutation = "None" },
+				["4"] = { carId = "yellow_cab", mutation = "None" },
+			})
+		end
+		for i, g in garages do
+			local kept = Menu.keptCars(g)
+			local plan = Rebirth._plan(g)
+			t.ok(#kept <= Economy.REBIRTH_KEEP_CARS, "garage " .. i .. " limit")
+			for k, car in kept do
+				t.eq(car.carId, plan[k].carId, ("garage %d car %d"):format(i, k))
+				t.eq(car.mutation, plan[k].mutation, ("garage %d mutation %d"):format(i, k))
+			end
+			for k = #kept + 1, #plan do
+				t.eq(Cars.get(plan[k].carId).rarity, "Exclusive", "anything else the server keeps is an exclusive")
+			end
+		end
+		t.eq(#Menu.keptCars(nil), 0)
+		local text = Menu.keptCarsText({
+			{ carId = "yellow_cab", mutation = "Gold" },
+			{ carId = "rustbucket", mutation = "None" },
+		})
+		t.eq(text, "GOLD " .. Cars.get("yellow_cab").name .. " + " .. Cars.get("rustbucket").name)
+		t.eq(Menu.keptCarsText({}), "")
+	end)
+
+	t.test("menus: store blocks what the server would refuse", function()
+		local pass = { key = "vip", kind = "pass" }
+		t.eq(Menu.storeBlock(pass, { passes = { vip = true } }, 0), "owned")
+		t.eq(Menu.storeBlock(pass, { passes = {} }, 0), nil)
+		local clear = { key = "clear_wanted", kind = "product" }
+		t.eq(Menu.storeBlock(clear, {}, 0), "notWanted", "0 stars -> disabled")
+		t.eq(Menu.storeBlock(clear, {}, nil), "notWanted", "no attribute -> disabled")
+		t.eq(Menu.storeBlock(clear, {}, 2), nil, "wanted -> buyable")
+		local dragster = { key = "diamond_dragster", kind = "product" }
+		t.eq(Menu.storeBlock(dragster, { garage = {} }, 0), nil)
+		t.eq(
+			Menu.storeBlock(dragster, { garage = { ["5"] = { carId = "diamond_dragster" } } }, 0),
+			"owned",
+			"one per account"
+		)
+		t.eq(Menu.storeBlock({ key = "cash_small", kind = "product" }, nil, 0), nil, "cash is always buyable")
+		t.eq(Menu.storeBlock(nil, nil, 0), nil)
+	end)
+
+	t.test("menus: contract swap button rules", function()
+		local row = { id = "rob1", done = false }
+		t.ok(Menu.canSwapContract({ list = {} }, row, true), "unused swap")
+		t.ok(not Menu.canSwapContract({ list = {}, rerolled = true }, row, true), "used today")
+		t.ok(not Menu.canSwapContract({ list = {} }, { id = "rob1", done = true }, true), "finished job")
+		t.ok(not Menu.canSwapContract({ list = {} }, row, false), "no remote yet")
+		t.ok(not Menu.canSwapContract(nil, row, true), "no snapshot")
 	end)
 
 	t.test("menus: garage busy blocks rebirth", function()
