@@ -124,6 +124,7 @@ Economy.REBIRTH_KEEP_CARS = 2 -- rebirth keeps your best N cars (by income)
 Economy.BUSTED_CASH_PENALTY = 0.1 -- lose 10% of cash on hand
 Economy.BUSTED_MAX_PENALTY_SECONDS = 600 -- penalty capped at 10 minutes of income
 Economy.SPRAY_COST_PER_STAR = 250 -- minimum cost to clear wanted at a Spray Shop, per star
+Economy.CAB_FEE = 150 -- phone "Call a cab" fast trip to your own garage (PlotService GoHome; blocked while wanted)
 Economy.SPRAY_INCOME_SECONDS = 15 -- per star: cost = stars * max(SPRAY_COST_PER_STAR, income/s * this)
 
 -- Theft ------------------------------------------------------------------------

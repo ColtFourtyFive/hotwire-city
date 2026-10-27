@@ -570,11 +570,14 @@ function ListMenu:_bind()
 		Enum.KeyCode.ButtonA,
 		Enum.KeyCode.ButtonB
 	)
-	-- mouse wheel moves the selection
+end
+
+-- Mouse wheel over the list moves the selection (own screens and embedded lists alike).
+function ListMenu:_hookWheel()
 	if self.root and not self.wheelHooked then
 		self.wheelHooked = true
 		self.root.InputChanged:Connect(function(input: InputObject)
-			if input.UserInputType == Enum.UserInputType.MouseWheel then
+			if self.opened and input.UserInputType == Enum.UserInputType.MouseWheel then
 				self:move(if input.Position.Z > 0 then -1 else 1)
 			end
 		end)
@@ -603,6 +606,7 @@ function ListMenu:open()
 	end
 	self:_render()
 	self:_bind()
+	self:_hookWheel()
 	if not self.opts.parent then
 		Kit.open(self.root)
 	end

@@ -39,7 +39,8 @@
 --   getFeedHost(): Frame?                                where feed cards go
 --   getCashAnchor(): GuiObject?, getMenuButton(id): GuiButton?, isHidden(): boolean, VisibilityChanged: Signal
 --   getBottomClearance(): number, getTopStackBottom(): number, getFeedAnchor(): Vector2?, getMenuBottom(): number
---   holdCash(amount) / releaseCash(), setFocusMode(on), setMinimapReserve(...) (kept; the layout owns the corners)
+--   holdCash(amount) / releaseCash(), setFocusMode(on), setLocalHidden(on) (photo mode),
+--   setMinimapReserve(...) (kept; the layout owns the corners)
 -- Pure helpers (tests): clampStars, starStates, starVisual, cashTrend, formatCash, theftView, theftMode,
 --   playtimeClaimable, rebirthReady, gearAffordable, homeState, gridFit, touchMenuGrid, touchStripLayout,
 --   touchFeedAnchor, countGarage, countDiscovered, menuNameCandidates, vipChatPrefix, resetAllowed, barFractions,
@@ -994,6 +995,15 @@ local function setHidden(value: boolean)
 	HUDController.VisibilityChanged:Fire(hidden)
 end
 
+local serverHidden = false
+local localHidden = false
+
+-- Photo mode (phone Camera app): hide the HUD locally without touching the saved streamer-mode setting.
+function HUDController.setLocalHidden(on: boolean)
+	localHidden = on == true
+	setHidden(serverHidden or localHidden)
+end
+
 local function readHidden(snap: any): boolean
 	return typeof(snap) == "table" and typeof(snap.settings) == "table" and snap.settings.hideHud == true
 end
@@ -1741,8 +1751,11 @@ function HUDController.start()
 
 	local function onSnapshot(snap: any, previous: any)
 		local wantHidden = readHidden(snap)
-		if (wantHidden ~= hidden or previous == nil) and not (wantHidden and os.clock() < hiddenOverrideUntil) then
-			setHidden(wantHidden)
+		if
+			(wantHidden ~= serverHidden or previous == nil) and not (wantHidden and os.clock() < hiddenOverrideUntil)
+		then
+			serverHidden = wantHidden
+			setHidden(serverHidden or localHidden)
 		end
 		if attrNumber("Cash") == nil then
 			refreshCash(previous ~= nil)

@@ -37,6 +37,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
 local Assets = require(Shared.Config.Assets)
+local Economy = require(Shared.Config.Economy)
 local EconomyMath = require(Shared.Util.EconomyMath)
 local Format = require(Shared.Util.Format)
 local MapConfig = require(Shared.Config.Map)
@@ -2207,12 +2208,12 @@ local function onGoHome(player: Player)
 		return
 	end
 	if hum.SeatPart or player:GetAttribute("Driving") == true then
-		notify(player, "error", "Hop out of the car first!")
+		notify(player, "error", "Get out of the car first.")
 		return
 	end
 	local wanted = player:GetAttribute("Wanted")
 	if typeof(wanted) == "number" and wanted > 0 then
-		notify(player, "error", "🚔 Can't go home with the cops on your tail!")
+		notify(player, "error", "No cab will pick you up with the cops on your tail.")
 		return
 	end
 	if player:GetAttribute("Stunned") == true then
@@ -2221,8 +2222,17 @@ local function onGoHome(player: Player)
 	local now = os.clock()
 	local readyAt = goHomeAt[player] or 0
 	if now < readyAt then
-		notify(player, "warning", `🏠 Go Home ready in {math.ceil(readyAt - now)}s`)
+		notify(player, "warning", `The next cab is free in {math.ceil(readyAt - now)}s.`)
 		return
+	end
+	-- v2: the trip is a phone cab with a small fee (lead decision; Economy.CAB_FEE)
+	local fee = math.max(0, math.floor(Economy.CAB_FEE or 0))
+	if fee > 0 then
+		local DataService = sys("DataService")
+		if not (DataService and DataService.spendCash(player, fee)) then
+			notify(player, "error", `A cab costs {Format.cash(fee)}.`)
+			return
+		end
 	end
 	goHomeAt[player] = now + PlotService.GO_HOME_COOLDOWN
 	moveCharacterHome(player)
