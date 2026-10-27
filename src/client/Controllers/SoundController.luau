@@ -243,12 +243,25 @@ local function applyGroupVolumes()
 	music.Volume = if enabled.music then volumes.music else 0
 end
 
--- Configure a Sound instance for a def (shared by all pools).
+-- Configure a Sound instance for a def (shared by all pools). start / stop = PlaybackRegion (one transient out of a
+-- multi-shot file; gta_combat §12.4), rollOff = RollOffMaxDistance for positional sounds.
 local function configure(sound: Sound, def: SoundDef, group: SoundGroup?)
 	sound.SoundId = def.id -- same-value assignment is a no-op, so pooled sounds don't reload
 	sound.Volume = def.volume
 	sound.PlaybackSpeed = def.pitch or 1
 	sound.SoundGroup = group
+	local start, stop = def.start, def.stop
+	if start ~= nil or stop ~= nil then
+		pcall(function()
+			sound.PlaybackRegionsEnabled = true
+			sound.PlaybackRegion = NumberRange.new(start or 0, stop or 600)
+		end)
+	elseif sound.PlaybackRegionsEnabled then
+		sound.PlaybackRegionsEnabled = false
+	end
+	if def.rollOff then
+		sound.RollOffMaxDistance = def.rollOff
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -359,10 +372,15 @@ local function playWorld(def: SoundDef, position: Vector3): Sound?
 		entry.attachment.Parent = anchor
 	end
 	entry.attachment.WorldPosition = position
+	entry.sound.RollOffMaxDistance = 320
 	configure(entry.sound, def, sfxGroup)
 	entry.sound.Looped = false
 	entry.sound.PlaybackSpeed = variedPitch(def)
-	entry.sound.TimePosition = 0
+	entry.sound.TimePosition = def.start or 0
+	local eq = entry.sound:FindFirstChildOfClass("EqualizerSoundEffect")
+	if eq then
+		eq.Enabled = false
+	end
 	entry.sound:Play()
 	entry.startedAt = os.clock()
 	return entry.sound
@@ -381,6 +399,163 @@ function SoundController.play(key: string, position: Vector3?): Sound?
 		return playWorld(def, position)
 	end
 	return playUI(key, def)
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Gunfire (gta_combat §11.6): shot (close) + tail (distance) + mech (close) layers, distance rules, near-miss whiz,
+-- radio ducking, and the death / weapon-wheel muffle on the SFX group.
+-------------------------------------------------------------------------------------------------------------------------
+
+SoundController.GUN_TAIL_FROM = 120 -- the tail layer plays for listeners beyond this
+SoundController.GUN_LOWPASS_FROM = 250 -- ...low-passed beyond this
+SoundController.GUN_FAR = 600 -- beyond this only a single quiet distant tail
+SoundController.GUN_MECH_RANGE = 30
+SoundController.GUN_DUCK_RANGE = 80
+
+local roundRobin: { [string]: number } = {}
+local duckUntil = 0
+local duckFactor = 1
+
+-- Next variant from a list (round robin per list head).
+function SoundController.pickVariant(list: { string }, counter: { [string]: number }?): string?
+	local n = #list
+	if n == 0 then
+		return nil
+	end
+	local book = counter or roundRobin
+	local key = list[1]
+	local i = (book[key] or 0) % n + 1
+	book[key] = i
+	return list[i]
+end
+
+-- Which gun layers play for a listener at distance d: (shot, tail, lowpass, mech, distantOnly).
+function SoundController.gunLayers(d: number): (boolean, boolean, boolean, boolean, boolean)
+	if d > SoundController.GUN_FAR then
+		return false, true, true, false, true
+	end
+	return true,
+		d > SoundController.GUN_TAIL_FROM,
+		d > SoundController.GUN_LOWPASS_FROM,
+		d <= SoundController.GUN_MECH_RANGE,
+		false
+end
+
+local function listenerPosition(): Vector3?
+	local cam = Workspace.CurrentCamera
+	return if cam then cam.CFrame.Position else nil
+end
+
+local function playLayer(key: string?, position: Vector3, volumeMult: number, lowpass: boolean)
+	if not key then
+		return
+	end
+	local def = lookup(key)
+	if not def or not enabled.sfx then
+		return
+	end
+	local s = playWorld(def, position)
+	if not s then
+		return
+	end
+	s.Volume = def.volume * volumeMult
+	if lowpass then
+		local eq = s:FindFirstChildOfClass("EqualizerSoundEffect")
+		if not eq then
+			eq = Instance.new("EqualizerSoundEffect")
+			eq.HighGain = -18
+			eq.MidGain = -6
+			eq.LowGain = 0
+			eq.Parent = s
+		end
+		eq.Enabled = true
+	end
+end
+
+function SoundController.duckRadio(seconds: number, factor: number)
+	duckUntil = math.max(duckUntil, os.clock() + seconds)
+	duckFactor = math.clamp(factor, 0, 1)
+	ensureGroups()
+	local music = musicGroup :: SoundGroup
+	music.Volume = (if enabled.music then volumes.music else 0) * duckFactor
+end
+
+-- One gunshot heard at `position`. weaponSounds = Config/Weapons def.sounds.
+function SoundController.playGunshot(weaponSounds: any, position: Vector3)
+	if typeof(weaponSounds) ~= "table" or typeof(position) ~= "Vector3" then
+		return
+	end
+	local listener = listenerPosition()
+	local d = if listener then (listener - position).Magnitude else 0
+	local shot, tail, lowpass, mech, distantOnly = SoundController.gunLayers(d)
+	if distantOnly then
+		playLayer(SoundController.pickVariant(weaponSounds.tail or {}), position, 0.3, true)
+		return
+	end
+	if shot then
+		playLayer(SoundController.pickVariant(weaponSounds.shot or {}), position, 1, false)
+	end
+	if tail then
+		playLayer(SoundController.pickVariant(weaponSounds.tail or {}), position, 0.8, lowpass)
+	end
+	if mech and weaponSounds.mech and #weaponSounds.mech > 0 then
+		local key = SoundController.pickVariant(weaponSounds.mech)
+		task.delay(0.35, function()
+			playLayer(key, position, 1, false)
+		end)
+	end
+	if d <= SoundController.GUN_DUCK_RANGE then
+		SoundController.duckRadio(1.5, 0.5) -- -6 dB
+	end
+end
+
+local WHIZ = { "Whiz1", "Whiz2", "Whiz3" }
+function SoundController.playWhiz(position: Vector3)
+	playLayer(SoundController.pickVariant(WHIZ), position, 1, false)
+end
+
+-- Muffle the SFX group (death / arrest grade, weapon wheel). nil clears that reason's muffle; with several reasons
+-- active the strongest (most negative) gains win. UI sounds stay crisp only when they use their own group (B2's UI
+-- SoundGroup); v1 UI sounds share HC_SFX and are muffled too.
+local muffleEq: EqualizerSoundEffect? = nil
+local muffles: { [string]: { high: number, mid: number } } = {}
+function SoundController.setMuffle(highGain: number?, midGain: number?, reason: string?)
+	ensureGroups()
+	local key = reason or "default"
+	muffles[key] = if highGain == nil then nil else { high = highGain, mid = midGain or 0 }
+	local high, mid, any = 0, 0, false
+	for _, m in muffles do
+		any = true
+		high = math.min(high, m.high)
+		mid = math.min(mid, m.mid)
+	end
+	if not any then
+		if muffleEq then
+			muffleEq.Enabled = false
+		end
+		return
+	end
+	local group = sfxGroup :: SoundGroup
+	local eq = muffleEq
+	if not eq or eq.Parent ~= group then
+		eq = Instance.new("EqualizerSoundEffect")
+		eq.Name = "HC_Muffle"
+		eq.Parent = group
+		muffleEq = eq
+	end
+	local e = eq :: EqualizerSoundEffect
+	e.HighGain = high
+	e.MidGain = mid
+	e.LowGain = 0
+	e.Enabled = true
+end
+
+local function updateDuck()
+	if duckUntil > 0 and os.clock() >= duckUntil then
+		duckUntil = 0
+		duckFactor = 1
+		applyGroupVolumes()
+	end
 end
 
 -- Start a looping sound the caller owns. parent = BasePart/Attachment for 3D, nil for a UI loop.
@@ -991,6 +1166,7 @@ function SoundController.start()
 			debug.profilebegin("HC_SoundScan")
 			scan()
 			debug.profileend()
+			updateDuck()
 		end
 		updateEngines(dt)
 	end)

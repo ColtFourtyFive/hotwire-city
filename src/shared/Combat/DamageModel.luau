@@ -78,9 +78,9 @@ end
 -- Applies raw damage to (health, armor). Returns newHealth, newArmor, healthTaken, armorTaken (all integers).
 function DamageModel.apply(health: number, armor: number, raw: number): (number, number, number, number)
 	local armorTaken, healthTaken = DamageModel.split(armor, raw)
-	local newArmor = math.max(0, math.floor(armor - armorTaken + 1e-6))
-	local newHealth = math.max(0, math.floor(health - healthTaken + 1e-6))
-	-- whole numbers only: a hit that took 0.4 HP still costs nothing visible, a lethal hit always lands on 0
+	local newArmor = math.max(0, math.floor(armor - armorTaken + 0.5))
+	local newHealth = math.max(0, math.floor(health - healthTaken + 0.5))
+	-- whole numbers only (rounded): a hit that took 0.4 HP costs nothing visible, a lethal hit always lands on 0
 	if health - healthTaken <= 0 then
 		newHealth = 0
 	end
