@@ -1,0 +1,12 @@
+{
+ "id": 31161332,
+ "fetched_at": "2026-10-27T15:59:54Z",
+ "status": 200,
+ "assetTypeId": 0,
+ "assetType": "0",
+ "requestId": "639287135947800123",
+ "isArchived": false,
+ "isRecordable": false,
+ "ok": false,
+ "error": "no location in response: assetTypeId,errors,isArchived,isRecordable,requestId"
+}
