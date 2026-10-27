@@ -14,8 +14,8 @@ def _common_spec(B, wall_tint, frame="silver", wall="stucco"):
               "Accent": ("color", (0.95, 0.75, 0.1), 0.5, 0.0), "Glass": ("glass",),
               "Roof": ("tex", "roof_tar", (1, 1, 1)), "Details": ("tex", "metal", (0.62, 0.64, 0.66)),
               "Doors": ("tex", "shutter", (0.8, 0.8, 0.8)), "Sign": ("atlas", "signs.png"), "Brand": ("atlas", "brands.png"),
-              "Site": ("tex", "pavers", (0.98, 0.98, 0.98)), "Asphalt": ("tex", "asphalt", (0.85, 0.85, 0.87)),
-              "Paint": ("color", (0.9, 0.9, 0.86), 0.7, 0.0), "Lawn": ("tex", "grass", (0.62, 0.95, 0.42)),
+              "Site": ("tex", "pavers", (0.98, 0.98, 0.98)), "Asphalt": ("tex", "asphalt", (0.92, 0.92, 0.94)),
+              "Paint": ("color", (0.9, 0.9, 0.86), 0.7, 0.0), "Lawn": ("tex", "grass", (0.8, 0.98, 0.65)),
               "Neon": ("neon", (1.0, 0.97, 0.9)), "Grime": ("grime",), "WindowsLit": ("lit",)}
 
 
