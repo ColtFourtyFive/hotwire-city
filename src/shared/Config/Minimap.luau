@@ -9,13 +9,35 @@ local Minimap = {}
 
 -- BEGIN GENERATED (tools/minimap/build.py)
 -- World square covered by the map image (studs) and its tiles (row 1 = north = smallest Z, column 1 = west).
-Minimap.WORLD_MIN = Vector2.new(-1024, -1024)
-Minimap.WORLD_SIZE = 2048
-Minimap.TILE_COUNT = 2
+Minimap.WORLD_MIN = Vector2.new(-6656, -6756)
+Minimap.WORLD_SIZE = 13312
+Minimap.TILE_COUNT = 4
 Minimap.TILE_PIXELS = 1024
 Minimap.TILES = {
-	{ "rbxassetid://135922170470653", "rbxassetid://105033145059125" },
-	{ "rbxassetid://122934829430314", "rbxassetid://135277028789790" },
+	{
+		"rbxassetid://71683536088484",
+		"rbxassetid://84634038482707",
+		"rbxassetid://112294688995030",
+		"rbxassetid://105785173088824",
+	},
+	{
+		"rbxassetid://118661809691704",
+		"rbxassetid://130950512674969",
+		"rbxassetid://132999271595403",
+		"rbxassetid://91215438591211",
+	},
+	{
+		"rbxassetid://116769361546354",
+		"rbxassetid://91042641368167",
+		"rbxassetid://73651916911637",
+		"rbxassetid://89888633861705",
+	},
+	{
+		"rbxassetid://71624217327690",
+		"rbxassetid://129977074106293",
+		"rbxassetid://77985728837924",
+		"rbxassetid://108570046331914",
+	},
 }
 -- Blip atlas (tools/minimap/icons.py): name -> { x, y, w, h } in atlas pixels.
 Minimap.ATLAS = "rbxassetid://120282250823159"
@@ -57,6 +79,13 @@ export type Cell = { number }
 -- Color shown beyond the map image (open ocean) and under tiles while they load.
 Minimap.WATER_COLOR = Color3.fromRGB(10, 24, 44)
 Minimap.LAND_COLOR = Color3.fromRGB(23, 26, 38)
+
+-- The v2 island (Config/WorldLayout.Bounds play area): the fullscreen map fits a square of FIT_SPAN studs around the
+-- origin, pans stay within CENTER_LIMIT, waypoints land at GROUND_Y (the city grade).
+Minimap.ISLAND_HALF = 6300
+Minimap.FIT_SPAN = (6300 + 100) * 2
+Minimap.CENTER_LIMIT = 6300 + 80
+Minimap.GROUND_Y = 12
 
 Minimap.RADAR = {
 	DESKTOP_SIZE = 200, -- diameter (design px), bottom-left like GTA V
@@ -149,17 +178,18 @@ export type PoiBlip = {
 }
 
 -- Fixed points of interest (positions resolved from MapLayout at runtime, so a new layout moves them for free).
+-- "gear", "spray" and "chop" put a blip on every Lock & Load / Fresh Coat / chop yard of the v2 island.
 Minimap.POIS = {
-	{ id = "dealership", icon = "car", color = Color3.fromRGB(0, 214, 255), label = "Dealership", at = "dealer" },
-	{ id = "gearshop", icon = "wrench", color = Color3.fromRGB(255, 205, 50), label = "Gear Shop", at = "gear" },
-	{ id = "spray", icon = "spray", color = Color3.fromRGB(255, 120, 200), label = "Spray Shop", at = "spray" },
+	{ id = "dealership", icon = "car", color = Color3.fromRGB(0, 214, 255), label = "Hotwire Motors", at = "dealer" },
+	{ id = "gearshop", icon = "wrench", color = Color3.fromRGB(255, 205, 50), label = "Lock & Load", at = "gear" },
+	{ id = "spray", icon = "spray", color = Color3.fromRGB(255, 120, 200), label = "Fresh Coat", at = "spray" },
 	{ id = "chop", icon = "saw", color = Color3.fromRGB(255, 140, 40), label = "Chop Shop", at = "chop" },
-	{ id = "police", icon = "badge", color = Color3.fromRGB(70, 140, 255), label = "Police HQ", at = "poi:PoliceHQ" },
+	{ id = "police", icon = "badge", color = Color3.fromRGB(70, 140, 255), label = "HCPD HQ", at = "poi:PoliceHQ" },
 	{
 		id = "plaza",
 		icon = "star",
 		color = Color3.fromRGB(255, 255, 255),
-		label = "Spawn Plaza",
+		label = "Hotwire Plaza",
 		at = "poi:SpawnPlaza",
 		radarRange = 500,
 	},
@@ -167,7 +197,7 @@ Minimap.POIS = {
 		id = "stunt",
 		icon = "flag",
 		color = Color3.fromRGB(255, 52, 140),
-		label = "Stunt Park",
+		label = "Stunt Jump",
 		at = "poi:StuntPark",
 		radarRange = 600,
 	},
@@ -175,7 +205,7 @@ Minimap.POIS = {
 		id = "park",
 		icon = "tree",
 		color = Color3.fromRGB(90, 220, 120),
-		label = "City Park",
+		label = "Echo Park",
 		at = "poi:Park",
 		radarRange = 600,
 	},
@@ -183,7 +213,7 @@ Minimap.POIS = {
 		id = "pier",
 		icon = "wheel",
 		color = Color3.fromRGB(120, 230, 255),
-		label = "Ocean Pier",
+		label = "Palmera Pier",
 		at = "poi:Pier",
 		radarRange = 600,
 	},
@@ -212,43 +242,69 @@ Minimap.WANTED = {
 export type District = { name: string, x: number, z: number, tier: number }
 
 -- District names drawn as UI labels on the fullscreen map (nothing is baked into the image). tier 1 = always,
--- tier 2 = once zoomed in a little.
+-- tier 2 = once zoomed in a little. Positions: the v2 districts' centroids, sub-zones and landmarks (WorldLayout).
 Minimap.DISTRICTS = {
-	{ name = "DOWNTOWN", x = 0, z = -240, tier = 1 },
-	{ name = "MIDTOWN", x = -400, z = -400, tier = 1 },
-	{ name = "MARKET ROW", x = 240, z = -560, tier = 1 },
-	{ name = "PALM SUBURBS", x = -720, z = -80, tier = 1 },
-	{ name = "SUNSET BEACH", x = 720, z = 80, tier = 1 },
-	-- on the ring road, clear of the garage rows at z = -+681 (labels also step aside from blips at runtime)
-	{ name = "THE DOCKS", x = 0, z = -820, tier = 1 },
-	{ name = "SOUTH SHORE", x = 0, z = 820, tier = 1 },
-	{ name = "STUNT PARK", x = 720, z = 640, tier = 2 },
-	{ name = "CITY PARK", x = -720, z = 640, tier = 2 },
-	{ name = "OCEAN PIER", x = 720, z = -910, tier = 2 },
-	{ name = "CHOP YARD", x = -720, z = -800, tier = 2 },
+	{ name = "PINNACLE HEIGHTS", x = 175, z = -372, tier = 1 },
+	{ name = "MIDTOWN", x = -2405, z = -380, tier = 1 },
+	{ name = "PALMERA BEACH", x = -4730, z = -265, tier = 1 },
+	{ name = "SUNWOOD HILLS", x = -1874, z = -3140, tier = 1 },
+	{ name = "THE FOUNDRY", x = 2445, z = -735, tier = 1 },
+	{ name = "RUST FLATS", x = 2655, z = 1755, tier = 1 },
+	{ name = "SOUTHGATE", x = -856, z = 2188, tier = 1 },
+	{ name = "IRON BAY", x = 595, z = 3976, tier = 1 },
+	{ name = "HOTWIRE INTERNATIONAL", x = -4026, z = 3152, tier = 1 },
+	{ name = "RED MESA", x = 4300, z = 400, tier = 1 },
+	{ name = "CACTUS JUNCTION", x = 4330, z = -550, tier = 2 },
+	{ name = "DRIFTWOOD", x = 5830, z = -2200, tier = 2 },
+	{ name = "MOUNT TALON", x = 4300, z = -3030, tier = 2 },
+	{ name = "OLD TOWN", x = -870, z = -875, tier = 2 },
+	{ name = "CIVIC CENTER", x = -150, z = 600, tier = 2 },
+	{ name = "GILDED MILE", x = -1950, z = -275, tier = 2 },
+	{ name = "THE STRIP", x = -1500, z = -2115, tier = 2 },
+	{ name = "ECHO PARK", x = -1750, z = 1870, tier = 2 },
+	{ name = "DUSTBOWL SPEEDWAY", x = 4420, z = 2820, tier = 2 },
+	{ name = "STATE PRISON", x = 4650, z = 1400, tier = 2 },
+	{ name = "HIDDEN COVE", x = -2900, z = -4120, tier = 2 },
+	{ name = "PALMERA MARINA", x = -5100, z = 2250, tier = 2 },
 } :: { District }
 
 export type Area = { name: string, x0: number, z0: number, x1: number, z1: number }
 
--- Area name shown next to the radar: the first box (world studs) containing the player wins, so landmarks come
--- before the district rings they sit in. Mirrors MapBuilder.zoneOf's rings (block size 160, ring road at +-800).
+-- Area name shown next to the radar: the first box (world studs) containing the player wins, so places come before
+-- the sub-zones and districts they sit in (district boxes are their polygons' bounds, most specific first).
 Minimap.AREAS = {
-	{ name = "STUNT PARK", x0 = 640, z0 = 640, x1 = 800, z1 = 800 },
-	{ name = "CITY PARK", x0 = -800, z0 = 640, x1 = -640, z1 = 800 },
-	{ name = "OCEAN PIER", x0 = 640, z0 = -1000, x1 = 800, z1 = -640 },
-	{ name = "CHOP YARD", x0 = -800, z0 = -800, x1 = -640, z1 = -640 },
-	{ name = "SPAWN PLAZA", x0 = -160, z0 = 0, x1 = 0, z1 = 160 },
-	{ name = "DEALERSHIP", x0 = 0, z0 = 0, x1 = 160, z1 = 160 },
-	{ name = "POLICE HQ", x0 = 0, z0 = -160, x1 = 160, z1 = 0 },
-	{ name = "DOWNTOWN", x0 = -320, z0 = -320, x1 = 320, z1 = 320 },
-	{ name = "MIDTOWN", x0 = -480, z0 = -480, x1 = 480, z1 = 480 },
-	{ name = "THE DOCKS", x0 = -820, z0 = -820, x1 = 820, z1 = -640 },
-	{ name = "PALM SUBURBS", x0 = -820, z0 = -820, x1 = -480, z1 = 820 },
-	{ name = "MARKET ROW", x0 = -640, z0 = -640, x1 = 640, z1 = 640 },
-	{ name = "SUNSET BEACH", x0 = 640, z0 = -960, x1 = 960, z1 = 960 },
-	{ name = "SOUTH SHORE", x0 = -960, z0 = 640, x1 = 960, z1 = 960 },
-	{ name = "NORTH BEACH", x0 = -960, z0 = -960, x1 = 960, z1 = -640 },
-	{ name = "WEST BEACH", x0 = -960, z0 = -960, x1 = -640, z1 = 960 },
+	{ name = "HOTWIRE PLAZA", x0 = 361, z0 = -503, x1 = 691, z1 = -307 },
+	{ name = "HOTWIRE MOTORS", x0 = -1733, z0 = 794, x1 = -1563, z1 = 1014 },
+	{ name = "HCPD HQ", x0 = -865, z0 = 247, x1 = -695, z1 = 453 },
+	{ name = "PINNACLE TOWER", x0 = -25, z0 = -517, x1 = 175, z1 = -317 },
+	{ name = "LIBERTY SQUARE", x0 = -96, z0 = 252, x1 = 256, z1 = 602 },
+	{ name = "ECHO PARK", x0 = -2050, z0 = 1680, x1 = -1450, z1 = 2060 },
+	{ name = "DUSTBOWL SPEEDWAY", x0 = 3970, z0 = 2520, x1 = 4870, z1 = 3120 },
+	{ name = "STATE PRISON", x0 = 4200, z0 = 1050, x1 = 5100, z1 = 1750 },
+	{ name = "RAIL YARD", x0 = 2330, z0 = 1180, x1 = 3700, z1 = 1520 },
+	{ name = "PALMERA MARINA", x0 = -5460, z0 = 1800, x1 = -4740, z1 = 2700 },
+	{ name = "HIDDEN COVE", x0 = -3150, z0 = -4180, x1 = -2650, z1 = -4060 },
+	{ name = "COUNTRY CLUB", x0 = -4420, z0 = -2780, x1 = -3650, z1 = -2240 },
+	{ name = "MOUNT TALON", x0 = 3600, z0 = -3730, x1 = 5000, z1 = -2330 },
+	{ name = "FINANCIAL CORE", x0 = -500, z0 = -1000, x1 = 900, z1 = 300 },
+	{ name = "OLD TOWN", x0 = -1240, z0 = -2050, x1 = -500, z1 = 300 },
+	{ name = "CIVIC CENTER", x0 = -600, z0 = 300, x1 = 300, z1 = 900 },
+	{ name = "ARTS DISTRICT", x0 = 1000, z0 = 500, x1 = 1590, z1 = 1290 },
+	{ name = "GILDED MILE", x0 = -2400, z0 = -700, x1 = -1500, z1 = 150 },
+	{ name = "THE STRIP", x0 = -2400, z0 = -2330, x1 = -600, z1 = -1900 },
+	{ name = "PALMERA NORTH", x0 = -4520, z0 = -2100, x1 = -3760, z1 = -1080 },
+	{ name = "CACTUS JUNCTION", x0 = 3880, z0 = -980, x1 = 4780, z1 = -120 },
+	{ name = "DRIFTWOOD", x0 = 5560, z0 = -2520, x1 = 6100, z1 = -1880 },
+	{ name = "PINNACLE HEIGHTS", x0 = -1240, z0 = -2050, x1 = 1590, z1 = 1290 },
+	{ name = "MIDTOWN", x0 = -3570, z0 = -2050, x1 = -1240, z1 = 1290 },
+	{ name = "PALMERA BEACH", x0 = -5700, z0 = -2250, x1 = -3760, z1 = 1720 },
+	{ name = "THE FOUNDRY", x0 = 1590, z0 = -1900, x1 = 3300, z1 = 430 },
+	{ name = "RUST FLATS", x0 = 1590, z0 = 430, x1 = 3720, z1 = 3100 },
+	{ name = "SOUTHGATE", x0 = -2560, z0 = 1290, x1 = 1590, z1 = 3080 },
+	{ name = "IRON BAY", x0 = -2000, z0 = 3360, x1 = 3150, z1 = 4660 },
+	{ name = "HOTWIRE INTERNATIONAL", x0 = -6000, z0 = 1720, x1 = -2240, z1 = 4500 },
+	{ name = "SUNWOOD HILLS", x0 = -5600, z0 = -4800, x1 = 2300, z1 = -1880 },
+	{ name = "RED MESA", x0 = 1500, z0 = -5000, x1 = 6400, z1 = 4100 },
 } :: { Area }
 Minimap.AREA_DEFAULT = "OPEN WATER"
 

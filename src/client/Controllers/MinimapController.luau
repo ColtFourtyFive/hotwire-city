@@ -212,10 +212,25 @@ function MinimapController.poiPositions(at: string): { Vector3 }
 			table.insert(out, z.cframe.Position - Vector3.new(0, z.size.Y / 2, 0))
 		end
 	elseif at == "chop" then
-		local cf, size = MapLayout.chopZone()
-		table.insert(out, cf.Position - Vector3.new(0, size.Y / 2, 0))
+		-- every chop yard (v2 MapLayout.chopZones), else the one v1 chop shop
+		local zones = (MapLayout :: any).chopZones
+		if zones then
+			for _, z in zones() do
+				table.insert(out, z.cframe.Position - Vector3.new(0, z.size.Y / 2, 0))
+			end
+		else
+			local cf, size = MapLayout.chopZone()
+			table.insert(out, cf.Position - Vector3.new(0, size.Y / 2, 0))
+		end
 	elseif at == "gear" then
-		table.insert(out, MapLayout.gearShopCounter().Position)
+		local counters = (MapLayout :: any).gearShopCounters
+		if counters then
+			for _, cf in counters() do
+				table.insert(out, cf.Position)
+			end
+		else
+			table.insert(out, MapLayout.gearShopCounter().Position)
+		end
 	elseif at == "dealer" then
 		table.insert(out, MapLayout.poiCenter("Dealership"))
 	elseif string.sub(at, 1, 4) == "poi:" then

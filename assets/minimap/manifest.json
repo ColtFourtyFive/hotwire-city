@@ -7,31 +7,115 @@
     "uploaded": "2026-10-27T15:44:17Z"
   },
   "tile_0_0": {
-    "assetId": 135922170470653,
-    "sha256": "bf649f7e546bcd9f811d8128c8f692f69482b9a0d9a4660e28c1d695665d6930",
+    "assetId": 71683536088484,
+    "sha256": "1b2043252200fc7cbf93f6a883198ae71101c0ce5d072e5417fc6b85901dac49",
     "file": "assets/minimap/tile_0_0.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T17:04:13Z"
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:21Z"
   },
   "tile_0_1": {
-    "assetId": 105033145059125,
-    "sha256": "e338b0293f91f6afd9cef43731e82738dcca3586a63a99a2817c4fdaaaeb1b53",
+    "assetId": 84634038482707,
+    "sha256": "0de9fe8c5379c913c88817703c98f1bcff3901e16ed6e530b94ffd73adaf2510",
     "file": "assets/minimap/tile_0_1.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T17:04:18Z"
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:25Z"
   },
   "tile_1_0": {
-    "assetId": 122934829430314,
-    "sha256": "4fb4d7c5766565e221d1e438d3956d1830a52b78f6d06df2b2eec66947fa3b6f",
+    "assetId": 118661809691704,
+    "sha256": "bfa101a2d9df5298a45dfb7b75e3492a27be94eb94caa3b77abc508581abcac6",
     "file": "assets/minimap/tile_1_0.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T17:04:23Z"
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:37Z"
   },
   "tile_1_1": {
-    "assetId": 135277028789790,
-    "sha256": "5f019c7eda069cbb130f520b803c13edfcf9ad214b5712ca9763f716bed14f99",
+    "assetId": 130950512674969,
+    "sha256": "f07af2a8acde75520636a97d6bddf21672619ed4dbe330f76f04cdbe4806c3ae",
     "file": "assets/minimap/tile_1_1.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T17:04:27Z"
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:41Z"
+  },
+  "tile_0_2": {
+    "assetId": 112294688995030,
+    "sha256": "5fef1742f1280faf3094418f0d1bd843241e968b2f7a38b7ac4c850e4588a83a",
+    "file": "assets/minimap/tile_0_2.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:29Z"
+  },
+  "tile_0_3": {
+    "assetId": 105785173088824,
+    "sha256": "3af7ae8790b9474e54f63ebd362caddf7e68a46a863e7d114ecc1cd02f195277",
+    "file": "assets/minimap/tile_0_3.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:33Z"
+  },
+  "tile_1_2": {
+    "assetId": 132999271595403,
+    "sha256": "b694ede070755bfa559bf4106bb61599cedfa7df1fbaaf370983f92c4bef9a42",
+    "file": "assets/minimap/tile_1_2.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:44Z"
+  },
+  "tile_1_3": {
+    "assetId": 91215438591211,
+    "sha256": "1013359906615846834938b527dc28c964d3180e5ec8df4254e579a1d5d6a236",
+    "file": "assets/minimap/tile_1_3.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:49Z"
+  },
+  "tile_2_0": {
+    "assetId": 116769361546354,
+    "sha256": "ba7970987ac7a21c605c1c6b958b5bf71505e0407a92a53e1ebc242c6c5a37af",
+    "file": "assets/minimap/tile_2_0.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:53Z"
+  },
+  "tile_2_1": {
+    "assetId": 91042641368167,
+    "sha256": "72ac71227233946c0c192b3cc5aa896014d7a7fd4349fb4cda4aa5b441a619d4",
+    "file": "assets/minimap/tile_2_1.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:20:58Z"
+  },
+  "tile_2_2": {
+    "assetId": 73651916911637,
+    "sha256": "0bb08668abfe3d19a0678c47c11df51b34e56bde1e582d086756a09a08b368c6",
+    "file": "assets/minimap/tile_2_2.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:21:03Z"
+  },
+  "tile_2_3": {
+    "assetId": 89888633861705,
+    "sha256": "f6a0a8699426e667bec691f81ad576d6f502e569fd026795b44e3bf0ab27df48",
+    "file": "assets/minimap/tile_2_3.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:21:07Z"
+  },
+  "tile_3_0": {
+    "assetId": 71624217327690,
+    "sha256": "93d32ee952761fea0fb1a479ad3c31de7fdf23fac40467396f4a7c8da2ab1bff",
+    "file": "assets/minimap/tile_3_0.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:21:11Z"
+  },
+  "tile_3_1": {
+    "assetId": 129977074106293,
+    "sha256": "6915bfbaefae4083bc42f173dffaba8a9924b243ef7ccf74a6d684c505c9c8a8",
+    "file": "assets/minimap/tile_3_1.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:21:16Z"
+  },
+  "tile_3_2": {
+    "assetId": 77985728837924,
+    "sha256": "f238d8e3561fab65310c2ef6b5a0b2f1d75a2ce27b49022ee7a94103859ec838",
+    "file": "assets/minimap/tile_3_2.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:21:20Z"
+  },
+  "tile_3_3": {
+    "assetId": 108570046331914,
+    "sha256": "9ea7c1176d001a12382883b0a849d1e8eab93597d4968cea4d1798b5e305a892",
+    "file": "assets/minimap/tile_3_3.png",
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T22:21:24Z"
   }
 }

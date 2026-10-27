@@ -1,0 +1,140 @@
+{
+ "avenue_1w_2_0_0_n_25_0_0": {
+  "id": "114384167502209",
+  "period": 120,
+  "sha256": "be2ea69292a95c6d99fd8762c5423cecd2d8bd5915e4e06745a02b8bec663c9e",
+  "width": 25
+ },
+ "avenue_1w_2_0_0_n_31_3_3": {
+  "id": "131887872037335",
+  "period": 120,
+  "sha256": "ef997bf3099d99aafe4b526bdffc566b1d0510c19d737ed6f0da96ad578afa96",
+  "width": 31
+ },
+ "avenue_2w_2_2_0_n_50_0_0": {
+  "id": "134180500558331",
+  "period": 120,
+  "sha256": "ebdb64025ffaa5cd3f0e5f80c88ff3c6d593e3a33e743443c453899eb8e80325",
+  "width": 50
+ },
+ "avenue_2w_2_2_0_p_68_0_0": {
+  "id": "90857744816586",
+  "period": 120,
+  "sha256": "6db9b26588b8859ed3919a960ca9fc80f064ed5404a3f463b1ec3c06be9e5a0d",
+  "width": 68
+ },
+ "avenue_2w_2_2_10_p_78_0_0": {
+  "id": "84673443317621",
+  "period": 120,
+  "sha256": "43f9dabc0e6913860863769299333031d7d6936acbef920ddbdfbdf4369413a6",
+  "width": 78
+ },
+ "avenue_2w_2_2_18_p_86_0_0": {
+  "id": "121805229292130",
+  "period": 120,
+  "sha256": "87eb67657517917b9eead113fe8d63ac74e1e03ac14f7556a618a3398de35199",
+  "width": 86
+ },
+ "avenue_2w_2_2_6_n_56_0_0": {
+  "id": "126315578077978",
+  "period": 120,
+  "sha256": "4b51f7bc28a1317e5ef4ee6f1dc5eb52994e2f2bda3d940621da44374773b9de",
+  "width": 56
+ },
+ "avenue_2w_2_2_8_p_76_0_0": {
+  "id": "122955146884443",
+  "period": 120,
+  "sha256": "5c33b1043304dd621cbadcc7ed0fb9e262fde4a3dcbafac48fa3aabdf3a96849",
+  "width": 76
+ },
+ "boulevard_2w_2_2_12_n_62_0_0": {
+  "id": "90601648269060",
+  "period": 120,
+  "sha256": "2409146326df233928b8d0e47eb6df4bda187cee645d17c6ca3e83d1981dce04",
+  "width": 62
+ },
+ "boulevard_2w_2_2_16_p_84_0_0": {
+  "id": "136230618876917",
+  "period": 120,
+  "sha256": "2772c14ebee61f09a6e8967f3270bd7ea16e96682b47919f94caf8163cd32f12",
+  "width": 84
+ },
+ "boulevard_2w_3_3_12_n_87_0_0": {
+  "id": "93573222353678",
+  "period": 120,
+  "sha256": "3ae24c80aa4d4e59d486577040e056a05e99d2f8f72d0c06eb17880bbc5cbfa0",
+  "width": 87
+ },
+ "freeway_1w_2_0_0_n_37_8_4": {
+  "id": "71985860450613",
+  "period": 120,
+  "sha256": "58faa2daf3535242a230cc1d3a5d9216defc8516aa0e9a968cb3a56f22ce770c",
+  "width": 37
+ },
+ "freeway_1w_3_0_0_n_49.5_8_4": {
+  "id": "102972439694105",
+  "period": 120,
+  "sha256": "a683c13a777df36dbd849f7c04d6df056e239c1e3498d3d54bf36829f72b84fc",
+  "width": 49.5
+ },
+ "freeway_1w_4_0_0_n_62_8_4": {
+  "id": "125911887042528",
+  "period": 120,
+  "sha256": "23b55818705dfd6fe14b8e0a7d9701deadb81fa00b428bc93c5615fb28327379",
+  "width": 62
+ },
+ "highway_2w_2_2_16_n_80_7_7": {
+  "id": "140096196834494",
+  "period": 120,
+  "sha256": "c6f2b5f318944f78dc83c7ca53beb064c9b122fbf076a2c42b4aeb469962470b",
+  "width": 80
+ },
+ "highway_2w_2_2_6_n_70_7_7": {
+  "id": "93550271768195",
+  "period": 120,
+  "sha256": "3fa4c6b9a169e4d77fe102dbd095c2d978233694de457496bc336a31d14a69ed",
+  "width": 70
+ },
+ "ramp_1w_1_0_0_n_18.5_3_3": {
+  "id": "87520368257346",
+  "period": 120,
+  "sha256": "1d8c247b561eed093f2e7383cc02a8d49bb68ffba678d28a28d455cf97d1734b",
+  "width": 18.5
+ },
+ "ramp_2w_1_1_0_n_31_3_3": {
+  "id": "124896165960619",
+  "period": 120,
+  "sha256": "765963ac3bcdc873f3a4868c26c61aa6175afec94038e0097e8d65eb13ade3c3",
+  "width": 31
+ },
+ "runway_2w_2_2_0_n_100_25_25": {
+  "id": "124053425604102",
+  "period": 120,
+  "sha256": "f524a9635fb9a03ddeecb65d2afd0bbe532099f9e38787e7c471e3c39ee8406a",
+  "width": 100
+ },
+ "rural_2w_1_1_0_n_35_5_5": {
+  "id": "135673766816590",
+  "period": 120,
+  "sha256": "a50c159d3aca70d60a6045b4d62a211ca928dd1a6e88f94fd3302e7fe2c43f8e",
+  "width": 35
+ },
+ "street_1w_2_0_0_p_43_0_0": {
+  "id": "113236930645012",
+  "period": 120,
+  "sha256": "49ab8b8621995ad1a542b2fd8ef62e50ed7882899a6682a85e990d43baf858ec",
+  "width": 43
+ },
+ "street_2w_1_1_0_n_25_0_0": {
+  "id": "95183015830234",
+  "period": 120,
+  "sha256": "80fbda3098220614a4812f5126fb51cf8a6a095a4efbadc878c3a02dd9bcf7e5",
+  "width": 25
+ },
+ "street_2w_1_1_0_p_43_0_0": {
+  "id": "127560490432979",
+  "period": 120,
+  "sha256": "918608f2c42c3a85219103aea045969014336e99c150b2287935b9595905d796",
+  "width": 43
+ }
+}

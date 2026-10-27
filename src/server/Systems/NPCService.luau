@@ -50,6 +50,7 @@ local Shared = ReplicatedStorage.Shared
 local CarBuilder = require(Shared.Vehicle.CarBuilder)
 local MapConfig = require(Shared.Config.Map)
 local MapLayout = require(Shared.Util.MapLayout)
+local GridLayout = require(Shared.Util.GridLayout) -- grid-locked block wandering until NPCs move to WorldQuery
 local Net = require(Shared.Net)
 local Signal = require(Shared.Util.Signal)
 local NPCOutfits = require(script.Parent.Parent.Config.NPCOutfits)
@@ -64,7 +65,7 @@ NPCService.Ready = Signal.new() -- () once every role has a template
 -- TUNING -------------------------------------------------------------------------------------------------------------
 
 local S = MapConfig.GRID_SPACING
-local CURB_TOP = MapLayout.CURB_TOP
+local CURB_TOP = GridLayout.CURB_TOP
 local BLOCK_HALF = (S - MapConfig.ROAD_WIDTH) / 2 -- 60: block edge (curb) from the block center
 
 NPCService.BUDGET = {
@@ -260,7 +261,7 @@ end
 -- on each side (NW, NE, SE, SW), with at most RING_SPACING between consecutive points. Returns (points, perSide):
 -- point (k - 1) * perSide + 1 is corner k.
 function NPCService._sidewalkRing(bx: number, bz: number): ({ Vector3 }, number)
-	local c = MapLayout.blockCenter(bx, bz)
+	local c = GridLayout.blockCenter(bx, bz)
 	local h = BLOCK_HALF - NPCService.SIDEWALK_INSET
 	local corners = {
 		Vector3.new(c.X - h, CURB_TOP, c.Z - h),
@@ -299,7 +300,7 @@ end
 
 -- Keep a point on block (bx, bz) (curb height, MARGIN inside the curb): fleeing pedestrians never run into the road.
 function NPCService._clampToBlock(p: Vector3, bx: number, bz: number): Vector3
-	local c = MapLayout.blockCenter(bx, bz)
+	local c = GridLayout.blockCenter(bx, bz)
 	local lim = BLOCK_HALF - 1.5
 	return Vector3.new(c.X + math.clamp(p.X - c.X, -lim, lim), CURB_TOP, c.Z + math.clamp(p.Z - c.Z, -lim, lim))
 end
@@ -413,7 +414,7 @@ function NPCService._pickSpawn(
 	local lookFlat = if look then flat(look) else Vector3.zero
 	for bx = MapConfig.BLOCK_MIN, MapConfig.BLOCK_MAX do
 		for bz = MapConfig.BLOCK_MIN, MapConfig.BLOCK_MAX do
-			if flatDist(MapLayout.blockCenter(bx, bz), center) > reach then
+			if flatDist(GridLayout.blockCenter(bx, bz), center) > reach then
 				continue
 			end
 			local ring = ringFor(bx, bz)
@@ -1695,7 +1696,7 @@ local function rejoin(rec: Rec, now: number): boolean
 		return false
 	end
 	local pos = root.CFrame.Position
-	local bx, bz = MapLayout.blockAt(pos)
+	local bx, bz = GridLayout.blockAt(pos)
 	local candidates = { { rec.bx, rec.bz } }
 	if isCityBlock(bx, bz) and (bx ~= rec.bx or bz ~= rec.bz) then
 		table.insert(candidates, { bx, bz })

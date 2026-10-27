@@ -396,7 +396,7 @@ return function(t)
 			end
 		end
 		local MapBuilder = H.require("src/server/Systems/MapBuilder")
-		MapBuilder.buildTerrain(terrain)
+		MapBuilder.ensureClouds(terrain) -- (MapBuilder v2: buildTerrain writes the whole island; the Clouds are the point)
 		L.init()
 		L.init() -- re-init doesn't add another either
 		local n = 0

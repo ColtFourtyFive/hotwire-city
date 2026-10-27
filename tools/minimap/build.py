@@ -7,14 +7,15 @@
     python3 -I tools/minimap/build.py --ss 2          # faster draft render (default 3)
 
 Steps
- 1. lune run tools/minimap/export.luau  -> build/minimap/geometry.json   (roads, parts, slots, garages, terrain)
+ 1. lune run tools/minimap/export.luau  -> build/minimap/geometry.json   (roads, lots, POIs, garages, terrain grid)
  2. render_map.py                        -> assets/minimap/tile_<r>_<c>.png (+ map_full.png, map_preview.png)
  3. icons.py                             -> assets/minimap/blips.png       (blip atlas + radar overlays)
  4. upload every image whose sha256 changed (tools/rbxcloud.py, Open Cloud; key from ~/.config/hotwire/roblox_api_key,
     never printed) and record ids + hashes in assets/minimap/manifest.json
  5. rewrite the GENERATED block of src/shared/Config/Minimap.luau: tile ids, world bounds, atlas id, icon cells
 
-Run it whenever the map layout (Config/Map, MapLayout, MapBuilder) changes.
+Run it whenever the world (tools/world gen + bake -> Config/WorldData) changes. The export reads the baked v2 world
+(Config/WorldLayout); --geometry re-renders an existing export without exporting again.
 """
 import argparse, hashlib, json, os, subprocess, sys, time
 
@@ -76,7 +77,7 @@ def write_config(manifest, args, icon_index):
     block = "\n".join([
         BEGIN,
         "-- World square covered by the map image (studs) and its tiles (row 1 = north = smallest Z, column 1 = west).",
-        f"Minimap.WORLD_MIN = Vector2.new({args.world_min:g}, {args.world_min:g})",
+        f"Minimap.WORLD_MIN = Vector2.new({args.world_min_x:g}, {args.world_min_z:g})",
         f"Minimap.WORLD_SIZE = {args.world_size:g}",
         f"Minimap.TILE_COUNT = {tiles}",
         f"Minimap.TILE_PIXELS = {args.px // tiles}",
@@ -104,11 +105,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-upload", action="store_true")
     ap.add_argument("--force", action="store_true")
-    ap.add_argument("--ss", type=int, default=3)
-    ap.add_argument("--px", type=int, default=2048)
-    ap.add_argument("--tiles", type=int, default=2)
-    ap.add_argument("--world-min", type=float, default=-1024)
-    ap.add_argument("--world-size", type=float, default=2048)
+    ap.add_argument("--ss", type=int, default=2)
+    ap.add_argument("--px", type=int, default=4096)
+    ap.add_argument("--tiles", type=int, default=4)
+    # the v2 island (WorldLayout.Bounds 13.2k x 10.6k) inside one square, ~3.25 studs per pixel
+    ap.add_argument("--world-min-x", type=float, default=-6656)
+    ap.add_argument("--world-min-z", type=float, default=-6756)
+    ap.add_argument("--world-size", type=float, default=13312)
     ap.add_argument("--geometry", help="reuse this geometry.json instead of exporting the world again (a restyle of "
                     "the current map while the city layout is being changed elsewhere)")
     args = ap.parse_args()
@@ -122,13 +125,19 @@ def main():
         geo = os.path.join(BUILD, "geometry.json")
         run(["lune", "run", "tools/minimap/export.luau", geo])
     run([sys.executable, "-I", "tools/minimap/render_map.py", geo, ASSETS, "--ss", str(args.ss), "--px", str(args.px),
-         "--tiles", str(args.tiles), "--world-min", str(args.world_min), "--world-size", str(args.world_size)])
+         "--tiles", str(args.tiles), "--world-min-x", str(args.world_min_x), "--world-min-z", str(args.world_min_z),
+         "--world-size", str(args.world_size)])
     run([sys.executable, "-I", "tools/minimap/icons.py", os.path.join(ASSETS, "blips.png"),
          "--sheet", os.path.join(BUILD, "blips_sheet.png")])
 
     import icons  # noqa: E402
 
     manifest = json.load(open(MANIFEST)) if os.path.exists(MANIFEST) else {}
+    # tiles of an older, smaller grid are dropped from the manifest
+    for key in [k for k in manifest if k.startswith("tile_")]:
+        r, c = (int(v) for v in key[5:].split("_"))
+        if r >= args.tiles or c >= args.tiles:
+            del manifest[key]
     files = {f"tile_{r}_{c}": os.path.join(ASSETS, f"tile_{r}_{c}.png")
              for r in range(args.tiles) for c in range(args.tiles)}
     files["blips"] = os.path.join(ASSETS, "blips.png")

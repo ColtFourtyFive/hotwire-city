@@ -123,6 +123,15 @@ for _, m in { "FillBlock", "FillBall", "FillCylinder", "FillWedge", "FillRegion"
 		table.insert(Harness.terrainOps, { m, ... })
 	end)
 end
+-- voxel writes are counted, not kept (MapBuilder v2 writes thousands of chunks)
+Harness.voxelWrites = 0
+pcall(roblox.implementMethod, "Terrain", "WriteVoxels", function()
+	Harness.voxelWrites += 1
+end)
+pcall(roblox.implementMethod, "Terrain", "Clear", function()
+	table.clear(Harness.terrainOps)
+	Harness.voxelWrites = 0
+end)
 pcall(roblox.implementMethod, "Instance", "WaitForChild", function(self, name)
 	return self:FindFirstChild(name)
 end)

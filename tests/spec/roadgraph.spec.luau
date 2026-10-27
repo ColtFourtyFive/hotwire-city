@@ -1,21 +1,25 @@
 --!nocheck
--- RoadGraph: graph construction from the layout, connectivity, A* route validity (every point and every segment on
--- asphalt), determinism, one-way handling, T-junction splitting and route performance.
+-- RoadGraph: graph construction (v1 grid segments + the v2 world graph), connectivity, A* route validity (every point
+-- and every segment on asphalt), determinism, one-way handling, T-junction splitting and route performance.
 return function(t)
 	local H = t.H
 	local Vector3 = H.roblox.Vector3
 	local RoadGraph = H.require("src/shared/Util/RoadGraph")
 	local MapLayout = H.require("src/shared/Util/MapLayout")
+	local GridLayout = H.require("src/shared/Util/GridLayout")
+	local WorldLayout = H.require("src/shared/Config/WorldLayout")
+	local WorldQuery = H.require("src/shared/Util/WorldQuery")
 	local MapConfig = H.require("src/shared/Config/Map")
 	local S = MapConfig.GRID_SPACING
 	local lines = MapConfig.LINE_MAX - MapConfig.LINE_MIN + 1
 
-	local graph = RoadGraph.build()
+	-- the v1 grid graph (segment splitting, Manhattan routing): RoadGraph.build(gridSegments)
+	local graph = RoadGraph.build(RoadGraph.gridSegments())
 
 	-- every point along a polyline (sampled every 4 studs) is on asphalt
 	local function assertOnRoad(points, label)
 		for i = 1, #points do
-			t.ok(MapLayout.isOnRoad(points[i]), ("%s: point %d off road %s"):format(label, i, tostring(points[i])))
+			t.ok(GridLayout.isOnRoad(points[i]), ("%s: point %d off road %s"):format(label, i, tostring(points[i])))
 			if i > 1 then
 				local a, b = points[i - 1], points[i]
 				local len = (b - a).Magnitude
@@ -23,7 +27,7 @@ return function(t)
 				for k = 1, steps - 1 do
 					local p = a:Lerp(b, k / steps)
 					t.ok(
-						MapLayout.isOnRoad(p),
+						GridLayout.isOnRoad(p),
 						("%s: segment %d leaves the road at %s"):format(label, i - 1, tostring(p))
 					)
 				end
@@ -84,7 +88,7 @@ return function(t)
 
 	t.test("nodes sit on intersections and on asphalt", function()
 		for _, p in graph.nodes do
-			t.ok(MapLayout.isOnRoad(p), "node off road " .. tostring(p))
+			t.ok(GridLayout.isOnRoad(p), "node off road " .. tostring(p))
 			t.near(p.X / S, math.round(p.X / S), 1e-9, "node x on a grid line")
 			t.near(p.Z / S, math.round(p.Z / S), 1e-9, "node z on a grid line")
 		end
@@ -98,11 +102,10 @@ return function(t)
 		t.ok(p and e and tt and d, "projection")
 		t.near(p.X, 75, 1e-6, "projects straight down onto the X road")
 		t.near(p.Z, 0, 1e-6, "on the centerline")
-		-- module-level helpers use the cached layout graph
-		local i2 = RoadGraph.nearestNode(Vector3.new(-805, 0, 790))
+		local i2 = graph:nearestNode(Vector3.new(-805, 0, 790))
 		t.eq(graph.nodes[i2], Vector3.new(-800, 0, 800), "corner of the ring road")
 		-- far out at sea still snaps onto the ring road
-		local far = RoadGraph.nearestPoint(Vector3.new(3000, 0, 20))
+		local far = graph:nearestPoint(Vector3.new(3000, 0, 20))
 		t.near(far.X, 800, 1e-6, "far point snaps to the ring")
 	end)
 
@@ -126,19 +129,6 @@ return function(t)
 		assertOnRoad(r, "manhattan")
 		t.near(r[1].X, -480, 1e-6, "starts on the road at the start")
 		t.near(r[#r].Z, 480, 1e-6, "ends on the road at the target")
-	end)
-
-	t.test("off-road endpoints snap to the nearest road (garage drop-off)", function()
-		for i = 1, MapLayout.plotCount() do
-			local cf = MapLayout.plotDropoffZone(i)
-			local spawn = MapLayout.spawnCFrame().Position
-			local r = graph:route(spawn, cf.Position)
-			t.ok(r ~= nil and #r >= 2, "route to plot " .. i)
-			assertOnRoad(r, "plot " .. i)
-			-- the last point is the road spot right in front of the garage door
-			local d = (Vector3.new(r[#r].X, 0, r[#r].Z) - Vector3.new(cf.Position.X, 0, cf.Position.Z)).Magnitude
-			t.ok(d < S * 0.5, ("plot %d: route ends %.1f studs from the drop-off"):format(i, d))
-		end
 	end)
 
 	t.test("200 random road-to-road routes exist, lie on roads and are deterministic", function()
@@ -194,7 +184,7 @@ return function(t)
 		t.ok(worst < 0.005, ("worst route %.3f ms"):format(worst * 1000))
 		t.ok(total / 100 < 0.002, ("average route %.3f ms"):format(total / 100 * 1000))
 		local t0 = os.clock()
-		RoadGraph.build()
+		RoadGraph.build(RoadGraph.gridSegments())
 		t.ok(os.clock() - t0 < 0.1, "graph build < 100 ms")
 	end)
 
@@ -241,5 +231,82 @@ return function(t)
 		t.near(d2, 30, 1e-9, "second segment distance")
 		t.eq(i2, 2, "second segment")
 		t.eq(RoadGraph.routeLength(nil), 0, "nil route length")
+	end)
+
+	-- v2 world graph (RoadGraph.get(): Config/WorldLayout Nodes / Edges) ----------------------------------------------
+
+	local world = RoadGraph.get()
+
+	t.test("v2: the GPS graph is the world graph (every polyline vertex a node, levels kept)", function()
+		local nodes, edges = world:stats()
+		local verts = 0
+		for _, e in WorldLayout.Edges do
+			verts += #e.points - 1
+		end
+		t.ok(edges > 0 and edges <= verts, "one edge per polyline segment")
+		t.ok(nodes >= #WorldLayout.Nodes, "world nodes kept")
+		local fresh = RoadGraph.fromWorld()
+		local n2, e2 = fresh:stats()
+		t.eq(n2, nodes, "deterministic nodes")
+		t.eq(e2, edges, "deterministic edges")
+		t.eq(RoadGraph.WORLD_CLASS.freeway, "highway")
+		t.eq(RoadGraph.WORLD_CLASS.boulevard, "avenue")
+	end)
+
+	t.test("v2: garage-to-garage GPS routes exist and stay on the roads", function()
+		for i = 1, #WorldLayout.Plots do
+			local j = i % #WorldLayout.Plots + 1
+			local a = WorldLayout.Plots[i].door
+			local b = WorldLayout.Plots[j].door
+			local r = RoadGraph.route(a, b)
+			t.ok(r ~= nil and #r >= 2, ("route plot %d -> %d"):format(i, j))
+			-- every interior vertex lies on a road centerline (within the road's half width)
+			for k = 2, #r - 1 do
+				local p = r[k]
+				local q, _, _, d = WorldQuery.nearestRoadPoint(p, { maxDistance = 80 })
+				t.ok(q ~= nil and d < 30, ("route %d vertex %d off the roads (%s)"):format(i, k, tostring(p)))
+			end
+			-- the route ends at the road spot in front of the garage
+			local last = r[#r]
+			local d = (Vector3.new(last.X, 0, last.Z) - Vector3.new(b.X, 0, b.Z)).Magnitude
+			t.ok(d < 140, ("route %d ends %.0f studs from the door"):format(i, d))
+		end
+	end)
+
+	t.test("v2: crossings on different levels never connect (no ramps through the deck)", function()
+		-- a deck node and the street node right under it are different graph nodes with no shared edge
+		local checked = 0
+		for _, e in WorldLayout.Edges do
+			if e.elevated and checked < 40 then
+				local p = e.points[(#e.points + 1) // 2]
+				local below = Vector3.new(p.X, p.Y - 28, p.Z)
+				local ia = world:nearestNode(p)
+				local ib = world:nearestNode(below)
+				if ia and ib and ia ~= ib then
+					checked += 1
+					for _, arc in world.adj[ia] do
+						local ed = world.edges[math.abs(arc)]
+						t.ok(ed.a ~= ib and ed.b ~= ib, "deck node linked to the street below")
+					end
+				end
+			end
+		end
+		t.ok(checked > 0, "checked deck nodes")
+	end)
+
+	t.test("v2: GPS routes are fast enough on the world graph", function()
+		local plots = WorldLayout.Plots
+		local worst = 0
+		for i = 1, #plots do
+			for j = 1, #plots do
+				if i ~= j then
+					local t0 = os.clock()
+					RoadGraph.route(plots[i].door, plots[j].door)
+					worst = math.max(worst, os.clock() - t0)
+				end
+			end
+		end
+		t.ok(worst < 0.05, ("worst route %.1f ms"):format(worst * 1000))
+		local _ = MapLayout
 	end)
 end
