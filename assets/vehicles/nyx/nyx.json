@@ -1,0 +1,484 @@
+{
+  "name": "nyx",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Fictional supercar - V12 Goblin",
+    "url": "https://sketchfab.com/3d-models/fictional-supercar-v12-goblin-0a20e49ad5774d778567cb5c3f345786",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Fictional supercar - V12 Goblin\" by ollitei (https://sketchfab.com/ollitei) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "0a20e49ad5774d778567cb5c3f345786"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "nyx.glb",
+  "dimensions": {
+    "length": 15.5,
+    "width": 7.614,
+    "height": 3.951,
+    "wheelbase": 8.878,
+    "track_front": 5.401,
+    "track_rear": 6.123,
+    "bbox_min": [
+      -3.8108,
+      -0.0077,
+      -8.084
+    ],
+    "bbox_max": [
+      3.8031,
+      3.9429,
+      7.416
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.7003,
+        1.1803,
+        -4.4388
+      ],
+      "radius": 1.1739,
+      "width": 1.4479,
+      "part_center": [
+        -2.7059,
+        1.1805,
+        -4.4374
+      ],
+      "attachment_offset": [
+        0.0056,
+        -0.0002,
+        -0.0014
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 899
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.7003,
+        1.1662,
+        -4.4388
+      ],
+      "radius": 1.1739,
+      "width": 1.4264,
+      "part_center": [
+        2.705,
+        1.1664,
+        -4.4369
+      ],
+      "attachment_offset": [
+        -0.0048,
+        -0.0002,
+        -0.0019
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 899
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -3.0613,
+        1.2332,
+        4.4388
+      ],
+      "radius": 1.2321,
+      "width": 1.499,
+      "part_center": [
+        -3.064,
+        1.2328,
+        4.4325
+      ],
+      "attachment_offset": [
+        0.0027,
+        0.0003,
+        0.0063
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        3.0613,
+        1.2324,
+        4.4387
+      ],
+      "radius": 1.2321,
+      "width": 1.4836,
+      "part_center": [
+        3.0645,
+        1.232,
+        4.4321
+      ],
+      "attachment_offset": [
+        -0.0032,
+        0.0003,
+        0.0066
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.4466,
+        1.4222,
+        0.7102
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.4466,
+        1.4222,
+        0.7102
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -1.8194,
+          1.6936,
+          -7.5338
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.9163,
+          1.646,
+          -7.6093
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.741,
+          2.0544,
+          7.595
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          2.741,
+          2.0544,
+          7.595
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.2842,
+        0.4741,
+        7.261
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.2642,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "car_body",
+      "color_srgb": [
+        0.0039,
+        0.0039,
+        0.0039
+      ],
+      "textured": true,
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "mask_coverage": 0.973
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 7001,
+      "bbox_min": [
+        -3.6754,
+        0.1632,
+        -8.0834
+      ],
+      "bbox_max": [
+        3.6758,
+        3.9402,
+        7.4165
+      ],
+      "textures": {
+        "base": "textures/nyx_Body_base.png",
+        "metal": "textures/nyx_Body_metal.png",
+        "normal": "textures/nyx_Body_normal.png",
+        "rough": "textures/nyx_Body_rough.png",
+        "tintmask": "textures/nyx_Body_tintmask.png",
+        "overlay": "textures/nyx_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 424,
+      "bbox_min": [
+        -3.121,
+        2.1932,
+        -3.7973
+      ],
+      "bbox_max": [
+        3.1278,
+        3.6341,
+        6.9977
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 444,
+      "bbox_min": [
+        -2.5639,
+        0.8408,
+        -7.6093
+      ],
+      "bbox_max": [
+        2.5698,
+        2.0812,
+        -6.5233
+      ],
+      "textures": {
+        "base": "textures/nyx_Lights_base.png",
+        "emit": "textures/nyx_Lights_emit.png"
+      }
+    },
+    "Interior": {
+      "tris": 974,
+      "bbox_min": [
+        -3.1063,
+        0.7216,
+        -2.941
+      ],
+      "bbox_max": [
+        3.1123,
+        3.4207,
+        6.9929
+      ],
+      "textures": {
+        "base": "textures/nyx_Interior_base.png",
+        "metal": "textures/nyx_Interior_metal.png",
+        "rough": "textures/nyx_Interior_rough.png",
+        "ao": "textures/nyx_Interior_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 899,
+      "bbox_min": [
+        -3.4298,
+        0.0069,
+        -5.6469
+      ],
+      "bbox_max": [
+        -1.982,
+        2.3542,
+        -3.2279
+      ],
+      "textures": {
+        "normal": "textures/nyx_Wheel_normal.png",
+        "metal": "textures/nyx_Wheel_metal.png",
+        "base": "textures/nyx_Wheel_base.png",
+        "rough": "textures/nyx_Wheel_rough.png",
+        "ao": "textures/nyx_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 899,
+      "bbox_min": [
+        1.9928,
+        -0.0073,
+        -5.6425
+      ],
+      "bbox_max": [
+        3.4173,
+        2.34,
+        -3.2312
+      ],
+      "textures": {
+        "normal": "textures/nyx_Wheel_normal.png",
+        "metal": "textures/nyx_Wheel_metal.png",
+        "base": "textures/nyx_Wheel_base.png",
+        "rough": "textures/nyx_Wheel_rough.png",
+        "ao": "textures/nyx_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.8097,
+        0.0016,
+        3.1635
+      ],
+      "bbox_max": [
+        -2.3184,
+        2.4641,
+        5.7015
+      ],
+      "textures": {
+        "normal": "textures/nyx_Wheel_normal.png",
+        "metal": "textures/nyx_Wheel_metal.png",
+        "base": "textures/nyx_Wheel_base.png",
+        "rough": "textures/nyx_Wheel_rough.png",
+        "ao": "textures/nyx_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 900,
+      "bbox_min": [
+        2.3263,
+        0.0008,
+        3.1659
+      ],
+      "bbox_max": [
+        3.8028,
+        2.4633,
+        5.6983
+      ],
+      "textures": {
+        "normal": "textures/nyx_Wheel_normal.png",
+        "metal": "textures/nyx_Wheel_metal.png",
+        "base": "textures/nyx_Wheel_base.png",
+        "rough": "textures/nyx_Wheel_rough.png",
+        "ao": "textures/nyx_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 86588,
+    "total": 12441,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": null,
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "Y",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.0,
+      "white_lights": 0.0,
+      "deck_height": 0.8,
+      "cabin": 0.207,
+      "mirrors": -1.2
+    },
+    "confidence": 2.807
+  },
+  "scale": {
+    "source_length": 0.11811286211013794,
+    "factor": 131.23041574885005,
+    "target_length": 15.5
+  },
+  "classes": {
+    "Body": {
+      "islands": 105,
+      "faces": 40114,
+      "area": 506.681
+    },
+    "Glass": {
+      "islands": 5,
+      "faces": 440,
+      "area": 17.371
+    },
+    "LightsFront": {
+      "islands": 25,
+      "faces": 2061,
+      "area": 2.368
+    },
+    "Interior": {
+      "islands": 7,
+      "faces": 976,
+      "area": 30.954
+    },
+    "Discard": {
+      "islands": 27,
+      "faces": 21295,
+      "area": 172.53
+    },
+    "WheelFL": {
+      "islands": 4,
+      "faces": 5391,
+      "area": 26.74
+    },
+    "WheelFR": {
+      "islands": 4,
+      "faces": 5421,
+      "area": 26.742
+    },
+    "WheelRL": {
+      "islands": 4,
+      "faces": 5445,
+      "area": 29.297
+    },
+    "WheelRR": {
+      "islands": 4,
+      "faces": 5445,
+      "area": 29.297
+    }
+  },
+  "warnings": []
+}

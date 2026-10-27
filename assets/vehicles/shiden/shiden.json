@@ -1,0 +1,482 @@
+{
+  "name": "shiden",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Nissan 200SX Silvia S14",
+    "url": "https://sketchfab.com/3d-models/nissan-200sx-silvia-s14-f2a917a924734a89a020e7f970e55e7c",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Nissan 200SX Silvia S14\" by Lexyc16 (https://sketchfab.com/Lexyc16) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "f2a917a924734a89a020e7f970e55e7c"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "shiden.glb",
+  "dimensions": {
+    "length": 15.3,
+    "width": 6.47,
+    "height": 4.372,
+    "wheelbase": 8.548,
+    "track_front": 4.768,
+    "track_rear": 4.768,
+    "bbox_min": [
+      -3.2359,
+      -0.0,
+      -7.5531
+    ],
+    "bbox_max": [
+      3.2338,
+      4.372,
+      7.7469
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.3841,
+        1.1088,
+        -4.2741
+      ],
+      "radius": 1.1088,
+      "width": 0.707,
+      "part_center": [
+        -2.3927,
+        1.1088,
+        -4.2741
+      ],
+      "attachment_offset": [
+        0.0086,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 898
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.3841,
+        1.1088,
+        -4.2675
+      ],
+      "radius": 1.1088,
+      "width": 0.707,
+      "part_center": [
+        2.3927,
+        1.1088,
+        -4.2675
+      ],
+      "attachment_offset": [
+        -0.0086,
+        -0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 898
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.3841,
+        1.1088,
+        4.2675
+      ],
+      "radius": 1.1088,
+      "width": 0.707,
+      "part_center": [
+        -2.3927,
+        1.1088,
+        4.2675
+      ],
+      "attachment_offset": [
+        0.0086,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 898
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.3841,
+        1.1088,
+        4.2741
+      ],
+      "radius": 1.1088,
+      "width": 0.707,
+      "part_center": [
+        2.3927,
+        1.1088,
+        4.2741
+      ],
+      "attachment_offset": [
+        -0.0086,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 898
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.2292,
+        1.5739,
+        0.6839
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.2292,
+        1.5739,
+        0.6839
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -1.8333,
+          2.0588,
+          -7.2061
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.8203,
+          2.0578,
+          -7.2061
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -1.5711,
+          2.6009,
+          7.3396
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.6936,
+          2.6003,
+          7.3102
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -1.9409,
+        0.5246,
+        7.5939
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.399,
+    -0.0
+  ],
+  "paint": {
+    "route": "strip",
+    "primary": {
+      "object": "Body",
+      "material": "Material.003",
+      "color_srgb": [
+        0.8515,
+        0.8515,
+        0.8515
+      ],
+      "textured": false,
+      "metallic": 0.5,
+      "roughness": 0.5
+    },
+    "secondary": null,
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 4208,
+      "bbox_min": [
+        -3.2359,
+        0.6569,
+        -7.5384
+      ],
+      "bbox_max": [
+        3.2338,
+        4.372,
+        7.7469
+      ],
+      "textures": {
+        "ao": "textures/shiden_Body_ao.png"
+      }
+    },
+    "LightsFront": {
+      "tris": 423,
+      "bbox_min": [
+        -2.5795,
+        1.8812,
+        -7.2061
+      ],
+      "bbox_max": [
+        2.5702,
+        2.2556,
+        -6.2405
+      ],
+      "textures": {
+        "emit": "textures/shiden_Lights_emit.png",
+        "base": "textures/shiden_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 450,
+      "bbox_min": [
+        -2.6293,
+        2.4143,
+        6.6821
+      ],
+      "bbox_max": [
+        2.6272,
+        2.8002,
+        7.3396
+      ],
+      "textures": {
+        "emit": "textures/shiden_Lights_emit.png",
+        "base": "textures/shiden_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2599,
+      "bbox_min": [
+        -3.2219,
+        0.6004,
+        -7.5482
+      ],
+      "bbox_max": [
+        3.2197,
+        4.2569,
+        7.7191
+      ],
+      "textures": {
+        "normal": "textures/shiden_Trim_normal.png",
+        "metal": "textures/shiden_Trim_metal.png",
+        "rough": "textures/shiden_Trim_rough.png",
+        "base": "textures/shiden_Trim_base.png",
+        "ao": "textures/shiden_Trim_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 898,
+      "bbox_min": [
+        -2.7549,
+        0.0,
+        -5.3796
+      ],
+      "bbox_max": [
+        -2.0304,
+        2.2176,
+        -3.1686
+      ],
+      "textures": {
+        "base": "textures/shiden_Wheel_base.png",
+        "metal": "textures/shiden_Wheel_metal.png",
+        "rough": "textures/shiden_Wheel_rough.png",
+        "normal": "textures/shiden_Wheel_normal.png",
+        "ao": "textures/shiden_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 898,
+      "bbox_min": [
+        2.0304,
+        0.0,
+        -5.3731
+      ],
+      "bbox_max": [
+        2.7549,
+        2.2176,
+        -3.162
+      ],
+      "textures": {
+        "base": "textures/shiden_Wheel_base.png",
+        "metal": "textures/shiden_Wheel_metal.png",
+        "rough": "textures/shiden_Wheel_rough.png",
+        "normal": "textures/shiden_Wheel_normal.png",
+        "ao": "textures/shiden_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 898,
+      "bbox_min": [
+        -2.7549,
+        0.0,
+        3.162
+      ],
+      "bbox_max": [
+        -2.0304,
+        2.2176,
+        5.3731
+      ],
+      "textures": {
+        "base": "textures/shiden_Wheel_base.png",
+        "metal": "textures/shiden_Wheel_metal.png",
+        "rough": "textures/shiden_Wheel_rough.png",
+        "normal": "textures/shiden_Wheel_normal.png",
+        "ao": "textures/shiden_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 898,
+      "bbox_min": [
+        2.0304,
+        -0.0,
+        3.1686
+      ],
+      "bbox_max": [
+        2.7549,
+        2.2176,
+        5.3796
+      ],
+      "textures": {
+        "base": "textures/shiden_Wheel_base.png",
+        "metal": "textures/shiden_Wheel_metal.png",
+        "rough": "textures/shiden_Wheel_rough.png",
+        "normal": "textures/shiden_Wheel_normal.png",
+        "ao": "textures/shiden_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 18229,
+    "total": 11272,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": null,
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "Y",
+    "votes": {
+      "names": 0.0,
+      "red_lights": -0.329,
+      "white_lights": 0.458,
+      "deck_height": -0.8,
+      "cabin": -0.484,
+      "mirrors": -1.2
+    },
+    "confidence": 2.355
+  },
+  "scale": {
+    "source_length": 3.0777111053466797,
+    "factor": 4.971226822888101,
+    "target_length": 15.3
+  },
+  "classes": {
+    "Body": {
+      "islands": 9,
+      "faces": 4210,
+      "area": 122.355
+    },
+    "LightsFront": {
+      "islands": 14,
+      "faces": 876,
+      "area": 3.234
+    },
+    "LightsRear": {
+      "islands": 20,
+      "faces": 726,
+      "area": 4.712
+    },
+    "Trim": {
+      "islands": 66,
+      "faces": 4775,
+      "area": 155.632
+    },
+    "Discard": {
+      "islands": 12,
+      "faces": 1942,
+      "area": 59.139
+    },
+    "WheelFL": {
+      "islands": 3,
+      "faces": 1425,
+      "area": 16.801
+    },
+    "WheelFR": {
+      "islands": 3,
+      "faces": 1425,
+      "area": 16.801
+    },
+    "WheelRL": {
+      "islands": 3,
+      "faces": 1425,
+      "area": 16.801
+    },
+    "WheelRR": {
+      "islands": 3,
+      "faces": 1425,
+      "area": 16.801
+    }
+  },
+  "warnings": []
+}

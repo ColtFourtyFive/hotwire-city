@@ -339,6 +339,10 @@ function AssetLibrary.wanted(cat: string, key: string, def: Assets.AssetDef): bo
 	if skip and skip[key] then
 		return false
 	end
+	-- v2 (wave A4): a car with an uploaded v2 Model never wears its v1 hero shell, so the shell is not loaded
+	if cat == "Hero" and CarBuilder.hasMesh(key) then
+		return false
+	end
 	return (def :: any).lazy ~= true
 end
 

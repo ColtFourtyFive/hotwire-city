@@ -10,12 +10,12 @@ import bmesh
 import bpy
 import numpy as np
 
-from .analyze import BODY, BODY2, DISCARD, GLASS, INTERIOR, LIGHT_F, LIGHT_R, TRIM, WHEEL0
+from .analyze import BODY, BODY2, DISCARD, GLASS, INTERIOR, LIGHT_F, LIGHT_R, SIGN, SIREN_B, SIREN_R, TRIM, WHEEL0
 from .util import log, select_only, tri_count
 
 # default triangle budgets (sum 17.6k <= 18k car budget; every MeshPart <= 20k)
 BUDGET = {"Body": 7000, "Body2": 1000, "Glass": 700, "LightsFront": 450, "LightsRear": 450, "Trim": 2600,
-          "Interior": 1500, "Wheel": 900}
+          "Interior": 1500, "Wheel": 900, "SirenRed": 300, "SirenBlue": 300, "Sign": 400}
 CAR_BUDGET = 18000
 
 
@@ -54,7 +54,8 @@ def split_roles(car):
     out = {}
     fr = car.frole
     groups = {"Body": fr == BODY, "Body2": fr == BODY2, "Glass": fr == GLASS, "LightsFront": fr == LIGHT_F,
-              "LightsRear": fr == LIGHT_R, "Trim": fr == TRIM, "Interior": fr == INTERIOR}
+              "LightsRear": fr == LIGHT_R, "Trim": fr == TRIM, "Interior": fr == INTERIOR,
+              "SirenRed": fr == SIREN_R, "SirenBlue": fr == SIREN_B, "Sign": fr == SIGN}
     for wi, w in enumerate(getattr(car, "wheels", [])):
         groups[w["name"]] = fr == WHEEL0 + wi
     for name, mask in groups.items():

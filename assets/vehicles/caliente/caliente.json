@@ -1,0 +1,484 @@
+{
+  "name": "caliente",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Impala 1964 Lowrider",
+    "url": "https://sketchfab.com/3d-models/impala-1964-lowrider-c68508c056a34a34997992deb4355166",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Impala 1964 Lowrider\" by mrkuza (https://sketchfab.com/mrkuza) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "c68508c056a34a34997992deb4355166"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "caliente.glb",
+  "dimensions": {
+    "length": 18.4,
+    "width": 8.567,
+    "height": 4.308,
+    "wheelbase": 10.613,
+    "track_front": 6.203,
+    "track_rear": 6.203,
+    "bbox_min": [
+      -4.2742,
+      -0.0052,
+      -8.1115
+    ],
+    "bbox_max": [
+      4.2926,
+      4.3029,
+      10.2885
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -3.1013,
+        0.9392,
+        -5.3063
+      ],
+      "radius": 0.9444,
+      "width": 1.0918,
+      "part_center": [
+        -3.1013,
+        0.9392,
+        -5.3063
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        3.1012,
+        0.9392,
+        -5.3063
+      ],
+      "radius": 0.9444,
+      "width": 1.0918,
+      "part_center": [
+        3.1012,
+        0.9392,
+        -5.3063
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -3.1012,
+        0.9488,
+        5.3063
+      ],
+      "radius": 0.9437,
+      "width": 1.0918,
+      "part_center": [
+        -3.1012,
+        0.9488,
+        5.3063
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        3.1013,
+        0.9488,
+        5.3063
+      ],
+      "radius": 0.9436,
+      "width": 1.0918,
+      "part_center": [
+        3.1013,
+        0.9488,
+        5.3063
+      ],
+      "attachment_offset": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.6277,
+        1.5509,
+        0.849
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.6277,
+        1.5509,
+        0.849
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.7809,
+          1.9924,
+          -8.0625
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.8334,
+          1.999,
+          -8.0625
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -3.0841,
+          2.2402,
+          9.016
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          3.0841,
+          2.2402,
+          9.016
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.5701,
+        0.517,
+        10.1045
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.3786,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": ".001",
+      "color_srgb": [
+        0.0,
+        0.5059,
+        0.2392
+      ],
+      "textured": true,
+      "metallic": 0.652288556098938,
+      "roughness": 0.04978293925523758,
+      "mask_coverage": 0.696
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 4651,
+      "bbox_min": [
+        -3.9309,
+        0.4152,
+        -7.998
+      ],
+      "bbox_max": [
+        3.9709,
+        4.3029,
+        10.0453
+      ],
+      "textures": {
+        "base": "textures/caliente_Body_base.png",
+        "rough": "textures/caliente_Body_rough.png",
+        "metal": "textures/caliente_Body_metal.png",
+        "tintmask": "textures/caliente_Body_tintmask.png",
+        "overlay": "textures/caliente_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 700,
+      "bbox_min": [
+        -3.247,
+        2.7562,
+        -3.2528
+      ],
+      "bbox_max": [
+        3.276,
+        4.254,
+        -1.5299
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 248,
+      "bbox_min": [
+        -3.5499,
+        1.6562,
+        -8.0625
+      ],
+      "bbox_max": [
+        3.6023,
+        2.3353,
+        -8.0034
+      ],
+      "textures": {
+        "emit": "textures/caliente_Lights_emit.png",
+        "base": "textures/caliente_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2600,
+      "bbox_min": [
+        -4.2734,
+        0.488,
+        -8.1115
+      ],
+      "bbox_max": [
+        4.2918,
+        3.5686,
+        10.2885
+      ],
+      "textures": {
+        "normal": "textures/caliente_Trim_normal.png",
+        "base": "textures/caliente_Trim_base.png",
+        "rough": "textures/caliente_Trim_rough.png",
+        "metal": "textures/caliente_Trim_metal.png",
+        "ao": "textures/caliente_Trim_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.6471,
+        -0.0052,
+        -6.2507
+      ],
+      "bbox_max": [
+        -2.5554,
+        1.8836,
+        -4.3619
+      ],
+      "textures": {
+        "rough": "textures/caliente_Wheel_rough.png",
+        "normal": "textures/caliente_Wheel_normal.png",
+        "base": "textures/caliente_Wheel_base.png",
+        "metal": "textures/caliente_Wheel_metal.png",
+        "ao": "textures/caliente_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 900,
+      "bbox_min": [
+        2.5554,
+        -0.0052,
+        -6.2507
+      ],
+      "bbox_max": [
+        3.6471,
+        1.8836,
+        -4.3619
+      ],
+      "textures": {
+        "rough": "textures/caliente_Wheel_rough.png",
+        "normal": "textures/caliente_Wheel_normal.png",
+        "base": "textures/caliente_Wheel_base.png",
+        "metal": "textures/caliente_Wheel_metal.png",
+        "ao": "textures/caliente_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.6471,
+        0.0052,
+        4.3626
+      ],
+      "bbox_max": [
+        -2.5554,
+        1.8925,
+        6.2499
+      ],
+      "textures": {
+        "rough": "textures/caliente_Wheel_rough.png",
+        "normal": "textures/caliente_Wheel_normal.png",
+        "base": "textures/caliente_Wheel_base.png",
+        "metal": "textures/caliente_Wheel_metal.png",
+        "ao": "textures/caliente_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 900,
+      "bbox_min": [
+        2.5554,
+        0.0052,
+        4.3626
+      ],
+      "bbox_max": [
+        3.6471,
+        1.8925,
+        6.2499
+      ],
+      "textures": {
+        "rough": "textures/caliente_Wheel_rough.png",
+        "normal": "textures/caliente_Wheel_normal.png",
+        "base": "textures/caliente_Wheel_base.png",
+        "metal": "textures/caliente_Wheel_metal.png",
+        "ao": "textures/caliente_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 19252,
+    "total": 11799,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": null,
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "Y",
+    "votes": {
+      "names": 0.0,
+      "red_lights": -1.953,
+      "white_lights": 0.0,
+      "deck_height": -0.009,
+      "cabin": 0.6,
+      "mirrors": 0.839
+    },
+    "confidence": 0.523
+  },
+  "scale": {
+    "source_length": 9.442243576049805,
+    "factor": 1.9486894032972726,
+    "target_length": 18.4
+  },
+  "classes": {
+    "Body": {
+      "islands": 3,
+      "faces": 4864,
+      "area": 445.498
+    },
+    "Glass": {
+      "islands": 1,
+      "faces": 748,
+      "area": 12.535
+    },
+    "LightsFront": {
+      "islands": 4,
+      "faces": 248,
+      "area": 2.845
+    },
+    "Trim": {
+      "islands": 124,
+      "faces": 7984,
+      "area": 347.584
+    },
+    "Discard": {
+      "islands": 14,
+      "faces": 848,
+      "area": 16.419
+    },
+    "WheelFL": {
+      "islands": 1,
+      "faces": 1140,
+      "area": 17.328
+    },
+    "WheelFR": {
+      "islands": 1,
+      "faces": 1140,
+      "area": 17.328
+    },
+    "WheelRL": {
+      "islands": 1,
+      "faces": 1140,
+      "area": 17.328
+    },
+    "WheelRR": {
+      "islands": 1,
+      "faces": 1140,
+      "area": 17.328
+    }
+  },
+  "warnings": []
+}

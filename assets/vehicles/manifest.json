@@ -1,0 +1,329 @@
+{
+ "images": {
+  "brookline_cab": {
+   "assetId": 126178785454568,
+   "bytes": 195499,
+   "file": "assets/vehicles/brookline_cab/textures/brookline_cab_Body_base.png",
+   "kind": "livery",
+   "moderation": "Reviewing",
+   "name": "HC car Halden Brookline Cab body livery",
+   "sha1": "bb5454544e107467f39cbb53e9098f75f76f3230"
+  },
+  "brookline_interceptor": {
+   "assetId": 87715622803473,
+   "bytes": 148942,
+   "file": "assets/vehicles/brookline_interceptor/textures/brookline_interceptor_Body_base.png",
+   "kind": "livery",
+   "moderation": "Approved",
+   "name": "HC car Halden Brookline Interceptor body livery",
+   "sha1": "893296f613e0e48b3215b58d87228b643bde7504"
+  },
+  "caliente": {
+   "assetId": 94656163828155,
+   "bytes": 317684,
+   "file": "assets/vehicles/caliente/textures/caliente_Body_overlay.png",
+   "kind": "overlay",
+   "moderation": "Reviewing",
+   "name": "HC car Marlowe Caliente body overlay",
+   "sha1": "0b347907423daa0e95f125cee812ab59abc2a160"
+  },
+  "hauler_medic": {
+   "assetId": 89794180201435,
+   "bytes": 269202,
+   "file": "assets/vehicles/hauler_medic/textures/hauler_medic_Body_base.png",
+   "kind": "livery",
+   "moderation": "Reviewing",
+   "name": "HC car Halden Hauler Medic body livery",
+   "sha1": "4592587c28ed5de83bd30fa66f72f4ecb8f1e62d"
+  },
+  "metro_cab": {
+   "assetId": 134595954506934,
+   "bytes": 745537,
+   "file": "assets/vehicles/metro_cab/textures/metro_cab_Body_base.png",
+   "kind": "livery",
+   "moderation": "Reviewing",
+   "name": "HC car Halden Metro Cab body livery",
+   "sha1": "6902be43f1c8838173a2078bcc373537d110d93c"
+  },
+  "nyx": {
+   "assetId": 76452702455113,
+   "bytes": 368264,
+   "file": "assets/vehicles/nyx/textures/nyx_Body_overlay.png",
+   "kind": "overlay",
+   "moderation": "Reviewing",
+   "name": "HC car Velacor Nyx body overlay",
+   "sha1": "af60bf7cdf216efe88931dffc35047ebd7f56954"
+  },
+  "trailhead_patrol": {
+   "assetId": 89777118092409,
+   "bytes": 220159,
+   "file": "assets/vehicles/trailhead_patrol/textures/trailhead_patrol_Body_base.png",
+   "kind": "livery",
+   "moderation": "Reviewing",
+   "name": "HC car Oakridge Trailhead Patrol body livery",
+   "sha1": "ea977574d70304864fcc236d9d84de138fd5f725"
+  },
+  "vaultline": {
+   "assetId": 127187749132335,
+   "bytes": 309507,
+   "file": "assets/vehicles/vaultline/textures/vaultline_Body_base.png",
+   "kind": "livery",
+   "moderation": "Reviewing",
+   "name": "HC car Brennan Vaultline body livery",
+   "sha1": "0ce8f51ec9dc044909021186d78ded8f20460787"
+  },
+  "vireo": {
+   "assetId": 122969526198182,
+   "bytes": 135508,
+   "file": "assets/vehicles/vireo/textures/vireo_Body_overlay.png",
+   "kind": "overlay",
+   "moderation": "Reviewing",
+   "name": "HC car Ashcombe Vireo body overlay",
+   "sha1": "4db522efb03afb86112deb42f96ffc9b2d695fcd"
+  }
+ },
+ "models": {
+  "aoi": {
+   "assetId": 87134221771897,
+   "bytes": 3052632,
+   "file": "assets/vehicles/aoi/aoi.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Aoi",
+   "sha1": "f8ecc81d8c4b2e8324929a3bade8a27bb85e03c9"
+  },
+  "ardente": {
+   "assetId": 73874757773903,
+   "bytes": 3820864,
+   "file": "assets/vehicles/ardente/ardente.glb",
+   "moderation": "Approved",
+   "name": "HC car Rossetti Ardente",
+   "sha1": "80533b16a1ca4284f63c2fe46b9c9e12e6305691"
+  },
+  "bracken": {
+   "assetId": 82262858755484,
+   "bytes": 4152364,
+   "file": "assets/vehicles/bracken/bracken.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Bracken",
+   "sha1": "ff24f191e7fea2da56a2ec9c97d269d73f0528d6"
+  },
+  "brookline": {
+   "assetId": 92372509882764,
+   "bytes": 3993828,
+   "file": "assets/vehicles/brookline/brookline.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Brookline",
+   "sha1": "495c1c0b701cd7118985a9b2b71404507da1f347"
+  },
+  "brookline_cab": {
+   "assetId": 71878721790097,
+   "bytes": 4034240,
+   "file": "assets/vehicles/brookline_cab/brookline_cab.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Brookline Cab",
+   "sha1": "3b9a14b12b71579c61b4fa2057bee3d0841176d3"
+  },
+  "brookline_interceptor": {
+   "assetId": 101197336432263,
+   "bytes": 4008760,
+   "file": "assets/vehicles/brookline_interceptor/brookline_interceptor.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Brookline Interceptor",
+   "sha1": "bd5b475277217908748d9caa38549f6289bb8a4f"
+  },
+  "caliente": {
+   "assetId": 112317677750247,
+   "bytes": 3163212,
+   "file": "assets/vehicles/caliente/caliente.glb",
+   "moderation": "Approved",
+   "name": "HC car Marlowe Caliente",
+   "sha1": "decd1efcbf197bc9cef12ee35d1c954127533843"
+  },
+  "cargo": {
+   "assetId": 74095744366676,
+   "bytes": 3145996,
+   "file": "assets/vehicles/cargo/cargo.glb",
+   "moderation": "Approved",
+   "name": "HC car Brennan Cargo 30",
+   "sha1": "525f85d2987f03c71481ceec26e1a138f0511dc0"
+  },
+  "firebrand": {
+   "assetId": 98743355423116,
+   "bytes": 2843920,
+   "file": "assets/vehicles/firebrand/firebrand.glb",
+   "moderation": "Approved",
+   "name": "HC car Brennan Firebrand Ladder",
+   "sha1": "57b8f476e883bf2da86a234915f90daa35e64978"
+  },
+  "furia": {
+   "assetId": 121795203261982,
+   "bytes": 4306824,
+   "file": "assets/vehicles/furia/furia.glb",
+   "moderation": "Approved",
+   "name": "HC car Rossetti Furia",
+   "sha1": "c3d9a34f6f878e450db9ef2bc05300c5ec0f6714"
+  },
+  "hauler": {
+   "assetId": 123659112368216,
+   "bytes": 3889332,
+   "file": "assets/vehicles/hauler/hauler.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Hauler",
+   "sha1": "01f2875dc3793091cc8d850217b89dcad9f48f0c"
+  },
+  "hauler_medic": {
+   "assetId": 137437783366994,
+   "bytes": 4015220,
+   "file": "assets/vehicles/hauler_medic/hauler_medic.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Hauler Medic",
+   "sha1": "efc40daf51cb3aab16d6b4d5d78f66de8e686483"
+  },
+  "hayate": {
+   "assetId": 75844755083416,
+   "bytes": 3122908,
+   "file": "assets/vehicles/hayate/hayate.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Hayate",
+   "sha1": "a21ee2404c09ba32b1c530871477dc9870fca691"
+  },
+  "ironside": {
+   "assetId": 100804672822023,
+   "bytes": 3724432,
+   "file": "assets/vehicles/ironside/ironside.glb",
+   "moderation": "Approved",
+   "name": "HC car Marlowe Ironside",
+   "sha1": "99aae12ed7383255d4354c1374522fe0dd8d054e"
+  },
+  "k8": {
+   "assetId": 97559521106680,
+   "bytes": 2932740,
+   "file": "assets/vehicles/k8/k8.glb",
+   "moderation": "Approved",
+   "name": "HC car Kronberg K8",
+   "sha1": "16f7674a46f144b9c27c60e8bdc1703f3083f94d"
+  },
+  "k8_pullman": {
+   "assetId": 110543958960714,
+   "bytes": 2454132,
+   "file": "assets/vehicles/k8_pullman/k8_pullman.glb",
+   "moderation": "Approved",
+   "name": "HC car Kronberg K8 Pullman",
+   "sha1": "fef8e64bfa342349a162ef6930a0ef2ec97a1492"
+  },
+  "kaze": {
+   "assetId": 94050556987998,
+   "bytes": 855168,
+   "file": "assets/vehicles/kaze/kaze.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Kaze",
+   "sha1": "b4f0a3c957ec83ebf6f0eb2204883c4016a1db93"
+  },
+  "kingsnake": {
+   "assetId": 110133461513858,
+   "bytes": 4272436,
+   "file": "assets/vehicles/kingsnake/kingsnake.glb",
+   "moderation": "Approved",
+   "name": "HC car Marlowe Kingsnake",
+   "sha1": "6025bdf67de915c50a16ec02b6e8ab3d059edd27"
+  },
+  "kuma": {
+   "assetId": 106447014366370,
+   "bytes": 3667420,
+   "file": "assets/vehicles/kuma/kuma.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Kuma",
+   "sha1": "c3f13cfdc264769252faf95ffc049f7018c46727"
+  },
+  "metro_cab": {
+   "assetId": 94111287910400,
+   "bytes": 3798892,
+   "file": "assets/vehicles/metro_cab/metro_cab.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Metro Cab",
+   "sha1": "1503b80a3ee1143b14938f37fce4a1151c421364"
+  },
+  "nami": {
+   "assetId": 140532761465852,
+   "bytes": 3416732,
+   "file": "assets/vehicles/nami/nami.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Nami",
+   "sha1": "22f687700d0ca234622267bcf0e7d4192ec3f206"
+  },
+  "nyx": {
+   "assetId": 129325072450862,
+   "bytes": 1243644,
+   "file": "assets/vehicles/nyx/nyx.glb",
+   "moderation": "Approved",
+   "name": "HC car Velacor Nyx",
+   "sha1": "73cd4c63513b7455aac2a331584cc12f746584e5"
+  },
+  "sena": {
+   "assetId": 134141790819809,
+   "bytes": 2780140,
+   "file": "assets/vehicles/sena/sena.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Sena",
+   "sha1": "13b0aebbf6683f0f94d1f8372120a6a312737f9c"
+  },
+  "shiden": {
+   "assetId": 89588281630728,
+   "bytes": 1334344,
+   "file": "assets/vehicles/shiden/shiden.glb",
+   "moderation": "Approved",
+   "name": "HC car Tamura Shiden",
+   "sha1": "43eb85a1535d089236d31493ed48a0725b63b7f9"
+  },
+  "trailhead": {
+   "assetId": 77193099945194,
+   "bytes": 2640408,
+   "file": "assets/vehicles/trailhead/trailhead.glb",
+   "moderation": "Approved",
+   "name": "HC car Oakridge Trailhead",
+   "sha1": "21feef8aa9fd66064ba1c3d52fb47b8863592e8d"
+  },
+  "trailhead_patrol": {
+   "assetId": 111739925111159,
+   "bytes": 2804524,
+   "file": "assets/vehicles/trailhead_patrol/trailhead_patrol.glb",
+   "moderation": "Approved",
+   "name": "HC car Oakridge Trailhead Patrol",
+   "sha1": "eaf12e0c06304c2e8502c5b255e9110d4bc56964"
+  },
+  "transit": {
+   "assetId": 86068491158296,
+   "bytes": 2800144,
+   "file": "assets/vehicles/transit/transit.glb",
+   "moderation": "Approved",
+   "name": "HC car Brennan Transit 40",
+   "sha1": "a8216f14ccc50d6cbb3e9ffc2d78bdab10b62a50"
+  },
+  "vaultline": {
+   "assetId": 100221050910674,
+   "bytes": 3921840,
+   "file": "assets/vehicles/vaultline/vaultline.glb",
+   "moderation": "Approved",
+   "name": "HC car Brennan Vaultline",
+   "sha1": "82271c6f601a5b5697996756a0cc6ad55f10dfb9"
+  },
+  "vireo": {
+   "assetId": 78335653323717,
+   "bytes": 1956816,
+   "file": "assets/vehicles/vireo/vireo.glb",
+   "moderation": "Approved",
+   "name": "HC car Ashcombe Vireo",
+   "sha1": "81dc2c400a07eaf5dedbd2998516c96eed276596"
+  },
+  "wren": {
+   "assetId": 123843717837747,
+   "bytes": 3421644,
+   "file": "assets/vehicles/wren/wren.glb",
+   "moderation": "Approved",
+   "name": "HC car Halden Wren",
+   "sha1": "bf316e66a559ff495d897eef5d99017d3e25160d"
+  }
+ },
+ "note": "Hotwire City v2 vehicles: Roblox asset ids (owner user 11686693147). Written by upload_roster.py.",
+ "updated": "2026-10-27T22:13:53"
+}

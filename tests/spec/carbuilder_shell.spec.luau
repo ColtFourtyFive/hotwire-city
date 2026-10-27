@@ -12,6 +12,8 @@ return function(t)
 	local CarBuilder = H.require("src/shared/Vehicle/CarBuilder")
 	local Cars = H.require("src/shared/Config/Cars")
 	local Rarity = H.require("src/shared/Config/Rarity")
+	-- legacy path: these cars without their v2 Model (see tests/legacy_shells.luau)
+	local restoreVehicles = require("../legacy_shells").clear(Cars)
 
 	local TEXTURE = "rbxassetid://424242"
 
@@ -347,9 +349,14 @@ return function(t)
 	end)
 
 	t.test("open-top shells lower the DriverSeat into the mesh seat (re-welded, restored by removeShell)", function()
+		-- the toilet left the v2 catalog (CarAliases): an ad-hoc def keeps the open-top seat path covered
+		local toilet = table.clone(Cars.ById.rustbucket)
+		toilet.id = "toilet_turbo"
+		toilet.style = "toilet"
+		toilet.vehicle = nil
 		withTemplates({ makeTemplate("toilet_turbo", { X = 8.8, Y = 6.4, Z = 7.3 }) }, function()
-			local bare = CarBuilder.build("toilet_turbo", "None")
-			local m = CarBuilder.build("toilet_turbo", "None")
+			local bare = CarBuilder.buildDef(toilet, "None")
+			local m = CarBuilder.buildDef(toilet, "None")
 			local chassis = m.PrimaryPart
 			local function seatY(model)
 				return model.PrimaryPart.CFrame:ToObjectSpace(model:FindFirstChild("DriverSeat").CFrame).Position
@@ -370,7 +377,7 @@ return function(t)
 			t.near(seatY(m).Z, pre.Position.Z, 1e-4, "same z")
 			CarBuilder.removeShell(m)
 			t.near(seatY(m).Y, pre.Position.Y, 1e-4, "seat restored")
-			local display = CarBuilder.build("toilet_turbo", "None", { forDisplay = true })
+			local display = CarBuilder.buildDef(toilet, "None", { forDisplay = true })
 			t.ok(display:FindFirstChild("DriverSeat") == nil, "display cars have no seat to move")
 			t.eq(display:GetAttribute("HeroMesh"), true, "display toilet dressed")
 		end)
@@ -495,12 +502,14 @@ return function(t)
 		local server = CarBuilder.build("grandma_sedan", "None", { forDisplay = true })
 		t.ok(not server:HasTag(CarBuilder.CLIENT_TAG), "server build untagged")
 		H.setMode("client")
+		local restoreClient = require("../legacy_shells").clear(H.require("src/shared/Config/Cars"))
 		local ok, err = pcall(function()
 			local ClientBuilder = H.require("src/shared/Vehicle/CarBuilder")
 			local m = ClientBuilder.build("grandma_sedan", "None", { forDisplay = true })
 			t.ok(m:HasTag(ClientBuilder.CLIENT_TAG), "client build tagged")
 			t.eq(ClientBuilder.CLIENT_TAG, "ClientCar", "tag name")
 		end)
+		restoreClient()
 		H.setMode("server")
 		if not ok then
 			error(err, 0)
@@ -509,6 +518,7 @@ return function(t)
 
 	t.test("WheelAnimator agrees on the shell name and cycles the shell on Rainbow HeroMesh cars", function()
 		H.setMode("client")
+		local restoreClient = require("../legacy_shells").clear(H.require("src/shared/Config/Cars"))
 		local ok, err = pcall(function()
 			local WheelAnimator = H.require("src/client/Controllers/WheelAnimator")
 			local ClientBuilder = H.require("src/shared/Vehicle/CarBuilder")
@@ -529,6 +539,7 @@ return function(t)
 				t.eq(meshOf(m).TextureID, "", "rainbow shell untextured")
 			end)
 		end)
+		restoreClient()
 		H.setMode("server")
 		if not ok then
 			error(err, 0)
@@ -548,6 +559,7 @@ return function(t)
 
 	t.test("opts.noShell (Index cards): procedural even with a template, and AssetClient leaves it bare", function()
 		H.setMode("client")
+		local restoreClient = require("../legacy_shells").clear(H.require("src/shared/Config/Cars"))
 		local ok, err = pcall(function()
 			local ClientBuilder = H.require("src/shared/Vehicle/CarBuilder")
 			local AssetClient = H.require("src/client/Controllers/AssetClient")
@@ -582,9 +594,11 @@ return function(t)
 				error(errInner, 0)
 			end
 		end)
+		restoreClient()
 		H.setMode("server")
 		if not ok then
 			error(err, 0)
 		end
 	end)
+	restoreVehicles()
 end

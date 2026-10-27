@@ -1,0 +1,9 @@
+# Reproducible build outputs (python3 -I tools/blender/carpipe/build_roster.py from the CC-BY sources in
+# assets/source/sketchfab, re-fetchable): ~240 MB of GLBs, baked textures and QA renders. The uploaded Roblox asset
+# ids are in manifest.json; each car's sidecar (<id>/<id>.json) is kept for review and Config/Vehicles.
+*/textures/
+*/*.glb
+*/islands_debug.txt
+_qa/
+_logs/
+_rig/

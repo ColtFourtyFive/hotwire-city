@@ -213,6 +213,14 @@ def multiply_ao(color_path, ao_path, strength=0.7):
     save_np(c, color_path)
 
 
+def screen_emit(color_path, emit_path, strength=0.85):
+    """Fold an emission bake into the base colour (screen blend) for parts that ship a base map only."""
+    c = load_np(color_path)
+    e = load_np(emit_path)[..., :3] * strength
+    c[..., :3] = 1 - (1 - c[..., :3]) * (1 - e)
+    save_np(c, color_path)
+
+
 def _hue(rgb, mx, mn):
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     dlt = np.maximum(mx - mn, 1e-6)
