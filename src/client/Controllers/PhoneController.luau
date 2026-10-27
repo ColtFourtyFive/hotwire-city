@@ -20,16 +20,16 @@
 --
 -- Public API: open(), close(), toggle(), isOpen(), openApp(id), text(contactId, body, opts?) -> message,
 --   unreadCount(): number, callCab()
--- The cab only acts on the server's answer: GoHome validates and charges; the phone closes, the black dip plays and
--- the cooldown (Economy.CAB_COOLDOWN, shared with PlotService) starts only once the character has actually been moved.
--- A refusal arrives as the server's Notify feed card.
--- Pure helpers (tests): APPS, CONTACTS, cabState(ctx), cabJumped(a, b), unread(messages), threadOf(messages,
+-- The cab only acts on the server's answer: GoHome validates, charges, streams the garage in, re-checks (refunding
+-- when things changed) and moves the character, then bumps the CabRides attribute; only that confirmation closes the
+-- phone, plays the black dip and starts the cooldown (Economy.CAB_COOLDOWN, shared with PlotService). A refusal
+-- arrives as the server's Notify feed card.
+-- Pure helpers (tests): APPS, CONTACTS, cabState(ctx), cabConfirmed(a, b), unread(messages), threadOf(messages,
 --   contactId), latestByContact(messages)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local SoundService = game:GetService("SoundService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -45,6 +45,7 @@ local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local Phone = require(UI:WaitForChild("Phone"))
+local UISound = require(UI:WaitForChild("UISound"))
 
 local StateController = require(script.Parent:WaitForChild("StateController"))
 
@@ -54,8 +55,7 @@ local player = Players.LocalPlayer
 local C = Theme.Colors
 
 local MAX_MESSAGES = 60
-local CAB_WAIT = 3 -- seconds to wait for the server's teleport before giving up on a ride
-local CAB_JUMP_STUDS = 25 -- one frame's movement beyond this is the cab's teleport, not walking
+local CAB_WAIT = 8 -- seconds to wait for the server's ride confirmation (it streams the garage in first)
 
 export type AppDef = { id: string, title: string, icon: string }
 
@@ -180,9 +180,11 @@ PhoneController.CAB_REPLY = {
 	ready = "On our way. Hold tight.",
 } :: { [string]: string }
 
--- Did the character jump from `a` to `b` in one frame (the server's GoHome teleport)?
-function PhoneController.cabJumped(a: Vector3, b: Vector3): boolean
-	return (b - a).Magnitude > CAB_JUMP_STUDS
+-- Did the server confirm a ride since the call? It bumps the CabRides player attribute after the drop-off (nothing
+-- else does): a respawn, a fall or a fling is never taken for a cab.
+function PhoneController.cabConfirmed(ridesAtCall: any, ridesNow: any): boolean
+	local before = if typeof(ridesAtCall) == "number" then ridesAtCall else 0
+	return typeof(ridesNow) == "number" and ridesNow > before
 end
 
 function PhoneController.unread(messages: { Message }): number
@@ -252,21 +254,9 @@ local function playSound(key: string)
 	end
 end
 
+-- Settings > Sound effects applies (UI/UISound).
 local function uiSound(key: string)
-	pcall(function()
-		local A = require(Config:WaitForChild("UIAssets")) :: any
-		local def = A.Sounds and A.Sounds[key]
-		if def then
-			local s = Instance.new("Sound")
-			s.SoundId = def.id
-			s.Volume = def.volume
-			s.Parent = SoundService
-			s:Play()
-			task.delay(3, function()
-				s:Destroy()
-			end)
-		end
-	end)
+	UISound.play(key, { life = 3 })
 end
 
 local function attrNumber(name: string): number?
@@ -397,12 +387,6 @@ local function inOwnGarage(): boolean
 	return ok and at == idx
 end
 
-local function rootPart(): BasePart?
-	local char = player.Character
-	local root = char and char:FindFirstChild("HumanoidRootPart")
-	return if root and root:IsA("BasePart") then root else nil
-end
-
 local function isAlive(): boolean
 	local char = player.Character
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -449,22 +433,17 @@ function PhoneController.callCab(): CabState
 	cabPending = true
 	PhoneController.text("cab", PhoneController.CAB_REPLY.ready, { feed = false, silent = true })
 	playSound("Click")
-	local start = rootPart()
-	local last = if start then start.Position else nil
+	local ridesAtCall = player:GetAttribute("CabRides")
 	Net.fire("GoHome")
 	task.spawn(function()
+		-- the server streams the garage in before the drop-off, then confirms with CabRides
 		local t0 = os.clock()
 		while os.clock() - t0 < CAB_WAIT do
 			RunService.Heartbeat:Wait()
-			local root = rootPart()
-			if root then
-				local pos = root.Position
-				if last and PhoneController.cabJumped(last, pos) then
-					cabPending = false
-					cabArrived()
-					return
-				end
-				last = pos
+			if PhoneController.cabConfirmed(ridesAtCall, player:GetAttribute("CabRides")) then
+				cabPending = false
+				cabArrived()
+				return
 			end
 		end
 		-- no ride: the server refused (its Notify card says why) or never answered
@@ -742,31 +721,65 @@ local function exitPhotoMode()
 	end
 end
 
-local function takePhoto()
-	uiSound("photo")
+-- Shutter feedback once the frame is taken: the viewfinder comes back, the white flash fades, the shutter clicks.
+local function photoTaken()
 	local vf = viewfinder
-	if vf then
+	if vf and photoMode then
+		vf.Enabled = true
 		local flash = vf:FindFirstChild("Flash")
 		if flash and flash:IsA("Frame") then
 			flash.BackgroundTransparency = 0.2
 			Kit.fadeTree(flash, 1, 0.4)
 		end
 	end
-	pcall(function()
-		local CaptureService = game:GetService("CaptureService") :: any
-		CaptureService:CaptureScreenshot(function(contentId: any)
-			-- §5.11: capture + keep it. The Roblox prompt lets the player save it to their device's gallery.
-			pcall(function()
-				CaptureService:PromptSaveCapturesToGallery({ contentId }, function(results: any)
-					local saved = typeof(results) == "table" and results[contentId] == true
-					if saved then
-						local nc = lazy("NotificationController")
-						if nc and typeof(nc.post) == "function" then
-							pcall(nc.post, { body = "Photo saved to your gallery.", key = "photo_saved" })
+	uiSound("photo")
+end
+
+local capturing = false
+local function takePhoto()
+	if capturing then
+		return
+	end
+	capturing = true
+	-- the picture is the world, not our chrome: hide the corner brackets / Exit / Take photo (and any flash) for the
+	-- frame the capture reads, then bring them back with the flash
+	local vf = viewfinder
+	if vf then
+		vf.Enabled = false
+	end
+	-- off the input callback: it waits a frame
+	task.spawn(function()
+		RunService.RenderStepped:Wait()
+		local ok = pcall(function()
+			local CaptureService = game:GetService("CaptureService") :: any
+			CaptureService:CaptureScreenshot(function(contentId: any)
+				capturing = false
+				photoTaken()
+				-- §5.11: capture + keep it. The Roblox prompt lets the player save it to their device's gallery.
+				pcall(function()
+					CaptureService:PromptSaveCapturesToGallery({ contentId }, function(results: any)
+						local saved = typeof(results) == "table" and results[contentId] == true
+						if saved then
+							local nc = lazy("NotificationController")
+							if nc and typeof(nc.post) == "function" then
+								pcall(nc.post, { body = "Photo saved to your gallery.", key = "photo_saved" })
+							end
 						end
-					end
+					end)
 				end)
 			end)
+		end)
+		if not ok then
+			capturing = false
+			photoTaken()
+			return
+		end
+		-- a capture that never calls back must not leave the viewfinder hidden
+		task.delay(3, function()
+			if capturing then
+				capturing = false
+				photoTaken()
+			end
 		end)
 	end)
 end

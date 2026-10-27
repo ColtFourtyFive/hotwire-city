@@ -11,7 +11,9 @@
 --       opts     { rows = { {label, value} }, total = {label, value}?, hold = seconds?, grade = boolean?,
 --                  sound = boolean?, fadeOut = "fade" | "black" | nil, onDone = function? }
 --                fadeOut = "black" drops the HC_Fade curtain when the shard ends; it lifts by itself on the next
---                LocalPlayer.CharacterAdded (and never stays down longer than Shard.MAX_BLACK_SECONDS)
+--                LocalPlayer.CharacterAdded (and never stays down longer than Shard.MAX_BLACK_SECONDS). A respawn
+--                that comes before the shard ends (short RespawnTime) ends a graded / black-out shard right away:
+--                no curtain over a live player, no grey grade after the respawn.
 --   Shard.hide(fast?)            fades the current shard out (also removes the grade)
 --   Shard.isShowing(): boolean
 --   Shard.setGrade(on, seconds?) the death / arrest grade: ColorCorrection Saturation -1 / Contrast 0.3 /
@@ -20,6 +22,8 @@
 --   Shard.fadeBlack(on, seconds?) the HC_Fade black curtain (respawn cut); a curtain that is not lifted by the caller
 --                                lifts itself after Shard.MAX_BLACK_SECONDS
 --   Shard.style(kind)            pure: { title, color, alpha, grade, hold, sound } (unit-tested)
+--   Shard.textMetrics(vpX, vpY)  pure: the title's UIScale (its text is laid out on the 1280x720 design canvas,
+--                                where Roblox's 100 px text cap is ~14% H) and the subtitle's max text size
 --
 -- Look: a full-width translucent black band with GTA's slight keystone (15.5% of the screen height at the left edge,
 -- 23% at the right; the keystone sprite from Config/UIAssets, a plain 19.5% band without it) centred at 48.8% H;
@@ -34,6 +38,7 @@ local Workspace = game:GetService("Workspace")
 local Theme = require(script.Parent.Theme)
 local Kit = require(script.Parent.Kit)
 local RichText = require(script.Parent.RichText)
+local UISound = require(script.Parent.UISound)
 
 local Shard = {}
 
@@ -75,6 +80,16 @@ function Shard.style(kind: any): Style
 	return STYLES[k] or { title = k, color = C.Text, alpha = 0.45, grade = false, hold = 3, sound = nil }
 end
 
+-- The title is laid out on the 1280x720 design canvas (TITLE_W x TITLE_H, TextScaled up to Roblox's 100 px cap,
+-- ~14% of 720) and scaled to the screen by a UIScale; the subtitle's cap follows the screen height (18 design px).
+local TITLE_W, TITLE_H = 794, 101
+function Shard.textMetrics(vpX: number, vpY: number): (number, number)
+	local x = if vpX == vpX and vpX >= 1 then vpX else 1280
+	local y = if vpY == vpY and vpY >= 1 then vpY else 720
+	local scale = math.min(y / 720, 0.9 * x / TITLE_W)
+	return scale, math.max(12, math.floor(0.025 * y + 0.5))
+end
+
 -- Seconds before each extra row of a passed-style shard appears (0.15 s apart after the band is in).
 function Shard.rowDelay(index: number): number
 	return 0.6 + 0.15 * (math.max(1, index) - 1)
@@ -91,6 +106,7 @@ type Ui = {
 	title: TextLabel,
 	titleScale: UIScale,
 	subtitle: TextLabel,
+	subtitleFit: UITextSizeConstraint,
 	rows: Frame,
 	vignette: ImageLabel,
 	fadeGui: ScreenGui,
@@ -100,6 +116,7 @@ type Ui = {
 local ui: Ui? = nil
 local token = 0
 local showing = false
+local baseScale = 1 -- the title's screen scale (textMetrics)
 local gradeEffects: { Instance } = {}
 local gradeOn = false
 
@@ -149,7 +166,7 @@ local function build(): Ui
 		Name = "Title",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.468),
-		Size = UDim2.fromScale(0.62, 0.13),
+		Size = UDim2.fromOffset(TITLE_W, TITLE_H),
 		BackgroundTransparency = 1,
 		Text = "",
 		TextScaled = true,
@@ -159,7 +176,7 @@ local function build(): Ui
 		ZIndex = 3,
 		Parent = gui,
 	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 110, MinTextSize = 24, Parent = title })
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 100, MinTextSize = 24, Parent = title })
 	local titleScale = Kit.new("UIScale", { Parent = title })
 	local subtitle = Kit.new("TextLabel", {
 		Name = "Subtitle",
@@ -176,7 +193,7 @@ local function build(): Ui
 		ZIndex = 3,
 		Parent = gui,
 	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 12, Parent = subtitle })
+	local subtitleFit = Kit.new("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 12, Parent = subtitle })
 	local rows = Kit.new("Frame", {
 		Name = "Rows",
 		AnchorPoint = Vector2.new(0.5, 0),
@@ -212,6 +229,7 @@ local function build(): Ui
 		title = title,
 		titleScale = titleScale,
 		subtitle = subtitle,
+		subtitleFit = subtitleFit,
 		rows = rows,
 		vignette = vignette,
 		fadeGui = fadeGui,
@@ -238,36 +256,21 @@ local function setBandAlpha(u: Ui, alpha: number, seconds: number)
 	end
 end
 
+-- Settings > Sound effects applies (UI/UISound).
 local function playSound(key: string?)
-	if not key then
-		return
+	if key then
+		UISound.play(key)
 	end
-	local ok, UIAssets = pcall(function()
-		local shared = game:GetService("ReplicatedStorage"):FindFirstChild("Shared")
-		local m = shared and shared:FindFirstChild("Config")
-		m = m and m:FindFirstChild("UIAssets")
-		return if m then require(m :: any) else nil
-	end)
-	local def = if ok and UIAssets and UIAssets.Sounds then UIAssets.Sounds[key] else nil
-	if not def then
-		return
-	end
-	local s = Instance.new("Sound")
-	s.Name = "HC_Shard_" .. key
-	s.SoundId = def.id
-	s.Volume = def.volume
-	s.Parent = SoundService
-	s:Play()
-	local life = def.length or 8
-	task.delay(life, function()
-		if s.Parent then
-			if def.length then
-				tween(s, 0.4, { Volume = 0 })
-				task.wait(0.45)
-			end
-			s:Destroy()
-		end
-	end)
+end
+
+-- Size the title (UIScale over the design-canvas layout) and the subtitle cap for the current screen.
+local function fitText(u: Ui)
+	local cam = Workspace.CurrentCamera
+	local vp = if cam then cam.ViewportSize else Vector2.new(1280, 720)
+	local scale, subMax = Shard.textMetrics(vp.X, vp.Y)
+	baseScale = scale
+	u.titleScale.Scale = scale
+	u.subtitleFit.MaxTextSize = subMax
 end
 
 local function row(parent: Instance, label: string, value: string, color: Color3, order: number): Frame
@@ -409,6 +412,7 @@ function Shard.show(kind: string, title: string?, subtitle: string?, opts: ShowO
 		end
 	end
 	u.gui.Enabled = true
+	fitText(u)
 	u.title.Text = string.lower(Kit.sanitize(title or style.title))
 	u.title.TextColor3 = style.color
 	u.subtitle.Text = RichText.format(Kit.sanitize(subtitle or ""))
@@ -419,13 +423,13 @@ function Shard.show(kind: string, title: string?, subtitle: string?, opts: ShowO
 	tween(u.band, 0.25, { Size = UDim2.fromScale(1, full) })
 	u.title.TextTransparency = 1
 	u.subtitle.TextTransparency = 1
-	u.titleScale.Scale = 1.12
+	u.titleScale.Scale = baseScale * 1.12
 	task.delay(0.1, function()
 		if token ~= my then
 			return
 		end
 		tween(u.title, 0.35, { TextTransparency = 0 })
-		tween(u.titleScale, 0.35, { Scale = 1 })
+		tween(u.titleScale, 0.35, { Scale = baseScale })
 		tween(u.subtitle, 0.35, { TextTransparency = 0 })
 	end)
 	local wantGrade = if o.grade ~= nil then o.grade else style.grade
@@ -454,32 +458,51 @@ function Shard.show(kind: string, title: string?, subtitle: string?, opts: ShowO
 			end
 		end)
 	end
+
+	local done = false
+	local function finish()
+		if done then
+			return
+		end
+		done = true
+		if o.onDone then
+			task.spawn(o.onDone)
+		end
+	end
+	-- Death / arrest shards watch for the respawn from the start: with a short RespawnTime the character is back before
+	-- the shard ends, and the player must not sit under a grey grade or a black curtain after that.
+	local blackOut = o.fadeOut == "black"
+	local respawned = false
+	local curtainMine: number? = nil
+	local lp = Players.LocalPlayer
+	if (blackOut or wantGrade) and lp then
+		lp.CharacterAdded:Once(function()
+			respawned = true
+			if token == my then
+				Shard.hide(true)
+				finish()
+			elseif curtainMine ~= nil and curtainMine == curtainToken then
+				task.delay(0.3, function()
+					if curtainMine == curtainToken then
+						Shard.fadeBlack(false)
+					end
+				end)
+			end
+		end)
+	end
+
 	local hold = (o.hold or style.hold) + (if #rows > 0 then Shard.rowDelay(#rows) else 0)
 	task.delay(0.35 + hold, function()
 		if token ~= my then
 			return
 		end
-		if o.fadeOut == "black" then
+		if blackOut and not respawned then
 			-- the respawn cut: the curtain lifts on the next spawn (or after MAX_BLACK_SECONDS, see fadeBlack)
 			Shard.fadeBlack(true)
-			local lifted = curtainToken
-			local lp = Players.LocalPlayer
-			if lp then
-				lp.CharacterAdded:Once(function()
-					if lifted == curtainToken then
-						task.delay(0.3, function()
-							if lifted == curtainToken then
-								Shard.fadeBlack(false)
-							end
-						end)
-					end
-				end)
-			end
+			curtainMine = curtainToken
 		end
 		Shard.hide()
-		if o.onDone then
-			task.spawn(o.onDone)
-		end
+		finish()
 	end)
 	return my
 end

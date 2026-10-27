@@ -56,6 +56,7 @@ local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local ListMenu = require(UI:WaitForChild("ListMenu"))
 local PauseMenu = require(UI:WaitForChild("PauseMenu"))
+local RichText = require(UI:WaitForChild("RichText"))
 
 -- Earlier in the client ORDER and the only source of player data: required directly.
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -87,7 +88,8 @@ local SWAP_AVAILABLE = table.find(Remotes.ClientToServer, SWAP_REMOTE) ~= nil
 
 local SECRET_COLOR = Theme.Rarity.Secret -- Secret's tier color is black: unreadable on dark panels
 
-local DEFAULT_SETTINGS: { [string]: boolean } = { music = true, sfx = true, hideHud = false, autoAccelerate = false }
+local DEFAULT_SETTINGS: { [string]: boolean } =
+	{ music = true, sfx = true, hideHud = false, autoAccelerate = false, speedo = false }
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Names
@@ -970,9 +972,11 @@ function MenuController.playerRows(entries: { PlayerEntry }): { any }
 	end)
 	local rows = {}
 	for _, e in list do
+		-- display names may hold < > & and the rows are rich text
+		local name = RichText.escape(e.name)
 		table.insert(rows, {
 			id = "player:" .. tostring(e.userId),
-			label = if e.isYou then e.name .. "  (you)" else e.name,
+			label = if e.isYou then name .. "  (you)" else name,
 			value = Format.cash(e.cash),
 			data = { section = "players", entry = e },
 		})
@@ -1009,7 +1013,7 @@ local settingOverrides: { [string]: { value: boolean, at: number } } = {}
 local priceCache: { [string]: number | boolean } = {} -- "pass:123" -> Robux price, or false while unknown
 local pending: { [string]: number } = {} -- purchase / claim key -> os.clock() it was sent
 local prestigeArmedAt = -math.huge
-local localPrefs = { speedo = true, cash = true }
+local localPrefs = { cash = true }
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Lazy dependencies
@@ -1116,8 +1120,10 @@ local function nextOrder(): number
 	return detailOrder
 end
 
-local function dTitle(f: Frame, text: string, color: Color3?)
-	Kit.text(string.upper(text), "condensed", 24, {
+-- plain = `text` is user text (a display name): escaped after the upper-casing so < > & show as written.
+local function dTitle(f: Frame, text: string, color: Color3?, plain: boolean?)
+	local shown = string.upper(text)
+	Kit.text(if plain then RichText.escape(shown) else shown, "condensed", 24, {
 		Name = "Title",
 		Size = UDim2.new(1, 0, 0, 32),
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -1683,7 +1689,7 @@ local function describeStats(tab: Tab, item: any)
 		end
 	elseif d.section == "players" then
 		local e: PlayerEntry = d.entry
-		dTitle(f, e.name)
+		dTitle(f, e.name, nil, true)
 		dPair(f, "Cash", Format.cash(e.cash), C.Green)
 		dPair(f, "Cars delivered", Format.commas(e.steals))
 		dPair(f, "Prestige level", tostring(math.floor(e.rebirths)))
@@ -1862,7 +1868,12 @@ local SETTING_DEFS: { SettingDef } = {
 		desc = "Cars drive forward on their own; steer and brake only. Handy on touch screens.",
 		server = true,
 	},
-	{ key = "speedo", label = "Speed readout", desc = "Shows your speed in mph while driving.", server = false },
+	{
+		key = "speedo",
+		label = "Speed readout",
+		desc = "Shows your speed in mph while driving (GTA has none; off by default).",
+		server = true,
+	},
 }
 
 local function applySettingLocally(key: string, value: boolean)
@@ -1872,7 +1883,6 @@ local function applySettingLocally(key: string, value: boolean)
 			pcall(sounds.setEnabled, key, value)
 		end
 	elseif key == "speedo" then
-		localPrefs.speedo = value
 		player:SetAttribute("HC_ShowSpeedo", value)
 	end
 end
@@ -2021,7 +2031,8 @@ local function selectGear(item: any)
 		return
 	end
 	if d.kind == "upgrade" then
-		if row.maxed then
+		-- the row shows "..." while a buy is on its way: a second Enter / tap must not buy a second level
+		if row.maxed or isPending("up:" .. row.id) then
 			playSound("Click")
 			return
 		elseif not row.affordable then
@@ -2031,7 +2042,7 @@ local function selectGear(item: any)
 		Net.fire("BuyUpgrade", row.id)
 		markPending("up:" .. row.id)
 	elseif d.kind == "tool" then
-		if row.owned then
+		if row.owned or isPending("tool:" .. row.id) then
 			playSound("Click")
 			return
 		elseif not row.affordable then
@@ -2429,6 +2440,15 @@ local function onSnapshot(snapshot: any)
 			settingOverrides[key] = nil
 		end
 	end
+	-- the saved speed readout setting (VehicleClient reads the local attribute)
+	local overrides: { [string]: boolean } = {}
+	for k, o in settingOverrides do
+		overrides[k] = o.value
+	end
+	local speedo = MenuController.settingValue(settings, overrides, "speedo")
+	if player:GetAttribute("HC_ShowSpeedo") ~= speedo then
+		player:SetAttribute("HC_ShowSpeedo", speedo)
+	end
 	MenuController.refresh()
 end
 
@@ -2442,7 +2462,7 @@ function MenuController.start()
 	ListMenu.tick = function()
 		playSound("Click")
 	end
-	player:SetAttribute("HC_ShowSpeedo", localPrefs.speedo)
+	player:SetAttribute("HC_ShowSpeedo", DEFAULT_SETTINGS.speedo)
 
 	StateController.Changed:Connect(onSnapshot)
 	local existing = StateController.get()
@@ -2453,12 +2473,19 @@ function MenuController.start()
 		player:GetAttributeChangedSignal(attr):Connect(MenuController.refresh)
 	end
 
-	-- P: pause menu (last tab); M is the map (MapScreenController). Esc belongs to Roblox.
+	-- P: pause menu (last tab); M is the map (MapScreenController). Esc belongs to Roblox, and so does the gamepad's
+	-- Start (it opens Roblox's menu and arrives here as gameProcessed): gamepads use Back / View (ButtonSelect). That
+	-- button also toggles Roblox's gamepad GUI selection, so that is switched off: our menus drive themselves with the
+	-- D-pad / A / B (ContextActionService).
+	pcall(function()
+		GuiService.AutoSelectGuiEnabled = false
+	end)
 	UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
 		if gameProcessed then
 			return
 		end
-		if input.KeyCode == Enum.KeyCode.P or input.KeyCode == Enum.KeyCode.ButtonStart then
+		local k = input.KeyCode
+		if k == Enum.KeyCode.P or k == Enum.KeyCode.ButtonSelect or k == Enum.KeyCode.ButtonStart then
 			MenuController.togglePause(nil)
 		end
 	end)

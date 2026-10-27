@@ -271,9 +271,12 @@ return function(t)
 			t.ok(typeof(PhoneC.CAB_REPLY[state]) == "string", "reply for " .. state)
 			t.ok(not PhoneC.CAB_REPLY[state]:find("!", 1, true), "no exclamation marks: " .. state)
 		end
-		t.ok(PhoneC.cabJumped(Vector3.new(0, 0, 0), Vector3.new(400, 0, 0)), "the teleport")
-		t.ok(not PhoneC.cabJumped(Vector3.new(0, 0, 0), Vector3.new(2, 0, 1)), "a frame of running")
-		t.ok(not PhoneC.cabJumped(Vector3.new(0, 0, 0), Vector3.new(0, 20, 0)), "a fall")
+		-- a ride is the server's word (the CabRides counter), never a guess from the character's movement
+		t.ok(PhoneC.cabConfirmed(nil, 1), "first ride")
+		t.ok(PhoneC.cabConfirmed(3, 4), "next ride")
+		t.ok(not PhoneC.cabConfirmed(4, 4), "nothing new (a respawn / fall / fling)")
+		t.ok(not PhoneC.cabConfirmed(nil, nil), "never confirmed")
+		t.ok(not PhoneC.cabConfirmed(2, "3"), "junk")
 		t.eq(PlotService.GO_HOME_COOLDOWN, Economy.CAB_COOLDOWN, "one cooldown, shared by server and phone")
 	end)
 
@@ -281,8 +284,9 @@ return function(t)
 		local fee = Economy.CAB_FEE
 		t.ok(fee > 0, "the cab costs money")
 		local clock = 1000
-		local notices, moves, spent = {}, 0, 0
+		local notices, moves, spent, streams, refunded = {}, 0, 0, 0, 0
 		local cash = 1000
+		local duringStream: (() -> ())? = nil
 		PlotService._setGoHomeHooks({
 			clock = function()
 				return clock
@@ -297,6 +301,13 @@ return function(t)
 			move = function()
 				moves += 1
 			end,
+			-- the garage streams in before the drop-off (a yield in the game): the test may change things meanwhile
+			stream = function()
+				streams += 1
+				if duringStream then
+					duringStream()
+				end
+			end,
 			system = function(name)
 				if name == "DataService" then
 					return {
@@ -307,6 +318,11 @@ return function(t)
 							cash -= amount
 							spent += amount
 							return true
+						end,
+						addCash = function(_p, amount, reason)
+							t.eq(reason, "refund")
+							cash += amount
+							refunded += amount
 						end,
 					}
 				end
@@ -354,8 +370,10 @@ return function(t)
 		cash = 1000
 		PlotService._onGoHome(p)
 		t.eq(moves, 1, "ride")
+		t.eq(streams, 1, "streamed the garage in first")
 		t.eq(spent, fee, "charged once")
 		t.eq(cash, 1000 - fee)
+		t.eq(p:GetAttribute("CabRides"), 1, "the ride is confirmed to the phone")
 
 		-- cooldown: refused and free
 		clock += PlotService.GO_HOME_COOLDOWN - 1
@@ -367,13 +385,31 @@ return function(t)
 		PlotService._onGoHome(p)
 		t.eq(moves, 2, "next ride after the cooldown")
 		t.eq(spent, 2 * fee)
+		t.eq(p:GetAttribute("CabRides"), 2)
+
+		-- spotted by a cop while the garage streams in: no ride, fare refunded, no cooldown, no confirmation
+		clock += 100
+		duringStream = function()
+			p:SetAttribute("Wanted", 1)
+		end
+		PlotService._onGoHome(p)
+		t.eq(moves, 2, "no drop-off for a wanted player")
+		t.eq(refunded, fee, "fare refunded")
+		t.eq(cash, 1000 - 2 * fee, "net: nothing charged")
+		t.ok(last().text:find("refunded", 1, true) ~= nil, "refund notice")
+		t.eq(p:GetAttribute("CabRides"), 2, "not confirmed")
+		duringStream = nil
+		p:SetAttribute("Wanted", 0)
+		PlotService._onGoHome(p)
+		t.eq(moves, 3, "the refused ride set no cooldown")
 
 		-- dead: silent no-op
 		clock += 100
 		hum.Health = 0
+		local spentBefore = spent
 		PlotService._onGoHome(p)
-		t.eq(moves, 2, "no ride while dead")
-		t.eq(spent, 2 * fee)
+		t.eq(moves, 3, "no ride while dead")
+		t.eq(spent, spentBefore)
 
 		PlotService._setGoHomeHooks(nil)
 		p:Destroy()

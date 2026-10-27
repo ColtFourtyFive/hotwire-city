@@ -543,6 +543,46 @@ local function buildUI()
 	}
 end
 
+-- Settings > Speed readout (saved; off by default: GTA has no speedometer).
+local function speedoWanted(): boolean
+	return player:GetAttribute("HC_ShowSpeedo") == true
+end
+
+-- What the HUD hides, DrivingUI hides too (VehicleClient.drivingUiVisibility): the readout and the drift line in
+-- streamer mode, photo mode and under the pause menu; the touch buttons only for photo mode and the pause menu, so
+-- EXIT / NITRO stay usable in streamer mode.
+local hudHidden = false
+local touchHidden = false
+
+function VehicleClient.drivingUiVisibility(streamer: boolean, photo: boolean, paused: boolean): (boolean, boolean)
+	return not (streamer or photo or paused), not (photo or paused)
+end
+
+local function applyDrivingVisibility()
+	if not ui then
+		return
+	end
+	ui.speedo.Visible = speedoWanted() and not hudHidden
+	if hudHidden then
+		ui.drift.Visible = false
+	end
+	ui.touchFrame.Visible = Kit.isTouch() and not touchHidden
+end
+
+local function readHudHidden()
+	local h = hud()
+	local streamer, photo, paused = false, false, false
+	if h and typeof(h.hiddenState) == "function" then
+		local ok, a, b, c = pcall(h.hiddenState)
+		if ok then
+			streamer, photo, paused = a == true, b == true, c == true
+		end
+	end
+	local showInfo, showTouch = VehicleClient.drivingUiVisibility(streamer, photo, paused)
+	hudHidden, touchHidden = not showInfo, not showTouch
+	applyDrivingVisibility()
+end
+
 local function place(obj: GuiObject, r: { x: number, y: number, w: number, h: number }?)
 	if r then
 		obj.Position = UDim2.fromOffset(r.x, r.y)
@@ -567,7 +607,7 @@ local function layoutDriving()
 	place(ui.hornBtn, b.horn)
 	place(ui.exitBtn, b.exit)
 	place(ui.radioBtn, b.radio)
-	ui.touchFrame.Visible = isTouch
+	applyDrivingVisibility()
 end
 
 -- Radio: the station name shows top-centre (HUDController.showRadio) on every change while driving.
@@ -630,10 +670,6 @@ local function showControlsHelp()
 	end
 end
 
-local function speedoWanted(): boolean
-	return player:GetAttribute("HC_ShowSpeedo") ~= false
-end
-
 local function updateHealthUI(s: Session, _animate: boolean)
 	if not ui then
 		return
@@ -672,10 +708,10 @@ local function showUI(s: Session)
 	end
 	ui.speed.Text = "0"
 	ui.speed.TextColor3 = Theme.Colors.Text
-	ui.speedo.Visible = speedoWanted()
 	ui.drift.Visible = false
 	ui.gui.Enabled = true
 	layoutDriving() -- after Enabled: measured on the live DrivingUI canvas
+	readHudHidden()
 	updateHealthUI(s, false)
 	-- GTA: the vehicle name fades in bottom-right with the location lines, the station name at top-centre
 	local h = hud()
@@ -1161,7 +1197,7 @@ local function renderStep(s: Session, dt: number)
 	if drifting then
 		s.driftTime += dt
 		if not s.wasDrifting then
-			ui.drift.Visible = true
+			ui.drift.Visible = not hudHidden
 		end
 		local tenths = math.floor(s.driftTime * 10)
 		if tenths ~= s.shownDriftTenths then
@@ -1686,7 +1722,7 @@ function VehicleClient.start()
 	player:GetAttributeChangedSignal("HC_ShowSpeedo"):Connect(function()
 		local s = session
 		if ui and s then
-			ui.speedo.Visible = speedoWanted()
+			applyDrivingVisibility()
 			updateHealthUI(s, false)
 		end
 	end)
@@ -1699,18 +1735,15 @@ function VehicleClient.start()
 	if player.Character then
 		task.spawn(hookCharacter, player.Character)
 	end
-	-- the pause menu hides the HUD (§5.12): the speed readout and the touch buttons go with it (and can't be tapped
-	-- through the pause tint)
+	-- the HUD's hidden states (pause menu §5.12, photo mode, streamer mode) apply to DrivingUI too: the readout and the
+	-- touch buttons can't be tapped through the pause tint or end up in a photo (applyDrivingVisibility)
 	task.defer(function()
-		local menu = sibling("MenuController")
-		local changed = if menu then menu.PauseChanged else nil
+		local h = hud()
+		local changed = if h then h.VisibilityChanged else nil
 		if type(changed) == "table" and type(changed.Connect) == "function" then
-			changed:Connect(function(open: boolean)
-				if ui then
-					ui.root.Visible = open ~= true
-				end
-			end)
+			changed:Connect(readHudHidden)
 		end
+		readHudHidden()
 	end)
 end
 

@@ -2198,6 +2198,14 @@ local function onCharacter(player: Player, char: Model)
 	end)
 end
 
+-- Load the garage area on the player's client before the cab drops them there (StreamingEnabled: otherwise they can
+-- land in unloaded space). Yields; failures are fine (the move still happens).
+local function streamAroundHome(player: Player, index: number)
+	pcall(function()
+		player:RequestStreamAroundAsync(PlotService.ownerSpawnCFrame(index).Position, 5)
+	end)
+end
+
 -- GoHome (the phone's "Call a cab") reaches the engine only through these, so a spec can drive the handler.
 local goHomeHooks = {
 	clock = os.clock,
@@ -2205,12 +2213,13 @@ local goHomeHooks = {
 	notify = notify,
 	sound = sound,
 	move = moveCharacterHome,
+	stream = streamAroundHome,
 	plotOf = function(player: Player): number?
 		return playerPlot[player]
 	end,
 }
 
--- Tests only: override GoHome's clock / system loader / notify / sound / move / plot lookup (nil restores).
+-- Tests only: override GoHome's clock / system loader / notify / sound / move / stream / plot lookup (nil restores).
 function PlotService._setGoHomeHooks(overrides: { [string]: any }?)
 	if overrides == nil then
 		goHomeHooks.clock = os.clock
@@ -2218,6 +2227,7 @@ function PlotService._setGoHomeHooks(overrides: { [string]: any }?)
 		goHomeHooks.notify = notify
 		goHomeHooks.sound = sound
 		goHomeHooks.move = moveCharacterHome
+		goHomeHooks.stream = streamAroundHome
 		goHomeHooks.plotOf = function(player: Player): number?
 			return playerPlot[player]
 		end
@@ -2229,26 +2239,39 @@ function PlotService._setGoHomeHooks(overrides: { [string]: any }?)
 	end
 end
 
+-- Why a cab can't take `player` right now (nil: it can). Checked when the call comes in and again right before the
+-- drop-off (streaming the garage in yields: the player may have died, sat down, been spotted or lost the plot).
+local function cabRefusal(player: Player, index: number): (string?, string?)
+	if goHomeHooks.plotOf(player) ~= index then
+		return "silent", nil -- left the game / lost the plot
+	end
+	local root, hum = rootOf(player)
+	if not root or not hum or hum.Health <= 0 then
+		return "silent", nil
+	end
+	if hum.SeatPart or player:GetAttribute("Driving") == true then
+		return "error", "Get out of the car first."
+	end
+	local wanted = player:GetAttribute("Wanted")
+	if typeof(wanted) == "number" and wanted > 0 then
+		return "error", "No cab will pick you up with the cops on your tail."
+	end
+	if player:GetAttribute("Stunned") == true then
+		return "error", "You're too dazed to call a cab. Give it a second."
+	end
+	return nil, nil
+end
+
 local function onGoHome(player: Player)
 	local index = goHomeHooks.plotOf(player)
 	if not index then
 		return
 	end
-	local root, hum = rootOf(player)
-	if not root or not hum or hum.Health <= 0 then
-		return
-	end
-	if hum.SeatPart or player:GetAttribute("Driving") == true then
-		goHomeHooks.notify(player, "error", "Get out of the car first.")
-		return
-	end
-	local wanted = player:GetAttribute("Wanted")
-	if typeof(wanted) == "number" and wanted > 0 then
-		goHomeHooks.notify(player, "error", "No cab will pick you up with the cops on your tail.")
-		return
-	end
-	if player:GetAttribute("Stunned") == true then
-		goHomeHooks.notify(player, "error", "You're too dazed to call a cab. Give it a second.")
+	local kind, why = cabRefusal(player, index)
+	if kind then
+		if why then
+			goHomeHooks.notify(player, kind, why)
+		end
 		return
 	end
 	local now = goHomeHooks.clock()
@@ -2259,16 +2282,33 @@ local function onGoHome(player: Player)
 	end
 	-- v2: the trip is a phone cab with a small fee (lead decision; Economy.CAB_FEE)
 	local fee = math.max(0, math.floor(Economy.CAB_FEE or 0))
+	local DataService = if fee > 0 then goHomeHooks.system("DataService") else nil
 	if fee > 0 then
-		local DataService = goHomeHooks.system("DataService")
 		if not (DataService and DataService.spendCash(player, fee)) then
 			goHomeHooks.notify(player, "error", `A cab costs {Format.cash(fee)}.`)
 			return
 		end
 	end
+	-- the cooldown starts before anything yields: a second call while this one streams is refused, never charged twice
 	goHomeAt[player] = now + PlotService.GO_HOME_COOLDOWN
+	goHomeHooks.stream(player, index)
+	local lateKind, lateWhy = cabRefusal(player, index)
+	if lateKind then
+		-- things changed while the garage streamed in: no ride, money back, and the next call may go straight away
+		if fee > 0 and DataService then
+			pcall(DataService.addCash, player, fee, "refund")
+		end
+		goHomeAt[player] = nil
+		if lateWhy then
+			goHomeHooks.notify(player, lateKind, lateWhy .. " Your fare was refunded.")
+		end
+		return
+	end
 	goHomeHooks.move(player)
 	goHomeHooks.sound(player, "Whoosh")
+	-- the phone waits for this to say the ride happened (no guessing from the character's movement)
+	local rides = player:GetAttribute("CabRides")
+	player:SetAttribute("CabRides", (if typeof(rides) == "number" then rides else 0) + 1)
 end
 PlotService._onGoHome = onGoHome
 

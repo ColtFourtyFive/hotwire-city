@@ -82,7 +82,7 @@ export type Snapshot = {
 	contracts: ContractState,
 }
 
-export type Settings = { music: boolean, sfx: boolean, hideHud: boolean, autoAccelerate: boolean }
+export type Settings = { music: boolean, sfx: boolean, hideHud: boolean, autoAccelerate: boolean, speedo: boolean }
 
 -- Notify remote payload kinds
 export type NotifyKind = "info" | "success" | "error" | "money" | "warning"

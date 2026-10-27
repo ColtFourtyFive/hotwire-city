@@ -162,6 +162,16 @@ function Phone:_build()
 	local gui = Kit.screen("HC_Phone", Theme.Layers.Phone, { touchMin = Theme.TouchMinScale })
 	gui.Enabled = false
 	self.gui = gui
+	-- frees a locked mouse (shift-lock / first person) while the phone is up so its tiles and rows can be clicked; a
+	-- 1 px button: it must not swallow taps meant for the world or the touch controls
+	Kit.new("TextButton", {
+		Name = "Modal",
+		Modal = true,
+		BackgroundTransparency = 1,
+		Text = "",
+		Size = UDim2.fromOffset(1, 1),
+		Parent = gui,
+	})
 	local canvas = Kit.canvasSize(gui)
 	local L = HudLayout.compute(canvas.X, canvas.Y, touch)
 	local W, H = HudLayout.PHONE.w, HudLayout.PHONE.h

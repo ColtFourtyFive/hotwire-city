@@ -107,8 +107,16 @@ TutorialController.STEPS = {
 		id = "dealer",
 		icon = "hud.car",
 		title = "Go to the <y>dealership</y>.",
-		hint = "Rarer cars earn more cash. Buy them at the <y>dealership</y> or find them on the street.",
+		hint = "Rarer cars earn more cash. Buy them at the <y>dealership</y> or find them on the street. "
+			.. RichText.key("P")
+			.. " opens the pause menu, "
+			.. RichText.key("M")
+			.. " the map.",
 		hintTouch = "Rarer cars earn more cash. Buy them at the <y>dealership</y>.",
+		-- the Start button belongs to Roblox's own menu: the pause menu is on Back / View (MenuController)
+		hintPad = "Rarer cars earn more cash. Buy them at the <y>dealership</y>. "
+			.. RichText.key("Back")
+			.. " opens the pause menu: jobs, garage and the map.",
 		color = C.Yellow,
 	},
 } :: { StepDef }

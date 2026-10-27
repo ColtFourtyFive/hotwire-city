@@ -478,14 +478,16 @@ function Kit.circleButton(caption: string, size: number, image: string?, props: 
 		Parent = btn,
 	})
 	apply(btn, props)
-	btn.MouseButton1Down:Connect(function()
-		btn.BackgroundTransparency = 0.1
-	end)
-	btn.MouseButton1Up:Connect(function()
-		btn.BackgroundTransparency = 0.35
-	end)
-	btn.MouseLeave:Connect(function()
-		btn.BackgroundTransparency = 0.35
+	pcall(function() -- headless builds: no mouse events
+		btn.MouseButton1Down:Connect(function()
+			btn.BackgroundTransparency = 0.1
+		end)
+		btn.MouseButton1Up:Connect(function()
+			btn.BackgroundTransparency = 0.35
+		end)
+		btn.MouseLeave:Connect(function()
+			btn.BackgroundTransparency = 0.35
+		end)
 	end)
 	return btn
 end

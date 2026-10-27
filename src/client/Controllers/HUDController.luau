@@ -2,10 +2,14 @@
 -- HUDController v2 (gta_ui_language §2.1, §5): the GTA V heads-up display. Sparse and contextual; nothing has card
 -- chrome and nothing bounces. Every anchor comes from UI/HudLayout (desktop GTA V layout, touch layout of §7).
 --
---  * Health | armour | ability bar (50 / 25 / 25) under the radar (MinimapController draws the radar in the same
---    layout rect): health from the Humanoid (red pulse under 25%), armour from the "Armor" player attribute (0..100,
---    set by the combat package; "MaxArmor" optional), ability = nitro while driving (VehicleClient), else stamina
---    ("Stamina" attribute 0..1 when present, full otherwise).
+--  * Health | armour | ability bar (50 / 25 / 25) under the radar: HC_HUD > Root > Minimap (the radar's rect;
+--    MinimapController draws the map in the same rect and reports it with setRadarRect, e.g. while expanded) > Bars.
+--    That "Minimap > Bars" pair is the contract the combat package's CombatHUD looks for: it then hides its own copy,
+--    so there is one set of bars (feed it through setAbility / setAmmo). Health from the Humanoid (red pulse under
+--    25%), armour from the "Armor" player attribute (0..100, set by the combat package; "MaxArmor" optional), ability
+--    = nitro while driving (VehicleClient), else stamina ("Stamina" attribute 0..1 when present, full otherwise).
+--    Event driven (HealthChanged / attribute signals, 0.2 s tweens); per frame only the low-health pulse and the
+--    nitro reading while driving.
 --  * Wanted stars top-right (star sprites, no panel): white while a cop sees you, flashing white / grey while they
 --    search (WantedSeen false), a 1.25 -> 1 settle on each new star, blink-and-fade when cleared. "BEING ARRESTED"
 --    with a thin blue bar while BustProgress > 0.
@@ -15,7 +19,9 @@
 --    (touch: top-centre); vehicle / district / street script lines bottom-right (touch: one line top-centre); GTA
 --    Online timer bars above them (the delivery timer from TheftState); the car radio station top-centre.
 --  * The feed host above the radar (NotificationController renders feed cards into getFeedHost()).
---  * Touch: PHONE and MAP buttons above the jump button; while driving the PHONE button joins the driving cluster
+--  * Touch: PHONE and MAP buttons above Roblox's jump button (measured from the TouchGui when it exists, else
+--    HudLayout.jumpButton from the UIScale: it is bigger on tablets); while driving the PHONE button joins the driving
+--    cluster
 --    (HudLayout buttons.phoneDriving) and MAP goes. Desktop: a mini phone glyph by the radar with the unread count.
 --  * Phone open (setPhoneOpen): the location lines hide; HudLayout.withPhone keeps the cash, stars and the delivery
 --    timer clear of the handset. Touch feed cards stack under the help box and follow its height.
@@ -42,10 +48,12 @@
 --   shard(kind, title?, subtitle?, opts?)                big message (UI/Shard)
 --   showBusted(lostCash, carLabel?)                      the busted shard + grade
 --   getFeedHost(): Frame?                                where feed cards go
---   getCashAnchor(): GuiObject?, getMenuButton(id): GuiButton?, isHidden(): boolean, VisibilityChanged: Signal
+--   getCashAnchor(): GuiObject?, getMenuButton(id): GuiButton?, isHidden(): boolean, VisibilityChanged: Signal,
+--   hiddenState(): (streamer, photo, paused)          why the HUD is hidden (VehicleClient keeps EXIT in streamer mode)
+--   setRadarRect(x, y, w, h)                          MinimapController: where the radar is (the bars hang under it)
 --   getBottomClearance(): number, getTopStackBottom(): number, getFeedAnchor(): Vector2?, getMenuBottom(): number
 --   holdCash(amount) / releaseCash(), setFocusMode(on), setLocalHidden(on) (photo mode),
---   setMinimapReserve(...) (kept; the layout owns the corners)
+--   setMinimapReserve(...) (kept as a no-op for old callers; the layout owns the corners)
 -- Pure helpers (tests): clampStars, starStates, starVisual, cashTrend, formatCash, theftView, theftMode,
 --   playtimeClaimable, rebirthReady, gearAffordable, homeState, gridFit, touchMenuGrid, touchStripLayout,
 --   touchFeedAnchor, countGarage, countDiscovered, menuNameCandidates, vipChatPrefix, resetAllowed, barFractions,
@@ -54,7 +62,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local SoundService = game:GetService("SoundService")
 local StarterGui = game:GetService("StarterGui")
 local TextChatService = game:GetService("TextChatService")
 local TweenService = game:GetService("TweenService")
@@ -79,6 +86,7 @@ local HelpText = require(UI:WaitForChild("HelpText"))
 local RichText = require(UI:WaitForChild("RichText"))
 local Shard = require(UI:WaitForChild("Shard"))
 local ListMenu = require(UI:WaitForChild("ListMenu"))
+local UISound = require(UI:WaitForChild("UISound"))
 
 -- Earlier in the client ORDER: safe to require at the top.
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -109,6 +117,7 @@ local RADIO_HOLD = 3
 local OBJECTIVE_HOLD = 7
 local HOLD_CASH_MAX_SECONDS = 40 -- safety: a held-back offline grant is always released after this
 local LOW_HEALTH = 0.25
+local BAR_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out) -- §5.2
 local VIP_CHAT_TAG = '<font color="#D6B563">[VIP]</font>'
 
 export type MenuDef = { id: string, icon: string, caption: string, color: Color3, names: { string } }
@@ -526,6 +535,7 @@ type HudUI = {
 	gui: ScreenGui,
 	scale: UIScale?,
 	root: Frame,
+	radarBox: Frame,
 	bars: Frame,
 	healthFill: Frame,
 	healthTrack: Frame,
@@ -594,6 +604,13 @@ local pauseOpen = false -- the pause menu hides the HUD (§5.12)
 local phoneOpen = false
 local listOpenCount = 0 -- own-screen list menus open (desktop: the help box moves right of them)
 local listOpenWidth = 0
+local radarRect: HudLayout.Rect? = nil -- where MinimapController drew the radar (nil: the layout's rect)
+local drivingNow = false -- cached (Driving attribute / VehicleClient Entered / Exited): no per-frame lookups
+local hum: Humanoid? = nil -- cached on CharacterAdded
+local humConns: { RBXScriptConnection } = {}
+local barFrac = { h = -1, a = -1, ab = -1 }
+local lowHealth = false
+local jumpTop: number? = nil -- measured top edge of Roblox's touch jump button (design px), when it exists
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Reading state
@@ -634,11 +651,6 @@ local function isDriving(): boolean
 		return ok and driving == true
 	end
 	return false
-end
-
-local function humanoid(): Humanoid?
-	local char = player.Character
-	return char and char:FindFirstChildOfClass("Humanoid")
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -700,8 +712,15 @@ local function build()
 		Parent = gui,
 	})
 
-	-- health | armour | ability
-	local bars = Kit.new("Frame", { Name = "Bars", BackgroundTransparency = 1, Parent = root })
+	-- health | armour | ability, hanging under the radar's box (the combat package looks for Minimap > Bars)
+	local radarBox = Kit.new("Frame", { Name = "Minimap", BackgroundTransparency = 1, Parent = root })
+	local bars = Kit.new("Frame", {
+		Name = "Bars",
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 0, 1, HudLayout.BAR_GAP),
+		Size = UDim2.new(1, 0, 0, HudLayout.BAR_H),
+		Parent = radarBox,
+	})
 	local healthTrack, healthFill = segment(bars, "Health", C.HealthTrack, C.Health)
 	local armorTrack, armorFill = segment(bars, "Armour", C.BlueDark, C.Blue)
 	local abilityTrack, abilityFill = segment(bars, "Ability", C.YellowDark, C.Yellow)
@@ -760,20 +779,7 @@ local function build()
 	-- help text
 	local help = HelpText.new(root, 20, 20, HudLayout.HELP_W, 16)
 	help.onBeep = function()
-		pcall(function()
-			local A = require(Config:WaitForChild("UIAssets")) :: any
-			local def = A.Sounds and A.Sounds.help
-			if def then
-				local s = Instance.new("Sound")
-				s.SoundId = def.id
-				s.Volume = def.volume
-				s.Parent = SoundService
-				s:Play()
-				task.delay(2, function()
-					s:Destroy()
-				end)
-			end
-		end)
+		UISound.play("help", { life = 2 }) -- Settings > Sound effects applies
 	end
 
 	-- feed host (NotificationController renders its cards here)
@@ -838,18 +844,6 @@ local function build()
 	local phoneButton =
 		Kit.circleButton("Phone", 56, "hud.phone", { Name = "PhoneButton", Visible = false, Parent = root })
 	local mapButton = Kit.circleButton("Map", 56, "hud.map", { Name = "MapButton", Visible = false, Parent = root })
-	phoneButton.Activated:Connect(function()
-		local pc = lazy("PhoneController")
-		if pc and typeof(pc.toggle) == "function" then
-			pcall(pc.toggle)
-		end
-	end)
-	mapButton.Activated:Connect(function()
-		local mc = lazy("MenuController")
-		if mc and typeof(mc.openPause) == "function" then
-			pcall(mc.openPause, "MAP")
-		end
-	end)
 
 	-- desktop mini phone glyph + unread badge (by the radar)
 	local miniPhone = Kit.new("ImageButton", {
@@ -871,12 +865,6 @@ local function build()
 		TextColor3 = C.Red,
 		Parent = miniPhone,
 	})
-	miniPhone.Activated:Connect(function()
-		local pc = lazy("PhoneController")
-		if pc and typeof(pc.toggle) == "function" then
-			pcall(pc.toggle)
-		end
-	end)
 
 	-- Streamer mode on touch: P / B are keyboard keys, and the PHONE / MAP buttons and the radar tap all live in the
 	-- hidden HUD, so a small button in its own ScreenGui brings the HUD back (start() wires it).
@@ -896,6 +884,7 @@ local function build()
 		gui = gui,
 		scale = scale,
 		root = root,
+		radarBox = radarBox,
 		bars = bars,
 		healthFill = healthFill,
 		healthTrack = healthTrack,
@@ -926,6 +915,24 @@ local function build()
 		toggleGui = toggleGui,
 		toggleButton = toggleButton,
 	}
+end
+
+-- Button handlers (kept out of build() so the HUD builds headlessly: HUDController.mount).
+local function wireButtons(u: HudUI)
+	local function togglePhone()
+		local pc = lazy("PhoneController")
+		if pc and typeof(pc.toggle) == "function" then
+			pcall(pc.toggle)
+		end
+	end
+	u.phoneButton.Activated:Connect(togglePhone)
+	u.miniPhone.Activated:Connect(togglePhone)
+	u.mapButton.Activated:Connect(function()
+		local mc = lazy("MenuController")
+		if mc and typeof(mc.openPause) == "function" then
+			pcall(mc.openPause, "MAP")
+		end
+	end)
 end
 
 local function place(obj: GuiObject, r: HudLayout.Rect)
@@ -990,6 +997,53 @@ local function refreshButtons()
 	u.miniBadge.Text = if unread > 0 then tostring(math.min(unread, 99)) else ""
 end
 
+-- The radar box (and the bars under it): where MinimapController drew the radar, else the layout's rect.
+local function placeRadarBox()
+	local u = ui
+	if not u then
+		return
+	end
+	local r = radarRect or layoutNow.radar
+	place(u.radarBox, r)
+	local a, b, c = HudLayout.barSegments(r.w, 2)
+	local h = HudLayout.BAR_H
+	u.healthTrack.Position = UDim2.fromOffset(0, 0)
+	u.healthTrack.Size = UDim2.fromOffset(a, h)
+	u.armorTrack.Position = UDim2.fromOffset(a + 2, 0)
+	u.armorTrack.Size = UDim2.fromOffset(b, h)
+	u.abilityTrack.Position = UDim2.fromOffset(a + b + 4, 0)
+	u.abilityTrack.Size = UDim2.fromOffset(c, h)
+	u.miniPhone.Position = UDim2.fromOffset(r.x + r.w + 6, r.y + r.h - 18)
+end
+
+-- Top edge (design px, HC_HUD canvas) of Roblox's touch jump button when its TouchGui exists; nil otherwise (then the
+-- layout works it out from the UIScale).
+local jumpWatched: Instance? = nil
+local function measureJump(u: HudUI): number?
+	local pg = player:FindFirstChildOfClass("PlayerGui")
+	local touchGui = pg and pg:FindFirstChild("TouchGui")
+	local frame = touchGui and touchGui:FindFirstChild("TouchControlFrame")
+	local jump = frame and frame:FindFirstChild("JumpButton")
+	if not (jump and jump:IsA("GuiObject")) then
+		return nil
+	end
+	if jumpWatched ~= jump then
+		jumpWatched = jump
+		-- it moves / resizes with the screen (and appears after us): re-lay out; applyLayout measures it again
+		local function relayout()
+			task.defer(HUDController.relayout)
+		end
+		jump:GetPropertyChangedSignal("AbsolutePosition"):Connect(relayout)
+		jump:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayout)
+		jump:GetPropertyChangedSignal("Visible"):Connect(relayout)
+	end
+	if not jump.Visible or jump.AbsoluteSize.Y < 1 then
+		return nil
+	end
+	local s = uiScaleOf(u)
+	return (jump.AbsolutePosition.Y - u.gui.AbsolutePosition.Y) / s
+end
+
 local function applyLayout()
 	local u = ui
 	if not u then
@@ -997,21 +1051,19 @@ local function applyLayout()
 	end
 	local canvas = Kit.canvasSize(u.gui)
 	local touch = Kit.isTouch()
-	local L = HudLayout.compute(canvas.X, canvas.Y, touch)
+	if touch then
+		local ok, top = pcall(measureJump, u)
+		jumpTop = if ok then top else nil
+	end
+	local L = HudLayout.compute(canvas.X, canvas.Y, touch, { scale = uiScaleOf(u), jumpTop = jumpTop })
 	if phoneOpen then
 		L = HudLayout.withPhone(L) -- the right-hand block / timer bars step out of the phone's way
 	end
 	layoutNow = L
 	local driving = isDriving()
+	drivingNow = driving
 
-	place(u.bars, L.bars)
-	local a, b, c = HudLayout.barSegments(L.bars.w, 2)
-	u.healthTrack.Position = UDim2.fromOffset(0, 0)
-	u.healthTrack.Size = UDim2.fromOffset(a, L.bars.h)
-	u.armorTrack.Position = UDim2.fromOffset(a + 2, 0)
-	u.armorTrack.Size = UDim2.fromOffset(b, L.bars.h)
-	u.abilityTrack.Position = UDim2.fromOffset(a + b + 4, 0)
-	u.abilityTrack.Size = UDim2.fromOffset(c, L.bars.h)
+	placeRadarBox()
 
 	place(u.starRow, L.stars)
 	place(u.arrest, L.arrest)
@@ -1074,8 +1126,11 @@ local function applyLayout()
 	place(u.radio, L.radio)
 
 	refreshButtons()
-	u.miniPhone.Position = UDim2.fromOffset(L.radar.x + L.radar.w + 6, L.radar.y + L.radar.h - 18)
 	HUDController.LayoutChanged:Fire(L)
+end
+
+function HUDController.relayout()
+	applyLayout()
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1282,47 +1337,104 @@ end
 -- Bars
 -------------------------------------------------------------------------------------------------------------------------
 
-local function abilityFraction(): (number, Color3)
-	if abilityOverride then
-		return abilityOverride, abilityColor or C.Yellow
+-- Write a fill only when its fraction moved (tween for event-driven changes, direct for per-frame readings).
+local function setFill(fill: Frame, key: string, frac: number, animate: boolean)
+	if math.abs((barFrac :: any)[key] - frac) < 0.002 then
+		return
 	end
-	if isDriving() then
-		local vc = lazy("VehicleClient")
-		local ctrl = if vc and typeof(vc.getController) == "function" then vc.getController() else nil
-		if ctrl and typeof(ctrl.nitro) == "number" then
-			return ctrl.nitro, C.Yellow
-		end
+	(barFrac :: any)[key] = frac
+	local size = UDim2.fromScale(frac, 1)
+	if animate then
+		TweenService:Create(fill, BAR_TWEEN, { Size = size }):Play()
+	else
+		fill.Size = size
 	end
-	local stamina = attrNumber("Stamina")
-	return if stamina then stamina else 1, C.Yellow
 end
 
-local function refreshBars(now: number)
+-- Health + armour (HealthChanged / MaxHealth / Armor / MaxArmor signals).
+local function refreshHealthArmor()
 	local u = ui
 	if not u then
 		return
 	end
-	local hum = humanoid()
-	local abilityNow, abColor = abilityFraction()
-	local h, a, ab = HUDController.barFractions(
+	local h, a = HUDController.barFractions(
 		if hum then hum.Health else nil,
 		if hum then hum.MaxHealth else nil,
 		player:GetAttribute("Armor"),
 		player:GetAttribute("MaxArmor"),
-		abilityNow
+		nil
 	)
-	u.healthFill.Size = UDim2.fromScale(h, 1)
-	u.armorFill.Size = UDim2.fromScale(a, 1)
-	u.abilityFill.Size = UDim2.fromScale(ab, 1)
-	u.abilityFill.BackgroundColor3 = abColor
-	if h <= LOW_HEALTH then
-		-- low health: damage red, pulsing 0 <-> 0.4 at 1.5 Hz
-		u.healthFill.BackgroundColor3 = C.Damage
-		u.healthFill.BackgroundTransparency = 0.2 + 0.2 * math.sin(now * math.pi * 3)
-	else
-		u.healthFill.BackgroundColor3 = C.Health
+	setFill(u.healthFill, "h", h, true)
+	setFill(u.armorFill, "a", a, true)
+	local low = h <= LOW_HEALTH
+	if low ~= lowHealth then
+		lowHealth = low
+		u.healthFill.BackgroundColor3 = if low then C.Damage else C.Health
 		u.healthFill.BackgroundTransparency = 0
 	end
+end
+
+-- The third segment: an override (setAbility), nitro while driving (read per frame: it drains continuously), else
+-- the Stamina attribute (full when absent).
+local function abilityNow(): (number, Color3)
+	if abilityOverride then
+		return abilityOverride, abilityColor or C.Yellow
+	end
+	if drivingNow then
+		local vc = lazy("VehicleClient")
+		local ctrl = if vc and typeof(vc.getController) == "function" then vc.getController() else nil
+		if ctrl and typeof(ctrl.nitro) == "number" then
+			return math.clamp(ctrl.nitro, 0, 1), C.Yellow
+		end
+	end
+	local stamina = attrNumber("Stamina")
+	return if stamina then math.clamp(stamina, 0, 1) else 1, C.Yellow
+end
+
+local function refreshAbility(animate: boolean)
+	local u = ui
+	if not u then
+		return
+	end
+	local frac, color = abilityNow()
+	setFill(u.abilityFill, "ab", frac, animate)
+	if u.abilityFill.BackgroundColor3 ~= color then
+		u.abilityFill.BackgroundColor3 = color
+	end
+end
+
+-- Per frame: only the low-health pulse (0 <-> 0.4 at 1.5 Hz) and the nitro reading while driving.
+local function stepBars(now: number)
+	local u = ui
+	if not u then
+		return
+	end
+	if lowHealth then
+		u.healthFill.BackgroundTransparency = 0.2 + 0.2 * math.sin(now * math.pi * 3)
+	end
+	if drivingNow and not abilityOverride then
+		refreshAbility(false)
+	end
+end
+
+local function bindHumanoid(char: Model?)
+	for _, c in humConns do
+		c:Disconnect()
+	end
+	table.clear(humConns)
+	hum = nil
+	if not char then
+		refreshHealthArmor()
+		return
+	end
+	local h = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 10)
+	if not (h and h:IsA("Humanoid")) or player.Character ~= char then
+		return
+	end
+	hum = h
+	table.insert(humConns, h.HealthChanged:Connect(refreshHealthArmor))
+	table.insert(humConns, h:GetPropertyChangedSignal("MaxHealth"):Connect(refreshHealthArmor))
+	refreshHealthArmor()
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1603,8 +1715,23 @@ end
 
 -- Third bar segment override (e.g. a special ability); nil = automatic (nitro while driving, stamina on foot).
 function HUDController.setAbility(fraction: number?, color: Color3?)
-	abilityOverride = if typeof(fraction) == "number" then math.clamp(fraction, 0, 1) else nil
+	abilityOverride = if typeof(fraction) == "number" and fraction == fraction then math.clamp(fraction, 0, 1) else nil
 	abilityColor = color
+	refreshAbility(true)
+end
+
+-- Where MinimapController drew the radar (design px on the shared HUD canvas): the bars follow it (expanded radar).
+function HUDController.setRadarRect(x: number, y: number, w: number, h: number)
+	if typeof(x) ~= "number" or typeof(y) ~= "number" or typeof(w) ~= "number" or typeof(h) ~= "number" then
+		return
+	end
+	radarRect = { x = x, y = y, w = w, h = h }
+	placeRadarBox()
+end
+
+-- Why the HUD is hidden: streamer mode (settings.hideHud), photo mode, the pause menu.
+function HUDController.hiddenState(): (boolean, boolean, boolean)
+	return serverHidden, localHidden, pauseOpen
 end
 
 function HUDController.setUnread(count: number)
@@ -1861,14 +1988,23 @@ end
 
 function HUDController.init() end
 
+-- Build the HUD and lay it out without wiring engine events (start() calls this first; headless specs call it alone).
+function HUDController.mount()
+	if ui then
+		return
+	end
+	build()
+	applyLayout()
+end
+
 function HUDController.start()
 	if started then
 		return
 	end
 	started = true
-	build()
+	HUDController.mount()
 	local u = ui :: HudUI
-	applyLayout()
+	wireButtons(u)
 	u.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(applyLayout)
 	if u.scale then
 		u.scale:GetPropertyChangedSignal("Scale"):Connect(applyLayout)
@@ -1881,6 +2017,15 @@ function HUDController.start()
 	end)
 	configureCoreGui()
 	installVipChatTag()
+	-- the PlayerModule makes the TouchGui (jump button) after us: re-lay out the PHONE / MAP buttons when it shows up
+	local pg = player:FindFirstChildOfClass("PlayerGui")
+	if pg then
+		pg.ChildAdded:Connect(function(child: Instance)
+			if child.Name == "TouchGui" then
+				task.delay(0.5, applyLayout)
+			end
+		end)
+	end
 
 	-- touch feed follows the help box's height (it stacks under it)
 	u.help.box:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshFeedAnchor)
@@ -1932,6 +2077,7 @@ function HUDController.start()
 	local function onDrivingChanged()
 		applyLayout()
 		refreshButtons()
+		refreshAbility(true)
 	end
 	player:GetAttributeChangedSignal("Driving"):Connect(onDrivingChanged)
 	local vc = lazy("VehicleClient")
@@ -1982,17 +2128,32 @@ function HUDController.start()
 		end
 	end)
 
-	-- per-frame cosmetics: bars, search-flash stars, help expiry (property writes only)
+	-- bars: event driven (bindHumanoid + the attribute signals); per frame only the pulse + nitro
+	player.CharacterAdded:Connect(function(char: Model)
+		task.spawn(bindHumanoid, char)
+	end)
+	task.spawn(bindHumanoid, player.Character)
+	for _, attr in { "Armor", "MaxArmor" } do
+		player:GetAttributeChangedSignal(attr):Connect(refreshHealthArmor)
+	end
+	player:GetAttributeChangedSignal("Stamina"):Connect(function()
+		refreshAbility(true)
+	end)
+	refreshHealthArmor()
+	refreshAbility(false)
+
+	-- per-frame cosmetics: help expiry (always: a message must not outlive its time while the HUD is hidden), the
+	-- low-health pulse, nitro, search-flash stars (property writes only)
 	RunService.Heartbeat:Connect(function()
+		u.help.step()
 		if hidden then
 			return
 		end
 		local now = os.clock()
-		refreshBars(now)
+		stepBars(now)
 		if (lastStars or 0) > 0 then
 			renderStars(now)
 		end
-		u.help.step()
 	end)
 
 	-- 4 Hz: timers

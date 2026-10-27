@@ -248,6 +248,16 @@ function ListMenu:_build()
 		local gui = Kit.screen("HC_List_" .. self.id, Theme.Layers.Menus, { touchMin = Theme.TouchMinScale })
 		gui.Enabled = false
 		self.gui = gui
+		-- frees a locked mouse (shift-lock / first person) while the list is up so its rows can be clicked; a 1 px
+		-- button: it must not swallow taps meant for the world or the touch controls
+		Kit.new("TextButton", {
+			Name = "Modal",
+			Modal = true,
+			BackgroundTransparency = 1,
+			Text = "",
+			Size = UDim2.fromOffset(1, 1),
+			Parent = gui,
+		})
 		local canvas = Kit.canvasSize(gui)
 		local L = HudLayout.compute(canvas.X, canvas.Y, touch)
 		if touch then

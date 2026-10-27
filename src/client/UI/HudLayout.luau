@@ -13,8 +13,9 @@
 --   bottom-right with GTA Online timer bars above them; the optional speed readout in the corner under them.
 -- Touch (§7): the thumbstick owns bottom-left and the action buttons bottom-right, so the radar goes top-left (168 x
 --   118) with help text and the feed under it; objective, location (one line), radio and timer bars stack at
---   top-centre between the radar and the top-right block; PHONE / MAP buttons sit above the jump button; the driving
---   cluster (NITRO, DRIFT, HORN, EXIT) is a tight bottom-right arc.
+--   top-centre between the radar and the top-right block; PHONE / MAP buttons sit above Roblox's jump button (its
+--   size and place depend on the real screen size: HudLayout.jumpButton); the driving cluster (NITRO, DRIFT, HORN,
+--   EXIT) is a tight bottom-right arc.
 
 local HudLayout = {}
 
@@ -93,6 +94,22 @@ end
 local function round(v: number): number
 	return math.floor(v + 0.5)
 end
+
+-- Roblox's touch jump button (PlayerModule TouchJump), in design px on a canvas of w x h at UIScale `scale`: 70 real
+-- px at (W - 95, H - 90) when the screen's short side is at most 500 real px, else 120 real px at (W - 170, H - 210).
+function HudLayout.jumpButton(w: number, h: number, scale: number?): Rect
+	local s = if scale and scale == scale and scale > 0 then scale else 1
+	local realW, realH = w * s, h * s
+	local big = math.min(realW, realH) > 500
+	local size = if big then 120 else 70
+	local x = realW - (if big then 170 else 95)
+	local y = realH - (if big then 210 else 90)
+	return { x = x / s, y = y / s, w = size / s, h = size / s }
+end
+
+-- Options for compute: the canvas UIScale (finds the jump button's size), or the jump button's measured top edge in
+-- design px (HUDController reads the real TouchGui when it exists).
+export type ComputeOpts = { scale: number?, jumpTop: number? }
 
 -- Do two rects overlap (touching edges do not count)?
 function HudLayout.overlaps(a: Rect, b: Rect): boolean
@@ -181,7 +198,7 @@ local function desktop(w: number, h: number): Layout
 	}
 end
 
-local function touchLayout(w: number, h: number): Layout
+local function touchLayout(w: number, h: number, opts: ComputeOpts?): Layout
 	local S = HudLayout.SAFE_TOUCH
 	local R = HudLayout.RADAR_TOUCH
 	local radar = rect(S, S, R.w, R.h)
@@ -215,7 +232,14 @@ local function touchLayout(w: number, h: number): Layout
 	local exit = rect(horn.x - 12 - 60, horn.y, 60, 60)
 	-- slot for the combat package's in-car tool button (v1 SPIKES), same canvas as these
 	local spikes = rect(exit.x - 12 - 60, exit.y, 60, 60)
-	local phoneBtn = rect(right - 56, h - 136 - 56, 56, 56)
+	-- PHONE / MAP: 8 px above the jump button (measured, or worked out from the UIScale), never lower than the old
+	-- phone-sized slot
+	local jumpTop = if opts
+			and opts.jumpTop
+			and opts.jumpTop == opts.jumpTop
+		then opts.jumpTop
+		else HudLayout.jumpButton(w, h, if opts then opts.scale else nil).y
+	local phoneBtn = rect(right - 56, math.min(h - 192, jumpTop - 8 - 56), 56, 56)
 	local mapBtn = rect(phoneBtn.x - 12 - 56, phoneBtn.y, 56, 56)
 	local speed = rect(drift.x - 12 - 130, h - S - 44, 130, 44)
 	-- radio: tap to change station (the station name shows top-centre); over the speed readout's right end
@@ -276,11 +300,11 @@ local function touchLayout(w: number, h: number): Layout
 	}
 end
 
--- The whole HUD layout for a w x h design canvas.
-function HudLayout.compute(w: number, h: number, touch: boolean): Layout
+-- The whole HUD layout for a w x h design canvas (opts: see ComputeOpts; touch only).
+function HudLayout.compute(w: number, h: number, touch: boolean, opts: ComputeOpts?): Layout
 	local cw = if w == w and w >= 1 then w else 1280
 	local ch = if h == h and h >= 1 then h else 720
-	return if touch then touchLayout(cw, ch) else desktop(cw, ch)
+	return if touch then touchLayout(cw, ch, opts) else desktop(cw, ch)
 end
 
 -- Touch: the feed stacks under the help box (§7). `helpH` is the help box's current height in design px (0 while it

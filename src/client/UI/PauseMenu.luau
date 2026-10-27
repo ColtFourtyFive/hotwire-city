@@ -13,15 +13,20 @@
 -- at 16% W / 13% H, a row of tabs at 18.7% H (selected = white with black text and an accent top rule), content
 -- panels in black translucent, instructional buttons bottom-right. Touch: margins shrink to 3% and the tab row
 -- scrolls horizontally.
--- Keys while open: Q / E (LB / RB) switch tabs, Backspace (B) closes. The host binds P / M to open it.
+-- Keys while open: Q / E (LB / RB) switch tabs, Backspace (B) closes. The host binds P / M (gamepad: Back / View,
+-- since Start belongs to Roblox's menu) to open it. Footer key caps follow the input (keyboard / gamepad / none on
+-- touch). While open, a full-screen Modal button frees a locked mouse (shift-lock / first person) so the tabs and
+-- rows can be clicked.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Theme = require(script.Parent.Theme)
 local Kit = require(script.Parent.Kit)
+local RichText = require(script.Parent.RichText)
 local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"):WaitForChild("Signal"))
 
 local PauseMenu = {}
@@ -39,6 +44,26 @@ function PauseMenu.frame(
 		return { left = 0.03, right = 0.97, title = 0.06, tabs = 0.15, top = 0.25, bottom = 0.86 }
 	end
 	return { left = 0.16, right = 0.84, title = 0.13, tabs = 0.187, top = 0.235, bottom = 0.82 }
+end
+
+-- The key cap a footer shows for a keyboard key name on this input ("keyboard" | "gamepad" | "touch"): gamepad
+-- players see their button, touch players none (the footer buttons are tappable).
+local PAD_KEYS: { [string]: string } = {
+	Enter = "A",
+	Backspace = "B",
+	Q = "LB",
+	E = "RB",
+	X = "X",
+	P = "Back",
+}
+function PauseMenu.keyLabel(key: string?, kind: string): string?
+	if key == nil or kind == "touch" then
+		return nil
+	end
+	if kind == "gamepad" then
+		return PAD_KEYS[key] or key
+	end
+	return key
 end
 
 -- Index of the tab after a Q / E press (wrapping).
@@ -101,6 +126,15 @@ function PauseMenu:_build()
 	self.back = back
 	self.tint = tint
 	self.accentTint = accent
+	-- frees a locked mouse (shift-lock / first person) while the menu is up: a visible Modal button is enough
+	self.modal = Kit.new("TextButton", {
+		Name = "Modal",
+		Modal = true,
+		BackgroundTransparency = 1,
+		Text = "",
+		Size = UDim2.fromScale(1, 1),
+		Parent = back,
+	})
 
 	local gui = Kit.screen("HC_Pause", Theme.Layers.Pause, { touchMin = Theme.TouchMinScale })
 	gui.Enabled = false
@@ -288,7 +322,8 @@ end
 
 function PauseMenu:setInfo(name: string, clock: string, cash: string)
 	self:_build()
-	self.nameLabel.Text = Kit.sanitize(name)
+	-- display names may contain < > & and the label is rich text
+	self.nameLabel.Text = RichText.escape(Kit.sanitize(name))
 	self.clockLabel.Text = clock
 	self.cashLabel.Text = cash
 end
@@ -302,22 +337,24 @@ export type FooterButton = { key: string?, label: string, fn: (() -> ())? }
 
 function PauseMenu:setFooter(buttons: { FooterButton })
 	self:_build()
+	self.footerButtons = buttons
 	for _, c in self.footer:GetChildren() do
 		if c:IsA("GuiObject") then
 			c:Destroy()
 		end
 	end
-	local touch = Kit.isTouch()
+	local kind = Kit.inputKind()
+	local touch = kind == "touch"
 	local all = table.clone(buttons)
 	table.insert(all, {
-		key = if touch then nil else "Backspace",
+		key = "Backspace",
 		label = "Back",
 		fn = function()
 			self:close()
 		end,
 	})
 	for i, b in all do
-		local btn = Kit.instructionButton(if touch then nil else b.key, b.label, {
+		local btn = Kit.instructionButton(PauseMenu.keyLabel(b.key, kind), b.label, {
 			LayoutOrder = i,
 			Parent = self.footer,
 		})
@@ -413,6 +450,16 @@ function PauseMenu:open(tabId: string?)
 			self.blur = blur
 		end
 		self:_bind()
+		-- the footer's key caps follow the input device while the menu is up
+		if not self.inputConn then
+			pcall(function()
+				self.inputConn = UserInputService.LastInputTypeChanged:Connect(function()
+					if self.opened and self.footerButtons then
+						self:setFooter(self.footerButtons)
+					end
+				end)
+			end)
+		end
 		-- Fade in only the static chrome. The tab row and the tab lists change their own transparency for the
 		-- selection, and Kit.fadeTree restores the values it captured first, so fading them would undo the highlight
 		-- that setTab / the lists apply.

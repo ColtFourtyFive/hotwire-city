@@ -364,9 +364,10 @@ task.spawn(function()
 		artNext.Image = panels[2]
 	end
 
-	-- on-screen art first, then the rest of the panels, the HUD sheets and the display fonts
-	for _, id in panels do
-		add(id)
+	-- the two panels on screen first (each 1920x1080 panel is ~8 MB of decoded texture: the later ones load when the
+	-- crossfade assigns them, not all at once while the world streams in), then the HUD sheets and the display fonts
+	for i = 1, math.min(2, #panels) do
+		add(panels[i])
 	end
 	add(logo.Image)
 	if UIAssets and type(UIAssets.Sheets) == "table" then
@@ -420,6 +421,15 @@ task.spawn(function()
 	TweenService:Create(art, TweenInfo.new(0.6), { ImageTransparency = 0 }):Play()
 	local index = 1
 	while not finished do
+		-- fetch the coming panel during this one's hold (only the first two were preloaded)
+		local coming = panels[index % math.max(1, #panels) + 1]
+		if coming and index >= 2 then
+			task.spawn(function()
+				pcall(function()
+					ContentProvider:PreloadAsync({ coming })
+				end)
+			end)
+		end
 		task.wait(PANEL_SECONDS - CROSSFADE)
 		if finished or #panels < 2 then
 			break
