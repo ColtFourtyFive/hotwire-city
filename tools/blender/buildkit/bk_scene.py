@@ -558,15 +558,15 @@ def car(col, x, y, heading=0.0, seed=0, kind=None, rgb=None):
     zr = max(c[1] for c in cab) + 0.04
     x0r, x1r = cab[2][0] + 0.2, cab[1][0] - 0.25
     G.box(body, x0r, -(Wd - 1.75) / 2, zr - 0.12, x1r, (Wd - 1.75) / 2, zr)
-    # pillars (B-pillar) in body colour
     zb = cab[0][1]
-    G.box(body, -0.6, -(Wd - 0.6) / 2, zb, -0.1, (Wd - 0.6) / 2, zr - 0.1)
     rr = P["r"]
     for ax in P["wheels"]:
         for sy in (-1, 1):
-            cy = sy * (Wd / 2 - 0.62)
-            G.hcylinder(wheels, (ax, cy - 0.58, rr), (ax, cy + 0.58, rr), rr, seg=16)
-            G.hcylinder(rims, (ax, cy + sy * 0.56, rr), (ax, cy + sy * 0.64, rr), rr * 0.62, seg=12)
+            cy = sy * (Wd / 2 - 0.5)
+            G.hcylinder(wheels, (ax, cy - 0.6, rr), (ax, cy + 0.6, rr), rr, seg=16)
+            G.hcylinder(rims, (ax, cy + sy * 0.58, rr), (ax, cy + sy * 0.66, rr), rr * 0.62, seg=12)
+            # fake wheel well: dark disc just proud of the body side, behind the tyre
+            G.hcylinder(wheels, (ax, sy * (Wd / 2 - 0.05), rr + 0.05), (ax, sy * (Wd / 2 + 0.02), rr + 0.05), rr + 0.3, seg=16)
     fx = P["body"][2][0]
     rx = P["body"][6][0]
     zf = P["body"][2][1]

@@ -1,7 +1,7 @@
 {
  "assetId": 103123587729335,
  "name": "LeoRosa44's Car",
- "depicts": "Peugeot 308-style hatchback",
+ "depicts": "Peugeot 308-style Police Nationale hatchback",
  "forward": {
   "method": "seat:Seat3",
   "lookVector": [

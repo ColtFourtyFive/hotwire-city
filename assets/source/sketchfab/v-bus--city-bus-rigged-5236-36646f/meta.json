@@ -44,5 +44,61 @@
   "sha256": "ca3c54952b8b7ea3ae4771654ec8d046a7e93ec9ace8423356ff0d5201c4f3d0",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:07:02+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      3.0521,
+      12.2656,
+      3.0199
+    ],
+    "dims_m": [
+      3.052,
+      12.266,
+      3.02
+    ],
+    "front_evidence": "names(front=2,rear=2)",
+    "flipped": true,
+    "mesh_objects": 10,
+    "triangles": 5641,
+    "materials": 6,
+    "material_names": [
+      "BusWheel",
+      "Mirrors",
+      "RoAZ_5236",
+      "RoAZ_5236_Shadow",
+      "Roaz5236_IntDoors",
+      "Roaz5236_Interior"
+    ],
+    "textures": 8,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Wheel_FL_BusWheel_0",
+      "Wheel_RL_BusWheel_0",
+      "Wheel_RR_BusWheel_0",
+      "Wheel_FR_BusWheel_0"
+    ],
+    "wheel_geom": [
+      "Wheel_FL_BusWheel_0",
+      "Wheel_RL_BusWheel_0",
+      "Wheel_RR_BusWheel_0",
+      "Wheel_FR_BusWheel_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Wheel_FL_BusWheel_0",
+      "Wheel_RL_BusWheel_0",
+      "Wheel_RR_BusWheel_0",
+      "Wheel_FR_BusWheel_0",
+      "Object_15",
+      "Object_16",
+      "Object_33",
+      "Object_34",
+      "ShadowPlane_RoAZ_5236_Shadow_0",
+      "Icosphere"
+    ],
+    "render_s": 62.0
+  }
 }

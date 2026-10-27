@@ -43,5 +43,37 @@
   "sha256": "24364ccf54952a9f0b71054b35d0a2461ea6380f37e648cf5c951a51bdf8555b",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:11:40+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      1.9759,
+      0.329,
+      1.7481
+    ],
+    "dims_m": [
+      1.976,
+      0.329,
+      1.748
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 1,
+    "triangles": 4825,
+    "materials": 1,
+    "material_names": [
+      "Material_008"
+    ],
+    "textures": 3,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "defaultMaterial"
+    ],
+    "render_s": 56.3
+  }
 }

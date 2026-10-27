@@ -1,7 +1,7 @@
 {
  "assetId": 113053967699143,
  "name": "Model",
- "depicts": "Ford Explorer Police Interceptor-style SUV",
+ "depicts": "brick-built 2000s police sedan (Crown Victoria proportions)",
  "forward": {
   "method": "seat:VehicleSeat",
   "lookVector": [
@@ -16,8 +16,8 @@
   "width": 14.05,
   "height": 9.38
  },
- "real_length_m": 5.04,
- "suggested_uniform_scale": 0.667,
+ "real_length_m": 5.38,
+ "suggested_uniform_scale": 0.712,
  "counts": {
   "instances": 581,
   "baseParts": 185,
