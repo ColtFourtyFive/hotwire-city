@@ -11,3 +11,8 @@ __pycache__/
 # Blender pipeline download caches (re-fetchable)
 tools/blender/**/_cache/
 *.blend1
+
+# Downloaded third-party sources (re-fetchable); keep only their meta.json
+assets/source/**
+!assets/source/**/
+!assets/source/**/meta.json
