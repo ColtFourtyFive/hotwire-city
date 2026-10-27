@@ -1,8 +1,10 @@
 --!nocheck
--- LightingService v2 runtime (headless): adopts one Sky/Atmosphere/effect of each class, cheap writes, Workspace
--- NightFactor / TimeOfDay attributes, sky face swaps + per-sky stars / discs / clouds, rate-limited yaw, the parked
--- night glow, TimeOfDayLock / AtmosphereOffsetOverride / CloudsOverride, lit windows (LitWindow + v1 glass NightGlow),
--- terrain water + material colours, wet streets, and the v1 contract.
+-- LightingService v2 runtime (headless): dedupes Lighting to one Sky/Atmosphere/effect of each class (init and late
+-- additions, the owned instance kept), cheap writes, the engine ClockTime vs the game-hour Workspace NightFactor /
+-- TimeOfDay attributes (held at night, one jump, EngineClockOverride), sky face swaps + per-sky stars / discs /
+-- clouds, rate-limited yaw, the parked night glow, TimeOfDayLock / AtmosphereOffsetOverride / CloudsOverride, dim lit
+-- windows (LitWindow + v1 glass NightGlow; facade-sized parts never Neon), terrain water + material colours, wet
+-- streets, and the v1 contract.
 return function(t)
 	local H = t.H
 	local fs = require("@lune/fs")
@@ -40,38 +42,102 @@ return function(t)
 		t.ok(not src:find("Enum%.Technology"), "no Enum.Technology")
 	end)
 
-	t.test("init: one Sky / Atmosphere / effect of each class; DepthOfField and Blur off", function()
-		for _, spec in
-			{
-				{ "Sky", "OldSky" },
-				{ "Sky", "Sky" },
-				{ "Atmosphere", "HotwireAtmosphere" },
-				{ "BloomEffect", "TemplateBloom" },
-				{ "SunRaysEffect", "SunRays" },
-				{ "SunRaysEffect", "HotwireSunRays" },
-				{ "DepthOfFieldEffect", "DepthOfField" },
-			}
-		do
-			local i = Instance.new(spec[1])
-			i.Name = spec[2]
-			i.Parent = Lighting
+	local MANAGED = { "Sky", "Atmosphere", "BloomEffect", "ColorCorrectionEffect", "SunRaysEffect" }
+	local function isManaged(inst)
+		for _, cls in MANAGED do
+			if inst:IsA(cls) then
+				return true
+			end
 		end
+		return false
+	end
+	local function add(className, name)
+		local i = Instance.new(className)
+		i.Name = name
+		i.Parent = Lighting
+		return i
+	end
+
+	t.test("init on a fresh place: the place file's instances (by name) are kept, strays destroyed", function()
+		for _, c in Lighting:GetChildren() do
+			if isManaged(c) then
+				c:Destroy()
+			end
+		end
+		local stray = add("Sky", "OldSky")
+		local placeSky = add("Sky", "Sky")
+		add("Atmosphere", "HotwireAtmosphere")
+		local placeAtmo = add("Atmosphere", "Atmosphere")
+		add("BloomEffect", "TemplateBloom")
+		add("SunRaysEffect", "SunRays")
+		add("SunRaysEffect", "HotwireSunRays")
+		local dof = add("DepthOfFieldEffect", "DepthOfField")
 		L.init()
-		for _, cls in { "Sky", "Atmosphere", "BloomEffect", "ColorCorrectionEffect", "SunRaysEffect" } do
+		for _, cls in MANAGED do
 			t.eq(count(cls), 1, "exactly one " .. cls)
 		end
-		t.ok(Lighting:FindFirstChild("Sky") ~= nil, "the place file's Sky (by name) is the one kept")
+		t.eq(Lighting:FindFirstChildOfClass("Sky"), placeSky, "the place file's Sky (by name) is the one kept")
+		t.eq(stray.Parent, nil, "the stray Sky is destroyed")
+		t.eq(Lighting:FindFirstChildOfClass("Atmosphere"), placeAtmo, "Atmosphere kept by name")
 		t.ok(Lighting:FindFirstChild("SunRays") ~= nil, "SunRays kept by name")
-		local dof = Lighting:FindFirstChildOfClass("DepthOfFieldEffect")
+		t.ok(Lighting:FindFirstChildOfClass("ColorCorrectionEffect") ~= nil, "a missing effect is created")
+		for _, cls in MANAGED do
+			t.eq(Lighting:FindFirstChildOfClass(cls):GetAttribute(L.OWNED_ATTRIBUTE), true, cls .. " marked owned")
+		end
 		t.eq(dof.Enabled, false, "world-wide depth of field disabled")
-		local sky = Lighting:FindFirstChildOfClass("Sky")
-		t.eq(sky.SunAngularSize, Look.SkyStyle.sunAngularSize)
+		t.eq(dof.Parent, Lighting, "depth of field is not a managed class: disabled, not destroyed")
+		t.eq(placeSky.SunAngularSize, Look.SkyStyle.sunAngularSize)
 		t.eq(Lighting.GlobalShadows, true)
 		t.near(Lighting.GeographicLatitude, Look.Sun.latitude, 1e-6, "latitude of the measured sun model")
 		L.init() -- re-init stays at one of each
 		t.eq(count("Sky"), 1)
 		t.eq(count("Atmosphere"), 1)
 		dof:Destroy()
+	end)
+
+	t.test("dedupe: Team Create duplicates (every class doubled) -> exactly one each, the owned ones kept", function()
+		L.init()
+		local owned = {}
+		for _, cls in MANAGED do
+			owned[cls] = Lighting:FindFirstChildOfClass(cls)
+		end
+		-- what job 0007 found after Rojo failed to swap the Lighting node: Sky x2, Atmosphere x2, Bloom x2, SunRays x2
+		-- (the newcomers carry the SAME names as the place file's), plus a disabled duplicate ColorCorrection
+		add("Sky", "Sky")
+		add("Atmosphere", "Atmosphere")
+		add("BloomEffect", "Bloom")
+		add("SunRaysEffect", "SunRays")
+		add("ColorCorrectionEffect", "ColorCorrection")
+		owned.ColorCorrectionEffect.Enabled = false -- e.g. the copy that survived was the disabled one
+		local destroyed = L.dedupe()
+		t.eq(destroyed, 5, "five duplicates destroyed")
+		for _, cls in MANAGED do
+			t.eq(count(cls), 1, "exactly one " .. cls)
+			t.eq(Lighting:FindFirstChildOfClass(cls), owned[cls], "the owned " .. cls .. " survives (not the newcomer)")
+		end
+		t.eq(owned.ColorCorrectionEffect.Enabled, true, "kept post effects are enabled")
+		t.eq(owned.BloomEffect.Enabled, true)
+		t.eq(owned.SunRaysEffect.Enabled, true)
+		t.eq(L.dedupe(), 0, "idempotent")
+		-- a duplicate added while running (Lighting.ChildAdded -> deferred handler) is destroyed too
+		local late = add("Atmosphere", "LateAtmosphere")
+		L._onLightingChildAdded(late)
+		t.eq(late.Parent, nil, "late duplicate destroyed")
+		t.eq(Lighting:FindFirstChildOfClass("Atmosphere"), owned.Atmosphere)
+		local folder = add("Folder", "NotAnEffect")
+		L._onLightingChildAdded(folder)
+		t.eq(folder.Parent, Lighting, "other children are left alone")
+		folder:Destroy()
+		-- the owned Sky is deleted and another appears: it is adopted and fully configured on the next apply
+		L.setClockTime(12)
+		owned.Sky:Destroy()
+		local fresh = add("Sky", "RojoSky")
+		L._onLightingChildAdded(fresh)
+		t.eq(fresh:GetAttribute(L.OWNED_ATTRIBUTE), true, "the replacement is owned")
+		t.eq(fresh.SunAngularSize, Look.SkyStyle.sunAngularSize, "static sky setup applied")
+		L.setClockTime(12)
+		t.eq(fresh.SkyboxFt, Look.Skies.day.faces.Ft, "faces written to the replacement (write cache reset)")
+		t.eq(count("Sky"), 1)
 	end)
 
 	t.test("init: terrain water and terrain material colours from Config/Look", function()
@@ -99,10 +165,12 @@ return function(t)
 		L.setClockTime(12)
 		t.eq(Workspace:GetAttribute("NightFactor"), 0)
 		t.near(Workspace:GetAttribute("TimeOfDay"), 12, 0.051)
-		t.near(Lighting.ClockTime, 12, 0.01)
+		t.near(Lighting.ClockTime, 12, 0.01, "by day the engine clock is the game hour")
 		t.eq(L.isNight(), false)
 		L.setClockTime(23)
 		t.eq(Workspace:GetAttribute("NightFactor"), 1)
+		t.near(Workspace:GetAttribute("TimeOfDay"), 23, 0.051, "TimeOfDay is the GAME hour")
+		t.near(Lighting.ClockTime, Look.EngineClock.eveningHold, 1e-3, "engine clock held near the evening horizon")
 		t.eq(L.isNight(), true)
 		t.eq(Lighting:GetAttribute("IsNight"), true)
 		t.eq(fired[#fired], true, "NightChanged(true)")
@@ -118,6 +186,40 @@ return function(t)
 		t.eq(L.isNight(), false)
 		t.eq(fired[#fired], false, "NightChanged(false)")
 		t.near(L.getNightFactor(), 0, 1e-9)
+	end)
+
+	t.test("engine clock: held at night (no writes), one jump at full night, EngineClockOverride", function()
+		local E = Look.EngineClock
+		L.setClockTime(21)
+		t.near(Lighting.ClockTime, E.eveningHold, 1e-3, "evening hold")
+		t.near(L.getEngineClockTime(), E.eveningHold, 1e-3)
+		t.near(L.getClockTime(), 21, 0.02, "getClockTime is the game hour")
+		Lighting.ClockTime = 3.33 -- foreign write: a held engine clock is not rewritten every tick
+		L.setClockTime(22.5)
+		t.near(Lighting.ClockTime, 3.33, 1e-6, "the hold costs no writes")
+		t.eq(Workspace:GetAttribute("NightFactor"), 1)
+		L.setClockTime(E.jumpHour + 0.01)
+		t.near(Lighting.ClockTime, E.morningHold, 1e-3, "jumped to the morning hold")
+		t.eq(Workspace:GetAttribute("NightFactor"), 1, "still full night: NightFactor follows the game hour")
+		t.eq(Lighting:GetAttribute("Sky"), "night", "the fixed night sky is up across the jump")
+		L.setClockTime(3)
+		t.near(Lighting.ClockTime, E.morningHold, 1e-3, "morning hold")
+		-- the lab override pins the engine clock without touching the game hour
+		Workspace:SetAttribute("EngineClockOverride", 18.05)
+		L.setClockTime(2)
+		t.near(Lighting.ClockTime, 18.05, 1e-6, "override applied")
+		t.near(Workspace:GetAttribute("TimeOfDay"), 2, 0.051, "game hour untouched")
+		t.eq(Workspace:GetAttribute("NightFactor"), 1)
+		Workspace:SetAttribute("EngineClockOverride", nil)
+		L.setClockTime(12)
+		t.near(Lighting.ClockTime, 12, 1e-3, "back on the game clock by day")
+		-- the dusk ease: between the game hour and the hold, never past it
+		L.setClockTime(18.5)
+		t.ok(
+			Lighting.ClockTime > 18 and Lighting.ClockTime < E.eveningHold,
+			"easing into the hold: " .. Lighting.ClockTime
+		)
+		L.setClockTime(12)
 	end)
 
 	t.test("cheap writes: unchanged values are skipped, real changes written", function()
@@ -171,10 +273,13 @@ return function(t)
 			1e-3,
 			"night city glow parked inland"
 		)
-		L.setClockTime(17)
-		t.eq(Lighting:GetAttribute("Sky"), "golden")
-		t.eq(sky.SkyboxLf, Look.Skies.golden.faces.Lf, "golden faces")
-		t.eq(sky.CelestialBodiesShown, true)
+		L.setClockTime(18.8)
+		t.eq(Lighting:GetAttribute("Sky"), "blue")
+		t.eq(sky.SkyboxLf, Look.Skies.blue.faces.Lf, "blue faces")
+		t.eq(sky.CelestialBodiesShown, Look.Skies.blue.celestialBodiesShown)
+		L.setClockTime(17.3)
+		t.eq(Lighting:GetAttribute("Sky"), "day", "golden hour under the day sky (no day <-> golden swap)")
+		t.eq(sky.SkyboxLf, Look.Skies.day.faces.Lf)
 		L._sunDirection = real
 	end)
 
@@ -185,8 +290,8 @@ return function(t)
 		L._sunDirection = function()
 			return sun
 		end
-		L.setClockTime(17) -- golden, snapped
-		local glow = Look.Skies.golden.glowAzimuth
+		L.setClockTime(17) -- day sky (follows the sun), snapped
+		local glow = Look.Skies.day.glowAzimuth
 		local y0 = sky.SkyboxOrientation.Y
 		t.near(y0, L.skyYaw(glow, sun.X, sun.Z), 1e-3)
 		-- the sun jumps 40 deg of azimuth: the sky turns maxYawRate * dt per tick, not all at once
@@ -221,7 +326,13 @@ return function(t)
 		t.ok(clouds ~= nil, "clouds adopted/created")
 		L.setClockTime(12)
 		t.near(clouds.Cover, Look.Presets.day.clouds.cover * Look.Skies.day.clouds, 0.011, "day cover share")
-		local blueMid = (Look.SkySchedule[5].hour + Look.SkySchedule[6].hour) / 2
+		local sched = Look.SkySchedule
+		local blueMid
+		for i, e in sched do
+			if e.sky == "blue" and e.hour > 12 then
+				blueMid = (e.hour + sched[i % #sched + 1].hour) / 2
+			end
+		end
 		L.setClockTime(blueMid)
 		t.ok(clouds.Cover > 0.2, "volumetric clouds over the clear blue-hour sky: " .. clouds.Cover)
 		Workspace:SetAttribute("CloudsOverride", 0)
@@ -303,10 +414,25 @@ return function(t)
 		bulb.Parent = folder
 		bulb:AddTag(L.TAG_NIGHT_GLOW)
 		bulb:AddTag(L.TAG_STREET_LIGHT)
+		-- v1 facade-sized glass (ribbon windows, whole towers): lab round 2 S6 saw these glow as slabs / columns
+		local facades = {}
+		for i = 0, 23 do
+			local f = Instance.new("Part")
+			f.Size = Vector3.new(40, 12, 1)
+			f.CFrame = H.roblox.CFrame.new(-600 + i * 47, 24 + (i % 3) * 12, -150)
+			f.Material = Enum.Material.Glass
+			f:SetAttribute("DayColor", f.Color)
+			f:SetAttribute("DayMaterial", "Glass")
+			f:SetAttribute("NightColor", Color3.fromRGB(255, 208, 120))
+			f:SetAttribute("NightMaterial", "Neon")
+			f.Parent = folder
+			f:AddTag(L.TAG_NIGHT_GLOW)
+			table.insert(facades, f)
+		end
 		L.setClockTime(12)
 		L.init() -- registers the tagged parts (live servers also pick up late tags via the added signals)
 		local n = L.windowStats()
-		t.eq(n, #parts + 1, "LitWindow parts + the adopted glass band (not the street-light bulb)")
+		t.eq(n, #parts + 1 + #facades, "LitWindow parts + the adopted glass band + facades (not the street-light bulb)")
 		local function litCount()
 			local lit, warm = 0, 0
 			for _, p in parts do
@@ -339,12 +465,36 @@ return function(t)
 		local p = L.windowParams(-300, 30, 90)
 		t.eq(band.Material == Enum.Material.Neon, p.lit, "adopted v1 band follows its own hash")
 		t.eq(bulb.Material.Name, "Neon", "street-light bulb keeps the v1 glow")
+		-- dim: a lit Neon cell is at colour x <= 0.4 (lab round 2 S6), and facade-sized parts are never Neon
+		for _, part in parts do
+			if part.Material == Enum.Material.Neon then
+				t.ok(
+					math.max(part.Color.R, part.Color.G, part.Color.B) <= Look.Windows.brightness[2] + 1e-6,
+					"dim Neon"
+				)
+			end
+		end
+		local facadeLit = 0
+		for _, f in facades do
+			t.ok(f.Material ~= Enum.Material.Neon, "a facade part never lights as Neon")
+			local fp = L.windowParams(f.CFrame.Position.X, f.CFrame.Position.Y, f.CFrame.Position.Z)
+			if fp.lit then
+				facadeLit += 1
+				t.eq(f.Material.Name, Look.Windows.facadeMaterial, "lit facade uses the non-emissive material")
+			else
+				t.eq(f.Material, Enum.Material.Glass, "unlit facade keeps its glass")
+			end
+		end
+		t.ok(facadeLit > 0 and facadeLit < #facades, "some facades lit, some not: " .. facadeLit)
 		L.setClockTime(12)
 		task.wait()
 		t.eq((litCount()), 0, "dark again by day")
 		t.eq(parts[1].Material, Enum.Material.SmoothPlastic, "day material restored")
 		t.eq(parts[1].Color, Color3.fromRGB(40, 48, 56), "day colour restored")
 		t.eq(band.Material, Enum.Material.Glass)
+		for _, f in facades do
+			t.eq(f.Material, Enum.Material.Glass, "facade glass restored by day")
+		end
 		folder:Destroy()
 		L.setClockTime(12.01)
 		t.eq((L.windowStats()), 0, "destroyed windows are dropped")
