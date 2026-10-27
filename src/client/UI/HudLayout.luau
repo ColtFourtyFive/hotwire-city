@@ -52,7 +52,8 @@ export type Layout = {
 	phoneScale: number,
 	list: Rect, -- interaction list menu (touch: bottom sheet)
 	listRow: number,
-	buttons: { [string]: Rect }, -- touch only: phone, map (on foot); nitro, drift, horn, exit, radio, spikes (driving)
+	buttons: { [string]: Rect }, -- touch only: phone, map (on foot); nitro, drift, horn, exit, radio, spikes,
+	-- phoneDriving (driving)
 }
 
 HudLayout.SAFE = 20
@@ -70,11 +71,24 @@ HudLayout.RIGHT_BLOCK_W = 300
 HudLayout.TIMER = { w = 220, h = 28, gap = 4 }
 HudLayout.PHONE = { w = 176, h = 330 }
 HudLayout.LIST_W = 300
+-- Touch bottom sheet (§7): banner, subheader, rule, a two-line description, the Back / Select row and 40 px rows.
+HudLayout.SHEET = { header = 48, sub = 24, rule = 2, desc = 48, hints = 44, row = 40, minRows = 3 }
 
 local function rect(x: number, y: number, w: number, h: number): Rect
 	return { x = x, y = y, w = w, h = h }
 end
 HudLayout.rect = rect
+
+-- Touch bottom sheet: the height that fits `rows` list rows, and the rows that fit a sheet `height` tall.
+function HudLayout.sheetHeight(rows: number): number
+	local S = HudLayout.SHEET
+	return S.header + S.sub + S.rule + S.desc + S.hints + rows * S.row
+end
+
+function HudLayout.sheetRows(height: number): number
+	local S = HudLayout.SHEET
+	return math.max(S.minRows, math.floor((height - HudLayout.sheetHeight(0)) / S.row))
+end
 
 local function round(v: number): number
 	return math.floor(v + 0.5)
@@ -207,11 +221,14 @@ local function touchLayout(w: number, h: number): Layout
 	-- radio: tap to change station (the station name shows top-centre); over the speed readout's right end
 	local radioBtn = rect(speed.x + speed.w - 48, speed.y - 8 - 48, 48, 48)
 	local driftText = rect(speed.x - 150, speed.y + 7, 140, 30)
+	-- driving: the phone button joins the right-hand cluster, at the left end of the horn / exit row
+	local phoneDriving = rect(spikes.x - 12 - 56, spikes.y + 2, 56, 56)
 	local P = HudLayout.PHONE
 	local phoneScale = math.clamp((h - 32) / P.h, 0.8, 1.3)
 	local pw, ph = round(P.w * phoneScale), round(P.h * phoneScale)
 	local phone = rect(w - 24 - pw, h - 16 - ph, pw, ph)
-	local listH = round(h * 0.42)
+	-- bottom sheet: 42% H (§7), but never too short for the header, three rows, the description and Back / Select
+	local listH = math.min(h - 40, math.max(round(h * 0.42), HudLayout.sheetHeight(HudLayout.SHEET.minRows)))
 	local list = rect(0, h - listH, w, listH)
 	return {
 		touch = true,
@@ -254,6 +271,7 @@ local function touchLayout(w: number, h: number): Layout
 			exit = exit,
 			radio = radioBtn,
 			spikes = spikes,
+			phoneDriving = phoneDriving,
 		},
 	}
 end
@@ -263,6 +281,72 @@ function HudLayout.compute(w: number, h: number, touch: boolean): Layout
 	local cw = if w == w and w >= 1 then w else 1280
 	local ch = if h == h and h >= 1 then h else 720
 	return if touch then touchLayout(cw, ch) else desktop(cw, ch)
+end
+
+-- Touch: the feed stacks under the help box (§7). `helpH` is the help box's current height in design px (0 while it
+-- is hidden), so the cards never draw over a help message.
+HudLayout.FEED_GAP = 6
+function HudLayout.feedTop(L: Layout, helpH: number): number
+	if not L.touch then
+		return L.feed.y
+	end
+	local h = if helpH == helpH and helpH > 0 then helpH else 0
+	return if h > 0 then L.help.y + h + HudLayout.FEED_GAP else L.help.y
+end
+
+-- Desktop help box while an own-screen list menu (same top-left corner) is open: right of the list.
+function HudLayout.helpBesideList(L: Layout, listW: number?): Rect
+	local w = if listW and listW > 0 then listW else L.list.w
+	return rect(L.list.x + w + 10, L.help.y, L.help.w, L.help.h)
+end
+
+local function shifted(r: Rect, dx: number): Rect
+	return rect(r.x - dx, r.y, r.w, r.h)
+end
+
+-- The layout while the phone is up (GTA keeps the cash on screen with the phone out; lead decision: cash is always
+-- shown). Touch: the big phone reaches the top-right block, so stars / cash / delta / ammo / arrest move left of it
+-- and the top-centre column (objective, location, radio, timer bars) narrows to the space left of them. Desktop: the
+-- timer bars (delivery countdown) move left of the phone, clear of the objective line. Pure.
+function HudLayout.withPhone(L: Layout): Layout
+	local out = table.clone(L)
+	local P = L.phone
+	local T = HudLayout.TIMER
+	if L.touch then
+		local blockBottom = L.arrest.y + L.arrest.h
+		local dx = (L.cash.x + L.cash.w) - (P.x - 12)
+		if P.y >= blockBottom or dx <= 0 then
+			return out
+		end
+		out.stars = shifted(L.stars, dx)
+		out.cash = shifted(L.cash, dx)
+		out.delta = shifted(L.delta, dx)
+		out.ammo = shifted(L.ammo, dx)
+		out.arrest = shifted(L.arrest, dx)
+		local leftLimit = L.radar.x + L.radar.w + 16
+		local rightLimit = out.cash.x - 8
+		local colW = math.max(T.w, rightLimit - leftLimit)
+		local colX = math.max(leftLimit, rightLimit - colW)
+		out.objective = rect(colX, L.objective.y, colW, L.objective.h)
+		out.location = rect(colX, L.location.y, colW, L.location.h)
+		out.locationDriving = out.location
+		out.radio = rect(colX, L.radio.y, colW, L.radio.h)
+		local timers = rect(round(colX + colW / 2 - T.w / 2), L.timers.y, T.w, T.h)
+		out.timers = timers
+		out.timersDriving = timers
+		return out
+	end
+	local function clear(r: Rect): Rect
+		if not HudLayout.overlaps(r, P) then
+			return r
+		end
+		-- left of the phone; the first bar's bottom stays above the objective line (the stack grows upward)
+		local y = math.min(r.y, L.objective.y - 6 - r.h)
+		return rect(P.x - 8 - r.w, y, r.w, r.h)
+	end
+	out.timers = clear(L.timers)
+	out.timersDriving = clear(L.timersDriving)
+	return out
 end
 
 -- Big-message band (§5.9) on the full screen (ScreenInsets None): centre 48.8% H, 19.5% H tall.

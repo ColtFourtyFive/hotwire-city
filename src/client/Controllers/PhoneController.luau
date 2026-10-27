@@ -20,8 +20,11 @@
 --
 -- Public API: open(), close(), toggle(), isOpen(), openApp(id), text(contactId, body, opts?) -> message,
 --   unreadCount(): number, callCab()
--- Pure helpers (tests): APPS, CONTACTS, cabState(ctx), unread(messages), threadOf(messages, contactId),
---   latestByContact(messages)
+-- The cab only acts on the server's answer: GoHome validates and charges; the phone closes, the black dip plays and
+-- the cooldown (Economy.CAB_COOLDOWN, shared with PlotService) starts only once the character has actually been moved.
+-- A refusal arrives as the server's Notify feed card.
+-- Pure helpers (tests): APPS, CONTACTS, cabState(ctx), cabJumped(a, b), unread(messages), threadOf(messages,
+--   contactId), latestByContact(messages)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -50,8 +53,9 @@ local PhoneController = {}
 local player = Players.LocalPlayer
 local C = Theme.Colors
 
-local CAB_COOLDOWN = 20 -- PlotService.GO_HOME_COOLDOWN (display only; the server decides)
 local MAX_MESSAGES = 60
+local CAB_WAIT = 3 -- seconds to wait for the server's teleport before giving up on a ride
+local CAB_JUMP_STUDS = 25 -- one frame's movement beyond this is the cab's teleport, not walking
 
 export type AppDef = { id: string, title: string, icon: string }
 
@@ -132,22 +136,28 @@ export type CabCtx = {
 	hasPlot: boolean,
 	wanted: number,
 	driving: boolean,
+	stunned: boolean?,
+	alive: boolean?, -- nil counts as alive
 	inOwnGarage: boolean,
 	cooldownLeft: number,
 	cash: number,
 	fee: number,
 }
-export type CabState = "ready" | "noplot" | "wanted" | "driving" | "home" | "cooldown" | "broke"
+export type CabState = "ready" | "noplot" | "down" | "wanted" | "driving" | "stunned" | "home" | "cooldown" | "broke"
 
 -- Whether a cab can be called right now, in the order the player should hear about it. The server re-checks all of
 -- it (PlotService GoHome).
 function PhoneController.cabState(ctx: CabCtx): CabState
 	if not ctx.hasPlot then
 		return "noplot"
+	elseif ctx.alive == false then
+		return "down"
 	elseif ctx.wanted >= 1 then
 		return "wanted"
 	elseif ctx.driving then
 		return "driving"
+	elseif ctx.stunned == true then
+		return "stunned"
 	elseif ctx.inOwnGarage then
 		return "home"
 	elseif ctx.cooldownLeft > 0 then
@@ -160,13 +170,20 @@ end
 
 PhoneController.CAB_REPLY = {
 	noplot = "We can't find your garage on the map yet. Try again in a moment.",
+	down = "Call us back when you're on your feet.",
 	wanted = "Lose the cops first. No driver will touch a hot fare.",
 	driving = "You've already got wheels. Get out of the car first.",
+	stunned = "You sound dazed. Call back when your head clears.",
 	home = "You're already home.",
 	cooldown = "All cabs are busy. Try again in a few seconds.",
 	broke = "A ride costs more than you've got.",
 	ready = "On our way. Hold tight.",
 } :: { [string]: string }
+
+-- Did the character jump from `a` to `b` in one frame (the server's GoHome teleport)?
+function PhoneController.cabJumped(a: Vector3, b: Vector3): boolean
+	return (b - a).Magnitude > CAB_JUMP_STUDS
+end
 
 function PhoneController.unread(messages: { Message }): number
 	local n = 0
@@ -215,6 +232,9 @@ local notifiedDaily = false
 local notifiedGifts: { [number]: boolean } = {}
 local photoMode = false
 local currentApp: string? = nil
+local currentContact: string? = nil -- the contact page on show (inside the Contacts app)
+local cabPending = false
+local refreshContact: (contact: ContactDef) -> ()
 
 local function lazy(name: string): any
 	local mod = script.Parent:FindFirstChild(name)
@@ -275,6 +295,11 @@ end
 local function fee(): number
 	local f = (Economy :: any).CAB_FEE
 	return if typeof(f) == "number" then f else 150
+end
+
+local function cabCooldown(): number
+	local c = (Economy :: any).CAB_COOLDOWN
+	return if typeof(c) == "number" then c else 20
 end
 
 local function refreshBadges()
@@ -341,7 +366,14 @@ function PhoneController.text(contactId: string, body: string, opts: TextOpts?):
 		end
 	end
 	if currentApp == "contacts" and phone and phone:isOpen() then
-		PhoneController.openApp("contacts")
+		if currentContact == nil then
+			PhoneController.openApp("contacts") -- the list: new unread counts and last lines
+		elseif currentContact == m.contact then
+			local contact = CONTACT_BY_ID[m.contact]
+			if contact then
+				refreshContact(contact) -- the open thread gets the new message; other contacts leave it alone
+			end
+		end
 	end
 	return m
 end
@@ -365,30 +397,79 @@ local function inOwnGarage(): boolean
 	return ok and at == idx
 end
 
+local function rootPart(): BasePart?
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	return if root and root:IsA("BasePart") then root else nil
+end
+
+local function isAlive(): boolean
+	local char = player.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	return hum ~= nil and hum.Health > 0
+end
+
+-- Success: the server moved the character (the fee is paid by then). The black dip covers the camera cut.
+local function cabArrived()
+	cabCooldownUntil = os.clock() + cabCooldown()
+	playSound("Whoosh")
+	local shard = require(UI:WaitForChild("Shard")) :: any
+	pcall(shard.fadeBlack, true, 0.1)
+	task.delay(0.35, function()
+		pcall(shard.fadeBlack, false, 0.5)
+	end)
+	PhoneController.text(
+		"cab",
+		"Dropped you at your garage. " .. Format.cash(fee()) .. " paid.",
+		{ feed = false, silent = true }
+	)
+	PhoneController.close()
+end
+
 function PhoneController.callCab(): CabState
 	local state = PhoneController.cabState({
 		hasPlot = plotIndex() ~= nil,
+		alive = isAlive(),
 		wanted = attrNumber("Wanted") or 0,
 		driving = player:GetAttribute("Driving") == true,
+		stunned = player:GetAttribute("Stunned") == true,
 		inOwnGarage = inOwnGarage(),
 		cooldownLeft = math.max(0, cabCooldownUntil - os.clock()),
 		cash = currentCash(),
 		fee = fee(),
 	})
-	PhoneController.text("cab", PhoneController.CAB_REPLY[state], { feed = state ~= "ready", silent = true })
-	if state == "ready" then
-		cabCooldownUntil = os.clock() + CAB_COOLDOWN
-		Net.fire("GoHome")
-		playSound("Whoosh")
-		local shard = require(UI:WaitForChild("Shard")) :: any
-		pcall(shard.fadeBlack, true, 0.35)
-		task.delay(0.9, function()
-			pcall(shard.fadeBlack, false, 0.5)
-		end)
-		PhoneController.close()
-	else
+	if state ~= "ready" then
+		PhoneController.text("cab", PhoneController.CAB_REPLY[state], { feed = true, silent = true })
 		playSound("Click")
+		return state
 	end
+	if cabPending then
+		return state -- the first call is still waiting for the server
+	end
+	cabPending = true
+	PhoneController.text("cab", PhoneController.CAB_REPLY.ready, { feed = false, silent = true })
+	playSound("Click")
+	local start = rootPart()
+	local last = if start then start.Position else nil
+	Net.fire("GoHome")
+	task.spawn(function()
+		local t0 = os.clock()
+		while os.clock() - t0 < CAB_WAIT do
+			RunService.Heartbeat:Wait()
+			local root = rootPart()
+			if root then
+				local pos = root.Position
+				if last and PhoneController.cabJumped(last, pos) then
+					cabPending = false
+					cabArrived()
+					return
+				end
+				last = pos
+			end
+		end
+		-- no ride: the server refused (its Notify card says why) or never answered
+		cabPending = false
+	end)
 	return state
 end
 
@@ -410,6 +491,8 @@ local function pauseTab(tab: string, focus: string?)
 end
 
 local function contactPage(contact: ContactDef)
+	currentContact = contact.id
+	local M = Phone.sizes()
 	phone:page(contact.name, function(page: ScrollingFrame)
 		local order = 0
 		local function o(): number
@@ -426,21 +509,16 @@ local function contactPage(contact: ContactDef)
 			contact.portrait,
 			{ Size = UDim2.fromOffset(48, 48), Position = UDim2.fromOffset(2, 2), Parent = head }
 		)
-		Kit.text(contact.name, "condensed", 13, {
+		Kit.text(contact.name, "condensed", M.label + 2, {
 			Position = UDim2.fromOffset(56, 4),
-			Size = UDim2.new(1, -60, 0, 16),
-			TextXAlignment = Enum.TextXAlignment.Left,
-			Parent = head,
-		})
-		Kit.text(contact.intro, "body", 9, {
-			Position = UDim2.fromOffset(56, 20),
-			Size = UDim2.new(1, -60, 0, 30),
-			TextWrapped = true,
+			Size = UDim2.new(1, -60, 0, 44),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
-			TextColor3 = C.TextDim,
+			TextWrapped = true,
 			Parent = head,
 		})
+		-- the intro wraps under the header (full width, at the phone's body size)
+		Phone.paragraph(page, contact.intro, { color = C.TextDim, order = o() })
 		-- actions
 		if contact.id == "cab" then
 			local row = Phone.row(page, "Call a cab home", Format.cash(fee()), { order = o(), color = C.Yellow })
@@ -478,8 +556,8 @@ local function contactPage(contact: ContactDef)
 			Kit.new("UICorner", { CornerRadius = Theme.CornerPhone, Parent = bubble })
 			Kit.padding(5, 7).Parent = bubble
 			Kit.list(Enum.FillDirection.Vertical, 2, Enum.HorizontalAlignment.Left).Parent = bubble
-			Kit.text((if m.kind == "email" then "EMAIL  " else "") .. stamp(m.at), "condensedMedium", 9, {
-				Size = UDim2.new(1, 0, 0, 11),
+			Kit.text((if m.kind == "email" then "EMAIL  " else "") .. stamp(m.at), "condensedMedium", M.sub, {
+				Size = UDim2.new(1, 0, 0, M.sub + 2),
 				TextColor3 = C.TextDim,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = bubble,
@@ -492,8 +570,10 @@ local function contactPage(contact: ContactDef)
 		refreshBadges()
 	end)
 end
+refreshContact = contactPage
 
 local function contactsApp()
+	currentContact = nil
 	phone:page("Contacts", function(page: ScrollingFrame)
 		local latest = PhoneController.latestByContact(messages)
 		for i, c in PhoneController.CONTACTS do
@@ -603,16 +683,17 @@ end
 local function codesApp()
 	phone:page("Codes", function(page: ScrollingFrame)
 		Phone.paragraph(page, "Enter a code from our socials.", { color = C.TextDim, order = 1 })
+		local M = Phone.sizes()
 		local box = Kit.new("TextBox", {
 			Name = "Code",
 			BackgroundColor3 = C.TextPure,
 			BorderSizePixel = 0,
-			Size = UDim2.new(1, -10, 0, 26),
+			Size = UDim2.new(1, -10, 0, M.field),
 			ClearTextOnFocus = false,
 			PlaceholderText = "CODE",
 			PlaceholderColor3 = C.TextDim,
 			Text = "",
-			TextSize = 13,
+			TextSize = M.label + 2,
 			FontFace = Theme.Fonts.BodyBold,
 			TextColor3 = C.Black,
 			LayoutOrder = 2,
@@ -673,7 +754,20 @@ local function takePhoto()
 	end
 	pcall(function()
 		local CaptureService = game:GetService("CaptureService") :: any
-		CaptureService:CaptureScreenshot(function(_contentId: any) end)
+		CaptureService:CaptureScreenshot(function(contentId: any)
+			-- §5.11: capture + keep it. The Roblox prompt lets the player save it to their device's gallery.
+			pcall(function()
+				CaptureService:PromptSaveCapturesToGallery({ contentId }, function(results: any)
+					local saved = typeof(results) == "table" and results[contentId] == true
+					if saved then
+						local nc = lazy("NotificationController")
+						if nc and typeof(nc.post) == "function" then
+							pcall(nc.post, { body = "Photo saved to your gallery.", key = "photo_saved" })
+						end
+					end
+				end)
+			end)
+		end)
 	end)
 end
 
@@ -778,10 +872,12 @@ local function ensurePhone(): any
 	end)
 	phone.BackPressed:Connect(function()
 		currentApp = nil
+		currentContact = nil
 		playSound("Click")
 	end)
 	phone.Closed:Connect(function()
 		currentApp = nil
+		currentContact = nil
 		local hud = lazy("HUDController")
 		if hud and typeof(hud.setPhoneOpen) == "function" then
 			pcall(hud.setPhoneOpen, false)
@@ -847,6 +943,7 @@ function PhoneController.openApp(id: string)
 		PhoneController.open()
 	end
 	currentApp = id
+	currentContact = nil
 	playSound("Click")
 	if id == "contacts" then
 		contactsApp()

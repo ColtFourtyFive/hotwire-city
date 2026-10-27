@@ -1093,7 +1093,10 @@ end
 function MapScreenController.toggle()
 	local menu = lazyMenu()
 	local pauseOpen = menu ~= nil and typeof(menu.isPauseOpen) == "function" and menu.isPauseOpen()
-	if isOpen or pauseOpen then
+	if pauseOpen and typeof(menu.togglePause) == "function" then
+		-- §5.12: M opens the MAP tab directly; it closes the menu only when MAP is already the tab on show
+		pcall(menu.togglePause, "MAP")
+	elseif isOpen or pauseOpen then
 		MapScreenController.close()
 	else
 		MapScreenController.open()

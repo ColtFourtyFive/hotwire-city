@@ -16,7 +16,9 @@
 -- with Oswald captions; the selection is an orange rounded square (the one place a corner radius is allowed); soft
 -- keys at the bottom (select / back). Desktop 176 x 330 design px at (W - 36, H - 16); touch larger, right side.
 -- Keys while open: arrows / D-pad move the selection, Enter / A open, Backspace / B back (home, then close).
--- Pure helpers (tests): gridMove, gridCell.
+-- Sizes come from Phone.metrics: on touch every text is >= 11.5 real px (§7) after the 0.72 UIScale floor and the
+-- phone's own scale, and rows / soft keys are >= 30 real px tall; Phone.sizes() hands them to PhoneController.
+-- Pure helpers (tests): gridMove, gridCell, metrics.
 
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -53,6 +55,89 @@ function Phone.gridMove(count: number, index: number, dx: number, dy: number): n
 	return math.clamp(i, 1, count)
 end
 
+export type Metrics = {
+	label: number, -- row label (bold)
+	sub: number, -- row second line, timestamps
+	value: number, -- row value
+	paragraph: number, -- message bodies, intros
+	caption: number, -- app tile captions
+	status: number, -- status-row clock
+	title: number, -- title bar
+	row: number, -- row height (one line)
+	rowSub: number, -- row height with a second line
+	softKey: number, -- soft-key glyph size
+	keyBar: number, -- soft-key bar height
+	tileH: number, -- app tile height
+	tilePitch: number, -- app tile row pitch
+	icon: number, -- app icon size
+	field: number, -- text box height (Codes)
+}
+
+local MIN_TEXT_REAL = 11.5 -- §7: smallest readable text on a phone, real px
+local MIN_TAP_REAL = 30 -- ~8% of a 375 px tall phone screen
+
+-- In-phone design sizes. `realScale` = real px per in-phone px (the screen UIScale x the phone's own UIScale). Touch
+-- sizes grow until text reaches MIN_TEXT_REAL and rows / soft keys MIN_TAP_REAL (capped so the 176 px handset still
+-- lays out); desktop keeps the GTA-small phone.
+function Phone.metrics(touch: boolean, realScale: number): Metrics
+	local H = HudLayout.PHONE.h
+	local screenH = H - 38
+	local gridTop = 44
+	if not touch then
+		local keyBar = 26
+		local pitch = math.floor((screenH - gridTop - keyBar - 4) / 3)
+		return {
+			label = 11,
+			sub = 10,
+			value = 11,
+			paragraph = 11,
+			caption = 10,
+			status = 11,
+			title = 15,
+			row = 26,
+			rowSub = 38,
+			softKey = 18,
+			keyBar = keyBar,
+			tileH = pitch - 2,
+			tilePitch = pitch,
+			icon = 42,
+			field = 26,
+		}
+	end
+	local s = if realScale == realScale and realScale > 0 then realScale else 1
+	local text = math.clamp(math.ceil(MIN_TEXT_REAL / s), 12, 17)
+	local tap = math.clamp(math.ceil(MIN_TAP_REAL / s), 34, 44)
+	local row = math.max(36, tap)
+	local keyBar = tap + 4
+	local pitch = math.floor((screenH - gridTop - keyBar - 4) / 3) -- tiles start 4 px into the grid
+	local tileH = pitch - 2
+	local caption = text
+	return {
+		label = text + 1,
+		sub = text,
+		value = text,
+		paragraph = text + 1,
+		caption = caption,
+		status = text,
+		title = 17,
+		row = row,
+		rowSub = row + text,
+		softKey = tap,
+		keyBar = keyBar,
+		tileH = tileH,
+		tilePitch = pitch,
+		icon = math.clamp(tileH - (caption + 2) - 8, 28, 42),
+		field = row,
+	}
+end
+
+local active: Metrics = Phone.metrics(false, 1)
+
+-- The sizes the built phone uses (PhoneController lays its app pages out with them).
+function Phone.sizes(): Metrics
+	return active
+end
+
 local ACTION = "HC_Phone"
 
 function Phone.new(): any
@@ -80,6 +165,8 @@ function Phone:_build()
 	local canvas = Kit.canvasSize(gui)
 	local L = HudLayout.compute(canvas.X, canvas.Y, touch)
 	local W, H = HudLayout.PHONE.w, HudLayout.PHONE.h
+	active = Phone.metrics(touch, Kit.uiScale(Theme.TouchMinScale) * L.phoneScale)
+	local M = active
 	local holder = Kit.new("Frame", {
 		Name = "Phone",
 		AnchorPoint = Vector2.new(1, 1),
@@ -146,7 +233,7 @@ function Phone:_build()
 		Position = UDim2.fromOffset(6, 2),
 		Parent = status,
 	})
-	self.clock = Kit.text("", "condensedMedium", 11, {
+	self.clock = Kit.text("", "condensedMedium", M.status, {
 		Name = "Clock",
 		Size = UDim2.fromScale(1, 1),
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -167,7 +254,7 @@ function Phone:_build()
 		BorderSizePixel = 0,
 		Parent = screen,
 	})
-	self.titleLabel = Kit.text("Fone", "condensed", 15, {
+	self.titleLabel = Kit.text("Fone", "condensed", M.title, {
 		Name = "Title",
 		Size = UDim2.fromScale(1, 1),
 		Position = UDim2.fromOffset(8, 0),
@@ -179,14 +266,14 @@ function Phone:_build()
 	local grid = Kit.new("Frame", {
 		Name = "Home",
 		Position = UDim2.fromOffset(0, 44),
-		Size = UDim2.new(1, 0, 1, -44 - 26),
+		Size = UDim2.new(1, 0, 1, -44 - M.keyBar),
 		BackgroundTransparency = 1,
 		Parent = screen,
 	})
 	self.grid = grid
 	local highlight = Kit.new("Frame", {
 		Name = "Selection",
-		Size = UDim2.fromOffset(52, 64),
+		Size = UDim2.fromOffset(52, M.tileH - 8),
 		BackgroundColor3 = C.Accent,
 		BackgroundTransparency = 0.15,
 		BorderSizePixel = 0,
@@ -199,7 +286,7 @@ function Phone:_build()
 	local page = Kit.new("ScrollingFrame", {
 		Name = "Page",
 		Position = UDim2.fromOffset(0, 40),
-		Size = UDim2.new(1, 0, 1, -40 - 26),
+		Size = UDim2.new(1, 0, 1, -40 - M.keyBar),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 2,
@@ -216,7 +303,7 @@ function Phone:_build()
 		Name = "SoftKeys",
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(0, 1),
-		Size = UDim2.new(1, 0, 0, 26),
+		Size = UDim2.new(1, 0, 0, M.keyBar),
 		BackgroundColor3 = C.Black,
 		BackgroundTransparency = 0.2,
 		BorderSizePixel = 0,
@@ -226,7 +313,7 @@ function Phone:_build()
 		local b = Kit.new("ImageButton", {
 			AnchorPoint = Vector2.new(anchor, 0.5),
 			Position = UDim2.new(anchor, if anchor == 0 then 10 else -10, 0.5, 0),
-			Size = UDim2.fromOffset(if touch then 26 else 18, if touch then 26 else 18),
+			Size = UDim2.fromOffset(M.softKey, M.softKey),
 			BackgroundTransparency = 1,
 			Image = "",
 			Parent = keys,
@@ -255,6 +342,7 @@ function Phone:_layoutGrid()
 	end
 	self.tiles = {}
 	self.badges = {}
+	local M = active
 	local gridW = HudLayout.PHONE.w - 12
 	local cellW = gridW / COLS
 	for i, app in self.apps do
@@ -264,8 +352,8 @@ function Phone:_layoutGrid()
 			AutoButtonColor = false,
 			BackgroundTransparency = 1,
 			Text = "",
-			Position = UDim2.fromOffset((col - 1) * cellW, (row - 1) * 76 + 4),
-			Size = UDim2.fromOffset(cellW, 72),
+			Position = UDim2.fromOffset((col - 1) * cellW, (row - 1) * M.tilePitch + 4),
+			Size = UDim2.fromOffset(cellW, M.tileH),
 			ZIndex = 2,
 			Parent = self.grid,
 		})
@@ -273,14 +361,14 @@ function Phone:_layoutGrid()
 			Name = "Icon",
 			AnchorPoint = Vector2.new(0.5, 0),
 			Position = UDim2.new(0.5, 0, 0, 6),
-			Size = UDim2.fromOffset(42, 42),
+			Size = UDim2.fromOffset(M.icon, M.icon),
 			ZIndex = 2,
 			Parent = tile,
 		})
-		Kit.text(string.upper(app.title), "condensedMedium", 10, {
+		Kit.text(string.upper(app.title), "condensedMedium", M.caption, {
 			Name = "Caption",
-			Position = UDim2.fromOffset(0, 50),
-			Size = UDim2.new(1, 0, 0, 14),
+			Position = UDim2.fromOffset(0, 6 + M.icon + 2),
+			Size = UDim2.new(1, 0, 0, M.caption + 4),
 			ZIndex = 2,
 			Parent = tile,
 		})
@@ -493,7 +581,9 @@ export type RowOpts = { color: Color3?, sub: string?, icon: string?, height: num
 -- A tappable row inside an app page: label (Montserrat), optional right value, optional grey second line / icon.
 function Phone.row(parent: Instance, label: string, value: string?, opts: RowOpts?): TextButton
 	local o: RowOpts = opts or {}
-	local h = o.height or (if o.sub then 38 else 26)
+	local M = active
+	local h = math.max(o.height or 0, if o.sub then M.rowSub else M.row)
+	local lineH = M.label + 4
 	local row = Kit.new("TextButton", {
 		Name = "Row",
 		AutoButtonColor = false,
@@ -515,20 +605,20 @@ function Phone.row(parent: Instance, label: string, value: string?, opts: RowOpt
 		})
 		left = 38
 	end
-	Kit.text(label, "bodyBold", 11, {
+	Kit.text(label, "bodyBold", M.label, {
 		Name = "Label",
 		Position = UDim2.fromOffset(left, if o.sub then 4 else 0),
-		Size = UDim2.new(0.68, -left, 0, if o.sub then 14 else h),
+		Size = UDim2.new(0.68, -left, 0, if o.sub then lineH else h),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		TextColor3 = o.color or C.Text,
 		Parent = row,
 	})
 	if o.sub then
-		Kit.text(o.sub, "body", 10, {
+		Kit.text(o.sub, "body", M.sub, {
 			Name = "Sub",
-			Position = UDim2.fromOffset(left, 19),
-			Size = UDim2.new(1, -left - 6, 0, 14),
+			Position = UDim2.fromOffset(left, 4 + lineH),
+			Size = UDim2.new(1, -left - 6, 0, M.sub + 4),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextColor3 = C.TextDim,
@@ -536,11 +626,11 @@ function Phone.row(parent: Instance, label: string, value: string?, opts: RowOpt
 		})
 	end
 	if value then
-		Kit.text(value, "condensedMedium", 11, {
+		Kit.text(value, "condensedMedium", M.value, {
 			Name = "Value",
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.new(1, -6, 0, if o.sub then 4 else 0),
-			Size = UDim2.new(0.4, 0, 0, if o.sub then 14 else h),
+			Size = UDim2.new(0.4, 0, 0, if o.sub then lineH else h),
 			TextXAlignment = Enum.TextXAlignment.Right,
 			Parent = row,
 		})
@@ -571,7 +661,7 @@ end
 -- A wrapped paragraph inside an app page (message bodies, descriptions).
 function Phone.paragraph(parent: Instance, text: string, opts: RowOpts?): TextLabel
 	local o: RowOpts = opts or {}
-	local l = Kit.text(text, "body", 11, {
+	local l = Kit.text(text, "body", active.paragraph, {
 		Name = "Paragraph",
 		Size = UDim2.new(1, -12, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,

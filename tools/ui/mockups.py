@@ -508,6 +508,7 @@ def scene_driving(view):
         circle_button(m, b["horn"], "Horn", "hud.horn")
         circle_button(m, b["exit"], "Exit", "hud.exit")
         circle_button(m, b["radio"], "Radio", "hud.signal")
+        circle_button(m, b["phoneDriving"], "Phone", "hud.phone")
     else:
         # the radio station name shows top-centre for 3 s after a change
         r = L["radio"]
@@ -663,7 +664,9 @@ def phone(m, L):
 
 
 def scene_phone(view):
-    m = scene_rest(view, location_lines=False)  # HUDController.setPhoneOpen hides them under the phone
+    # HUDController.setPhoneOpen: the location lines hide; HudLayout.withPhone keeps cash / stars clear of the phone
+    view = dict(view, layout=view.get("phoneLayout", view["layout"]))
+    m = scene_rest(view, location_lines=False)
     L = view["layout"]
     phone(m, L)
     instructional(m, L["phone"]["x"] - 12, L["h"] - 24 if not L["touch"] else L["phone"]["y"] + 14,
@@ -709,7 +712,7 @@ def scene_list(view):
     m.text(x + 10, y + 12, "UPGRADES", "Oswald-500", 13, rgba(C["text"]), anchor="lm")
     m.text(x + w - 10, y + 12, "2/8", "Oswald-500", 13, rgba(C["text"]), anchor="rm")
     y += 24
-    visible = 8 if not touch else max(3, int((r["h"] - 24 - 48 - 44) // row_h))
+    visible = 8 if not touch else view["sheet"]["rows"]
     for i, (label, lvl, price) in enumerate(GEAR_ROWS[:visible]):
         sel = i == 1
         if sel:
@@ -736,6 +739,22 @@ def scene_list(view):
         m.blend_box(x, y, w, used + 16, (0, 0, 0, alpha_of(0.27)))
         m.img.alpha_composite(lay.img)
         instructional(m, c["w"] - 20, c["h"] - 24, [("Enter", "Buy"), ("Backspace", "Back"), ("Up Down", "Select")])
+    else:
+        # fixed two-line description, then the tappable Back / Select row (the rows scroll with a finger drag)
+        spec = view["sheet"]["spec"]
+        m.blend_box(x, y, w, spec["desc"], (0, 0, 0, alpha_of(0.27)))
+        lay = Mock(c["w"], c["h"])
+        lay.wrap_rich(x + 10, y + 6, w - 20, [("How long your garage laser gate stays locked. ", C["text"]),
+                                              ("Lv 2: 90 s.", C["yellow"])], "Montserrat-500", 16, 20)
+        m.img.alpha_composite(lay.img)
+        y += spec["desc"]
+        bx = w - 14
+        for label in ("Select", "Back"):
+            lw = m.measure(label, "Montserrat-500", 16) + 24
+            bx -= lw
+            m.blend_box(bx, y + 4, lw, spec["hints"] - 8, (0, 0, 0, alpha_of(0.3)))
+            m.text(bx + lw / 2, y + spec["hints"] / 2, label, "Montserrat-500", 16, rgba(C["text"]), anchor="mm")
+            bx -= 14
     return m
 
 

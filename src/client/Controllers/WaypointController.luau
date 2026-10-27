@@ -145,13 +145,17 @@ export type MarkerStyle = { corona: boolean, chevron: boolean, chevronHeight: nu
 
 -- What a waypoint draws: a fixed destination gets a corona + chevron; a tracked Instance (a car, a thief) only a
 -- chevron over it. Close to a destination the chevron goes (you are standing in the corona).
-function WaypointController.markerStyle(tracked: boolean, distance: number): MarkerStyle
+-- Tuple form for the per-frame loop (no table per waypoint per frame): (corona, chevron, chevronHeight).
+function WaypointController.markerFlags(tracked: boolean, distance: number): (boolean, boolean, number)
 	local d = if distance == distance then distance else math.huge
-	return {
-		corona = not tracked and d <= CORONA_RANGE,
-		chevron = tracked or d > CHEVRON_HIDE_NEAR,
-		chevronHeight = if tracked then CHEVRON_HEIGHT_TRACKED else CHEVRON_HEIGHT,
-	}
+	return not tracked and d <= CORONA_RANGE,
+		tracked or d > CHEVRON_HIDE_NEAR,
+		if tracked then CHEVRON_HEIGHT_TRACKED else CHEVRON_HEIGHT
+end
+
+function WaypointController.markerStyle(tracked: boolean, distance: number): MarkerStyle
+	local corona, chevron, chevronHeight = WaypointController.markerFlags(tracked, distance)
+	return { corona = corona, chevron = chevron, chevronHeight = chevronHeight }
 end
 
 --[[
@@ -828,12 +832,12 @@ local function update(dt: number)
 			placeTarget(wp, pos)
 		end
 		local dist = (pos - origin).Magnitude
-		local style = WaypointController.markerStyle(tracked, dist)
+		local corona, chevron, chevronHeight = WaypointController.markerFlags(tracked, dist)
 		-- standing in the corona keeps the ring but loses the chevron; streamer mode hides both
-		setChevron(wp, style.chevron and not hudHidden)
-		setCorona(wp, style.corona and not hudHidden)
-		if wp.shown then
-			wp.billboard.StudsOffsetWorldSpace = Vector3.new(0, style.chevronHeight, 0)
+		setChevron(wp, chevron and not hudHidden)
+		setCorona(wp, corona and not hudHidden)
+		if wp.shown and wp.billboard.StudsOffsetWorldSpace.Y ~= chevronHeight then
+			wp.billboard.StudsOffsetWorldSpace = Vector3.new(0, chevronHeight, 0)
 		end
 
 		if refreshDist or wp.lastDistText == "" then

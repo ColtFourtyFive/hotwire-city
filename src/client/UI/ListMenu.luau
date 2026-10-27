@@ -18,10 +18,14 @@
 -- Look: header banner (Config/UIAssets banners.<key> art with a Damion title; an accent band without art), a black
 -- subheader "TITLE ... 3/12", rows of white text on translucent black with the selected row inverted (white / black),
 -- right-aligned prices, "< value >" selectors, a description box under the list. Desktop: top-left, 300 wide, 28 px
--- rows. Touch: a full-width bottom sheet, 40 px rows, tappable back / select.
+-- rows. Touch: a full-width bottom sheet sized by HudLayout (at least three 40 px rows, a two-line description and the
+-- Back / Select buttons), every row in a ScrollingFrame that a finger drag scrolls; the first tap on a row selects it
+-- and shows its description, a second tap on the selected row acts (no accidental purchases).
 -- Input while open: Up / Down (D-pad, mouse wheel) move, Left / Right change options, Enter / A select, Backspace / B
 -- back. Movement keys (WASD, thumbstick) stay free: you can walk away from a counter with the menu open.
--- Pure helpers (tests): step, counter, windowTop, cycle.
+-- ListMenu.ScreenListsChanged(count, widest) fires when own-screen lists open / close (the HUD moves the desktop help
+-- box out of the list's corner).
+-- Pure helpers (tests): step, counter, windowTop, cycle, scrollToShow, tapAction.
 
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -123,6 +127,53 @@ function ListMenu.cycle(count: number, index: number, dir: number): number
 	return i + 1
 end
 
+-- Touch lists scroll natively (a ScrollingFrame holding every row): the canvas offset that brings row `index`
+-- (rowH tall) into a viewport viewH tall, keeping `canvasY` when the row is already fully visible.
+function ListMenu.scrollToShow(index: number, rowH: number, viewH: number, canvasY: number): number
+	if index < 1 or rowH <= 0 then
+		return math.max(0, canvasY)
+	end
+	local top = (index - 1) * rowH
+	if top < canvasY then
+		return top
+	elseif top + rowH > canvasY + viewH then
+		return math.max(0, top + rowH - viewH)
+	end
+	return math.max(0, canvasY)
+end
+
+-- A tap / click on row `idx` while `selected` is the selected row: the first tap selects (and shows the
+-- description), only a tap on the already-selected row acts. Separators do nothing.
+function ListMenu.tapAction(items: { Item }, idx: number, selected: number): string
+	if not selectable(items[idx]) then
+		return "none"
+	end
+	return if idx == selected then "activate" else "select"
+end
+
+-- Own-screen lists that are open right now (the HUD moves the desktop help box out of their way).
+local openScreens: { [any]: number } = {}
+ListMenu.ScreenListsChanged = Signal.new() -- (count: number, widest: number)
+
+local function fireScreens()
+	local count, widest = 0, 0
+	for _, w in openScreens do
+		count += 1
+		widest = math.max(widest, w)
+	end
+	ListMenu.ScreenListsChanged:Fire(count, widest)
+end
+
+-- (count, widest width) of the open own-screen lists.
+function ListMenu.openScreens(): (number, number)
+	local count, widest = 0, 0
+	for _, w in openScreens do
+		count += 1
+		widest = math.max(widest, w)
+	end
+	return count, widest
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Component
 -------------------------------------------------------------------------------------------------------------------------
@@ -178,7 +229,11 @@ function ListMenu:_build()
 	local opts: Opts = self.opts
 	local touch = Kit.isTouch()
 	self.touch = touch
-	local rowH = if touch then 40 else 28
+	-- touch: every row lives in a ScrollingFrame (finger drags scroll natively); desktop: a window of rows moved by
+	-- the keys and the mouse wheel, with the 3/12 counter
+	self.scroll = touch
+	local sheet = HudLayout.SHEET
+	local rowH = if touch then sheet.row else 28
 	self.rowH = rowH
 	local root: Frame
 	if opts.parent then
@@ -206,7 +261,7 @@ function ListMenu:_build()
 				Size = UDim2.new(1, 0, 0, L.list.h),
 				Parent = gui,
 			})
-			self.visible = math.max(3, math.floor((L.list.h - 24 - 48 - 44) / rowH))
+			self.visible = HudLayout.sheetRows(L.list.h)
 		else
 			root = Kit.new("Frame", {
 				Name = "Menu",
@@ -217,6 +272,7 @@ function ListMenu:_build()
 			})
 			self.visible = opts.visibleRows or 10
 		end
+		self.screenWidth = if touch then 0 else (opts.width or L.list.w)
 	end
 	self.root = root
 	local list = Kit.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Left)
@@ -224,7 +280,7 @@ function ListMenu:_build()
 
 	-- header banner (own screen only)
 	if not opts.parent then
-		local bannerH = if touch then 48 else 64
+		local bannerH = if touch then sheet.header else 64
 		local header = Kit.new("Frame", {
 			Name = "Header",
 			BackgroundColor3 = C.Accent,
@@ -300,41 +356,64 @@ function ListMenu:_build()
 		Parent = sub,
 	})
 
-	local rowsFrame = Kit.new("Frame", {
-		Name = "Rows",
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 3,
-		Parent = root,
-	})
+	local rowsFrame: GuiObject
+	if self.scroll then
+		rowsFrame = Kit.new("ScrollingFrame", {
+			Name = "Rows",
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			-- embedded (pause tab): fill the host under the subheader, above the rule + description box
+			Size = if opts.parent
+				then UDim2.new(1, 0, 1, -(24 + sheet.rule + sheet.desc))
+				else UDim2.new(1, 0, 0, self.visible * rowH),
+			CanvasSize = UDim2.new(),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			ScrollingDirection = Enum.ScrollingDirection.Y,
+			ScrollBarThickness = 4,
+			ScrollBarImageColor3 = C.TextDim,
+			ElasticBehavior = Enum.ElasticBehavior.WhenScrollable,
+			LayoutOrder = 3,
+			Parent = root,
+		})
+	else
+		rowsFrame = Kit.new("Frame", {
+			Name = "Rows",
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			LayoutOrder = 3,
+			Parent = root,
+		})
+	end
 	Kit.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Left).Parent = rowsFrame
 	self.rowsFrame = rowsFrame
 
-	-- separator line + description box
+	-- separator line + description box (touch: a fixed two-line box so the sheet never grows off the screen)
 	Kit.new("Frame", {
 		Name = "Rule",
 		BackgroundColor3 = C.Text,
 		BorderSizePixel = 0,
-		Size = UDim2.new(1, 0, 0, 2),
+		Size = UDim2.new(1, 0, 0, sheet.rule),
 		LayoutOrder = 4,
 		Parent = root,
 	})
 	local descBox = Kit.panel({
 		Name = "Description",
-		Size = UDim2.fromScale(1, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
+		Size = if touch then UDim2.new(1, 0, 0, sheet.desc) else UDim2.fromScale(1, 0),
+		AutomaticSize = if touch then Enum.AutomaticSize.None else Enum.AutomaticSize.Y,
 		LayoutOrder = 5,
 		Visible = false,
 		Parent = root,
 	})
 	Kit.padding(6, 10).Parent = descBox
-	self.descLabel = Kit.text("", "body", if touch then 15 else 13, {
+	self.descLabel = Kit.text("", "body", if touch then 16 else 13, {
 		Name = "Text",
-		Size = UDim2.fromScale(1, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
+		Size = if touch then UDim2.fromScale(1, 1) else UDim2.fromScale(1, 0),
+		AutomaticSize = if touch then Enum.AutomaticSize.None else Enum.AutomaticSize.Y,
 		TextWrapped = true,
+		TextTruncate = if touch then Enum.TextTruncate.AtEnd else Enum.TextTruncate.None,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
 		Parent = descBox,
 	})
 	self.descBox = descBox
@@ -344,7 +423,7 @@ function ListMenu:_build()
 		local hints = Kit.new("Frame", {
 			Name = "Hints",
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, if touch then 44 else 30),
+			Size = UDim2.new(1, 0, 0, if touch then sheet.hints else 30),
 			LayoutOrder = 6,
 			Parent = root,
 		})
@@ -388,6 +467,9 @@ function ListMenu:_row(i: number): TextButton
 	lock.ImageColor3 = C.TextDisabled
 	local slot = i
 	row.MouseEnter:Connect(function()
+		if self.touch then
+			return -- taps fire MouseEnter too; on touch only a tap selects (see tapAction)
+		end
 		local idx = self.top + slot - 1
 		if selectable(self.items[idx]) and idx ~= self.index then
 			self:select(idx)
@@ -395,16 +477,12 @@ function ListMenu:_row(i: number): TextButton
 	end)
 	row.Activated:Connect(function()
 		local idx = self.top + slot - 1
-		if not selectable(self.items[idx]) then
-			return
+		local action = ListMenu.tapAction(self.items, idx, self.index)
+		if action == "select" then
+			self:select(idx) -- the first tap shows the description; a second tap buys / acts
+		elseif action == "activate" then
+			self:activate()
 		end
-		if idx ~= self.index then
-			self:select(idx)
-			if not self.touch then
-				return
-			end
-		end
-		self:activate()
 	end)
 	self.rows[i] = row
 	return row
@@ -415,8 +493,18 @@ function ListMenu:_render()
 		return
 	end
 	local items: { Item } = self.items
-	local visible = math.min(self.visible, #items)
-	self.top = ListMenu.windowTop(math.max(1, self.index), #items, self.visible, self.top)
+	local visible: number
+	if self.scroll then
+		-- every row is built; the ScrollingFrame shows a window of them
+		visible = #items
+		self.top = 1
+		if not self.opts.parent then
+			self.rowsFrame.Size = UDim2.new(1, 0, 0, math.max(1, math.min(self.visible, #items)) * self.rowH)
+		end
+	else
+		visible = math.min(self.visible, #items)
+		self.top = ListMenu.windowTop(math.max(1, self.index), #items, self.visible, self.top)
+	end
 	for i = 1, math.max(visible, #self.rows) do
 		local row = if i <= visible then self:_row(i) else self.rows[i]
 		if row then
@@ -472,6 +560,9 @@ function ListMenu:setItems(items: { Item }, keepIndex: boolean?)
 	if not (keepIndex and selectable(items[self.index])) then
 		self.index = ListMenu.first(items)
 		self.top = 1
+		if self.scroll and self.rowsFrame then
+			(self.rowsFrame :: ScrollingFrame).CanvasPosition = Vector2.zero
+		end
 	end
 	self:_render()
 end
@@ -480,12 +571,32 @@ function ListMenu:getSelected(): Item?
 	return self.items[self.index]
 end
 
+-- Touch: scroll the selected row into view (keys / gamepad on a touch device, focusSection, ...).
+function ListMenu:_showSelected()
+	if not (self.scroll and self.rowsFrame and self.index >= 1) then
+		return
+	end
+	local sf = self.rowsFrame :: ScrollingFrame
+	local row = self.rows[self.index] -- scroll mode builds every row: row i shows item i
+	if not row then
+		return
+	end
+	-- CanvasPosition is in the frame's own (pre-UIScale) units; the Absolute* sizes are screen pixels
+	local s = row.AbsoluteSize.Y / self.rowH
+	if not (s > 0) then
+		return
+	end
+	local y = ListMenu.scrollToShow(self.index, self.rowH, sf.AbsoluteWindowSize.Y / s, sf.CanvasPosition.Y)
+	sf.CanvasPosition = Vector2.new(0, y)
+end
+
 function ListMenu:select(index: number)
 	if not selectable(self.items[index]) then
 		return
 	end
 	self.index = index
 	self:_render()
+	self:_showSelected()
 	self.Moved:Fire(self.items[index], index)
 end
 
@@ -574,6 +685,9 @@ end
 
 -- Mouse wheel over the list moves the selection (own screens and embedded lists alike).
 function ListMenu:_hookWheel()
+	if self.scroll then
+		return -- touch lists scroll natively
+	end
 	if self.root and not self.wheelHooked then
 		self.wheelHooked = true
 		self.root.InputChanged:Connect(function(input: InputObject)
@@ -610,6 +724,10 @@ function ListMenu:open()
 	if not self.opts.parent then
 		Kit.open(self.root)
 	end
+	if self.gui then
+		openScreens[self] = self.screenWidth or 0
+		fireScreens()
+	end
 end
 
 function ListMenu:close()
@@ -623,6 +741,10 @@ function ListMenu:close()
 	elseif self.root then
 		self.root.Visible = false
 	end
+	if openScreens[self] then
+		openScreens[self] = nil
+		fireScreens()
+	end
 	self.Closed:Fire()
 end
 
@@ -633,6 +755,10 @@ end
 function ListMenu:destroy()
 	self:_unbind()
 	self.opened = false
+	if openScreens[self] then
+		openScreens[self] = nil
+		fireScreens()
+	end
 	if self.gui then
 		self.gui:Destroy()
 	elseif self.root then

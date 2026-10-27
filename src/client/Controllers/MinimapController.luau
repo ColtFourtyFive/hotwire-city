@@ -1122,6 +1122,12 @@ local function wantedStars(): number
 	return if typeof(w) == "number" then w else 0
 end
 
+-- The radar window this frame (update() sets it; inRect reads it: no closure per frame).
+local rectLeft, rectRight, rectTop, rectBottom = 0, 0, 0, 0
+local function inRect(x: number, y: number): boolean
+	return x >= rectLeft and x <= rectRight and y >= rectTop and y <= rectBottom
+end
+
 local function update(dt: number)
 	local r = radar
 	local root = rootPart()
@@ -1254,9 +1260,7 @@ local function update(dt: number)
 	local small = BLIP_SMALL
 	local view = zoom * 1.6
 
-	local function inRect(x: number, y: number): boolean
-		return x >= left and x <= right and y >= top and y <= bottom
-	end
+	rectLeft, rectRight, rectTop, rectBottom = left, right, top, bottom
 
 	-- other players (lowest)
 	for _, other in otherRoots do

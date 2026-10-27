@@ -10,12 +10,15 @@
 --       subtitle Montserrat line under the title (rich text; GTA colour tags via UI/RichText)
 --       opts     { rows = { {label, value} }, total = {label, value}?, hold = seconds?, grade = boolean?,
 --                  sound = boolean?, fadeOut = "fade" | "black" | nil, onDone = function? }
+--                fadeOut = "black" drops the HC_Fade curtain when the shard ends; it lifts by itself on the next
+--                LocalPlayer.CharacterAdded (and never stays down longer than Shard.MAX_BLACK_SECONDS)
 --   Shard.hide(fast?)            fades the current shard out (also removes the grade)
 --   Shard.isShowing(): boolean
 --   Shard.setGrade(on, seconds?) the death / arrest grade: ColorCorrection Saturation -1 / Contrast 0.3 /
 --                                Brightness -0.05, a light blur, the vignette and a muffled world mix (local only:
 --                                effects live under workspace.CurrentCamera, the EQ on the HC_SFX / HC_Music groups)
---   Shard.fadeBlack(on, seconds?) the HC_Fade black curtain (respawn cut)
+--   Shard.fadeBlack(on, seconds?) the HC_Fade black curtain (respawn cut); a curtain that is not lifted by the caller
+--                                lifts itself after Shard.MAX_BLACK_SECONDS
 --   Shard.style(kind)            pure: { title, color, alpha, grade, hold, sound } (unit-tested)
 --
 -- Look: a full-width translucent black band with GTA's slight keystone (15.5% of the screen height at the left edge,
@@ -354,13 +357,25 @@ function Shard.setGrade(on: boolean, seconds: number?)
 	end
 end
 
--- Black curtain for respawn cuts (§5.9: HC_Fade 0.6 s).
+-- The curtain never stays down longer than this: a caller that forgets fadeBlack(false) (or whose respawn never
+-- comes) must not leave the player on a black screen.
+Shard.MAX_BLACK_SECONDS = 8
+local curtainToken = 0
+
+-- Black curtain for respawn cuts (§5.9: HC_Fade 0.6 s). fadeBlack(true) lifts itself after MAX_BLACK_SECONDS.
 function Shard.fadeBlack(on: boolean, seconds: number?)
 	local u = getUi()
 	local t = seconds or 0.6
+	curtainToken += 1
+	local my = curtainToken
 	if on then
 		u.fadeGui.Enabled = true
 		tween(u.curtain, t, { BackgroundTransparency = 0 }, Enum.EasingStyle.Sine)
+		task.delay(t + Shard.MAX_BLACK_SECONDS, function()
+			if my == curtainToken then
+				Shard.fadeBlack(false)
+			end
+		end)
 	else
 		local tw = tween(u.curtain, t, { BackgroundTransparency = 1 }, Enum.EasingStyle.Sine)
 		tw.Completed:Once(function()
@@ -445,7 +460,21 @@ function Shard.show(kind: string, title: string?, subtitle: string?, opts: ShowO
 			return
 		end
 		if o.fadeOut == "black" then
+			-- the respawn cut: the curtain lifts on the next spawn (or after MAX_BLACK_SECONDS, see fadeBlack)
 			Shard.fadeBlack(true)
+			local lifted = curtainToken
+			local lp = Players.LocalPlayer
+			if lp then
+				lp.CharacterAdded:Once(function()
+					if lifted == curtainToken then
+						task.delay(0.3, function()
+							if lifted == curtainToken then
+								Shard.fadeBlack(false)
+							end
+						end)
+					end
+				end)
+			end
 		end
 		Shard.hide()
 		if o.onDone then

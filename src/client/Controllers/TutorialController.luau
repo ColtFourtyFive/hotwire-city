@@ -511,7 +511,6 @@ local currentWaypointKey: any = nil
 local fallbackGui: BillboardGui? = nil
 local fallbackAnchor: Attachment? = nil
 local highlight: Highlight? = nil
-local highlightTween: Tween? = nil
 
 local function clearFallback()
 	if fallbackGui then
@@ -632,17 +631,14 @@ local function setWaypoint(target: (Instance | Vector3)?, color: Color3?, label:
 end
 
 local function clearHighlight()
-	if highlightTween then
-		highlightTween:Cancel()
-		highlightTween = nil
-	end
 	if highlight then
 		highlight:Destroy()
 		highlight = nil
 	end
 end
 
--- GTA marks the vehicle you are meant to take in blue: a soft breathing fill with a white outline.
+-- GTA marks the vehicle you are meant to take with the blue chevron and blip; §9 allows only a subtle, static tint
+-- on top (accessibility): blue fill at 0.85, a faint outline, hidden behind walls like the car itself. No pulse.
 local function highlightCar(model: Model)
 	if highlight and highlight.Parent == model then
 		return
@@ -651,18 +647,13 @@ local function highlightCar(model: Model)
 	local h = Instance.new("Highlight")
 	h.Name = "TutorialHighlight"
 	h.Adornee = model
-	h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	h.DepthMode = Enum.HighlightDepthMode.Occluded
 	h.FillColor = C.Blue
 	h.OutlineColor = C.Text
 	h.FillTransparency = 0.85
-	h.OutlineTransparency = 0.1
+	h.OutlineTransparency = 0.6
 	h.Parent = model -- client-local child; vanishes with the car
 	highlight = h
-	highlightTween = tween(
-		h,
-		TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-		{ FillTransparency = 0.6 }
-	)
 end
 
 -------------------------------------------------------------------------------------------------------------------------

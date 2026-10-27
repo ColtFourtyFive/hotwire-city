@@ -116,6 +116,20 @@ function Queue.current(q: Queue): Entry?
 	return q.current
 end
 
+-- What the box does when the shown text changes. "in": it was hidden (snap transparent, fade in); "resume": a new
+-- message arrived while the box was still fading out (fade back in from wherever it got to); "out": nothing left to
+-- show; "none": already fully shown, only the text changes.
+function HelpText.fadeAction(visible: boolean, fadingOut: boolean, hasText: boolean): string
+	if not hasText then
+		return "out"
+	elseif not visible then
+		return "in"
+	elseif fadingOut then
+		return "resume"
+	end
+	return "none"
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- View
 -------------------------------------------------------------------------------------------------------------------------
@@ -154,6 +168,10 @@ function HelpText.new(parent: Instance, x: number, y: number, width: number, tex
 	local queue = Queue.new()
 	local view: View
 	local shownText: string? = nil
+	-- A message can arrive while the box is still fading out (it stays Visible for those 0.3 s): it must fade back
+	-- in, or the running fade-out leaves it on screen fully transparent.
+	local fadingOut = false
+	local fadeToken = 0
 
 	local function render()
 		local cur = queue.current
@@ -162,21 +180,29 @@ function HelpText.new(parent: Instance, x: number, y: number, width: number, tex
 			return
 		end
 		shownText = text
+		fadeToken += 1
+		local my = fadeToken
+		local action = HelpText.fadeAction(box.Visible, fadingOut, text ~= nil)
 		if text then
 			label.Text = RichText.format(Kit.sanitize(text))
-			if not box.Visible then
+			if action == "in" then
 				box.Visible = true
 				Kit.fadeTree(box, 1, 0)
 				Kit.fadeTree(box, 0, 0.2)
+			elseif action == "resume" then
+				Kit.fadeTree(box, 0, 0.2) -- the newer tween cancels the fade-out
 			end
+			fadingOut = false
 			if view.onBeep then
 				task.spawn(view.onBeep)
 			end
 		else
+			fadingOut = true
 			Kit.fadeTree(box, 1, 0.3)
 			task.delay(0.3, function()
-				if queue.current == nil then
+				if my == fadeToken and queue.current == nil then
 					box.Visible = false
+					fadingOut = false
 				end
 			end)
 		end

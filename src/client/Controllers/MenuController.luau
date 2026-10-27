@@ -24,7 +24,9 @@
 -- RerollContract, all re-validated by the server. Store rows call MarketplaceService prompts; the server grants. Items
 -- the server would refuse are greyed. State comes only from StateController and player attributes.
 -- Pure helpers (resolveName, routeOf, dailyTileStates, playtimeTiles, contractRows, upgradeRows, toolRows, storeItems,
--- storeBlock, indexGroups, rebirthView, keptCars, settingValue, windowScale, ...) are exported for tests.
+-- storeBlock, indexGroups, rebirthView, keptCars, settingValue, windowScale, detailSignature, playerRows, ...) are
+-- exported for tests. STATS also lists the players in the server (the CoreGui player list is off, §8). A tab's detail
+-- pane is rebuilt only when what it shows changes (detailSignature), so its buttons survive the 1 Hz refresh.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -927,6 +929,57 @@ function MenuController.dailyRowValue(state: string, countdown: string?): string
 	return ""
 end
 
+-- What a tab's detail pane shows for `item`, as a string: the pane is rebuilt only when this changes (not on every
+-- 1 Hz refresh or snapshot), so its buttons survive and the garage preview keeps its car. `extra` carries state the
+-- row text does not show (a prestige confirm, a swap that just became possible, ...).
+function MenuController.detailSignature(item: any, extra: string?): string
+	if typeof(item) ~= "table" then
+		return ""
+	end
+	return table.concat({
+		tostring(item.id or ""),
+		tostring(item.label or ""),
+		tostring(item.value or ""),
+		tostring(item.disabled == true),
+		tostring(item.optionIndex or ""),
+		extra or "",
+	}, "|")
+end
+
+export type PlayerEntry = {
+	userId: number,
+	name: string,
+	cash: number,
+	steals: number,
+	rebirths: number,
+	wanted: number,
+	isYou: boolean,
+}
+
+-- STATS "Players" rows (the CoreGui player list is off, §8): you first, then by cash, richest first.
+function MenuController.playerRows(entries: { PlayerEntry }): { any }
+	local list = table.clone(entries)
+	table.sort(list, function(a: PlayerEntry, b: PlayerEntry): boolean
+		if a.isYou ~= b.isYou then
+			return a.isYou
+		end
+		if a.cash ~= b.cash then
+			return a.cash > b.cash
+		end
+		return a.name < b.name
+	end)
+	local rows = {}
+	for _, e in list do
+		table.insert(rows, {
+			id = "player:" .. tostring(e.userId),
+			label = if e.isYou then e.name .. "  (you)" else e.name,
+			value = Format.cash(e.cash),
+			data = { section = "players", entry = e },
+		})
+	end
+	return rows
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Runtime state
 -------------------------------------------------------------------------------------------------------------------------
@@ -939,6 +992,8 @@ type Tab = {
 	select: ((Tab, any) -> ())?,
 	describe: ((Tab, any) -> ())?,
 	change: ((Tab, any, number) -> ())?,
+	sig: ((Tab, any) -> string)?, -- extra detail-pane state (MenuController.detailSignature)
+	describedSig: string?,
 	focus: string?,
 }
 
@@ -1148,6 +1203,8 @@ local function dAction(f: Frame, key: string?, label: string, fn: () -> ())
 	btn.Activated:Connect(fn)
 end
 
+local redescribe: (tab: Tab, force: boolean?) -> ()
+
 -- A two-pane tab: list left (42%), detail panel right.
 local function twoPane(tab: Tab, content: Frame, subtitle: string)
 	local left = Kit.new("Frame", {
@@ -1174,12 +1231,8 @@ local function twoPane(tab: Tab, content: Frame, subtitle: string)
 	Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Left).Parent = detail
 	Kit.new("UISizeConstraint", { MinSize = Vector2.new(0, 120), Parent = detail })
 	tab.detail = detail
-	tab.list.Moved:Connect(function(item: any)
-		if tab.describe then
-			clearDetail(detail)
-			detailOrder = 0
-			tab.describe(tab, item)
-		end
+	tab.list.Moved:Connect(function()
+		redescribe(tab)
 	end)
 	tab.list.Selected:Connect(function(item: any)
 		if tab.select then
@@ -1193,16 +1246,23 @@ local function twoPane(tab: Tab, content: Frame, subtitle: string)
 	end)
 end
 
-local function redescribe(tab: Tab)
+-- Rebuild the detail pane only when what it shows changed (force: state the signature cannot see changed).
+redescribe = function(tab: Tab, force: boolean?)
 	local list = tab.list
 	local detail = tab.detail
-	if list and detail and tab.describe then
-		local item = list:getSelected()
-		clearDetail(detail)
-		detailOrder = 0
-		if item then
-			tab.describe(tab, item)
-		end
+	if not (list and detail and tab.describe) then
+		return
+	end
+	local item = list:getSelected()
+	local sig = if item then MenuController.detailSignature(item, if tab.sig then tab.sig(tab, item) else nil) else ""
+	if not force and sig == tab.describedSig then
+		return
+	end
+	tab.describedSig = sig
+	clearDetail(detail)
+	detailOrder = 0
+	if item then
+		tab.describe(tab, item)
 	end
 end
 
@@ -1331,6 +1391,23 @@ local function describeJobs(tab: Tab, item: any)
 	end
 end
 
+local function sigJobs(_tab: Tab, item: any): string
+	local d = item.data or {}
+	if d.section == "contracts" then
+		local snap = getSnapshot()
+		local canSwap = MenuController.canSwapContract(if snap then snap.contracts else nil, d.row, SWAP_AVAILABLE)
+		return `{canSwap}|{isPending("swap")}`
+	elseif d.section == "daily" then
+		local snap = getSnapshot()
+		local streak = if snap and typeof(snap.daily) == "table" then num(snap.daily.streak, 0) else 0
+		local left = if d.state == "next"
+			then MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))
+			else ""
+		return `{streak}|{left}`
+	end
+	return ""
+end
+
 local function selectJobs(_tab: Tab, item: any)
 	local d = item.data or {}
 	if d.section == "daily" and d.state == "ready" and not isPending("daily") then
@@ -1383,6 +1460,11 @@ local function showPreview(f: Frame, carId: string?)
 		return
 	end
 	task.spawn(function()
+		-- skimming the list with the mouse should not build a car per row passed over
+		task.wait(0.12)
+		if preview.view ~= view or not view.Parent then
+			return
+		end
 		local model = buildCarModel(carId)
 		if not model or preview.view ~= view or not view.Parent then
 			if model then
@@ -1526,8 +1608,47 @@ local function refreshStats(tab: Tab)
 			data = { section = "prestige", action = true },
 		},
 	}
+	-- the player list lives here (§8: the CoreGui PlayerList is off; leaderstats Cash / Steals still feed it)
+	local entries: { PlayerEntry } = {}
+	for _, p in Players:GetPlayers() do
+		local ls = p:FindFirstChild("leaderstats")
+		local cashV = ls and ls:FindFirstChild("Cash")
+		local stealsV = ls and ls:FindFirstChild("Steals")
+		local cashA = p:GetAttribute("Cash")
+		table.insert(entries, {
+			userId = p.UserId,
+			name = Kit.sanitize(p.DisplayName),
+			cash = if cashV and cashV:IsA("NumberValue")
+				then cashV.Value
+				elseif typeof(cashA) == "number" then cashA
+				else 0,
+			steals = if stealsV and stealsV:IsA("IntValue") then stealsV.Value else 0,
+			rebirths = num(p:GetAttribute("Rebirths"), 0),
+			wanted = num(p:GetAttribute("Wanted"), 0),
+			isYou = p == player,
+		})
+	end
+	table.insert(items, { separator = true, label = `Players in this city  ·  {#entries}` })
+	for _, row in MenuController.playerRows(entries) do
+		table.insert(items, row)
+	end
 	tab.list:setItems(items, true)
 	redescribe(tab)
+end
+
+local function sigStats(_tab: Tab, item: any): string
+	local d = item.data or {}
+	if d.section == "prestige" then
+		local v = MenuController.rebirthView(currentCash(), currentRebirths())
+		local snap = getSnapshot()
+		local armed = os.clock() - prestigeArmedAt < CONFIRM_WINDOW
+		local kept = MenuController.keptCarsText(MenuController.keptCars(if snap then snap.garage else nil))
+		return `{armed}|{v.canAfford}|{v.rebirths}|{math.floor(v.fraction * 100)}|{kept}`
+	elseif d.section == "players" then
+		local e = d.entry
+		return `{e.steals}|{e.rebirths}|{e.wanted}`
+	end
+	return ""
 end
 
 local function describeStats(tab: Tab, item: any)
@@ -1560,6 +1681,18 @@ local function describeStats(tab: Tab, item: any)
 				tab.select(tab, { data = { section = "prestige", action = true } })
 			end)
 		end
+	elseif d.section == "players" then
+		local e: PlayerEntry = d.entry
+		dTitle(f, e.name)
+		dPair(f, "Cash", Format.cash(e.cash), C.Green)
+		dPair(f, "Cars delivered", Format.commas(e.steals))
+		dPair(f, "Prestige level", tostring(math.floor(e.rebirths)))
+		dPair(
+			f,
+			"Wanted",
+			if e.wanted > 0 then `{math.floor(e.wanted)} star{if e.wanted >= 2 then "s" else ""}` else "-",
+			if e.wanted > 0 then C.Red else nil
+		)
 	else
 		dTitle(f, item.label)
 		dLine(f, item.value or "", C.Text, 22)
@@ -1590,7 +1723,7 @@ local function selectStats(tab: Tab, item: any)
 		playSound("Click")
 		toast("info", "Press again to confirm your prestige.")
 	end
-	redescribe(tab)
+	redescribe(tab, true)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1719,7 +1852,8 @@ local SETTING_DEFS: { SettingDef } = {
 	{
 		key = "hideHud",
 		label = "Streamer mode",
-		desc = "Hides the HUD and other players' names for clean clips. Turn it off here.",
+		desc = "Hides the HUD and other players' names for clean clips. Turn it off here, or on a touch screen with "
+			.. "the small HUD button in the top-left corner.",
 		server = true,
 	},
 	{
@@ -1793,7 +1927,12 @@ local function describeSettings(tab: Tab, item: any)
 		dTitle(f, d.def.label)
 		dLine(f, d.def.desc, C.TextDim)
 		dPair(f, "Now", if settingNow(d.def) then "ON" else "OFF", if settingNow(d.def) then C.Green else C.TextDim)
-		dLine(f, if Kit.isTouch() then "Tap the row to switch." else "Left / Right or Enter to switch.", C.TextDim, 12)
+		dLine(
+			f,
+			if Kit.isTouch() then "Tap the selected row to switch." else "Left / Right or Enter to switch.",
+			C.TextDim,
+			if Kit.isTouch() then 16 else 12
+		)
 	elseif d.section == "codes" then
 		dTitle(f, "Codes")
 		dLine(f, "Codes are redeemed in the Codes app on your phone.", C.TextDim)
@@ -1807,7 +1946,7 @@ local function changeSettings(tab: Tab, item: any, index: number)
 	local d = item.data or {}
 	if d.section == "settings" then
 		setSetting(d.def, index == 2)
-		redescribe(tab)
+		redescribe(tab, true)
 	end
 end
 
@@ -1818,7 +1957,7 @@ local function selectSettings(tab: Tab, item: any)
 		item.optionIndex = if now then 1 else 2
 		setSetting(d.def, not now)
 		tab.list:setItems(tab.list.items, true)
-		redescribe(tab)
+		redescribe(tab, true)
 	elseif d.section == "codes" then
 		MenuController.closePause()
 		local phone = lazy("PhoneController")
@@ -1932,12 +2071,19 @@ local TAB_IMPL: {
 		describe: (Tab, any) -> (),
 		select: ((Tab, any) -> ())?,
 		change: ((Tab, any, number) -> ())?,
+		sig: ((Tab, any) -> string)?,
 	},
 } =
 	{
-		JOBS = { subtitle = "Jobs", refresh = refreshJobs, describe = describeJobs, select = selectJobs },
+		JOBS = { subtitle = "Jobs", refresh = refreshJobs, describe = describeJobs, select = selectJobs, sig = sigJobs },
 		GARAGE = { subtitle = "Car collection", refresh = refreshGarage, describe = describeGarage },
-		STATS = { subtitle = "Stats", refresh = refreshStats, describe = describeStats, select = selectStats },
+		STATS = {
+			subtitle = "Stats",
+			refresh = refreshStats,
+			describe = describeStats,
+			select = selectStats,
+			sig = sigStats,
+		},
 		STORE = { subtitle = "Store", refresh = refreshStore, describe = describeStore, select = selectStore },
 		SETTINGS = {
 			subtitle = "Settings",
@@ -2079,6 +2225,7 @@ local function ensurePause(): any
 			describe = impl.describe,
 			select = impl.select,
 			change = impl.change,
+			sig = impl.sig,
 		}
 		twoPane(tab, pause:content(id), impl.subtitle)
 		tabs[id] = tab

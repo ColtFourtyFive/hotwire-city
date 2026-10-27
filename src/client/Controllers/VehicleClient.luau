@@ -438,6 +438,7 @@ local function buildUI()
 
 	ui = {
 		gui = gui,
+		root = root,
 		speedo = speedo,
 		speed = speedLabel,
 		unit = unit,
@@ -529,8 +530,14 @@ local function showControlsHelp()
 	local h = hud()
 	local text = controlsHelp()
 	if text and h and typeof(h.help) == "function" then
-		controlsShown = true
-		pcall(h.help, text, { id = CONTROLS_HELP_ID, duration = 9 })
+		-- urgent: the tutorial's own help line stays up until cleared, and a queued controls message would surface
+		-- only after the drive (back on foot). The tutorial line comes back once these 9 s are over.
+		pcall(h.help, text, { id = CONTROLS_HELP_ID, duration = 9, urgent = true })
+		-- counts as shown only once it is actually on screen
+		local ok, current = pcall(function()
+			return if typeof(h.currentHelp) == "function" then h.currentHelp() else CONTROLS_HELP_ID
+		end)
+		controlsShown = ok and current == CONTROLS_HELP_ID
 	end
 end
 
@@ -1525,6 +1532,19 @@ function VehicleClient.start()
 	if player.Character then
 		task.spawn(hookCharacter, player.Character)
 	end
+	-- the pause menu hides the HUD (§5.12): the speed readout and the touch buttons go with it (and can't be tapped
+	-- through the pause tint)
+	task.defer(function()
+		local menu = sibling("MenuController")
+		local changed = if menu then menu.PauseChanged else nil
+		if type(changed) == "table" and type(changed.Connect) == "function" then
+			changed:Connect(function(open: boolean)
+				if ui then
+					ui.root.Visible = open ~= true
+				end
+			end)
+		end
+	end)
 end
 
 return VehicleClient

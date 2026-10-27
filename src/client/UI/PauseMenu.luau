@@ -122,6 +122,7 @@ function PauseMenu:_build()
 		BackgroundTransparency = 1,
 		Parent = root,
 	})
+	self.titleFrame = title
 	Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Bottom).Parent =
 		title
 	local word, tail = string.match(self.title, "^(%S+)%s+(%S+)$")
@@ -158,6 +159,7 @@ function PauseMenu:_build()
 		BackgroundTransparency = 1,
 		Parent = root,
 	})
+	self.info = info
 	local avatar = Kit.new("ImageLabel", {
 		Name = "Avatar",
 		AnchorPoint = Vector2.new(1, 0),
@@ -411,8 +413,13 @@ function PauseMenu:open(tabId: string?)
 			self.blur = blur
 		end
 		self:_bind()
-		Kit.fadeTree(self.root, 1, 0)
-		Kit.fadeTree(self.root, 0, 0.2)
+		-- Fade in only the static chrome. The tab row and the tab lists change their own transparency for the
+		-- selection, and Kit.fadeTree restores the values it captured first, so fading them would undo the highlight
+		-- that setTab / the lists apply.
+		for _, part in { self.titleFrame, self.info, self.footer } do
+			Kit.fadeTree(part, 1, 0)
+			Kit.fadeTree(part, 0, 0.2)
+		end
 		local player = Players.LocalPlayer
 		if player and self.avatar.Image == "" then
 			task.spawn(function()

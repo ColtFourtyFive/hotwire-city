@@ -56,7 +56,7 @@ PlotService.PAD_TOP = PlotService.FLOOR_LIFT + PlotService.PAD_THICKNESS -- disp
 PlotService.LOCK_REARM = 15 -- min seconds after a lock ends before the button re-arms (see _rearmSeconds)
 PlotService.REARM_FRACTION = 0.5 -- ...or this fraction of the last button lock, whichever is longer (DECISIONS #8)
 PlotService.MAX_LOCK_SECONDS = 3600 -- stacked locks (Lockdown purchases) never reach further ahead than this
-PlotService.GO_HOME_COOLDOWN = 20
+PlotService.GO_HOME_COOLDOWN = Economy.CAB_COOLDOWN or 20 -- the phone's "Call a cab" (shared with PhoneController)
 PlotService.PUSH_INTERVAL = 0.5
 PlotService.TAG_SLOT = "AssetSlot" -- MapDresser contract (wall props)
 PlotService.TAG_LOOT = "LootSlot" -- dressed + toggled by PlotService (loot corner)
@@ -2198,8 +2198,39 @@ local function onCharacter(player: Player, char: Model)
 	end)
 end
 
+-- GoHome (the phone's "Call a cab") reaches the engine only through these, so a spec can drive the handler.
+local goHomeHooks = {
+	clock = os.clock,
+	system = sys,
+	notify = notify,
+	sound = sound,
+	move = moveCharacterHome,
+	plotOf = function(player: Player): number?
+		return playerPlot[player]
+	end,
+}
+
+-- Tests only: override GoHome's clock / system loader / notify / sound / move / plot lookup (nil restores).
+function PlotService._setGoHomeHooks(overrides: { [string]: any }?)
+	if overrides == nil then
+		goHomeHooks.clock = os.clock
+		goHomeHooks.system = sys
+		goHomeHooks.notify = notify
+		goHomeHooks.sound = sound
+		goHomeHooks.move = moveCharacterHome
+		goHomeHooks.plotOf = function(player: Player): number?
+			return playerPlot[player]
+		end
+		table.clear(goHomeAt)
+		return
+	end
+	for k, v in overrides do
+		(goHomeHooks :: any)[k] = v
+	end
+end
+
 local function onGoHome(player: Player)
-	local index = playerPlot[player]
+	local index = goHomeHooks.plotOf(player)
 	if not index then
 		return
 	end
@@ -2208,36 +2239,38 @@ local function onGoHome(player: Player)
 		return
 	end
 	if hum.SeatPart or player:GetAttribute("Driving") == true then
-		notify(player, "error", "Get out of the car first.")
+		goHomeHooks.notify(player, "error", "Get out of the car first.")
 		return
 	end
 	local wanted = player:GetAttribute("Wanted")
 	if typeof(wanted) == "number" and wanted > 0 then
-		notify(player, "error", "No cab will pick you up with the cops on your tail.")
+		goHomeHooks.notify(player, "error", "No cab will pick you up with the cops on your tail.")
 		return
 	end
 	if player:GetAttribute("Stunned") == true then
+		goHomeHooks.notify(player, "error", "You're too dazed to call a cab. Give it a second.")
 		return
 	end
-	local now = os.clock()
+	local now = goHomeHooks.clock()
 	local readyAt = goHomeAt[player] or 0
 	if now < readyAt then
-		notify(player, "warning", `The next cab is free in {math.ceil(readyAt - now)}s.`)
+		goHomeHooks.notify(player, "warning", `The next cab is free in {math.ceil(readyAt - now)}s.`)
 		return
 	end
 	-- v2: the trip is a phone cab with a small fee (lead decision; Economy.CAB_FEE)
 	local fee = math.max(0, math.floor(Economy.CAB_FEE or 0))
 	if fee > 0 then
-		local DataService = sys("DataService")
+		local DataService = goHomeHooks.system("DataService")
 		if not (DataService and DataService.spendCash(player, fee)) then
-			notify(player, "error", `A cab costs {Format.cash(fee)}.`)
+			goHomeHooks.notify(player, "error", `A cab costs {Format.cash(fee)}.`)
 			return
 		end
 	end
 	goHomeAt[player] = now + PlotService.GO_HOME_COOLDOWN
-	moveCharacterHome(player)
-	sound(player, "Whoosh")
+	goHomeHooks.move(player)
+	goHomeHooks.sound(player, "Whoosh")
 end
+PlotService._onGoHome = onGoHome
 
 function PlotService.init()
 	local folder = Workspace:FindFirstChild("Plots")

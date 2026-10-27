@@ -31,6 +31,9 @@ for name, c in canvases do
 	result[name] = {
 		canvas = c,
 		layout = L,
+		-- HUDController.setPhoneOpen: the cash / stars / timer bars step out of the phone's way
+		phoneLayout = HudLayout.withPhone(L),
+		sheet = { rows = HudLayout.sheetRows(L.list.h), spec = HudLayout.SHEET },
 		pause = PauseMenu.frame(c.touch),
 		shard = { cy = cy, h = bh },
 		bars = { HudLayout.barSegments(L.bars.w, 2) },

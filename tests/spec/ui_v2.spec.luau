@@ -186,7 +186,9 @@ return function(t)
 				"button_drift",
 				"button_horn",
 				"button_exit",
+				"button_phoneDriving",
 			}
+			-- help text and the feed stack under the radar: ui_v2_fixes.spec checks them with the live help height
 			for _, g in { onFoot, driving } do
 				for i = 1, #g do
 					for j = i + 1, #g do

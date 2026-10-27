@@ -15,18 +15,23 @@
 --    (touch: top-centre); vehicle / district / street script lines bottom-right (touch: one line top-centre); GTA
 --    Online timer bars above them (the delivery timer from TheftState); the car radio station top-centre.
 --  * The feed host above the radar (NotificationController renders feed cards into getFeedHost()).
---  * Touch: PHONE and MAP buttons above the jump button (hidden while driving: the driving cluster owns the corner).
---    Desktop: a mini phone glyph by the radar with the unread count.
+--  * Touch: PHONE and MAP buttons above the jump button; while driving the PHONE button joins the driving cluster
+--    (HudLayout buttons.phoneDriving) and MAP goes. Desktop: a mini phone glyph by the radar with the unread count.
+--  * Phone open (setPhoneOpen): the location lines hide; HudLayout.withPhone keeps the cash, stars and the delivery
+--    timer clear of the handset. Touch feed cards stack under the help box and follow its height.
 --  * Big messages: shard(kind, title, subtitle, opts) -> UI/Shard. The Busted remote plays the "busted" shard
 --    (unless the combat package's DeathScreenController is present and handles it).
---  * CoreGui (§8): PlayerList, Health, EmotesMenu and SelfView off; the Backpack hotbar goes off once a weapon wheel
---    controller exists; the chat window moves to the left-middle in Montserrat on black 45%.
---  * Streamer mode: snapshot.settings.hideHud hides the HUD (VisibilityChanged).
+--  * CoreGui (§8): PlayerList (the player list lives in Pause > STATS), Health, EmotesMenu and SelfView off; the
+--    Backpack hotbar goes off once a weapon wheel controller exists; the chat window moves to the left-middle in
+--    Montserrat on black 45%.
+--  * Hidden (VisibilityChanged): streamer mode (snapshot.settings.hideHud; on touch a small "HUD" button in its own
+--    ScreenGui turns it back off), photo mode (setLocalHidden) and the pause menu (§5.12, MenuController.PauseChanged).
+--  * Desktop: while a shop list menu (UI/ListMenu) holds the top-left corner, the help box moves right of it.
 --  * Chat: a gold [VIP] prefix on messages from VIP pass holders. Reset Character is off while wanted.
 --
 -- Public API (beyond init/start):
 --   getLayout(): HudLayout.Layout, LayoutChanged: Signal(layout)
---   help(text, opts?) -> id / clearHelp(id?)            opts = { id, duration, urgent }
+--   help(text, opts?) -> id / clearHelp(id?) / currentHelp() -> id?   opts = { id, duration, urgent }
 --   objective(text?) / subtitle(text, seconds?)          rich text with GTA colour tags (UI/RichText)
 --   showLocation(vehicle?, district?, street?)           fades in, holds 4.5 s, fades out
 --   setTimer(id, label, value, color?, order?) / clearTimer(id)   GTA Online timer bars
@@ -44,7 +49,7 @@
 -- Pure helpers (tests): clampStars, starStates, starVisual, cashTrend, formatCash, theftView, theftMode,
 --   playtimeClaimable, rebirthReady, gearAffordable, homeState, gridFit, touchMenuGrid, touchStripLayout,
 --   touchFeedAnchor, countGarage, countDiscovered, menuNameCandidates, vipChatPrefix, resetAllowed, barFractions,
---   mergeDelta.
+--   mergeDelta, starLook, showHudToggle.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -73,6 +78,7 @@ local HudLayout = require(UI:WaitForChild("HudLayout"))
 local HelpText = require(UI:WaitForChild("HelpText"))
 local RichText = require(UI:WaitForChild("RichText"))
 local Shard = require(UI:WaitForChild("Shard"))
+local ListMenu = require(UI:WaitForChild("ListMenu"))
 
 -- Earlier in the client ORDER: safe to require at the top.
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -163,15 +169,22 @@ end
 export type StarVisual = { sprite: string, color: Color3, transparency: number }
 
 -- GTA V star look (§5.3) for star i of `stars` at time t: filled white while seen; filled stars alternate white /
--- grey every SEARCH_FLASH seconds while the cops search; unfilled slots are hollow at 0.3.
-function HUDController.starVisual(i: number, stars: number, seen: boolean, t: number): StarVisual
+-- grey every SEARCH_FLASH seconds while the cops search; unfilled slots are hollow at 0.3. Returns a tuple: the HUD
+-- calls it for every star every frame (no table per call).
+function HUDController.starLook(i: number, stars: number, seen: boolean, t: number): (string, Color3, number)
 	if i > stars then
-		return { sprite = "hud.star_hollow", color = C.Text, transparency = 0.3 }
+		return "hud.star_hollow", C.Text, 0.3
 	end
 	if not seen and math.floor(t / SEARCH_FLASH) % 2 == 1 then
-		return { sprite = "hud.star_fill", color = C.TextDim, transparency = 0 }
+		return "hud.star_fill", C.TextDim, 0
 	end
-	return { sprite = "hud.star_fill", color = C.Text, transparency = 0 }
+	return "hud.star_fill", C.Text, 0
+end
+
+-- starLook as a table (tests, tools).
+function HUDController.starVisual(i: number, stars: number, seen: boolean, t: number): StarVisual
+	local sprite, color, transparency = HUDController.starLook(i, stars, seen, t)
+	return { sprite = sprite, color = color, transparency = transparency }
 end
 
 export type Trend = "up" | "down" | "none"
@@ -233,6 +246,14 @@ function HUDController.theftMode(state: any): (boolean, number?, number)
 	return false, if typeof(endsAt) == "number" and endsAt == endsAt then endsAt else nil, THEFT_TOTAL
 end
 
+local function barFrac(v: any, max: any, default: number): number
+	if typeof(v) ~= "number" or v ~= v then
+		return default
+	end
+	local m = if typeof(max) == "number" and max == max and max > 0 then max else 100
+	return math.clamp(v / m, 0, 1)
+end
+
 -- Health / armour / ability fractions for the split bar (all clamped 0..1; junk -> sensible defaults).
 function HUDController.barFractions(
 	health: any,
@@ -241,15 +262,8 @@ function HUDController.barFractions(
 	maxArmor: any,
 	ability: any
 ): (number, number, number)
-	local function frac(v: any, max: any, default: number): number
-		if typeof(v) ~= "number" or v ~= v then
-			return default
-		end
-		local m = if typeof(max) == "number" and max == max and max > 0 then max else 100
-		return math.clamp(v / m, 0, 1)
-	end
 	local a = if typeof(ability) == "number" and ability == ability then math.clamp(ability, 0, 1) else 1
-	return frac(health, maxHealth, 1), frac(armor, maxArmor, 0), a
+	return barFrac(health, maxHealth, 1), barFrac(armor, maxArmor, 0), a
 end
 
 -- True when any playtime gift has been earned (sessionSeconds + extra) and not claimed yet.
@@ -539,6 +553,8 @@ type HudUI = {
 	mapButton: TextButton,
 	miniPhone: ImageButton,
 	miniBadge: TextLabel,
+	toggleGui: ScreenGui,
+	toggleButton: TextButton,
 }
 
 local ui: HudUI? = nil
@@ -566,11 +582,18 @@ local abilityOverride: number? = nil
 local abilityColor: Color3? = nil
 local timers: { [string]: TimerBar } = {}
 local objectiveText: string? = nil
+local theftObjective: string? = nil -- the objective line the delivery set (cleared only if it is still the one shown)
 local objectiveToken = 0
 local subtitleUntil = 0
 local locationToken = 0
 local radioToken = 0
 local unread = 0
+local serverHidden = false -- streamer mode (snapshot.settings.hideHud)
+local localHidden = false -- photo mode
+local pauseOpen = false -- the pause menu hides the HUD (§5.12)
+local phoneOpen = false
+local listOpenCount = 0 -- own-screen list menus open (desktop: the help box moves right of them)
+local listOpenWidth = 0
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Reading state
@@ -855,6 +878,20 @@ local function build()
 		end
 	end)
 
+	-- Streamer mode on touch: P / B are keyboard keys, and the PHONE / MAP buttons and the radar tap all live in the
+	-- hidden HUD, so a small button in its own ScreenGui brings the HUD back (start() wires it).
+	local toggleGui = Kit.screen("HC_HudToggle", Theme.Layers.HUD, { touchMin = Theme.TouchMinScale })
+	toggleGui.Enabled = false
+	local toggleButton = Kit.circleButton("HUD", 48, nil, {
+		Name = "ShowHud",
+		Position = UDim2.fromOffset(HudLayout.SAFE_TOUCH, HudLayout.SAFE_TOUCH),
+		Parent = toggleGui,
+	})
+	local toggleCaption = toggleButton:FindFirstChild("Caption")
+	if toggleCaption and toggleCaption:IsA("TextLabel") then
+		toggleCaption.TextSize = 16
+	end
+
 	ui = {
 		gui = gui,
 		scale = scale,
@@ -886,12 +923,71 @@ local function build()
 		mapButton = mapButton,
 		miniPhone = miniPhone :: any,
 		miniBadge = miniBadge,
+		toggleGui = toggleGui,
+		toggleButton = toggleButton,
 	}
 end
 
 local function place(obj: GuiObject, r: HudLayout.Rect)
 	obj.Position = UDim2.fromOffset(r.x, r.y)
 	obj.Size = UDim2.fromOffset(r.w, r.h)
+end
+
+local function uiScaleOf(u: HudUI): number
+	return if u.scale and u.scale.Scale > 0 then u.scale.Scale else 1
+end
+
+-- Help box: top-left; on desktop right of an open own-screen list menu (they share the corner).
+local function placeHelp()
+	local u = ui
+	if not u then
+		return
+	end
+	local L = layoutNow
+	local r = if not L.touch and listOpenCount > 0 then HudLayout.helpBesideList(L, listOpenWidth) else L.help
+	HelpText.move(u.help, r.x, r.y, r.w)
+end
+
+-- Feed host: desktop grows upward from above the radar; touch stacks under the help box and follows its height, so
+-- a card never draws over a help message (§7).
+local function refreshFeedAnchor()
+	local u = ui
+	if not u then
+		return
+	end
+	local L = layoutNow
+	if not L.touch then
+		place(u.feed, L.feed)
+		return
+	end
+	local box = u.help.box
+	local helpH = if box.Visible then box.AbsoluteSize.Y / uiScaleOf(u) else 0
+	local y = HudLayout.feedTop(L, helpH)
+	u.feed.Position = UDim2.fromOffset(L.feed.x, y)
+	u.feed.Size = UDim2.fromOffset(L.feed.w, math.max(80, L.h - L.safe - y))
+end
+
+-- Touch buttons: PHONE on foot above the jump button, in the right-hand cluster while driving (§7); MAP on foot.
+local function refreshButtons()
+	local u = ui
+	if not u then
+		return
+	end
+	local L = layoutNow
+	local touch = L.touch
+	local driving = isDriving()
+	u.phoneButton.Visible = touch and not focusMode
+	u.mapButton.Visible = touch and not driving and not focusMode
+	local btn = L.buttons
+	local phoneRect = if driving then btn.phoneDriving else btn.phone
+	if phoneRect then
+		place(u.phoneButton, phoneRect)
+	end
+	if btn.map then
+		place(u.mapButton, btn.map)
+	end
+	u.miniPhone.Visible = not touch and (unread > 0)
+	u.miniBadge.Text = if unread > 0 then tostring(math.min(unread, 99)) else ""
 end
 
 local function applyLayout()
@@ -902,6 +998,9 @@ local function applyLayout()
 	local canvas = Kit.canvasSize(u.gui)
 	local touch = Kit.isTouch()
 	local L = HudLayout.compute(canvas.X, canvas.Y, touch)
+	if phoneOpen then
+		L = HudLayout.withPhone(L) -- the right-hand block / timer bars step out of the phone's way
+	end
 	layoutNow = L
 	local driving = isDriving()
 
@@ -920,11 +1019,10 @@ local function applyLayout()
 	place(u.delta, L.delta)
 	place(u.ammo, L.ammo)
 
-	HelpText.move(u.help, L.help.x, L.help.y, L.help.w)
+	placeHelp()
 	u.help.label.TextSize = if touch then 18 else 16
 
-	-- feed: desktop grows upward from above the radar; touch stacks under the help box (see refreshFeedAnchor)
-	place(u.feed, L.feed)
+	refreshFeedAnchor()
 	local list = u.feed:FindFirstChildOfClass("UIListLayout")
 	if list then
 		list.VerticalAlignment = if touch then Enum.VerticalAlignment.Top else Enum.VerticalAlignment.Bottom
@@ -975,11 +1073,7 @@ local function applyLayout()
 
 	place(u.radio, L.radio)
 
-	local btn = L.buttons
-	if btn.phone then
-		place(u.phoneButton, btn.phone)
-		place(u.mapButton, btn.map)
-	end
+	refreshButtons()
 	u.miniPhone.Position = UDim2.fromOffset(L.radar.x + L.radar.w + 6, L.radar.y + L.radar.h - 18)
 	HUDController.LayoutChanged:Fire(L)
 end
@@ -987,19 +1081,6 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 -- Visibility
 -------------------------------------------------------------------------------------------------------------------------
-
-local function refreshButtons()
-	local u = ui
-	if not u then
-		return
-	end
-	local touch = layoutNow.touch
-	local onFoot = not isDriving()
-	u.phoneButton.Visible = touch and onFoot and not focusMode
-	u.mapButton.Visible = touch and onFoot and not focusMode
-	u.miniPhone.Visible = not touch and (unread > 0)
-	u.miniBadge.Text = if unread > 0 then tostring(math.min(unread, 99)) else ""
-end
 
 local function setHidden(value: boolean)
 	if value == hidden and ui then
@@ -1013,13 +1094,25 @@ local function setHidden(value: boolean)
 	HUDController.VisibilityChanged:Fire(hidden)
 end
 
-local serverHidden = false
-local localHidden = false
+-- The HUD is off in streamer mode, in photo mode and under the pause menu. The touch "HUD" button shows only for
+-- streamer mode (the pause menu has its own close button; photo mode its Exit).
+local function applyHidden()
+	setHidden(serverHidden or localHidden or pauseOpen)
+	local u = ui
+	if u then
+		u.toggleGui.Enabled = HUDController.showHudToggle(serverHidden, localHidden, pauseOpen, layoutNow.touch)
+	end
+end
+
+-- Pure: whether the touch "show HUD" button is up.
+function HUDController.showHudToggle(streamer: boolean, photo: boolean, paused: boolean, touch: boolean): boolean
+	return streamer and touch and not photo and not paused
+end
 
 -- Photo mode (phone Camera app): hide the HUD locally without touching the saved streamer-mode setting.
 function HUDController.setLocalHidden(on: boolean)
 	localHidden = on == true
-	setHidden(serverHidden or localHidden)
+	applyHidden()
 end
 
 local function readHidden(snap: any): boolean
@@ -1079,6 +1172,8 @@ end
 -- Stars + arrest
 -------------------------------------------------------------------------------------------------------------------------
 
+local starSprites: { string } = {} -- the sprite each star shows (no attribute reads per frame)
+
 local function renderStars(now: number)
 	local u = ui
 	if not u then
@@ -1086,14 +1181,14 @@ local function renderStars(now: number)
 	end
 	local stars = lastStars or 0
 	for i, img in u.stars do
-		local v = HUDController.starVisual(i, stars, wantedSeen, now)
-		if img:GetAttribute("Sprite") ~= v.sprite then
-			img:SetAttribute("Sprite", v.sprite)
-			Kit.setImage(img, v.sprite)
+		local sprite, color, transparency = HUDController.starLook(i, stars, wantedSeen, now)
+		if starSprites[i] ~= sprite then
+			starSprites[i] = sprite
+			Kit.setImage(img, sprite)
 		end
 		if not clearingStars then
-			img.ImageColor3 = v.color
-			img.ImageTransparency = v.transparency
+			img.ImageColor3 = color
+			img.ImageTransparency = transparency
 		end
 	end
 end
@@ -1208,14 +1303,14 @@ local function refreshBars(now: number)
 		return
 	end
 	local hum = humanoid()
+	local abilityNow, abColor = abilityFraction()
 	local h, a, ab = HUDController.barFractions(
 		if hum then hum.Health else nil,
 		if hum then hum.MaxHealth else nil,
 		player:GetAttribute("Armor"),
 		player:GetAttribute("MaxArmor"),
-		(abilityFraction())
+		abilityNow
 	)
-	local _, abColor = abilityFraction()
 	u.healthFill.Size = UDim2.fromScale(h, 1)
 	u.armorFill.Size = UDim2.fromScale(a, 1)
 	u.abilityFill.Size = UDim2.fromScale(ab, 1)
@@ -1254,14 +1349,18 @@ local function applyTheft(state: any)
 	if active ~= theftActive or active then
 		theftActive = active
 		if active then
-			HUDController.objective(
-				if dropped
-					then "Get back in the <blue>car</blue> before it is towed home."
-					else "Take the car to your <y>garage</y>."
-			)
+			local text = if dropped
+				then "Get back in the <blue>car</blue> before it is towed home."
+				else "Take the car to your <y>garage</y>."
+			theftObjective = text
+			HUDController.objective(text)
 		else
 			HUDController.clearTimer(THEFT_TIMER)
-			HUDController.objective(nil)
+			-- only take down our own line: the tutorial (or another system) may own the objective by now
+			if theftObjective ~= nil and objectiveText == theftObjective then
+				HUDController.objective(nil)
+			end
+			theftObjective = nil
 		end
 	end
 end
@@ -1304,6 +1403,12 @@ function HUDController.clearHelp(id: string?)
 	end
 end
 
+-- Id of the help message on screen right now (nil = none).
+function HUDController.currentHelp(): string?
+	local u = ui
+	return if u then u.help.current() else nil
+end
+
 -- Objective line (persistent until replaced / cleared, re-shown after a subtitle). nil clears.
 function HUDController.objective(text: string?)
 	local u = ui
@@ -1311,11 +1416,12 @@ function HUDController.objective(text: string?)
 	if not u then
 		return
 	end
+	if os.clock() < subtitleUntil then
+		-- a subtitle owns the slot; its end shows objectiveText. Leave the token alone or that end never runs.
+		return
+	end
 	objectiveToken += 1
 	local my = objectiveToken
-	if os.clock() < subtitleUntil then
-		return -- a subtitle owns the slot; the objective comes back when it ends
-	end
 	if text then
 		u.objective.Text = RichText.format(Kit.sanitize(text))
 		tween(u.objective, FADE_IN, { TextTransparency = 0 })
@@ -1586,8 +1692,8 @@ function HUDController.getFeedAnchor(): Vector2?
 	if not u or hidden then
 		return nil
 	end
-	local s = if u.scale and u.scale.Scale > 0 then u.scale.Scale else 1
-	return Vector2.new(layoutNow.feed.x * s, layoutNow.feed.y * s)
+	local s = uiScaleOf(u)
+	return Vector2.new(u.feed.Position.X.Offset * s, u.feed.Position.Y.Offset * s)
 end
 
 -- Real px bottom of the top-left HUD (help box when shown, else the radar block on touch).
@@ -1610,6 +1716,14 @@ function HUDController.holdCash(amount: number)
 	end
 	cashHold += amount
 	cashHoldUntil = os.clock() + HOLD_CASH_MAX_SECONDS
+	-- the Cash attribute usually lands first and has already queued a "+$X" line and a count-up: cancel them, or
+	-- releaseCash shows the grant a second time
+	deltaToken += 1
+	deltaAmount = 0
+	local u = ui
+	if u then
+		u.delta.Visible = false
+	end
 	refreshCash(false)
 	task.delay(HOLD_CASH_MAX_SECONDS + 0.1, function()
 		if cashHold > 0 and os.clock() >= cashHoldUntil then
@@ -1627,15 +1741,18 @@ function HUDController.releaseCash()
 	refreshCash(true)
 end
 
--- Tutorial focus: hides the touch phone / map buttons for the first steps.
--- The phone sits over the bottom-right location lines: hide them while it is up (GTA does the same).
+-- The phone sits over the bottom-right location lines: hide them while it is up (GTA does the same). The cash stays
+-- on screen (lead decision) and the delivery timer stays readable: HudLayout.withPhone moves them out of its way.
 function HUDController.setPhoneOpen(on: boolean)
+	phoneOpen = on == true
 	local u = ui
 	if u then
-		u.location.Visible = not on
+		u.location.Visible = not phoneOpen
 	end
+	applyLayout()
 end
 
+-- Tutorial focus: hides the touch phone / map buttons for the first steps.
 function HUDController.setFocusMode(on: boolean)
 	focusMode = on == true
 	refreshButtons()
@@ -1653,7 +1770,7 @@ local function setCore(kind: Enum.CoreGuiType, on: boolean)
 end
 
 local function configureCoreGui()
-	setCore(Enum.CoreGuiType.PlayerList, false) -- our stars and cash own the top-right
+	setCore(Enum.CoreGuiType.PlayerList, false) -- our stars and cash own the top-right; players: Pause > STATS
 	setCore(Enum.CoreGuiType.Health, false) -- our health bar
 	setCore(Enum.CoreGuiType.EmotesMenu, false)
 	pcall(function()
@@ -1667,23 +1784,28 @@ local function configureCoreGui()
 			break
 		end
 	end
-	pcall(function()
-		local cfg = TextChatService:FindFirstChildOfClass("ChatWindowConfiguration")
-		if cfg then
-			cfg.HorizontalAlignment = Enum.HorizontalAlignment.Left
-			cfg.VerticalAlignment = Enum.VerticalAlignment.Center
-			cfg.FontFace = Theme.Fonts.Body
-			cfg.TextSize = 15
-			cfg.BackgroundColor3 = C.Black
-			cfg.BackgroundTransparency = 0.45
-			cfg.TextStrokeTransparency = 0.6
-		end
-		local bar = TextChatService:FindFirstChildOfClass("ChatInputBarConfiguration")
-		if bar then
-			bar.FontFace = Theme.Fonts.Body
-			bar.BackgroundColor3 = C.Black
-			bar.BackgroundTransparency = 0.35
-		end
+	-- the chat configurations can replicate after the client starts: wait for them (off the start thread)
+	task.spawn(function()
+		pcall(function()
+			local cfg = TextChatService:WaitForChild("ChatWindowConfiguration", 10)
+			if cfg and cfg:IsA("ChatWindowConfiguration") then
+				cfg.HorizontalAlignment = Enum.HorizontalAlignment.Left
+				cfg.VerticalAlignment = Enum.VerticalAlignment.Center
+				cfg.FontFace = Theme.Fonts.Body
+				cfg.TextSize = 15
+				cfg.BackgroundColor3 = C.Black
+				cfg.BackgroundTransparency = 0.45
+				cfg.TextStrokeTransparency = 0.6
+			end
+		end)
+		pcall(function()
+			local bar = TextChatService:WaitForChild("ChatInputBarConfiguration", 10)
+			if bar and bar:IsA("ChatInputBarConfiguration") then
+				bar.FontFace = Theme.Fonts.Body
+				bar.BackgroundColor3 = C.Black
+				bar.BackgroundTransparency = 0.35
+			end
+		end)
 	end)
 end
 
@@ -1754,11 +1876,48 @@ function HUDController.start()
 	pcall(function()
 		UserInputService.LastInputTypeChanged:Connect(function()
 			applyLayout()
-			refreshButtons()
+			applyHidden()
 		end)
 	end)
 	configureCoreGui()
 	installVipChatTag()
+
+	-- touch feed follows the help box's height (it stacks under it)
+	u.help.box:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshFeedAnchor)
+	u.help.box:GetPropertyChangedSignal("Visible"):Connect(refreshFeedAnchor)
+
+	-- desktop: an open shop / list menu owns the top-left corner; the help box steps right of it
+	ListMenu.ScreenListsChanged:Connect(function(count: number, widest: number)
+		listOpenCount = count
+		listOpenWidth = widest
+		placeHelp()
+	end)
+	listOpenCount, listOpenWidth = ListMenu.openScreens()
+
+	-- streamer mode's way back on touch
+	u.toggleButton.Activated:Connect(function()
+		playSound("Click")
+		hiddenOverrideUntil = os.clock() + 2 -- ignore the stale snapshot that still says hideHud = true
+		serverHidden = false
+		applyHidden()
+		Net.fire("SetSetting", "hideHud", false)
+	end)
+
+	-- the pause menu hides the HUD (§5.12)
+	task.defer(function()
+		local menu = lazy("MenuController")
+		if menu and menu.PauseChanged then
+			menu.PauseChanged:Connect(function(open: boolean)
+				pauseOpen = open == true
+				applyHidden()
+			end)
+			if typeof(menu.isPauseOpen) == "function" then
+				local ok, open = pcall(menu.isPauseOpen)
+				pauseOpen = ok and open == true
+				applyHidden()
+			end
+		end
+	end)
 
 	player:GetAttributeChangedSignal("Cash"):Connect(function()
 		refreshCash(true)
@@ -1787,7 +1946,7 @@ function HUDController.start()
 			(wantHidden ~= serverHidden or previous == nil) and not (wantHidden and os.clock() < hiddenOverrideUntil)
 		then
 			serverHidden = wantHidden
-			setHidden(serverHidden or localHidden)
+			applyHidden()
 		end
 		if attrNumber("Cash") == nil then
 			refreshCash(previous ~= nil)

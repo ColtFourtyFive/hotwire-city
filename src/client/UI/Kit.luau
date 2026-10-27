@@ -206,15 +206,25 @@ function Kit.screen(name: string, displayOrder: number, opts: ScreenOpts?): Scre
 		scale.Scale = Kit.uiScale(touchMin)
 	end
 	update()
+	-- these outlive the gui unless dropped with it (list menus are created and destroyed per shop visit)
+	local conns: { RBXScriptConnection } = {}
 	local cam = Workspace.CurrentCamera
 	if cam then
-		cam:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+		table.insert(conns, cam:GetPropertyChangedSignal("ViewportSize"):Connect(update))
 	end
 	if touchMin then
 		pcall(function()
-			UserInputService.LastInputTypeChanged:Connect(update)
+			table.insert(conns, UserInputService.LastInputTypeChanged:Connect(update))
 		end)
 	end
+	pcall(function()
+		gui.Destroying:Once(function()
+			for _, c in conns do
+				c:Disconnect()
+			end
+			table.clear(conns)
+		end)
+	end)
 	return gui
 end
 
@@ -453,7 +463,9 @@ function Kit.circleButton(caption: string, size: number, image: string?, props: 
 		glyph.ImageColor3 = C.Text
 		glyph.Parent = btn
 	end
-	Kit.text(caption, "condensedMedium", math.max(11, math.floor(size * 0.2)), {
+	-- touch buttons sit on the 0.72 UIScale floor: 14 design px keeps the caption >= 10 real px (§7 asks >= 11.5 for
+	-- body text; a one-word caption under a glyph reads at this size)
+	Kit.text(caption, "condensedMedium", math.max(14, math.floor(size * 0.2)), {
 		Name = "Caption",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, if glyph then 0.78 else 0.5),
