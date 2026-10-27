@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Render Hotwire City's stylized top-down map (GTA-V-style radar look) from tools/minimap/export.luau geometry.
 
-    python3 tools/minimap/render_map.py <geometry.json> <outdir> [--world-min -1024] [--world-size 2048]
-                                        [--px 2048] [--tiles 2] [--ss 3]
+    python3 -I tools/minimap/render_map.py <geometry.json> <outdir> [--world-min -1024] [--world-size 2048]
+                                           [--px 2048] [--tiles 2] [--ss 3]
 
 Writes into <outdir>:
     map_full.png          the whole map (px x px)
@@ -12,84 +12,96 @@ Writes into <outdir>:
 Image space: +X world -> right, +Z world -> down (north up). The world square [world-min, world-min + world-size] maps
 onto the full image. Nothing is baked as text: district names are UI labels (Config/Minimap.DISTRICTS).
 
-Look: deep navy land, block lots tinted per district, roads as bright lines over a darker asphalt casing (width and
-brightness by class: highway > avenue > street), building footprints lit by height with soft south-east shadows,
-dark-green parks with tree canopies, a soft sandy coastline with wet-sand and shallow-water glow bands over a deep
-gradient ocean with faint depth contours. All drawing happens at --ss x supersampling, then downsampled (LANCZOS).
+Look: deep navy land with per-district lot tints, roads as bright lines over a darker asphalt casing (width and
+brightness by class: highway > avenue > street), subtle building footprints lit by height (rim light, roof inset,
+crisp south-east shadow), green parks with tree canopies, a soft rounded sandy coastline with wet sand, foam and a
+shallow-water glow over a deep gradient ocean with faint depth contours. Everything is drawn at --ss x
+supersampling and downsampled with LANCZOS, so edges are clean at 1 px per stud.
 """
-import argparse, json, math, os, sys
+import argparse, json, math, os
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Palette (sRGB). Tuned to sit under the Theme (deep navy panels, hot pink + cyan accents) and read on phones.
+# Palette (sRGB). Sits under the game Theme (deep navy panels, hot pink + cyan accents); roads are the brightest thing
+# on land so the GPS route and the street layout read at radar size on a phone.
 # ---------------------------------------------------------------------------------------------------------------------
 P = {
-    "deep": (8, 20, 38),
-    "mid": (12, 38, 64),
-    "shallow": (20, 78, 108),
-    "shore": (64, 168, 186),
-    "contour": (34, 82, 112),
-    "sand": (184, 160, 112),
-    "sand_dry": (198, 176, 126),
-    "sand_wet": (140, 120, 86),
-    "promenade": (122, 110, 104),
-    "land": (22, 25, 36),
-    "asphalt": (44, 48, 66),
-    "sidewalk": (56, 60, 80),
-    "paved": (64, 62, 74),
-    "parking": (40, 44, 60),
-    "stall": (58, 62, 82),
-    "crosswalk": (92, 96, 120),
-    "green": (30, 70, 50),
-    "park": (30, 82, 54),
-    "canopy": (44, 112, 66),
-    "canopy_dark": (22, 62, 40),
-    "pool": (40, 150, 200),
-    "pier": (118, 88, 62),
-    "ramp": (86, 92, 124),
-    "building_lo": (56, 62, 86),
-    "building_hi": (98, 106, 140),
-    "garage": (86, 64, 118),
-    "garage_edge": (255, 52, 140),
-    "shadow": (4, 6, 14),
-    "street": (128, 135, 162),
-    "avenue": (170, 176, 200),
-    "highway": (226, 214, 170),
-    "highway_mid": (196, 150, 70),
+    "deep": (9, 20, 40),
+    "mid": (13, 38, 64),
+    "shallow": (22, 82, 110),
+    "shore": (96, 196, 204),
+    "contour": (44, 104, 136),
+    "sand": (166, 146, 104),
+    "sand_wet": (124, 108, 80),
+    "foam": (222, 240, 236),
+    "promenade": (92, 88, 92),
+    "land": (23, 26, 38),
+    "sidewalk": (34, 38, 53),
+    "asphalt": (46, 50, 69),
+    "paved": (44, 46, 62),
+    "parking": (37, 41, 56),
+    "stall": (54, 58, 77),
+    "crosswalk": (98, 104, 128),
+    "hedge": (30, 72, 50),
+    "park": (30, 74, 50),
+    "canopy": (54, 124, 74),
+    "canopy_rim": (22, 60, 40),
+    "palm": (78, 150, 88),
+    "pool": (48, 160, 210),
+    "pool_rim": (24, 70, 100),
+    "pier": (112, 86, 62),
+    "pier_plank": (90, 68, 50),
+    "ramp": (70, 76, 104),
+    "building_lo": (47, 53, 75),
+    "building_hi": (76, 84, 114),
+    "garage": (66, 54, 92),
+    "garage_edge": (236, 70, 150),
+    "shadow": (5, 7, 15),
+    "street": (124, 132, 158),
+    "avenue": (170, 177, 202),
+    "highway": (196, 202, 222),
+    "highway_mid": (236, 178, 72),
 }
 ZONE = {
-    "downtown": (34, 37, 54),
-    "midtown": (35, 39, 55),
-    "shops": (30, 44, 44),
-    "suburbs": (28, 48, 40),
-    "beachfront": (32, 48, 46),
-    "docks": (40, 42, 50),
+    "downtown": (32, 34, 52),
+    "midtown": (31, 35, 50),
+    "shops": (28, 41, 42),
+    "suburbs": (27, 46, 39),
+    "beachfront": (28, 45, 43),
+    "docks": (36, 38, 47),
 }
 POI_LOT = {
-    "SpawnPlaza": (70, 62, 66),
-    "Dealership": (66, 66, 86),
-    "PoliceHQ": (40, 46, 70),
-    "ChopShop": (66, 52, 42),
-    "StuntPark": (44, 46, 66),
-    "Park": (30, 82, 54),
-    "Pier": (88, 70, 54),
+    "SpawnPlaza": (62, 56, 62),
+    "Dealership": (58, 58, 80),
+    "PoliceHQ": (34, 42, 66),
+    "ChopShop": (60, 48, 40),
+    "StuntPark": (40, 42, 62),
+    "Park": (30, 74, 50),
+    "Pier": (80, 64, 50),
 }
 # road line widths in studs (the casing is the full asphalt width)
 ROAD_LINE = {"alley": 8, "street": 12, "avenue": 16, "highway": 22}
 ROAD_ORDER = ["alley", "street", "avenue", "highway"]
 
 PAVED = {"Plaza", "FountainPlaza", "PlazaRing", "PoolDeck", "Driveway", "DrivewayRamp", "Concrete", "Path",
-         "ParkPath", "GazeboFloor", "PipeDeck", "ChopFloor", "SprayFloor", "Skylight", "FloorStripe"}
+         "ParkPath", "GazeboFloor", "ChopFloor", "SprayFloor", "Skylight", "FloorStripe"}
 GREENERY = {"Hedge", "Shrub", "Planter", "FlowerBox", "VeggieRow", "Bush"}
 WATERY = {"Pool", "PoolWater", "Pond", "PoolFloor"}
 PIER = {"PierDeck", "PierEnd", "PierRamp"}
 RAMPS = {"MegaRamp", "LandingRamp", "LaunchRamp", "Kicker", "PipeDeck"}
 SKIP = {"BaseSlab", "Lot", "Sidewalk", "Promenade", "Sand", "SandSlope", "CornerDune", "ParkingLot", "StallLine",
-        "Crosswalk", "CenterDash", "EdgeLine", "BoundaryWall", "SpawnLocation", "LampBulb", "NeonEdge"}
+        "Crosswalk", "CenterDash", "EdgeLine", "BoundaryWall", "SpawnLocation", "LampBulb", "NeonEdge", "LightPole",
+        "PylonFrame", "PylonSign", "PylonPole", "BillboardPost", "Board", "BoardLeg", "SignPost", "Billboard",
+        "BillboardGlow", "Beacon", "Flag", "FlagPole", "Fence", "PicketFence", "NetPost", "Net", "PierPost",
+        "PierRail", "PierLamp", "PierLampPole", "GantryLeg", "CraneCable", "CraneMagnet"}
+STRUCTURE_MIN_AREA = 60
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Geometry helpers
+# ---------------------------------------------------------------------------------------------------------------------
 def hull(points):
     pts = sorted(set((float(x), float(y)) for x, y in points))
     if len(pts) <= 2:
@@ -108,6 +120,88 @@ def hull(points):
             upper.pop()
         upper.append(p)
     return lower[:-1] + upper[:-1]
+
+
+def clip_convex(subject, clip):
+    """Sutherland-Hodgman: subject polygon clipped by a convex polygon (both CCW/CW consistent)."""
+    def inside(p, a, b, sign):
+        return sign * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) >= 0
+
+    def inter(p, q, a, b):
+        x1, y1, x2, y2 = p[0], p[1], q[0], q[1]
+        x3, y3, x4, y4 = a[0], a[1], b[0], b[1]
+        den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        if abs(den) < 1e-12:
+            return q
+        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den
+        return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+
+    area = sum(clip[i][0] * clip[(i + 1) % len(clip)][1] - clip[(i + 1) % len(clip)][0] * clip[i][1]
+               for i in range(len(clip)))
+    sign = 1 if area > 0 else -1
+    out = list(subject)
+    for i in range(len(clip)):
+        a, b = clip[i], clip[(i + 1) % len(clip)]
+        inp, out = out, []
+        if not inp:
+            break
+        s = inp[-1]
+        for e in inp:
+            if inside(e, a, b, sign):
+                if not inside(s, a, b, sign):
+                    out.append(inter(s, e, a, b))
+                out.append(e)
+            elif inside(s, a, b, sign):
+                out.append(inter(s, e, a, b))
+            s = e
+    return out
+
+
+def offset_convex(h, d):
+    """Inset a convex polygon by d (studs); falls back to the centroid when it collapses."""
+    n = len(h)
+    if n < 3:
+        return h
+    area = sum(h[i][0] * h[(i + 1) % n][1] - h[(i + 1) % n][0] * h[i][1] for i in range(n))
+    sign = 1 if area > 0 else -1
+    lines = []
+    for i in range(n):
+        a, b = h[i], h[(i + 1) % n]
+        dx, dz = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dz) or 1
+        nx, nz = -dz / L * sign, dx / L * sign  # inward normal
+        lines.append(((a[0] + nx * d, a[1] + nz * d), (dx, dz)))
+    out = []
+    for i in range(n):
+        (p1, d1), (p2, d2) = lines[i - 1], lines[i]
+        den = d1[0] * d2[1] - d1[1] * d2[0]
+        if abs(den) < 1e-9:
+            out.append(p2)
+            continue
+        t = ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / den
+        out.append((p1[0] + d1[0] * t, p1[1] + d1[1] * t))
+    # collapsed? (inset larger than the polygon)
+    if abs(sum(out[i][0] * out[(i + 1) % n][1] - out[(i + 1) % n][0] * out[i][1] for i in range(n))) < 1 or \
+            (sum(out[i][0] * out[(i + 1) % n][1] - out[(i + 1) % n][0] * out[i][1] for i in range(n)) > 0) != (area > 0):
+        return []
+    return out
+
+
+def bbox_size(h):
+    xs = [q[0] for q in h]
+    zs = [q[1] for q in h]
+    return max(xs) - min(xs), max(zs) - min(zs)
+
+
+def lerp(a, b, t):
+    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
+
+
+def smooth_noise(size, cells, seed):
+    rng = np.random.default_rng(seed)
+    small = (rng.random((cells, cells)) * 255).astype(np.uint8)
+    img = Image.fromarray(small, "L").resize((size, size), Image.BICUBIC)
+    return img.filter(ImageFilter.GaussianBlur(size / cells * 0.6))
 
 
 class Canvas:
@@ -134,6 +228,26 @@ class Canvas:
         rr = r * self.k
         draw.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=fill)
 
+    def ellipse_box(self, draw, h, fill):
+        xs = [q[0] for q in h]
+        zs = [q[1] for q in h]
+        x0, y0 = self.xy(min(xs), min(zs))
+        x1, y1 = self.xy(max(xs), max(zs))
+        draw.ellipse([x0, y0, x1, y1], fill=fill)
+
+    def road(self, draw, ax, az, bx, bz, width, extend, fill):
+        dx, dz = bx - ax, bz - az
+        L = math.hypot(dx, dz)
+        if L < 1e-6:
+            return
+        ux, uz = dx / L, dz / L
+        nx, nz = -uz, ux
+        hw = width / 2
+        a2 = (ax - ux * extend, az - uz * extend)
+        b2 = (bx + ux * extend, bz + uz * extend)
+        self.poly(draw, [(a2[0] + nx * hw, a2[1] + nz * hw), (b2[0] + nx * hw, b2[1] + nz * hw),
+                         (b2[0] - nx * hw, b2[1] - nz * hw), (a2[0] - nx * hw, a2[1] - nz * hw)], fill)
+
     def blur(self, img, studs):
         return img.filter(ImageFilter.GaussianBlur(max(0.5, studs * self.k)))
 
@@ -145,210 +259,206 @@ def paint(base, color, mask, alpha=1.0):
     base.paste(color, (0, 0, base.width, base.height), mask)
 
 
-def lerp(a, b, t):
-    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
+# ---------------------------------------------------------------------------------------------------------------------
+# Coast + ocean (computed on a coarse grid, upscaled: these are smooth fields)
+# ---------------------------------------------------------------------------------------------------------------------
+def coast_field(geo, cv, lo):
+    """Smooth island field in 0..1 at lo x lo (0.5 = waterline): union of the beach/slab parts, closed (fills the
+    notches between the side slopes and the corner dunes), rounded and given a gentle wobble."""
+    cfg = geo["config"]
+    wl = cfg["waterLevel"]
+    scale = lo / cv.wsize
+    img = Image.new("L", (lo, lo), 0)
+    d = ImageDraw.Draw(img)
+
+    def to(x, z):
+        return ((x - cv.wmin) * scale, (z - cv.wmin) * scale)
+
+    for p in geo["parts"]:
+        n = p["name"]
+        if n in ("Sand", "SandSlope", "Promenade", "BaseSlab", "Lot", "Sidewalk") and "hull" in p:
+            if p["top"] >= wl - 0.5:
+                d.polygon([to(x, z) for x, z in hull(p["hull"])], fill=255)
+        if n == "CornerDune" and "center" in p:
+            dy = wl - p["centerY"]
+            r = p["radius"]
+            if abs(dy) < r:
+                rr = math.sqrt(r * r - dy * dy) * scale
+                cx, cy = to(*p["center"])
+                d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=255)
+    studs = cv.wsize / lo
+
+    def blur(im, s):
+        return im.filter(ImageFilter.GaussianBlur(s / studs))
+
+    # closing: dilate (blur + low threshold) then erode (blur + high threshold)
+    img = blur(img, 22).point(lambda v: 255 if v > 30 else 0)
+    img = blur(img, 22).point(lambda v: 255 if v > 225 else 0)
+    # round the corners
+    f = np.asarray(blur(img, 30), np.float32) / 255.0
+    wob = (np.asarray(smooth_noise(lo, 14, 21), np.float32) / 255.0 - 0.5) * 0.10
+    return np.clip(f + wob * (1 - np.abs(f - 0.5) * 2) ** 0.5 * 0.6, 0, 1)
 
 
-def noise(size, cells, seed, smooth=Image.BICUBIC):
-    rng = np.random.default_rng(seed)
-    small = (rng.random((cells, cells)) * 255).astype(np.uint8)
-    return Image.fromarray(small, "L").resize((size, size), smooth)
+def gauss_np(arr, sigma):
+    """Float gaussian blur (FFT, zero padded): uint8 blurs quantize smooth fields into visible steps."""
+    h, w = arr.shape
+    pad = int(sigma * 3) + 1
+    big = np.zeros((h + 2 * pad, w + 2 * pad), np.float64)
+    big[pad:pad + h, pad:pad + w] = arr
+    fy = np.fft.fftfreq(big.shape[0])[:, None]
+    fx = np.fft.fftfreq(big.shape[1])[None, :]
+    kern = np.exp(-2 * (math.pi * sigma) ** 2 * (fx * fx + fy * fy))
+    out = np.real(np.fft.ifft2(np.fft.fft2(big) * kern))
+    return out[pad:pad + h, pad:pad + w].astype(np.float32)
 
 
+def ocean_image(field, cv):
+    lo = field.shape[0]
+    studs = cv.wsize / lo
+    isl = (field >= 0.5).astype(np.float32)
+
+    def gblur(arr, s):
+        return gauss_np(arr, s / studs)
+
+    near = gblur(isl, 34)
+    far = gblur(isl, 170)
+    glow = gblur(isl, 9)
+    n1 = np.asarray(smooth_noise(lo, 10, 7), np.float32) / 255.0
+    col = np.zeros((lo, lo, 3), np.float32)
+    deep, mid, shallow, shore = (np.array(P[k], np.float32) for k in ("deep", "mid", "shallow", "shore"))
+    col[:] = deep
+    col += (mid - deep) * np.clip(far * 2.1, 0, 1)[..., None] ** 0.8
+    col += (shallow - col) * (np.clip(near * 1.7, 0, 1) ** 1.6)[..., None]
+    col += (shore - col) * (np.clip(glow * 1.9 - 0.3, 0, 1) ** 2.4)[..., None] * 0.6
+    col *= (0.95 + 0.08 * n1)[..., None]
+    # crisp depth contours: lines of constant `far`, width normalized by the field gradient
+    gy, gx = np.gradient(far)
+    grad = np.sqrt(gx * gx + gy * gy) + 1e-6
+    for level, strength in ((0.34, 0.45), (0.17, 0.32), (0.07, 0.22)):
+        dist_px = np.abs(far - level) / grad
+        line = np.clip(1.0 - dist_px / 0.9, 0, 1)
+        line *= 1 - np.clip(near * 2.5, 0, 1)
+        col += (np.array(P["contour"], np.float32) - col) * (line * strength)[..., None]
+    return Image.fromarray(np.clip(col, 0, 255).astype(np.uint8), "RGB")
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Render
+# ---------------------------------------------------------------------------------------------------------------------
 def render(geo, args):
     cv = Canvas(args.world_min, args.world_size, args.px, args.ss)
     W = cv.W
     cfg = geo["config"]
-    water_level = cfg["waterLevel"]
     print(f"canvas {W}x{W} ({cv.k:.2f} px/stud, ss {args.ss})")
 
-    # --- masks ----------------------------------------------------------------------------------------------------
-    island = cv.mask()
-    di = ImageDraw.Draw(island)
-    land = cv.mask()
-    dl = ImageDraw.Draw(land)
-    promenade = cv.mask()
-    dp = ImageDraw.Draw(promenade)
-    for p in geo["parts"]:
-        n = p["name"]
-        if n in ("Sand", "SandSlope", "Promenade", "BaseSlab") and "hull" in p:
-            if p["top"] >= water_level - 0.5:
-                cv.poly(di, hull(p["hull"]))
-        if n == "CornerDune" and "center" in p:
-            cy, r = p["centerY"], p["radius"]
-            dy = water_level - cy
-            if abs(dy) < r:
-                cv.circle(di, p["center"][0], p["center"][1], math.sqrt(r * r - dy * dy))
-        if n == "BaseSlab" and "hull" in p:
-            pass
-        if n == "Promenade" and "hull" in p:
-            cv.poly(dp, hull(p["hull"]))
-    # land = the city slab inside the promenade: lots + roads + sidewalks
-    for p in geo["parts"]:
-        if p["name"] in ("Lot", "Sidewalk") and "hull" in p:
-            cv.poly(dl, hull(p["hull"]))
-    for r in geo["roads"]:
-        ax, az = r["a"]
-        bx, bz = r["b"]
-        road_poly(cv, dl, ax, az, bx, bz, r["width"], r["width"] / 2)
-    # soft, rounded coastline: blur + threshold the union (rounds corners, removes stair steps)
-    island = cv.blur(island, 10).point(lambda v: 255 if v >= 128 else 0)
-    island = cv.blur(island, 1.2)
-    print("masks done")
+    # --- coast + ocean ---------------------------------------------------------------------------------------------
+    lo = 1024
+    field = coast_field(geo, cv, lo)
+    base = ocean_image(field, cv).resize((W, W), Image.BICUBIC)
+    big = np.asarray(Image.fromarray((field * 255).astype(np.uint8), "L").resize((W, W), Image.BICUBIC),
+                     np.float32) / 255.0
+    edge_w = 0.012  # field units across the anti-aliased waterline
+    island = Image.fromarray((np.clip((big - 0.5) / edge_w + 0.5, 0, 1) * 255).astype(np.uint8), "L")
+    wet = Image.fromarray((np.clip(1 - (big - 0.5) / 0.09, 0, 1) * np.asarray(island, np.float32)).astype(np.uint8),
+                          "L")
+    foam = Image.fromarray((np.clip(1 - np.abs(big - 0.5) / 0.014, 0, 1) * 255).astype(np.uint8), "L")
+    del big
+    print("coast + ocean done")
 
-    # --- ocean (computed at low res, upscaled) ---------------------------------------------------------------------
-    lo = 512
-    isl_small = np.asarray(island.resize((lo, lo), Image.BILINEAR), dtype=np.float32) / 255.0
-    stud_per_lo = args.world_size / lo
-
-    def gblur(arr, studs):
-        img = Image.fromarray((np.clip(arr, 0, 1) * 255).astype(np.uint8), "L")
-        img = img.filter(ImageFilter.GaussianBlur(studs / stud_per_lo))
-        return np.asarray(img, dtype=np.float32) / 255.0
-
-    near = gblur(isl_small, 40)  # shallow shelf
-    far = gblur(isl_small, 180)  # deep gradient
-    glow = gblur(isl_small, 10)
-    n1 = np.asarray(noise(lo, 24, 7), dtype=np.float32) / 255.0
-    n2 = np.asarray(noise(lo, 90, 11), dtype=np.float32) / 255.0
-    depth = np.clip(far * 1.9, 0, 1)
-    col = np.zeros((lo, lo, 3), np.float32)
-    deep, mid, shallow, shore = (np.array(P[k], np.float32) for k in ("deep", "mid", "shallow", "shore"))
-    col[:] = deep
-    col += (mid - deep) * depth[..., None]
-    col += (shallow - col) * np.clip(near * 1.6, 0, 1)[..., None] ** 1.4
-    col += (shore - col) * (np.clip(glow * 1.8 - 0.25, 0, 1) ** 2.2)[..., None] * 0.55
-    col *= (0.93 + 0.1 * n1 + 0.04 * n2)[..., None]
-    # faint depth contours (two rings following the coast)
-    for level, strength in ((0.30, 0.22), (0.12, 0.16), (0.05, 0.10)):
-        band = np.exp(-((far - level) ** 2) / (2 * (0.008 + level * 0.02) ** 2))
-        band *= (1 - np.clip(near * 3, 0, 1))
-        col += (np.array(P["contour"], np.float32) - col) * (band * strength)[..., None]
-    ocean = Image.fromarray(np.clip(col, 0, 255).astype(np.uint8), "RGB").resize((W, W), Image.BICUBIC)
-    base = ocean
-    print("ocean done")
-
-    # --- beach ------------------------------------------------------------------------------------------------------
-    sand_noise = noise(W, 160, 3).point(lambda v: int(v * 0.5))
+    # --- beach --------------------------------------------------------------------------------------------------------
     paint(base, P["sand"], island)
-    # dry sand toward the city, wet sand at the waterline
-    inner = cv.blur(island.point(lambda v: 255 if v > 250 else 0), 18)
-    wet_band = Image.fromarray(
-        np.clip((np.asarray(island, np.float32) - np.asarray(inner, np.float32)) * 2.2, 0, 255).astype(np.uint8), "L")
-    paint(base, P["sand_wet"], wet_band, 0.75)
-    paint(base, P["sand_dry"], sand_noise, 0.35)
-    # shoreline foam: a thin bright line right at the edge
-    edge = Image.fromarray(np.clip(255 - np.abs(np.asarray(cv.blur(island, 2.5), np.float32) - 128) * 2.0 - 40, 0, 255)
-                           .astype(np.uint8), "L")
-    paint(base, (210, 236, 236), edge, 0.35)
-    paint(base, P["promenade"], promenade, 0.9)
+    paint(base, P["sand_wet"], wet, 0.7)
+    paint(base, P["foam"], foam, 0.45)
+    ripple = smooth_noise(W, 220, 3).point(lambda v: max(0, v - 120) * 2)
+    paint(base, lerp(P["sand"], (255, 240, 200), 0.25), Image.fromarray(
+        (np.asarray(ripple, np.float32) * np.asarray(island, np.float32) / 255 * 0.25).astype(np.uint8), "L"))
+    draw = ImageDraw.Draw(base)
+    for p in geo["parts"]:
+        if p["name"] == "Promenade" and "hull" in p:
+            cv.poly(draw, hull(p["hull"]), P["promenade"])
     print("beach done")
 
-    # --- city land + lots -------------------------------------------------------------------------------------------
-    paint(base, P["land"], land)
-    lots = {}
+    # --- city ground: land, lots, sidewalks, paved, parking, greenery, water features, pier ----------------------------
+    for p in geo["parts"]:
+        if p["name"] in ("Lot", "Sidewalk") and "hull" in p:
+            cv.poly(draw, hull(p["hull"]), P["land"])
+    for r in geo["roads"]:
+        cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], r["width"], r["width"] / 2, P["land"])
     for p in geo["parts"]:
         if p["name"] == "Lot" and "hull" in p:
             if p.get("plot"):
-                color = ZONE.get(p.get("zone") or "", P["land"])
-                color = lerp(color, P["garage"], 0.18)
+                color = lerp(ZONE.get(p.get("zone") or "", P["land"]), P["garage"], 0.2)
             elif p.get("poi") and p["poi"] in POI_LOT:
                 color = POI_LOT[p["poi"]]
             else:
                 color = ZONE.get(p.get("zone") or "", P["land"])
-            m = cv.mask()
-            cv.poly(ImageDraw.Draw(m), hull(p["hull"]))
-            paint(base, color, m)
-            lots[(p.get("block") or [0, 0])[0], (p.get("block") or [0, 0])[1]] = p
-    # subtle grain on land
-    grain = noise(W, 400, 5).point(lambda v: max(0, v - 128) * 2)
-    paint(base, (255, 255, 255), Image.fromarray(
-        (np.asarray(grain, np.float32) * np.asarray(land, np.float32) / 255 * 0.05).astype(np.uint8), "L"))
-    print("lots done")
-
-    # --- ground details: sidewalks, paved areas, parking, greenery, water features ----------------------------------
-    masks = {k: cv.mask() for k in ("sidewalk", "paved", "parking", "stall", "green", "pool", "pier", "ramp", "cross")}
-    draws = {k: ImageDraw.Draw(v) for k, v in masks.items()}
+            cv.poly(draw, hull(p["hull"]), color)
+    order = [("Sidewalk", "sidewalk"), ("ParkingLot", "parking"), ("StallLine", "stall")]
+    for name, key in order:
+        for p in geo["parts"]:
+            if p["name"] == name and "hull" in p:
+                cv.poly(draw, hull(p["hull"]), P[key])
     for p in geo["parts"]:
         n = p["name"]
         if "hull" not in p:
             continue
         h = hull(p["hull"])
-        if n == "Sidewalk":
-            cv.poly(draws["sidewalk"], h)
-        elif n == "ParkingLot":
-            cv.poly(draws["parking"], h)
-        elif n == "StallLine":
-            cv.poly(draws["stall"], h)
-        elif n == "Crosswalk":
-            cv.poly(draws["cross"], h)
-        elif n in PAVED:
-            cv.poly(draws["paved"], h)
+        if n in PAVED:
+            cv.poly(draw, h, P["paved"])
         elif n in GREENERY:
-            cv.poly(draws["green"], h)
-        elif n in WATERY:
-            if p.get("shape") == "Cylinder":
-                xs = [q[0] for q in h]
-                zs = [q[1] for q in h]
-                x0, y0 = cv.xy(min(xs), min(zs))
-                x1, y1 = cv.xy(max(xs), max(zs))
-                draws["pool"].ellipse([x0, y0, x1, y1], fill=255)
-            else:
-                cv.poly(draws["pool"], h)
-        elif n in PIER:
-            cv.poly(draws["pier"], h)
+            cv.poly(draw, h, P["hedge"])
         elif n in RAMPS:
-            cv.poly(draws["ramp"], h)
-    paint(base, P["sidewalk"], masks["sidewalk"])
-    paint(base, P["paved"], masks["paved"])
-    paint(base, P["parking"], masks["parking"])
-    paint(base, P["stall"], masks["stall"], 0.8)
-    paint(base, P["green"], masks["green"])
-    paint(base, P["pier"], cv.blur(masks["pier"], 0.4))
-    # pier planks: faint stripes
-    paint(base, P["ramp"], masks["ramp"])
+            cv.poly(draw, h, P["ramp"])
+    for p in geo["parts"]:
+        n = p["name"]
+        if "hull" not in p or n not in WATERY:
+            continue
+        h = hull(p["hull"])
+        if p.get("shape") == "Cylinder":
+            cv.ellipse_box(draw, h, P["pool_rim"])
+            cv.ellipse_box(draw, offset_convex(h, 1.2) or h, P["pool"])
+        else:
+            cv.poly(draw, h, P["pool_rim"])
+            cv.poly(draw, offset_convex(h, 1.0) or h, P["pool"])
+    for p in geo["parts"]:
+        if p["name"] in PIER and "hull" in p:
+            h = hull(p["hull"])
+            cv.poly(draw, h, P["pier"])
+            w, d = bbox_size(h)
+            xs = [q[0] for q in h]
+            zs = [q[1] for q in h]
+            if d > w:  # planks across the deck
+                z = min(zs) + 3
+                while z < max(zs) - 1:
+                    cv.poly(draw, [(min(xs), z), (max(xs), z), (max(xs), z + 0.6), (min(xs), z + 0.6)], P["pier_plank"])
+                    z += 3
     print("ground done")
 
-    # --- roads -------------------------------------------------------------------------------------------------------
-    asphalt = cv.mask()
-    da = ImageDraw.Draw(asphalt)
+    # --- roads ---------------------------------------------------------------------------------------------------------
     for r in geo["roads"]:
-        road_poly(cv, da, r["a"][0], r["a"][1], r["b"][0], r["b"][1], r["width"], r["width"] / 2)
-    paint(base, P["asphalt"], asphalt)
-    paint(base, P["crosswalk"], masks["cross"], 0.55)
+        cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], r["width"], r["width"] / 2, P["asphalt"])
     for cls in ROAD_ORDER:
-        m = cv.mask()
-        dm = ImageDraw.Draw(m)
-        any_road = False
-        for r in geo["roads"]:
-            if r["class"] != cls:
-                continue
-            any_road = True
-            w = ROAD_LINE.get(cls, 12)
-            road_poly(cv, dm, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w, w / 2)
-        if not any_road:
+        roads = [r for r in geo["roads"] if r["class"] == cls]
+        if not roads:
             continue
-        # soft glow under the brighter classes so the hierarchy reads at radar zoom
+        w = ROAD_LINE.get(cls, 12)
         if cls in ("avenue", "highway"):
-            paint(base, P[cls], cv.blur(m, 6), 0.18)
-        paint(base, P[cls], m)
+            glow = cv.mask()
+            dg = ImageDraw.Draw(glow)
+            for r in roads:
+                cv.road(dg, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w + 4, w / 2 + 2, 255)
+            paint(base, P[cls], cv.blur(glow, 4), 0.16)
+            draw = ImageDraw.Draw(base)
+        for r in roads:
+            cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w, w / 2, P[cls])
         if cls == "highway":
-            mm = cv.mask()
-            dmm = ImageDraw.Draw(mm)
-            for r in geo["roads"]:
-                if r["class"] == cls:
-                    road_poly(cv, dmm, r["a"][0], r["a"][1], r["b"][0], r["b"][1], 2.2, 1.1)
-            paint(base, P["highway_mid"], mm, 0.8)
+            for r in roads:
+                cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], 2.0, 1.0, P["highway_mid"])
     print("roads done")
 
-    # --- pools / ponds on top of lots ----------------------------------------------------------------------------------
-    paint(base, (20, 60, 90), cv.blur(masks["pool"], 1.5), 0.6)
-    paint(base, P["pool"], masks["pool"])
-
-    # --- trees + buildings with shadows ---------------------------------------------------------------------------------
-    shadow = cv.mask()
-    dsh = ImageDraw.Draw(shadow)
-    buildings = []  # (top height, hull, kind)
+    # --- footprints ------------------------------------------------------------------------------------------------------
+    buildings = []  # (top, hull, kind)
     trees = []
     for s in geo["slots"]:
         if s["category"] == "Buildings":
@@ -356,109 +466,83 @@ def render(geo, args):
                 buildings.append((b["top"], hull(b["hull"]), "building"))
         else:
             role = s["role"]
+            fit = max(0.6, min(1.6, (s.get("fit") or 20) / 20))
             if role in ("tree", "palm_tree", "bush"):
-                r = {"tree": 7.5, "palm_tree": 6.0, "bush": 3.5}[role] * max(0.6, min(1.6, (s.get("fit") or 20) / 20))
+                r = {"tree": 7.0, "palm_tree": 5.2, "bush": 3.2}[role] * fit
                 trees.append((s["pos"][0], s["pos"][1], r, role))
-            elif role in ("shipping_container", "water_tower", "ferris_wheel", "lifeguard_tower", "bus_stop",
-                          "hotdog_stand", "car_crusher", "fountain"):
+            elif role in ("shipping_container", "water_tower", "lifeguard_tower", "bus_stop", "hotdog_stand",
+                          "car_crusher", "fountain", "ferris_wheel"):
                 for b in s["boxes"]:
-                    buildings.append((min(b["top"], 14), hull(b["hull"]), "prop"))
+                    buildings.append((min(b["top"], 12), hull(b["hull"]), "prop"))
     for g in geo["garages"]:
         buildings.append((22.6, hull(g["hull"]), "garage"))
     for p in geo["parts"]:
         n = p["name"]
         if "hull" not in p or n in SKIP or n in PAVED or n in GREENERY or n in WATERY or n in PIER or n in RAMPS:
             continue
-        if n.startswith("Road_"):
+        if n.startswith("Road_") or n.startswith("Dealer") or n.startswith("Leaderboard"):
             continue
         h = hull(p["hull"])
-        xs = [q[0] for q in h]
-        zs = [q[1] for q in h]
-        w, d = max(xs) - min(xs), max(zs) - min(zs)
-        height = p["top"] - max(cfg["curbTop"], p["bottom"])
-        if p["top"] > 4 and min(w, d) >= 3 and w * d >= 40:
+        w, d = bbox_size(h)
+        if p["top"] > 4 and min(w, d) >= 4 and w * d >= STRUCTURE_MIN_AREA:
             buildings.append((min(p["top"], 30), h, "structure"))
 
-    # shadows (south-east, length grows with height, capped)
+    # crisp south-east shadows (one mask, light blur so they stay graphic)
+    shadow = cv.mask()
+    dsh = ImageDraw.Draw(shadow)
     for top, h, kind in buildings:
-        off = min(22.0, 2.0 + top * 0.12)
-        cv.poly(dsh, [(x + off * 0.7, z + off) for x, z in h])
-        cv.poly(dsh, h)
+        off = min(26.0, 1.5 + top * 0.11)
+        sh = [(x + off * 0.75, z + off) for x, z in h]
+        cv.poly(dsh, hull(h + sh))
     for x, z, r, role in trees:
-        cv.circle(dsh, x + r * 0.35, z + r * 0.5, r)
-    shadow = cv.blur(shadow, 3.5)
-    paint(base, P["shadow"], shadow, 0.55)
+        cv.circle(dsh, x + r * 0.45, z + r * 0.6, r * 0.95)
+    paint(base, P["shadow"], cv.blur(shadow, 0.9), 0.5)
+    draw = ImageDraw.Draw(base)
 
-    # tree canopies
-    canopy = cv.mask()
-    dc = ImageDraw.Draw(canopy)
-    hilite = cv.mask()
-    dh = ImageDraw.Draw(hilite)
+    # tree canopies: dark rim, body, north-west highlight
     for x, z, r, role in trees:
-        cv.circle(dc, x, z, r)
-        cv.circle(dh, x - r * 0.25, z - r * 0.25, r * 0.55)
-    paint(base, P["canopy_dark"], canopy)
-    paint(base, P["canopy"], cv.blur(hilite, 1.5), 0.85)
+        body = P["palm"] if role == "palm_tree" else P["canopy"]
+        cv.circle(draw, x, z, r, P["canopy_rim"])
+        cv.circle(draw, x, z, r - 0.9, body)
+        cv.circle(draw, x - r * 0.28, z - r * 0.3, r * 0.42, lerp(body, (255, 255, 255), 0.18))
 
-    # buildings: lowest first so taller ones overlap; fill by height, bright rim on the lit (north-west) edges
+    # buildings: lowest first, rim light on the north-west edges, roof inset
     buildings.sort(key=lambda b: b[0])
-    max_top = max([b[0] for b in buildings] + [1])
     for top, h, kind in buildings:
-        t = min(1.0, max(0.0, (top - 8) / 140.0)) ** 0.6
+        t = min(1.0, max(0.0, (top - 8) / 150.0)) ** 0.6
         if kind == "garage":
             fill = P["garage"]
         elif kind == "prop":
-            fill = lerp(P["building_lo"], P["paved"], 0.4)
+            fill = lerp(P["building_lo"], P["paved"], 0.35)
         elif kind == "structure":
-            fill = lerp(P["building_lo"], P["land"], 0.25)
+            fill = lerp(P["building_lo"], P["land"], 0.2)
         else:
             fill = lerp(P["building_lo"], P["building_hi"], t)
-        m = cv.mask()
-        cv.poly(ImageDraw.Draw(m), h)
-        # rim light: the polygon minus itself shifted south-east
-        rim = cv.mask()
-        dr = ImageDraw.Draw(rim)
-        cv.poly(dr, h)
-        inset = 1.6 if kind != "prop" else 0.8
-        cv.poly(dr, [(x + inset, z + inset) for x, z in h], fill=0)
-        paint(base, fill, m)
-        paint(base, lerp(fill, (255, 255, 255), 0.22), rim)
+        rim = lerp(fill, (255, 255, 255), 0.2)
+        cv.poly(draw, h, rim)
+        inset = 1.4 if kind != "prop" else 0.7
+        body = clip_convex([(x + inset, z + inset) for x, z in h], h)
+        cv.poly(draw, body, fill)
+        w, d = bbox_size(h)
+        if kind in ("building", "garage") and min(w, d) > 14:
+            roof = offset_convex(h, 3.2)
+            if roof:
+                cv.poly(draw, roof, lerp(fill, P["land"], 0.18))
+                roof2 = offset_convex(h, 4.0)
+                if roof2:
+                    cv.poly(draw, roof2, lerp(fill, (255, 255, 255), 0.04))
         if kind == "garage":
-            edge = cv.mask()
-            de = ImageDraw.Draw(edge)
-            cv.poly(de, h)
-            cv.poly(de, shrink(h, 2.2), fill=0)
-            paint(base, P["garage_edge"], edge, 0.55)
-    print(f"buildings done ({len(buildings)} footprints, {len(trees)} trees)")
+            outer = offset_convex(h, -1.2)
+            if outer:
+                edge = cv.mask()
+                de = ImageDraw.Draw(edge)
+                cv.poly(de, outer)
+                cv.poly(de, h, 0)
+                paint(base, P["garage_edge"], edge, 0.8)
+                draw = ImageDraw.Draw(base)
+    print(f"footprints done ({len(buildings)} footprints, {len(trees)} trees)")
 
-    # --- finish: downsample ----------------------------------------------------------------------------------------------
-    out = base.resize((args.px, args.px), Image.LANCZOS)
-    return out
-
-
-def shrink(h, d):
-    cx = sum(x for x, _ in h) / len(h)
-    cz = sum(z for _, z in h) / len(h)
-    out = []
-    for x, z in h:
-        vx, vz = x - cx, z - cz
-        L = math.hypot(vx, vz) or 1
-        out.append((x - vx / L * d * 1.4, z - vz / L * d * 1.4))
-    return out
-
-
-def road_poly(cv, draw, ax, az, bx, bz, width, extend):
-    dx, dz = bx - ax, bz - az
-    L = math.hypot(dx, dz)
-    if L < 1e-6:
-        return
-    ux, uz = dx / L, dz / L
-    nx, nz = -uz, ux
-    hw = width / 2
-    ax2, az2 = ax - ux * extend, az - uz * extend
-    bx2, bz2 = bx + ux * extend, bz + uz * extend
-    cv.poly(draw, [(ax2 + nx * hw, az2 + nz * hw), (bx2 + nx * hw, bz2 + nz * hw),
-                   (bx2 - nx * hw, bz2 - nz * hw), (ax2 - nx * hw, az2 - nz * hw)])
+    return base.resize((args.px, args.px), Image.LANCZOS)
 
 
 def main():

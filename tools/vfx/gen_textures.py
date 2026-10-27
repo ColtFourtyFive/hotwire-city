@@ -65,8 +65,8 @@ def ring_spheres(rng, rings, jitter=0.25, squash=1.0):
         a0 = rng.uniform(0, 2 * math.pi)
         for k in range(n):
             a = a0 + k * 2 * math.pi / max(n, 1) + rng.uniform(-jitter, jitter) / max(n, 1) * 6
-            d = R * rng.uniform(0.85, 1.12)
-            rr = r * rng.uniform(0.8, 1.2)
+            d = R * rng.uniform(0.75, 1.15)
+            rr = r * rng.uniform(0.7, 1.3)
             sph.append([math.cos(a) * d, math.sin(a) * d * squash, rng.uniform(-0.15, 0.2) - R * 0.3, rr,
                         math.cos(a), math.sin(a)])
     return sph
@@ -127,8 +127,10 @@ def puff_image(size, spheres, rng_noise, t=0.0, grow=1.0, drift=0.0, rise=0.0, r
     # alpha: thickness from height, eroded by multi-scale noise -> fluffy, translucent fringe
     # alpha: Beer-Lambert on the summed chord thickness, eroded by multi-scale noise -> fluffy, translucent fringe
     e = 0.5 * n1 + 0.3 * n2 + 0.2 * n3
-    dens = T * (1 + (e - 0.5) * fluff * 3.0) - erosion * (0.1 + 0.32 * e)
-    alpha = 1 - np.exp(-np.maximum(dens, 0) * 11.0)
+    tref = 2 * max(sp[3] for sp in spheres) * grow * rscale
+    tn = T / max(tref, 1e-3)
+    dens = tn * (1 + (e - 0.5) * fluff * 3.0) - erosion * (0.12 + 0.55 * e)
+    alpha = 1 - np.exp(-np.maximum(dens, 0) * 5.5)
     alpha = blur(alpha, size / 260.0)
     if grit > 0:
         g = spectral_noise(size, size, np.random.default_rng(5), beta=0.4, fmin=60)
@@ -205,9 +207,9 @@ def evolving_puff(seed, cells=16, cell=256, wispy=False):
     S = cell * 2
     rng = np.random.default_rng(seed)
     if wispy:
-        sph = ring_spheres(rng, [(0.0, 1, 0.3), (0.26, 6, 0.2), (0.48, 10, 0.15)], jitter=0.5)
+        sph = ring_spheres(rng, [(0.0, 1, 0.27), (0.25, 6, 0.22), (0.48, 9, 0.18)], jitter=0.6)
     else:
-        sph = ring_spheres(rng, [(0.0, 1, 0.32), (0.27, 6, 0.21), (0.5, 9, 0.17)], jitter=0.35)
+        sph = ring_spheres(rng, [(0.0, 1, 0.27), (0.27, 6, 0.23), (0.5, 8, 0.19)], jitter=0.8)
     ns = noise_set(S, seed + 1)
     frames = []
     for i in range(cells):
@@ -217,11 +219,11 @@ def evolving_puff(seed, cells=16, cell=256, wispy=False):
         img = puff_image(
             S, sph, _shift_noise(ns, t, S),
             grow=grow, drift=0.06 * e, rise=0.03 * t, rscale=1.0 + 0.05 * t,
-            erosion=(0.3 if wispy else 0.18) + 0.75 * t,
-            fluff=(0.5 if wispy else 0.26) + 0.25 * t,
-            wisp=(0.06 if wispy else 0.015) + (0.1 if wispy else 0.07) * t,
-            contrast=(0.4 if wispy else 0.62) - 0.1 * t,
-            opacity=(0.8 if wispy else 1.0) * (1 - 0.3 * smoothstep(0.6, 1.0, t)),
+            erosion=(0.3 if wispy else 0.15) + 0.85 * t * t + 0.2 * t,
+            fluff=(0.5 if wispy else 0.28) + 0.35 * t,
+            wisp=(0.07 if wispy else 0.02) + (0.12 if wispy else 0.08) * t,
+            contrast=(0.42 if wispy else 0.62) - 0.12 * t,
+            opacity=(0.82 if wispy else 1.0) * (1 - 0.45 * smoothstep(0.45, 1.0, t)),
         )
         frames.append(resize(img, (cell, cell)))
     return atlas(frames, 4)
@@ -256,30 +258,29 @@ def fire_flipbook():
     S = 512
     cell = 256
     rng = np.random.default_rng(707)
-    n1 = spectral_noise(S, S, rng, beta=2.0, fmin=2)
-    n2 = spectral_noise(S, S, rng, beta=1.4, fmin=6)
-    wx = spectral_noise(S, S, rng, beta=2.4, fmin=2)
+    n1 = spectral_noise(S, S, rng, beta=2.3, fmin=2, fmax=40)
+    n2 = spectral_noise(S, S, rng, beta=1.6, fmin=4, fmax=90)
+    wn = spectral_noise(S, S, rng, beta=2.6, fmin=1)
     x, y = grid(S)
     ys, xs = np.mgrid[0:S, 0:S].astype(np.float32)
-    yy = (0.72 - y) / 1.55  # 0 at the flame base (lower part of the cell), 1 near the top
+    v = (0.86 - y) / 1.76  # 0 at the flame base, 1 at the top of the cell
+    vc = np.clip(v, 0, 1)
+    # teardrop: round bottom, tapering top
+    w = 0.8 * np.power(np.clip(1 - vc, 0, 1), 0.7) * np.sqrt(np.clip(v / 0.2, 0, 1)) + 1e-3
     frames = []
     for i in range(16):
         ph = i / 16.0
-        off1 = ph * S
-        off2 = ph * S * 2
-        warpx = (sample_bilinear(wx, xs, ys + off1) - 0.5) * 70 * np.clip(yy, 0, 1)
-        n = 0.62 * sample_bilinear(n1, xs + warpx, ys + off1) + 0.38 * sample_bilinear(n2, xs + warpx * 0.6,
-                                                                                         ys + off2)
-        xw = x + (warpx / S) * 2 * 0.6
-        width = 0.5 * np.power(np.clip(1 - yy, 0, 1), 0.75) + 0.02
-        dist = np.abs(xw) / np.maximum(width, 1e-3)
-        base = np.clip(1 - dist, 0, 1) * np.power(np.clip(1 - yy, 0, 1), 0.55)
-        f = base * 1.55 - n * (0.25 + 0.95 * np.clip(yy, 0, 1)) - 0.05
-        f *= smoothstep(-0.12, 0.06, yy)  # soft base
-        flame = smoothstep(0.0, 0.42, f)
-        core = smoothstep(0.32, 0.85, f)
-        gray = 0.62 + 0.38 * core
-        alpha = np.clip(flame * 0.85 + core * 0.15, 0, 1)
+        sway = (sample_bilinear(wn, xs * 0.5, ys * 0.5 + ph * S) - 0.5) * 2.2 * vc * vc
+        xw = x + sway * 0.45
+        n = 0.7 * sample_bilinear(n1, xs * 1.1 + sway * 60, ys * 0.4 + ph * S) + 0.3 * sample_bilinear(
+            n2, xs * 1.2 + sway * 40, ys * 0.5 + ph * S * 2)
+        f = (1 - np.abs(xw) / w) - (n - 0.3) * (0.3 + 1.6 * vc)
+        f = np.where(v > 0, f, -1)
+        flame = smoothstep(0.0, 0.07, f)
+        core = smoothstep(0.3, 0.42, f) * 0.7 + smoothstep(0.42, 0.8, f) * 0.3
+        gray = 0.5 + 0.5 * core
+        alpha = np.clip(flame * (0.85 + 0.15 * core), 0, 1)
+        alpha = blur(alpha, 1.2)
         alpha = edge_fade(alpha, S * 0.03)
         frames.append(resize(rgba(gray, alpha), (cell, cell)))
     return save(atlas(frames, 4), "fire_flipbook")
@@ -293,7 +294,7 @@ def nitro_jet():
     xs = (np.arange(W, dtype=np.float32) + 0.5) / W
     ys = (np.arange(H, dtype=np.float32) + 0.5) / H * 2 - 1
     x, y = np.meshgrid(xs, ys)
-    w = 0.42 * np.power(1 - x, 0.7) + 0.05
+    w = 0.6 * np.power(1 - x, 0.65) + 0.08
     core = np.exp(-np.power(y / (w * 0.55), 2) * 2.2) * np.power(1 - x, 1.1)
     sheath = np.exp(-np.power(y / (w * 1.25), 2) * 1.6) * np.power(1 - x, 1.8) * 0.55
     diamonds = np.zeros_like(x)
@@ -317,30 +318,31 @@ def nitro_jet():
 
 @generator
 def backfire_burst():
-    """2x2 one-shot burst: hot pop -> petals -> breaking ring -> wisps."""
+    """2x2 one-shot muzzle-pop: spiky hot star -> full flame petals -> breaking ring -> licks."""
     S = 512
     cell = 256
     rng = np.random.default_rng(909)
     x, y = grid(S)
     r = np.sqrt(x * x + y * y)
     th = np.arctan2(y, x)
-    lobes = np.zeros_like(th)
-    for k, amp in [(5, 0.22), (8, 0.15), (13, 0.1), (21, 0.06)]:
-        lobes += amp * np.sin(k * th + rng.uniform(0, 6.28))
-    n = spectral_noise(S, S, rng, beta=1.7, fmin=4)
+    spikes = np.zeros_like(th)
+    for k, amp in [(7, 0.3), (11, 0.16), (17, 0.1), (29, 0.05)]:
+        spikes += amp * np.abs(np.sin(k * th * 0.5 + rng.uniform(0, 6.28)))
+    n = spectral_noise(S, S, rng, beta=2.4, fmin=3, fmax=18)
     frames = []
-    for i, t in enumerate([0.0, 0.33, 0.66, 1.0]):
-        R = 0.42 + 0.48 * (1 - (1 - t) ** 2)
-        edge = R * (0.72 + lobes * (0.6 + 0.6 * t))
-        body = smoothstep(edge, edge * (0.55 - 0.25 * t), r)
-        hollow = smoothstep(0.05 + 0.55 * t * R, 0.25 + 0.6 * t * R, r) if t > 0 else np.ones_like(r)
-        f = body * hollow - n * (0.15 + 0.7 * t)
-        flame = smoothstep(0.02, 0.4, f)
-        core = smoothstep(0.35, 0.95, f) * (1 - 0.6 * t)
-        hot = np.exp(-(r / (0.25 * (1 - 0.7 * t) + 0.05)) ** 2) * (1 - t)
-        gray = np.clip(0.6 + 0.4 * np.maximum(core, hot), 0, 1)
-        alpha = np.clip(np.maximum(flame, hot) * (1 - 0.35 * t), 0, 1)
-        alpha = edge_fade(alpha, S * 0.03)
+    for i, t in enumerate([0.0, 0.3, 0.55, 0.8]):
+        R = 0.5 + 0.45 * (1 - (1 - t) ** 2)
+        edge = R * (0.45 + spikes * (1.1 - 0.3 * t))
+        f = 1 - r / np.maximum(edge, 1e-3)
+        hole = 0.0 if t == 0 else R * 0.75 * t
+        f = np.minimum(f, (r - hole) / max(R * 0.4, 1e-3)) if t > 0 else f
+        f = f - (n - 0.45) * (0.25 + 0.6 * t) - 0.12 * t
+        flame = smoothstep(0.0, 0.07, f)
+        core = smoothstep(0.25, 0.4, f) * 0.7 + smoothstep(0.4, 0.75, f) * 0.3
+        hot = np.exp(-(r / (0.32 * (1 - 0.8 * t) + 0.02)) ** 2) * (1 - t) ** 1.5
+        gray = np.clip(0.5 + 0.5 * np.maximum(core, hot), 0, 1)
+        alpha = np.clip(np.maximum(flame * (0.85 + 0.15 * core), hot) * (1 - 0.25 * t), 0, 1)
+        alpha = edge_fade(blur(alpha, 1.0), S * 0.03)
         frames.append(resize(rgba(gray, alpha), (cell, cell)))
     return save(atlas(frames, 2), "backfire_burst")
 
@@ -427,19 +429,20 @@ def speed_line():
 
 @generator
 def shockwave_ring():
+    """Clean shock front: crisp bright rim, soft falloff inward, faint streaks."""
     S = 512
     rng = np.random.default_rng(1212)
     x, y = grid(S)
     r = np.sqrt(x * x + y * y)
     th = np.arctan2(y, x)
-    wob = 0.012 * np.sin(7 * th + 1.3) + 0.008 * np.sin(13 * th + 0.2)
-    rr = r + wob
-    front = smoothstep(0.9, 0.84, rr) * np.power(smoothstep(0.35, 0.84, rr), 2.4)
-    rim = np.exp(-np.power((rr - 0.855) / 0.018, 2)) * 0.6
-    n = spectral_noise(S, S, rng, beta=1.5, fmin=6)
-    inten = np.clip((front * 0.85 + rim) * (0.8 + 0.2 * n), 0, 1)
-    gray = 0.8 + 0.2 * smoothstep(0.6, 0.86, rr)
-    return save(rgba(gray, inten), "shockwave_ring")
+    front = smoothstep(0.92, 0.86, r) * np.power(smoothstep(0.3, 0.86, r), 2.6)
+    rim = np.exp(-np.power((r - 0.875) / 0.016, 2))
+    ang = spectral_noise(1, 512, rng, beta=1.2, fmin=6)[0]
+    idx = ((th + math.pi) / (2 * math.pi) * 511).astype(np.int64) % 512
+    streak = 0.75 + 0.25 * ang[idx]
+    inten = np.clip((front * 0.7 + rim * 0.9) * streak, 0, 1)
+    gray = 0.85 + 0.15 * rim
+    return save(rgba(np.clip(gray, 0, 1), inten), "shockwave_ring")
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -447,6 +450,7 @@ def shockwave_ring():
 # ----------------------------------------------------------------------------------------------------------------
 @generator
 def impact_star():
+    """Comic 'KAPOW' starburst with no text: dark outline, light halftone band, white inner star, drop shadow."""
     S = 512
     SS = 4
     big = S * SS
@@ -457,59 +461,48 @@ def impact_star():
         pts = []
         for k in range(n * 2):
             a = rot + k * math.pi / n + rng.uniform(-jitter, jitter)
-            rad = (rout * rng.uniform(0.82, 1.0)) if k % 2 == 0 else (rin * rng.uniform(0.9, 1.08))
+            rad = (rout * rng.uniform(0.8, 1.0)) if k % 2 == 0 else (rin * rng.uniform(0.9, 1.08))
             pts.append((c + math.cos(a) * rad * c, c + math.sin(a) * rad * c))
         return pts
 
-    outline = (27, 29, 43)
-    shadow = Image.new("L", (big, big), 0)
+    outline = (27, 29, 43, 255)
+    outer = star_points(12, 0.84, 0.52, -0.2, 0.07)
+    inner = star_points(9, 0.55, 0.32, 0.15, 0.05)
     body = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    outer = star_points(12, 0.86, 0.52, -0.2, 0.07)
-    inner = star_points(9, 0.56, 0.33, 0.15, 0.05)
-    sd = ImageDraw.Draw(shadow)
-    off = int(0.035 * big)
-    sd.polygon([(px + off, py + off) for px, py in outer], fill=150)
     d = ImageDraw.Draw(body)
-    # action lines outside the star
-    for k in range(16):
-        a = k * 2 * math.pi / 16 + rng.uniform(-0.1, 0.1)
-        r0, r1 = rng.uniform(0.8, 0.88), rng.uniform(0.93, 0.99)
-        wdt = int(big * rng.uniform(0.008, 0.014))
+    for k in range(18):  # action lines
+        a = k * 2 * math.pi / 18 + rng.uniform(-0.08, 0.08)
+        r0, r1 = rng.uniform(0.84, 0.9), rng.uniform(0.94, 0.99)
         d.line([(c + math.cos(a) * r0 * c, c + math.sin(a) * r0 * c),
-                (c + math.cos(a) * r1 * c, c + math.sin(a) * r1 * c)], fill=outline + (255,), width=wdt)
-    d.polygon(outer, fill=(222, 222, 222, 255))
-    d.line(outer + [outer[0]], fill=outline + (255,), width=int(big * 0.03), joint="curve")
-    # halftone dots on the outer band
-    step = int(big * 0.034)
+                (c + math.cos(a) * r1 * c, c + math.sin(a) * r1 * c)], fill=outline,
+               width=int(big * rng.uniform(0.009, 0.015)))
+    d.polygon(outer, fill=(232, 232, 232, 255))
+    dots = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    dd = ImageDraw.Draw(dots)
+    step = int(big * 0.03)
     for yy in range(0, big, step):
         for xx in range(((yy // step) % 2) * step // 2, big, step):
-            dx, dy = (xx - c) / c, (yy - c) / c
-            rr = math.hypot(dx, dy)
-            if 0.38 < rr < 0.8:
-                rad = big * 0.009 * (rr - 0.3)
-                d.ellipse([xx - rad, yy - rad, xx + rad, yy + rad], fill=(185, 185, 185, 255))
-    # re-stroke so the dots stay inside
+            rr = math.hypot((xx - c) / c, (yy - c) / c)
+            if rr > 0.3:
+                rad = big * 0.0105 * min(1.0, (rr - 0.3) * 1.6)
+                dd.ellipse([xx - rad, yy - rad, xx + rad, yy + rad], fill=(188, 188, 188, 255))
     mask = Image.new("L", (big, big), 0)
     ImageDraw.Draw(mask).polygon(outer, fill=255)
-    clipped = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    clipped.paste(body, (0, 0), mask)
-    body = Image.alpha_composite(Image.new("RGBA", (big, big), (0, 0, 0, 0)), body)
+    body.paste(dots, (0, 0), Image.fromarray(np.minimum(np.asarray(mask), np.asarray(dots)[..., 3])))
     d = ImageDraw.Draw(body)
-    d.line(outer + [outer[0]], fill=outline + (255,), width=int(big * 0.03), joint="curve")
+    d.line(outer + [outer[0]], fill=outline, width=int(big * 0.03), joint="curve")
     d.polygon(inner, fill=(255, 255, 255, 255))
-    d.line(inner + [inner[0]], fill=outline + (255,), width=int(big * 0.016), joint="curve")
-    # glossy highlight in the inner star
+    d.line(inner + [inner[0]], fill=outline, width=int(big * 0.017), joint="curve")
     hl = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    ImageDraw.Draw(hl).ellipse([c - 0.3 * c, c - 0.36 * c, c - 0.02 * c, c - 0.12 * c], fill=(255, 255, 255, 140))
-    body = Image.alpha_composite(body, hl)
-    # compose: blurred shadow under the body
-    shadow = shadow.resize((S, S), Image.LANCZOS)
-    sh = blur(np.asarray(shadow, dtype=np.float32) / 255.0, 4) * 0.55
-    b = np.asarray(body.resize((S, S), Image.LANCZOS), dtype=np.float32) / 255.0
-    a_b = b[..., 3]
+    ImageDraw.Draw(hl).ellipse([c - 0.28 * c, c - 0.34 * c, c - 0.04 * c, c - 0.14 * c], fill=(255, 255, 255, 0))
+    shadow = Image.new("L", (big, big), 0)
+    off = int(0.035 * big)
+    ImageDraw.Draw(shadow).polygon([(px + off, py + off) for px, py in outer], fill=255)
+    sh = blur(np.asarray(shadow.resize((S, S), Image.LANCZOS), dtype=np.float32) / 255.0, 5) * 0.5
+    b_ = np.asarray(body.resize((S, S), Image.LANCZOS), dtype=np.float32) / 255.0
+    a_b = b_[..., 3]
     a = a_b + sh * (1 - a_b)
-    rgb = np.where(a[..., None] > 1e-4, (b[..., :3] * a_b[..., None] + 0.08 * (sh * (1 - a_b))[..., None])
-                   / np.maximum(a, 1e-4)[..., None], 0)
+    rgb = (b_[..., :3] * a_b[..., None] + 0.06 * (sh * (1 - a_b))[..., None]) / np.maximum(a, 1e-4)[..., None]
     return save(rgba_color(rgb, a), "impact_star")
 
 
@@ -518,48 +511,50 @@ def impact_star():
 # ----------------------------------------------------------------------------------------------------------------
 @generator
 def water_splash():
-    S = 512 * 4
+    """2x2 one-shot crown splash: dome -> crown with fingers -> crown breaking into droplets -> falling drops."""
+    S = 512
     cell = 256
     rng = np.random.default_rng(1414)
-    jets = []
-    for k in range(17):
-        a = math.radians(rng.uniform(-62, 62))
-        jets.append((a, rng.uniform(0.55, 1.0), rng.uniform(0.012, 0.024), rng.uniform(0, 1)))
+    x, y = grid(S)
+    bx, by = 0.0, 0.62
+    dx, dy = x - bx, by - y
+    rho = np.sqrt(dx * dx + dy * dy)
+    phi = np.arctan2(dx, dy)  # 0 = straight up
+    ang = spectral_noise(1, 512, rng, beta=2.2, fmin=3, fmax=40)[0]
+    idx = ((phi + math.pi) / (2 * math.pi) * 511).astype(np.int64) % 512
+    fnoise = ang[idx]
+    drops = [(rng.uniform(-1.1, 1.1), rng.uniform(0.85, 1.25), rng.uniform(0.018, 0.035)) for _ in range(26)]
     frames = []
-    for i, t in enumerate([0.15, 0.45, 0.75, 1.0]):
-        im = Image.new("L", (S, S), 0)
-        d = ImageDraw.Draw(im)
-        bx, by = S / 2, S * 0.8
-        # foam base
-        fw = S * (0.22 + 0.16 * t)
-        d.ellipse([bx - fw, by - S * 0.05, bx + fw, by + S * 0.05], fill=int(200 * (1 - 0.5 * t)))
-        for (a, ln, wd, ph) in jets:
-            reach = ln * S * 0.62 * min(1.0, 0.35 + t * 1.1)
-            drop = max(0.0, t - 0.55) * S * 0.25
-            sx = bx + math.sin(a) * S * 0.08
-            ex = bx + math.sin(a) * reach
-            ey = by - math.cos(a) * reach + drop * (0.6 + ph)
-            sheet_len = 1.0 - smoothstep(0.5, 1.0, t) * 0.75
-            mx = sx + (ex - sx) * (1 - sheet_len)
-            my = by + (ey - by) * (1 - sheet_len)
-            w0 = int(S * wd * (1 - 0.4 * t))
-            d.line([(mx, my), (ex, ey)], fill=int(235 * (1 - 0.3 * t)), width=max(2, w0))
-            rr = S * wd * 0.9
-            d.ellipse([ex - rr, ey - rr, ex + rr, ey + rr], fill=255)
-            if t > 0.4:
-                for q in range(3):
-                    qq = (q + 1) * 0.12 + ph * 0.1
-                    qx = ex + math.sin(a) * S * qq * 0.4 + rng.uniform(-1, 1) * S * 0.01
-                    qy = ey - math.cos(a) * S * qq * 0.25 + (t - 0.4) * S * 0.2 * (q + 1) * 0.5
-                    qr = S * wd * rng.uniform(0.4, 0.8)
-                    d.ellipse([qx - qr, qy - qr, qx + qr, qy + qr], fill=230)
-        a_small = np.asarray(im.resize((512, 512), Image.LANCZOS), dtype=np.float32) / 255.0
-        a_small = blur(a_small, 1.2)
-        x, y = grid(512)
-        gray = 0.82 + 0.18 * (0.5 - 0.5 * y)
-        hl = blur(a_small, 6)
-        gray = gray + 0.1 * (a_small - hl)
-        frames.append(resize(rgba(gray, edge_fade(a_small, 14)), (cell, cell)))
+    for i, t in enumerate([0.12, 0.4, 0.68, 0.95]):
+        R = 0.35 + 0.75 * (1 - (1 - min(t, 0.75) / 0.75) ** 2)
+        rim = R * (0.55 + 0.45 * np.cos(np.clip(phi, -1.5, 1.5))) * (0.9 + 0.2 * fnoise)
+        fan = smoothstep(1.35, 1.05, np.abs(phi)) * (dy > -0.06)
+        thick = 0.06 + 0.05 * (1 - t)
+        sheet = smoothstep(rim, rim - thick * 0.4, rho) * (0.5 + 0.5 * smoothstep(rim * 0.5, rim * 0.95, rho))
+        fingers = 0.5 + 0.5 * np.sin(11 * phi + fnoise * 4)
+        sheet *= 1 - smoothstep(0.35, 0.95, t) * (1 - smoothstep(0.3, 0.7, fingers)) * smoothstep(rim * 0.6, rim,
+                                                                                                    rho)
+        sheet *= fan * (1 - 0.55 * smoothstep(0.6, 1.0, t))
+        foam = np.exp(-((dx / (0.42 + 0.2 * t)) ** 2 + ((y - by) / 0.07) ** 2)) * (0.9 - 0.4 * t)
+        dropl = np.zeros_like(x)
+        if t > 0.3:
+            for (pa, sp, sz) in drops:
+                life = (t - 0.3) / 0.7
+                rr = R * (0.55 + 0.45 * math.cos(pa)) * sp * (1 + 0.5 * life)
+                px = bx + math.sin(pa) * rr
+                py = by - math.cos(pa) * rr + 0.55 * life * life
+                vx, vy = math.sin(pa), -math.cos(pa) + 1.1 * life
+                vl = math.hypot(vx, vy) + 1e-6
+                ux, uy = vx / vl, vy / vl
+                ax = (x - px) * ux + (y - py) * uy
+                bx2 = -(x - px) * uy + (y - py) * ux
+                e = np.exp(-((ax / (sz * 2.0)) ** 2 + (bx2 / sz) ** 2))
+                dropl = np.maximum(dropl, e * (1 - 0.3 * life))
+        alpha = np.clip(np.maximum(np.maximum(sheet, foam * 0.8), smoothstep(0.35, 0.6, dropl)), 0, 1)
+        alpha = edge_fade(blur(alpha, 0.8), S * 0.03)
+        rimhl = smoothstep(rim - thick * 0.9, rim - thick * 0.3, rho) * smoothstep(rim + 0.01, rim - thick * 0.2, rho)
+        gray = 0.86 + 0.1 * (0.5 - 0.5 * y) + 0.14 * np.maximum(rimhl * fan, smoothstep(0.6, 0.9, dropl))
+        frames.append(resize(rgba(np.clip(gray, 0, 1), alpha), (cell, cell)))
     return save(atlas(frames, 2), "water_splash")
 
 
@@ -577,18 +572,18 @@ def skid_mark():
     band = smoothstep(0.98, 0.78, np.abs(y))
     grooves = np.ones_like(y)
     for gc in (-0.42, 0.0, 0.42):
-        grooves *= 1 - 0.75 * np.exp(-np.power((y - gc) / 0.05, 2))
+        grooves *= 1 - 0.4 * np.exp(-np.power((y - gc) / 0.045, 2))
     # lateral sipes: angled blocks repeating 16x along the strip (tileable)
     sipes = 0.5 + 0.5 * np.cos(2 * math.pi * (x * 16 + np.abs(y) * 0.6))
-    sipes = 1 - 0.35 * smoothstep(0.75, 0.95, sipes) * smoothstep(0.1, 0.25, np.abs(y))
+    sipes = 1 - 0.18 * smoothstep(0.75, 0.95, sipes) * smoothstep(0.1, 0.25, np.abs(y))
     n = spectral_noise(H, W, rng, beta=1.6, fmin=2)
     n_streak = spectral_noise(H, W, rng, beta=2.2, fmin=1)
     # stretch the second noise along x by sampling a squashed version (stays tileable: integer repeat)
     ys_i, xs_i = np.mgrid[0:H, 0:W].astype(np.float32)
     n_streak = sample_bilinear(n_streak, xs_i * 0.25, ys_i)
     deposit = 0.5 + 0.5 * (0.55 * n + 0.45 * n_streak)
-    deposit = smoothstep(0.25, 0.9, deposit)
-    alpha = band * grooves * sipes * (0.35 + 0.65 * deposit) * 0.9
+    deposit = smoothstep(0.2, 0.85, deposit)
+    alpha = band * grooves * sipes * (0.45 + 0.55 * deposit) * 0.92
     gray = 0.85 + 0.15 * n
     return save(rgba(gray, alpha), "skid_mark")
 
