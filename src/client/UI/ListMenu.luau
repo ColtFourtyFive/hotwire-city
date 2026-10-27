@@ -36,6 +36,11 @@ local HudLayout = require(script.Parent.HudLayout)
 local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"):WaitForChild("Signal"))
 
 local ListMenu = {}
+
+-- Shop banner art behind the header title (UIAssets "banners.<shop>"). Off until per-shop key art exists: the first
+-- sheet was one generic skyline that did not say which shop you are in, so headers are the Accent band with the
+-- Damion title (gta_ui_language §5.13's fallback).
+ListMenu.BANNER_ART = false
 ListMenu.__index = ListMenu
 
 local C = Theme.Colors
@@ -300,7 +305,7 @@ function ListMenu:_build()
 			ClipsDescendants = true,
 			Parent = root,
 		})
-		if opts.banner then
+		if opts.banner and ListMenu.BANNER_ART then
 			local art = Kit.image("banners." .. opts.banner, {
 				Name = "Art",
 				Size = UDim2.fromScale(1, 1),

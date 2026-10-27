@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """UI art pipeline (gta_ui_language §6): render -> upload changed PNGs as Image assets -> Config/UIAssets.luau.
 
-    python3 -I tools/ui/build.py               # render art + loading panels, upload what changed, write the config
+    python3 -I tools/ui/build.py               # render the HUD art, upload what changed, write the config
+    python3 -I tools/ui/build.py --keyart      # also re-render the six loading panels (tools/ui/keyart.py: Blender
+                                               # renders of the carpipe cars, ~30 min on 4 cores)
     python3 -I tools/ui/build.py --no-render   # upload / config only (art already in assets/ui)
     python3 -I tools/ui/build.py --no-upload   # render only; keeps the ids already recorded
     python3 -I tools/ui/build.py --force       # re-upload everything
@@ -115,13 +117,15 @@ def write_config(manifest, cells):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-render", action="store_true")
+    ap.add_argument("--keyart", action="store_true", help="re-render the loading panels (slow)")
     ap.add_argument("--no-upload", action="store_true")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--only", nargs="*", help="asset keys to (re)upload")
     args = ap.parse_args()
     if not args.no_render:
         subprocess.run([sys.executable, "-I", os.path.join(HERE, "art.py")], check=True)
-        subprocess.run([sys.executable, "-I", os.path.join(HERE, "scenes.py")], check=True)
+        if args.keyart:
+            subprocess.run([sys.executable, "-I", os.path.join(HERE, "keyart.py")], check=True)
     manifest = json.load(open(MANIFEST)) if os.path.exists(MANIFEST) else {}
     if not args.no_upload:
         for key, fname in IMAGES.items():

@@ -8,7 +8,8 @@
 --    wordmark image. Older builds without UIAssets fall back to Assets.Images.loading_art / logo_hotwire_city.
 --  * GTA layout: wordmark bottom-left, one tip line under it ("TIP" in Oswald orange + Montserrat text), a spinner
 --    with "LOADING 54%" bottom-right, and a thin 2 px orange progress rule along the bottom edge.
---  * Progress: ContentProvider:PreloadAsync of the key art, the HUD sprite sheets and the display fonts (Kanit,
+--  * Progress: ContentProvider:PreloadAsync of the first two key art panels (each later one is fetched during the
+--    previous one's hold), the HUD sprite sheets and the display fonts (Kanit,
 --    Damion, Oswald, Montserrat), blended with game:IsLoaded() and the server AssetLibrary's AllReady attribute,
 --    eased so it never jumps or sits still. Fades out once game:IsLoaded() and (AllReady or READY_TIMEOUT);
 --    HARD_TIMEOUT is a last resort so nobody is ever stuck here.

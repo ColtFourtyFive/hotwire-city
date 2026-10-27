@@ -55,7 +55,7 @@ local player = Players.LocalPlayer
 local C = Theme.Colors
 
 local MAX_MESSAGES = 60
-local CAB_WAIT = 8 -- seconds to wait for the server's ride confirmation (it streams the garage in first)
+local CAB_WAIT = 8 -- seconds before an unanswered cab call frees the button again
 
 export type AppDef = { id: string, title: string, icon: string }
 
@@ -433,23 +433,24 @@ function PhoneController.callCab(): CabState
 	cabPending = true
 	PhoneController.text("cab", PhoneController.CAB_REPLY.ready, { feed = false, silent = true })
 	playSound("Click")
-	local ridesAtCall = player:GetAttribute("CabRides")
 	Net.fire("GoHome")
-	task.spawn(function()
-		-- the server streams the garage in before the drop-off, then confirms with CabRides
-		local t0 = os.clock()
-		while os.clock() - t0 < CAB_WAIT do
-			RunService.Heartbeat:Wait()
-			if PhoneController.cabConfirmed(ridesAtCall, player:GetAttribute("CabRides")) then
-				cabPending = false
-				cabArrived()
-				return
-			end
-		end
-		-- no ride: the server refused (its Notify card says why) or never answered
+	-- the ride itself is announced by the server (CabRides, watched in start); this only frees the button again when
+	-- no answer comes (a refusal arrives as the server's Notify card)
+	task.delay(CAB_WAIT, function()
 		cabPending = false
 	end)
 	return state
+end
+
+-- The server bumps CabRides after each drop-off (GoHome streams the garage in first, so it can take a moment).
+local ridesSeen: any = nil
+local function onCabRides()
+	local now = player:GetAttribute("CabRides")
+	if PhoneController.cabConfirmed(ridesSeen, now) then
+		ridesSeen = now
+		cabPending = false
+		cabArrived()
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1020,6 +1021,8 @@ function PhoneController.init() end
 
 function PhoneController.start()
 	ensurePhone()
+	ridesSeen = player:GetAttribute("CabRides")
+	player:GetAttributeChangedSignal("CabRides"):Connect(onCabRides)
 	StateController.Changed:Connect(function(snap: any)
 		if typeof(snap) == "table" and typeof(snap.playtime) == "table" then
 			playtimeBase = snap.playtime

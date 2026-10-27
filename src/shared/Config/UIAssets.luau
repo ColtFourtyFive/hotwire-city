@@ -14,9 +14,10 @@
 --              store, garage, cab.
 --   portraits  128 px contact headshots: mechanic, lawyer, fence, bonus, security, crew, cab, dispatch.
 --   banners    600 x 128 interaction-menu header art: garage, dealership, gear, spray, chop, store (the title is set
---              in Damion at runtime).
+--              in Damion at runtime). Unused while ListMenu.BANNER_ART is off (the sheet is one generic skyline).
 -- Images: wedge (police vision cone, apex at the centre), vignette, shard_band (keystone big-message band),
--- phone_shell (9-slice), wordmark, loading_1..6 (1920x1080 key art).
+-- phone_shell (9-slice), wordmark, loading_1..6 (1920x1080 key art: tools/ui/keyart.py, Blender renders of the
+-- carpipe cars).
 
 local UIAssets = {}
 

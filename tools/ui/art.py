@@ -1,5 +1,5 @@
 """Hotwire City UI art (gta_ui_language §6): sprite sheets, wedge / vignette / band sprites, the parody phone shell,
-contact portraits, interaction-menu banners and the wordmark. Loading illustrations live in scenes.py.
+contact portraits, interaction-menu banners and the wordmark. Loading illustrations live in keyart.py.
 
     python3 -I tools/ui/art.py            # writes assets/ui/*.png + assets/ui/cells.json
 
