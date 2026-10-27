@@ -47,6 +47,7 @@ def reset(res=(960, 540)):
             break
         except Exception:
             continue
+    s.view_settings.exposure = -0.6
     s.render.image_settings.file_format = "PNG"
     return s
 
@@ -180,11 +181,16 @@ def haze(color=(0.62, 0.70, 0.80), amount=0.55, night=False):
     rl = ng.nodes.new("CompositorNodeRLayers")
     mul = ng.nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; mul.use_clamp = True
     mul.inputs[1].default_value = amount
+    lt = ng.nodes.new("ShaderNodeMath"); lt.operation = "LESS_THAN"; lt.inputs[1].default_value = 0.995
+    m2 = ng.nodes.new("ShaderNodeMath"); m2.operation = "MULTIPLY"
+    ng.links.new(rl.outputs["Mist"], lt.inputs[0])
     mix = ng.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"
     ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
     out = ng.nodes.new("NodeGroupOutput")
     ng.links.new(rl.outputs["Mist"], mul.inputs[0])
-    ng.links.new(mul.outputs[0], mix.inputs[0])
+    ng.links.new(mul.outputs[0], m2.inputs[0])
+    ng.links.new(lt.outputs[0], m2.inputs[1])
+    ng.links.new(m2.outputs[0], mix.inputs[0])
     ng.links.new(rl.outputs["Image"], mix.inputs[6])
     mix.inputs[7].default_value = (*color, 1)
     last = mix.outputs[2]

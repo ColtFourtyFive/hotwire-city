@@ -116,20 +116,20 @@ class Building:
                 F.box(fr, u0, u1, nb, nf - 0.08, zt - fw * 0.3, zt + fw * 0.3, skip=("back",))
         tr = self.b(st.get("trim_role", "Trim"))
         if has_sill:
-            F.box(tr, u0 - 0.4, u1 + 0.4, -d, 0.6, z0 - 0.5, z0 + 0.05, bevel=0.08)
+            F.box(tr, u0 - 0.4, u1 + 0.4, -d, 0.6, z0 - 0.5, z0 + 0.05)
         hd = st.get("header")
         if hd == "lintel":
-            F.box(tr, u0 - 0.5, u1 + 0.5, -0.05, 0.22, z1, z1 + 1.0, bevel=0.06)
+            F.box(tr, u0 - 0.5, u1 + 0.5, -0.05, 0.22, z1, z1 + 1.0, skip=("back",))
         elif hd == "keystone":
-            F.box(tr, u0 - 0.5, u1 + 0.5, -0.05, 0.22, z1, z1 + 0.9, bevel=0.06)
-            F.box(tr, uc - 0.55, uc + 0.55, -0.05, 0.42, z1 - 0.25, z1 + 1.25, bevel=0.06)
+            F.box(tr, u0 - 0.5, u1 + 0.5, -0.05, 0.22, z1, z1 + 0.9, skip=("back",))
+            F.box(tr, uc - 0.55, uc + 0.55, -0.05, 0.42, z1 - 0.25, z1 + 1.25, skip=("back",))
         elif hd == "eyebrow":
             F.box(self.b(st.get("eyebrow_role", "Accent")), u0 - 0.9, u1 + 0.9, -0.05, 1.5, z1 + 0.35, z1 + 0.7, bevel=0.1)
         if st.get("surround"):
             s = st["surround"]
-            F.box(tr, u0 - s, u0, -0.05, 0.25, z0, z1 + s, bevel=0.06)
-            F.box(tr, u1, u1 + s, -0.05, 0.25, z0, z1 + s, bevel=0.06)
-            F.box(tr, u0, u1, -0.05, 0.25, z1, z1 + s, bevel=0.06)
+            F.box(tr, u0 - s, u0, -0.05, 0.25, z0, z1 + s, skip=("back",))
+            F.box(tr, u1, u1 + s, -0.05, 0.25, z0, z1 + s, skip=("back",))
+            F.box(tr, u0, u1, -0.05, 0.25, z1, z1 + s, skip=("back",))
         if st.get("shutters"):
             sw = (u1 - u0) * 0.5
             ac = self.b("Accent")
@@ -143,6 +143,7 @@ class Building:
             w2 = min(1.3, (u1 - u0) * 0.35)
             F.box(dt, uc - w2, uc + w2, -d + 0.15, 1.3, z0 + 0.05, z0 + 1.55, bevel=0.1)
             F.box(dt, uc - w2 + 0.25, uc + w2 - 0.25, 1.3, 1.36, z0 + 0.3, z0 + 1.3, skip=("back",))
+            self.grime(F, uc - w2, uc + w2, z0 - 5.5, z0 + 0.05, "leak", n=0.03)
 
     def storefront(self, F, u0, u1, z0, z1, st, openings, door=None):
         """Big shop window wall with aluminium mullions, transom, kick plate and optional door."""
@@ -320,8 +321,9 @@ def midtown(seed=0, **kw):
     W = kw.get("W", r.choice([40, 44, 48, 52]))
     D = kw.get("D", r.choice([34, 38, 42]))
     floors = kw.get("floors", r.randint(5, 8))
-    gf, fh = 16.0, 11.0
+    gf, fh = 16.0, 12.0
     top = gf + floors * fh
+    party = set(kw.get("party", []))          # sides that abut neighbours: blank walls, no windows
     wall = kw.get("wall", r.choice(["brick_red", "brick_red", "brick_tan", "stucco", "brick_painted"]))
     tint = (1, 1, 1)
     if wall in ("stucco", "brick_painted"):
@@ -331,8 +333,10 @@ def midtown(seed=0, **kw):
     B.spec = {"Walls": ("tex", wall, tint), "Trim": ("tex", "plaster", trim_t), "Frames": ("color", frame, 0.35, 0.1),
               "Glass": ("glass",), "Roof": ("tex", "roof_tar", (1, 1, 1)), "Details": ("tex", "metal", (0.55, 0.57, 0.6)),
               "Awning": ("atlas", "awnings.png"), "Sign": ("atlas", "signs.png"), "Accent": ("color", ACCENTS["navy"], 0.5, 0),
-              "WindowsLit": ("lit",)}
+              "WindowsLit": ("lit",), "Grime": ("grime",), "Walls2": ("tex", "granite", (0.9, 0.9, 0.9)),
+              "Doors": ("tex", "shutter", (0.75, 0.75, 0.75))}
     B.footprint, B.height = (W, D), top + 3.5
+    B.tags = {"district": "midtown", "floors": floors, "wall": wall}
     loop = B.rect_loop(W, D)
     Fs = B.facades(W, D)
     brick = wall.startswith("brick")
@@ -345,6 +349,11 @@ def midtown(seed=0, **kw):
     for side, F in Fs.items():
         ops_up, ops_gf = [], []
         cols = B.columns(F.W, sp, 3.5, ww)
+        if side in party:
+            F.wall(B.b("Walls"), 0, top)
+            F.wall(B.b("Trim"), 0, gf)
+            B.grime(F, 0, F.W, top - 10, top, "soot")
+            continue
         for fi in range(floors):
             z0 = gf + fi * fh + 2.4
             for ci, uc in enumerate(cols):
@@ -358,6 +367,8 @@ def midtown(seed=0, **kw):
                     balcony(B, F, uc - 3.6, uc + 3.6, gf + fi * fh + 0.4, 4.0)
                 else:
                     B.window(F, uc - ww / 2, uc + ww / 2, z0, z0 + wh, s2, ops_up)
+                    if r.random() < 0.35:
+                        B.grime(F, uc - ww / 2 - 0.3, uc + ww / 2 + 0.3, z0 - 5.0, z0 - 0.5, "streak", n=0.03)
         # ground floor
         if side == "front":
             n_shops = 2 if W >= 44 else 1
@@ -374,8 +385,11 @@ def midtown(seed=0, **kw):
             for uc in B.columns(F.W, 11, 5, 6)[:2]:
                 B.window(F, uc - 3, uc + 3, 3.0, gf - 4.0, dict(st, mullion="t", cells="shop", ac=0, header=None, shutters=False), ops_gf, wall_role="Trim")
         else:
-            F.box(B.b("Details"), F.W / 2 - 2.2, F.W / 2 + 2.2, -0.3, 0.1, 0, 8.0)   # service door
+            F.box(B.b("Doors"), F.W / 2 - 2.2, F.W / 2 + 2.2, -0.3, 0.1, 0, 8.0)   # service door
+            F.box(B.b("Doors"), F.W / 2 + 5, F.W / 2 + 15, -0.3, 0.1, 0, 10.0)   # loading roller door
         F.wall(B.b("Trim"), 0, gf, ops_gf)
+        B.grime(F, 0, F.W, 0, 7.0, "base")
+        B.grime(F, 0, F.W, top - 7.5, top - 1.4, "soot")
         F.wall(B.b("Walls"), gf, top, ops_up)
         if side == escape_side:
             fire_escape(B, F, gf, fh, floors, cols, ww)
@@ -401,7 +415,8 @@ def quoins(B, Fs, z0, z1, size=2.2):
         z, k = z0, 0
         while z + 1.4 <= z1 - 1.2:
             w = size if k % 2 == 0 else size * 0.62
-            F.box(tr, 0, w, -0.02, 0.28, z + 0.06, z + 1.34, bevel=0.07, skip=("back",))
+            F.box(tr, 0, w, -0.02, 0.28, z + 0.06, z + 1.34, skip=("back",))
+            F.box(tr, F.W - w, F.W, -0.02, 0.28, z + 0.06, z + 1.34, skip=("back",))
             z += 1.4
             k += 1
 

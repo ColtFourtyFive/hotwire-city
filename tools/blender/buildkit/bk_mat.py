@@ -84,11 +84,14 @@ def color(name, rgb, rough=0.45, metallic=0.0):
     return m
 
 
-def atlas(name, file, rough=0.5, metallic=0.0, tint=(1, 1, 1), normal_flat=True):
-    """Unique-UV atlas material (signs, awnings)."""
+def atlas(name, file, rough=0.5, metallic=0.0, tint=(1, 1, 1), normal_flat=True, emit=0.0):
+    """Unique-UV atlas material (signs, awnings). emit>0: backlit at night (preview only)."""
     m, nt, bsdf = _new(name)
     t = nt.nodes.new("ShaderNodeTexImage"); t.image = img(os.path.join(GEN, file))
     t.interpolation = "Cubic"
+    if emit > 0:
+        nt.links.new(t.outputs[0], bsdf.inputs["Emission Color"])
+        bsdf.inputs["Emission Strength"].default_value = emit
     mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.blend_type = "MULTIPLY"
     mix.inputs[0].default_value = 1.0
     nt.links.new(t.outputs[0], mix.inputs[6]); mix.inputs[7].default_value = (*tint, 1)

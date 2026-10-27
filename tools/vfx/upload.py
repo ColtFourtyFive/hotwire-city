@@ -58,7 +58,7 @@ def main(argv):
         if cur and cur.get("sha1") == h and cur.get("assetId") and not force:
             print("skip", k, cur["assetId"])
             continue
-        st, body, _ = upload(path, f"HC VFX {k}", user, "Decal", "image/png")
+        st, body, _ = upload(path, f"HC VFX {k}", user, "Image", "image/png")  # Decal ids do not resolve as textures
         if st != 200:
             print("upload failed", k, st, body[:300])
             continue
