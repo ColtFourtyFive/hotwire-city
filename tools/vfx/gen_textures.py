@@ -67,7 +67,7 @@ def ring_spheres(rng, rings, jitter=0.25, squash=1.0):
             a = a0 + k * 2 * math.pi / max(n, 1) + rng.uniform(-jitter, jitter) / max(n, 1) * 6
             d = R * rng.uniform(0.85, 1.12)
             rr = r * rng.uniform(0.8, 1.2)
-            sph.append([math.cos(a) * d, math.sin(a) * d * squash, 0.35 - R * 0.9 + rng.uniform(-0.08, 0.08), rr,
+            sph.append([math.cos(a) * d, math.sin(a) * d * squash, rng.uniform(-0.15, 0.2) - R * 0.3, rr,
                         math.cos(a), math.sin(a)])
     return sph
 
@@ -79,27 +79,30 @@ def sphere_field(size, spheres, grow=1.0, drift=0.0, rise=0.0, rscale=1.0):
     nx = np.zeros_like(H)
     ny = np.zeros_like(H)
     nz = np.ones_like(H)
+    T = np.zeros_like(H)
     for (cx, cy, cz, r, dx, dy) in spheres:
         px = (cx + dx * drift) * grow
         py = (cy + dy * drift) * grow - rise
         rr = r * rscale * grow
         d2 = (x - px) ** 2 + (y - py) ** 2
         inside = d2 < rr * rr
-        h = np.sqrt(np.maximum(rr * rr - d2, 0)) + cz * rr
+        chord = np.sqrt(np.maximum(rr * rr - d2, 0))
+        T += 2 * chord
+        h = chord + cz * rr
         upd = inside & (h > H)
         H = np.where(upd, h, H)
         nx = np.where(upd, (x - px) / rr, nx)
         ny = np.where(upd, (y - py) / rr, ny)
         nz = np.where(upd, np.sqrt(np.maximum(rr * rr - d2, 0)) / rr, nz)
     cover = (H > -8).astype(np.float32)
-    return H, nx, ny, nz, cover
+    return H, nx, ny, nz, cover, T
 
 
 def puff_image(size, spheres, rng_noise, t=0.0, grow=1.0, drift=0.0, rise=0.0, rscale=1.0, erosion=0.25,
                fluff=0.22, contrast=0.62, opacity=1.0, wisp=0.0, grit=0.0, light=(-0.45, -0.8, 0.55)):
     """Render a puff. rng_noise: dict of precomputed noise fields (n1, n2, n3, wx, wy) at `size`."""
     n1, n2, n3, wx, wy = (rng_noise[k] for k in ("n1", "n2", "n3", "wx", "wy"))
-    H, nx, ny, nz, cover = sphere_field(size, spheres, grow, drift, rise, rscale)
+    H, nx, ny, nz, cover, T = sphere_field(size, spheres, grow, drift, rise, rscale)
     # smooth the facets (smoke is soft) + a gentle low-frequency bump
     soft = size / 110.0
     nx, ny, nz = blur(nx, soft), blur(ny, soft), blur(nz, soft)
@@ -122,12 +125,11 @@ def puff_image(size, spheres, rng_noise, t=0.0, grow=1.0, drift=0.0, rise=0.0, r
     gray = (1 - contrast) + contrast * diffuse * ao * under + rim
     gray += (n2 - 0.5) * 0.05
     # alpha: thickness from height, eroded by multi-scale noise -> fluffy, translucent fringe
-    Hn = np.clip(Hc / (np.max(Hc) + 1e-6), 0, 1)
+    # alpha: Beer-Lambert on the summed chord thickness, eroded by multi-scale noise -> fluffy, translucent fringe
     e = 0.5 * n1 + 0.3 * n2 + 0.2 * n3
-    a = Hn * 1.6 + (e - 0.5) * fluff * 2.6 - erosion * (0.35 + 1.0 * e)
-    alpha = smoothstep(0.0, 0.55, a) * cover
-    alpha *= 0.62 + 0.38 * smoothstep(0.0, 0.55, Hn)
-    alpha = blur(alpha, size / 220.0)
+    dens = T * (1 + (e - 0.5) * fluff * 3.0) - erosion * (0.1 + 0.32 * e)
+    alpha = 1 - np.exp(-np.maximum(dens, 0) * 11.0)
+    alpha = blur(alpha, size / 260.0)
     if grit > 0:
         g = spectral_noise(size, size, np.random.default_rng(5), beta=0.4, fmin=60)
         alpha *= 1 - grit * (1 - g) * 0.9
