@@ -55,19 +55,19 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      0.5528,
-      0.618,
-      0.8944
+      0.213,
+      0.033,
+      0.1633
     ],
     "dims_m": [
-      0.894,
-      0.553,
-      0.618
+      0.213,
+      0.033,
+      0.163
     ],
     "front_evidence": "upright_band",
     "flipped": false,
-    "mesh_objects": 12,
-    "triangles": 4270,
+    "mesh_objects": 11,
+    "triangles": 4190,
     "materials": 11,
     "material_names": [
       "Material",
@@ -101,9 +101,11 @@
       "Object_14",
       "Object_15",
       "Object_16",
-      "Object_17",
+      "Object_17"
+    ],
+    "hidden_helpers": [
       "Icosphere"
     ],
-    "render_s": 9.9
+    "render_s": 19.4
   }
 }

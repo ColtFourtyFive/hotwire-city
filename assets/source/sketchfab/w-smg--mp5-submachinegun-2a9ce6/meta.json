@@ -81,6 +81,7 @@
       "Plane_ground_0",
       "Icosphere"
     ],
-    "render_s": 24.9
+    "hidden_helpers": [],
+    "render_s": 20.7
   }
 }

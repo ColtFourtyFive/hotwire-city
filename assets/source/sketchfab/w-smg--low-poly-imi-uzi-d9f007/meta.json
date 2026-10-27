@@ -111,6 +111,7 @@
       "Object_24",
       "Icosphere"
     ],
-    "render_s": 9.6
+    "hidden_helpers": [],
+    "render_s": 23.6
   }
 }
