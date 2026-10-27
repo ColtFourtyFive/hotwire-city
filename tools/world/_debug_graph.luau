@@ -44,3 +44,7 @@ print("dropped", #W.DroppedEdges)
 for _, n in W.DroppedEdges do print("  drop", n) end
 for k, v in W.Stats do print(k, v) end
 for _, p in W.Plots do print(p.name, math.floor(p.nearestOnRamp)) end
+for _, e in W.PlacementErrors do print("placement:", e) end
+local byD = {}
+for _, p in W.Parcels do byD[p.district] = (byD[p.district] or 0) + 1 end
+for k, v in byD do print("parcels", k, v) end

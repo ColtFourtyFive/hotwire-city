@@ -180,16 +180,15 @@ Source: <https://create.roblox.com/docs/resources/weapons-kit>.
   These confirm Roblox-scale damage and fire-rate numbers.
 
 ### 2.3 Aim assist and targeting
-- **GTA V** (Rockstar, via <https://mp1st.com/news/grand-theft-auto-5-rockstar-on-weapon-handling-and-customization>) has four targeting modes:
-  - **Assisted Aim – Full:** "Lock-on targeting with a wide lock angle that allows for target switching".
-  - **Assisted Aim – Partial:** "medium lock angle. The reticule slows down whenever it passes over a target".
-  - **Free Aim – Assisted:** "Snap-lock targeting with a narrower lock-on angle".
-  - **Free Aim.**
-
-  Rockstar "removed hard lock … too disorientating", and every lock has a break timer.
+- **GTA V** has four targeting modes in its settings menu: Assisted Aim – Full, Assisted Aim – Partial, Free Aim – Assisted and Free Aim.
+  - Full gives a wide lock angle with target switching.
+  - Partial gives a medium lock angle, and the reticule slows over targets.
+  - Free Aim – Assisted gives snap-lock with a narrower angle.
+  - *(Verification: these descriptions are paraphrases and are **not** in the cited mp1st article. That 2013 pre-release piece describes three modes: assisted aiming, "Traditional GTA" soft lock with right-stick target flicking, and free aim. It does not contain the "removed hard lock … too disorientating" quote.)*
+  - What the article does confirm, in Rockstar's words: "every aim mode now has a timer that breaks lock". It gives **no duration** (<https://mp1st.com/news/grand-theft-auto-5-rockstar-on-weapon-handling-and-customization>).
 - **Rivals (Roblox)** aim assist is described as "a light pull toward nearby targets plus a small slowdown as the crosshair passes over them, without locking onto anyone automatically" (<https://progameguides.com/roblox/roblox-rivals-controls-pc-controller-and-mobile-layouts/>). That is magnetism plus friction.
 - **Our split:**
-  - Against NPC cops: GTA "Assisted Aim – Partial" lock, a 2.5 s break timer, and target switching with a flick.
+  - Against NPC cops: GTA "Assisted Aim – Partial" lock, a 2.5 s break timer (our tuning value; Rockstar publishes no number), and target switching with a flick.
   - Against players: friction and magnetism only, for all inputs, so mouse users are not disadvantaged.
 
 ### 2.4 Health and downed conventions in Roblox crime games
@@ -202,7 +201,7 @@ Source: <https://www.grandtheftwiki.com/Wanted_Level_in_GTA_V>.
 
 | ★ | GTA V response |
 |---|---|
-| 1 | Patrols chase and "try to arrest the player at gunpoint" |
+| 1 | Patrols "attempt to arrest the player on sight by holding them at gunpoint" |
 | 2 | Backup, more aggressive driving, more shoot-to-kill |
 | 3 | Officers in vests. Single-car roadblocks "open fire", sometimes with spike strips. A Police Maverick with carbine sharpshooters |
 | 4 | NOOSE in SUVs with carbines, pump shotguns and tear gas. A second heli; rappelling. Heavier two-way roadblocks |
@@ -683,7 +682,7 @@ Aim assist applies on touch and gamepad only.
 
 - **Against NPC cops and peds (GTA "Assisted Aim – Partial"):**
   - On Aim press, lock onto the best target within 22° of screen centre and 150 studs, with line of sight. The score weights angle, distance and threat (currently shooting at you).
-  - The lock follows the torso. A flick of the right stick or swipe on the screen switches target. The lock **breaks after 2.5 s** (Rockstar's timer).
+  - The lock follows the torso. A flick of the right stick or swipe on the screen switches target. The lock **breaks after 2.5 s** (our value; Rockstar confirms a break timer exists but not its length).
 - **Against players:**
   - **Friction:** sensitivity ×0.5 while the crosshair is within 2° of the target's torso.
   - **Magnetism:** 15% per second pull toward the torso when the target is within 6°.
