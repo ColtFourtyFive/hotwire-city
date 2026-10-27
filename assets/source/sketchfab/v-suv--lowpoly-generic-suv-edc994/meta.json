@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "edc994ad28ed438cb365c0e0389ac177",
+  "slug": "v-suv--lowpoly-generic-suv-edc994",
+  "name": "Lowpoly Generic SUV",
+  "class": "suv",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "mk2design",
+    "displayName": "mk2design",
+    "profileUrl": "https://sketchfab.com/mk2design"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/lowpoly-generic-suv-edc994ad28ed438cb365c0e0389ac177",
+  "faceCount": 8024,
+  "vertexCount": 5230,
+  "materialCount": 5,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 239,
+  "tags": [
+    "suv",
+    "traffic",
+    "4x4",
+    "german",
+    "sportscar",
+    "offroad",
+    "freebie",
+    "vehicle",
+    "lowpoly",
+    "mobile",
+    "car",
+    "free"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Free to use. Enjoy.\n\n8024 triangles",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-suv--lowpoly-generic-suv-edc994/model.glb",
+  "fileBytes": 2475208,
+  "sha256": "7657ea0ca686dfa92cc545402dfbdc3547666d3c4acb3411ce07ac7ce6a36395",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:26+00:00",
+  "notes": null
+}

@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "f7bece69400f4640a4a3be746b44998b",
+  "slug": "v-supercar--2017-mclaren-720s-f7bece",
+  "name": "2017 Mclaren 720s",
+  "class": "supercar",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "s0h1o9b",
+    "displayName": "_shobh19",
+    "profileUrl": "https://sketchfab.com/s0h1o9b"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/2017-mclaren-720s-f7bece69400f4640a4a3be746b44998b",
+  "faceCount": 6917,
+  "vertexCount": 4957,
+  "materialCount": 14,
+  "textureCount": 5,
+  "animationCount": 3,
+  "likeCount": 363,
+  "tags": [
+    "supercar",
+    "mclaren",
+    "lowpolycar",
+    "720s",
+    "vehicle",
+    "lowpoly",
+    "gameasset",
+    "car",
+    "gameready",
+    "mclaren-720s"
+  ],
+  "categories": [
+    "art-abstract",
+    "cars-vehicles"
+  ],
+  "description": "I decided to remodel my earlier mclaren model and made it even more lowpoly.\n\n - Modelled in Blender\n - Textures made in Photoshop \n \n Hope you like it!",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-supercar--2017-mclaren-720s-f7bece/model.glb",
+  "fileBytes": 1390584,
+  "sha256": "156805e5d8a69c3048bd76f7408937a4260bee2aeb30d30c27327d728a3f79ef",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:15+00:00",
+  "notes": null
+}
