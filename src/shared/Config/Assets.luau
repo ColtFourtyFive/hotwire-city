@@ -150,6 +150,34 @@ Assets.Outfits = {
 	civilians = {} :: { Outfit },
 }
 
+-- 2D art (Higgsfield-generated, uploaded as Image assets owned by the experience owner). Usable directly as
+-- Content strings in Decal/Texture/ImageLabel/SurfaceGui. Billboards pick from the "ad_" keys.
+Assets.Images = {
+	ad_couch_cruiser = "rbxassetid://121096162394481",
+	ad_donut_dash = "rbxassetid://74010446392752",
+	ad_gold_rush = "rbxassetid://111057290103994",
+	ad_hot_drop = "rbxassetid://135307431044010",
+	ad_hotwire_motors = "rbxassetid://70828020326332",
+	ad_nitro_cola = "rbxassetid://98358214059781",
+	ad_pizza_van = "rbxassetid://133009385208205",
+	ad_quack_insurance = "rbxassetid://98063305747867",
+	ad_spray_me = "rbxassetid://116526585337940",
+	ad_sunny_beach = "rbxassetid://77258665725831",
+	loading_art = "rbxassetid://138388641469637",
+	logo_hotwire_city = "rbxassetid://109068994523899",
+} :: { [string]: string }
+
+function Assets.billboardAds(): { string }
+	local out = {}
+	for key, content in Assets.Images do
+		if string.sub(key, 1, 3) == "ad_" then
+			table.insert(out, content)
+		end
+	end
+	table.sort(out)
+	return out
+end
+
 -- Max concurrent loads at boot.
 Assets.LOAD_CONCURRENCY = 4
 -- Give up on a single asset after this many seconds.

@@ -1,0 +1,74 @@
+{
+  "ad_hotwire_motors": {
+    "assetId": 70828020326332,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_hotwire_motors.png",
+    "moderation": "Approved"
+  },
+  "ad_quack_insurance": {
+    "assetId": 98063305747867,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_quack_insurance.png",
+    "moderation": "Approved"
+  },
+  "ad_nitro_cola": {
+    "assetId": 98358214059781,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_nitro_cola.png",
+    "moderation": "Approved"
+  },
+  "ad_donut_dash": {
+    "assetId": 74010446392752,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_donut_dash.png",
+    "moderation": "Approved"
+  },
+  "ad_pizza_van": {
+    "assetId": 133009385208205,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_pizza_van.png",
+    "moderation": "Approved"
+  },
+  "ad_sunny_beach": {
+    "assetId": 77258665725831,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_sunny_beach.png",
+    "moderation": "Approved"
+  },
+  "ad_spray_me": {
+    "assetId": 116526585337940,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_spray_me.png",
+    "moderation": "Approved"
+  },
+  "ad_gold_rush": {
+    "assetId": 111057290103994,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_gold_rush.png",
+    "moderation": "Approved"
+  },
+  "ad_couch_cruiser": {
+    "assetId": 121096162394481,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_couch_cruiser.png",
+    "moderation": "Approved"
+  },
+  "ad_hot_drop": {
+    "assetId": 135307431044010,
+    "assetType": "Image",
+    "file": "marketing/billboards/ad_hot_drop.png",
+    "moderation": "Approved"
+  },
+  "logo_hotwire_city": {
+    "assetId": 109068994523899,
+    "assetType": "Image",
+    "file": "marketing/billboards/logo_hotwire_city.png",
+    "moderation": "Approved"
+  },
+  "loading_art": {
+    "assetId": 138388641469637,
+    "assetType": "Image",
+    "file": "marketing/billboards/loading_art.png",
+    "moderation": "Approved"
+  }
+}

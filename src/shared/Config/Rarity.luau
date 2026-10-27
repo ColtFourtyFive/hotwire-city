@@ -12,6 +12,7 @@ export type RarityDef = {
 	dealerWeight: number, -- relative weight for dealership stock
 	hotwireTime: number, -- seconds to hotwire a street car of this rarity
 	wantedOnSteal: number, -- wanted stars added when stealing from the street
+	wantedChance: number, -- probability that a street steal of this tier attracts wantedOnSteal (min 1) stars ("witness")
 	announce: boolean, -- server-wide announcement when it appears
 }
 
@@ -38,6 +39,7 @@ Rarity.Tiers = {
 		dealerWeight = 45,
 		hotwireTime = 0.8,
 		wantedOnSteal = 0,
+		wantedChance = 0.35,
 		announce = false,
 	},
 	Uncommon = {
@@ -47,7 +49,8 @@ Rarity.Tiers = {
 		streetWeight = 26,
 		dealerWeight = 30,
 		hotwireTime = 1.2,
-		wantedOnSteal = 0,
+		wantedOnSteal = 1,
+		wantedChance = 1,
 		announce = false,
 	},
 	Rare = {
@@ -58,6 +61,7 @@ Rarity.Tiers = {
 		dealerWeight = 15,
 		hotwireTime = 1.8,
 		wantedOnSteal = 1,
+		wantedChance = 1,
 		announce = false,
 	},
 	Epic = {
@@ -68,6 +72,7 @@ Rarity.Tiers = {
 		dealerWeight = 7,
 		hotwireTime = 2.5,
 		wantedOnSteal = 1,
+		wantedChance = 1,
 		announce = false,
 	},
 	Legendary = {
@@ -78,6 +83,7 @@ Rarity.Tiers = {
 		dealerWeight = 2.5,
 		hotwireTime = 3.5,
 		wantedOnSteal = 2,
+		wantedChance = 1,
 		announce = true,
 	},
 	Mythic = {
@@ -88,6 +94,7 @@ Rarity.Tiers = {
 		dealerWeight = 0.45,
 		hotwireTime = 4.5,
 		wantedOnSteal = 3,
+		wantedChance = 1,
 		announce = true,
 	},
 	Secret = {
@@ -98,6 +105,7 @@ Rarity.Tiers = {
 		dealerWeight = 0.05,
 		hotwireTime = 6,
 		wantedOnSteal = 3,
+		wantedChance = 1,
 		announce = true,
 	},
 	Exclusive = {
@@ -108,6 +116,7 @@ Rarity.Tiers = {
 		dealerWeight = 0,
 		hotwireTime = 6,
 		wantedOnSteal = 3,
+		wantedChance = 1,
 		announce = true,
 	},
 } :: { [RarityId]: RarityDef }

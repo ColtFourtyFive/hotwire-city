@@ -115,14 +115,16 @@ Economy.SPIKES_POP_TIME = 6
 
 -- Rebirth ---------------------------------------------------------------------
 Economy.REBIRTH_BASE_COST = 750000
-Economy.REBIRTH_COST_GROWTH = 4
+Economy.REBIRTH_COST_GROWTH = 2.75
 Economy.REBIRTH_INCOME_BONUS = 0.5 -- +50% income per rebirth (additive)
-Economy.REBIRTH_LUCK_BONUS = 0.1 -- +10% rare-spawn luck per rebirth (additive)
+Economy.REBIRTH_KEEP_CARS = 2 -- rebirth keeps your best N cars (by income)
+-- NOTE: rebirths do not change spawn luck (world spawns are shared); don't advertise luck.
 
 -- Wanted / busted --------------------------------------------------------------
 Economy.BUSTED_CASH_PENALTY = 0.1 -- lose 10% of cash on hand
 Economy.BUSTED_MAX_PENALTY_SECONDS = 600 -- penalty capped at 10 minutes of income
-Economy.SPRAY_COST_PER_STAR = 250 -- cost to clear wanted at a Spray Shop, per star
+Economy.SPRAY_COST_PER_STAR = 250 -- minimum cost to clear wanted at a Spray Shop, per star
+Economy.SPRAY_INCOME_SECONDS = 15 -- per star: cost = stars * max(SPRAY_COST_PER_STAR, income/s * this)
 
 -- Theft ------------------------------------------------------------------------
 Economy.THEFT_HOLD_MULTIPLIER = 1.4 -- player-garage steal hold = rarity hotwireTime * this
@@ -133,22 +135,27 @@ Economy.NEWBIE_PROTECTION_CARS = 3 -- players with fewer cars than this can't be
 Economy.THEFT_VICTIM_COOLDOWN = 25 -- seconds after a theft before the same victim can be robbed again
 Economy.DROPPED_CAR_TIMEOUT = 20 -- a stolen car whose thief got knocked out sits "dropped" this long before returning home
 Economy.RECOVERY_BONUS_SECONDS = 30 -- victim who recovers their dropped car gets this many seconds of income as a bonus
+Economy.BONUS_PAIR_COOLDOWN = 600 -- recovery/revenge bonuses pay at most once per (victim, thief) pair per this many seconds
+Economy.RECOVERY_MIN_SECONDS = 15 -- recovery bonus only if the theft lasted this long or the car left the victim's garage
 Economy.REVENGE_BONUS_SECONDS = 20 -- bonking/zapping the thief who robbed you pays this many seconds of income
 
 -- Daily / playtime / offline ------------------------------------------------------
+-- Daily streak. "incomeMinutes" = that many minutes of the player's current income (never less than `min`),
+-- so rewards stay meaningful at every stage of progression.
 Economy.DAILY_REWARDS = {
-	{ kind = "cash", amount = 500 },
-	{ kind = "cash", amount = 1500 },
-	{ kind = "cash", amount = 4000 },
-	{ kind = "incomeMinutes", amount = 15 },
-	{ kind = "cash", amount = 15000 },
-	{ kind = "incomeMinutes", amount = 30 },
+	{ kind = "incomeMinutes", amount = 5, min = 750 },
+	{ kind = "incomeMinutes", amount = 8, min = 1500 },
+	{ kind = "incomeMinutes", amount = 12, min = 4000 },
+	{ kind = "car", rarity = "Rare" },
+	{ kind = "incomeMinutes", amount = 20, min = 15000 },
+	{ kind = "incomeMinutes", amount = 30, min = 30000 },
 	{ kind = "car", rarity = "Epic" },
-} :: { { kind: string, amount: number?, rarity: string? } }
+} :: { { kind: string, amount: number?, min: number?, rarity: string? } }
 
 -- minutes of play in the session -> reward
+-- Playtime gifts: minutes played per UTC DAY (persisted; rejoining does not reset them).
 Economy.PLAYTIME_REWARDS = {
-	{ minutes = 3, kind = "cash", amount = 300 },
+	{ minutes = 3, kind = "incomeMinutes", amount = 2, min = 300 },
 	{ minutes = 8, kind = "incomeMinutes", amount = 5 },
 	{ minutes = 15, kind = "car", rarity = "Rare" },
 	{ minutes = 25, kind = "incomeMinutes", amount = 15 },
@@ -192,12 +199,6 @@ Economy.FRIEND_BONUS_MAX = 3 -- max friends counted
 -- Index (collection) bonus: +X income when you have discovered every car of a rarity
 Economy.INDEX_RARITY_BONUS = 0.05
 
--- Codes ------------------------------------------------------------------------
-Economy.Codes = {
-	RELEASE = { kind = "cash", amount = 2500 },
-	VROOM = { kind = "cash", amount = 1000 },
-	HOTWIRE = { kind = "incomeMinutes", amount = 10 },
-	QUACK = { kind = "cash", amount = 5000 },
-} :: { [string]: { kind: string, amount: number } }
+-- Codes live server-side only: src/server/Config/Codes.luau (never replicate redeemable codes).
 
 return Economy

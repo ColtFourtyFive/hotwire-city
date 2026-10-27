@@ -1,0 +1,1002 @@
+[
+ {
+  "id": "F1-lock-pushout-frees-thief",
+  "severity": "medium",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/PlotService.luau",
+   "/home/user/HotwireCity/src/client/Controllers/GarageClient.luau",
+   "/home/user/HotwireCity/src/server/Systems/VehicleService.luau"
+  ],
+  "summary": "Locking the garage mid-theft teleports the thief AND the stolen car out of the garage, facing the road. The victim's most obvious reaction to the alarm gives the thief a free escape.",
+  "evidence": "PlotService.luau:1242-1251: pushOut finds a non-owner seated in a Vehicle-tagged car and calls carModel:PivotTo(spot * CFrame.new(0, ride+0.5, -2)). spot comes from _drivewayOffset (PlotService.luau:250-254), which is FRONT_Z-12, i.e. outside the door. plotToWorld keeps the plot orientation, so the car faces the entrance road. lockFor calls pushOut immediately (1309) and again every 0.5s (1616-1617). Nothing checks Kind=Stolen, TheftVictimUserId or TheftService. GarageClient.luau:647-700 shows a big red 'LOCK GARAGE' button to the owner whenever they are inside. pushOut uses a raw PivotTo, not VehicleService.teleport (VehicleService.luau:990-996, which resets the watchdog). For slower cars the jump of about 100 studs can trip watchdogPass (VehicleService.luau:1561-1575), which calls violate and rewinds the car into the garage (1527) for 2s before the next push. This was already listed as a known issue in docs/integration/economy-server.md:136 and :211 and never fixed.",
+  "failureScenario": "A completes the hold on B's Epic and is seated inside B's garage. The siren starts and B, standing in the garage, taps LOCK GARAGE. On the next push tick A and the car are placed on the driveway facing the street. The gate now blocks B's own pursuit car only for non-owners, and A drives off. With a slow car, A's car may instead rubber-band back in, then out, for about 2s.",
+  "suggestedFix": "In pushOut, when the seated car has Kind=='Stolen' and TheftVictimUserId == st.owner.UserId (or TheftService.getTheftForCar(car).victim == st.owner), call VehicleService.eject(car) and push only the character. The car then becomes 'dropped' inside the locked garage and B can Recover it, so locking works as a trap. For every other vehicle, use VehicleService.teleport(car, cf) instead of a raw PivotTo so the watchdog does not rewind it.",
+  "verifyReason": "Confirmed. PlotService.pushOut (PlotService.luau ~1229-1266) checks only that the seat is a VehicleSeat in a model tagged Vehicle, then calls carModel:PivotTo(spot*CFrame.new(0,ride+0.5,-2)). spot = plotToWorld(_drivewayOffset(n)) with Z = FRONT_Z-12 = -56, so the car lands outside the gate facing the road. lockFor calls pushOut immediately and the start() loop calls it every 0.5s. Nothing in tryLock, lockFor or pushOut looks at Kind, TheftVictimUserId or TheftService. GarageClient.updateLockUI shows the LOCK button whenever the owner is inside (Visible = not driving and (inside or locked)). The watchdog rewind is possible but not certain. setDriver resets wdAt at seating, so a lock in the first ~0.5s, or while the car is moving (dt\u22480.5, allowance cap*0.5+10 = 45-77 studs), against a jump from a back slot (~100 studs) trips 'teleport' and violate() pivots the car back for 2s. Both docs entries (economy-server.md:136, :211) are present and the issue was never fixed. Downgraded from high to medium: without the lock the thief only needs a few seconds to drive out. The real harm is that the owner's natural reaction removes their bonk chance and gives the thief a free exit, instead of trapping them.",
+  "fix": "src/server/Systems/PlotService.luau, pushOut: when carModel:GetAttribute('Kind') == 'Stolen' and carModel:GetAttribute('TheftVictimUserId') == st.owner.UserId (st.owner may be nil, so guard it), do `local VS = sys('VehicleService'); local car = VS and VS.fromModel(carModel); if car then VS.eject(car) end`, then re-read the root and push only the character, as in the on-foot branch. The car stays inside the locked garage as 'dropped' and the owner can Recover it. For every other seated vehicle, replace the raw PivotTo with `VS.teleport(car, cf)` so the watchdog does not rewind it, and keep the velocity zeroing. Optional, in src/server/Systems/TheftService.luau canTakeover: refuse ('\ud83d\udd12 Garage locked!') while PlotService.isLocked(victimPlot) and MapLayout.plotAt(carPosition(theft.car)) == victimPlot. This stops the pushed-out thief from re-hotwiring through the gate within prompt range, which would cause an eject/seat loop."
+ },
+ {
+  "id": "F2-recovery-revenge-farm",
+  "severity": "high",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/shared/Config/Economy.luau"
+  ],
+  "summary": "An alt or a friend can farm the recovery and revenge bonuses, worth about 50s of the victim's total income every ~27s. The same loop lets anyone grief a victim with repeated alarms and paused income.",
+  "evidence": "markDropped (TheftService.luau:868-877) accepts a voluntary hop-out with a 12s timer, and the RecoverPrompt (761-774) appears straight away. recover (1401-1429) pays _bonus(incomeOf(victim), RECOVERY_BONUS_SECONDS=30) whenever the slot is restored. The bonus is based on the victim's whole income, not the stolen car's, and there is no check that the car left the garage or that the thief was knocked out. onThiefHit (1466-1472) pays REVENGE_BONUS_SECONDS=20 once per theft, and revengePaid resets with each new theft. The cooldown is only THEFT_VICTIM_COOLDOWN=25s (Economy.luau:133; setCooldown 429-432, applied again in finish at 633). beginTheft also counts progress(thief,'steal',1) at the start (1199), so aborted thefts fill the 'Steal 5/12 cars' contracts.",
+  "failureScenario": "B has 3 or more cars, including a Rustbucket. B's alt holds Steal on the Rustbucket (1.1s), hops out at once, and B bonks the alt and holds Recover (0.3s). B gets 50s of total income and repeats every ~27s, close to 3x income. Without an alt, any griefer can repeat start-and-abandon every 25s to set off B's red vignette and siren and pause that slot's income.",
+  "suggestedFix": "Pay the recovery bonus only if the thief was knocked out by the victim (theft.lastHitBy == victim within KNOCKOUT_WINDOW) and the car was driven more than about 60 studs from the slot, or the theft lasted more than about 15s. Base it on the stolen car's income, not the total. Cap bonuses per (victim, thief) pair, for example once per 10 minutes. Count the 'steal' contract only on delivery. Give a player who abandons thefts repeatedly a longer personal cooldown, for example 60s on the same victim.",
+  "verifyReason": "Confirmed. markDropped (TheftService.luau ~868) runs on any empty seat, including a voluntary exit (knocked=false gives the 12s THEFT_ABANDON_LIMIT), and addDropPrompts creates the victim's RecoverPrompt (RECOVER_HOLD 0.3s) straight away. recover() pays _bonus(incomeOf(victim), RECOVERY_BONUS_SECONDS=30). incomeOf is GarageService.incomePerSec, i.e. total income. There is no check on distance moved, theft duration, knock-out or who the thief was. onThiefHit pays REVENGE_BONUS_SECONDS=20 once per theft (revengePaid lives on the Theft record), and CombatService.shouldAddAssaultHeat gives the victim no heat for hitting someone stealing from them. Cooldown is only THEFT_VICTIM_COOLDOWN=25 (setCooldown in beginTheft and finish). A Common display car's hold is 0.8*1.4 = 1.12s. A cycle of about 27-28s therefore pays 50s of total income, roughly 2.8x effective income. Two friends can also alternate roles because the cooldown is per victim. The 'steal' contract counted at beginTheft matches how street steals count on hotwire, so that part is a minor side effect, not a separate bug.",
+  "fix": "src/server/Systems/TheftService.luau: (1) Keep a ledger `bonusPaid[victimUserId][thiefUserId] = clock` and pay the recovery bonus (recover) and the active-theft revenge bonus (onThiefHit) at most once per (victim, thief) pair per ~600s, pruned in start() like recentRobbers. (2) In recover, pay the bonus only if the car left the victim's plot (MapLayout.plotAt(carPosition(car)) ~= plotIndexOf(victim)) or now - theft.startedAt >= ~15s. Otherwise just restore the slot with the '\ud83c\udfe0 back home' notify. (3) Base the bonus on the stolen car's income: EconomyMath.carIncome(theft.carId, theft.mutation) * GarageService.multiplier(victim), not incomeOf(victim). Constants can go in src/shared/Config/Economy.luau. Update tests/spec/theft.spec.luau (the recover/revenge cases around lines 573-653)."
+ },
+ {
+  "id": "F3-victim-cannot-fight-back",
+  "severity": "medium",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/GarageService.luau",
+   "/home/user/HotwireCity/src/client/Controllers/CombatClient.luau",
+   "/home/user/HotwireCity/src/server/Systems/CombatService.luau",
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau"
+  ],
+  "summary": "The victim's side of the chase is close to unwinnable, which goes against pillars 1, 3 and 5. There is no warning while the thief holds the prompt, no way to grab a car away from the garage, no bat button while driving, the stolen car keeps full speed, and a ramming wreck gives the victim nothing.",
+  "evidence": "PromptButtonHoldBegan only records os.clock() (GarageService.luau:552-554); the owner is never told. DriveCar requires being inside your own garage or within 40 studs of the slot (GarageService.luau:908-913), and no client fires DriveCar remotely. CombatClient.refreshButtons hides ActionButton while driving (CombatClient.luau:616-626), so phones have no bat button in a car. The bat needs to be within BAT_RANGE 9 + slack (CombatService.luau:920-927). The Stolen car spawns with no SpeedMultiplier (TheftService.luau:1116-1122), so an Epic does about 110-135 studs/s while the victim's chase car may be a 70 studs/s Common. A ram that wrecks the stolen car goes to onDestroyed then failTheft('wrecked') (TheftService.luau:1502-1508), which pays the victim no recovery or revenge bonus even though car.data.lastDamagedBy is recorded (VehicleService.luau:1300-1302). The victim's banner shows no countdown of the thief's remaining time.",
+  "failureScenario": "B is on the other side of the map when the alarm sounds. B cannot spawn a car, sees an Epic driving away at full speed, and on a phone could not swing the bat from a car even after catching up. The alarm only adds frustration.",
+  "suggestedFix": "(1) Fire an 'INTRUDER: X is hotwiring your <car>!' Notify plus sound to the owner on StealPrompt HoldBegan, and highlight the lock button. (2) Give player-stolen cars a debuff, e.g. model SpeedMultiplier 0.85 (VehicleController already polls it) and no nitro. (3) Show the bat ActionButton while driving, or add a side-swipe 'BONK' button when within range of a Stolen car. (4) During an active theft, allow DriveCar from anywhere so the victim's car spawns on the nearest lane. (5) Treat a wreck caused by car.data.lastDamagedBy == victim as a recovery and pay the bonus. (6) Add the thief's endsAt to the CarStolenAlert banner.",
+  "verifyReason": "Partly confirmed, headline overstated. Confirmed: GarageService's StealPrompt PromptButtonHoldBegan only records display.holds[p] (GarageService.luau ~552), so the owner gets no warning during holds of 1.1s (Common) up to 8.4s (Mythic), and the lock and pushOut can only be used pre-emptively. The CarStolenAlert banner has no countdown (NotificationController buildAlertUI shows only a title and a static subtitle). DriveCar needs the garage or 40 studs, and no client fires it. CombatClient.refreshButtons hides actionButton while driving. Stolen cars get no SpeedMultiplier (only PoliceService sets one). A wreck goes to onDestroyed then failTheft('wrecked') with no bonus. Refuted parts: the victim has real counterplay that the tracer ignored. The spike button is shown while driving (refreshButtons: show = driving and has spikes). Street and traffic cars can be hotwired to give chase. The taser has range 60. The thief gets police heat, a 150s limit, and can be hijacked. ManualActivationOnly=false means a tap can still activate an equipped bat on mobile. So this is not 'close to unwinnable', but the missing hold warning is a real gap against pillar 5.",
+  "fix": "Minimal, high-value subset: (1) In src/server/Systems/GarageService.luau, in the StealPrompt PromptButtonHoldBegan handler, when the owner `player` is online, send a throttled (per thief, ~5s) Notify('warning', '\ud83d\udea8 '..thief.DisplayName..' is hotwiring your '..label..'! LOCK or BONK!') plus a Sound. Optionally GarageClient pulses the lock button. (2) In src/client/Controllers/NotificationController.luau, show the remaining time in the alert subtitle, read from the TheftEndsAt attribute of the Workspace.Vehicles model whose TheftVictimUserId == LocalPlayer.UserId. Speed debuffs, remote DriveCar and paying a bonus on a victim-caused wreck are balance choices. A wreck bonus should only ship together with F2's per-pair cap, or it becomes another farm."
+ },
+ {
+  "id": "F4-knockout-feed-never-fires",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/CombatService.luau",
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/shared/Util/Signal.luau"
+  ],
+  "summary": "The '\ud83d\udd28 B knocked A out of B's <car>!' EventFeed line never fires on a normal knock-out, because the eject happens before onThiefHit records the hitter.",
+  "evidence": "CombatService.applyHit stuns the victim (879), then ejects (880-881), and only then calls TheftService.onThiefHit (885). eject runs setDriver(nil), which fires DriverChanged. Signal:Fire runs handlers immediately through task.spawn (Signal.luau:48-56), so TheftService.onDriverChanged runs markDropped (TheftService.luau:1489-1497) before onThiefHit. In markDropped, `local hitter = theft.lastHitBy` is still nil (initialised at 1151), so the EventFeed block at 900-908 is skipped. The knocked flag only comes out right because the Stunned attribute is set first.",
+  "failureScenario": "B bonks A out of B's Epic. The server never broadcasts a knock-out line, so one of the 'moments worth clipping' from pillar 3 is silently lost on every first hit.",
+  "suggestedFix": "In applyHit, call TheftService.onThiefHit(attacker, victim) before VehicleService.eject (move line 885 above 880). Alternatively, have markDropped read the hitter from CombatService's last hit or task.defer the feed line.",
+  "verifyReason": "Confirmed. In CombatService.applyHit (~877-885) the order is stun, then callSystem('VehicleService','eject',car), then callSystem('TheftService','onThiefHit',...). eject runs setDriver(car,nil) synchronously, which calls DriverChanged:Fire. Signal:Fire uses task.spawn, which runs the handler immediately, so TheftService.onDriverChanged runs markDropped before onThiefHit. markDropped does not yield before `local hitter = theft.lastHitBy`, which is still nil on the first hit (initialised nil in beginTheft and on takeover), so the EventFeed block is skipped. knocked is still correct because CombatService.stun sets the Stunned attribute first. The impact is cosmetic only (a missing feed line), so low.",
+  "fix": "src/server/Systems/CombatService.luau applyHit: move `callSystem(\"TheftService\", \"onThiefHit\", attacker, victim)` to just before `if car then callSystem(\"VehicleService\", \"eject\", car) end`. onThiefHit only sets lastHitAt and lastHitBy and pays revenge, so nothing in it depends on the eject. Add a theft.spec case that a hit followed by a drop fires the EventFeed."
+ },
+ {
+  "id": "F5-thief-hud-ignores-drop",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/client/Controllers/StateController.luau",
+   "/home/user/HotwireCity/src/client/Controllers/HUDController.luau",
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau"
+  ],
+  "summary": "After a drop, the thief's HUD keeps showing 'DELIVER IT HOME! 1:42' while the car will actually be towed in 12-20s.",
+  "evidence": "TheftService.sendThiefState sends dropped and droppedEndsAt (TheftService.luau:539-548). StateController.sanitizeTheft keeps only active, endsAt, carId and targetPlot (StateController.luau:86-96). HUDController.applyTheft and refreshTheft (HUDController.luau:1303-1341) therefore always count down the 150s endsAt. The HUD integration doc already lists this as a deviation that was never applied.",
+  "failureScenario": "A is bonked out and sees 1:30 left on the HUD, so does not hurry. 20s later the car disappears. The only hints were a 4-second toast and a waypoint label.",
+  "suggestedFix": "Keep dropped and droppedEndsAt in sanitizeTheft. In the HUD, switch to a red 'GET BACK IN! 0:12' state using droppedEndsAt while dropped.",
+  "verifyReason": "Confirmed. sendThiefState sends dropped and droppedEndsAt (TheftService.luau ~539-548), but StateController.sanitizeTheft (~86-96) keeps only active, endsAt, carId and targetPlot, and the TheftState type has no dropped field. HUDController.applyTheft and refreshTheft always count down the 150s endsAt. This is listed as a deviation in gameplay-client.md:334. Downgraded to low because the thief does get a 4s toast with the real tow time and the waypoint label switches to 'GET BACK IN!'.",
+  "fix": "src/client/Controllers/StateController.luau: add `dropped = raw.dropped == true` and `droppedEndsAt = num-or-nil(raw.droppedEndsAt)` to sanitizeTheft and to the TheftState type. src/client/Controllers/HUDController.luau: in applyTheft store the dropped state; in refreshTheft, while dropped, use droppedEndsAt with the label/colour 'GET BACK IN! 0:12' (Danger) instead of endsAt. Extend the clientcore.spec sanitizeTheft case."
+ },
+ {
+  "id": "F6-victim-ragequit-denies-theft",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/server/Systems/DataService.luau"
+  ],
+  "summary": "A victim can always cancel a theft by leaving (and rejoin to get the car back with offline earnings). The car disappears from under the thief with no compensation, and the thief keeps the wanted star.",
+  "evidence": "onPlayerRemoving (TheftService.luau:1575-1584) and the tick (1527-1529) call failTheft(theft,'victim_left'). This destroys the car (645-647) and skips the restore (649-651); the thief only gets the toast '\ud83d\ude36 X left. The {car} vanished!' (_failText 387-388). DataService.release fires Releasing (DataService.luau:1079) before the final writeAsync (1082), so a transfer could be hooked in at that point.",
+  "failureScenario": "A has driven B's Mythic most of the way home. B leaves the game, A's car vanishes mid-drive, A keeps +1 star and cops, and gets nothing. B rejoins with the Mythic. This contradicts 'fair theft' and makes stealing from experienced players pointless.",
+  "suggestedFix": "Hook DataService.Releasing. If the theft has run more than N seconds, or the thief is outside the victim's garage, remove the record from the victim's data before the final save and give it to the thief (storeCar or a pending queue), with the usual uncollected payout. At minimum, pay the thief chopValue and clear their wanted level.",
+  "verifyReason": "Confirmed. onPlayerRemoving and _tick call failTheft(theft,'victim_left'), which destroys the car and skips restoreVictimSlot. The record never left the victim's data, and the thief only gets '\ud83d\ude36 X left. The {car} vanished!' while keeping the theft heat. However, this is spec-sanctioned: SPEC \u00a76 TheftService says fail is 'Triggered by: time limit, victim leaving (car vanishes, thief notified)', which is consistent with pillar 5 ('Offline garages can't be robbed'). The victim also pays a real cost (leaving the server and plot). So this is a design trade-off, not a bug. Moving the car on DataService.Releasing is risky: it adds a data-ordering dependency and gives alts a way to transfer cars instantly without delivering.",
+  "fix": "If the team wants to change it, first update docs/SPEC.md \u00a76 TheftService. Then the minimal change in src/server/Systems/TheftService.luau failTheft for reason 'victim_left': if online(thief) and the car is outside the victim's plot, or hooks.clock() - theft.startedAt >= ~30s, pay the thief a consolation (e.g. EconomyMath.chopValue(carId, mutation), capped) through DataService.addCash, and call WantedService to remove the playerTheft heat added for this theft. Do not move the car record on Releasing."
+ },
+ {
+  "id": "F7-steal-prompt-shown-when-doomed",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/client/Controllers/GarageClient.luau",
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/server/Systems/GarageService.luau"
+  ],
+  "summary": "The Steal prompt is shown, and the full hold is required, even when the server will refuse: victim on cooldown, victim already being robbed, or the thief's garage is full.",
+  "evidence": "GarageClient.updatePrompts enables Steal based only on mine, driving, locked and CarCount (GarageClient.luau:135-139). The refusals with codes victimBusy, cooldown and full (TheftService.luau:342-350) only run after the hold, from steal.Triggered then beginTheft (GarageService.luau:555-576). There is no replicated cooldown or busy attribute on the plot, and the thief's own free-slot count from the snapshot is not checked.",
+  "failureScenario": "Right after C robbed B, A holds E for 3.5s on B's Epic and gets '\u23f3 They were just robbed \u2014 try again in 12s'. With a full garage, A holds 3.5s and gets 'Your garage is full!'. The player could not have known in advance.",
+  "suggestedFix": "Server: set plot attributes RobbableAt (cooldown end, server time) and BeingRobbed. Client: disable the Steal prompt or set its ObjectText to 'PROTECTED 0:12' / 'BEING ROBBED' / 'YOUR GARAGE IS FULL', using those attributes and the local snapshot's free slots.",
+  "verifyReason": "Confirmed. GarageClient.updatePrompts enables Steal on `not mine and not driving and not locked and cars >= NEWBIE_PROTECTION_CARS` only. victimBusy, cooldown and full are only checked server-side in _canSteal after the hold completes (steal.Triggered then beginTheft). The cooldown is not replicated anywhere. 'Busy' could be derived from the existing pad State='BeingStolen' attributes, but the client does not do this. The thief's free slots are in the local snapshot but are not checked. The cost is a wasted hold (1.1s up to 8.4s) followed by a clear error toast, so this is UX, low severity.",
+  "fix": "src/server/Systems/TheftService.luau: in setCooldown, also set a plot attribute `RobbableAt` = toServerTime(cooldownUntil) on PlotService.getPlotModel(plotIndexOf(victim)). src/client/Controllers/GarageClient.luau updatePrompts: also disable Steal when any pad in view.model has State == 'BeingStolen', when Workspace:GetServerTimeNow() < RobbableAt, or when StateController's snapshot shows no free slots. Re-run updatePlotPrompts on a short timer or attribute change so the prompt re-enables when RobbableAt passes."
+ },
+ {
+  "id": "F8-bonk3-contract-near-impossible",
+  "severity": "medium",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/CombatService.luau",
+   "/home/user/HotwireCity/src/shared/Config/Economy.luau"
+  ],
+  "summary": "The daily contract 'Bonk 3 thieves out of cars' only counts when the attacker is the victim of that exact theft. Players need to be robbed 3 times in one UTC day and catch each thief, so the contract is effectively uncompletable.",
+  "evidence": "CombatService.luau:869-870 sets `defended = car ~= nil and car.kind == 'Stolen' and stealingFromAttacker`, and progress('defend') only runs when defended is true (886-889). Economy.luau:177 defines { id='bonk3', text='Bonk 3 thieves out of cars', stat='defend', goal=3 }. A bystander (C) bonking a thief (A) does not count.",
+  "failureScenario": "A player rolls bonk3 and spends the day hunting thieves. Bonking other players' thieves does not count, so the contract never progresses, which hurts the daily-contract retention pillar.",
+  "suggestedFix": "Count any hit that ejects the driver of a Stolen car (or of a Loot car whose driver has Wanted \u2265 1). Keep the extra 'THIEF BONKED' message for the victim.",
+  "verifyReason": "Confirmed. CombatService.applyHit sets `defended = car ~= nil and car.kind == 'Stolen' and stealingFromAttacker`, and isStealingFrom requires theft.victim == attacker. 'defend' is the only source of that stat (grep finds just CombatService.luau:887). The code matches SPEC \u00a76 CombatService line 180 ('contract defend if that ejected a thief driving the attacker's stolen car'), so the defect is in the contract design. 'Bonk 3 thieves out of cars' needs the player to be robbed 3 times in one UTC day and to catch each thief while still seated. Players under 3 cars can never be robbed. The contract is therefore dead whenever it is rolled, and there is no reroll.",
+  "fix": "src/server/Systems/CombatService.luau applyHit: compute `thiefEjected = car ~= nil and (car.kind == 'Stolen' or (car.kind == 'Loot' and (tonumber(victim:GetAttribute('Wanted')) or 0) >= 1))` and call RewardsService.progress(attacker,'defend',1) when thiefEjected. Keep the 'THIEF BONKED! Go grab your car back!' notify only when `defended`. Update docs/SPEC.md line 180 to match. Stun immunity (immuneUntil) already limits repeat-bonk farming of the same target."
+ },
+ {
+  "id": "F9-seat-result-ignored",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/server/Systems/VehicleService.luau"
+  ],
+  "summary": "beginTheft and takeover treat 'seat() did not throw' as success. VehicleService.seat returns (false, reason) and never throws, so a failed seating starts or 'resumes' a theft with nobody in the car.",
+  "evidence": "call() returns (pcallOk, firstResult) (TheftService.luau:160-172). beginTheft uses `local seatOk = call('VehicleService','seat',car,thief)` (1190), which is true whenever the pcall succeeds. takeover's `local seatOk, err = call(...)` (971-974) only warns when the pcall fails. VehicleService.seat returns false with 'no character', 'occupied' or 'sit failed' (VehicleService.luau:908-918, 949-956) without throwing.",
+  "failureScenario": "A's character dies or resets the moment the hold completes. The theft starts anyway: the slot shows STOLEN, A gets +1 star, B's alarm fires, and after 2s B gets 'Your car was dropped! Grab it back in 12s!'. On takeover, C sees 'GO GO GO!' and the drop prompts are cleared even if C was not seated, until the next tick drops the car again.",
+  "suggestedFix": "Use `local okCall, seated = call('VehicleService','seat',car,thief)` and, if seated ~= true, run failTheft(theft,'error') (in beginTheft) or keep the car dropped and skip clearDropped (in takeover).",
+  "verifyReason": "Confirmed. call() returns (pcallOk, result). beginTheft does `local seatOk = call('VehicleService','seat',car,thief)`, which captures only pcallOk. takeover only warns when the pcall fails. VehicleService.seat returns (false, 'gone' | 'player' | 'not allowed' | 'no character' | 'occupied' | 'sit failed') and never throws. This is already documented in vehicles-world.md:311. The impact is limited. gatherState checked that the thief is alive moments before, with no realistic yield in between (spawn is synchronous), so a seat failure is rare. If it happens, the _tick safety net marks the car dropped after SEAT_GRACE. The visible symptom is a theft that started with nobody in the car (alarm, heat, 'dropped' toast).",
+  "fix": "src/server/Systems/TheftService.luau beginTheft: `local okCall, seated = call('VehicleService','seat',car,thief); if not okCall or seated ~= true then failTheft(theft,'error') ... return false end` (the existing failure branch). In takeover, seat before clearing the drop state: if driverOf(car) ~= player, call seat; if it does not return true, notify the player 'Try again!' and return false without calling clearDropped (the prompts stay up). Otherwise clearDropped and continue."
+ },
+ {
+  "id": "F10-garage-fills-mid-theft",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/server/Systems/GarageService.luau"
+  ],
+  "summary": "The free slot is checked only when the theft starts, not reserved. If it is filled during the theft (claiming a Playtime or Daily car from the menu while driving, or an owed Diamond Dragster being auto-delivered), delivery is refused and the thief has no way to sell from the car.",
+  "evidence": "complete() refuses when freeSlots <= 0 (TheftService.luau:1248-1255) and the delivery is simply retried every 3s. storeCar uses the first free slot (GarageService.luau:745-747), so reward grants take the slot. The SellCar and DriveCar remotes exist (GarageService.luau:1296-1307), but no client code fires them; the only client-fired garage remote is LockGarage (GarageClient.luau:659). Selling therefore needs the on-foot SellPrompt, which means leaving the car, starting the 12s abandon timer and giving the victim a Recover prompt.",
+  "failureScenario": "A, with 1 free slot, claims the 15-minute Rare gift while driving B's Epic and then reaches the drop-off. A sees 'Garage full! Sell a car to park this one. Hurry!', has to jump out and run to a display car, and B recovers the Epic.",
+  "suggestedFix": "Reserve the slot at beginTheft (GarageService.reserveSlot or a pending marker that _firstFreeSlot respects), or let complete() overflow into a pending queue the way exclusives already work. Alternatively, have RewardsService and MonetizationService send cars to pending while the player has an active theft.",
+  "verifyReason": "Confirmed but mostly self-inflicted. complete() refuses when freeSlots <= 0 and only notifies (throttled to 3s). storeCar takes the first free slot. No client fires SellCar or DriveCar (the client remotes are BuyTool, BuyUpgrade, ClaimDaily, ClaimPlaytime, GoHome, LockGarage, Rebirth, RedeemCode, SetSetting, ToolAction, TutorialDone, UnlockSlot), so selling needs the on-foot SellPrompt. The paths that fill a slot mid-theft are a player-initiated ClaimPlaytime or ClaimDaily car, or MonetizationService's periodic deliverExclusives loop. The latter only matters if the thief sold a car and started a theft before the next exclusive check. In the thief's own garage, hopping out to sell gives a 12s window, and the victim would need to be at the thief's garage to Recover, so the claimed loss is unlikely.",
+  "fix": "Cheapest: in src/server/Systems/RewardsService.luau (car grants) and src/server/Systems/MonetizationService.luau deliverExclusives, skip or defer car grants while TheftService.getActiveTheft(player) ~= nil and GarageService.freeSlots(player) <= 1. Rewards should stay claimable later, or fall back to the existing owed/cash fallback. Alternatively, let TheftService.complete treat a full garage like exclusives: remove the record from the victim and queue it as owed for the thief."
+ },
+ {
+  "id": "F11-nonatomic-transfer-save",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/server/Systems/DataService.luau"
+  ],
+  "summary": "The transfer is atomic in memory but saved as two separate, unordered DataStore writes. A hard server crash between them can duplicate the car (thief saved, victim not) or lose it.",
+  "evidence": "TheftService.luau:1329-1336 starts saveNow(thief) and saveNow(victim) in two independent task.spawn calls. saveNow \u2192 writeAsync (DataService.luau:1034-1040) waits out the ~6s per-key cooldown independently for each key. BindToClose covers a graceful shutdown but not a crash.",
+  "failureScenario": "The victim autosaved 2s ago, so their write waits about 4s, while the thief's write lands at once. The server crashes in that window, and both players load with the same car.",
+  "suggestedFix": "Save sequentially in one task, victim first (removal), then thief. Better: stamp a transferId in both profiles and reconcile on load (if the victim still holds a record whose transferId the thief has, drop it).",
+  "verifyReason": "Confirmed in principle. complete() starts saveNow(thief) and saveNow(victim) in two independent hooks.spawnTask calls. Each writeAsync respects its own per-key write rate, so the order is not defined. A hard server crash between the two writes can duplicate the car (thief saved, victim not) or lose it. BindToClose covers a graceful shutdown, and a player cannot trigger a crash on purpose, so this is a rare edge case. Low.",
+  "fix": "src/server/Systems/TheftService.luau complete(): replace the two spawns with one `hooks.spawnTask(function() pcall(DS.saveNow, victim); pcall(DS.saveNow, thief) end)`. Saving the removal first means a crash can at worst lose the car rather than duplicate it, which matters more for the economy. A transferId reconcile-on-load is optional hardening in DataService.luau."
+ },
+ {
+  "id": "F12-misleading-dropped-state-on-wreck-bust-leave",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/VehicleService.luau",
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau",
+   "/home/user/HotwireCity/src/server/Systems/WantedService.luau"
+  ],
+  "summary": "Wreck, bust and thief-leave all eject before the theft is failed, so the victim is first told the car was 'dropped, grab it in 20s' and then something different. Recover and Hotwire prompts are also put back onto a wrecked car, and recovering it pays the bonus.",
+  "evidence": "VehicleService.wreck disables every prompt (VehicleService.luau:1319-1323) and then calls eject (1325). DriverChanged runs markDropped, which adds fresh, enabled drop prompts (TheftService.luau:882) and notifies the victim (887-895). The car is destroyed 2s later (1355-1357). The RecoverPrompt handler (TheftService.luau:761-774) does not check car.wrecked. WantedService.handleCar ejects (WantedService.luau:413) before TheftService.fail (417). VehicleService.onPlayerRemoving clears the driver (VehicleService.luau:1684-1688; connected in init before TheftService's handler at TheftService.luau:1618).",
+  "failureScenario": "A crashes the Epic hard. B gets 'Your car was dropped! Grab it back in 20s!', runs over within 2s, holds Recover on the burning wreck and gets 'RECOVERED! +bonus' instead of 'wrecked... towed home'. When A is busted, B gets two contradictory toasts at once.",
+  "suggestedFix": "In onDriverChanged, skip markDropped if car.wrecked or car.destroyed, or if the old driver is no longer online. Check car.wrecked in the RecoverPrompt handler. In WantedService.handleCar, call TheftService.fail before VehicleService.eject.",
+  "verifyReason": "Confirmed. VehicleService.wreck disables prompts and then calls eject, which runs setDriver(nil) and DriverChanged (synchronous via task.spawn), and onDriverChanged runs markDropped. markDropped creates fresh, enabled Recover and Hotwire prompts and sends the victim 'dropped! Grab it back in 12s'. The car is destroyed WRECK_DESTROY_AFTER=2s later, then onDestroyed calls failTheft('wrecked'). The RecoverPrompt handler does not check car.wrecked, so a victim within reach during those 2s gets the full bonus. The Hotwire prompt shows but is a no-op, because addStealPrompt's Triggered checks car.wrecked. _tick would also call markDropped on a wrecked car. WantedService.handleCar ejects (~413) before TheftService.fail (~417), so the victim gets two contradictory toasts. For thief_left, VehicleService.onPlayerRemoving clears the driver, and during PlayerRemoving the player is still parented to Players, so markDropped treats them as online. Whether the toast appears depends on handler order. All of these are cosmetic or minor.",
+  "fix": "src/server/Systems/TheftService.luau: at the top of markDropped add `local c = theft.car; if type(c) == 'table' and (c.wrecked or c.destroyed) then return end` (this covers both the signal and the _tick path). In the RecoverPrompt Triggered handler, return early if car.wrecked or car.destroyed. src/server/Systems/WantedService.luau handleCar: for car.kind == 'Stolen', call TheftService.fail(car,'busted') before VehicleService.eject (fail destroys and ejects anyway). For thief_left, optionally defer markDropped in onDriverChanged (task.defer, then re-check theft.finished) so the PlayerRemoving fail wins."
+ },
+ {
+  "id": "F13-victim-waypoint-by-displayname",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/client/Controllers/NotificationController.luau",
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau"
+  ],
+  "summary": "The victim's live 'YOUR CAR' arrow finds the thief by name, and the payload is a DisplayName. Duplicate DisplayNames, or another player's username matching it, make the arrow point at the wrong player.",
+  "evidence": "TheftService sends CarStolenAlert(victim, nameOf(thief), ...) where nameOf returns the DisplayName (TheftService.luau:247-252, 1202). findPlayerByName (NotificationController.luau:1201-1213) first compares p.Name == name, then DisplayName. thiefPosition (1216-1242) tracks the matched player's seat or root. The car already carries TheftVictimUserId (TheftService.luau:1180).",
+  "failureScenario": "There are two players with the DisplayName 'Alex' (common), or the thief's DisplayName equals another player's username. B's arrow leads to the wrong person while the real thief escapes.",
+  "suggestedFix": "Track the car itself: on the client, find the model in Workspace.Vehicles whose TheftVictimUserId == LocalPlayer.UserId and TheftActive == true, and pass it to WaypointController.track. This also follows dropped cars and hijacks. Alternatively, add thiefUserId and VehicleId to the CarStolenAlert payload.",
+  "verifyReason": "Confirmed. CarStolenAlert carries nameOf(thief), which is the DisplayName. NotificationController.findPlayerByName first matches p.Name == name and then the first p.DisplayName == name. thiefPosition follows that player's seat or root (and alertLastCar). Duplicate DisplayNames, or a username equal to the thief's DisplayName, point the arrow at the wrong player. This is rare in an 8-player server. The car already carries TheftVictimUserId, TheftThiefUserId and TheftActive attributes.",
+  "fix": "src/client/Controllers/NotificationController.luau thiefPosition: first look in Workspace.Vehicles for a Model with TheftActive == true and TheftVictimUserId == Players.LocalPlayer.UserId and return its pivot. This also covers dropped and hijacked cars. Keep the name lookup only as a fallback. No server change is needed."
+ },
+ {
+  "id": "F14-lock-uptime-afk",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/PlotService.luau",
+   "/home/user/HotwireCity/src/shared/Config/Economy.luau"
+  ],
+  "summary": "A 15s re-arm against locks of 45-120s (+10s per rebirth) lets an AFK owner with a tap macro keep the garage locked 75-90% of the time. Together with offline protection, wealthy players become nearly unrobbable and the theft content dries up.",
+  "evidence": "PlotService.LOCK_REARM = 15 (PlotService.luau:38), applied in unlock (1269-1281). tryLock only requires being inside the garage and the lock being ready (1331-1358). Lock values are { 45, 60, 90, 120 } in Economy.Upgrades.lock, plus 10s per rebirth (_lockDuration 245-247). The LockGarage remote allows 2 per second (1568-1570).",
+  "failureScenario": "A level-3 lock owner AFKs in the garage with an autoclicker on 'LOCK GARAGE'. Thieves get a 15s window every 135s and must also cover the hold time and the walk in.",
+  "suggestedFix": "Make the re-arm proportional (e.g. equal to the lock duration, for at most 50% uptime). Alternatively, give a fixed number of charges per 10 minutes, or require no lock while the owner has been idle for 2+ minutes.",
+  "verifyReason": "Confirmed arithmetic. LOCK_REARM = 15 against lock values {45,60,90,120} + 10/rebirth gives 75% to 89%+ uptime for an owner who re-presses at once. The LockGarage remote allows 2/s, and the LockButton pad also locks on Touched, so idle-animation touches from an AFK owner standing on the pad may re-lock without a macro. The re-arm was added on purpose (economy-server.md:117), and a guaranteed 15s window plus the theft hold is a tuning choice. High lock uptime is common in the genre. This is a balance issue, not a defect.",
+  "fix": "src/server/Systems/PlotService.luau: make the re-arm proportional, e.g. `st.lockReadyAt = os.clock() + math.max(PlotService.LOCK_REARM, 0.5 * lastDuration)` (store the duration in lockFor or tryLock) and mirror it in the LockReadyAt attribute. Optionally ignore Touched-based tryLock unless the owner's Humanoid.MoveDirection was non-zero recently. Leave the Lockdown product (lockFor) bypass as it is."
+ },
+ {
+  "id": "F15-revenge-blocked-when-target-busy",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/server/Systems/TheftService.luau"
+  ],
+  "summary": "The revenge bonus for a completed robbery is skipped if the robber is currently stealing someone else's car.",
+  "evidence": "onThiefHit (TheftService.luau:1465-1474) returns early whenever byThief[target] exists, even when the attacker is not that theft's victim. The recentRobbers check (1475-1482) is never reached, and the entry is not consumed.",
+  "failureScenario": "A robbed B 2 minutes ago. B finds A stealing C's car and bonks A. B gets no 'REVENGE!' bonus, at exactly the dramatic moment the feature is meant for.",
+  "suggestedFix": "Inside the active-theft branch, only return after handling that theft's victim case. Otherwise fall through to the recentRobbers check.",
+  "verifyReason": "Confirmed. In onThiefHit, `local theft = byThief[target]; if theft and not theft.finished then ... return end` returns even when the attacker is not that theft's victim, so the recentRobbers branch is skipped. The entry is not consumed, though, so B still gets revenge with a later hit within REVENGE_WINDOW (300s) once A's current theft ends. The bonus is delayed or missed at the dramatic moment, not lost for good.",
+  "fix": "src/server/Systems/TheftService.luau onThiefHit: inside the active-theft branch, after updating lastHitAt and lastHitBy, return only if the attacker == theft.victim case was handled, i.e. `if attacker == theft.victim then if not theft.revengePaid then ... end return end`. Otherwise fall through to the recentRobbers check. Add a theft.spec case: A robbed B, then A is stealing from C, then B bonks A and gets paid once."
+ },
+ {
+  "id": "F17-alert-banner-overlaps-event-hud",
+  "severity": "low",
+  "files": [
+   "/home/user/HotwireCity/src/client/Controllers/NotificationController.luau",
+   "/home/user/HotwireCity/src/client/Controllers/EventsClient.luau"
+  ],
+  "summary": "The CarStolenAlert banner (y=84, 92 tall) sits on the same top-centre strip as EventsClient's pill row (y=78) and the Hot Drop banner, so during a Hot Drop or Rush Hour the victim's alarm text is covered or covers them.",
+  "evidence": "NotificationController.luau:58 ALERT_BANNER_POSITION = UDim2.new(0.5, 0, 0, 84); 1306-1313 Size 660x92 in HC_Banners. EventsClient.luau:184 places the pill row at UDim2.new(0.5,0,0,78). The HUD integration doc says the Hot Drop banner uses y=128-246.",
+  "failureScenario": "A theft starts during a Hot Drop countdown. The red alarm banner and the Hot Drop banner overlap, and the theft text is unreadable on phones.",
+  "suggestedFix": "Move the theft banner below the event strip (e.g. y=250), or hide or shift the EventsHUD while NotificationController.isAlertActive() is true.",
+  "verifyReason": "Overlap confirmed, but the effect is the reverse of the claim. Both ScreenGuis use Kit.screen (IgnoreGuiInset=false, same UIScale). The theft banner is 660x92 at y=84 (84-176) in HC_Banners, and EventsHUD's Top frame is at y=78 with the pill row at 78-118 and the Hot Drop banner at 128-246. HC_Banners has DisplayOrder Theme.Layers.Banners=30 and EventsHUD has HUD+1=11, so the theft alarm draws on top and stays readable. What gets covered is the event pills and the top of the Hot Drop banner (title and timer) while a theft alert is active.",
+  "fix": "src/client/Controllers/EventsClient.luau: while NotificationController.isAlertActive() is true (lazy require, checked in the existing render or update loop), offset the 'Top' frame down by ~104 design px (to y\u2248182), and restore it when the alert ends. Alternatively hide the pill row during the alert. Do not move the theft banner lower, because the centre Announce banner sits at 45% height."
+ },
+ {
+  "id": "TUT-TARGET",
+  "severity": "high",
+  "files": [
+   "src/client/Controllers/TutorialController.luau",
+   "src/server/Systems/StreetSpawnService.luau",
+   "src/shared/Config/Map.luau",
+   "src/server/Systems/PlotService.luau"
+  ],
+  "summary": "Tutorial step 2 ignores the guaranteed newbie car (TutorialForUserId is never read). It targets the nearest Parked car by straight-line distance from inside the garage, which on several plots is a car behind or beside the garage walls.",
+  "evidence": "StreetSpawnService.luau:12-13 says the car is tagged 'for the tutorial arrow', and lines 427-430/443-450 set TutorialForUserId. A grep of src/client finds no reader. TutorialController.luau:931-940 collects every Kind=='Parked' model and calls pickNearest(candidates, root.Position) with no maxDistance. pickNearest (175-188) is pure Euclidean. OwnerSpawn is at local z=+24 (Map.luau:77) while the only door is at FRONT_Z=-44 (Map.luau:62; walls at PlotService.luau:401-405). Replaying MapLayout.parkingSpots(): the nearest spot to OwnerSpawn is behind or beside the garage on plot 4 (89 studs), plot 6 (81), plot 7 (56) and plot 8 (66). The curbside newbie car is about 94 studs away. Plot 1 has a back spot at 114. About 26 of 70 spots are filled at any time.",
+  "failureScenario": "A new player on plot 7 spawns facing the door. The STEAL! beam and the AlwaysOnTop highlight point through the back wall at a car on the ring road. They walk into the wall and get no hint to go out the front. The arrow only switches to the curbside car once they happen to leave through the door, because retarget runs every 2s. This breaks SPEC \u00a72 step 2 for roughly a third of new players on those plots.",
+  "suggestedFix": "In retarget(), use the model whose TutorialForUserId equals LocalPlayer.UserId when it exists. Otherwise only consider cars in front of the door (same test as StreetSpawnService._inFrontOfDoor) and pass a maxDistance. While the root is inside MapLayout.plotInteriorZone(plotIndex), point the waypoint at the door (plotToWorld(idx, (0,0,FRONT_Z-6))) and keep the car highlight.",
+  "verifyReason": "Confirmed. Nothing in src/client reads TutorialForUserId; StreetSpawnService sets it at lines 429/449 and the docs mention it, but no client code uses it. retarget() (TutorialController.luau:923-962) collects every Kind=='Parked' Vehicle and calls pickNearest(candidates, root.Position) with no maxDistance and no front-of-door filter. I replayed MapLayout.parkingSpots() (70 spots) against OWNER_SPAWN (local z=+24) and got the same numbers as the tracer. The nearest spot is behind or beside the walls on plot 4 (89.5), plot 6 (81.0), plot 7 (55.5) and plot 8 (66.0); the curbside newbie car is 94.1. Plot 1 also goes wrong when ensureNewbieCar reuses the existing front Common at 159.6 and the back spot (113.9) is filled. WaypointController draws a straight Beam and the Highlight is AlwaysOnTop, so both point through a solid wall (PlotService walls ~401-405, one door at FRONT_Z). The hysteresis (25 studs) makes it worse: once the wrong car is picked, a newbie car that spawns or tags later can't take over until the player is out the door. PlotService.assign hands out the lowest free plot, so plots 4-8 go to players joining busy servers. It is recoverable (the door is right in front of the spawn), but it is wrong on the critical first-60s path the SPEC calls out.",
+  "fix": "src/client/Controllers/TutorialController.luau, retarget(): (1) First look for a Model tagged Vehicle with Kind=='Parked' and GetAttribute('TutorialForUserId')==player.UserId. If one exists, target it directly and skip the hysteresis block, so a newbie car tagged late still wins. (2) Otherwise, when plotIndex() is known, keep only candidates on the street side of the door. Use door = MapLayout.plotToWorld(idx, Vector3.new(0,0,MapConfig.Garage.FRONT_Z)).Position and face = MapLayout.plotOrigin(idx).LookVector (flattened), and accept (pos-door):Dot(face) > -4, the same test as StreetSpawnService._inFrontOfDoor. If that leaves nothing, fall back to the current all-cars list. Optional: while the root is inside MapLayout.plotInteriorZone(idx) and no tagged car exists, point the waypoint at plotToWorld(idx,(0,0,FRONT_Z-6)) labelled 'STREET' and keep the car highlight. No server change is needed."
+ },
+ {
+  "id": "TUT-DEALER",
+  "severity": "medium",
+  "files": [
+   "src/client/Controllers/TutorialController.luau"
+  ],
+  "summary": "The dealership step is an 8-second timed card. The dealership waypoint is cleared when the tutorial ends, so the player is never actually guided to the Dealership or to upgrades.",
+  "evidence": "STEPS[5] has timed = 8 (TutorialController.luau:94-101). transition() returns DONE after elapsed >= DEALER_SECONDS with no position check (164-167). enterStep sets the waypoint (987-991), then finish calls teardown, which runs setWaypoint(nil) (994-1001, 1003-1010). The step starts at the CollectPad at the back of the garage (Map.luau:73), hundreds of studs from the Dealership at block (0,0).",
+  "failureScenario": "After collecting, the arrow appears for 8s, then the confetti card and the arrow disappears before the player has left the garage. TutorialDone has already been fired, so there is no follow-up objective. This misses SPEC \u00a72.4 'Arrow \u2192 Dealership / upgrades' and leaves the new player with no next goal.",
+  "suggestedFix": "Make step 5 complete on arrival: MapLayout.poiCenter('Dealership') within ~60 studs, or a 90s timeout. Keep the waypoint until then, and fire TutorialDone on arrival. Optionally add a 'GEAR SHOP' step toward MapLayout.gearShopCounter().",
+  "verifyReason": "Confirmed. STEPS[5].timed=8 (lines 94-101). transition() returns DONE once elapsed>=DEALER_SECONDS with no position check (164-167). enterStep sets the Dealership waypoint (987-991), and finish() then teardown() calls setWaypoint(nil) (994-1010). The step starts at the CollectPad at the back of the garage (local z=40), or after the 20s collect timeout. Walking to the door alone takes about 5s at WalkSpeed 18, and the Dealership block is hundreds of studs away, so the arrow always disappears long before arrival. No other client code points at the Dealership afterwards (grep: only TutorialController uses poiCenter('Dealership')), and TutorialDone has already fired. SPEC \u00a72.4 'Arrow \u2192 Dealership' is effectively not met. Medium rather than high because the obvious loop (steal more) still works without it.",
+  "fix": "src/client/Controllers/TutorialController.luau: remove timed=8 from STEPS[5] (or replace it with a long timer) and add nearDealer:boolean to Ctx. In tick(), set nearDealer to whether the flat distance from rootPart() to MapLayout.poiCenter('Dealership') is <= ~70. Make transition(STEP_DEALER) return DONE when ctx.nearDealer or ctx.elapsed >= DEALER_TIMEOUT (~90). Keep the waypoint until then; TutorialDone still fires from finish(). Update tests/spec/hud.spec.luau:213, which asserts DEALER at elapsed=8 -> DONE, to cover nearDealer and the new timeout. A Gear Shop step is optional."
+ },
+ {
+  "id": "TUT-DAILY-TOAST",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/RewardsService.luau",
+   "src/client/Controllers/TutorialController.luau",
+   "src/client/Controllers/HUDController.luau"
+  ],
+  "summary": "8s after a brand-new player loads, the server toasts 'Tap \ud83d\udcc5 to claim' while the tutorial's focus mode is hiding every menu button, including \ud83d\udcc5.",
+  "evidence": "RewardsService.luau:760-767 runs task.delay(8) and notifies if getDailyView().canClaim. A new profile has lastClaimDay=0, so canClaim is always true. TutorialController.luau:965-971 calls setHudFocus(true) in steps 1-2 (focus lasts up to FOCUS_MAX_SECONDS=150, line 121). HUDController.luau:1381-1384 sets u.menu.Visible=false and u.topRow.Visible=false while focused.",
+  "failureScenario": "During 'YOUR CAR MAKES MONEY!' or 'STEAL A CAR!' a toast tells the player to tap a button that doesn't exist. This splits attention in the critical first minute and clashes with SPEC \u00a71.6 ('no reading required').",
+  "suggestedFix": "In onLoaded, skip the daily nag when data.tutorialDone == false, and send it from the TutorialDone handler or when focus is released. Hold Hot Drop/event Announce banners for tutorial players the same way.",
+  "verifyReason": "Confirmed. RewardsService.onLoaded runs task.delay(8) and notifies when getDailyView().canClaim is true (760-767). A new profile has daily.lastClaimDay=0, so it always fires. The tutorial starts at about snapshot-ready + 1.5s and step 1 lasts 4s, so the toast lands in step 1 or 2 while setHudFocus(true) has set u.menu.Visible=false (HUDController 1381-1384). The Daily button is in MENU, so it is hidden. NotificationController does not check the tutorial. The toast also says 'Tap \ud83d\udcc5' but the button icon is \ud83c\udf81 (HUDController.luau:103), so the instruction is wrong even outside the tutorial. This is a distraction, not a breakage, so low.",
+  "fix": "src/server/Systems/RewardsService.luau onLoaded: inside the task.delay(8) callback, return early when data.tutorialDone ~= true. Once focus mode ends, the Daily button's badge (HUDController.luau:1199-1200, set from snap.daily.canClaim) already advertises the reward. Also change the text to 'Tap \ud83c\udf81 to claim' to match the HUD icon. Holding Hot Drop/Announce banners back is optional and out of scope."
+ },
+ {
+  "id": "TUT-REGRESS-CLAIMED",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/TutorialController.luau",
+   "src/server/Systems/VehicleService.luau",
+   "src/client/Controllers/DealershipClient.luau"
+  ],
+  "summary": "If the player hops out during 'DRIVE IT HOME!', the tutorial drops back to 'STEAL A CAR!', points at a different Parked car and shows a 'HOLD E' keycap. The player's own claimed Loot car right beside them can only be re-entered with F ('Get in').",
+  "evidence": "transition() returns STEP_STEAL after 2.5s out of the car (TutorialController.luau:156-159). retarget/validParked only accept Kind=='Parked' (918-920, 931-939). VehicleService gives the unoccupied claimed Loot car an EnterPrompt on KeyCode F (1203-1213, 1238-1250). Its 'Hotwire' prompt carries HideForUserId = claimer (1256-1272), which DealershipClient hides for the claimer (447-463).",
+  "failureScenario": "The new player stops short of the garage and gets out, maybe to look around. The arrow sends them to another street car while their stolen car sits next to them. Pressing E on it does nothing because only F is offered. If they leave, the car despawns after 45s (ABANDON_DESPAWN).",
+  "suggestedFix": "In STEP_STEAL, first look for a Vehicle with Kind=='Loot', OwnerUserId==me and DriverUserId==0 within ~150 studs. Target it with the label 'GET BACK IN' and a keycap of F, \ud83d\udc46 or Y.",
+  "verifyReason": "Confirmed. transition(STEP_DELIVER) returns STEP_STEAL after notDrivingFor>=2.5 (156-159). retarget and validParked only consider Kind=='Parked', and the step-2 card shows the 'HOLD E' keycap. After exit, refreshManagedPrompts (VehicleService ~1220-1272) gives the claimer an EnterPrompt 'Get in' on F/ButtonY (OnlyUserId=claimer) and a Hotwire prompt with HideForUserId=claimer, which DealershipClient.applyAudience hides locally. So the tutorial points at another street car while the player's own loot car offers only F. Impact is mild: the 'Get in [F]' prompt is visible right next to them, and stealing another Common works and is free of heat. The 45s despawn only happens if no player is within NEAR_PLAYER_RADIUS=120, so it doesn't apply while they stay nearby. Low.",
+  "fix": "src/client/Controllers/TutorialController.luau: in retarget() (STEP_STEAL), first look for a Vehicle Model with Kind=='Loot', OwnerUserId==player.UserId and DriverUserId==0 (or nil), within ~150 studs. If found, highlight it, set the waypoint label to 'GET IN', and switch the keycap glyph to F / \ud83d\udc46 / Y (gamepad) with no 'HOLD' caption. Otherwise keep the current Parked logic. Shortening DELIVER_GRACE is not needed."
+ },
+ {
+  "id": "PILLAR1-NO-HEAT",
+  "severity": "low",
+  "files": [
+   "src/shared/Config/Rarity.luau",
+   "src/server/Systems/StreetSpawnService.luau",
+   "src/shared/Config/Cars.luau"
+  ],
+  "summary": "Feel/design: about 86% of street steals (Common and Uncommon) add 0 wanted stars, so most early steals involve no getaway at all. This undercuts pillar 1 ('Every steal is a getaway') and makes buying Common/Uncommon cars at the Dealership pointless.",
+  "evidence": "Rarity.luau: Common has streetWeight 60 and wantedOnSteal 0 (lines 37, 40). Uncommon has streetWeight 26 and wantedOnSteal 0 (47, 50). Rare and above total about 14. StreetSpawnService.luau:254 adds only tier.wantedOnSteal. Dealer prices are $120-400 for Common and $1,000-2,400 for Uncommon (Cars.luau), for the same $/s the player can steal risk-free in 0.8-1.2s.",
+  "failureScenario": "After the tutorial a new player fills slots 2-4 with free, risk-free Commons and Uncommons. No police show up, so the drive home is just an errand. The dealership the tutorial points them to sells the same cars for cash.",
+  "suggestedFix": "Keep the free tutorial steal, then make Uncommon 1\u2605 and give Common a 30-50% 'witness' 1\u2605, with a gentle single cruiser and long bust time. Alternatively, a parked steal could set off a car alarm that summons one patrol unit for 15s.",
+  "verifyReason": "The facts are right. Common has streetWeight 60 and Uncommon 26, both with wantedOnSteal 0, so about 86% of unboosted street rolls add no heat. StreetSpawnService.onStolen only adds tier.wantedOnSteal. Dealer Commons cost $120-400 and Uncommons $1000-2400. However, this matches the SPEC mechanism ('wanted stars rise with rarity', \u00a72.5/\u00a76), and carjacks (Heat.carjack=1), dealer steals, hot drops and player thefts all add heat. It is a tuning/design call against pillar 1 and RESEARCH ('every steal becomes a getaway'), not a code defect. Low, as a balance item.",
+  "fix": "Tuning only, in src/shared/Config/Rarity.luau: set Uncommon.wantedOnSteal = 1. The first-ever steal is still exempt via VehicleService.addStealHeat/isFirstSteal, and WantedService halves heat for brand-new players. A 'witness' chance for Common needs new code in StreetSpawnService.onStolen, e.g. rng < 0.35 adds 1. Treat that as a design decision to playtest, not a bug fix."
+ },
+ {
+  "id": "EXIT-ON-E",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/VehicleClient.luau",
+   "src/client/Controllers/TutorialController.luau",
+   "src/client/Controllers/EffectsController.luau"
+  ],
+  "summary": "E is the key the tutorial teaches players to hold to hotwire, and it is also bound to EXIT while driving. Steal prompts on nearby parked cars stay visible while driving and invite that press.",
+  "evidence": "VehicleClient.luau:716-726 binds ACTION_EXIT to F, E and ButtonA at High+50 with Sink. TutorialController.keyFor returns 'E' (206-213). Nothing hides Hotwire/Carjack prompts while the Driving attribute is true: EffectsController only rescales them (1534-1540), and GarageClient only touches DisplayCar prompts (119-150). The server rejects with 'You're already driving!'.",
+  "failureScenario": "A newcomer driving past parked cars sees 'Hotwire [E]', presses E and is thrown out of the car mid-delivery. That sends the tutorial back to step 2 (see TUT-REGRESS-CLAIMED).",
+  "suggestedFix": "Drop Enum.KeyCode.E from HC_Exit (keep F and the EXIT button). Locally disable steal-type prompts while player:GetAttribute('Driving') is true.",
+  "verifyReason": "Confirmed. HC_Exit is bound to F, E and ButtonA at High+50, and pressHandler acts on Begin and Sinks (VehicleClient.luau:679-726). VehicleClient.exit() sets Humanoid.Jump, so a single E tap leaves the car. Steal prompts default to KeyCode E and MaxActivationDistance 12. A car in the travel lane (8 from centerline) passes parked cars (15.5) and adjacent-lane traffic within 12 studs, and nothing hides Hotwire/Carjack prompts while Driving: EffectsController and DealershipClient only rescale or filter them by audience, and GarageClient only touches DisplayCar prompts. Roblox does not hide ProximityPrompts for seated characters. The server would reject the steal anyway ('You're already driving!'), so the prompt is pure bait. During the tutorial this drops the player back to step 2.",
+  "fix": "Minimal: remove Enum.KeyCode.E from the HC_Exit binding in src/client/Controllers/VehicleClient.luau:716-726. F, ButtonA and the touch EXIT button remain. Update the binding list in docs/integration/vehicles-world.md:14. Optionally also hide steal-type prompts (names Hotwire/Carjack/StealPrompt) locally while player:GetAttribute('Driving') is true. Do not toggle ProximityPromptService.Enabled globally, because CombatClient already owns that toggle for stuns."
+ },
+ {
+  "id": "GARAGE-HOLD-PRECHARGE",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/GarageService.luau",
+   "src/server/Systems/VehicleService.luau"
+  ],
+  "summary": "Exploitable: the garage display-car StealPrompt never clears a hold that was started and then aborted. An exploiter can pre-charge the hold timer and then trigger instantly.",
+  "evidence": "GarageService.luau:552-563 records display.holds[p] on PromptButtonHoldBegan and only reads and clears it in Triggered. There is no PromptButtonHoldEnded handler. VehicleService.addStealPrompt does reset interrupted holds (VehicleService.luau:1061-1067).",
+  "failureScenario": "The exploiter taps E on a victim's display car, which records 'began', and releases. They wait the required time, set HoldDuration=0 locally and press E. Triggered passes the os.clock()-began check, giving an instant steal from a player garage.",
+  "suggestedFix": "Add steal.PromptButtonHoldEnded: if os.clock()-began is less than _requiredHold(base, holdMultiplier(p)), clear display.holds[p]. That mirrors VehicleService.",
+  "verifyReason": "Confirmed. GarageService.luau:552-563 records display.holds[p] on PromptButtonHoldBegan, and only Triggered reads and clears it; there is no PromptButtonHoldEnded handler. VehicleService.addStealPrompt does clear interrupted holds (1061-1067). An exploiter can begin a hold, release, wait out _requiredHold, then trigger instantly. That bypasses the defender's chance to interrupt the hold (bat/zapper stun) and lets them pre-charge before a lock expires. beginTheft still enforces presence in the interior, the lock, newbie protection and cooldowns, so the gain is limited. Low. Minor related point: holds is a strong-keyed table that is never pruned on PlayerRemoving, but it dies with the display.",
+  "fix": "src/server/Systems/GarageService.luau, after the PromptButtonHoldBegan connection, add: steal.PromptButtonHoldEnded:Connect(function(p) local began = display.holds[p]; if began and os.clock() - began < GarageService._requiredHold(base, holdMultiplier(p)) then display.holds[p] = nil end end). This mirrors VehicleService."
+ },
+ {
+  "id": "SPAWN-FLASH",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/PlotService.luau",
+   "src/server/Systems/MapBuilder.luau",
+   "default.project.json"
+  ],
+  "summary": "Every spawn and respawn first places the character on the plaza SpawnLocation, then pivots it to the garage a deferred tick later. The player sees the plaza and a camera snap, and the server teleport races the engine's own spawn placement.",
+  "evidence": "CharacterAutoLoads=true (default.project.json). The only SpawnLocation is at the plaza (MapBuilder.luau:1257-1271). PlotService.onCharacter uses task.defer then WaitForChild and moveCharacterHome (PlotService.luau:1456-1464).",
+  "failureScenario": "A new player's first frame shows the plaza and the camera snaps into the garage, which breaks SPEC \u00a72.1 'Spawn inside your own garage'. If the engine's spawn placement ever lands after the deferred pivot, the player stays at the plaza and the tutorial points across the city.",
+  "suggestedFix": "Give each plot a non-Neutral SpawnLocation at OwnerSpawn and set player.RespawnLocation in assign() (clear it in release). Keep the pivot only as a fallback.",
+  "verifyReason": "Partly confirmed. CharacterAutoLoads=true, and the only SpawnLocation is the Neutral plaza pad (MapBuilder.luau:1257-1271). PlotService.onCharacter runs task.defer, then WaitForChild('HumanoidRootPart'), then PivotTo (1456-1464). So every spawn places the character at the plaza first, and the client sees a snap once the server pivot replicates. On first join this is mostly hidden by loading; on respawn it is visible. The claim of a race where engine placement lands after the deferred pivot is speculative: LoadCharacter places the character before parenting, and the handlers are deferred twice. Cosmetic, low.",
+  "fix": "src/server/Systems/PlotService.luau: build one SpawnLocation per plot at ownerSpawnCFrame(index). Make it Neutral=true, because teamless players can only use a neutral RespawnLocation, and CanTouch=false. Set player.RespawnLocation in assign() and clear it in release(). assign() runs in PlayerAdded before the character loads. Keep moveCharacterHome as the fallback, and keep the plaza pad in MapBuilder.luau for unassigned players. Verify in Studio that unassigned players don't randomly pick a plot spawn. If they do, set Enabled=false on plot spawns and confirm RespawnLocation still honours them."
+ },
+ {
+  "id": "TUT-NOT-PERSISTED",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/TutorialController.luau",
+   "src/server/Systems/GarageService.luau"
+  ],
+  "summary": "Returning-player edge cases. Tutorial progress isn't saved, so a player who disconnects before TutorialDone restarts at step 1 with menus hidden. If their garage is already full, 'DRIVE IT HOME!' can never complete.",
+  "evidence": "begin() always runs goTo(STEP_MONEY) (TutorialController.luau:1156-1157). Step 3 only advances when garageCount or stealCount rises (143-145, 1079-1080). onDelivery with a full garage just toasts and returns without storing or counting a steal (GarageService.luau:1100-1110).",
+  "failureScenario": "A player delivers several cars during steps 4-5 and leaves before the 8s dealer card fires TutorialDone. On rejoin, focus mode hides the menus again for up to 150s. With 4/4 slots they deliver into a 'Garage full!' loop and the card never advances unless they find SKIP.",
+  "suggestedFix": "Fire TutorialDone, or persist a tutorialStep, as soon as the first delivery happens (stats.steals > 0). In shouldRun, skip the tutorial for profiles with stats.steals > 0.",
+  "verifyReason": "Confirmed but narrow, and already documented as a known limitation (docs/integration/gameplay-client.md:345). begin() always starts at STEP_MONEY. Only tutorialDone is persisted, and only by finish() (DataService TutorialDone handler). A player who disconnects in the ~28s between first delivery and TutorialDone (collect timeout 20s + dealer 8s) restarts at step 1 with focus mode. The 'Garage full' deadlock is real in code: GarageService.luau:1100-1110 returns without counting a steal, and step 3 only advances on garageCount or stealCount rising. Reaching it, though, needs 3 extra cars (START_SLOTS=4) without the tutorial ever finishing, which is practically unreachable. SKIP and the 150s focus cap still work.",
+  "fix": "src/client/Controllers/TutorialController.luau start(): after onReady, if snap.tutorialDone == false and TutorialController.stealCount(snap) > 0, call pcall(Net.fire, 'TutorialDone') and return without begin(). Optionally fold that into shouldRun(), and update the hud.spec shouldRun cases. stats.steals only increments on delivery, so this means 'already delivered once'."
+ },
+ {
+  "id": "OFFLINE-PAYOFF",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/RewardsService.luau",
+   "src/client/Controllers/NotificationController.luau"
+  ],
+  "summary": "Feel: offline earnings are credited before the 'WHILE YOU WERE AWAY' modal appears. The COLLECT button is cosmetic, and the HUD cash counter has already jumped behind the dimmed modal.",
+  "evidence": "RewardsService.luau:703-706 calls addCash (which sets the Cash attribute immediately) and then fires OfflineEarnings. In NotificationController.luau:1166-1178, COLLECT only closes the modal or plays the coin burst.",
+  "failureScenario": "A returning player sees their cash already up by $7,560 behind the dim overlay. Pressing COLLECT then animates coins into a counter that doesn't change, so the payoff moment is lost.",
+  "suggestedFix": "Have HUDController suppress or freeze the cash tween while the offline modal is open and count up when COLLECT is pressed. Or pay through a ClaimOffline remote with a server auto-claim after 30s.",
+  "verifyReason": "Confirmed. grantOffline calls DataService.addCash, which sets the Cash attribute, and then fires OfflineEarnings (RewardsService.luau:703-706). NotificationController's COLLECT only calls closeOffline(true), which plays a coin burst, sounds and a fade. Auto-close does the same without the burst. The HUD counter has already moved behind the semi-transparent Dim before the player presses COLLECT. This is feel/polish only, with no economic effect. New players never see it (info.isNew returns early).",
+  "fix": "Client-only, to keep the economy server-authoritative and unchanged: add NotificationController.isOfflineOpen() (or a signal) and have HUDController's Cash-attribute handler defer its counter tween while the modal is open. Call the HUD refresh from closeOffline() so the count-up plays with the coin burst. Files: src/client/Controllers/NotificationController.luau and src/client/Controllers/HUDController.luau. A server ClaimOffline remote is unnecessary."
+ },
+ {
+  "id": "KEYCAP-PULSE",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/TutorialController.luau",
+   "src/client/UI/Kit.luau"
+  ],
+  "summary": "The tutorial's 'HOLD E' keycap stops pulsing as soon as step 2 starts. Kit.pop tweens the same UIScale that carries the infinite pulse tween, which cancels it.",
+  "evidence": "keyScale is created with an infinite tween to Scale=0.9 (TutorialController.luau:715-716). renderStep calls Kit.pop(c.key, 1.4) when showKey is set (810-812). Kit.pop reuses FindFirstChildOfClass('UIScale') and tweens it to 1 (Kit.luau:373-377).",
+  "failureScenario": "The one visual cue that teaches 'hold' sits static for the whole steal step.",
+  "suggestedFix": "Pop a wrapper frame (or keyTop) instead of `key`, or restart the pulse tween after the pop completes.",
+  "verifyReason": "Confirmed. keyScale is a UIScale under `key` with an infinite reversing tween to Scale 0.9 (TutorialController.luau:715-716). renderStep calls Kit.pop(c.key, 1.4) whenever the key is shown (810-812). Kit.pop reuses the existing UIScale (FindFirstChildOfClass) and plays a new Scale tween. TweenService cancels the earlier tween on the same property, so the pulse dies on the first render of step 2. The key is hidden during step 1, so the pulse is never seen.",
+  "fix": "src/client/Controllers/TutorialController.luau buildCard(): move the pulse UIScale and its tween from `key` to `keyTop`, creating it after keyTop. Kit.pop(c.key, 1.4) then owns key's own UIScale, and the two nested scales multiply without cancelling each other. Alternatively, change line 811 to Kit.pop(c.keyLabel, 1.4)."
+ },
+ {
+  "id": "F1",
+  "severity": "high",
+  "files": [
+   "src/server/Systems/RebirthService.luau",
+   "src/shared/Net.luau",
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "The first Rebirth request from each player is always silently dropped because the remote's rate limit is 0.5/s.",
+  "evidence": "RebirthService.luau:303-305 registers `Net.on(\"Rebirth\", ..., 0.5)`. Net.luau:100 creates the token bucket with `tokens = perSecond` (0.5), and Net.luau:105 `if b.tokens < 1 then return false`, so the first call is rejected with no feedback. MenuController.luau:2812-2817 sends a single `Net.fire(\"Rebirth\")` after the confirm tap, then shows 'REBIRTHING...' for PENDING_SECONDS=3 (line 75). AdminService.luau:456 calls RebirthService.rebirth directly, so admin QA and the unit tests never go through the limiter.",
+  "failureScenario": "A player saves up $750K, opens REBIRTH, taps twice to confirm, sees 'REBIRTHING...' for 3s, and then nothing happens. No Notify is sent and the button resets. They have to repeat the whole double-tap (at least 1s later) for it to work. The first press of the main retention action fails in every server session.",
+  "suggestedFix": "Register the handler with a rate of at least 1 (for example `end, 1)`), since `busy[player]` already blocks concurrent rebirths. Alternatively, change `Net.allow` to start the bucket at `math.max(1, perSecond)` tokens.",
+  "verifyReason": "Confirmed. CarBuilder.luau:159-160,547-565 places two collidable massless Balls (d=1, bottom 0.25) at x=0, z=axleF/axleR. Nothing in the repo turns them off: no CollisionGroups exist, and grep finds no BumpStop handling in PoliceService, VehicleService or VehicleController. The tracer's claim that 'the server does the same for police' is wrong, so police cars snag too. At rest the ball bottom is 0.25+RIDE_LIFT 0.2 = 0.45, below CURB_HEIGHT 0.6. Sidewalk strips are vertical-faced blocks (MapBuilder 1116-1210); only DrivewayRamp curb cuts are wedges. Suspension rays go straight down from the hub (VehicleController 613), so they only reach the curb top once the hub is over it. At curb height the ball reaches about 0.357 ahead of the axle, so it strikes the curb's top corner with a roughly 44\u00b0 normal. Elasticity is 0. Downforce adds 0.002\u00b7v\u00b2/(4\u00b768) of compression: about 0.07 at 100 studs/s, and about 0.38 at 227 (hypercar nitro), which leaves about 0.07 of clearance. These numbers match the tracer. With pitch inertia included, my estimate is about 22 studs/s of forward speed lost and 22 gained upward at 60 studs/s, a bit less than the claimed 30, but still a hard snag. Server crash damage (\u0394v>55) starts around 110 studs/s. The rear ball hits the curb again after the front wheels climb. The test at vehicle.spec 332-334 checks only the chassis bottom.",
+  "fix": "Do not just raise BUMPSTOP_CLEARANCE. At 0.65 the ball still dips under 0.6 at speed (0.85-0.38), and cars resting without a controller sink 0.65 into the road. Instead, change src/shared/Vehicle/VehicleController.luau: in new(), for every model child named \"BumpStop\" that is a BasePart, store its CanCollide and set it false; restore it in destroy() (pcall, skip if the part is gone). On the driver's client this changes only the owner's local simulation, which is the one that counts for a client-owned assembly. On the server (police, and the F4 settle controller) it replicates harmlessly. While driving, the chassis box (bottom \u22650.95 with the lift) still keeps the car off the ground. In tests/spec/vehicle.spec.luau, add a check that BumpStops are CanCollide=false after VC.new and true again after destroy, and a note/assert that stop bottom + RIDE_LIFT < CURB_HEIGHT, which is why they must be disabled."
+ },
+ {
+  "id": "F2",
+  "severity": "high",
+  "files": [
+   "src/shared/Config/Monetization.luau",
+   "src/client/Controllers/MenuController.luau",
+   "src/client/Controllers/GarageClient.luau",
+   "src/server/Systems/GarageService.luau",
+   "src/shared/Config/Economy.luau"
+  ],
+  "summary": "Every gamepass and product id is 0 (and GROUP_ID is 0), so the Store, all pass effects and the group bonus are off at launch. Garage pads 11-12 also advertise a pass that can't be bought.",
+  "evidence": "Monetization.luau:13/20/27/34/41 (passes) and 54/61/68/75/82/89 (products) are all `id = 0`. MonetizationService.luau:211 makes hasPass false for id 0. MenuController.luau:1510 `if items.comingSoon` renders 'STORE COMING SOON!'. GarageService.luau:138 sets `passOnly = not hasSlotsPass`, so pads 11-12 always show '\ud83c\udd7f\ufe0f +2 SLOTS PASS' (GarageClient.luau:402), but the purchase prompt only appears when the pass id is non-zero (GarageClient.luau:457). Economy.luau:187 has `GROUP_ID = 0`.",
+  "failureScenario": "At launch nobody can buy VIP, slots, Master Thief, Infinite Nitro, Zapper Pass, cash, Lockdown, Lose the Cops, Server Luck or the Dragster. The Store tab is a 'coming soon' card. Every player sees a gold '+2 SLOTS PASS' label on two pads that does nothing when they walk up to it.",
+  "suggestedFix": "Create the passes and products on the Creator Dashboard and fill in the ids (plus GROUP_ID) as a release-checklist step. Add a server boot warning when any id is 0 in a non-Studio server. In GarageClient, only show the PassOnly label when `Monetization.Passes.slots.id ~= 0` (otherwise show a plain lock or hide the pads).",
+  "verifyReason": "Confirmed. The Heartbeat at VehicleService 1739-1746 runs zonePass (every 0.2 s) before watchdogPass (every 0.5 s). zonePass (1460-1498) reads the live, client-replicated car.chassis.CFrame.Position and immediately calls fireDelivery, ChopAttempt or SprayAttempt. It does not compare against st.wdCFrame and does not check wdRevokedUntil. The handlers trust it fully. GarageService.onDelivery (1021+) checks no distance or time and destroys the car straight away for Loot/Owned. TheftService.complete (1223+) only checks thief/victim state. WantedService.onSprayAttempt (541+) only charges cash and clears the stars. Once the car is destroyed, the watchdog never samples the teleport, so a CFrame write from the owning client becomes an instant delivery, chop or wanted wipe.",
+  "fix": "In src/server/Systems/VehicleService.luau zonePass, before any zone action: skip the car if now < st.wdRevokedUntil. Then compute disp = flat(pos - st.wdCFrame.Position).Magnitude, dt = min(now - st.wdAt, WATCHDOG_MAX_DT) and hSpeed, and call VehicleService._watchdogVerdict(hSpeed, disp, dt, getSpeedCap(car)). If it returns a verdict, call violate(car, player, st, verdict, ...) and continue without firing any zone signal. Also move runPass('watchdog') above runPass('zone') in the Heartbeat. For extra safety, fire a zone only when the last watchdog-accepted position (st.wdCFrame.Position) is also inside it, which costs at most 0.5 s of delay. Add a vehicleservice.spec test: a car teleported into its drop-off does not fire DeliveryAttempt. Note that the remaining per-tick hop allowance is F5's problem."
+ },
+ {
+  "id": "F3",
+  "severity": "high",
+  "files": [
+   "src/server/Systems/DealershipService.luau",
+   "src/shared/Config/Police.luau",
+   "src/shared/Config/Economy.luau"
+  ],
+  "summary": "Stealing from the dealership costs a flat 2\u2605 for any rarity, and spraying it off costs $500. A heist is worth about $40K on average, so Buy is pointless and early progression explodes.",
+  "evidence": "DealershipService.luau:777 `addHeat(player, PoliceConfig.Heat.dealerSteal, ...)` with Police.luau:27 `dealerSteal = 2`. There is no rarity term (street steals use rarity.wantedOnSteal, up to 3\u2605 for Mythic). Economy.luau:125 `SPRAY_COST_PER_STAR = 250`. Computed from Config/Cars + Rarity dealerWeight: expected car value per dealer roll is about $40K, so selling (50%) gives about $20K and chopping (35%) about $14K. 3% of rolls are Legendary+ (a Mythic chops for $525K-875K). A new player earns $3/s, so $40K is about 3.7 hours of income. A pad restocks 30s after a theft.",
+  "failureScenario": "Within minutes of joining, players learn to rob the showroom over and over, chop or sell the cars, spray for $500, and reach rebirth ($750K) in a few heists. Buy prompts and car prices stop mattering as a cash sink, and the 'getaway' tension is gone because 2\u2605 is trivial to lose.",
+  "suggestedFix": "Base dealer-steal heat on rarity (for example `max(Heat.dealerSteal, tier.wantedOnSteal + 1)`, so Legendary+ is 4-5\u2605). Scale the spray cost with income or with stars\u00b2. Make dealer-stolen cars sell or chop for less (for example 15%, or no sell value for 10 minutes). Consider a per-player dealer-theft cooldown.",
+  "verifyReason": "Confirmed. PlotService.pushOut (1229-1267) checks whether the intruder sits in a 'Vehicle'-tagged model and, if so, PivotTo's the whole car with the driver still seated onto the driveway at FRONT_Z-12-2. lockFor (1297-1310) calls pushOut immediately, and the heartbeat repeats it every PUSH_INTERVAL 0.5 s (1602-1619). TheftService checks the lock only in the start gate (336-337, 1034). This contradicts SPEC \u00a76 line 106, which says only the character is pivoted out. While locked, the gate is CanCollide=true (applyLockVisual), so without this push a mid-theft lock would trap the thief inside. Instead the lock teleports the thief and the stolen car past the gate, and the victim's lock helps the attacker.",
+  "fix": "In src/server/Systems/PlotService.luau pushOut, resolve the car with sys('VehicleService').fromModel(carModel). If car.kind == 'Stolen' (car.data.theft from this plot's owner), call VehicleService.eject(car) first. TheftService's DriverChanged\u2192markDropped then leaves the car inside and gives the victim the Recover prompt. After the eject, pivot only the character to the driveway, as the else branch already does. For any other vehicle (the intruder's own Owned or Loot car), move it with VehicleService.teleport(car, cf), which pivots and calls resetWatchdog (this also fixes F7), instead of a raw carModel:PivotTo."
+ },
+ {
+  "id": "F4",
+  "severity": "medium",
+  "files": [
+   "src/shared/Config/Cars.luau",
+   "src/server/Systems/MonetizationService.luau",
+   "src/server/Systems/RebirthService.luau",
+   "src/server/Systems/GarageService.luau"
+  ],
+  "summary": "Diamond Dragster is a repeatable Robux product worth $15K/s. It can't be stolen or sold and is never lost on rebirth, so stacking it is pay-to-win and breaks the rebirth curve.",
+  "evidence": "Cars.luau:591-597 `diamond_dragster` has `income = 15000` (more than any Mythic at 4-6K/s), and line 604 has `stealable = false`. MonetizationService.luau:360-382 grants a new one on every purchase with no ownership cap. RebirthService.luau:104-108 keeps every Exclusive car through rebirth. GarageService.luau:860-863 blocks selling it. SPEC \u00a79 promises honest, non-P2W monetization.",
+  "failureScenario": "A player buys 4 Dragsters, earning $60K/s (\u00d72 with VIP). Rebirth 1 ($750K) takes 6 seconds, R2 takes 25 seconds, and the cars survive every rebirth. Free players can't compete on the leaderboard, and other players have nothing to steal from them.",
+  "suggestedFix": "Make it a one-per-account pass, or refuse the product when the player already owns one. Lower its income to around Epic or Legendary level (for example $1,500/s) or make it a cosmetic or speed car. Count at most one Exclusive among the cars kept on rebirth.",
+  "verifyReason": "Confirmed. SPEC.md:115 and :261 call for a server settling controller, and the integration doc expects VehicleService to destroy it on sit. No such controller exists: VehicleController is created only by PoliceService (921) and the client. setDriver(nil) (841-853) only disables the seat and calls SetNetworkOwner(nil). Client-created movers never replicate, so once the server owns the car nothing holds it up, and it falls onto the two centreline balls. That support is unstable on a line, and the chassis COM is on the centreline because the other parts are Massless. CarBuilder's own doc admits a tilt of about 11\u00b0. The bigfoot chassis bottom is 2.7 (CarBuilder 1448), so its tilt is much larger. lifePass (1634-1645) then anchors the car in whatever pose it has. TrafficService.release (686-712) cleans up the Align movers with no replacement. One sub-claim is overstated: 'slides with no brake'. Ball friction 0.3, averaged with the road's, still stops the car quickly.",
+  "fix": "Two fixes in src/server/Systems/VehicleService.luau. (1) When a car loses its driver (the setDriver(nil) path), and also through a public VehicleService.settle(car) that TrafficService.release calls for rammed/knocked cars, create VehicleController.new(model, def, {isServer=true}) with zero input. Step it from one server RunService.PreSimulation loop over the settling set. Destroy it when lifePass anchors the car, when seat() or setDriver(player) gives the car a driver (before SetNetworkOwner(player)), and in destroy(). The client's _suppressForeignMovers already covers the replicated movers. (2) Before setting chassis.Anchored=true in lifePass, if the car is tilted (UpVector.Y < 0.98), PivotTo a level pose at RideHeight above a server ground raycast. Do not add hub balls (the tracer's option b): bull_charger and family_suv are already at the 40-part cap."
+ },
+ {
+  "id": "F5",
+  "severity": "medium",
+  "files": [
+   "src/server/Systems/RebirthService.luau",
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "Rebirth silently throws away all uncollected garage cash, and the Rebirth menu doesn't warn about it.",
+  "evidence": "RebirthService.luau:258-266 calls `Garage.removeSlot(player, slot)` for every slot and ignores the returned record, which carries `uncollected`. Lines 267-268 then reset cash. The menu's 'YOU LOSE' list (MenuController.luau, Rebirth builder around 2760-2765) only mentions cash, cars and slots.",
+  "failureScenario": "A player who returns after an hour has $500K+ sitting in slot billboards, rebirths straight away, and that money disappears without any notice.",
+  "suggestedFix": "Before resetting, call `GarageService.collect(player)` (or sum the removed records' `uncollected` and add it to the player's cash before the reset, then show it in the toast). At minimum, add '\ud83d\udcb0 Uncollected garage cash' to the 'YOU LOSE' list.",
+  "verifyReason": "Confirmed. _speedCap (386-392) is topSpeed\u00d71.35\u00d71.3\u00d71.2 \u2248 2.1\u00d7topSpeed for every car. The spec test even locks this in, so a sustained 1.6\u00d7 over the real nitro maximum passes; for a 130-top-speed car the cap is about 274. watchdogPass measures flat() displacement and horizontal speed only, so Y is never checked, while police bustPass requires |\u0394Y| < 10 (1781). The allowance accrues because wdAt only advances when disp > 0.01 or after 3 s (1576-1580), and dt = min(now-wdAt, 3). A car held still for about 2.9 s can therefore jump cap\u00b72.9+10 in one tick: about 437 studs for a Rustbucket and about 1070 for a 175 car. The test 'lag stall: allowance accrues with dt' shows this was intended, but it can be exploited. Speed violations under 1.5\u00d7cap need two strikes. Part of the nitro choice is deliberate (every car has a nitro tank), but the vertical gap and the stall allowance are real holes.",
+  "fix": "In src/server/Systems/VehicleService.luau and src/shared/Config/Vehicle.luau: (a) cut WATCHDOG_MAX_DT to about 1 s and update the 'lag stall' expectation in tests/spec/vehicleservice.spec.luau. (b) Add a vertical check on each watchdog tick: raycast down from the chassis (exclude Vehicles and characters); if there is no ground within about 40 studs for longer than about 4 s in a row (more than the MegaRamp's airtime), or upward displacement per tick exceeds a ramp-launch bound, call violate(). (c) Optionally take NITRO_SPEED_MULT out of the base cap and allow the nitro band only while a server-side budget lasts (the player's nitro-upgrade seconds plus NITRO_REFILL_PER_SEC, unlimited with the Infinite Nitro pass). Update the cap test to match. Do this together with F2."
+ },
+ {
+  "id": "F6",
+  "severity": "medium",
+  "files": [
+   "src/shared/Config/Economy.luau",
+   "src/client/Controllers/MenuController.luau",
+   "src/shared/Util/Rolls.luau"
+  ],
+  "summary": "The Rebirth menu advertises '+10% rare car luck every rebirth', but REBIRTH_LUCK_BONUS is never applied anywhere.",
+  "evidence": "Economy.luau:120 defines `REBIRTH_LUCK_BONUS = 0.1`. MenuController.luau:2737 shows it as a rebirth benefit. A grep finds no server use. Street, dealer and traffic rolls use only `EventService.getLuck()` (StreetSpawnService.luau:284, DealershipService.luau:943, TrafficService.luau:785), and spawns are shared across the server, not per player.",
+  "failureScenario": "Players rebirth partly for the luck boost and get nothing. The Rebirth screen makes a false promise.",
+  "suggestedFix": "Either remove the luck line from the Rebirth menu, or implement it as a per-player bonus that is actually personal: for example, boost mutation rolls on that player's daily, playtime and referral cars (`Rolls.mutation(1 + rebirths \u00d7 0.1)`) or their hot-drop rolls.",
+  "verifyReason": "Confirmed. VehicleClient.exit (1178-1186) only re-enables Jumping and sets Humanoid.Jump. On the server, onOccupantChanged with a nil occupant (864-869) only calls setDriver(nil); nudgeOut runs only through kickOccupant(car, true), i.e. eject or unauthorized occupants. Nothing on the client repositions the character (CombatClient handles knockback only). The seat top is clamped between 0.45 and beltY-0.2 (CarBuilder 752), inside the collidable chassis box (for example 0.9-2.7), and every visible body part is non-collidable. After the jump the character resolves onto the chassis top, inside the visible cabin with its head through the roof.",
+  "fix": "In src/server/Systems/VehicleService.luau onOccupantChanged, in the humanoid == nil branch: if car.driver is set, take char = car.driver.Character. If that character's Humanoid has no SeatPart (it has not just sat in another seat), call nudgeOut(car, char) before setDriver(car, nil). nudgeOut is a local defined above (line 725) and is already raycast-safe."
+ },
+ {
+  "id": "F7",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/MonetizationService.luau",
+   "src/server/Systems/WantedService.luau",
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "The 'Lose the Cops' product charges Robux even when the player has no wanted level.",
+  "evidence": "MonetizationService.luau:341-349: the handler treats `callSystem(\"WantedService\",\"clear\",...)` returning ok (pcall success) as a grant. WantedService.luau:351 `if not st or st.stars == 0 then return end` makes no change and raises no error, so the handler returns true and shows 'The cops lost your trail. You're clean!'. The Store card's BUY button (MenuController.luau:1428-1462, promptPurchase 1391-1400) is never disabled based on the Wanted attribute.",
+  "failureScenario": "A player taps BUY on 'Lose the Cops' while clean, or a cooldown clears the stars just before the receipt is processed. They pay Robux and get nothing, which goes against SPEC \u00a79's honest store.",
+  "suggestedFix": "In the handler, return false (NotProcessedYet) when `WantedService.getStars(player) == 0`. In the Store, disable or grey out the card with '\ud83d\ude07 Not wanted' while the Wanted attribute is 0.",
+  "verifyReason": "Confirmed but narrow. pushOut uses a raw carModel:PivotTo, and nothing calls VehicleService.teleport or resetWatchdog. From back slots (\u00b133, 38) to the push spot (0/\u00b17, -58) is about 100 studs. With dt\u22480.5 the allowance is cap\u00b70.5+10, which is below 100 when topSpeed is under about 85, so slow cars get a 'teleport' verdict. violate() then rewinds them to wdCFrame inside the garage and holds server ownership for 2 s; the next pushOut moves them out again. At the end of the revoke, wdCFrame is reset to the current pose, so it is a single rubber-band with one warn, not spam. It only happens when a lock lands during a theft of a slow car from a back slot, and the F3 fix removes it.",
+  "fix": "This is covered by the F3 fix in src/server/Systems/PlotService.luau: eject from Stolen cars, and move any other car with VehicleService.teleport(car, cf), which calls resetWatchdog. As a general rule, server code outside VehicleService must never PivotTo a driven Workspace.Vehicles model directly."
+ },
+ {
+  "id": "F8",
+  "severity": "medium",
+  "files": [
+   "src/shared/Config/Economy.luau",
+   "src/server/Systems/RebirthService.luau"
+  ],
+  "summary": "Rebirth is a bad deal once a player owns good cars, and the \u00d74 cost growth stalls progression around R6-R7, which hurts 28-day retention.",
+  "evidence": "Economy.luau:117-119 sets base 750K, growth \u00d74, and +0.5 additive income per rebirth. RebirthService.luau:82-113 `_plan` keeps a single car. Costs by rebirth: R1 750K, R3 12M, R5 192M, R6 768M, R7 3.07B, R8 12.3B, R9 49B. A full garage of 12 Mythics earns about $75K/s base (\u00d73.5 at R5 \u2248 $265K/s), so R6\u2192R7 takes about 3h and R8\u2192R9 about 90h of income, while each rebirth also throws away 11 cars. Rebirth 1 with 10 Mythics (about $50K/s) drops you to 6000\u00d71.5 = $9K/s.",
+  "failureScenario": "Mid-game players stop rebirthing, because the +50% multiplier costs about 80% of their income. Late-game players hit a wall around week 1-2, and the rebirth pillar stops providing goals.",
+  "suggestedFix": "Lower REBIRTH_COST_GROWTH to about 2.5-3. Make the bonus compound (\u00d71.35 per rebirth) or larger. Keep the top 2-3 cars, or keep rarity tiers for which the Index is complete. Show 'income after rebirth' in the menu so the trade-off is clear.",
+  "verifyReason": "Confirmed. driveSlot (GarageService 883-950) checks only that the player is not driving and is near or in the plot, then spawns at plotToWorld(index, DRIVE_OUT_SPAWN) with no overlap check and seats the player. There is no one-car-out rule (ps.outCars is per slot). An exited Owned car stays put until OWNED_RETURN_AFTER=20 s (VehicleService 1648-1651), and it never counts as delivered while leftGarage is false. So 'Drive A, press F, Drive B' spawns B inside A, both unanchored, and depenetration flings them.",
+  "fix": "In src/server/Systems/GarageService.luau driveSlot, before setting ps.states[slot]/removeDisplay: for each car in ps.outCars with no driver that is not destroyed, park it home, reusing onDelivery's Owned branch (car.data.delivered=true; destroyCar(car,'parked'); ps.outCars[s]=nil; GarageService.restoreSlot(player, s)). Then run Workspace:GetPartBoundsInBox over the spawn footprint (about Length\u00d7Width\u00d76 at the DRIVE_OUT_SPAWN world CFrame) with OverlapParams Include {VehicleService.getFolder()}. If anything is still there, notify 'Clear the exit first!' and return false."
+ },
+ {
+  "id": "F9",
+  "severity": "medium",
+  "files": [
+   "src/shared/Config/Economy.luau",
+   "src/server/Systems/RewardsService.luau"
+  ],
+  "summary": "Playtime gifts reset every session, so you can rejoin and farm a free Rare, Epic and Legendary car (or about $150K-230K as the full-garage cash fallback) every hour, even while AFK.",
+  "evidence": "Economy.luau:150-157 gives a Rare at 15 minutes, an Epic at 40 and a Legendary at 60. RewardsService.luau:266 sets `sessionStart = os.clock()` when the state is created, and 931 clears it on leave, so every rejoin starts fresh. There is no AFK or input check. grantCar (356-391) falls back to 50% of the price when the garage is full (Legendary $125K-200K).",
+  "failureScenario": "Players idle with an anti-AFK tool and rejoin each hour, collecting a Legendary per hour. That outpaces the daily streak (day 7 is only an Epic) and devalues hot drops.",
+  "suggestedFix": "Store the claimed gift indexes per UTC day in data (one cycle per day), or scale gifts to session length while capping Legendary to once a day. Pause the playtime clock when the player has had no input or character movement for 5+ minutes.",
+  "verifyReason": "Confirmed with one correction. VehicleService.LOST_Y = WATER_LEVEL-28 = -30, but the water bottom is -12 and the slope/seabed reaches -14 (MapBuilder 65, 2547). Water runs from about 880 out to the boundary wall at 960, so a sunk car never trips lifePass. Controller rays use IgnoreWater and keep driving on the seabed. Police units below -8 or past |x|/|z| 900 get rubber-banded (PoliceService 1845-1854), and a bust needs \u226416 studs (BUST_RADIUS). A suspect parked at x\u2248930-956 underwater therefore cannot be busted. Correction: Stolen cars ARE handled, by TheftService.LOST_Y = WATER_LEVEL-6 (1544). The gap is Loot and Owned cars and the bust immunity.",
+  "fix": "In src/server/Systems/VehicleService.luau, set VehicleService.LOST_Y = MapConfig.WATER_LEVEL - 6, the same value as TheftService.LOST_Y and PoliceService's lost threshold; only the underwater seabed is below -8. lifePass then ejects the driver, sends Owned cars home and destroys Loot, and TheftService keeps handling Stolen. Optionally make it a 1-2 s debounce."
+ },
+ {
+  "id": "F10",
+  "severity": "low",
+  "files": [
+   "src/shared/Config/Economy.luau",
+   "src/server/Systems/RewardsService.luau",
+   "src/server/Systems/CombatService.luau"
+  ],
+  "summary": "Some daily contracts depend on other players ('Steal a car from another player', 'Bonk 3 thieves out of cars') and there is no reroll, so in low-population servers they can't be completed.",
+  "evidence": "Economy.luau:174 `rob1` (playerSteal) and 177 `bonk3` (defend, goal 3). `_rollContracts` (RewardsService.luau:154-168) picks blindly from the pool with no reroll and nothing aware of server population. `defend` only counts when the victim is driving the attacker's Stolen car (CombatService.luau:869-870). Thefts also need a victim with 3 or more cars and an unlocked garage, plus a 25s cooldown.",
+  "failureScenario": "A player alone in a server, or with only newbies, gets 'Bonk 3 thieves' and can't make progress all day. One of their three contracts is dead.",
+  "suggestedFix": "Add a free reroll each day (a remote that swaps one unclaimed contract). Or only roll social contracts when 3 or more other players are online, and lower bonk3 to goal 1.",
+  "verifyReason": "Confirmed. spawn PivotTo's every kind to ground*(RideHeight+0.3) (623-624) and anchors Parked, Dealership and HotDrop at that height (675-676). EventService's HotDrop 'final' pose is that same pivot. In WheelAnimator, RANGE=250 but BOB_RANGE=140. A car first animated between 140 and 250 gets target 0, is marked settled (366), and the anchored early-out (307-312) never re-bobs it. rebuildNear never clears settled. Result: tyres float 0.3 studs off the road.",
+  "fix": "In src/server/Systems/VehicleService.luau spawn, compute `anchored` before the PivotTo and use `ride + (if anchored then 0 else 0.3)`. In src/client/Controllers/WheelAnimator.luau rebuildNear: record `local wasFar = rig.dist > BOB_RANGE` before updating rig.dist, and set rig.settled = false if wasFar and rig.dist <= BOB_RANGE."
+ },
+ {
+  "id": "F11",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/GarageService.luau"
+  ],
+  "summary": "Selling is a 1-second hold with no confirmation, so a stray hold, especially on mobile, can permanently sell a Mythic or Secret car.",
+  "evidence": "GarageService.luau:531-546 creates SellPrompt (F, hold 1s, UIOffset 0,84) next to DrivePrompt (E, no hold) on the same chassis. sellSlot (848-881) removes the car immediately. Only Exclusive cars and your last car are protected.",
+  "failureScenario": "A mobile player taps and holds near their Mythic Galaxy while trying to press Drive and sells a $10M+ car for half its price. There is no undo.",
+  "suggestedFix": "For Epic and above, add a confirmation step (a server-side 'sell pending' state for 5s that needs a second trigger, or route it through a menu dialog). Alternatively, raise the hold to 2.5s for Legendary and above and show the rarity color on the prompt.",
+  "verifyReason": "Confirmed. VehicleClient says it fires no remotes; nitro flame, drift smoke and screech are built and toggled locally; honk is a local Sound; boosting and drifting live only in the client controller. EffectsController and WheelAnimator have no FX for other cars. The integration doc lists 'Horn is local-only' as a known issue. The SPEC calls these 'local effects', so this is a polish gap rather than a bug.",
+  "fix": "Derive drift smoke and screech for observers from replicated chassis velocity (lateral slip from AssemblyLinearVelocity) in src/client/Controllers/EffectsController.luau. The driver cannot set attributes on the server-owned model, so add a rate-limited unreliable remote 'VehicleFx' {boost:boolean, honk}. The server validates that the sender drives the car and re-broadcasts with fireNear; EffectsController renders it for other players' cars."
+ },
+ {
+  "id": "F12",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/RewardsService.luau",
+   "src/server/Systems/VehicleService.luau",
+   "src/server/Systems/StreetSpawnService.luau",
+   "src/server/Systems/TrafficService.luau",
+   "src/server/Systems/EventService.luau"
+  ],
+  "summary": "The 'steal' contract counts when you hotwire, not when you deliver (against pillar 1), and it can be farmed. The stat flag is global to the server, so whether a hot drop counts as a steal is inconsistent.",
+  "evidence": "progress('steal') fires at hotwire time in StreetSpawnService.luau:255, TrafficService.luau:754, VehicleService.luau:1199 and DealershipService.luau:778. `canHotwireLoot` (VehicleService.luau:1170-1181) does not exclude the car's own claimer. `HideForUserId` (line 1272) only hides the prompt on the client, so an exploiter can re-hotwire their own abandoned loot for +1 steal each time. RewardsService.luau:256/464 sets `explicitStats` server-wide, and the fallback at line 787 only works until any explicit call. Hot drop claims (EventService.luau:760-763) never report 'steal', so they count only if they happen before the first explicit steal on the server.",
+  "failureScenario": "'Steal 12 cars' can be done by carjacking traffic and jumping out 12 times without ever driving home. Whether a hot drop counts toward it depends on server history.",
+  "suggestedFix": "Report 'steal' on successful delivery in GarageService.onDelivery (Loot) and TheftService.complete, and remove it from the hotwire paths. Make `explicitStats` per player, or delete the fallback for 'steal' and 'playerSteal' now that every source reports explicitly. In canHotwireLoot, reject `player.UserId == car.ownerUserId`.",
+  "verifyReason": "Confirmed. The damage accumulator resets to 0 on each \u22650.1 s tick (1735-1738). damagePass compares raw flat \u0394v between samples with no elapsed time, and the threshold is 55. Brake plus handbrake is about 104 studs/s\u00b2, so a replication gap or server hitch of about 0.53 s or more during hard braking, or about 0.31 s during a hypercar nitro launch (accel 100\u00d71.8), crosses 55 and applies phantom damage. Rare.",
+  "fix": "In src/server/Systems/VehicleService.luau, store st.lastVelAt and pass elapsed = now - st.lastVelAt into _crashDamage(prev, vel, elapsed?), defaulting to DAMAGE_TICK so the existing tests still pass. Use threshold = CRASH_DAMAGE_THRESHOLD * max(1, elapsed / DAMAGE_TICK)."
+ },
+ {
+  "id": "F13",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/GarageService.luau",
+   "src/server/Systems/DealershipService.luau",
+   "src/client/Controllers/GarageClient.luau"
+  ],
+  "summary": "When the garage is full, the messages never mention unlocking a slot. The only way to unlock is a prompt on a pad inside the garage, and there is no menu entry for it.",
+  "evidence": "GarageService.luau:1106 says 'Garage full! Sell a car or chop it at the Chop Shop'. DealershipService.luau:680 says 'Your garage is full! Sell a car first.' Unlocking only exists as GarageClient's local UnlockPrompt (GarageClient.luau:455-456). Slot 5 costs just $1,500 (Economy.luau:18).",
+  "failureScenario": "A new player delivers a 5th car, is told to sell or chop it, and sells a car instead of spending $1.5K on a slot they never knew existed.",
+  "suggestedFix": "Add 'or unlock slot N for $X (glowing pad in your garage)' to the full-garage messages, with a waypoint to the next pad. Also list slot unlocks in the Gear Shop.",
+  "verifyReason": "The math and code path are confirmed. The suspension accel (K\u00b7comp + C\u00b7compVel) does not depend on dt, so clamping dt to MAX_DT has no effect on it. The forces are set once per PreSimulation (VehicleClient 1089) and held for the whole simulated frame. A zero-order-hold analysis with \u03c9\u00b2=4K=272 and c=4C=16.8 gives a spectral radius of 0.90 at 9 FPS and 1.57 at 8 FPS, which matches the tracer. Whether it really diverges depends on how much simulated time Roblox advances per frame at about 8 FPS (the engine may throttle). The 0..4g force clamp also bounds it to a hop rather than a true launch. The tracer's 'Stepped substeps' alternative does not exist: Stepped is PreSimulation and fires once per frame.",
+  "fix": "In src/shared/Vehicle/VehicleController.luau step(): when dtIn > Tuning.MAX_DT, let s = MAX_DT/dtIn and compute the suspension as staticSupport + K\u00b7(comp - staticComp)\u00b7s\u00b2 + C\u00b7compVel\u00b7s, so the static load stays the same and the effective \u03c9T matches 30 FPS. Add a settle-simulation case at 1/8 s in tests/spec/vehicle.spec.luau."
+ },
+ {
+  "id": "F16",
+  "severity": "low",
+  "files": [
+   "src/shared/Config/Economy.luau"
+  ],
+  "summary": "Daily streak rewards and codes pay fixed cash ($500-$15K), so they are worthless after the first hour and give little reason to come back.",
+  "evidence": "Economy.luau:139-147: day 1-3 and 5 pay fixed cash of 500, 1500, 4000 and 15000. Codes at 196-201 pay 1000-5000 fixed. A mid-game player earns $10K+/s.",
+  "failureScenario": "By day 2, claiming the daily reward feels pointless. The streak pillar adds nothing compared with playtime gifts or a single heist.",
+  "suggestedFix": "Convert the cash days to incomeMinutes (for example 2, 5, 10, 15, 20, 30 minutes) with the current amounts as minimums. Make day 7 a choice of a mutated Epic or a Legendary.",
+  "verifyReason": "Confirmed but expected: the art pass (task #4) is pending, and vehicles-world.md 'Known issues' already says hero shells aren't applied. AssetLibrary.start loads all 33 Assets.Hero entries into ReplicatedStorage.AssetLibrary, so every client receives them, and nothing consumes them. CarBuilder.buildDef has no hero hook, unlike what ART_PASS.md:22-27 describes. Small correction: _normalize sets every part Massless=true (121); only AssetRoot is anchored and non-massless. The integration pitfalls the tracer lists (anchored parts and AssetRoot, Paint attributes, lights/sirens, wheels) are valid.",
+  "fix": "For now: keep Hero templates out of replication until they are used (load Hero only after the CarBuilder hook exists, or publish them under ServerStorage) in src/server/Systems/AssetLibrary.luau. For the art pass: in src/shared/Vehicle/CarBuilder.luau buildDef (or VehicleService.spawn plus the display builders), clone the template and destroy AssetRoot. On every part set Anchored=false, Massless=true and CanCollide/CanQuery/CanTouch=false. Scale to the Length attribute, align the bottom to the ground plane, and WeldConstraint to Chassis. Hide only the Paint body parts and keep Chassis, seat, BumpStops, lights, sirens and the procedural wheels. Tag the shell Paint=primary and clear TextureID for mutations, set HeroMesh=true, and re-skin cars spawned before AssetLibrary.AllReady."
+ },
+ {
+  "id": "F17",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/PlotService.luau",
+   "src/shared/Config/Monetization.luau"
+  ],
+  "summary": "Buying Lockdown while one is already active doesn't add time (it uses max, not stack), so the second purchase is mostly wasted.",
+  "evidence": "PlotService.luau:1303 `st.lockedUntil = math.max(st.lockedUntil, now + math.min(seconds, 3600))`, called by the lock_10 handler (MonetizationService.luau:327-339) with 600s.",
+  "failureScenario": "A player with 8 minutes of lockdown left buys another and ends up with 10 minutes, not 18.",
+  "suggestedFix": "For the product path, stack the time: `max(lockedUntil, now) + seconds`, capped at 1h. Or grey out the Store card while a lockdown is active.",
+  "verifyReason": "Confirmed, and a duplicate of the earlier CLEAR-WANTED-NOOP-PURCHASE finding. The clear_wanted handler returns true whenever callSystem doesn't throw. WantedService.clear silently returns at 0 stars, and MenuController doesn't gate the button. The bug is latent: every product id in Monetization.luau is 0 and the Store hides id-0 items. Low.",
+  "fix": "src/server/Systems/MonetizationService.luau clear_wanted handler: `local okS, stars = callSystem(\"WantedService\",\"getStars\",player); if not okS or typeof(stars) ~= \"number\" or stars <= 0 then return false end` before clearing. src/client/Controllers/MenuController.luau: disable or grey the clear_wanted buy button while player:GetAttribute(\"Wanted\") == 0. Because NotProcessedYet is re-offered on later receipts, consider storing a pending credit on data instead of returning false forever."
+ },
+ {
+  "id": "F18",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/AdminService.luau",
+   "src/server/Systems/DataService.luau"
+  ],
+  "summary": "Admin 'reset' wipes Robux exclusive cars that are still owed, and leaves bought tools in the Backpack and StarterGear.",
+  "evidence": "DataService.luau:1043-1060 resetData keeps only `receipts`, so the template's `exclusives = {}` erases owed Dragsters. AdminService.luau:463-469 calls refresh and saveNow but never calls CombatService.giveTools.",
+  "failureScenario": "QA resets an account that had a Dragster pending and loses the purchase permanently. Zapper and Spikes stay usable until respawn even though the data says they aren't owned.",
+  "suggestedFix": "Keep `exclusives` (and any Robux-granted cars) in resetData, and call CombatService.giveTools(player) after a reset.",
+  "verifyReason": "Confirmed. addClaimPrompt goes through VehicleService.addStealPrompt with canSteal = canClaim. VehicleService notifies any non-empty reason as an error, so 'gone', 'stunned' and 'loading' would show as raw toasts. These are rare races: prompts are destroyed after a claim, the client disables prompts while stunned, and loading only happens right after joining.",
+  "fix": "src/server/Systems/EventService.luau canClaim: return `false, nil` for the 'gone' and 'stunned' cases and `false, \"Still loading. Try again in a sec!\"` for 'loading'. Keep the friendly 'Get out of your car first!'."
+ },
+ {
+  "id": "F19",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/TrafficService.luau",
+   "src/shared/Config/Police.luau"
+  ],
+  "summary": "Carjacking a car in traffic always adds 1\u2605, whatever its rarity, so carjacking a Mythic is much safer than hotwiring a parked one.",
+  "evidence": "TrafficService.luau:753 `addStealHeat(player, PoliceConfig.Heat.carjack, \"carjack\")` with Police.luau:26 `carjack = 1`, while street steals use `tier.wantedOnSteal` (Rarity Mythic is 3).",
+  "failureScenario": "A Mythic in traffic is a low-risk steal, which undercuts the 'rarer means hotter chase' design.",
+  "suggestedFix": "Use `max(Heat.carjack, tier.wantedOnSteal)` for carjacks.",
+  "verifyReason": "Confirmed. WantedService.handleCar destroys a Loot car (or fails a Stolen theft), but bust() fires Busted with only `lost`. HUDController's listener and showBusted(lostCash) take only the cash amount.",
+  "fix": "src/server/Systems/WantedService.luau: have handleCar return a label (car.carId and car.mutation, formatted as in other services) when it destroyed Loot or failed a theft. In bust(), send `hooks.fireClient(\"Busted\", player, lost, carLabel)`. src/client/Controllers/HUDController.luau: extend the listener and showBusted(lostCash, carLabel?) to add a '\ud83d\ude97 <car> IMPOUNDED' line under the stamp. Update the Remotes.luau comment."
+ },
+ {
+  "id": "F20",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/GarageService.luau"
+  ],
+  "summary": "Collecting only fires on a fresh Touched by the character. Standing on the pad or driving over it collects nothing.",
+  "evidence": "GarageService.luau:817-844 only resolves a player from a character part. A car chassis resolves to Workspace.Vehicles and is ignored. There is no loop that collects while the player stands on the pad.",
+  "failureScenario": "Players who park on the pad, or wait on it for income, see the glow but nothing happens until they step off and back on.",
+  "suggestedFix": "While the owner's root is inside the pad's box, collect every 1s (a poll in watchOutCars or the tick), and also accept a touch from the owner's driven car's chassis.",
+  "verifyReason": "Confirmed. WantedService._repaint writes d.Color directly on Paint='primary' parts. That overrides Gold, Diamond and Galaxy colors while keeping their material. Rainbow is unaffected because WheelAnimator cycles it client-side. CarBuilder.repaint(model, color) exists: it sets BaseColor and re-applies the mutation, and is tested in carbuilder.spec ('repaint keeps mutation'). The stored record is fine, and the display car rebuilt on delivery looks correct.",
+  "fix": "src/server/Systems/WantedService.luau _repaint: lazily require ReplicatedStorage.Shared.Vehicle.CarBuilder (pcall). If available, call CarBuilder.repaint(model, color) instead of the manual loop, and fall back to the existing loop only if the require fails. Keep the Health and TiresPopped resets."
+ },
+ {
+  "id": "F21",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/EventService.luau",
+   "src/server/Systems/StreetSpawnService.luau"
+  ],
+  "summary": "Rush Hour and Server Luck only affect new rolls, so the 'rare cars are everywhere' announcement barely shows on the street within the 2-minute Rush Hour.",
+  "evidence": "EventService.luau:1202-1208 announces 'rare cars are everywhere!'. StreetSpawnService.luau:43: parked cars only re-roll after 300-540s untouched with nobody within 160 studs. Existing traffic keeps its rolls; only the extra Rush Hour spawns use the boosted luck.",
+  "failureScenario": "Players rush out after the announcement and see the same parked cars as before.",
+  "suggestedFix": "When Rush Hour or Server Luck starts, re-roll a share of out-of-view parked cars and prefer spawning the extra traffic near players.",
+  "verifyReason": "Confirmed with nuance. Luck only affects new rolls (Rolls.rarity multiplies Rare+ weights). Parked cars re-roll only after LIFETIME 300-540s with nobody within 160 studs. Rush Hour adds about 80% more traffic spawned 150-450 studs from players at 2.5\u00d7 luck, and despawn/respawn churn also uses the boosted luck, so some effect is visible, just weaker than the announcement suggests.",
+  "fix": "src/server/Systems/StreetSpawnService.luau: add `StreetSpawnService.rerollOutOfView(fraction)`, which expires (expiresAt = 0) a share of entries with no player within ROTATE_CLEAR_RADIUS so the next tick re-rolls them with the current luck. Call it from src/server/Systems/EventService.luau startRushHour and activateServerLuck (lazy call)."
+ },
+ {
+  "id": "F22",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/MapBuilder.luau",
+   "src/server/Systems/DealershipService.luau"
+  ],
+  "summary": "MapBuilder's 'RestockBoard' (tag DealerRestockBoard) is never drawn on. It is a blank dark panel behind DealershipService's own countdown sign.",
+  "evidence": "MapBuilder.luau:1447-1457 builds and tags it. Nothing else in src references DealerRestockBoard. DealershipService.luau:469-470 builds a separate sign at center + (0,0,41).",
+  "failureScenario": "A dead, unlabeled board sits on the showroom's back glass.",
+  "suggestedFix": "Delete the MapBuilder board, or have DealershipService draw its SurfaceGui onto the tagged part instead of building a second sign.",
+  "verifyReason": "Confirmed, and a duplicate of the earlier MAPBUILDER-DEALER-TAG-CONTRACT-UNUSED finding. MapBuilder builds and tags 'RestockBoard' (18\u00d76 at z+45.2, y 8-14), and its comment says DealershipService draws on it, but nothing references the tag. DealershipService builds its own 34\u00d710 sign at z+41 (y 9-19), so the dark board is almost fully hidden behind it, with about 1 stud showing. Cosmetic.",
+  "fix": "src/server/Systems/MapBuilder.luau: delete the RestockBoard part and its DealerRestockBoard tag (around lines 1447-1457) and fix the comment. Leave DealershipService's own sign as is."
+ },
+ {
+  "id": "F23",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/VehicleService.luau",
+   "docs/SPEC.md"
+  ],
+  "summary": "There is no server settling controller for cars after the driver exits (SPEC \u00a78). Abandoned cars rest on their bump-stops.",
+  "evidence": "VehicleService.luau:841-853: setDriver(nil) only calls SetNetworkOwner(nil). No VehicleController is created server-side. The SPEC says 'server keeps controllers only for police and for cars settling after exit'. The CarBuilder known issues note that cars without a controller can tip about 11\u00b0 on their centerline bump-stops.",
+  "failureScenario": "A suspect bails out at speed. The car slides and tips on its belly, then is anchored after 10s of rest, which looks broken. A cop that later rams the anchored car crashes into an immovable object.",
+  "suggestedFix": "Create a server VehicleController (isServer=true, zero input) for driverless unanchored cars until they are rest-anchored, then destroy it. The police path shows server stepping already works.",
+  "verifyReason": "Confirmed. setDriver(nil) only hands network ownership to the server. No server code outside PoliceService creates a VehicleController, which deviates from SPEC \u00a78 ('server keeps controllers\u2026 for cars settling after exit'). vehicles-world.md's known issues say a car resting on its centerline bump-stops without a controller tips about 11\u00b0. Cars are rest-anchored after PARK_ANCHOR_AFTER = 10s, which is spec'd behavior, so the 'immovable when rammed' part is by design. Cosmetic.",
+  "fix": "src/server/Systems/VehicleService.luau: in setDriver(nil), for non-Police unanchored cars, create VehicleController.new(model, car.def, { isServer = true }) with zero input and step it on PreSimulation. Destroy it when the rest-anchor code anchors the chassis (around line 1638), when a driver enters, or when the car is destroyed. Keep the lifetime bounded (for example 15s max) because server controllers replicate VectorForce writes every frame (PERF-01)."
+ },
+ {
+  "id": "F24",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/GarageService.luau",
+   "src/server/Systems/VehicleService.luau"
+  ],
+  "summary": "The Chop Shop silently ignores Owned and Stolen cars, and destroys Loot instantly with no confirmation.",
+  "evidence": "GarageService.luau:1148-1151 returns silently for non-Loot cars. VehicleService.luau:1489-1492 fires ChopAttempt the moment the car enters the zone.",
+  "failureScenario": "A player drives their own car in expecting to sell it and nothing happens. A fleeing player cuts through the shop in a Mythic hot drop and it is chopped for 35% with no way back.",
+  "suggestedFix": "Notify 'You can't chop your own car' for Owned/Stolen. For Loot, require a 1.5s stop in the zone, or a prompt showing the chop value.",
+  "verifyReason": "Confirmed. GarageService.onChop returns silently for any kind except Loot, and zonePass fires ChopAttempt on the first tick inside the zone at any speed. The 'cuts through while fleeing' scenario is unlikely, since the zone is inside a dead-end building in the far corner block, but there is no feedback for Owned or Stolen cars and no confirmation for valuable Loot.",
+  "fix": "src/server/Systems/GarageService.luau onChop: for car.kind == \"Owned\", rate-limit notify '\ud83d\udd27 That's your own ride: sell it from your garage instead'. For \"Stolen\", notify 'Deliver it to your garage instead!'. Optional: src/server/Systems/VehicleService.luau zonePass, fire ChopAttempt only after the car has been inside the zone at flat speed under about 8 for 1.5s, tracked like st.inChop."
+ },
+ {
+  "id": "F25",
+  "severity": "low",
+  "files": [
+   "src/server/Systems/WantedService.luau"
+  ],
+  "summary": "After the BUSTED stamp the player stays free for 1.1s before the teleport to Police HQ, and can hop into another car in that window.",
+  "evidence": "WantedService.luau:501-506: releaseCharacter is called after RELEASE_DELAY with no stun or freeze. releaseCharacter (430-457) then rips the player out of any seat they got into.",
+  "failureScenario": "A busted player quickly holds 'Get in' on a nearby loot car. They are seated, then torn out 1.1s later, and that car is left with a stale driver until lifePass corrects it.",
+  "suggestedFix": "Set the Stunned attribute (CombatService.stun) for RELEASE_DELAY during a bust, which also disables prompts client-side.",
+  "verifyReason": "The window exists: bust() calls releaseCharacter after a 1.1s task.delay with no stun, and unowned Loot cars have a 0-hold 'Drive' prompt. The consequence is milder than claimed. releaseCharacter destroys the SeatWeld, so Occupant becomes nil, onOccupantChanged runs setDriver(nil) right away, and no stale driver remains. Heat can't be added during the 8s grace either. Mostly cosmetic.",
+  "fix": "src/server/Systems/WantedService.luau bust(): before task.delay, lazily call CombatService.stun(player, RELEASE_DELAY + 0.3) via sys(\"CombatService\") with pcall. This sets Stunned, and the client disables prompts and movement. Fall back to player:SetAttribute(\"Stunned\", true/false) around the delay if CombatService is unavailable."
+ },
+ {
+  "id": "UI-SPIKE-EXIT-OVERLAP",
+  "severity": "high",
+  "files": [
+   "src/client/Controllers/CombatClient.luau",
+   "src/client/Controllers/VehicleClient.luau",
+   "src/client/UI/Kit.luau"
+  ],
+  "summary": "On phones the SPIKES touch button (Scale-anchored at 36% height) slides down onto the EXIT button (offset-anchored 270 px from the bottom). DrivingUI draws above CombatHUD, so a tap meant for spikes ejects you from the car.",
+  "evidence": "CombatClient.luau:845-848: `sb.button.AnchorPoint = Vector2.new(1, 0.5)`, `sb.button.Position = UDim2.new(1, -28, 0.36, 0)`, size 92. Its caption sits 2 px below the button (550-557).\nVehicleClient.luau:465: `roundButton(\"\ud83d\udeaa\", \"EXIT\", ..., 84, UDim2.new(1, -40, 1, -270), touchFrame)` with AnchorPoint (1,1) set in roundButton, so it spans H-354..H-270.\nKit.luau:98-99 floors UIScale at 0.55, so the design canvas H on a phone is (viewport.Y minus insets)/0.55, about 565\u2013645, not 720.\n- H=603: SPIKES spans y 171..263 and EXIT 249..333, at nearly the same x (W-120..W-28 vs W-124..W-40).\n- H=565 (iPhone with home-indicator inset): the overlap is about 38 design px, and the 'SPIKES' caption lies entirely on EXIT.\nDrivingUI uses DisplayOrder HUD+1 (VehicleClient.luau:273); CombatHUD uses HUD (CombatClient.luau:834). EXIT calls VehicleClient.exit(), which sets Jump=true (1178-1186). The integration note checked this layout only at 720.",
+  "failureScenario": "A phone player who owns Spike Strips is in a 3\u2605 getaway in a stolen car. They tap the lower half of SPIKES, the tap lands on EXIT, and they jump out. The theft goes to 'dropped' and the cops bust them on foot.",
+  "suggestedFix": "Anchor SPIKES to the bottom like the rest of the driving cluster, e.g. UDim2.new(1,-156,1,-150) above DRIFT and left of NITRO. Better, move the button into DrivingUI's Touch frame so one module owns the cluster's layout. Add a layout test for canvas heights 560\u2013650.",
+  "verifyReason": "I confirmed the geometry. SpikeButton (CombatClient.luau:845-848) uses AnchorPoint (1,0.5) at (1,-28,0.36,0) with size 92, so it spans y 0.36H-46..0.36H+46 and x W-120..W-28. EXIT (VehicleClient.luau:465, AnchorPoint (1,1) from roundButton) spans H-354..H-270 at x W-124..W-40. They overlap whenever 0.36H+46 > H-354, which means a canvas height below 625; the SPIKES caption overlaps below about 659. Kit.screen uses IgnoreGuiInset=false and floors the scale at 0.55, so phones get a canvas of roughly 550-605 design px: 844x390 gives (390-58)/0.55 \u2248 603, and an 800x360 Android gives about 549. The overlap is therefore 14-48 design px, up to half the SPIKES button. Tablets are unaffected (s=0.8 gives H\u2248887). DrivingUI (DisplayOrder 11) sits above CombatHUD (10), so EXIT receives the tap. Nothing repositions either button later (grep). gameplay-client.md:118 only checked this at 720.",
+  "fix": "In CombatClient.start (src/client/Controllers/CombatClient.luau ~845-848), anchor SPIKES to the bottom-right cluster instead of 36% height: `sb.button.AnchorPoint = Vector2.new(1, 1)` and `sb.button.Position = UDim2.new(1, -144, 1, -170)`. That puts it left of HORN (W-124..W-40, H-254..H-170) and above DRIFT (top at H-128), with the caption clear of both, at any canvas height. Check that canvas heights 540-720 show no overlap with EXIT, HORN, NITRO or DRIFT."
+ },
+ {
+  "id": "UI-PLAYERLIST-COVERS-WANTED",
+  "severity": "high",
+  "files": [
+   "src/client/Controllers/HUDController.luau",
+   "src/client/Controllers/NotificationController.luau",
+   "src/server/Systems/LeaderboardService.luau"
+  ],
+  "summary": "On PC the Roblox player list is open by default, because leaderstats exist. CoreGui draws it over the top-right corner, which is where the HUD puts the wanted stars, the 'GETTING BUSTED' bar and the whole toast stack.",
+  "evidence": "- HUDController.luau:756-766: wanted panel with AnchorPoint (1,0), Position UDim2.new(1,-12,0,4), 276x54.\n- HUDController.luau:806-814: bust bar at (1,-12,0,62).\n- NotificationController.luau:46-49: TOAST_ANCHOR = UDim2.new(1,-14,0,92), 320 wide, up to 4 deep (y 92..356).\n- LeaderboardService.luau:169-180 creates leaderstats Cash/Steals, so the PlayerList shows two stat columns, about 300 px wide.\n- No StarterGui:SetCoreGuiEnabled call exists anywhere in src (grep).",
+  "failureScenario": "A PC player steals a Rare car and the cops spawn. The stars and the bust bar fill underneath the player list, and errors like 'Garage full!' or 'Hop out of the car first!' are also hidden behind it. The chase readout (pillar 1) is invisible unless the player knows to press Tab.",
+  "suggestedFix": "Call StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false) in init.client.luau; the plaza boards and Settings stats already show this data. Alternatively, move the wanted stars and bust bar to top-centre under the cash pill (pushing the event pills down), and move toasts to a centre-right band below about 35% of the screen height.",
+  "verifyReason": "LeaderboardService.ensureLeaderstats (169-188) creates leaderstats Cash and Steals, and src has no SetCoreGuiEnabled or SetCore call (grep). On desktop the CoreGui PlayerList is open by default at the top-right just under the top bar, and it draws above every PlayerGui. Under it are the wanted panel (HUDController.luau:756-764, AnchorPoint (1,0) at (1,-12,0,4), 276x54), the bust bar at (1,-12,0,62), and the toast stack (NotificationController TOAST_ANCHOR (1,-14,0,92), 320 wide, 4 deep). The list is about 300 px wide and grows with player count, so on every PC session the main chase readout and the error toasts are underneath it until the player presses Tab.",
+  "fix": "In HUDController.start (src/client/Controllers/HUDController.luau), or once in src/client/init.client.luau, call `pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false) end)`. The leaderstats can stay as SPEC \u00a78 requires; the plaza boards and Settings already show the stats. If the team wants to keep the player list, move the wanted panel and bust bar to top-centre under the cash pill and move the toast anchor below about 40% of the height instead."
+ },
+ {
+  "id": "UI-SPEEDO-UNDER-HOTBAR",
+  "severity": "medium",
+  "files": [
+   "src/client/Controllers/VehicleClient.luau",
+   "src/client/Controllers/HUDController.luau"
+  ],
+  "summary": "The driving speedometer is pinned 12 px above the screen bottom, directly under the CoreGui backpack hotbar, which stays visible and on top while seated. The nitro bar, health bar, rev bar and, on phones, the lower half of the MPH digits are covered.",
+  "evidence": "VehicleClient.luau:283-289: speedometer AnchorPoint (0.5,1), Position (0.5,0,1,-12), 340x156. Inside it:\n- the bars at 373-379, Position (0,16,1,-32), occupy H-44..H-20;\n- the rev bar at 346-353 occupies H-70..H-50;\n- the speed label at 316-323 occupies H-138..H-72.\nHUDController.luau:79 (`HOTBAR_REAL_PX = 74`) and 466-471 (hotbarVisible) show the hotbar footprint was known, but it is only used for the HOME button. Nothing hides the Backpack while driving. CombatService always grants the Bonk Bat, so at least one hotbar slot is always centred at the bottom.",
+  "failureScenario": "On a phone (scale 0.55) the speedometer is about 86 px tall with its bottom about 7 px above the edge, and the 50\u201360 px hotbar slot covers the bars, the rev bar and the lower half of the digits. With bat, Zapper and Spikes the slots span almost the full speedometer width. Mid-chase the player can't see nitro charge or how close the car is to wrecking. On PC at 720p the bat slot covers the bar icons and the centre.",
+  "suggestedFix": "Call StarterGui:SetCoreGuiEnabled(Backpack, false) on VehicleClient.Entered and restore it on Exited; spikes already have their own button and key. Or raise the speedometer by the same hotbar clearance HUDController computes, and shift THEFT_BOTTOM and CARD_BOTTOM up by the same amount.",
+  "verifyReason": "The speedometer is anchored (0.5,1) at (0.5,0,1,-12), 340x156, so it spans H-168..H-12 (VehicleClient.luau:283-289). The bars sit at H-44..H-20 and the rev bar at H-70..H-50. Nothing in src disables the Backpack (no SetCoreGuiEnabled anywhere). DataService forces tools.bat = true (311) and CombatService.giveTools puts it in the Backpack, so the CoreGui hotbar always shows at least one slot centred at the bottom, about 65 real px tall, while seated. At 720p one slot (W/2\u00b132) covers the \ud83d\udd27 icon, the end of the nitro bar and the middle of the rev bar. With bat, Zapper and Spikes (about 200 px) it covers most of both bars. On phones (s=0.55) the speedometer is only about 86 px tall, so a ~50 px slot covers the bars, the rev bar and the lower part of the digits. The driving_hud.png preview didn't model the hotbar. I lowered severity to medium because the bars are partly hidden rather than invisible, and wreck/health has other cues.",
+  "fix": "In VehicleClient.showUI, call `pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false)`, and call it with true in hideUI (src/client/Controllers/VehicleClient.luau ~535-563). Spikes already have their own button and the G/L1 key, and bat/Zapper can't be used while seated. Also have HUDController re-run layout() when the player's Driving attribute changes (src/client/Controllers/HUDController.luau). layout() bakes hotbarVisible() into HOME's Position, and it can re-run during a drive (on LastInputTypeChanged or a resize)."
+ },
+ {
+  "id": "UI-TOASTS-COVER-CONTROLS",
+  "severity": "medium",
+  "files": [
+   "src/client/Controllers/NotificationController.luau",
+   "src/client/Controllers/CombatClient.luau",
+   "src/client/Controllers/VehicleClient.luau",
+   "src/client/UI/Theme.luau"
+  ],
+  "summary": "Toasts stack down the right edge at DisplayOrder 40, and each has a full-size, input-sinking Dismiss button. On phones they sit on the BONK/ZAP ActionButton, SPIKES, EXIT and HORN (DisplayOrder 10\u201311), so taps during chases dismiss toasts instead.",
+  "evidence": "NotificationController.luau:46-49 sets the anchor (1,-14,0,92), 320x60, max 4; 215 uses Kit.screen(\"HC_Notifications\", Theme.Layers.Toasts=40); 449-456 adds a `Dismiss` TextButton of Size (1,1) at ZIndex 5 to every toast.\nOn a phone canvas (H\u2248603) the toast rows are T2 160..220, T3 228..288 and T4 296..356, all at x W-334..W-14. They overlap:\n- ActionButton 213..313 (CombatClient.luau:835-838, at (1,-28,1,-290));\n- SpikeButton 171..263 (845-848);\n- EXIT 249..333 and HORN 349..433 (VehicleClient.luau:463-465).",
+  "failureScenario": "In a chase the server sends two or three Notify toasts: the cops hint, the heli arrival, a ram warning, a tire pop. A victim chasing their thief taps BONK, or the thief taps SPIKES, and the tap only dismisses a toast. The hit window is lost.",
+  "suggestedFix": "Move toasts on touch to the top-centre band under the event pills or to the left-centre. Make the toasts themselves non-blocking (Dismiss Active=false, or only the icon badge clickable). Alternatively, give CombatHUD and DrivingUI a DisplayOrder above Toasts.",
+  "verifyReason": "I confirmed this. HC_Notifications has DisplayOrder 40, and every toast gets a full-size transparent `Dismiss` TextButton at ZIndex 5 (NotificationController.luau:449-456) that takes the tap. On a phone canvas (H\u2248603) the toast rows sit at 92..152, 160..220, 228..288 and 296..356, between x W-334 and W-14. That overlaps:\n- ActionButton 213..313 (CombatClient.luau:835-837)\n- SpikeButton 171..263\n- EXIT 249..333\n- HORN, a little\nAll of these are at DisplayOrder 10-11. Two or three toasts at once during a chase is plausible: ram +1\u2605, chopper inbound, tire pop, theft notices. Each toast lasts about 3.5 s, and one tap is lost per toast rather than control being lost for good.",
+  "fix": "In NotificationController.toast (src/client/Controllers/NotificationController.luau ~449-462), don't create the full-size Dismiss TextButton on touch (UserInputService.TouchEnabled and not MouseEnabled), or limit it to the 42 px badge. Plain Frames and Labels don't sink input, so taps then reach the controls underneath. Optionally move the touch toast anchor left of the right-hand control column, e.g. UDim2.new(1, -150, 0, 92), so the toasts stay readable."
+ },
+ {
+  "id": "UI-DRIFT-COVERS-THEFT-TIMER",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/VehicleClient.luau",
+   "src/client/Controllers/HUDController.luau",
+   "src/client/Controllers/TutorialController.luau"
+  ],
+  "summary": "The DRIFT! banner sits in the same rectangle as the thief's 'DELIVER IT HOME!' countdown and draws on top of it. During the tutorial's first drive, the tutorial card covers the drift banner in turn.",
+  "evidence": "- VehicleClient.luau:417-427: drift label AnchorPoint (0.5,1), Position (0.5,0,0,-46) relative to the speedometer, whose top is at H-168 (283-289). It covers H-258..H-214, 320 wide, at DisplayOrder 11.\n- HUDController.luau:70 (THEFT_BOTTOM=184) and 875-884: theft panel AnchorPoint (0.5,1), Position (0.5,0,1,-184), 350x76, so H-260..H-184 at DisplayOrder 10. The timer digits (901-910) fill H-258..H-220, exactly under the drift text.\n- The keyboard hint (440-449) covers H-192..H-174.\n- TutorialController.luau:118 (CARD_BOTTOM=186) and 566-579: the card covers H-296..H-186 (H-323..H-186 on touch, scaled 1.25) at DisplayOrder 12.",
+  "failureScenario": "A thief drifts through a corner with 0:12 left, which is exactly when the timer turns red and starts popping, and the countdown disappears. A new player never sees the drift feedback on their first getaway.",
+  "suggestedFix": "Move the drift banner above the theft panel (e.g. speedometer-relative -300) or to one side of the speedometer. Or raise THEFT_BOTTOM to 270 or more, matching the tutorial's CARD_BOTTOM_THEFT of 276, and keep the tutorial card above the drift banner while Driving.",
+  "verifyReason": "The geometry is right. The drift label is parented to the speedometer at (0.5,0,0,-46) with AnchorPoint (0.5,1), so it covers H-258..H-214, 320 wide, at DisplayOrder 11. The theft panel (HUDController.luau:875-884, THEFT_BOTTOM=184) covers H-260..H-184 at DisplayOrder 10, and its timer digits fill x W/2+69..W/2+161, y H-258..H-220. 'DRIFT! 2.4s' at 38 px is about 250 px wide, so it is drawn over the title and part of the timer. The tutorial card (DisplayOrder 12, H-296..H-186 on non-theft drives) covers the drift banner. I lowered this to low: the banner is only visible while actively drifting (VehicleClient.luau:856-871), the label has no background, and the panel and progress bar stay visible, so the countdown is obscured rather than gone.",
+  "fix": "Move the drift banner out of the theft band in src/client/Controllers/VehicleClient.luau (~417-427). Either raise it, e.g. Position UDim2.new(0.5, 0, 0, -140) relative to the speedometer, which lands above THEFT_BOTTOM+76 (H-260), or place it beside the speedometer, e.g. AnchorPoint (0,1) at UDim2.new(1, 12, 0, 40). Leave THEFT_BOTTOM and CARD_BOTTOM unchanged."
+ },
+ {
+  "id": "UI-STREAMER-MODE-PARTIAL",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/HUDController.luau",
+   "src/client/Controllers/NotificationController.luau",
+   "src/client/Controllers/WaypointController.luau",
+   "src/client/Controllers/GarageClient.luau",
+   "src/client/Controllers/TutorialController.luau",
+   "src/client/Controllers/EventsClient.luau"
+  ],
+  "summary": "Streamer mode (settings.hideHud) hides only HC_HUD and EventsHUD. Toasts, the event feed (with player names), centre banners, the theft-alert vignette, waypoint pillars, markers and edge arrows, the GarageHUD lock pill, CombatHUD and the tutorial card all stay on screen.",
+  "evidence": "- HUDController.luau:1387-1404: setHidden only sets `u.gui.Enabled` and fires VisibilityChanged (58-59). Grep shows nobody subscribes.\n- EventsClient.luau:140-147 and 578-581 are the only other code that reads hideHud.\n- These have no hideHud check: NotificationController toast (340-483), announce (661-682) and feed (707-765); WaypointController.update (887-966); GarageClient.updateLockUI (666-700); TutorialController buildCard (565-575).\n- The WaypointController integration note lists this as known.",
+  "failureScenario": "A player turns on STREAMER MODE to clip a 5\u2605 chase or a Hot Drop. The clip still has toasts, feed lines naming other players, a 740-px 'HOT DROP' banner, 140-stud light pillars and edge arrows, so pillar 3 ('moments worth clipping') isn't served.",
+  "suggestedFix": "Subscribe NotificationController (main and banners screens), WaypointController (arrow gui plus marker and pillar Enabled), GarageClient's GarageHUD and the Tutorial card to HUDController.VisibilityChanged, or poll StateController.getSetting('hideHud'). Leave DrivingUI and BUSTED visible, per spec.",
+  "verifyReason": "I confirmed this. HUDController.setHidden (1387-1404) only toggles its own gui and fires VisibilityChanged, and nothing subscribes to it. Only EventsClient (hudHidden, 140-147 and 578-581) also reads hideHud. Toasts, feed, banners and the theft-alert vignette (NotificationController), the waypoint pillars, markers and arrows (WaypointController, listed as known in gameplay-client.md:268), the GarageHUD lock pill and the tutorial card all stay on screen. The SPEC row puts 'Respects settings.hideHud (hide all except vehicle controls)' under HUDController only, so the gap is in polish across other controllers, not a gameplay bug; I lowered it to low. CombatHUD's buttons are controls and should stay visible, so the tracer's list is partly wrong there.",
+  "fix": "Lazily get HUDController and connect HUDController.VisibilityChanged, also applying HUDController.isHidden() at start. Do this in:\n- NotificationController: set main.Enabled and banners.Enabled, and drop feed lines while hidden (src/client/Controllers/NotificationController.luau).\n- WaypointController: arrowGui.Enabled, plus billboard and pillar Enabled inside setVisible (src/client/Controllers/WaypointController.luau).\n- GarageClient: GarageHUD.Enabled (src/client/Controllers/GarageClient.luau).\n- TutorialController: the card gui (src/client/Controllers/TutorialController.luau).\nLeave DrivingUI, CombatHUD, the modal and BUSTED alone."
+ },
+ {
+  "id": "UI-CHAT-COVERS-LEFT-HUD",
+  "severity": "medium",
+  "files": [
+   "src/client/Controllers/HUDController.luau",
+   "src/client/Controllers/NotificationController.luau"
+  ],
+  "summary": "On PC the default TextChatService window (top-left, open by default) sits over the HUD's CODES/SETTINGS row, the top of the menu column, the streamer-mode \ud83d\udc41\ufe0f button and the entire event feed.",
+  "evidence": "- HUDController.luau:857-864: TopRow at (12,6); 833-838 and 981: menu column at x=12 from y\u224872; 921-933: the \ud83d\udc41\ufe0f toggle at (12,6).\n- NotificationController.luau:51-53 and 224-230: feed at (92,74), 400 wide \u00d7 5 lines, i.e. x 92..492, y 74..234. That is the area of the default ChatWindowConfiguration (aligned left and top).\n- TextChatService is in use (AdminService.luau:27, 617-635), and nothing sets ChatWindowConfiguration or disables chat.",
+  "failureScenario": "On PC, chat messages overlay STORE, GEAR and INDEX. Feed lines like 'X stole Y's GOLD PHANTOM GT!' are unreadable under chat, and clicks on the covered buttons can land on chat. In streamer mode the only 'show HUD' button sits under the chat.",
+  "suggestedFix": "Set TextChatService.ChatWindowConfiguration.VerticalAlignment = Bottom (or reposition it) from the client. Or start the HUD column and the feed below the chat window's height on desktop, e.g. move the feed to bottom-left above the hotbar.",
+  "verifyReason": "No ChatWindowConfiguration or chat setup exists anywhere in src. TextChatService is the default chat, and AdminService registers a TextChatCommand. On desktop the default chat window is open at the top-left under the top bar, and CoreGui draws above PlayerGui. The HUD puts the CODES/SETTINGS TopRow at (12,6) (HUDController.luau:857-864), the menu column from about y=72 at x=12, the streamer \ud83d\udc41\ufe0f toggle at (12,6) (921-933), and the event feed at (92,74), 400 wide and 160 tall (NotificationController.luau:51-53). Message text overlays these, and the only 'show HUD' button in streamer mode is under the chat. Whether clicks are swallowed depends on the chat window's state, so I count only the visual overlap as confirmed. This is PC only, because chat starts collapsed on mobile.",
+  "fix": "On non-touch devices, keep the top-left for chat. In HUDController.layout (src/client/Controllers/HUDController.luau ~962-993), start the TopRow and menu below the chat window: use TextChatService.ChatWindowConfiguration.AbsolutePosition/AbsoluteSize when ChatWindowConfiguration.Enabled, or a fixed desktop offset of about 260 design px with 2 columns via gridFit. Put the \ud83d\udc41\ufe0f toggle in the same spot. Move FEED_ANCHOR (src/client/Controllers/NotificationController.luau) to follow the menu's right edge and top, or to the bottom-left above the hotbar, on desktop."
+ },
+ {
+  "id": "UI-PHONE-MENU-GRID-THUMBSTICK",
+  "severity": "medium",
+  "files": [
+   "src/client/Controllers/HUDController.luau",
+   "src/client/Controllers/NotificationController.luau",
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "On phones the left menu column wraps into a 2\u20133 column grid of large buttons that reaches into the dynamic thumbstick's activation zone and stays visible while driving. The event feed, positioned for the 1-column desktop layout, draws over columns 2\u20133.",
+  "evidence": "- HUDController.luau:80: TOUCH_THUMB_REAL_PX = 120 assumes the thumbstick only uses the bottom 120 px.\n- HUDController.luau:962-988 (layout) and gridFit (259-266) fill `canvasHeight - menuTop - reserve` and widen into more columns.\n- Roblox's DynamicThumbstick frame covers roughly the left 40% from about a third of the screen height down. On an 844x390 phone the 3x3 grid of 76-design cells (x 12..252, y 82..322 design) lands at about x 7..139 and y 100..235 real px, overlapping a zone that starts near y 130.\n- homeState (245-247) hides only HOME while driving; the menu stays.\n- NotificationController.luau:51: FEED_ANCHOR x=92 at DisplayOrder 40 lands on columns 2\u20133 (x 94..252).",
+  "failureScenario": "A phone player rests their thumb upper-left to start moving or to steer in a chase and opens GEAR or DAILY instead. The full-screen Menus backdrop (DisplayOrder 20, MenuController.luau:3111-3125) then covers the driving controls and thumbstick. Feed text also renders on top of the menu icons.",
+  "suggestedFix": "On touch, lay the menu out as a horizontal strip under CODES/SETTINGS, or cap the column at y < H/3. Collapse it behind a single \u2630 button while the Driving attribute is true. Position the feed from menu.AbsoluteSize, or move it right-centre on touch.",
+  "verifyReason": "I confirmed this. layout() (HUDController.luau:962-993) uses menuTop=82, reserve=ceil(120/0.55)=219 and 76 px cells. At canvas H\u2248565-603, gridFit gives 3 rows \u00d7 3 columns, spanning x 12..252 and y 82..322 design, which is about x 7..139 and y 103..235 real px below the 58 px inset. The PlayerModule DynamicThumbstick frame covers the left 40% from 1/3 of the height down (y \u2265 ~130 on a 390 px screen), and touches on GUI buttons are processed, so they don't start the stick. The bottom two rows of the grid sit inside that zone. TOUCH_THUMB_REAL_PX=120 wrongly assumes only the bottom 120 px matter. The menu is never hidden while driving: applyFocus only hides it in tutorial focus, and homeState hides only HOME. FEED_ANCHOR x=92 at DisplayOrder 40 draws dark feed rows over columns 2-3 (x 94..252, y 82..234).",
+  "fix": "In HUDController (src/client/Controllers/HUDController.luau): on touch, hide u.menu while the Driving attribute is true (keep the TopRow), and cap the grid so its bottom stays above canvasHeight/3 + inset. For example, compute `reserve` from 2/3 of the canvas instead of TOUCH_THUMB_REAL_PX, letting gridFit widen into more columns. In NotificationController (src/client/Controllers/NotificationController.luau), position the feed from the HUD menu's right edge, e.g. via an exported HUDController.getMenuRight(), or move it to the right-centre on touch."
+ },
+ {
+  "id": "UI-EDGE-ARROW-HIDDEN-WHILE-DRIVING",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/WaypointController.luau",
+   "src/client/Controllers/VehicleClient.luau"
+  ],
+  "summary": "Waypoint edge arrows render below every HUD layer and use insets that ignore DrivingUI. The 'turn around' arrow for a target behind you lands under the opaque speedometer, and right-edge arrows land under the touch buttons.",
+  "evidence": "- WaypointController.luau:283-290: HC_WaypointArrows uses DisplayOrder = Theme.Layers.HUD - 1 (9).\n- WaypointController.luau:916-921: insets are only 54 design px (116 on the left).\n- edgeArrow (195-211): a target behind the camera and slightly below gives dy>0, so the arrow is clamped to bottom-centre at h - 54\u00b7s.\n- VehicleClient.luau:283-289: the speedometer (DisplayOrder 11, opaque panel) covers bottom-centre 340x156 design.\n- VehicleClient.luau:459-466: NITRO/DRIFT/HORN/EXIT cover the right edge from H-354 down.",
+  "failureScenario": "Right after hotwiring a car that faces away from home, which is the normal case, the DROP OFF arrow should point the player around, but it is drawn under the speedometer. The tutorial's 'Follow the arrow into your garage' (TutorialController.luau:84) shows no arrow.",
+  "suggestedFix": "When Driving is true, extend the bottom inset by the speedometer height plus margin and the right inset by the touch-cluster width (or clamp arrows out of the DrivingUI rectangles). Raise the arrow gui DisplayOrder above DrivingUI; arrows are non-interactive, so this is safe.",
+  "verifyReason": "I confirmed this. HC_WaypointArrows is at DisplayOrder HUD-1 = 9 (WaypointController.luau:283-290). The insets are 54*s on every side except the left (116*s) (916-921). For a target behind the camera, camRel gives dy>0, so edgeArrow clamps the arrow to bottom-centre at h-54*s. That is inside the opaque speedometer (H-168..H-12, DisplayOrder 11) whenever the direction is within about \u00b129\u00b0 of straight down at 720p. Right-edge arrows in the lower half go under the touch buttons. I lowered this to low because the world guide Beam from the character to the target (Core/Glow, 386-420) is still drawn, so players still get a cue to turn around.",
+  "fix": "In WaypointController.update (src/client/Controllers/WaypointController.luau ~913-921), when player:GetAttribute('Driving') is true, set insets.bottom = (12+156+16)*uiScale plus the bottom safe inset, and on touch set insets.right = 150*uiScale. Optionally raise the arrow gui DisplayOrder to Theme.Layers.HUD + 1; the arrows are non-interactive, so they won't block taps."
+ },
+ {
+  "id": "UI-PIXEL-BILLBOARDS-PHONE",
+  "severity": "medium",
+  "files": [
+   "src/client/Controllers/WaypointController.luau",
+   "src/client/Controllers/EffectsController.luau",
+   "src/client/Controllers/NotificationController.luau"
+  ],
+  "summary": "World BillboardGuis are sized in raw pixels and AlwaysOnTop, so on phones the waypoint marker covers about a third of the screen height and rarity tags and popups take about a third of the width. They ignore the 0.55 UI scale every ScreenGui uses.",
+  "evidence": "- WaypointController.luau:444-452: Marker `Size = UDim2.fromOffset(MARKER_WIDTH, 134)` (230x134), AlwaysOnTop, no MaxDistance.\n- EffectsController.luau:1110-1119: RarityTag `UDim2.fromOffset(460, 66)`, AlwaysOnTop, with a 19-px auto-sized pill of about 290 px.\n- NotificationController.luau:821-830: CashPopup 260x80, AlwaysOnTop.\n- EffectsController.luau:631-642 and 729: comic bubbles 220x140, \u00d71.5 for BIG STEAL.\nWaypointController already computes the UI scale (267-274) but applies it only to the edge arrows.",
+  "failureScenario": "A phone player driving to the drop-off has a 134-px pin, label and distance block on top of the road and the garage door. In Rush Hour, several Rare+ tags in traffic cover the street, through buildings.",
+  "suggestedFix": "Multiply billboard offset sizes by computeUiScale() (or use studs-based Size with a UISizeConstraint). Fade or shrink the marker within about 40 studs and give it a MaxDistance.",
+  "verifyReason": "I confirmed the sizes. The waypoint Marker is UDim2.fromOffset(230,134), AlwaysOnTop, with no MaxDistance (WaypointController.luau:444-452). The RarityTag is 460x66 with a 19 px auto-sized pill, AlwaysOnTop, MaxDistance 165 (EffectsController.luau:1110-1119). CashPopup is 260x80. BillboardGui offsets are in GUI points, and none of these apply the 0.55 phone scale that ScreenGuis use. So on an 844x390 phone the marker is about 1/3 of the screen height and a tag pill about 1/3 of the width, drawn through buildings. computeUiScale already exists in WaypointController but only scales the arrows.",
+  "fix": "In WaypointController (src/client/Controllers/WaypointController.luau), apply computeUiScale() to the Marker: set billboard.Size = UDim2.fromOffset(MARKER_WIDTH*s, 134*s) and add a UIScale (Scale=s) under a root frame holding pin, label and distance. Update both whenever uiScale changes in update(). Do the same for RarityTag in buildTag (src/client/Controllers/EffectsController.luau) and CashPopup (src/client/Controllers/NotificationController.luau). Optionally fade the marker within about 30 studs."
+ },
+ {
+  "id": "UI-PHONE-TEXT-TOO-SMALL",
+  "severity": "medium",
+  "files": [
+   "src/client/UI/Kit.luau",
+   "src/client/Controllers/NotificationController.luau",
+   "src/client/Controllers/EventsClient.luau",
+   "src/client/Controllers/VehicleClient.luau",
+   "src/client/Controllers/HUDController.luau"
+  ],
+  "summary": "Controllers that never added a touch multiplier render important text at about 6\u201311 real px on phones: toasts can shrink to 6 px, feed lines are about 9 px, event pills about 11 px, and the Hot Drop banner details about 9\u201310 px.",
+  "evidence": "Kit.luau:98-99 clamps the scale to 0.55\u20131.6. At 0.55:\n- toast text (NotificationController.luau:413-421, TextScaled with UITextSizeConstraint(20, 11) in a 236x46 box) renders at \u226411 px, minimum 6 px;\n- the feed (746, 17) renders at 9.4 px;\n- EventsClient.luau:291 pills (20) render at 11 px;\n- the banner info and distance (254-270, 18/16) render at 10/8.8 px;\n- VehicleClient.luau:307 car name (17) renders at 9 px;\n- the HUD theft title can drop to 12\u00d70.55 (900).\nBy contrast, HUDController.luau:969-971 (touch cells), MenuController.windowScale (798-807) and TutorialController TOUCH_CARD_SCALE (120) do compensate.",
+  "failureScenario": "A phone player gets 'Garage full! Sell a car or chop it at the Chop Shop' as a roughly 7-px, three-line toast that disappears after 3.5s. They keep idling in the drop-off without knowing why nothing happens.",
+  "suggestedFix": "Apply a touch DeviceScale of about 1.3\u20131.4 (the Tutorial pattern) to HC_Notifications, EventsHUD, DrivingUI labels and the HUD theft panel, or add a minEffectiveScale option to Kit.screen. Shorten toast copy and set MinTextSize so it is at least about 14 real px.",
+  "verifyReason": "Kit.screen clamps the scale to \u22650.55, and these controllers add no touch compensation. Results at 0.55:\n- toast text: TextScaled with UITextSizeConstraint 20..11 in a 236x46 box, which works out to about 9-11 real px for typical 2-line messages and 6 px at the floor (the 6 px figure is the worst case, not typical);\n- feed: 17 \u2192 9.4 px;\n- EventsHUD pills: 20 \u2192 11 px;\n- Hot Drop info and distance: 18/16 \u2192 9.9/8.8 px;\n- DrivingUI car name: 17 \u2192 9.4 px.\nHUDController's touch cells, MenuController.windowScale and TutorialController's TOUCH_CARD_SCALE do compensate, so the gap is inconsistent across controllers.",
+  "fix": "Add an optional minimum effective scale to Kit.screen (src/client/UI/Kit.luau), e.g. Kit.screen(name, order, {touchMin = 0.72}), so touch devices use math.max(s, touchMin). Use it for HC_Notifications (src/client/Controllers/NotificationController.luau), EventsHUD (src/client/Controllers/EventsClient.luau) and DrivingUI (src/client/Controllers/VehicleClient.luau). Check that phone layouts still fit after this; the toast and feed widths may need to shrink. Alternatively, add a DeviceScale UIScale of about 1.3 to the toast stack, feed, pills and banner (the TutorialController pattern)."
+ },
+ {
+  "id": "UI-REBIRTH-FIRST-TAP-DROPPED",
+  "severity": "medium",
+  "files": [
+   "src/server/Systems/RebirthService.luau",
+   "src/shared/Net.luau",
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "The Rebirth menu's confirm fires a single Rebirth remote. Net's token bucket always drops the first call at 0.5/s, so the button shows 'REBIRTHING...' for 3s and reverts with no feedback (already noted as REBIRTH-RATE-LIMIT-DROPS-FIRST; the client gives no recovery hint).",
+  "evidence": "- RebirthService.luau:303-306 registers Net.on(\"Rebirth\", ..., 0.5).\n- Net.luau:100-107 creates the bucket with tokens = perSecond (0.5) and rejects when tokens < 1.\n- MenuController.luau:2812-2827 fires once, on the second tap.\n- MenuController.luau:2834-2840 silently re-enables the button after PENDING_SECONDS.",
+  "failureScenario": "A player who has saved for a rebirth taps REBIRTH and then TAP AGAIN TO CONFIRM. Nothing happens and there's no toast. They must repeat both taps, which looks like a broken button.",
+  "suggestedFix": "Initialise buckets with math.max(1, perSecond), or register Rebirth at 1/s. The client could also toast 'Try again' when the pending state times out without a Rebirths change.",
+  "verifyReason": "This is a duplicate of REBIRTH-RATE-LIMIT-DROPS-FIRST (docs/integration/findings_contracts.json), which I re-verified. Net.allow creates the bucket with tokens=perSecond=0.5, refills it to min(1, 0.5+0)=0.5 on the first call and rejects when below 1. RebirthService registers at 0.5/s (303-305). MenuController fires Rebirth once on the confirm tap (2812-2817), and tick silently re-enables the button after PENDING_SECONDS (2834-2840). The first-ever rebirth per server session is dropped without feedback; a retry at least 1 s later works.",
+  "fix": "In Net.allow (src/shared/Net.luau:100), initialise new buckets with `tokens = math.max(1, perSecond)`, which also protects any future sub-1 rates. Alternatively register Rebirth at 1/s in src/server/Systems/RebirthService.luau; RebirthService already has its own busy guard. Track this under the existing REBIRTH-RATE-LIMIT-DROPS-FIRST finding rather than as a new item."
+ },
+ {
+  "id": "UI-LOCK-OVER-HOME",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/GarageClient.luau",
+   "src/client/Controllers/HUDController.luau"
+  ],
+  "summary": "While your garage is locked and you're outside it, GarageHUD's lock pill (DisplayOrder 11) overlaps the HOME button (DisplayOrder 10) on phones and at 720p, and takes taps on HOME's lower half. Tapping the pill in the 'locked' or 'cooldown' state gives no feedback.",
+  "evidence": "- GarageClient.luau:649-655: LockButton AnchorPoint (0.5,1), Position (0.5,0,1,-112), 250x58, so H-170..H-112.\n- GarageClient.luau:686: `btn.Visible = not driving and (inside or locked)`.\n- GarageClient.luau:657-662: it only acts when lockState=='ready'.\n- HUDController.luau:989-993: HOME bottom = ceil(74/s)+6. At s=0.55 HOME spans H-205..H-141 (29 px overlap); at s=1 it spans H-134..H-80 (22 px overlap).",
+  "failureScenario": "An owner locks the garage and runs out to chase a thief. When they tap HOME on its lower half, the tap hits the inert lock pill and nothing happens.",
+  "suggestedFix": "Show the lock pill only inside the garage and show the remaining lock time as a chip on HOME, or stack the two using HUDController.getBottomClearance(). Give non-ready taps a click sound and toast.",
+  "verifyReason": "I confirmed this. LockButton (GarageClient.luau:649-655) uses AnchorPoint (0.5,1) at (0.5,0,1,-112), 250x58, so it spans H-170..H-112 at DisplayOrder 11. It is visible when `not driving and (inside or locked)` (686), so while the garage is locked and you're outside, it shows alongside HOME (homeState is 'ready' or 'wanted' outside the garage). HOME (AnchorPoint (0.5,1), bottom = ceil(74/s)+6) spans H-134..H-80 at s=1 (22 px overlap) and H-205..H-141 on touch at s=0.55 (29 px overlap). The pill is wider than HOME and on top of it. Taps in 'locked' or 'cooldown' state do nothing (657-662).",
+  "fix": "In GarageClient.updateLockUI (src/client/Controllers/GarageClient.luau ~686), show the pill only when `inside` (HOME is hidden there anyway). When locked and outside, either hide it or stack it above HOME using HUDController.getBottomClearance(), e.g. Position = UDim2.new(0.5, 0, 1, -(clearance + 8)). Give non-ready taps a click sound or toast."
+ },
+ {
+  "id": "UI-ESCAPE-BACK",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "Menus close on Escape/ButtonB only through UserInputService.InputBegan. Roblox reserves Esc for its own system menu, and the Android back button opens the Roblox menu, but nothing hooks GuiService.MenuOpened.",
+  "evidence": "MenuController.luau:3458-3466: InputBegan checks KeyCode.Escape or ButtonB and calls MenuController.close(). There is no GuiService.MenuOpened connection anywhere in src.",
+  "failureScenario": "A PC player presses Esc to leave the Gear Shop. Roblox's in-game menu opens on top while the shop (and its backdrop) stays open underneath. Android back behaves the same way.",
+  "suggestedFix": "Connect GuiService.MenuOpened to MenuController.close(), add a keyboard alternative such as Backspace or M, and keep ButtonB.",
+  "verifyReason": "MenuController's only close-by-key path is UserInputService.InputBegan on Escape/ButtonB (3458-3466), and src has no GuiService.MenuOpened connection (grep). Roblox reserves Esc and the Android back button for its own system menu, so pressing Esc opens the Roblox menu whether or not InputBegan also fires. When the player returns, the shop and its backdrop are still open in most cases. This is minor: the X button and a backdrop tap still close menus, and gamepad B works.",
+  "fix": "In MenuController.start (src/client/Controllers/MenuController.luau ~3458), add `GuiService.MenuOpened:Connect(function() if current then MenuController.close() end end)`. Optionally also accept KeyCode.Backspace as a keyboard close key."
+ },
+ {
+  "id": "UI-ANNOUNCE-CENTER-WHILE-DRIVING",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/NotificationController.luau"
+  ],
+  "summary": "Announce banners (740x150 design, scale-pop and rotate) appear at 45% screen height and queue up to 6 at about 3s each. They cover the road mid-chase, worst on phones.",
+  "evidence": "NotificationController.luau:56-57 (BANNER_POSITION = (0.5, 0.45)), 493-503 (banner build), 620-648 (about 2.25\u20133s hold each) and 676-678 (queue capped at 6).",
+  "failureScenario": "A Hot Drop countdown, a 'SECRET car at the Dealership' notice and a HEIST announcement land during a 4\u2605 getaway, giving 6\u20139s of centre-screen banners over the road ahead.",
+  "suggestedFix": "While the Driving attribute is true, show a compact banner under the event pills (y\u2248130), or only the latest item. Keep the full banner for on-foot players.",
+  "verifyReason": "The code matches the description. BANNER_POSITION is (0.5,0.45); the banner is 740x150 design (about 407x82 real on an 844x390 phone, roughly half the width); it is held 1.1-2.25 s plus about 0.75 s of pop and fade (bannerHold, 129-136); the queue is capped at 6. Nothing changes this while Driving. This is a design trade-off for announcements rather than a defect, so I rate it low.",
+  "fix": "In NotificationController.showBanner/buildBanner (src/client/Controllers/NotificationController.luau ~493-648), when player:GetAttribute('Driving') is true, set the banner's UIScale target to about 0.6 and position it at UDim2.new(0.5, 0, 0, 150) under the event pills. Shorten holds, e.g. collapse the queue to the latest item while driving."
+ },
+ {
+  "id": "UI-PASS-PADS-DEAD-END",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/GarageClient.luau",
+   "src/shared/Config/Monetization.luau"
+  ],
+  "summary": "Every Monetization id is 0, yet garage pads 11\u201312 permanently advertise '\ud83c\udd7f\ufe0f +2 SLOTS PASS'. The pass can't be bought and no prompt appears, so it is a visible dead end (SPEC \u00a79 hides id-0 items in the Store).",
+  "evidence": "- GarageClient.luau:401-402 sets the pass label whenever PassOnly is true.\n- GarageClient.luau:457 only creates the purchase prompt when `Monetization.Passes.slots.id ~= 0`.\n- Config/Monetization.luau sets every id to 0 (lines 13\u201389), and the Store shows 'coming soon'.",
+  "failureScenario": "A player with 10 slots walks up to pads 11\u201312 to find out how to unlock them. The pads say '+2 SLOTS PASS', and there is nothing to tap and no store entry.",
+  "suggestedFix": "When Passes.slots.id == 0, render those pads as '\ud83d\udd12 MAX' or hide them (PlotService/GarageService _padInfo could treat id 0 as not offered).",
+  "verifyReason": "I confirmed this. renderPad labels every PassOnly pad '\ud83c\udd7f\ufe0f +2 SLOTS PASS' (GarageClient.luau:401-402), but creates the prompt only when Monetization.Passes.slots.id ~= 0 (457). Every id in Config/Monetization.luau is 0, and the Store hides id-0 items per SPEC. The pads advertise something that can't be bought. This is a pre-launch config state that goes away once ids are filled in, hence low.",
+  "fix": "In GarageClient.renderPad (src/client/Controllers/GarageClient.luau ~401), when passOnly and Monetization.Passes.slots.id == 0, show icon '\ud83d\udd12' with priceText 'MAX SLOTS' (or 'COMING SOON') in TextDim instead of the pass label."
+ },
+ {
+  "id": "UI-THEFT-DROPPED-NOT-SHOWN",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/StateController.luau",
+   "src/client/Controllers/HUDController.luau"
+  ],
+  "summary": "(Known, but it shows up in this client scenario.) StateController.sanitizeTheft strips dropped and droppedEndsAt. When the thief is knocked out of the car, the HUD keeps showing the long delivery countdown instead of a 'GET BACK IN! 0:12' state.",
+  "evidence": "StateController.luau:86-96 returns only active, endsAt, carId and targetPlot. TheftService.luau:539-549 sends dropped and droppedEndsAt. HUDController.applyTheft and refreshTheft (1303-1342) can only show endsAt.",
+  "failureScenario": "A thief gets bonked out of the stolen car. The HUD still says '1:40', but the car returns home in 12\u201320s, so the player thinks they have time and loses the car.",
+  "suggestedFix": "Keep dropped and droppedEndsAt in sanitizeTheft. In HUDController, swap the title to 'GET BACK IN!' with a red countdown while dropped is true.",
+  "verifyReason": "This is a duplicate of THEFTSTATE-DROPPED-STRIPPED, which I re-verified. TheftService.sendThiefState (534-549) sends dropped and droppedEndsAt, but StateController.sanitizeTheft (86-96) keeps only active, endsAt, carId and targetPlot. The HUD therefore can only show the long endsAt countdown. The one existing cue is the 'GET BACK IN!' waypoint label (TheftService ~551).",
+  "fix": "Track this under THEFTSTATE-DROPPED-STRIPPED. In src/client/Controllers/StateController.luau, keep `dropped = raw.dropped == true` and a finite numeric droppedEndsAt in sanitizeTheft and the TheftState type. In HUDController.applyTheft/refreshTheft (src/client/Controllers/HUDController.luau ~1303-1342), while dropped, show 'GET BACK IN!' with a red countdown to droppedEndsAt."
+ },
+ {
+  "id": "UI-GEAR-BADGE-ZAPPER-PASS",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/HUDController.luau",
+   "src/client/Controllers/MenuController.luau"
+  ],
+  "summary": "HUDController.gearAffordable ignores passes.taser, while the Gear Shop treats the Zapper as owned through the pass. Once pass ids are live, Zapper Pass owners get a permanent red '!' on GEAR for a tool they already own.",
+  "evidence": "- HUDController.luau:225-230 checks only `not tools[id] and cash >= def.price`.\n- MenuController.luau:530 sets `owned = tools[id] == true or (id == \"taser\" and passes.taser == true)`.",
+  "failureScenario": "A VIP who bought the Zapper Pass and has $15K sees the GEAR badge pulse and wiggle every 4s. Opening the menu shows \u2705 OWNED, so the badge is noise.",
+  "suggestedFix": "Reuse MenuController.toolRows' ownership rule in gearAffordable, or check snapshot.passes.taser for 'taser'.",
+  "verifyReason": "I confirmed this. HUDController.gearAffordable (225-230) checks only `not tools[id]`. MenuController.toolRows (530) and ShopService (156) treat taser as owned when the Zapper Pass is held. CombatService.ownedTools grants it at runtime without writing data.tools.taser (711-713), so snapshot.tools.taser stays nil for pass holders. The bug is dormant while the pass id is 0.",
+  "fix": "In HUDController.gearAffordable (src/client/Controllers/HUDController.luau ~225), read `local passes = if typeof(snapshot.passes) == 'table' then snapshot.passes else {}` and skip a tool when `tools[id] or (id == 'taser' and passes.taser == true)`, matching MenuController.toolRows."
+ },
+ {
+  "id": "PERF-WHEELANIMATOR-MOBILE",
+  "severity": "low",
+  "files": [
+   "src/client/Controllers/WheelAnimator.luau"
+  ],
+  "summary": "(Extends known PERF-07.) WheelAnimator updates the 25 nearest cars every PreRender with no on-screen check: up to 4 bob raycasts within 140 studs and 4 Weld.C0 writes per car, including server-owned moving traffic and police assemblies. This is the largest steady per-frame client cost on low-end phones.",
+  "evidence": "- WheelAnimator.luau:26-28: HOT_COUNT=25, COLD_PER_FRAME=6.\n- 425-441: the hot list updates every frame.\n- 339-355: raycast per wheel while dist \u2264 BOB_RANGE.\n- 364: `w.weld.C0 = ...` per wheel per frame.\n- 254-277: rebuildNear selects by distance only, with no frustum test.\nOther loops (Sound scan at 4 Hz, Effects tags at 4 Hz, Dealership's 8 CFrame writes, Waypoints) are bounded. I found no leaks.",
+  "failureScenario": "In Rush Hour (36 traffic cars) plus a 4\u2605 chase with police, a low-end Android phone does about 100 raycasts and 100 joint writes per frame on top of the local VehicleController. This causes frame drops right when driving needs to feel best (pillar 2).",
+  "suggestedFix": "Skip cars whose chassis is off-screen (WorldToViewportPoint), use HOT_COUNT of about 8 on touch, bob-raycast every second or third frame, and prefer Motor6D.Transform over Weld.C0 for per-frame wheel poses.",
+  "verifyReason": "This duplicates the known PERF-07 (findings_security_perf.json). I re-verified the constants: HOT_COUNT 25, COLD_PER_FRAME 6, BOB_RANGE 140. The hot list is updated every PreRender (425-441) with a per-wheel raycast within BOB_RANGE (339-355) and a weld.C0 write per wheel (364). rebuildNear selects by distance only, with no frustum or device-tier check (254-277). The only new detail is that police assemblies are included, which the existing finding already implies.",
+  "fix": "Track this under PERF-07. In src/client/Controllers/WheelAnimator.luau:\n- skip rigs whose chassis fails a WorldToViewportPoint on-screen test, rechecked in rebuildNear every 0.25 s;\n- use HOT_COUNT of about 10 when UserInputService.TouchEnabled and not MouseEnabled;\n- bob-raycast every other frame per rig.\nSwitching Weld.C0 to Motor6D.Transform needs CarBuilder changes and can wait."
+ }
+]

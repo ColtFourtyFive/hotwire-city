@@ -39,6 +39,7 @@ export type PlayerData = {
 	exclusives: { [string]: boolean }, -- exclusive cars granted by Robux (re-grantable)
 	contracts: ContractState,
 	referralRewarded: boolean,
+	playtime: { day: number, seconds: number, claimed: { [string]: boolean } }, -- per-UTC-day playtime gifts
 }
 
 -- Daily contracts: rolled once per UTC day.

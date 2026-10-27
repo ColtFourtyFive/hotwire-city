@@ -12,14 +12,14 @@ Remotes.ServerToClient = {
 	"EventFeed", -- (richText: string) small kill-feed style line, all players
 	"CarStolenAlert", -- (thiefName: string, carId: string, mutation: string, active: boolean) victim's alarm on/off
 	"CashPopup", -- (amount: number, worldPosition: Vector3?) floating +$ text
-	"Busted", -- (lostCash: number)
+	"Busted", -- (lostCash: number, carLabel: string?) carLabel = impounded car name when one was taken
 	"Knockback", -- (velocity: Vector3, stunSeconds: number) applied by the victim's client to its own character
 	"Effect", -- (effectName: string, data: {[string]: any}) cosmetic effect for all nearby clients
 	"HotDropState", -- (state: {active: boolean, position: Vector3?, carId: string?, mutation: string?, endsAt: number?, startsAt: number?})
 	"EventState", -- (state: {[eventName]: endsAt number}) active timed events (rush hour, 2x cash, server luck, cash rain)
 	"OfflineEarnings", -- (amount: number, seconds: number)
 	"Waypoint", -- (id: string, position: Vector3?, color: Color3?, label: string?) nil position clears
-	"TheftState", -- (state: {active: boolean, endsAt: number?, carId: string?, targetPlot: number?}) thief's delivery timer
+	"TheftState", -- (state: {active: boolean, endsAt: number?, carId: string?, targetPlot: number?, dropped: boolean?, droppedEndsAt: number?}) thief's delivery timer
 	"OpenUI", -- (name: string) ask client to open a menu (e.g. "GearShop" from a ProximityPrompt)
 	"Sound", -- (soundKey: string, worldPosition: Vector3?) play a Config.Sounds sound
 }
