@@ -182,12 +182,7 @@
     "2010 Toyota Prius/Body/prius.003_prius.002"
    ],
    "selectors": [
-    "Body/badge/**",
-    "Body/badge_ok.001/**",
-    "Body/extra1/**",
-    "Body/Rear/**",
-    "Body/Front/**",
-    "Body/{badge_ok, block_engine, bonnet_ok, boot_ok.001, boot_ok.003, boot_ok.004, +37 more}"
+    "Body/{Front, Rear, badge, badge_ok, badge_ok.001, block_engine, +42 more}"
    ]
   },
   "Glass": {
@@ -215,8 +210,7 @@
     "2010 Toyota Prius/Body/windscreen_ok"
    ],
    "selectors": [
-    "Body/glass_badge_ok.001/**",
-    "Body/{boot_ok.005, door_lf_ok, door_lr_ok, door_rf_ok, door_rr_ok, glass, +9 more}"
+    "Body/{boot_ok.005, door_lf_ok, door_lr_ok, door_rf_ok, door_rr_ok, glass, +10 more}"
    ]
   },
   "Interior": {
@@ -237,9 +231,7 @@
     "2010 Toyota Prius/Body/seat"
    ],
    "selectors": [
-    "Body/f_steer/**",
-    "Body/interior_badge/**",
-    "Body/{f_steer.001, f_steer.002, f_steer.003, interior_pisos, interior_pisos.001, interior_pisos.003, +2 more}"
+    "Body/{f_steer, f_steer.001, f_steer.002, f_steer.003, interior_badge, interior_pisos, +4 more}"
    ]
   },
   "Lights_Brake": {
@@ -313,7 +305,7 @@
     "2010 Toyota Prius/Wheels/Wheel#1"
    ],
    "selectors": [
-    "Wheels/Wheel#1/**"
+    "Wheels/Wheel#1"
    ]
   },
   "Wheel_FR": {
@@ -325,7 +317,7 @@
     "2010 Toyota Prius/Wheels/Wheel#4"
    ],
    "selectors": [
-    "Wheels/Wheel#4/**"
+    "Wheels/Wheel#4"
    ]
   },
   "Wheel_RL": {
@@ -337,7 +329,7 @@
     "2010 Toyota Prius/Wheels/Wheel#2"
    ],
    "selectors": [
-    "Wheels/Wheel#2/**"
+    "Wheels/Wheel#2"
    ]
   },
   "Wheel_RR": {
@@ -349,7 +341,7 @@
     "2010 Toyota Prius/Wheels/Wheel#3"
    ],
    "selectors": [
-    "Wheels/Wheel#3/**"
+    "Wheels/Wheel#3"
    ]
   }
  },

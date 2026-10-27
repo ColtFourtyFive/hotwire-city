@@ -50,5 +50,37 @@
   "sha256": "cc6b36406c80266b00c0fe4bdb9425f4165dcb2723abe8688f3ecc89518e1113",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:06:21+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      9.5746,
+      10.2638,
+      13.1377
+    ],
+    "dims_m": [
+      13.138,
+      9.575,
+      10.264
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 1,
+    "triangles": 1610,
+    "materials": 1,
+    "material_names": [
+      "Scene_-_Root"
+    ],
+    "textures": 3,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "m67_low__0"
+    ],
+    "render_s": 48.0
+  }
 }

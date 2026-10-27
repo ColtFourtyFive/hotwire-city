@@ -554,7 +554,8 @@ def analyze(model_id):
         if i in vis_ids:
             leaf_by_group[group[i]].append(rel(i))
         for c in kids[i]:
-            if kids[c] and sub_groups[c]:
+            part_leaf = c in vis_ids and sum(sub_groups[c].values()) == 1
+            if kids[c] and sub_groups[c] and not part_leaf:
                 emit(c)
             elif c in vis_ids:
                 leaf_by_group[group[c]].append(byid[c]["name"] + ("#%s" % upath[c].rsplit("#", 1)[1] if "#" in upath[c].rsplit("/", 1)[-1] else ""))

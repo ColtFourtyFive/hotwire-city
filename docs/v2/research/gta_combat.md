@@ -209,10 +209,11 @@ Source: <https://www.grandtheftwiki.com/Wanted_Level_in_GTA_V>.
 
 - **Search:**
   - During an active chase, the radar flashes red and blue and the stars are solid.
-  - When police lose sight, the radar stops flashing, the stars flash, and officers show **vision cones**: "narrow for foot officers, moderate for ground vehicles, and wide for helicopters."
+  - When police lose sight, the radar stops flashing, the stars flash, and officers show **vision cones**: "officers on foot have a narrow FOV, ground vehicles have a moderate FOV, and helicopters have a wide FOV."
   - Re-entering an officer's view restarts the pursuit.
 - **Evade times:** 30 / 45 / 60 / 75 / 90 s for 1 to 5 stars.
-- **At 3★+:** "arrest is almost impossible. Police focus on killing the player."
+- **At 3★+:** it is "almost impossible to get arrested". Police still attempt vehicular arrests when they get the chance.
+- **Busted in GTA V:** "the police confiscates all of the player's ammunition and body armor". Dying instead lets the player keep their ammo. This page does not mention a hospital bill or 50% health regen; both are well-known GTA V behaviour but are unsourced here.
 - **Crimes:**
 
   | Stars | Crimes |
@@ -228,12 +229,12 @@ Source: <https://www.grandtheftwiki.com/Wanted_Level_in_GTA_V>.
 | File | What it does now | v2 verdict |
 |---|---|---|
 | `src/server/Systems/CombatService.luau` (1,521 lines) | Mild cartoon tools built from parts: Bonk Bat (pink/cyan neon), Zapper (orange sci-fi blaster, lime coils), Spike Strip (neon pink spikes). Stun + knockback + eject, `ToolAction(toolId, aim)`. Server raycast/spherecast, assault-heat rules, spawn and locked-garage protection | **Keep the logic, kill the visuals.** <br>• Keep `shouldAddAssaultHeat`, `isStealingFrom`, `countsAsThiefBonk`, the spike polling and `segmentCrossesStrip` (move the pure rules to `Shared/Combat/CrimeRules`). <br>• The bat becomes a WeaponService melee weapon. <br>• The Zapper becomes a realistic taser gadget, keeping the Zapper Pass. <br>• Spikes become a realistic strip mesh. <br>• All `COLORS.Pink/Cyan/Lime` builders are deleted (kill list). |
-| `src/client/Controllers/CombatClient.luau` (978 lines) | Activation, BONK/ZAP round buttons with emoji icons (`🏏 ⚡ 📌`), cartoon spinning stars over stunned heads, knockback | **Keep:** knockback/stun freeze and the spikes button (restyled). <br>**Delete:** emoji buttons and spinning stars. Guns move to the new `WeaponClient`. |
+| `src/client/Controllers/CombatClient.luau` (1,001 lines) | Activation, BONK/ZAP round buttons with emoji icons (`🏏 ⚡ 📌`), cartoon spinning stars over stunned heads, knockback | **Keep:** knockback/stun freeze and the spikes button (restyled). <br>**Delete:** emoji buttons and spinning stars. Guns move to the new `WeaponClient`. |
 | `src/server/Systems/WantedService.luau` (969 lines) | Stars 0–5; step decay (`DECAY_DELAY {15,20,25,32,40}` then one star per `DECAY_STEP` 10 s); spray shop works only when unseen; BUSTED; died-while-wanted equals a bust; confetti and emoji toasts | **Change:** GTA all-at-once evade plus search area (section 9.4); WASTED versus BUSTED classification (section 7); new heat reasons (section 9.5); remove confetti and emoji (`😎 ESCAPED`, `🚨`). |
 | `src/server/Systems/PoliceService.luau` (2,409 lines) | Physical cruisers with pursuit AI, roles, rubber-banding, cartoon heli with searchlight (`HELI_AT_STARS=4`), bust ring, visual-only BUSTED officer; `isSeen` is "any unit has LOS" | **Keep** the driving AI. **Add:** officer exit/on-foot, firing via a new `PoliceCombatService`, vision cones, last known position, roadblocks, SWAT, heli sniper. Replace the cartoon heli model (realistic heli, in the vehicles research). |
 | `src/server/Systems/NPCService.luau` | Peds never die (Mild); `ejectComic`; `_ragdoll` helper exists; officer only as a BUSTED prop | Officers and peds can be downed (ragdoll, fade after 6 s). On-foot armed officers. Peds flee or cower on gunfire. Witness queries. Rename `ejectComic` to `eject`. |
 | `src/shared/Net.luau` / `Remotes.luau` | Reliable RemoteEvents only, with a per-player token bucket | Add an `UnreliableRemoteEvent` list for cosmetic shot FX (section 10.6). |
-| `src/shared/Config/Economy.luau` | Early cars earn $3–7/s; mid-game cars $55–75/s; late-game cars $220–320/s each, across 4–12 slots. Starting cash $150 | The weapon price curve is pinned to this (section 5). |
+| `src/shared/Config/Economy.luau` + `Cars.luau` | Car income per second by tier: Common $3–7, Uncommon $14–24, Rare $55–75, Epic $220–320, Legendary $900–1,300, Mythic $4,000–6,000, Secret $20,000–40,000. Slots: 4 to start, up to 10 bought with cash, +2 from a pass. Starting cash $150. *(Corrected in verification: an earlier version called the Epic tier "late game".)* | The weapon price curve is pinned to this (section 5). It tops out at Epic-tier income, so from Legendary on, every gun costs only minutes of income. That is intended: guns are not a late-game sink. |
 
 ---
 
@@ -263,7 +264,7 @@ Police-only weapons, used in AI loadouts and never sold: nightstick, pistol, pum
 
 ### 4.2 Stats
 
-Health is 100 and armor is up to 100. Ranges are in studs: an R15 character is about 5.2 studs tall, so 1 stud is roughly 0.35 m.
+Health is 100 and armor is up to 100. Ranges are in studs: an R15 character is about 5.2 studs tall, so visually 1 stud is roughly 0.35 m. *(Verification: Roblox's official physics conversion is 1 stud = 28 cm, per <https://create.roblox.com/docs/physics/units>. Use 0.35 m only for visual scale, and 0.28 m for anything physics-derived.)*
 
 | Id | Dmg | Head× | RPM | Mag | Reload s | Hip / Aim spread° | Bloom max° | Full → zero range | Min mult | Max range | Reserve cap | TTK vs 100 HP (no armor) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -275,15 +276,18 @@ Health is 100 and armor is up to 100. Ranges are in studs: an R15 character is a
 | handcannon | 50 | 1.5 | 140 | 7 | 1.8 | 2.0 / 0.5 | 4.5 | 80 → 200 | 0.6 | 260 | 84 | 2 body / 0.43 s |
 | microsmg | 11 | 1.4 | 900 | 32 | 1.6 | 3.0 / 1.6 | 5.5 | 30 → 90 | 0.5 | 160 | 320 | 10 body / 0.60 s |
 | tacsmg | 14 | 1.4 | 780 | 30 | 1.9 | 2.2 / 0.8 | 4.0 | 45 → 130 | 0.55 | 220 | 300 | 8 body / 0.54 s |
-| pump | 8 × 11 | 1.2 / pellet | 70 | 8 (per shell, 0.45 s) | — | 5.5 / 4.0 (fixed pattern) | — | 12 → 45 | 0.15 | 70 | 64 | 2 blasts close / 0.86 s |
+| pump | 8 × 11 | 1.0 / pellet (no pellet headshots; corrected) | 70 | 8 (per shell, 0.45 s) | — | 5.5 / 4.0 (fixed pattern) | — | 12 → 45 | 0.15 | 70 | 64 | 2 blasts close / 0.86 s |
 | comrade | 20 | 1.5 | 600 | 30 | 2.3 | 1.8 / 0.6 | 4.0 | 100 → 260 | 0.6 | 400 | 300 | 5 body / 0.40 s |
 | carbine | 18 | 1.5 | 700 | 30 | 2.1 | 1.4 / 0.4 | 3.0 | 110 → 280 | 0.6 | 420 | 300 | 6 body / 0.43 s |
 | marksman | 60 | 2.0 | 75 | 10 | 2.6 | 3.0 / 0.0 (scoped) | — | no falloff | 1.0 | 900 | 60 | head 1 / body 2 / 0.80 s |
 
 Design rules behind the numbers:
 
-- **Minimum PvP time-to-kill is about 0.4 s against an unarmored target** for everything except a marksman headshot. Against full armor it doubles to about 0.8 s, which gives time to react.
+- **Minimum PvP time-to-kill on body shots is about 0.4 s against an unarmored target** (Comrade 0.40 s; Carbine and Hand Cannon 0.43 s). This holds for everything except a marksman headshot.
+  - *(Corrected in verification.)* With every shot a headshot, the TTK is shorter: Carbine 4 shots, 0.26 s; Comrade 0.30 s; P9 0.33 s; Tac SMG 0.38 s.
+  - Against full armor (200 effective HP), the fastest body-shot TTK is about **0.9 s** (Comrade, 10 shots), not 0.8 s. That still gives time to react.
 - **No one-shot close-range kills.** The pump needs two blasts. This is friendlier for 13+ than GTA's one-shot pump.
+  - *(Corrected in verification.)* The original ×1.2 pellet head multiplier broke this rule. At point-blank, 8 head pellets plus 3 torso pellets deal 8 × 9.6 + 3 × 8 = 100.8, a one-shot kill. Pellets now use ×1.0, so the most one blast can deal is 88.
 - **Body-part multipliers:** head ×Head (from the table), torso ×1.0, limbs ×0.75.
 - **Inside vehicles:** occupants hit through glass take ×0.7. A ray that hits the car body damages the car instead (section 10.5).
 
@@ -482,7 +486,7 @@ The sequence:
 | **Rookie protection** | The first 30 min of total playtime: works like passive but automatic. Ends early if the rookie deals player damage, buys a rifle, or opts out. Coexists with the existing `NEWBIE_PROTECTION_CARS=3` theft rule. |
 | **Revenge immunity** (anti spawn-camp) | If the same attacker downs you twice within 3 min, that attacker cannot damage you for 5 min, and you may enable passive immediately, bypassing the cooldown. |
 | **Menace** (anti-grief, Bad Sport lite) | Downing 3 non-wanted players within 5 min, or 2 rookies or passive-adjacent targets, makes the attacker a Menace for 5 min: minimum 3★, an automatic bounty, and a red map marker visible to everyone. Repeat offences in one session extend it to 10 min. |
-| **Bounties** (zero-sum) | Any player at 4★ or more carries a bounty of `min(10% of their cash, stars × 20 s of their income)`, **paid from the target's cash** to whoever downs them. Cops never claim it. A given (killer, target) pair pays at most once per 30 min (mirrors `BONUS_PAIR_COOLDOWN`). There are **no player-placed bounties** in v2: alt-account farming and harassment risk. |
+| **Bounties** (zero-sum) | Any player at 4★ or more carries a bounty of `min(10% of their cash, stars × 20 s of their income)`, **paid from the target's cash** to whoever downs them. Cops never claim it. A given (killer, target) pair pays at most once per 30 min. This uses the same mechanism as `BONUS_PAIR_COOLDOWN`, whose existing value is 600 s; use a new 1,800 s constant. There are **no player-placed bounties** in v2: alt-account farming and harassment risk. |
 | **Vigilante and defense** | Damaging a wanted player (1★ or more), a thief driving your car, or a raider inside your garage adds no heat. This is the existing `shouldAddAssaultHeat` logic, now used for all weapons. |
 | **Vehicle PvP** | Shooting a player's car damages it (`VehicleService.damage(car, n, source)`). Shooting a wheel well pops a tire (existing `TiresPopped`). Cars parked in garages are invulnerable. A driver hit through glass takes ×0.7. Drive-by from the driver seat (pistol or micro SMG, sideways) is phase 2. |
 | **Friendly fire** | On between everyone; no crews in v2. |
@@ -617,6 +621,11 @@ type ShotPacket = {
    - `d` must be within 100° of the shooter's rewound facing direction: no shooting behind the back.
 8. **Range.** `|x − o| ≤ maxRange`.
 9. **Target.** For player and NPC hits, the claimed point must be within `3.5 + victimSpeed × 0.05 + 0.1 × victimSpeed × rewind` studs of the victim part's rewound position. The rewound position is the rewound root CFrame multiplied by the part's current offset from the root. Car occupants get +1.5 studs.
+   - *(Verification fix.)* Sample victims at `t − (shooter:GetNetworkPing() / 2 + INTERP_DELAY)`, not at `t`.
+   - The shooter sees other characters as the server had them roughly one server-to-client trip plus the client's interpolation buffer *before* `t`. This is the Source-engine "latency + view interpolation" rule.
+   - `GetNetworkPing()` returns the **round-trip** time in seconds (Player API docs).
+   - Sampling at `t` under-rewinds by about 0.1–0.2 s. That is a few studs for a running target, but more than 10 studs for a car at 60 studs/s, so valid drive-by and car hits would be rejected.
+   - Tune `INTERP_DELAY` (start at 0.1 s) in the C0 200 ms two-client test.
 10. **Line of sight.** A server raycast from `o` to `x`, ignoring all characters and `Workspace.Effects`, with `RespectCanCollide=true`, must not hit anything before `|x − o| − 1`. This is the Laser Tag `isRayPathObstructed` check.
 11. **Rules.** `DamageService.canDamage(attacker, victim)` applies protection, safe zones, passive, rookie, revenge immunity and spawn protection.
 12. **Apply.** `DamageService.apply{victim, amount = DamageModel(...), source, weapon, part, pos, dir}`. Crime rules add heat. TheftService `onThiefHit` handles thief drops.
@@ -645,7 +654,7 @@ type ShotPacket = {
 
 ### 10.6 Cosmetic replication
 - New `Remotes.Unreliable = { "ShotFx", "PoliceShotFx" }`. `Net.init` creates `UnreliableRemoteEvent`s; add `Net.fireNearUnreliable`.
-- **Payload:** `(shooterUserIdOrUnitId, weaponIndex u8, origin, endpoints {≤8}, impactKinds {u8})`, which stays well under the 900-byte unreliable limit.
+- **Payload:** `(shooterUserIdOrUnitId, weaponIndex u8, origin, endpoints {≤8}, impactKinds {u8})`, which stays well under the unreliable payload limit. *(Verification: the current Remote events doc says messages over **1,000 bytes** may be dropped; 900 was the launch figure. Keep the 900-byte budget as a margin.)*
 - **Who receives it:** clients within 400 studs of the origin or any endpoint, excluding the shooter, who already rendered predicted FX.
 - **When the server sends it:** after checks 1–4 of section 10.2, so misses are visible too, but a cheater cannot spoof visuals for weapons they don't hold.
 - **Client budget:** pooled tracers (Beam plus two Attachments, 64 maximum), muzzle flashes (PointLight + ParticleEmitter, 16 maximum) and impact effects (dust, sparks, glass; 48 maximum). Impact decals go on world surfaces only, maximum 128, oldest removed first.
@@ -769,7 +778,7 @@ The search method:
 | Knife (phase 2, optional) | 18775287777 | KA-BAR Combat Knife | 2,356 | Good, if the user wants knives at all. |
 | Grenade (not v2) | 18948705106 | M67 Grenade | 5,301 | Excellent, but out of scope. |
 
-**Risk.** Some of this creator's other uploads are titled "Tyre (Tire) Pack | Insurgency: Sandstorm" and "Hesco Barrier | Delta Force". The MP7 description says "Original model uploaded by Kamishiro_Sanagi. Textures fixed by me." Some meshes may therefore be ports from commercial games.
+**Risk.** Some of this creator's other uploads are titled "Tyre (Tire) Pack | Insurgency: Sandstorm" and "Hesco Barrier | Delta Force". Verification also found "Sandbag Pack | Insurgency: Sandstorm" and a *gun*, "QSZ92G | Delta Force" (121056901779530). The account shows `isVerifiedCreator: true`, but verification does not establish where a mesh came from. The MP7 description says "Original model uploaded by Kamishiro_Sanagi. Textures fixed by me." Some meshes may therefore be ports from commercial games.
 - A DMCA takedown would blank them in-game.
 - Treat them as **placeholders**: build our own parody guns in the Blender pipeline (task #8) before any paid push, or get written provenance from the creator.
 
@@ -802,8 +811,8 @@ Sheets: `combat_melee_armor_candidates_2026-10-27.jpg` and `combat_vest_accessor
 | Knuckle Dusters | 88603423552264 | KoBoIce | **Use.** Brass, 7.6k tris. |
 | Nightstick (police) | 13826913704 | Jakel_6666 | **Use.** A matte black side-handle baton. |
 | Pry Bar | 113217623332553 | SodaBreadle | Acceptable but stylized and thin. Easy Blender replacement. |
-| Armor vest accessory | 103113428495694 | DIVISIVE | **Use.** A plain black plate carrier. Front accessory applied via HumanoidDescription. |
-| Armor vest (alt) | 91301921946676 | 2026 masterclass | Good. |
+| Armor vest accessory | 103113428495694 | DIVISIVE (group) | **Use.** A plain black plate carrier. Front accessory (asset type 45) applied via HumanoidDescription. *(Verification: this is a third-party UGC catalog item on sale for 55 R$, not a free Creator Store model. `ApplyDescription` does not need the player to own it, but the creator can change or delist it. Replace it with our own vest mesh in the Blender pipeline.)* |
+| Armor vest (alt) | 91301921946676 | 2026 masterclass (group) | Good. Also a 55 R$ UGC item; same caveat. |
 | Armor vest | 16554530715 | 8O8Mph | **Rejected.** Pentagram and anarchy patches. |
 | Kevlar Vest model | 1167407301 | AgentRyanTech | **Rejected.** Blocky classic rig. |
 
@@ -835,7 +844,10 @@ Only upper-body joints are keyed, so the walk and run cycles drive the legs; Rob
 ### 12.4 SFX
 **Sources:**
 - Roblox-licensed partner uploads: **Pro Sound Effects** (user 7462895450) and **Audioscape** (group 34159607). The same family is already used in `Config/Sounds.luau`; for example, Siren is 9119165131.
-- Roblox Weapons Kit audio (uploader DarthfuzzyX, public).
+- Roblox Weapons Kit audio (uploader DarthfuzzyX).
+  - *(Verification: these are **not** public Creator Store audio. For 3806566911, 4812801977 and 3821789416, the economy API returns `IsPublicDomain=false` and the toolbox API returns `isFree=false, purchasable=false`. The same is true of 3909012115 from Reference Games.)*
+  - They are under 6 s and pre-2022, so they probably still play under the 2022 short-audio exemption. That is unconfirmed.
+  - Rank them below the Pro Sound Effects and Audioscape picks, which are public, and confirm they play in Studio before relying on them.
 
 **Search method:** `apis.roblox.com/toolbox-service/v2/assets:search?searchCategoryType=Audio&query=…`, filtered by creator.
 
@@ -901,7 +913,7 @@ Only upper-body joints are keyed, so the walk and run cycles drive the legs; Rob
 | `src/client/Controllers/DeathScreenController.luau` | WASTED and BUSTED screens (section 7) |
 | `src/client/Controllers/ShotFxController.luau` | Pooled tracers, muzzle flashes, impacts and whizzes for `ShotFx` and `PoliceShotFx` (or fold into EffectsController) |
 | `src/client/Controllers/GunShopUI.luau` | Store menu (section 5.1) |
-| `tests/spec/weapons.spec.luau`, `damage.spec.luau`, `shotvalidation.spec.luau`, `policeaim.spec.luau`, `crimerules.spec.luau` | Lune unit tests for the pure modules. Assertions: minimum TTK of 0.35 s or more for every gun except a marksman headshot; armor split; regen cap of 50; deterministic pellets; time-machine and future shots rejected; the DPS budget never exceeded with 10 officers |
+| `tests/spec/weapons.spec.luau`, `damage.spec.luau`, `shotvalidation.spec.luau`, `policeaim.spec.luau`, `crimerules.spec.luau` | Lune unit tests for the pure modules. Assertions: minimum **body-shot** TTK of 0.38 s or more and all-headshot TTK of 0.25 s or more for every gun except the marksman (corrected; with headshots the Carbine is 0.26 s); no single pump blast reaches 100; armor split; regen cap of 50; deterministic pellets; time-machine and future shots rejected; the DPS budget never exceeded with 10 officers |
 
 ### 13.2 Files to change
 
@@ -978,7 +990,10 @@ Acceptance:
 **Risks:**
 1. **Asset provenance (high).** The Regole_CKC guns may include game-ripped meshes (section 12.1). Mitigation: placeholders only, with our own Blender parody guns before paid promotion.
 2. **Animation quality (medium).** The Roblox-owned placeholder animations are generic. GTA feel depends on the custom set and the IK aim; budget animator time.
-3. **Moderate audience.** Under-9s need parental consent for Moderate (ESRB). The lead direction already accepts 13+.
+3. **Moderate audience (corrected).** Moderate is allowed for Roblox Select (9–15) and standard Roblox (16+).
+   - Every new game first runs a 16+ trial.
+   - Reaching 13–15-year-olds needs Select eligibility: an ID-verified creator with 2FA, a publishing fee or a Plus/Premium subscription at least 2 months old, and 250 engaged unique plays in 60 days (section 1.5).
+   - Budget for this in the launch plan.
 4. **Performance.** Third-person guns of up to 50k tris on 30 players: decimate to 15k or less and use `RenderFidelity=Automatic`. Pool all FX.
 5. **Griefing.** Mitigated by the section 8 rules. Watch the analytics: PvP downs per player-hour, passive-mode uptake, and early-session quits after a first PvP death.
 
