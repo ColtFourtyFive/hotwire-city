@@ -1,6 +1,6 @@
 # Job 0004 report: realistic car deep-dive
 
-> **Status: PARTIAL.** 31 cars are done: the 14 shortlist cars plus 17 new ones (muscle, supercar, hatchback, coupe, convertible, luxury sedan). 10 classes and the yiypoo1024 cars follow. `DONE` comes last.
+> **Status: PARTIAL.** 41 assets are analyzed. Done: the shortlist, muscle, supercar, hatchback, coupe, convertible, luxury sedan, motorcycle, city bus, ambulance and fire truck. SWAT, tow, limo, lowrider, garbage, police sedan and the yiypoo1024 cars follow. `DONE` comes last.
 
 ## Method
 
@@ -61,3 +61,26 @@
 - **108455212286316 2016 Buick Enclave (deleted account) — 3/5.** (Search returned it for "luxury sedan"; it's a crossover.) Good shape, sunroof, waterfall grille, black alloys, but the white paint has a **dirty/weathered baked texture** (grey smudges everywhere) — reads as a beater. 22.4×8.9×11 studs (correct). 4 clean wheel candidates, 4 seats, 32 scripts removed, 13 textures. Buick tri-shield badges. Orientation flipped.
 
 *(Luxury-sedan class verdict: no clean GTA-grade luxury saloon on the free store; best usable sedan bodies are inside the S-Klasse pack 14115238067.)*
+
+#### motorcycle / sport bike
+- **10655506812 2008 Honda CBR1000RR Fireblade (itsurboi_rocky) — 5/5 looks.** Excellent superbike: fairings, visible engine/frame, brake discs, under-seat exhaust, tinted screen. Green paint. 8.3×5.9×4.3 studs (bounding box includes kickstand/side parts; ~8 long is right). 17 wheel candidates, 1 seat, 28 scripts removed. **Honda wing + "CBR" fairing lettering.** Orientation flipped.
+- **15104621740 "CoD MW2CR Honda CBR 600 RR" (ALEXMACAU123HANDq) — 4/5 looks, IP risk.** A **ripped Call of Duty: MW2 Remastered asset** (per its name): photoreal textures (4), dirty white fairing, plate "91436", kickstand. Only 4 MeshParts, 0 scripts. 7.7×4.9×7.9 studs (bounds near-square → ANALYZE cameras land dead-front/dead-rear). 1 wheel candidate, no seat. **Third-party game rip — do not ship.**
+- **3106453266 "Leaked YZF 600" (nessetruquesomos2) — 4/5.** Actually a **Yamaha YZF-R1** in the Fiat-Yamaha MotoGP livery (internal "R1 da fiat"): detailed frame, swingarm, under-tail twin exhausts, paddock stand. 2.4×4.3×7.4 studs (correct). 6 wheel candidates, 1 seat, 23 scripts removed. **Heavy real sponsor branding (FIAT, Yamaha)** — needs a livery swap. Orientation flipped. Name says "Leaked" → provenance questionable.
+
+#### city bus
+*("realistic city bus" returned only bus stops; re-searched as "transit bus vehicle".)*
+- **108530812148091 "B-1 Urban Transit RP Bundle Vehicle City Bus" — n/a (not a vehicle).** Turned out to be a **Thai bus-stop sign** ("บ-1 Stop", 3 parts, 3.5×7.7×0.5). JSON saved; **no screenshots taken** (nothing to review).
+- **92681966699882 Urbanmove MAZ G bendy bus (Deutschebahnee) — 3/5.** Articulated city bus (59.5 studs long, 8.2 tall — correct), white/blue livery, modelled interior seats and yellow poles, doors. Mostly plain parts (693 parts, 2 MeshParts) — boxy at close range. 16 wheel candidates, 19 seats, 52 scripts removed. Includes a **purple spawn pad + "MAZ By Deutschebahnee" credit label** part (delete). Usable as a background bus.
+- **101096217347341 Indonesian "Jetbus 3+" coach (deleted account) — 4/5 looks, wrong type.** Detailed Adiputro Jetbus **intercity coach** (not a city bus): bug-eye mirrors, LED strips, 24 modelled seats, 165 MeshParts. 13×16.2×52.4 studs (tall — bounds include mirrors). 4 wheel candidates, **115 scripts removed**. Asian-market look; fine as a tour coach. Orientation correct.
+
+*(City-bus class verdict: no GTA-grade US transit bus on the free store; the MAZ bendy is the only true city bus.)*
+
+#### ambulance
+- **72885213582530 "Ambulance (Mesh)" (itzEmberNation19) — 4/5 looks, 1/5 for rig, IP risk.** Photoreal weathered Type-III box ambulance with open rear/side doors, star-of-life, "AMBULANCE PARAMEDIC" — almost certainly the **Left 4 Dead ambulance** (same as the "[Left 4 Dead] Ambulance" result). **Single MeshPart** (wheels baked), no seats, 6 scripts removed. 11×8.7×24.9 studs (correct). Prop only; don't ship (game rip).
+- **440172126 "Ambulance [FREE]" (DaliuagTeam) — 1/5.** Blocky 2016-era part-built van with "AMBULANCE" text decals and flat red blocks for lights. 14×8.7×21 studs, 97 parts, 0 MeshParts, 4 seats, 18 scripts removed. Not usable.
+- *(Third result "Realistic Ambulance" 36891059 is a 2007 brick build and "[Left 4 Dead] Ambulance" 15571667425 duplicates the L4D rip above — skipped. Ambulance class verdict: **no shippable realistic ambulance**; commission or model one.)*
+
+#### fire truck
+- **130400317438495 Fire Truck (deleted account) — 4/5.** Convincing Freightliner Business Class–style 6×4 fire engine (tanker/rescue body): roof monitor, lockers, white stripes, detailed grille and wheels. Clean 18-MeshPart build (one mesh per component), 9.8×12×34.6 studs (correct). 4 wheel candidates (separate wheel meshes — good for our rig), no seats, 2 scripts removed. No visible brand badge. (Same mesh also uploaded as 88510772704190.) Orientation flipped. Best fire truck.
+- **97675679051639 "[FREE] Fire Truck" (Madis0nLi0n5722, "made by @REWQ") — duplicate.** ANALYZE output is **byte-for-byte the same geometry** as 130400317438495 (18 parts, 9.8×12×34.6, same cameras) → same mesh re-uploaded (3rd copy with 88510772704190). JSON saved; shots skipped as they would be identical.
+- **11688323025 "New Blueprint City Engine" (WVUPick) — 5/5 looks.** Superb US custom-cab pumper (Pierce-style): "Blueprint City" / "Fire & Rescue" / E-4 livery (fictional city — good), hose bed, ladders, diamond-plate, lightbar, pump panel, interior with gear. 766 parts (142 MeshParts), 182 textures, 29.7×10×13.6 studs bounds (length on X). 22 wheel candidates, 5 seats, 68 scripts removed. Best GTA-style fire engine; rebrand "Blueprint City" to ours. Orientation flipped.
