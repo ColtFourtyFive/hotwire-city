@@ -448,5 +448,455 @@
   "verdict": null,
   "flag": "duplicate",
   "note": "\"limite de vitesse 35\": the **same decal (`146148332`) and the same 4-part model** as 388944325. Use the original."
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "125125263118068",
+  "name": "Overhead Highway Sign Road Gantry Exit Text",
+  "creator": "Content Deleted - 158552482",
+  "parts": 29,
+  "meshParts": 2,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   25,
+   30,
+   5
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Overhead Highway Sign (Content Deleted - 158552482): a single-post cantilever with a crisp green guide sign (\"8 / Downtown / Santin Hills\", \"EXIT 1\" tab) and 4 lights. It is 25×30 studs, well proportioned. The best ready-to-use freeway sign; swap the decal text for our destinations. **2 scripts removed, despite the \"No scripts\" description.** *(close2)*"
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "669203168",
+  "name": "US Highway Sign Gantry",
+  "creator": "CountryRoadgeek",
+  "parts": 68,
+  "meshParts": 2,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   36,
+   88
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "US Highway Sign Gantry (CountryRoadgeek): a tubular arch-style gantry (88 studs) with a **blank grey sign panel**. The arch shape reads more European or light-rail than LA freeway. Usable as a frame."
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "9335428697",
+  "name": "Arizona Gantry",
+  "creator": "triggerlancy",
+  "parts": 241,
+  "meshParts": 0,
+  "textures": 2,
+  "scriptsRemoved": 0,
+  "size": [
+   10,
+   48,
+   79
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Arizona Gantry (triggerlancy): a full-span box-truss gantry (79 studs, 48 high, 241 parts) on concrete footings. The structure looks properly real-world, but the **sign panel is a joke placeholder** (\"This gantry is mostly used in Arizona…\"), so replace the decal. The part count is high, so use it only at a few hero spots. *(close1)*"
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "130503679586961",
+  "name": "Highway Exit Sign Road Traffic Street Freeway City",
+  "creator": "Content Deleted - 158552482",
+  "parts": 3,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 2,
+  "size": [
+   4,
+   10,
+   0
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Highway Exit Sign (Content Deleted - 158552482): a small 4.8×10 roadside \"EXIT\" plate on two posts with a SurfaceGui \"XX\" label (decal `459953180`). Simple, low detail. 2 scripts removed."
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "85561539493986",
+  "name": "Exit Sign Highway Road Traffic Free Signage (emoji title)",
+  "creator": "FallenzGFlashC185425",
+  "parts": 3,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 5,
+  "size": [
+   4,
+   10,
+   0
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "\"🚦 Exit Sign Highway…\" (FallenzGFlashC185425): the **same decal (`459953180`) and the same 3-part model** as 130503679586961, but with **5 scripts against 2**. An emoji-title re-upload; backdoor pattern."
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "82454061017921",
+  "name": "Concrete Jersey Barrier",
+  "creator": "0WowlionPro",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   15,
+   3,
+   2
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Concrete Jersey Barrier (0WowlionPro): one MeshPart, 15×3×2, correct K-rail profile with a flared base and a clean concrete look. Use it for freeway medians and construction. *(close2, right)*"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "71204529991089",
+  "name": "PS1 Chainlink Fence Fences Mesh Psx Retro Wire",
+  "creator": "Droksha9852",
+  "parts": 2,
+  "meshParts": 1,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   11,
+   8,
+   0
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "PS1 Chainlink Fence (Droksha9852): an 11×8 panel with a transparent chain-link texture and round posts. It reads correctly as chain-link (the \"PS1\" style is only in the texture resolution). Tile it for lots and freeway edges. **2 scripts removed despite the \"No scripts\" description.** *(close2, centre)*"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "72836863954838",
+  "name": "Highway Railing Fence Guardrail Road Railings City",
+  "creator": "Norefalu70",
+  "parts": 1,
+  "meshParts": 0,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   39,
+   4,
+   1
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Highway Railing (Norefalu70): a 39-stud W-beam guardrail on posts. It is **a single part with a texture**, so the rail is flat and the posts are painted on. It reads fine at driving speed but looks flat up close. **2 scripts removed despite the \"No scripts\" description.** *(close2, left)*"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "100583941159955",
+  "name": "Free 10 Wooden Fences - Realistic",
+  "creator": "TheAngelGaming1",
+  "parts": 23,
+  "meshParts": 11,
+  "textures": 11,
+  "scriptsRemoved": 0,
+  "size": [
+   60,
+   6,
+   9
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Free 10 Wooden Fences – Realistic (TheAngelGaming1): ten distinct PBR mesh fences in one pack:"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "18660725012",
+  "name": "Realistic Wooden Fence (High Quality)",
+  "creator": "PulsarCrow",
+  "parts": 12,
+  "meshParts": 0,
+  "textures": 78,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   6,
+   11
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Realistic Wooden Fence (High Quality) (PulsarCrow): six uneven planks with a **washed-out, almost white wood texture** across 78 textures, cartoonish. *(`barriers_fences_woodhq`)*"
+ },
+ {
+  "category": "street_utility",
+  "assetId": "109766012790297",
+  "name": "USPS mailbox with a chute for envelopes Classic",
+  "creator": "Xz_Hunt3r3zAquarzS0n",
+  "parts": 31,
+  "meshParts": 0,
+  "textures": 4,
+  "scriptsRemoved": 3,
+  "size": [
+   2,
+   4,
+   2
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "USPS mailbox with a chute (Xz_Hunt3r3zAquarzS0n): a correct blue USPS collection box on legs with the eagle logo decals and the right curved-top shape. Real size (2×4×2). **3 scripts removed**: the title-SEO creator name and the scripts are a backdoor-risk pattern, so keep the stripped copy only. *(close1)*"
+ },
+ {
+  "category": "street_utility",
+  "assetId": "3052779367",
+  "name": "newspaper box",
+  "creator": "BanElectricVehicles",
+  "parts": 10,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   1,
+   3,
+   2
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "newspaper box (BanElectricVehicles): a plain red block with a small sticker; reads like a box, not a vending rack. *(`street_utility_newsbox`)*"
+ },
+ {
+  "category": "street_utility",
+  "assetId": "11339404249",
+  "name": "Parking Meter",
+  "creator": "oceanicwavss",
+  "parts": 24,
+  "meshParts": 0,
+  "textures": 5,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   6,
+   3
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Parking Meter (oceanicwavss): a grey block pay-station with a blue \"P\" panel, European style. **Not a US single-head meter.** Other results were 2014-era or emoji SEO."
+ },
+ {
+  "category": "street_utility",
+  "assetId": "15591157798",
+  "name": "telephone pole pack",
+  "creator": "DerpyRosegaard",
+  "parts": 16,
+  "meshParts": 16,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   33,
+   24,
+   5
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "telephone pole pack (DerpyRosegaard): three wooden utility poles, 24 studs, all MeshParts, with crossarms, insulators, step bolts and one with a pole-top transformer can. A very good LA-alley and suburb match. No scripts."
+ },
+ {
+  "category": "street_utility",
+  "assetId": "129781204415363",
+  "name": "Manhole Cover",
+  "creator": "trokr341",
+  "parts": 21,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   0,
+   6
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Manhole Cover (trokr341): a 6×6 square frame with an orange-rust cross-hatch cover. Too colourful and saturated, and it sits above grade. Better as a decal on the road. *(close2)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "120611959432681",
+  "name": "Realistic Bench Park Street Seat Furniture Benches",
+  "creator": "Content Deleted - 158552482",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   3,
+   4,
+   6
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Realistic Bench (Content Deleted - 158552482): one PBR MeshPart, a classic cast-iron-end park bench with warm wood slats, real size (6.8 long). Reads very well. **2 scripts removed despite the \"No scripts\" description.** *(close1, right)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "17672221759",
+  "name": "Realistic Park Bench",
+  "creator": "1Evynia",
+  "parts": 1,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   3,
+   7
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Realistic Park Bench (1Evynia): a single union, simple slatted bench on black legs. Decent, flatter shading than the mesh one. *(close1, left)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "16963566733",
+  "name": "PBR Bike Rack",
+  "creator": "EnvirobIox",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   5,
+   3,
+   4
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "PBR Bike Rack (EnvirobIox): a single MeshPart, a blue powder-coated grid rack, believable size. No scripts."
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "104284725918712",
+  "name": "Trash Cans Outdoor Park City RP Street Map Prop",
+  "creator": "XZ_WraithvDFrostbite",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   3,
+   3,
+   5
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Trash Cans (XZ_WraithvDFrostbite): two rusty, dented galvanised alley cans with lids. Good for alleys, but **not a city public bin**. **3 scripts removed.** *(close2, right)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "115942669533764",
+  "name": "Bollard Pack V1",
+  "creator": "sirnolag",
+  "parts": 11,
+  "meshParts": 11,
+  "textures": 12,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   3,
+   3
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Bollard Pack V1 (sirnolag): 11 PBR MeshPart bollards, 7 industrial (yellow pipe, hazard-striped, base-plate) and 4 city (white or grey with dark caps). The yellow pipe bollards are exactly what LA gas stations and lots use. The pieces ship packed tightly together, so lay them out yourself. *(close2, left)*"
+ },
+ {
+  "category": "retail_props",
+  "assetId": "129016349900455",
+  "name": "Cash ATM Cash Bank Pin Pad Slot Card Bill RP Decor",
+  "creator": "RobloxModellls",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   7,
+   18,
+   9
+  ],
+  "verdict": 1,
+  "flag": null,
+  "note": "Cash ATM (RobloxModellls): a single MeshPart that renders **untextured white at 7×18×9**, about 3× real size. Unusable as-is. *All other ATM results were 💰-emoji SEO re-uploads, so I skipped them.*"
+ },
+ {
+  "category": "retail_props",
+  "assetId": "9554118875",
+  "name": "realistic vending machine",
+  "creator": "yhealle8",
+  "parts": 3,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   6,
+   4
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "realistic vending machine (yhealle8): a black glass-front snack machine, 2 MeshParts, real size. Plain but believable. It came in facing ±X, so only the side is visible in the lineup."
+ },
+ {
+  "category": "retail_props",
+  "assetId": "8368863281",
+  "name": "Realistic Gas Pump",
+  "creator": "FaIseData",
+  "parts": 118,
+  "meshParts": 0,
+  "textures": 14,
+  "scriptsRemoved": 0,
+  "size": [
+   4,
+   7,
+   2
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Realistic Gas Pump (FaIseData): a 118-part pump with a nozzle, hose and pump number. Good silhouette and real size, but **branded ESSO with German \"Waschstraße\" decals**. That is a real trademark and the wrong locale, so retexture before use. *(close2)*"
+ },
+ {
+  "category": "retail_props",
+  "assetId": "10551450435",
+  "name": "Left 4 Dead ice machine",
+  "creator": "pizzafriday17",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   4,
+   6,
+   6
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "\"Left 4 Dead ice machine\" (pizzafriday17): the shape and \"ICE\" lettering read right, but **the description says \"All credits go to valve\"**. It is a ripped Valve game asset, so it is an IP risk."
+ },
+ {
+  "category": "retail_props",
+  "assetId": "4900193185",
+  "name": "Phone booth (payphone)",
+  "creator": "Robloxisforbab1e5",
+  "parts": 87,
+  "meshParts": 10,
+  "textures": 14,
+  "scriptsRemoved": 0,
+  "size": [
+   3,
+   7,
+   3
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Phone booth (payphone) (Robloxisforbab1e5): an open-front booth with a \"Phone\" Bell-logo header, a lit ring light, a detailed Elcotel-style payphone mesh and a diamond-plate floor. Real size (3×7×3). Very usable. **The Bell logo is a real trademark**, so swap the decal. *(close1)*"
  }
 ]
