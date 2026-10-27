@@ -1,0 +1,44 @@
+{
+  "source": "sketchfab",
+  "uid": "c9c7a08fcef1451cba8e3d40d9999bef",
+  "slug": "v-ambulance--stw-ambulance-c9c7a0",
+  "name": "Stw Ambulance",
+  "class": "ambulance",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "ramonaflowers",
+    "displayName": "RamonaFlowers\ud83c\udf3c",
+    "profileUrl": "https://sketchfab.com/ramonaflowers"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/stw-ambulance-c9c7a08fcef1451cba8e3d40d9999bef",
+  "faceCount": 4262,
+  "vertexCount": 2352,
+  "materialCount": 1,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 37,
+  "tags": [
+    "fortnite",
+    "fortnitebr",
+    "fortnitemodel"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "this 3d model is of fortnites stw ambulance",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-ambulance--stw-ambulance-c9c7a0/model.glb",
+  "fileBytes": 1218344,
+  "sha256": "701b78848fb316a015a0cd49da0f8db5d5ddf58abeafde77f1e0e4588d482de2",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:38+00:00",
+  "notes": null
+}

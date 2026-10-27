@@ -1,0 +1,60 @@
+{
+  "source": "sketchfab",
+  "uid": "e3616909ddc644249d50396c3bc2c8cf",
+  "slug": "v-armored-truck--bope-caveir-o-armored-truck-e36169",
+  "name": "BOPE Caveir\u00e3o armored truck",
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "42manako",
+    "displayName": "42manako",
+    "profileUrl": "https://sketchfab.com/42manako"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/bope-caveirao-armored-truck-e3616909ddc644249d50396c3bc2c8cf",
+  "faceCount": 34260,
+  "vertexCount": 19192,
+  "materialCount": 20,
+  "textureCount": 11,
+  "animationCount": 0,
+  "likeCount": 93,
+  "tags": [
+    "police",
+    "truck",
+    "brazil",
+    "armored",
+    "4x4",
+    "favela",
+    "combat",
+    "swat",
+    "riot",
+    "blindado",
+    "wheeled",
+    "armoredtruck",
+    "caveirao",
+    "bope",
+    "vehicle",
+    "military",
+    "swatvan",
+    "riotpolice"
+  ],
+  "categories": [
+    "cars-vehicles",
+    "weapons-military"
+  ],
+  "description": "This is one of a number of different types of armored trucks used by the Brazilian special police unit BOPE. This kind of truck is often nicknamed a \"Caveir\u00e3o.\" Not my model.\n\n**Join the Discord!** https://discord.gg/yFmUkcYb",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-armored-truck--bope-caveir-o-armored-truck-e36169/model.glb",
+  "fileBytes": 5109560,
+  "sha256": "083403cfd7deaa3ea8d690141f5c6c1d698c94806404660c7a7c5fcdaf6a00ba",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:47+00:00",
+  "notes": null
+}

@@ -1,0 +1,51 @@
+{
+  "source": "sketchfab",
+  "uid": "3be03b6a43aa41898c9ca806b8787052",
+  "slug": "v-box-truck--lct-3000-07-low-poly-model-3be03b",
+  "name": "LCT 3000 '07- Low poly model",
+  "class": "box_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/lct-3000-07-low-poly-model-3be03b6a43aa41898c9ca806b8787052",
+  "faceCount": 15846,
+  "vertexCount": 9785,
+  "materialCount": 8,
+  "textureCount": 19,
+  "animationCount": 0,
+  "likeCount": 712,
+  "tags": [
+    "truck",
+    "van",
+    "heavy",
+    "lct",
+    "box",
+    "boxtruck",
+    "low-poly-model",
+    "low-poly",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Generic Japanese-made small-cabin truck.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-box-truck--lct-3000-07-low-poly-model-3be03b/model.glb",
+  "fileBytes": 7436200,
+  "sha256": "076fb6e9f444f7afa429238ff9227f21adae4799dee62e02bdf1227a847e8ae1",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:50+00:00",
+  "notes": null
+}

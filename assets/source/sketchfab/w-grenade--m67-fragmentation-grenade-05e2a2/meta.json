@@ -1,0 +1,54 @@
+{
+  "source": "sketchfab",
+  "uid": "05e2a29118c3408eaa574bcec6997aba",
+  "slug": "w-grenade--m67-fragmentation-grenade-05e2a2",
+  "name": "M67 Fragmentation Grenade",
+  "class": "grenade",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "vextin",
+    "displayName": "Vextin",
+    "profileUrl": "https://sketchfab.com/vextin"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/m67-fragmentation-grenade-05e2a29118c3408eaa574bcec6997aba",
+  "faceCount": 1610,
+  "vertexCount": 853,
+  "materialCount": 1,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 69,
+  "tags": [
+    "grenade",
+    "fps",
+    "unreal",
+    "frag",
+    "m67",
+    "nade",
+    "unity",
+    "game",
+    "military",
+    "free",
+    "download",
+    "hand"
+  ],
+  "categories": [
+    "science-technology",
+    "weapons-military"
+  ],
+  "description": "The M67 Frag grenade has been in use since 1968, and is the standard issue hand grenade for the U.S. military. \n\nhttps://en.wikipedia.org/wiki/M67_grenade\n\nThis model is game-ready and free to download! Tweet me @Vextin_ and show me what you used it for!",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-grenade--m67-fragmentation-grenade-05e2a2/model.glb",
+  "fileBytes": 1769764,
+  "sha256": "cc6b36406c80266b00c0fe4bdb9425f4165dcb2723abe8688f3ecc89518e1113",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:21+00:00",
+  "notes": null
+}

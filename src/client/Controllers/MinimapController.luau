@@ -1405,6 +1405,7 @@ local function setHidden(value: boolean)
 	local r = radar
 	if r then
 		r.gui.Enabled = not value
+		r.dist.Visible = not value and route ~= nil
 	end
 end
 

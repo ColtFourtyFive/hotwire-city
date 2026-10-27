@@ -4,6 +4,7 @@ ONE mesh object on export (= one Roblox MeshPart), split into <Role>_1, <Role>_2
 
   Walls    main facade material (brick / stucco / curtain spandrel / corrugated)  tiling PBR, tintable
   Walls2   secondary facade material (wood slats, stone base, block, marble)       tiling PBR
+  Walls3   tertiary facade material (timber slats on the hills mansion)          tiling PBR
   Trim     sills, lintels, cornices, belts, slabs, copings, fascias                tiling PBR, tintable
   Accent   deco stripes / eyebrows / shutters / canopies                           plain colour (recolourable)
   Frames   window frames, mullions, storefront aluminium                           plain colour (recolourable)
@@ -48,11 +49,11 @@ ACCENTS = {"teal": (0.0, 0.52, 0.55), "coral": (0.93, 0.36, 0.33), "navy": (0.10
 FRAMES = {"white": (0.92, 0.92, 0.9), "black": (0.05, 0.05, 0.055), "bronze": (0.22, 0.16, 0.11),
           "green": (0.06, 0.2, 0.14), "silver": (0.62, 0.64, 0.66), "red": (0.45, 0.06, 0.06)}
 
-TILES = {"Walls": 8.0, "Walls2": 8.0, "Trim": 6.0, "Accent": 6.0, "Frames": 8.0, "Glass": 8.0, "Roof": 16.0, "Roof2": 10.0,
+TILES = {"Walls": 8.0, "Walls2": 8.0, "Walls3": 8.0, "Clear": 8.0, "Trim": 6.0, "Accent": 6.0, "Frames": 8.0, "Glass": 8.0, "Roof": 16.0, "Roof2": 10.0,
          "Details": 6.0, "Doors": 10.0, "Awning": 20.8, "Sign": 8.0, "Brand": 8.0, "Grime": 24.0, "Site": 16.0,
          "Asphalt": 24.0,
          "Paint": 8.0, "Lawn": 20.0, "Water": 16.0, "Neon": 8.0, "WindowsLit": 8.0}
-ROLE_ORDER = ["Walls", "Walls2", "Trim", "Accent", "Frames", "Glass", "Roof", "Roof2", "Details", "Doors", "Awning", "Sign",
+ROLE_ORDER = ["Walls", "Walls2", "Walls3", "Trim", "Accent", "Frames", "Glass", "Clear", "Roof", "Roof2", "Details", "Doors", "Awning", "Sign",
               "Brand", "Site", "Asphalt", "Paint", "Lawn", "Water", "Neon", "Grime", "WindowsLit"]
 NIGHT_ONLY = {"WindowsLit"}
 

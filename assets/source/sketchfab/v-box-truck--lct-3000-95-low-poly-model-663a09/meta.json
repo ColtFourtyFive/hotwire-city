@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "663a0953c038434a918cb85725c88ffa",
+  "slug": "v-box-truck--lct-3000-95-low-poly-model-663a09",
+  "name": "LCT 3000 '95 - Low poly model",
+  "class": "box_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/lct-3000-95-low-poly-model-663a0953c038434a918cb85725c88ffa",
+  "faceCount": 18947,
+  "vertexCount": 11754,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 1523,
+  "tags": [
+    "truck",
+    "van",
+    "generic",
+    "lct",
+    "box",
+    "boxtruck",
+    "low-poly-model",
+    "low-poly",
+    "lowpoly",
+    "car",
+    "japanese"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "An improved version of my old model. Generic Japanese-made small-cabin truck. The design corresponds to the time period from 1990 to the late 2000s.\nUpdate: New 3 ton cargo box, new wheels, materials and much more.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-box-truck--lct-3000-95-low-poly-model-663a09/model.glb",
+  "fileBytes": 7584560,
+  "sha256": "8a687daea59b032f2f34cf96f779eed6b23bb8d63ace6d441e40e662936e749d",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:53+00:00",
+  "notes": null
+}

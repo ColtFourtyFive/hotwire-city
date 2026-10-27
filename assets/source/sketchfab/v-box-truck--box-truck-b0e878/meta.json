@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "b0e8788b6b774fe3a18eda1895a2b8fe",
+  "slug": "v-box-truck--box-truck-b0e878",
+  "name": "Box-truck",
+  "class": "box_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "CristianRus",
+    "displayName": "Cristian Rus",
+    "profileUrl": "https://sketchfab.com/CristianRus"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/box-truck-b0e8788b6b774fe3a18eda1895a2b8fe",
+  "faceCount": 31374,
+  "vertexCount": 16226,
+  "materialCount": 2,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 95,
+  "tags": [
+    "truck",
+    "box",
+    "boxtruck",
+    "maya"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Box-truck model made for Unreal Engine 4 school project.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-box-truck--box-truck-b0e878/model.glb",
+  "fileBytes": 3379456,
+  "sha256": "22634f54d318ef3e0e12017190dada1262b200388b5f049ad9459cc7528a1536",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:56+00:00",
+  "notes": null
+}

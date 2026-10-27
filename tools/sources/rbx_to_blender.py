@@ -160,7 +160,7 @@ def file_mesh(mesh_id):
             if len(m.faces):
                 lo, hi = m.bbox()
                 me = mesh_from_arrays(f"mesh_{mesh_id}", m.pos, m.faces, m.uv, m.nrm)
-                res = (me, np.array(lo), np.array(hi))
+                res = (me, np.array(lo), np.array(hi), (m.pos.astype(np.float64), m.faces.astype(np.int64)))
         except Exception as e:  # noqa: BLE001
             print(f"  mesh {mesh_id} failed: {e}")
     _mesh_cache[mesh_id] = res
@@ -257,6 +257,8 @@ def material(color, mat, transparency, reflectance, tex=None, sa=None, vertex_co
         ti = nt.nodes.new("ShaderNodeTexImage")
         ti.image = tex
         ti.interpolation = "Linear"
+        if tex_is_decal and not uv_scale:
+            ti.extension = "CLIP"
         if uvnode:
             nt.links.new(uvnode, ti.inputs["Vector"])
         col_out = ti.outputs["Color"]
@@ -364,6 +366,24 @@ def decal_quad(size, face):
     return np.array(pts, np.float32), np.array([[0, 1, 2], [0, 2, 3]], np.uint32), np.array(uv, np.float32), (w, h)
 
 
+def decal_project(surf, size, face):
+    pos, faces = surf
+    n, r, u = (np.array(v, float) for v in FACE_AXES[face])
+    tri = pos[faces]
+    fn = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    ln = np.linalg.norm(fn, axis=1)
+    keep = (ln > 1e-12) & ((fn @ n) / np.maximum(ln, 1e-12) > 0.05)
+    if not keep.any():
+        return None
+    sub = faces[keep]
+    used, inv = np.unique(sub, return_inverse=True)
+    pts = pos[used] + n * 0.003
+    w = abs(float(np.dot(np.abs(r), size)))
+    h = abs(float(np.dot(np.abs(u), size)))
+    uv = np.stack([0.5 + (pts @ r) / max(w, 1e-6), 0.5 - (pts @ u) / max(h, 1e-6)], 1)
+    return pts.astype(np.float32), inv.reshape(-1, 3).astype(np.uint32), uv.astype(np.float32), (w, h)
+
+
 def build(model_id, keep_hidden=False):
     d = rbxdl.asset_dir(model_id)
     tree = json.load(open(os.path.join(d, "tree.json")))
@@ -403,6 +423,7 @@ def build(model_id, keep_hidden=False):
         vcol = None
         mesh = None
         local = None  # matrix applied after CFrame (part space)
+        surf = None  # (pos, faces) of the visible surface in part space, for projecting decals
         if cls == "MeshPart":
             stats["meshparts"] += 1
             mid = rbxdl.parse_asset_id(p.get("MeshId"))
@@ -412,12 +433,13 @@ def build(model_id, keep_hidden=False):
                 mesh = prim("box")
                 local = scale_matrix(size)
             else:
-                mesh, lo, hi = fm
+                mesh, lo, hi, arr = fm
                 ext = hi - lo
                 init = np.array(p.get("InitialSize") or ext, float)
                 ref = np.where(init > 1e-5, init, ext)
                 sc = np.where(ref > 1e-5, size / np.maximum(ref, 1e-9), 1.0)
                 local = scale_matrix(sc) @ trans_matrix(-(lo + hi) / 2)
+                surf = ((arr[0] - (lo + hi) / 2) * sc, arr[1])
             tex = image(p.get("TextureID"))
         elif sm is not None and sm["class"] in ("SpecialMesh", "FileMesh"):
             stats["special_meshes"] += 1
@@ -435,6 +457,7 @@ def build(model_id, keep_hidden=False):
                 else:
                     mesh = fm[0]
                     local = trans_matrix(off) @ scale_matrix(scale)
+                    surf = (fm[3][0] * scale + off, fm[3][1])
                 tex = image(sp.get("TextureId"))
             else:
                 kind = {"Brick": "box", "Wedge": "wedge", "Cylinder": "cyl_x", "Sphere": "ball", "Head": "cyl_y",
@@ -497,11 +520,15 @@ def build(model_id, keep_hidden=False):
             face = kp.get("Face", "Front")
             if face not in FACE_AXES:
                 continue
-            fsize = size
-            if cls == "MeshPart" or (sm is not None and sm["class"] == "SpecialMesh"):
-                fsize = size  # Roblox projects decals onto the part box, so the quad sits on the box face
-            pts, fcs, uv, (w, h) = decal_quad(fsize, face)
-            me = mesh_from_arrays(f"decal_{k['id']}", pts, fcs, uv, None, smooth=False)
+            if surf is not None:
+                # Roblox projects a decal along the face axis onto every triangle facing that way
+                proj = decal_project(surf, size, face)
+                if proj is None:
+                    continue
+                pts, fcs, uv, (w, h) = proj
+            else:
+                pts, fcs, uv, (w, h) = decal_quad(size, face)
+            me = mesh_from_arrays(f"decal_{k['id']}", pts, fcs, uv, None, smooth=surf is not None)
             uvs = None
             if k["class"] == "Texture":
                 su, sv = float(kp.get("StudsPerTileU", 2) or 2), float(kp.get("StudsPerTileV", 2) or 2)
@@ -645,7 +672,7 @@ def render_views(model_id, objs, out_dir, samples, res):
     cam.sensor_width = 36
     r = 0.5 * float(np.linalg.norm(ext))
     fov_v = 2 * math.atan(cam.sensor_width / aspect / 2 / cam.lens)
-    dist = r / math.sin(fov_v / 2) * 0.82
+    dist = r / math.sin(fov_v / 2) * 0.66
     az, el = math.radians(-35), math.radians(14)  # from front (-Y) rotate toward -X (car's left... viewer)
     dirv = Vector((math.sin(az) * math.cos(el), -math.cos(az) * math.cos(el), math.sin(el)))
     tgt = Vector((ctr[0], ctr[1], ctr[2] * 0.85))

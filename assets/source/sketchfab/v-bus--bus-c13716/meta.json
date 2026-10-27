@@ -1,0 +1,40 @@
+{
+  "source": "sketchfab",
+  "uid": "c1371690104c47649df34180c0b5f7c1",
+  "slug": "v-bus--bus-c13716",
+  "name": "bus",
+  "class": "bus",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "tnikita",
+    "displayName": "Ford mondeo",
+    "profileUrl": "https://sketchfab.com/tnikita"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/bus-c1371690104c47649df34180c0b5f7c1",
+  "faceCount": 25821,
+  "vertexCount": 15525,
+  "materialCount": 17,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 276,
+  "tags": [],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-bus--bus-c13716/model.glb",
+  "fileBytes": 740336,
+  "sha256": "b7311ed1df5d92901dded01593ea7c39bb4a31212cfdf02a0a936a84db2fc467",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:07+00:00",
+  "notes": null
+}

@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "26e809cce40e4359a3199649f12ef295",
+  "slug": "v-armored-truck--md-84-armored-low-poly-model-26e809",
+  "name": "MD '84 Armored - Low poly model",
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/md-84-armored-low-poly-model-26e809cce40e4359a3199649f12ef295",
+  "faceCount": 20364,
+  "vertexCount": 11876,
+  "materialCount": 8,
+  "textureCount": 22,
+  "animationCount": 0,
+  "likeCount": 930,
+  "tags": [
+    "truck",
+    "armored",
+    "money",
+    "heavy",
+    "bank",
+    "swat",
+    "low-poly-model",
+    "low-poly",
+    "vehicle",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Armored van model inspired by Hollywood blockbusters and games of the 2000s.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-armored-truck--md-84-armored-low-poly-model-26e809/model.glb",
+  "fileBytes": 8017592,
+  "sha256": "8cd7feb95de01e25b27878a1d92ab2c7db05e6ade038939de004c4969fb47abd",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:41+00:00",
+  "notes": null
+}

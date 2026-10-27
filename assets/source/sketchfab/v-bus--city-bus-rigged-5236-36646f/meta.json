@@ -1,0 +1,48 @@
+{
+  "source": "sketchfab",
+  "uid": "36646fcf41da498ca24a02f4b6fb1d95",
+  "slug": "v-bus--city-bus-rigged-5236-36646f",
+  "name": "City Bus - rigged | \u0420\u043e\u0410\u0417-5236",
+  "class": "bus",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "grox777",
+    "displayName": "Yo.Ri",
+    "profileUrl": "https://sketchfab.com/grox777"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/city-bus-rigged-5236-36646fcf41da498ca24a02f4b6fb1d95",
+  "faceCount": 5564,
+  "vertexCount": 3387,
+  "materialCount": 6,
+  "textureCount": 8,
+  "animationCount": 0,
+  "likeCount": 633,
+  "tags": [
+    "bus",
+    "baked",
+    "gi",
+    "gameasset",
+    "rigged",
+    "roaz-5236"
+  ],
+  "categories": [
+    "cars-vehicles",
+    "places-travel"
+  ],
+  "description": "!! Scetchfab has flipped some interior details and distorted some tris for no reason\nBut in fact model is fine :^)",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-bus--city-bus-rigged-5236-36646f/model.glb",
+  "fileBytes": 3872212,
+  "sha256": "ca3c54952b8b7ea3ae4771654ec8d046a7e93ec9ace8423356ff0d5201c4f3d0",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:02+00:00",
+  "notes": null
+}

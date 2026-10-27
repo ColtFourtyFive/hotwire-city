@@ -1,0 +1,152 @@
+{
+ "c233d27d001d4d19aab9f35bf171f1a5": {
+  "status": "ok",
+  "slug": "w-grenade--low-poly-m67-c233d2",
+  "class": "grenade",
+  "kind": "weapon",
+  "name": "Low-Poly M67",
+  "mb": 0.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "36a23ce20b8d47beb1fa26cfe9b0a129": {
+  "status": "ok",
+  "slug": "w-grenade--m67-grenade-36a23c",
+  "class": "grenade",
+  "kind": "weapon",
+  "name": "M67 Grenade",
+  "mb": 2.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "05e2a29118c3408eaa574bcec6997aba": {
+  "status": "ok",
+  "slug": "w-grenade--m67-fragmentation-grenade-05e2a2",
+  "class": "grenade",
+  "kind": "weapon",
+  "name": "M67 Fragmentation Grenade",
+  "mb": 1.8,
+  "license": "by",
+  "conversion": "none"
+ },
+ "2856dd3c61f940909dced9a5c0379484": {
+  "status": "ok",
+  "slug": "v-ambulance--shvan-92-ambulance-low-poly-model-2856dd",
+  "class": "ambulance",
+  "kind": "vehicle",
+  "name": "Shvan '92 Ambulance - Low Poly model",
+  "mb": 8.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "b78313c16c9d46a7a67643245cf278d2": {
+  "status": "ok",
+  "slug": "v-ambulance--ambulance-b78313",
+  "class": "ambulance",
+  "kind": "vehicle",
+  "name": "Ambulance",
+  "mb": 2.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "c9c7a08fcef1451cba8e3d40d9999bef": {
+  "status": "ok",
+  "slug": "v-ambulance--stw-ambulance-c9c7a0",
+  "class": "ambulance",
+  "kind": "vehicle",
+  "name": "Stw Ambulance",
+  "mb": 1.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "26e809cce40e4359a3199649f12ef295": {
+  "status": "ok",
+  "slug": "v-armored-truck--md-84-armored-low-poly-model-26e809",
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "name": "MD '84 Armored - Low poly model",
+  "mb": 8.0,
+  "license": "by",
+  "conversion": "none"
+ },
+ "5b9076973cda47e98609640d745bb8ce": {
+  "status": "ok",
+  "slug": "v-armored-truck--swat-police-van-5b9076",
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "name": "SWAT Police Van",
+  "mb": 14.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "e3616909ddc644249d50396c3bc2c8cf": {
+  "status": "ok",
+  "slug": "v-armored-truck--bope-caveir-o-armored-truck-e36169",
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "name": "BOPE Caveir\u00e3o armored truck",
+  "mb": 5.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "3be03b6a43aa41898c9ca806b8787052": {
+  "status": "ok",
+  "slug": "v-box-truck--lct-3000-07-low-poly-model-3be03b",
+  "class": "box_truck",
+  "kind": "vehicle",
+  "name": "LCT 3000 '07- Low poly model",
+  "mb": 7.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "663a0953c038434a918cb85725c88ffa": {
+  "status": "ok",
+  "slug": "v-box-truck--lct-3000-95-low-poly-model-663a09",
+  "class": "box_truck",
+  "kind": "vehicle",
+  "name": "LCT 3000 '95 - Low poly model",
+  "mb": 7.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "b0e8788b6b774fe3a18eda1895a2b8fe": {
+  "status": "ok",
+  "slug": "v-box-truck--box-truck-b0e878",
+  "class": "box_truck",
+  "kind": "vehicle",
+  "name": "Box-truck",
+  "mb": 3.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "14fe03d792914d51b6c6250b393c44fd": {
+  "status": "ok",
+  "slug": "v-bus--generic-town-bus-14fe03",
+  "class": "bus",
+  "kind": "vehicle",
+  "name": "Generic Town Bus",
+  "mb": 4.0,
+  "license": "by",
+  "conversion": "none"
+ },
+ "36646fcf41da498ca24a02f4b6fb1d95": {
+  "status": "ok",
+  "slug": "v-bus--city-bus-rigged-5236-36646f",
+  "class": "bus",
+  "kind": "vehicle",
+  "name": "City Bus - rigged | \u0420\u043e\u0410\u0417-5236",
+  "mb": 3.9,
+  "license": "by",
+  "conversion": "none"
+ },
+ "c1371690104c47649df34180c0b5f7c1": {
+  "status": "ok",
+  "slug": "v-bus--bus-c13716",
+  "class": "bus",
+  "kind": "vehicle",
+  "name": "bus",
+  "mb": 0.7,
+  "license": "by",
+  "conversion": "none"
+ }
+}

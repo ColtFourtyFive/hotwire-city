@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "c233d27d001d4d19aab9f35bf171f1a5",
+  "slug": "w-grenade--low-poly-m67-c233d2",
+  "name": "Low-Poly M67",
+  "class": "grenade",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-m67-c233d27d001d4d19aab9f35bf171f1a5",
+  "faceCount": 1046,
+  "vertexCount": 531,
+  "materialCount": 5,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 127,
+  "tags": [
+    "grenade",
+    "m67",
+    "weapon",
+    "low",
+    "poly",
+    "usa",
+    "hand"
+  ],
+  "categories": [
+    "science-technology",
+    "weapons-military"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-grenade--low-poly-m67-c233d2/model.glb",
+  "fileBytes": 188056,
+  "sha256": "8718b9ba7b7572060042a552eb3b80d15e9e05574d81248927b573001c559c37",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:15+00:00",
+  "notes": null
+}

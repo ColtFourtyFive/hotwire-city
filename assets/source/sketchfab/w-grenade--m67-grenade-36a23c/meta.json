@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "36a23ce20b8d47beb1fa26cfe9b0a129",
+  "slug": "w-grenade--m67-grenade-36a23c",
+  "name": "M67 Grenade",
+  "class": "grenade",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "nickolasa.mcintosh",
+    "displayName": "Nneako",
+    "profileUrl": "https://sketchfab.com/nickolasa.mcintosh"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/m67-grenade-36a23ce20b8d47beb1fa26cfe9b0a129",
+  "faceCount": 4378,
+  "vertexCount": 2194,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 45,
+  "tags": [
+    "grenade",
+    "explosives",
+    "frag",
+    "gameassets",
+    "lethal",
+    "throwables",
+    "substancepainter",
+    "substance",
+    "game",
+    "pbr",
+    "military",
+    "gameready"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "Free to download game-ready frag grenade.\n\nPBR materieals -Base Colour, Metallic, Normal, Roughness and Ambient Occlusion\n\nTextured - Marmoset toolbag and Substance painter",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-grenade--m67-grenade-36a23c/model.glb",
+  "fileBytes": 2575296,
+  "sha256": "687b0d72415c8e9d3d6d95c894a99b5a90f846929cd501679afc08543f152fec",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:06:18+00:00",
+  "notes": null
+}
