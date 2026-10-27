@@ -155,6 +155,44 @@ pcall(function()
 	terrain.Parent = workspaceInst
 end)
 
+-- MaterialService: Lune has no Get/SetBaseMaterialOverride. The stub behaves like the real engine of job 0009: with
+-- no override set, GetBaseMaterialOverride reads back the STOCK material name (the place file's <Material>Name
+-- properties are NOT honoured), SetBaseMaterialOverride with any name does not error (engine probe 2026-10-27).
+-- Tests can inspect / reset Harness.materialOverrides (base material name -> variant) and make the next Set calls fail
+-- with Harness.materialOverrideError. The place file's MaterialVariants (default.project.json) are created as Rojo
+-- builds them (name + BaseMaterial), so Util/MaterialOverrides finds them.
+Harness.materialOverrides = {}
+Harness.materialOverrideError = nil
+pcall(roblox.implementMethod, "MaterialService", "GetBaseMaterialOverride", function(_self, material)
+	return Harness.materialOverrides[material.Name] or material.Name
+end)
+pcall(roblox.implementMethod, "MaterialService", "SetBaseMaterialOverride", function(_self, material, name)
+	if Harness.materialOverrideError then
+		error(Harness.materialOverrideError)
+	end
+	Harness.materialOverrides[material.Name] = name
+end)
+do
+	local serde = require("@lune/serde")
+	local ok, project = pcall(function()
+		return serde.decode("json", fs.readFile("default.project.json"))
+	end)
+	local msNode = ok and project.tree and project.tree.MaterialService
+	if msNode then
+		local ms = game:GetService("MaterialService")
+		for name, node in msNode do
+			if type(node) == "table" and node["$className"] == "MaterialVariant" then
+				local v = roblox.Instance.new("MaterialVariant")
+				v.Name = name
+				pcall(function()
+					v.BaseMaterial = (roblox.Enum.Material :: any)[node["$properties"].BaseMaterial]
+				end)
+				v.Parent = ms
+			end
+		end
+	end
+end
+
 local function makeSignal()
 	local handlers = {}
 	return {

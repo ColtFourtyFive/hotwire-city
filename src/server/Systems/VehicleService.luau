@@ -1711,6 +1711,62 @@ function VehicleService.damage(car: Car, amount: number, sourcePlayer: Player?)
 	end
 end
 
+-- Combat v2 (gta_combat §10.5): tires deflated until a server-time deadline (VehicleController reads TiresPopped;
+-- the same field the Stinger Strip uses).
+function VehicleService.popTires(car: Car, seconds: number)
+	if type(car) ~= "table" or car.destroyed then
+		return
+	end
+	local deadline = Workspace:GetServerTimeNow() + math.max(0, seconds)
+	setAttr(car.model, "TiresPopped", deadline)
+	setAttr(car.chassis, "TiresPopped", deadline)
+end
+
+VehicleService.TIRE_HIT_RADIUS = 1.5
+local WHEEL_ATTACHMENTS = { "WheelFL", "WheelFR", "WheelRL", "WheelRR" }
+
+-- Pure: does a hit on `partName` at `pos` hit a tire? (a part named Wheel*, or within TIRE_HIT_RADIUS of a hub)
+function VehicleService._isTireHit(partName: string?, pos: Vector3, hubs: { Vector3 }): boolean
+	if typeof(partName) == "string" and string.sub(partName, 1, 5) == "Wheel" then
+		return true
+	end
+	for _, hub in hubs do
+		if (hub - pos).Magnitude <= VehicleService.TIRE_HIT_RADIUS then
+			return true
+		end
+	end
+	return false
+end
+
+-- A validated bullet hit the car (WeaponService / PoliceCombatService): car damage (the caller already applied the
+-- CAR_DAMAGE_MULT), a wheel hit pops the tires for 6 s. Cars inside a garage plot are invulnerable. Returns true when
+-- the hit counted.
+function VehicleService.bulletHit(car: Car, part: Instance?, pos: Vector3, amount: number, source: Player?): boolean
+	if type(car) ~= "table" or car.destroyed or car.wrecked or typeof(pos) ~= "Vector3" then
+		return false
+	end
+	local chassis = car.chassis
+	if not chassis or not chassis.Parent then
+		return false
+	end
+	if car.kind == "Dealership" or MapLayout.plotAt(chassis.Position) ~= nil then
+		return false
+	end
+	local hubs = {}
+	for _, name in WHEEL_ATTACHMENTS do
+		local att = chassis:FindFirstChild(name)
+		if att and att:IsA("Attachment") then
+			table.insert(hubs, att.WorldPosition)
+		end
+	end
+	local partName = if typeof(part) == "Instance" then part.Name else nil
+	if VehicleService._isTireHit(partName, pos, hubs) then
+		VehicleService.popTires(car, 6)
+	end
+	VehicleService.damage(car, amount, source)
+	return true
+end
+
 -- Health 0: cartoon KAPOW + smoke, everyone out, destroyed WRECK_DESTROY_AFTER later (reason "wrecked").
 function VehicleService.wreck(car: Car)
 	if type(car) ~= "table" or car.destroyed or car.wrecked then

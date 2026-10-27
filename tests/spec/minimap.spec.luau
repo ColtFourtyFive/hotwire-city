@@ -427,9 +427,8 @@ return function(t)
 		t.ok(ok, tostring(err))
 	end)
 
-	-- Phones: HUD layout with the radar in the corner (review: menu into the thumbstick zone, feed into the cash pill)
+	-- Phones (the legend layout below uses these canvases)
 	local PHONES = { { 844, 390 }, { 667, 375 }, { 640, 360 }, { 896, 414 }, { 932, 430 }, { 736, 414 } }
-	local HUD_TOP = 6 -- HUDController.layout: touch buttons start this far below the topbar inset
 	local function phoneCanvas(w, h, topbar, floor)
 		local s = math.clamp(math.min(w / 1280, h / 720), 0.55, 1.6)
 		if floor then
@@ -438,114 +437,30 @@ return function(t)
 		return s, w / s, (h - topbar) / s
 	end
 
-	t.test("phones: the HUD menu strip stays above the thumbstick zone next to the radar", function()
-		H.setMode("client")
-		local HUD = H.require("src/client/Controllers/HUDController")
-		local M = H.require("src/client/Controllers/MinimapController")
-		H.setMode("server")
-		local count = #HUD.MENU
-		for _, vp in PHONES do
-			for _, topbar in { 36, 58 } do
-				local s, cw, ch = phoneCanvas(vp[1], vp[2], topbar)
-				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
-				local m = M.touchMetrics(cw, ch, s)
-				local strip = HUD.touchStripLayout(count, cw, ch, m.reserve, HUD_TOP)
-				t.ok(strip.fits, tag .. ": strip fits")
-				t.ok(
-					strip.bottom <= ch / 3 + 1e-6,
-					("%s: menu bottom %.1f <= third %.1f"):format(tag, strip.bottom, ch / 3)
-				)
-				t.ok(strip.cols * strip.rows >= count, tag .. ": every button placed")
-				t.ok(strip.left >= 12 + m.diameter + Cfg.RADAR.TOUCH_GAP - 1e-6, tag .. ": buttons right of the radar")
-				-- the menu never reaches the top-center cash pill + status stack
-				local right = strip.left + strip.cols * (strip.cell + 6) - 6
-				t.ok(right <= cw / 2 - 168 + 1e-6, tag .. ": clear of the cash pill")
-				-- the radar (a button) ends above the thumbstick zone too
-				t.ok(Cfg.RADAR.TOUCH_TOP + m.diameter <= ch / 3, tag .. ": radar above the thumbstick zone")
-				-- 16:9 phones get the compact radar; the 844-wide ones keep the big one
-				if vp[1] / vp[2] < 1.9 then
-					t.eq(m.diameter, Cfg.RADAR.TOUCH_SIZE_COMPACT, tag .. ": compact radar")
-				end
+	-- v2 radar (UI/HudLayout rectangle): the v1 circle's touch boost / compact diameter / menu-strip reserve / N fade
+	-- under the map button went with the circle (ui_v2 specs cover the rectangle's placement).
+	t.test("expanded radar: 2x, desktop keeps its bottom edge (the bars stay), touch keeps its top-left", function()
+		local HudLayout = H.require("src/client/UI/HudLayout")
+		for _, c in
+			{ { 1280, 720, false }, { 1920 / 1.5, 1080 / 1.5, false }, { 1172, 492, true }, { 1280, 828, true } }
+		do
+			local L = HudLayout.compute(c[1], c[2], c[3])
+			local r = L.radar
+			local e = Mini.expandedRect(r, c[1], c[2], c[3], Mini.EXPAND_SCALE)
+			local tag = ("%dx%d %s"):format(c[1], c[2], if c[3] then "touch" else "desktop")
+			t.ok(e.w > r.w and e.h > r.h, tag .. ": bigger")
+			t.ok(e.w <= r.w * Mini.EXPAND_SCALE + 1 and e.h <= r.h * Mini.EXPAND_SCALE + 1, tag .. ": at most 2x")
+			t.ok(e.x >= 0 and e.y >= 0 and e.x + e.w <= c[1] and e.y + e.h <= c[2], tag .. ": on screen")
+			t.eq(e.x, r.x, tag .. ": same left edge")
+			if c[3] then
+				t.eq(e.y, r.y, tag .. ": same top edge (under the top bar)")
+			else
+				t.near(e.y + e.h, r.y + r.h, 1, tag .. ": same bottom edge")
 			end
 		end
-		-- a tablet keeps the big radar (no squeeze there)
-		local s, cw, ch = phoneCanvas(1024, 768, 36)
-		t.eq(M.touchMetrics(cw, ch, s).diameter, Cfg.RADAR.TOUCH_SIZE, "iPad: big radar")
-		-- with no radar the strip keeps its old place
-		local _, cw2, ch2 = phoneCanvas(844, 390, 36)
-		local strip = HUD.touchStripLayout(count, cw2, ch2, 0, 6)
-		t.eq(strip.left, 12)
-		t.eq(strip.cell, 76, "roomy phone without the radar: big cells")
-	end)
-
-	t.test("phones: the event feed hugs the left edge below the radar block and the menu", function()
-		H.setMode("client")
-		local HUD = H.require("src/client/Controllers/HUDController")
-		local M = H.require("src/client/Controllers/MinimapController")
-		H.setMode("server")
-		for _, vp in PHONES do
-			for _, topbar in { 36, 58 } do
-				local s, cw, ch = phoneCanvas(vp[1], vp[2], topbar)
-				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
-				local m = M.touchMetrics(cw, ch, s)
-				local strip = HUD.touchStripLayout(#HUD.MENU, cw, ch, m.reserve, HUD_TOP)
-				for _, menuShown in { true, false } do
-					local x, y = HUD.touchFeedAnchor(strip, menuShown, m.bottom)
-					t.eq(x, 12, tag .. ": feed at the left edge")
-					t.ok(y >= m.bottom + 8, tag .. ": below the radar block")
-					if menuShown then
-						t.ok(y >= strip.bottom + 8, tag .. ": below the menu strip")
-					end
-				end
-			end
-		end
-		-- no radar: the old anchor (under the strip, at its left)
-		local strip = HUD.touchStripLayout(#HUD.MENU, 1535, 603, 0, 6)
-		local x, y = HUD.touchFeedAnchor(strip, true, 0)
-		t.eq(x, strip.left)
-		t.eq(y, strip.bottom + 8)
-	end)
-
-	t.test("phones: radar text and blips get the touch readability boost, the circle does not", function()
-		local R = Cfg.RADAR
-		t.eq(Mini.touchBoost(0.55, false), 1, "desktop: none")
-		t.eq(Mini.touchBoost(1, true), 1, "big screens: none")
-		local b = Mini.touchBoost(0.55, true)
-		t.near(b, 0.72 / 0.55, 1e-9, "phones: up to the touch scale floor")
-		t.ok(b <= R.TOUCH_BOOST_MAX, "capped")
-		t.eq(Mini.touchBoost(0.3, true), R.TOUCH_BOOST_MAX, "cap")
-		-- area name ~13 real px, blips ~16 real px on a phone
-		t.ok(R.AREA_TEXT_TOUCH * b * 0.55 >= 12.5, "area name readable")
-		t.ok(R.BLIP_SIZE * b * 0.55 >= 15, "blips readable")
-		t.ok(R.BLIP_SIZE_SMALL * b * 0.55 >= 8.5, "police / player dots readable")
-		-- the boost never changes the radar size or its reserve
-		local m1 = Mini.touchMetrics(1200, 600, 0.55)
-		local m2 = Mini.touchMetrics(1200, 600, 1)
-		t.eq(m1.diameter, m2.diameter)
-		t.eq(m1.reserve, m2.reserve)
-	end)
-
-	t.test("desktop: the HUD keeps clear of what pokes out above the radar", function()
-		local R = Cfg.RADAR
-		local glow = (1.22 - 1) / 2 * R.DESKTOP_SIZE -- WantedGlow is 1.22x the radar
-		local north = 22 / 2 - 3 -- N marker (22 px) centered 3 px inside the rim
-		t.ok(R.TOP_CLEARANCE >= glow, "wanted glow")
-		t.ok(R.TOP_CLEARANCE >= north + 4, "N marker")
-	end)
-
-	t.test("N marker fades only while it passes under the map button", function()
-		local R = Cfg.RADAR
-		t.near(Mini.northFade(R.MAP_BUTTON_ANGLE), 1, 1e-9, "under the button: hidden")
-		t.near(Mini.northFade(R.MAP_BUTTON_ANGLE + 360), 1, 1e-9, "wraps")
-		t.eq(Mini.northFade(0), 0, "north up: visible")
-		t.eq(Mini.northFade(R.MAP_BUTTON_ANGLE + R.NORTH_FADE_DEG), 0, "edge of the fade")
-		t.eq(Mini.northFade(R.MAP_BUTTON_ANGLE - 180), 0, "opposite side")
-		local a = Mini.northFade(R.MAP_BUTTON_ANGLE + 8)
-		t.near(a, Mini.northFade(R.MAP_BUTTON_ANGLE - 8), 1e-9, "symmetric")
-		t.ok(a > 0 and a < 1, "partial")
-		-- the button really sits on N's circle at that angle (why the fade exists)
-		local x, y = Mini.rotate(0, -1, R.MAP_BUTTON_ANGLE)
-		t.near(x, -y, 1e-9, "45 degrees, top-right")
+		-- a tiny canvas never pushes it off screen
+		local e = Mini.expandedRect({ x = 10, y = 10, w = 168, h = 118 }, 300, 200, true, 2)
+		t.ok(e.x + e.w <= 300 and e.y + e.h <= 200, "clamped to a tiny canvas")
 	end)
 
 	t.test("unreachable GPS targets back off", function()
@@ -613,10 +528,20 @@ return function(t)
 	end)
 
 	-- Fullscreen map ------------------------------------------------------------------------------------------------------
-	t.test("map legend fits phones (2-3 columns above its button, scrolls only when short)", function()
+	t.test("map legend fits the pause MAP tab (phones 2-3 columns, desktop one; scrolls only when short)", function()
+		local PauseMenu = H.require("src/client/UI/PauseMenu")
 		local n = #MapScreen.legendEntries()
-		t.ok(n >= 17, "every blip kind explained, got " .. n)
-		local top = Cfg.MAP.CHROME_TOP
+		t.ok(n >= 16, "every blip kind explained, got " .. n)
+		local function check(lay, cw, ch, touch, tag)
+			local F = PauseMenu.frame(touch)
+			t.ok(lay.top >= ch * F.top - 1e-6, tag .. ": below the pause tabs")
+			t.ok(
+				lay.top + lay.height <= ch * F.bottom - MapScreen.toolSize(touch) - 8 + 1e-6,
+				tag .. ": above the bottom row (tools / Legend button)"
+			)
+			t.ok(lay.right - lay.width >= cw * F.left - 1e-6, tag .. ": inside the content area")
+			t.ok(lay.right <= cw * F.right + 1e-6, tag .. ": right edge on the content area")
+		end
 		for _, vp in PHONES do
 			for _, topbar in { 36, 58 } do
 				local _, cw, ch = phoneCanvas(vp[1], vp[2], topbar, 0.72)
@@ -624,23 +549,22 @@ return function(t)
 				local lay = MapScreen.legendLayout(n, cw, ch, true)
 				t.ok(lay.cols == 2 or lay.cols == 3, tag)
 				t.ok(not lay.scrolls, tag .. ": every row visible without scrolling")
-				t.ok(ch - lay.bottom - lay.height >= top - 1e-6, tag .. ": below the title / hint")
-				t.ok(lay.bottom >= 18 + 48 + 8, tag .. ": above the LEGEND / HIDE button")
-				-- clear of the zoom column (64 px + 18 margin) on the right
-				t.ok(18 + lay.width <= cw - 18 - 64 - 18, tag .. ": clear of the zoom buttons")
+				check(lay, cw, ch, true, tag)
 			end
 		end
-		-- desktop: one column at the bottom-left; 720p shows every row without scrolling
+		-- desktop: one column top-right; 720p shows every row without scrolling
 		local lay = MapScreen.legendLayout(n, 1280, 720, false)
 		t.eq(lay.cols, 1)
 		t.ok(not lay.scrolls, "720p fits")
-		t.ok(720 - lay.bottom - lay.height >= top, "below the header")
+		check(lay, 1280, 720, false, "720p")
 		-- a roomy tablet keeps two columns
 		t.eq(MapScreen.legendLayout(n, 1280, 900, true).cols, 2, "tablet: two columns")
 		-- a very short window scrolls instead of overflowing
 		local short = MapScreen.legendLayout(n, 1280, 400, false)
 		t.ok(short.scrolls, "scrolls")
-		t.ok(400 - short.bottom - short.height >= top - 1e-6, "still below the header")
+		check(short, 1280, 400, false, "short")
+		-- the fit view starts under the pause header
+		t.near(MapScreen.chromeTopFor(720, false), 720 * PauseMenu.frame(false).top, 1e-9)
 	end)
 
 	t.test("district names step aside from blips and each other", function()
@@ -730,15 +654,26 @@ return function(t)
 	end
 
 	t.test("radar runtime: map moves every frame, 30 Hz work keeps an even cadence", function()
-		local root, _, cleanup = headless(Vector3.new(-300, 3, 160), false)
+		local root, extra, cleanup = headless(Vector3.new(-300, 3, 160), false)
 		local ok, err = pcall(function()
+			-- a police car near the player (its vision cone is the 30 Hz work measured below)
+			local cop = H.roblox.Instance.new("Model")
+			local copBody = H.roblox.Instance.new("Part")
+			copBody.CFrame = H.roblox.CFrame.new(-260, 3, 180)
+			copBody.Position = Vector3.new(-260, 3, 180)
+			copBody.Parent = cop
+			cop.PrimaryPart = copBody
+			cop:AddTag("Police")
+			cop.Parent = H.workspace
+			table.insert(extra, cop)
 			local M = H.require("src/client/Controllers/MinimapController")
 			M.mount()
 			local radar = H.localPlayer.PlayerGui.HC_Minimap.Radar
-			t.ok(radar.Clip.Blips.ZIndex > radar.Clip.Vignette.ZIndex, "blips above the edge vignette")
+			t.ok(radar.Clip:IsA("Frame") and not radar.Clip:IsA("CanvasGroup"), "a plain clipping Frame (§5.1)")
+			t.ok(radar.Clip.ClipsDescendants, "clips the turning map")
+			t.ok(radar.Clip.Blips.ZIndex > radar.Clip.Spin.ZIndex, "blips above the map")
 			M.step(1 / 60)
-			-- running (4 studs a frame, > 1 px: UDim offsets are whole pixels): the map follows every frame (it used to
-			-- step at ~24 Hz)
+			-- running (4 studs a frame, > 1 px: UDim offsets are whole pixels): the map follows every frame
 			local changes, last = 0, radar.Clip.Spin.World.Position
 			for i = 1, 60 do
 				root.CFrame = H.roblox.CFrame.new(-300 + 4 * i, 3, 160)
@@ -750,19 +685,38 @@ return function(t)
 				last = p
 			end
 			t.eq(changes, 60, "map position updated every frame")
-			-- wanted visuals run at RADAR.UPDATE_HZ: ~30 updates a second even with frame-time jitter
+			-- seen by a cop: the red / blue flash frame shows (30 Hz work)
 			H.localPlayer:SetAttribute("Wanted", 2)
-			local updates, lastT = 0, -1
+			H.localPlayer:SetAttribute("WantedSeen", true)
+			for _ = 1, 4 do
+				M.step(1 / 60)
+			end
+			t.ok(radar.Flash.Visible, "flash while seen")
+			-- searching (unseen): a vision cone per cop in range, moved at RADAR.UPDATE_HZ even with frame-time jitter
+			H.localPlayer:SetAttribute("WantedSeen", false)
+			local updates, lastP = 0, nil
 			for i = 1, 120 do
+				local at = Vector3.new(-200 + i, 3, 180)
+				copBody.CFrame = H.roblox.CFrame.new(at)
+				copBody.Position = at
 				M.step(if i % 2 == 0 then 1 / 60 + 0.0012 else 1 / 60 - 0.0012)
-				local tr = radar.Clip.Spin.World.WantedArea.ImageTransparency
-				if tr ~= lastT then
+				local cone = radar.Clip.Spin.World.Cones:FindFirstChild("Cone")
+				local p = cone and cone.Visible and cone.Position or nil
+				if p ~= lastP then
 					updates += 1
 				end
-				lastT = tr
+				lastP = p
 			end
+			t.ok(not radar.Flash.Visible, "no flash while searching")
 			t.ok(updates >= 57 and updates <= 61, "30 Hz cadence over 2 s, got " .. updates)
+			H.localPlayer:SetAttribute("Wanted", 0)
+			for _ = 1, 4 do
+				M.step(1 / 60)
+			end
+			local cone = radar.Clip.Spin.World.Cones:FindFirstChild("Cone")
+			t.ok(cone == nil or not cone.Visible, "cones gone with the stars")
 		end)
+		H.localPlayer:SetAttribute("WantedSeen", nil)
 		cleanup()
 		t.ok(ok, tostring(err))
 	end)
@@ -859,7 +813,8 @@ return function(t)
 			local MS = H.require("src/client/Controllers/MapScreenController")
 			M.mount()
 			MS.mount()
-			MS.open()
+			-- show() is what the pause menu's MAP tab calls (open() asks MenuController for the pause menu)
+			MS.show()
 			t.ok(MS.isOpen(), "open")
 			for _ = 1, 3 do
 				MS.step(1 / 30)
@@ -895,15 +850,21 @@ return function(t)
 				end
 			end
 			t.ok(labels >= 5, "district names shown, got " .. labels)
-			-- touch: the legend starts hidden behind its button, sized for the canvas
+			-- touch: the legend starts hidden behind its button (bottom row), sized for the canvas, top-right
 			t.ok(not chrome.Legend.Visible, "legend hidden on touch")
-			t.ok(chrome.LegendToggle.Visible, "LEGEND button")
+			t.ok(chrome.LegendToggle.Visible, "Legend button")
 			local lay = MS.legendLayout(#MS.legendEntries(), 1280, 720, true)
 			t.eq(chrome.Legend.Size.X.Offset, lay.width)
 			t.eq(chrome.Legend.Size.Y.Offset, lay.height)
-			t.eq(chrome.Legend.Position.Y.Offset, -lay.bottom, "opens above its button")
+			-- (UDim offsets are whole pixels)
+			t.near(chrome.Legend.Position.X.Offset, lay.right, 1, "right edge of the content area")
+			t.near(chrome.Legend.Position.Y.Offset, lay.top, 1, "under the pause tabs")
+			t.ok(chrome.LegendToggle.Position.Y.Offset > lay.top + lay.height, "its button sits below it")
+			-- no title or close button of its own: the pause menu owns those
+			t.eq(chrome:FindFirstChild("Title"), nil)
+			t.eq(chrome:FindFirstChild("Close"), nil)
 			-- tap an empty spot: the custom waypoint goes there; tap it again: gone
-			local top = Cfg.MAP.CHROME_TOP * 0.72
+			local top = MS.chromeTopFor(720, true)
 			local sc = MS.fitScale(1280, 720, top)
 			local sx, sy = MS.worldToScreen(-400, 220, 0, MS.fitCenterZ(sc, top), sc, 1280, 720)
 			MS.tap(Vector2.new(sx, sy))
@@ -912,8 +873,8 @@ return function(t)
 			MS.step(1 / 30)
 			MS.tap(Vector2.new(sx, sy))
 			t.eq(M.getCustomWaypoint(), nil, "second tap clears it")
-			MS.close()
-			t.ok(not gui.Enabled and not MS.isOpen(), "closed")
+			MS.hide()
+			t.ok(not gui.Enabled and not chrome.Enabled and not MS.isOpen(), "closed")
 		end)
 		cleanup()
 		t.ok(ok, tostring(err))

@@ -186,7 +186,7 @@ return function(t)
 	t.test("menus: reward info", function()
 		local cash = Menu.rewardInfo({ kind = "cash", amount = 1500 }, 10)
 		t.eq(cash.text, "$1.5K")
-		t.eq(cash.icon, "💵")
+		t.eq(cash.icon, "cash", "glyph key, never an emoji")
 		local mins = Menu.rewardInfo({ kind = "incomeMinutes", amount = 15 }, 10)
 		t.eq(mins.text, "15 MIN")
 		t.eq(mins.sub, "≈ $9K", "15 min x $10/s")
@@ -208,7 +208,7 @@ return function(t)
 		end
 		local car = Menu.rewardInfo({ kind = "car", rarity = "Epic" })
 		t.eq(car.text, "EPIC CAR")
-		t.eq(car.color, Rarity.Tiers.Epic.color)
+		t.eq(car.color, Menu.rarityColor("Epic"), "GTA rarity hue")
 		t.eq(Menu.rewardInfo(nil).text, "GIFT")
 		t.eq(Menu.rewardInfo({ kind = "weird" }).text, "GIFT")
 		for _, r in Economy.DAILY_REWARDS do
@@ -268,7 +268,7 @@ return function(t)
 		t.eq(#rows, 2, "unknown ids skipped")
 		t.eq(rows[1].id, "steal5")
 		t.eq(rows[1].text, "Steal 5 cars")
-		t.eq(rows[1].icon, "🚗")
+		t.eq(rows[1].icon, "car")
 		t.near(rows[1].fraction, 0.4, 1e-9)
 		t.eq(rows[1].rewardCash, 3000, "300s x $10/s")
 		t.eq(Menu.contractProgressText(rows[1]), "2/5")
@@ -308,7 +308,7 @@ return function(t)
 	t.test("menus: every contract stat has an icon", function()
 		for _, def in Economy.Contracts do
 			local row = Menu.contractRows({ list = { { id = def.id, progress = 0 } } })[1]
-			t.ok(row and row.icon ~= "🎯", def.id .. " uses the fallback icon")
+			t.ok(row and row.icon ~= "target", def.id .. " uses the fallback icon")
 		end
 	end)
 
@@ -455,17 +455,17 @@ return function(t)
 			return table.find(list, s) ~= nil
 		end
 		local rust = Menu.carSources(Cars.get("rustbucket"))
-		t.ok(has(rust, "🛣️ Streets") and has(rust, "🏪 Dealer"))
-		t.ok(not has(rust, "📦 Hot Drops"))
-		t.ok(has(Menu.carSources(Cars.get("diamond_dragster")), "💎 Store exclusive"))
+		t.ok(has(rust, "Streets") and has(rust, "Dealer"))
+		t.ok(not has(rust, "Hot Drops"))
+		t.ok(has(Menu.carSources(Cars.get("diamond_dragster")), "Store exclusive"))
 		for _, def in Cars.List do
 			local src = Menu.carSources(def)
 			t.ok(#src >= 1, def.id)
 			if def.rarity == "Legendary" or def.rarity == "Mythic" or def.rarity == "Secret" then
-				t.ok(has(src, "📦 Hot Drops"), def.id .. " can be a hot drop")
+				t.ok(has(src, "Hot Drops"), def.id .. " can be a hot drop")
 			end
 		end
-		t.ok(has(Menu.carSources(Cars.ByRarity.Epic[1]), "🎁 Rewards"), "Epic cars come from the daily streak")
+		t.ok(has(Menu.carSources(Cars.ByRarity.Epic[1]), "Rewards"), "Epic cars come from the daily streak")
 		t.eq(Menu.rarityColor("Secret") ~= Rarity.Tiers.Secret.color, true, "Secret readable on dark panels")
 	end)
 

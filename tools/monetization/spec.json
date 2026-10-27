@@ -1,0 +1,313 @@
+{
+  "_generated": "by tools/monetization/gen_spec.py from docs/v2/design/LOOP_V2.md §8; do not edit by hand",
+  "universeId": 10773288390,
+  "items": [
+    {
+      "key": "cash2x",
+      "kind": "pass",
+      "name": "2x Garage Cash",
+      "description": "Doubles the cash your parked cars earn in the garage, including offline earnings. Crime, street, bounty and race payouts are not changed.",
+      "price": 399,
+      "onSale": true,
+      "icon": "assets/monetization/cash2x.png"
+    },
+    {
+      "key": "vip",
+      "kind": "pass",
+      "name": "VIP",
+      "description": "VIP crown tag, 12 VIP paint colours and a VIP plate frame. Offline earnings rate 60% instead of 30%, free Mechanic, and 15 extra seconds on your garage laser lock.",
+      "price": 499,
+      "onSale": true,
+      "icon": "assets/monetization/vip.png"
+    },
+    {
+      "key": "slots",
+      "kind": "pass",
+      "name": "+2 Garage Slots",
+      "description": "Adds garage slots 11 and 12.",
+      "price": 299,
+      "onSale": true,
+      "icon": "assets/monetization/slots.png"
+    },
+    {
+      "key": "vault",
+      "kind": "pass",
+      "name": "+1 Vault Bay",
+      "description": "Adds a third vault bay that keeps a parked car safe from theft. A second bay is free at Rep 25. Cars you drive are not covered.",
+      "price": 249,
+      "onSale": true,
+      "icon": "assets/monetization/vault.png"
+    },
+    {
+      "key": "autocollect",
+      "kind": "pass",
+      "name": "Auto-Collect",
+      "description": "Moves your garage cash to your bank automatically every 60 seconds.",
+      "price": 199,
+      "onSale": true,
+      "icon": "assets/monetization/autocollect.png"
+    },
+    {
+      "key": "neon",
+      "kind": "pass",
+      "name": "Neon & Underglow Kit",
+      "description": "Underglow and neon accents from Rep 1. Everyone unlocks them free at Rep 10.",
+      "price": 149,
+      "onSale": true,
+      "icon": "assets/monetization/neon.png"
+    },
+    {
+      "key": "plates",
+      "kind": "pass",
+      "name": "Custom Plates",
+      "description": "Custom plate text from Rep 1. Everyone unlocks it free at Rep 10. Plate text is filtered.",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/plates.png"
+    },
+    {
+      "key": "horns",
+      "kind": "pass",
+      "name": "Horn & Radio Pack",
+      "description": "10 car horns and 2 extra radio stations. Cosmetic.",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/horns.png"
+    },
+    {
+      "key": "emotes",
+      "kind": "pass",
+      "name": "Street Emotes",
+      "description": "8 street emotes. Cosmetic.",
+      "price": 149,
+      "onSale": true,
+      "icon": "assets/monetization/emotes.png"
+    },
+    {
+      "key": "cash_small",
+      "kind": "product",
+      "name": "Stack of Cash",
+      "description": "Adds 10 minutes of your car income to your bank (at least $5,000).",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/cash_small.png"
+    },
+    {
+      "key": "cash_big",
+      "kind": "product",
+      "name": "Briefcase",
+      "description": "Adds 1 hour of your car income to your bank (at least $50,000).",
+      "price": 399,
+      "onSale": true,
+      "icon": "assets/monetization/cash_big.png"
+    },
+    {
+      "key": "cash_huge",
+      "kind": "product",
+      "name": "Armored Case",
+      "description": "Adds 4 hours of your car income to your bank (at least $250,000).",
+      "price": 999,
+      "onSale": true,
+      "icon": "assets/monetization/cash_huge.png"
+    },
+    {
+      "key": "starter_pack",
+      "kind": "product",
+      "name": "Starter Pack",
+      "description": "One per account: a Rare Stallion GT in an exclusive paint (bound to you), $10,000 to your bank, 3 light armor and 48 P9 rounds.",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/starter_pack.png"
+    },
+    {
+      "key": "lockdown",
+      "kind": "product",
+      "name": "Lockdown",
+      "description": "Locks your garage for 10 minutes. Stacks. Not available while a theft from your garage is in progress.",
+      "price": 49,
+      "onSale": true,
+      "icon": "assets/monetization/lockdown.png"
+    },
+    {
+      "key": "lose_cops",
+      "kind": "product",
+      "name": "Lose the Cops",
+      "description": "Clears a 1 to 4 star wanted level. Not available at 0 or 5 stars, while carrying event loot, or with a street bounty on you.",
+      "price": 49,
+      "onSale": true,
+      "icon": "assets/monetization/lose_cops.png"
+    },
+    {
+      "key": "impound_release",
+      "kind": "product",
+      "name": "Impound Release",
+      "description": "Releases one impounded car right away. Without it the wait is 2 minutes.",
+      "price": 29,
+      "onSale": true,
+      "icon": "assets/monetization/impound_release.png"
+    },
+    {
+      "key": "rush_repair",
+      "kind": "product",
+      "name": "Rush Repair",
+      "description": "Finishes one repair right away. Without it the repair takes 60 seconds.",
+      "price": 19,
+      "onSale": true,
+      "icon": "assets/monetization/rush_repair.png"
+    },
+    {
+      "key": "server_luck",
+      "kind": "product",
+      "name": "Server Luck x2",
+      "description": "Doubles street and dealer luck for everyone in the server for 15 minutes. Time stacks. Shown odds update while it runs.",
+      "price": 199,
+      "onSale": true,
+      "icon": "assets/monetization/server_luck.png"
+    },
+    {
+      "key": "make_it_rain",
+      "kind": "product",
+      "name": "Make It Rain",
+      "description": "Starts a Cash Rain for everyone in the server. Your name is announced.",
+      "price": 149,
+      "onSale": true,
+      "icon": "assets/monetization/make_it_rain.png"
+    },
+    {
+      "key": "double_it",
+      "kind": "product",
+      "name": "Double It",
+      "description": "Pays a bonus equal to the truck bag or heist share you just delivered, up to 5 minutes of your income, to your bank. Once per day. Not during cash events.",
+      "price": 49,
+      "onSale": true,
+      "icon": "assets/monetization/double_it.png"
+    },
+    {
+      "key": "tint_gold",
+      "kind": "product",
+      "name": "Gold Weapon Tint",
+      "description": "Gold tint for your weapons. Cosmetic only. Also sold for in-game cash.",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/tint_gold.png"
+    },
+    {
+      "key": "tint_platinum",
+      "kind": "product",
+      "name": "Platinum Weapon Tint",
+      "description": "Platinum tint for your weapons. Cosmetic only. Also sold for in-game cash.",
+      "price": 149,
+      "onSale": true,
+      "icon": "assets/monetization/tint_platinum.png"
+    },
+    {
+      "key": "diamond_dragster",
+      "kind": "product",
+      "name": "Diamond Dragster",
+      "description": "The Diamond Dragster hero car, bound to your account. Thieves can't keep it, and it can't be traded or raced for pink slips. One per account.",
+      "price": 799,
+      "onSale": true,
+      "icon": "assets/monetization/diamond_dragster.png"
+    },
+    {
+      "key": "street_pass",
+      "kind": "product",
+      "name": "Street Pass Premium",
+      "description": "Premium track for the current Street Pass season: cosmetics and a bound car at tier 50. No cash boosts, XP boosts or tier skips.",
+      "price": 499,
+      "onSale": false,
+      "icon": "assets/monetization/street_pass.png",
+      "offSaleReason": "Seasons ship behind Flags.SEASON_ENABLED (false at launch, LOOP_V2 §6.5 / App. A)"
+    },
+    {
+      "key": "gift_cash2x",
+      "kind": "product",
+      "name": "Gift: 2x Garage Cash",
+      "description": "Gift the 2x Garage Cash pass to another player in your server. They get exactly what the pass gives.",
+      "price": 399,
+      "onSale": true,
+      "icon": "assets/monetization/gift_cash2x.png",
+      "giftOf": "cash2x"
+    },
+    {
+      "key": "gift_vip",
+      "kind": "product",
+      "name": "Gift: VIP",
+      "description": "Gift the VIP pass to another player in your server. They get exactly what the pass gives.",
+      "price": 499,
+      "onSale": true,
+      "icon": "assets/monetization/gift_vip.png",
+      "giftOf": "vip"
+    },
+    {
+      "key": "gift_slots",
+      "kind": "product",
+      "name": "Gift: +2 Garage Slots",
+      "description": "Gift the +2 Garage Slots pass to another player in your server. They get exactly what the pass gives.",
+      "price": 299,
+      "onSale": true,
+      "icon": "assets/monetization/gift_slots.png",
+      "giftOf": "slots"
+    },
+    {
+      "key": "gift_vault",
+      "kind": "product",
+      "name": "Gift: +1 Vault Bay",
+      "description": "Gift the +1 Vault Bay pass to another player in your server. They get exactly what the pass gives.",
+      "price": 249,
+      "onSale": true,
+      "icon": "assets/monetization/gift_vault.png",
+      "giftOf": "vault"
+    },
+    {
+      "key": "gift_autocollect",
+      "kind": "product",
+      "name": "Gift: Auto-Collect",
+      "description": "Gift the Auto-Collect pass to another player in your server. They get exactly what the pass gives.",
+      "price": 199,
+      "onSale": true,
+      "icon": "assets/monetization/gift_autocollect.png",
+      "giftOf": "autocollect"
+    },
+    {
+      "key": "gift_neon",
+      "kind": "product",
+      "name": "Gift: Neon & Underglow Kit",
+      "description": "Gift the Neon & Underglow Kit pass to another player in your server. They get exactly what the pass gives.",
+      "price": 149,
+      "onSale": true,
+      "icon": "assets/monetization/gift_neon.png",
+      "giftOf": "neon"
+    },
+    {
+      "key": "gift_plates",
+      "kind": "product",
+      "name": "Gift: Custom Plates",
+      "description": "Gift the Custom Plates pass to another player in your server. They get exactly what the pass gives.",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/gift_plates.png",
+      "giftOf": "plates"
+    },
+    {
+      "key": "gift_horns",
+      "kind": "product",
+      "name": "Gift: Horn & Radio Pack",
+      "description": "Gift the Horn & Radio Pack pass to another player in your server. They get exactly what the pass gives.",
+      "price": 99,
+      "onSale": true,
+      "icon": "assets/monetization/gift_horns.png",
+      "giftOf": "horns"
+    },
+    {
+      "key": "gift_emotes",
+      "kind": "product",
+      "name": "Gift: Street Emotes",
+      "description": "Gift the Street Emotes pass to another player in your server. They get exactly what the pass gives.",
+      "price": 149,
+      "onSale": true,
+      "icon": "assets/monetization/gift_emotes.png",
+      "giftOf": "emotes"
+    }
+  ]
+}

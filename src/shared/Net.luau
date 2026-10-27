@@ -18,6 +18,7 @@ local Net = {}
 local folder: Folder? = nil
 local events: { [string]: RemoteEvent } = {}
 local functions: { [string]: RemoteFunction } = {}
+local unreliables: { [string]: any } = {} -- UnreliableRemoteEvent (falls back to a RemoteEvent where unsupported)
 
 local function getFolder(): Folder
 	if folder then
@@ -61,6 +62,20 @@ local function getFunction(name: string): RemoteFunction
 	return found
 end
 
+-- Unreliable (cosmetic) events: server -> client only. Instances are UnreliableRemoteEvents; the type stays `any` so
+-- the module also loads where that class does not exist (falls back to a RemoteEvent).
+local function getUnreliable(name: string): any
+	local ev = unreliables[name]
+	if ev then
+		return ev
+	end
+	local f = getFolder()
+	local found = if IS_SERVER then f:FindFirstChild(name) else f:WaitForChild(name, 30)
+	assert(found and found:IsA("BaseRemoteEvent"), "Unknown UnreliableRemoteEvent: " .. name)
+	unreliables[name] = found
+	return found
+end
+
 -- SERVER ---------------------------------------------------------------------------------
 
 -- Creates all remotes. Call once, first thing, from the server entry point.
@@ -74,6 +89,16 @@ function Net.init()
 				ev.Name = name
 				ev.Parent = f
 			end
+		end
+	end
+	for _, name in Remotes.Unreliable or {} do
+		if not f:FindFirstChild(name) then
+			local ok, ev = pcall(Instance.new, "UnreliableRemoteEvent")
+			if not ok then
+				ev = Instance.new("RemoteEvent")
+			end
+			ev.Name = name
+			ev.Parent = f
 		end
 	end
 	for _, name in Remotes.Functions do
@@ -183,7 +208,39 @@ function Net.fireNear(name: string, position: Vector3, radius: number, ...: any)
 	end
 end
 
+-- Cosmetic, droppable: to one player over an UnreliableRemoteEvent.
+function Net.fireClientUnreliable(name: string, player: Player, ...: any)
+	getUnreliable(name):FireClient(player, ...)
+end
+
+-- Cosmetic, droppable: to every player within radius of ANY of `points` (tracers: origin + endpoints), except `except`.
+function Net.fireNearUnreliable(name: string, points: { Vector3 }, radius: number, except: Player?, ...: any)
+	local ev = getUnreliable(name)
+	local r2 = radius * radius
+	for _, p in Players:GetPlayers() do
+		if p ~= except then
+			local char = p.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if root and root:IsA("BasePart") then
+				local pos = root.Position
+				for _, pt in points do
+					local d = pos - pt
+					if d.X * d.X + d.Y * d.Y + d.Z * d.Z <= r2 then
+						ev:FireClient(p, ...)
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
 -- CLIENT ---------------------------------------------------------------------------------
+
+function Net.listenUnreliable(name: string, handler: (...any) -> ()): RBXScriptConnection
+	assert(not IS_SERVER, "Net.listenUnreliable is client-only")
+	return getUnreliable(name).OnClientEvent:Connect(handler)
+end
 
 function Net.fire(name: string, ...: any)
 	assert(not IS_SERVER, "Net.fire is client-only")
@@ -222,6 +279,15 @@ function Net.isFiniteVector(v: any): boolean
 	end
 	local x, y, z = v.X, v.Y, v.Z
 	return x == x and y == y and z == z and math.abs(x) < 1e5 and math.abs(y) < 1e5 and math.abs(z) < 1e5
+end
+
+-- A finite Vector3 of (almost) unit length: 0.98..1.02.
+function Net.isUnit(v: any): boolean
+	if not Net.isFiniteVector(v) then
+		return false
+	end
+	local m = (v :: Vector3).Magnitude
+	return m >= 0.98 and m <= 1.02
 end
 
 return Net

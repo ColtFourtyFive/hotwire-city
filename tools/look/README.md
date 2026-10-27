@@ -11,6 +11,7 @@ from CC0 sources (ambientCG, Poly Haven; picks from `docs/v2/research/cc0_assets
 | 4. Bake into the place | `python3 tools/look/gen_project.py` (`--check` = dry run, exit 1 on diff) | `default.project.json` → `MaterialService` + `Lighting` only; `src/shared/Config/Look.luau` generated block |
 | 5. Verify the built place | `rojo build -o build/HotwireCity.rbxlx && lune run tools/look/verify_place.luau` | prints `OK` or the problems |
 | Engine probe (once, or after an engine change) | `python3 tools/look/sun_probe.py` | `tools/look/sun_probe_result.json`: real-engine sun/moon directions, terrain-colour material support, a few defaults |
+| 6. Probe an uploaded version | `rojo build -o build/HotwireCity.rbxl && python3 tools/look/probe_place.py --upload build/HotwireCity.rbxl` (or `--version N`) | `build/probe_place.json`: what a real server loads (LightingStyle, PrioritizeLightingQuality, base-material overrides before and after the runtime apply, the look at noon / 17.6 / 22.5) |
 
 `--src` holds `ACG/<Id>/<Id>_1K-JPG_<Map>.jpg` and `PH/<id>/<id>_<map>_1k.jpg`; `--hdri-dir` holds Poly Haven
 `<id>_4k.hdr` (4096 × 2048 → 1024 px per 90° face). `--fetch` downloads whatever is missing. Run the Python tools with
@@ -41,6 +42,21 @@ Pebble, CorrodedMetal, WoodPlanks, Grass, LeafyGrass, Ground, Sand, Rock, Slate,
 `Material` = base and `MaterialVariant` = name): HC_AsphaltWorn, HC_AsphaltWet, HC_ConcreteModern, HC_BrickTan,
 HC_CorrugatedMetal, HC_WindowGlass.
 
+- **The overrides are also applied at runtime** (`src/shared/Util/MaterialOverrides.luau`): the server in
+  `LightingService.init` and every client in `LookClient.init` call `MaterialService:SetBaseMaterialOverride` for each
+  `Look.Overrides` entry. Each call is pcall'd and idempotent (an override that already reads back is not set again),
+  a variant that is not under MaterialService is never pointed at, and one warn summarises anything missing or failed.
+  MaterialService attribute `HCOverridesActive` = how many read back as wanted. Clients retry variants that replicate
+  late (`MaterialService.ChildAdded`).
+  - Why: job 0009 read `GetBaseMaterialOverride` = the **stock** names in Studio (Edit, Play server and client) on
+    v29/30, although all 22 variants were there.
+  - A headless Open Cloud server of the same v30 (and of v31) reads all 16 file overrides as active
+    (`tools/look/probe_place.py`, `docs/v2/evidence/look_fix3_probe_v30.json`). So the file properties work on a
+    real server, but not in that Studio session. Destroying, re-creating or renaming a variant does **not** reset an
+    override in the engine (probe on v31), so Rojo live-sync re-creating the variants does not explain it either.
+  - The cause is unknown. The runtime apply covers both cases; studio job 0011 reads the result in Studio.
+  - Whether a server-side `SetBaseMaterialOverride` replicates to clients is not documented (the API page only says
+    "Set a MaterialVariant name that overrides a built-in material"), so both sides apply it.
 - **No `GlassName` exists** (API dump 0.744: MaterialService has no Glass/Neon/ForceField slots), so there is no global
   glass look. `HC_WindowGlass` is an opaque **mirror-coated** facade glass (metalness ≈ 1, roughness ≈ 0.06) on
   **SmoothPlastic**: use `Material = SmoothPlastic`, `MaterialVariant = "HC_WindowGlass"`, Color (118, 132, 147). With
@@ -98,40 +114,91 @@ moonlit clouds and a warm city glow at 14.2. So the game time of day and `Lighti
   - The engine never renders the sun below −5°. The jump is one write and sits under the exposure dip. The fixed night
     sky is up during the jump, so nothing spins. All of this is tested tick by tick over a whole cycle.
 - **The night is faked** by the blue-hour and night presets, because the held engine only renders early twilight.
-  The presets use:
-  - negative `ExposureCompensation`;
-  - a faint key light (`Brightness` 0.4);
-  - low, cool `Ambient` and `OutdoorAmbient`, which darken the world but not the sky;
-  - a cool `ColorCorrection` desaturated by 0.12.
+  Job 0009 (real engine, v30) showed the engine already darkens that −3° world heavily, and tints it and its sky
+  reddish-brown:
+  - The old night (Exposure −0.3, Brightness 0.4, OutdoorAmbient (40, 46, 60)) was almost black at street level and
+    completely black from the overview.
+  - A diagnostic at Exposure +2 / Brightness 2 showed the night HDRI and a readable city.
 
-  The night HDRI stays visible above a thin haze (Haze 0.35, Density 0.2). Twilight and night haze, decay and cloud
-  colours are neutral blue-grey with red never above green, so there is no magenta. The old blue hour used a mauve
-  (132, 130, 142) haze.
+  So the night preset now **lifts** the frame about two stops and gets its "night" from everything else:
+  - `ExposureCompensation` +0.8;
+  - a moonlight-level key light (`Brightness` 1.2);
+  - a brighter cool `OutdoorAmbient` (60, 70, 92);
+  - a clear blue `ColorCorrection` tint (212, 226, 255) with saturation −0.2, which cancels the engine's reddish-brown
+    cast while warm lamps and windows stay warm.
+
+  The blue hours sit between golden and night (Exposure +0.6, Brightness 1.4–1.5) and are never darker than the
+  night. The night HDRI stays visible above a thin haze (Haze 0.35, Density 0.12). Twilight and night haze, decay and
+  cloud colours are neutral blue-grey with red never above green, so there is no magenta. These are the job 0009
+  report's starting values; job 0011 sweeps them (`ExposureOverride`, `TintOverride`).
 - The Workspace attribute `EngineClockOverride` (hours) pins the engine clock without touching the game hour. Use it to
   compare holds from 18.0 to 18.3 in Play mode. `TimeOfDayLock` still locks the game hour, so locking it at 22.5 now
   renders ClockTime 18.2.
-- **Still to check in the engine** (next lab round):
-  - the moon and key light at the held clock: with the sun at −3°, the moon is at +3° on the opposite side;
-  - the shadow direction flipping at the midnight jump;
-  - the starting values of the night presets.
+- **Still to check in the engine** (job 0011):
+  - the key light at the held clock: with the sun at −3°, the moon is at +3° on the opposite side;
+  - the shadow direction flipping at the midnight jump.
 
-## Atmosphere (locked)
+## Golden hour and the moon (job 0009)
+
+- The golden hour read sepia / brown: a warm Atmosphere colour (234, 212, 184), a warm tint (255, 244, 230) and
+  saturation +0.07 on top of the engine's own orange low sun. The golden presets are now warm-but-neutral: haze
+  (218, 211, 200), tint (255, 250, 242), saturation 0. The warmth comes from the low sun.
+- A large pale moon disc sat on the golden-hour horizon. `Sky.MoonAngularSize` is now 1.5° (was 6°), and
+  `LightingService.moonSizeAt` sets it to **0** whenever the engine sun is above −2°. That threshold is below both
+  day ↔ blue swaps (−1.5°), so the moon never shows under the day sky, only at twilight under the blue sky. The night
+  sky hides celestial bodies anyway. A headless probe confirmed the engine accepts `MoonAngularSize = 0`; whether 0
+  really hides the disc is checked in job 0011 (`MoonSizeOverride`).
+
+## Atmosphere (Offset / Haze locked, Density per preset)
 
 Lab round 2, step S1:
 - Offset had no visible effect at Density 0.27; captures at 0 and 1.0 were pixel-identical.
 - Haze 0.8 with Offset 0.25 was the best pair.
 
-These are locked for the sunlit presets (day and both goldens) in `Look.AtmosphereLock`. Density stays ≤ 0.30. The
-blue-hour and night presets use the same Offset with a lower Haze. The old haze bump at sky swaps is gone.
+These are locked for the sunlit presets (day and both goldens) in `Look.AtmosphereLock`. The blue-hour and night
+presets use the same Offset with a lower Haze. The old haze bump at sky swaps is gone.
 
-`default.project.json` still bakes day Haze 0.9. LightingService writes 0.8 at init. Re-run
-`python3 tools/look/gen_project.py` on the branch that owns the project file; `--check` currently reports only this.
+**Density** is one tunable per preset in `Look.AtmosphereDensity`. Job 0009 found that at 0.27 everything beyond about
+350–400 studs became a flat grey wall from the overview camera and hid downtown, on a city about 3 km across. The
+values are now:
+
+| Preset | Density |
+|---|---|
+| day | 0.16 |
+| goldenMorning, goldenEvening | 0.18 |
+| blueMorning, blueEvening | 0.16 |
+| night | 0.12 |
+
+The goal is a skyline 1,500–2,500 studs away that stays readable, with gentle aerial perspective. Job 0011 sweeps 0.12,
+0.16, 0.2 and 0.27 at noon from the overview cameras (`AtmosphereDensityOverride`). The cap stays at 0.30.
+
+## Live overrides (Workspace attributes, set on the server)
+
+LightingService reads these every look step (about 1 s). They are unset in production, where they cost nothing.
+
+| Attribute | Replaces |
+|---|---|
+| `TimeOfDayLock` | the game hour (holds the clock) |
+| `EngineClockOverride` | the engine `Lighting.ClockTime` |
+| `AtmosphereOffsetOverride` | `Atmosphere.Offset` |
+| `CloudsOverride` | a multiplier on the volumetric cloud cover |
+| `AtmosphereDensityOverride` | `Atmosphere.Density` (bypasses the cap) |
+| `AtmosphereHazeOverride` | `Atmosphere.Haze` (bypasses the cap) |
+| `ExposureOverride` | `Lighting.ExposureCompensation` (the preset **and** the swap dip) |
+| `BrightnessOverride` | `Lighting.Brightness` |
+| `OutdoorAmbientOverride` (Color3) | `Lighting.OutdoorAmbient` |
+| `TintOverride` (Color3) | `ColorCorrection.TintColor` |
+| `SaturationOverride` | `ColorCorrection.Saturation` |
+| `MoonSizeOverride` | `Sky.MoonAngularSize` (0 hides the moon) |
+
+The sweep overrides (`LightingService.OVERRIDE_ATTRIBUTES`, `withOverrides`) apply after the caps and the swap dip, so
+the frame shows exactly the value set.
 
 ## One of each Lighting child (Team Create)
 
 Rojo live-sync cannot apply the `Lighting` node ("Cannot change Parent of type Lighting"). A Team Create session
-therefore ends up with duplicate Sky, Atmosphere, Bloom and SunRays children, and `LightingStyle` reads Soft. Those
-place-file settings only arrive through a real publish.
+therefore ends up with duplicate Sky, Atmosphere, Bloom and SunRays children. The place-file settings only arrive
+through a real upload or publish. (`LightingStyle` reading Soft was a separate problem: see "LightingStyle" below.)
 
 `LightingService.dedupe()` keeps exactly one Sky, Atmosphere, BloomEffect, ColorCorrectionEffect and SunRaysEffect:
 - The keeper is the instance it already owns (attribute `HCLookOwned`), otherwise the place file's instance by name,
@@ -181,8 +248,9 @@ Times are **game** time. Sun elevations are the **engine** sun.
   - A Sky cannot cross-fade, and that swap has to happen with the sun up: the golden HDRI paints its sun glow at 8°.
   - Moving the swap to the horizon would keep golden up for only a minute of twilight. It would also add two swaps
     and put an 8° glow over a set sun.
-  - So the day sky stays up from sunrise to sunset. The golden hour comes from the presets: a warm low key light, a
-    warm Atmosphere colour and glare on the horizon band, and a warm grade, all under the milky, desaturated day dome.
+  - So the day sky stays up from sunrise to sunset. The golden hour comes from the presets: the engine's warm low key
+    light, glare on the horizon band and a faint warm grade, all under the milky, desaturated day dome. It is
+    warm-but-neutral since job 0009 (see "Golden hour and the moon").
   - The golden faces stay in the generated data but are neither scheduled nor preloaded.
 - `src/client/Controllers/LookClient.luau` preloads the faces of every **scheduled** sky a few seconds after joining
   (`ContentProvider:PreloadAsync`, next sky first). This way the first swap on a client does not stream six 1024 px
@@ -200,11 +268,11 @@ Verified with `rojo build` (Rojo 7.7.1, this container) on a probe project and o
 | `MaterialVariant.ColorMap` / `NormalMap` / `RoughnessMap` / `MetalnessMap` | `"rbxassetid://<Image id>"` | migrated to `ColorMapContent` … `<Content><uri>` | PluginSecurity read+write: game scripts cannot even read them |
 | `MaterialVariant.StudsPerTile` | number | `<float>` | scriptable |
 | `MaterialVariant.MaterialPattern` | `"Regular"` / `"Organic"` | `<token>` 0 / 1 | scriptable |
-| `MaterialService.<Material>Name` | `"HC_…"` | `<string>` | RobloxSecurity, NotScriptable: file-only; runtime uses `SetBaseMaterialOverride` |
+| `MaterialService.<Material>Name` | `"HC_…"` | `<string>` | RobloxSecurity, NotScriptable: file-only. A headless server honours them; Studio did not in job 0009, so the runtime also calls `SetBaseMaterialOverride` (see Materials) |
 | `MaterialService.Use2022Materials` | `true` | migrated to `Use2022MaterialsXml` | |
 | `Lighting.LightingStyle` | `"Realistic"` | `<token>` 0 (Realistic = 0, Soft = 1) | exists in 0.744; research says not settable by game scripts |
 | `Lighting.PrioritizeLightingQuality` | `true` | `<bool>` | exists in 0.744 |
-| `Lighting.Technology` | **removed** | absent | Deprecated, RobloxScriptSecurity; Unified Lighting maps it on load (Future → Realistic + quality). We no longer write it at runtime or in the file |
+| `Lighting.Technology` | `"Future"` | `<token>` 4 | Deprecated, RobloxScriptSecurity (not readable by game scripts). **Required in the file**: on load the engine derives `LightingStyle` and `PrioritizeLightingQuality` from it (see "LightingStyle" below). Never written at runtime |
 | `Lighting.Ambient` etc. (Color3) | `[r, g, b]` floats 0..1 | `<Color3>` | |
 | `Sky.SkyboxBk` … `SkyboxUp` | `"rbxassetid://<Image id>"` | migrated to `SkyboxBackContent` … | Image ids only: Decal ids fail with 403 IncorrectAssetType |
 | `Sky.SkyboxOrientation` | `[x, y, z]` degrees | `<Vector3>` | scriptable; Y applied first |
@@ -213,9 +281,21 @@ The legacy names (`ColorMap`, `SkyboxBk`) are used on purpose: Rojo 7.7.1 migrat
 Rojo versions understand. The pinned Rojo 7.6.1 (`rokit.toml`) also builds the project and `verify_place.luau` passes
 on its output; 7.6.1 writes the Sky faces under the legacy `SkyboxBk`… names, which still load.
 
-Job 0007 read `LightingStyle` back as Soft and `PrioritizeLightingQuality` as true in a Team Create session where
-Rojo live-sync had failed on the Lighting node (see "One of each Lighting child"). `LightingStyle` from the file only
-arrives through a real publish. Read it back again after the next publish.
+### LightingStyle (verified on the real engine)
+
+Jobs 0007 and 0009 read `LightingStyle = Soft` although the file said Realistic. `tools/look/probe_place.py` reads
+what a headless server of an uploaded version loads (results in `docs/v2/evidence/look_fix3_probe_v*.json`):
+
+| Version | `Technology` in the file | `LightingStyle` | `PrioritizeLightingQuality` |
+|---|---|---|---|
+| 30 | absent (`LightingStyle` Realistic + quality true only) | **Soft** | **false** |
+| 31 | `Future` (plus `LightingStyle` Realistic + quality true) | **Realistic** | **true** |
+
+So the engine ignores the file's `LightingStyle` / `PrioritizeLightingQuality` and maps them from the legacy
+`Technology` when a place loads. An absent Technology maps like Voxel (Soft, quality off). `gen_project.py` therefore
+bakes `Technology = "Future"` (`LIGHTING_TECHNOLOGY`) next to the new properties, and `verify_place.luau` requires it.
+The Studio place of job 0007 carried `RBX_OriginalTechnologyOnFileLoad = 3` (ShadowMap), which fits the same mapping.
+Job 0011 reads it back in Studio too.
 
 ## Night windows (runtime `Look.Windows`, building guidance `Look.Night.windowEmissive`)
 

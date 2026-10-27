@@ -1,39 +1,42 @@
 --!strict
--- MenuController (SPEC §7): every modal menu in Hotwire City, built with UI/Kit + Theme inside ONE ScreenGui "Menus"
--- (DisplayOrder Theme.Layers.Menus). Only one menu is open at a time; a dim backdrop sits behind it (tap = close).
+-- MenuController v2 (gta_ui_language §5.12-§5.15): every menu, re-housed in GTA's containers. The v1 modal "Kit.window"
+-- cards are gone; the nine v1 menu names still route here (other systems and the OpenUI remote use them):
+--
+--   GearShop   -> a GTA interaction list menu at the gear counter (UI/ListMenu): upgrades + tools, Enter buys
+--   Store      -> pause menu STORE tab (Robux passes / products)
+--   Index      -> pause menu GARAGE tab (the car collection with a turntable preview)
+--   Daily, Contracts, Gifts -> pause menu JOBS tab (daily contracts, the 7-day streak, playtime gifts)
+--   Rebirth    -> pause menu STATS tab, "Prestige" section (the lead's rename)
+--   Settings   -> pause menu SETTINGS tab
+--   Codes      -> the phone's Codes app (PhoneController)
+--
+-- The pause menu (UI/PauseMenu): MAP · JOBS · GARAGE · STATS · STORE · SETTINGS. Opens on P (last tab) or M (MAP, via
+-- MapScreenController), from the phone apps and the touch MAP button. Each tab is a list on the left (UI/ListMenu,
+-- embedded) and a detail panel on the right. Keys: Up / Down / Enter / Left / Right inside the tab, Q / E tabs,
+-- Backspace closes. Esc belongs to Roblox (opening the Roblox menu closes ours).
 --
 -- Public API
---   open(name): boolean       open a menu (closes any other). Unknown names -> false. Aliases accepted ("Gear",
---                             "CarIndex", "Playtime", ...; see MenuController.ALIASES; case/space-insensitive).
---   close(name?): boolean     close `name` (or whichever menu is open when nil). false when it was not open.
---   toggle(name): boolean     open if closed, close if open. false only for unknown names.
---   isOpen(name): boolean
---   has(name): boolean        `name` (or an alias) is a known menu. HUDController probes this.
---   getOpen(): string?        canonical name of the open menu.
---   closeAll()
---   Opened: Signal(name), Closed: Signal(name)
---   Canonical names: GearShop, Store, Index, Daily, Contracts, Gifts, Rebirth, Codes, Settings.
---
--- Remotes: listens to OpenUI(name). Sends BuyUpgrade, BuyTool, ClaimDaily, ClaimPlaytime, RedeemCode, Rebirth,
--- SetSetting and (once Shared.Remotes lists it) RerollContract, all re-validated by the server. Store buttons call
--- MarketplaceService prompts; the server grants. Store items the server would refuse (owned one-per-account car,
--- Lose the Cops with 0 stars) are disabled. Menus close on Esc / gamepad B / Backspace and when the Roblox menu opens.
--- State is read ONLY from StateController (snapshot + Changed) and player attributes (Cash, IncomePerSec, Rebirths,
--- Wanted).
--- The open menu refreshes on every snapshot and on Cash changes; countdowns tick once per second.
--- Index car previews (ViewportFrames via CarBuilder) are built lazily, a few per frame, only once the Index opens.
--- The card grid builds them without the hero shell (opts.noShell: ~30 viewports x a 9k-tri mesh + texture each on
--- phones); only the single detail-view model wears it.
--- Pure helpers (resolveName, dailyTileStates, playtimeTiles, contractRows, upgradeRows, ...) are exported for tests.
+--   open(name): boolean / close(name?): boolean / toggle(name): boolean / isOpen(name) / has(name) / getOpen() /
+--   closeAll(), Opened: Signal(name), Closed: Signal(name)      (v1 routing API, canonical names above + aliases)
+--   openPause(tab?, focus?) / closePause() / togglePause(tab?) / isPauseOpen(), PauseChanged: Signal(open)
+--   refresh()                                                     re-render whatever is open
+-- Remotes: listens to OpenUI(name). Sends BuyUpgrade, BuyTool, ClaimDaily, ClaimPlaytime, Rebirth, SetSetting and
+-- RerollContract, all re-validated by the server. Store rows call MarketplaceService prompts; the server grants. Items
+-- the server would refuse are greyed. State comes only from StateController and player attributes.
+-- Pure helpers (resolveName, routeOf, dailyTileStates, playtimeTiles, contractRows, upgradeRows, toolRows, storeItems,
+-- storeBlock, indexGroups, rebirthView, keptCars, settingValue, windowScale, detailSignature, playerRows, ...) are
+-- exported for tests. STATS also lists the players in the server (the CoreGui player list is off, §8). A tab's detail
+-- pane is rebuilt only when what it shows changes (detailSignature), so its buttons survive the 1 Hz refresh.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local GuiService = game:GetService("GuiService")
 local Workspace = game:GetService("Workspace")
+local ContextActionService = game:GetService("ContextActionService")
+local Lighting = game:GetService("Lighting")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
@@ -47,11 +50,13 @@ local Util = Shared:WaitForChild("Util")
 local EconomyMath = require(Util:WaitForChild("EconomyMath"))
 local Format = require(Util:WaitForChild("Format"))
 local Signal = require(Util:WaitForChild("Signal"))
-local Trove = require(Util:WaitForChild("Trove"))
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
+local ListMenu = require(UI:WaitForChild("ListMenu"))
+local PauseMenu = require(UI:WaitForChild("PauseMenu"))
+local RichText = require(UI:WaitForChild("RichText"))
 
 -- Earlier in the client ORDER and the only source of player data: required directly.
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -72,30 +77,19 @@ local player = Players.LocalPlayer
 local MIN_CONTRACT_REWARD = 500 -- RewardsService pays max($500, reward seconds x income)
 local MIN_INCOME_REWARD = 500 -- incomeMinutes rewards without their own `min` pay at least $500
 local VIEW_FOV = 30
-local CARD_YAW = 38 -- 3/4 front view
 local CARD_PITCH = 20
-local SPIN_SPEED = 50 -- degrees per second for the selected / hovered car
+local SPIN_SPEED = 30 -- degrees per second for the garage preview turntable
 local FRAME_TIGHTNESS = 0.8 -- < 1 = car fills more of the viewport
-local BACKDROP_TRANSPARENCY = 0.42
-local CONFIRM_WINDOW = 4 -- seconds the "tap again" rebirth confirm stays armed
-local PENDING_SECONDS = 3 -- claim/buy buttons stay "..." this long waiting for the server
-local MODELS_PER_FRAME = 3 -- Index viewport builds per frame
-local INDEX_DETAIL_W = 270
-local INDEX_CARD = Vector2.new(112, 140) -- 5 per row
+local CONFIRM_WINDOW = 4 -- seconds the "press again" prestige confirm stays armed
+local PENDING_SECONDS = 3 -- claim / buy rows show "..." this long waiting for the server
 local SETTINGS_OVERRIDE_TTL = 4 -- optimistic setting values expire if the server never confirms them
 local SWAP_REMOTE = "RerollContract" -- (contractId) daily free contract swap; the button hides until it exists
 local SWAP_AVAILABLE = table.find(Remotes.ClientToServer, SWAP_REMOTE) ~= nil
 
-local WHITE = Color3.new(1, 1, 1)
-local SILHOUETTE = Color3.fromRGB(6, 6, 14)
-local PIP_EMPTY = Color3.fromRGB(14, 15, 30)
-local PURPLE = Color3.fromRGB(160, 90, 255)
-local REBIRTH_COLOR = Color3.fromRGB(120, 70, 255)
-local SETTINGS_COLOR = Color3.fromRGB(88, 100, 172)
-local SECRET_COLOR = Color3.fromRGB(235, 235, 248) -- Secret's tier color is black: unreadable on dark panels
-local DIM_TEXT = Color3.fromRGB(205, 208, 225)
+local SECRET_COLOR = Theme.Rarity.Secret -- Secret's tier color is black: unreadable on dark panels
 
-local DEFAULT_SETTINGS: { [string]: boolean } = { music = true, sfx = true, hideHud = false, autoAccelerate = false }
+local DEFAULT_SETTINGS: { [string]: boolean } =
+	{ music = true, sfx = true, hideHud = false, autoAccelerate = false, speedo = false }
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Names
@@ -158,19 +152,6 @@ local function fmtNum(v: number): string
 end
 MenuController.fmtNum = fmtNum
 
-local function hex(c: Color3): string
-	return string.format(
-		"%02X%02X%02X",
-		math.floor(c.R * 255 + 0.5),
-		math.floor(c.G * 255 + 0.5),
-		math.floor(c.B * 255 + 0.5)
-	)
-end
-
-local HEX_DIM = hex(Theme.Colors.TextDim)
-local HEX_CASH = hex(Theme.Colors.Cash)
-local HEX_GOLD = hex(Theme.Colors.Gold)
-
 -- Any menu name or alias -> canonical name (nil when unknown). Case, spaces, '_' and '-' are ignored.
 function MenuController.resolveName(name: any): string?
 	if typeof(name) ~= "string" then
@@ -220,28 +201,31 @@ export type RewardInfo = { icon: string, text: string, sub: string?, color: Colo
 -- incomeMinutes estimates mirror RewardsService: minutes of income, never less than the entry's `min`.
 function MenuController.rewardInfo(reward: any, incomePerSec: number?): RewardInfo
 	if typeof(reward) ~= "table" then
-		return { icon = "🎁", text = "GIFT", sub = nil, color = Theme.Colors.Text }
+		return { icon = "gift", text = "GIFT", sub = nil, color = Theme.Colors.Text }
 	end
 	local kind = reward.kind
 	if kind == "cash" then
-		return { icon = "💵", text = Format.cash(num(reward.amount, 0)), sub = "CASH", color = Theme.Colors.Cash }
+		return { icon = "cash", text = Format.cash(num(reward.amount, 0)), sub = "CASH", color = Theme.Colors.Green }
 	elseif kind == "incomeMinutes" then
 		local minutes = num(reward.amount, 0)
 		local floor = if finite(reward.min) then math.max(0, reward.min) else MIN_INCOME_REWARD
 		local estimate = math.max(floor, math.floor(minutes * 60 * math.max(0, num(incomePerSec, 0))))
 		return {
-			icon = "⏱️",
+			icon = "time",
 			text = `{fmtNum(minutes)} MIN`,
 			sub = `≈ {Format.cash(estimate)}`,
 			color = Theme.Colors.Secondary,
 		}
 	elseif kind == "car" then
 		local rid = if typeof(reward.rarity) == "string" then reward.rarity else "Rare"
-		local tier = (Rarity.Tiers :: any)[rid]
-		local color = if rid == "Secret" then SECRET_COLOR elseif tier then tier.color else Theme.Colors.Gold
-		return { icon = "🚗", text = `{string.upper(rid)} CAR`, sub = "RANDOM", color = color }
+		return {
+			icon = "car",
+			text = `{string.upper(rid)} CAR`,
+			sub = "RANDOM",
+			color = MenuController.rarityColor(rid),
+		}
 	end
-	return { icon = "🎁", text = "GIFT", sub = nil, color = Theme.Colors.Text }
+	return { icon = "gift", text = "GIFT", sub = nil, color = Theme.Colors.Text }
 end
 
 export type TileState = "claimed" | "ready" | "next" | "locked"
@@ -311,20 +295,21 @@ for _, def in Economy.Contracts do
 	CONTRACT_BY_ID[def.id] = def
 end
 
+-- Contract stat -> glyph key (Config/UIAssets hud sheet / minimap atlas names; no emoji).
 local CONTRACT_ICONS: { [string]: string } = {
-	steal = "🚗",
-	deliverRare = "💎",
-	deliverEpic = "🔮",
-	playerSteal = "🦹",
-	escape3 = "🚨",
-	escape = "🚓",
-	defend = "🏏",
-	collectCash = "💰",
-	driftSeconds = "💨",
-	topSpeedHit = "🔥",
-	chop = "🔧",
-	dealerBuy = "🏪",
-	hotDrop = "📦",
+	steal = "car",
+	deliverRare = "car",
+	deliverEpic = "car",
+	playerSteal = "person",
+	escape3 = "badge",
+	escape = "badge",
+	defend = "person",
+	collectCash = "cash",
+	driftSeconds = "drift",
+	topSpeedHit = "nitro",
+	chop = "wrench",
+	dealerBuy = "car",
+	hotDrop = "flame",
 }
 
 export type ContractRow = {
@@ -360,7 +345,7 @@ function MenuController.contractRows(contracts: any, incomePerSec: number?): { C
 					id = def.id,
 					text = def.text,
 					stat = def.stat,
-					icon = CONTRACT_ICONS[def.stat] or "🎯",
+					icon = CONTRACT_ICONS[def.stat] or "target",
 					progress = if done then goal else progress,
 					goal = goal,
 					fraction = if done then 1 else progress / goal,
@@ -407,12 +392,12 @@ MenuController.UPGRADE_ORDER = { "hotwire", "nitro", "armor", "lock" }
 
 type UpgradeStyle = { icon: string, caption: string, color: Color3 }
 local UPGRADE_STYLE: { [string]: UpgradeStyle } = {
-	hotwire = { icon = "🔧", caption = "HOLD TIME", color = Theme.Colors.Warning },
-	nitro = { icon = "🔥", caption = "NITRO TANK", color = Theme.Colors.Primary },
-	armor = { icon = "🛡️", caption = "DAMAGE TAKEN", color = Theme.Colors.Secondary },
-	lock = { icon = "🔒", caption = "LOCK TIME", color = Theme.Colors.Danger },
+	hotwire = { icon = "wrench", caption = "Hold time", color = Theme.Colors.Yellow },
+	nitro = { icon = "nitro", caption = "Nitro tank", color = Theme.Colors.Yellow },
+	armor = { icon = "car", caption = "Damage taken", color = Theme.Colors.Blue },
+	lock = { icon = "lock", caption = "Lock time", color = Theme.Colors.Red },
 }
-local DEFAULT_UPGRADE_STYLE: UpgradeStyle = { icon = "⬆️", caption = "LEVEL", color = Theme.Colors.Secondary }
+local DEFAULT_UPGRADE_STYLE: UpgradeStyle = { icon = "plus", caption = "Level", color = Theme.Colors.Blue }
 
 -- Value text for an upgrade at a level: hotwire/armor are multipliers shown as %, lock/nitro are seconds.
 function MenuController.upgradeValueText(id: string, value: number): string
@@ -497,9 +482,9 @@ end
 
 type ToolStyle = { icon: string, color: Color3 }
 local TOOL_STYLE: { [string]: ToolStyle } = {
-	bat = { icon = "🏏", color = Theme.Colors.Warning },
-	taser = { icon = "⚡", color = Theme.Colors.Secondary },
-	spikes = { icon = "📌", color = Theme.Colors.Danger },
+	bat = { icon = "person", color = Theme.Colors.Yellow },
+	taser = { icon = "nitro", color = Theme.Colors.Blue },
+	spikes = { icon = "minus", color = Theme.Colors.Red },
 }
 
 export type ToolRow = {
@@ -545,7 +530,7 @@ function MenuController.toolRows(snapshot: any, cash: number): { ToolRow }
 	local rows: { ToolRow } = {}
 	for _, id in MenuController.toolIds() do
 		local def = Economy.Tools[id]
-		local style = TOOL_STYLE[id] or { icon = "🧰", color = Theme.Colors.Secondary }
+		local style = TOOL_STYLE[id] or { icon = "wrench", color = Theme.Colors.Blue }
 		local owned = tools[id] == true or (id == "taser" and passes.taser == true)
 		table.insert(rows, {
 			id = id,
@@ -661,6 +646,10 @@ local function rarityColor(rid: string): Color3
 	if rid == "Secret" then
 		return SECRET_COLOR
 	end
+	local hue = (Theme.Rarity :: any)[rid]
+	if hue then
+		return hue
+	end
 	local tier = (Rarity.Tiers :: any)[rid]
 	return if tier then tier.color else Theme.Colors.TextDim
 end
@@ -729,24 +718,24 @@ end
 function MenuController.carSources(def: CarDef): { string }
 	local out = {}
 	if def.rarity == "Exclusive" then
-		table.insert(out, "💎 Store exclusive")
+		table.insert(out, "Store exclusive")
 		return out
 	end
 	if def.street then
-		table.insert(out, "🛣️ Streets")
+		table.insert(out, "Streets")
 	end
 	if def.dealer then
-		table.insert(out, "🏪 Dealer")
+		table.insert(out, "Dealer")
 	end
 	local tier = (Rarity.Tiers :: any)[def.rarity]
 	if tier and tier.order >= 5 then
-		table.insert(out, "📦 Hot Drops")
+		table.insert(out, "Hot Drops")
 	end
 	if REWARD_RARITIES[def.rarity] then
-		table.insert(out, "🎁 Rewards")
+		table.insert(out, "Rewards")
 	end
 	if #out == 0 then
-		table.insert(out, "❓ Somewhere...")
+		table.insert(out, "Unknown")
 	end
 	return out
 end
@@ -897,55 +886,137 @@ function MenuController.windowScale(viewport: Vector2, uiScale: number, winSize:
 end
 
 -------------------------------------------------------------------------------------------------------------------------
+-- Routing (pure)
+-------------------------------------------------------------------------------------------------------------------------
+
+export type Route = { kind: string, tab: string?, focus: string?, app: string? }
+
+-- Where each canonical menu lives in v2: the gear counter is a list menu, Codes a phone app, everything else a pause
+-- tab (focus = the section of the tab to select first).
+MenuController.ROUTES = {
+	GearShop = { kind = "list" },
+	Store = { kind = "pause", tab = "STORE" },
+	Index = { kind = "pause", tab = "GARAGE" },
+	Daily = { kind = "pause", tab = "JOBS", focus = "daily" },
+	Contracts = { kind = "pause", tab = "JOBS", focus = "contracts" },
+	Gifts = { kind = "pause", tab = "JOBS", focus = "gifts" },
+	Rebirth = { kind = "pause", tab = "STATS", focus = "prestige" },
+	Codes = { kind = "phone", app = "codes" },
+	Settings = { kind = "pause", tab = "SETTINGS" },
+} :: { [string]: Route }
+
+MenuController.PAUSE_TABS = {
+	{ id = "MAP", label = "Map" },
+	{ id = "JOBS", label = "Jobs" },
+	{ id = "GARAGE", label = "Garage" },
+	{ id = "STATS", label = "Stats" },
+	{ id = "STORE", label = "Store" },
+	{ id = "SETTINGS", label = "Settings" },
+}
+
+function MenuController.routeOf(name: any): Route?
+	local canon = MenuController.resolveName(name)
+	return if canon then MenuController.ROUTES[canon] else nil
+end
+
+-- Daily-track row text: "Day 3   $1.5K" / state word for the value column.
+function MenuController.dailyRowValue(state: string, countdown: string?): string
+	if state == "claimed" then
+		return "CLAIMED"
+	elseif state == "ready" then
+		return "CLAIM"
+	elseif state == "next" then
+		return if countdown then countdown else "TOMORROW"
+	end
+	return ""
+end
+
+-- What a tab's detail pane shows for `item`, as a string: the pane is rebuilt only when this changes (not on every
+-- 1 Hz refresh or snapshot), so its buttons survive and the garage preview keeps its car. `extra` carries state the
+-- row text does not show (a prestige confirm, a swap that just became possible, ...).
+function MenuController.detailSignature(item: any, extra: string?): string
+	if typeof(item) ~= "table" then
+		return ""
+	end
+	return table.concat({
+		tostring(item.id or ""),
+		tostring(item.label or ""),
+		tostring(item.value or ""),
+		tostring(item.disabled == true),
+		tostring(item.optionIndex or ""),
+		extra or "",
+	}, "|")
+end
+
+export type PlayerEntry = {
+	userId: number,
+	name: string,
+	cash: number,
+	steals: number,
+	rebirths: number,
+	wanted: number,
+	isYou: boolean,
+}
+
+-- STATS "Players" rows (the CoreGui player list is off, §8): you first, then by cash, richest first.
+function MenuController.playerRows(entries: { PlayerEntry }): { any }
+	local list = table.clone(entries)
+	table.sort(list, function(a: PlayerEntry, b: PlayerEntry): boolean
+		if a.isYou ~= b.isYou then
+			return a.isYou
+		end
+		if a.cash ~= b.cash then
+			return a.cash > b.cash
+		end
+		return a.name < b.name
+	end)
+	local rows = {}
+	for _, e in list do
+		-- display names may hold < > & and the rows are rich text
+		local name = RichText.escape(e.name)
+		table.insert(rows, {
+			id = "player:" .. tostring(e.userId),
+			label = if e.isYou then name .. "  (you)" else name,
+			value = Format.cash(e.cash),
+			data = { section = "players", entry = e },
+		})
+	end
+	return rows
+end
+
+-------------------------------------------------------------------------------------------------------------------------
 -- Runtime state
 -------------------------------------------------------------------------------------------------------------------------
 
-type Ctx = {
-	name: string,
-	size: Vector2, -- design size of the window
-	win: Frame,
-	body: ScrollingFrame,
-	closeButton: TextButton,
-	open: boolean,
-	openToken: number,
-	session: any, -- Trove: cleaned on every open/close
-	ui: any,
-	primary: GuiObject?,
-	refresh: ((Ctx, any) -> ())?,
-	tick: ((Ctx) -> ())?,
-	onOpen: ((Ctx) -> ())?,
-	onClose: ((Ctx) -> ())?,
+type Tab = {
+	id: string,
+	list: any?, -- UI/ListMenu (embedded)
+	detail: Frame?,
+	refresh: ((Tab) -> ())?,
+	select: ((Tab, any) -> ())?,
+	describe: ((Tab, any) -> ())?,
+	change: ((Tab, any, number) -> ())?,
+	sig: ((Tab, any) -> string)?, -- extra detail-pane state (MenuController.detailSignature)
+	describedSig: string?,
+	focus: string?,
 }
 
-type PageDef = { title: string, accent: Color3, size: Vector2 }
-
-local PAGE_DEFS: { [string]: PageDef } = {
-	GearShop = { title = "🔧 GEAR SHOP", accent = Theme.Colors.Secondary, size = Vector2.new(780, 548) },
-	Store = { title = "🛒 STORE", accent = Theme.Colors.Gold, size = Vector2.new(780, 520) },
-	Index = { title = "📖 CAR INDEX", accent = PURPLE, size = Vector2.new(920, 540) },
-	Daily = { title = "🎁 DAILY REWARDS", accent = Theme.Colors.Primary, size = Vector2.new(760, 470) },
-	Contracts = { title = "🎯 CONTRACTS", accent = Theme.Colors.Warning, size = Vector2.new(680, 500) },
-	Gifts = { title = "⏰ FREE GIFTS", accent = Theme.Colors.Cash, size = Vector2.new(760, 516) },
-	Rebirth = { title = "♻️ REBIRTH", accent = REBIRTH_COLOR, size = Vector2.new(680, 548) },
-	Codes = { title = "🎟️ CODES", accent = Theme.Colors.Secondary, size = Vector2.new(540, 330) },
-	Settings = { title = "⚙️ SETTINGS", accent = SETTINGS_COLOR, size = Vector2.new(560, 530) },
-}
-
-local BUILDERS: { [string]: (Ctx) -> () } = {}
-
-local gui: ScreenGui? = nil
-local backdrop: TextButton? = nil
-local pages: { [string]: Ctx } = {}
-local current: string? = nil
+local pause: any = nil -- UI/PauseMenu
+local gear: any = nil -- UI/ListMenu (gear counter)
+local tabs: { [string]: Tab } = {}
+local current: string? = nil -- canonical name of the open route
 local started = false
 local refreshQueued = false
 local playtimeBase: any = nil -- snapshot.playtime as last received
 local playtimeAt = os.clock() -- os.clock() when it arrived
 local settingOverrides: { [string]: { value: boolean, at: number } } = {}
 local priceCache: { [string]: number | boolean } = {} -- "pass:123" -> Robux price, or false while unknown
+local pending: { [string]: number } = {} -- purchase / claim key -> os.clock() it was sent
+local prestigeArmedAt = -math.huge
+local localPrefs = { cash = true }
 
 -------------------------------------------------------------------------------------------------------------------------
--- Lazy dependencies (other controllers are written in parallel; any of them may be missing)
+-- Lazy dependencies
 -------------------------------------------------------------------------------------------------------------------------
 
 local function lazy(name: string): any
@@ -964,6 +1035,15 @@ local function playSound(key: string)
 	end
 end
 
+-- The over-the-shoulder camera (combat) locks and hides the cursor while a gun is drawn: the pause menu and the gear
+-- list suspend it while they are up so their rows can be clicked (ShoulderCamera contract).
+local function suspendShoulderCamera(reason: string, on: boolean)
+	local cam = lazy("ShoulderCamera")
+	if cam and typeof(cam.setSuspended) == "function" then
+		pcall(cam.setSuspended, reason, on)
+	end
+end
+
 local function toast(kind: string, text: string)
 	local notes = lazy("NotificationController")
 	if notes and typeof(notes.toast) == "function" then
@@ -977,7 +1057,7 @@ end
 
 local function attrNumber(name: string): number?
 	local v = player:GetAttribute(name)
-	return if finite(v) then v :: number else nil
+	return if typeof(v) == "number" and v == v then v else nil
 end
 
 local function currentCash(): number
@@ -986,7 +1066,7 @@ local function currentCash(): number
 		return a
 	end
 	local s = getSnapshot()
-	return if s then num(s.cash, 0) else 0
+	return if s and finite(s.cash) then s.cash else 0
 end
 
 local function currentIncome(): number
@@ -995,7 +1075,7 @@ local function currentIncome(): number
 		return a
 	end
 	local s = getSnapshot()
-	return if s then num(s.incomePerSec, 0) else 0
+	return if s and finite(s.incomePerSec) then s.incomePerSec else 0
 end
 
 local function currentRebirths(): number
@@ -1004,478 +1084,665 @@ local function currentRebirths(): number
 		return a
 	end
 	local s = getSnapshot()
-	return if s then num(s.rebirths, 0) else 0
+	return if s and finite(s.rebirths) then s.rebirths else 0
 end
 
 local function serverNow(): number
 	local ok, t = pcall(function()
 		return Workspace:GetServerTimeNow()
 	end)
-	return if ok and finite(t) then t else os.time()
+	return if ok and typeof(t) == "number" then t else os.time()
+end
+
+local function isPending(key: string): boolean
+	local at = pending[key]
+	return at ~= nil and os.clock() - at < PENDING_SECONDS
+end
+
+local function markPending(key: string)
+	pending[key] = os.clock()
+	task.delay(PENDING_SECONDS + 0.05, function()
+		if pending[key] and os.clock() - pending[key] >= PENDING_SECONDS then
+			pending[key] = nil
+			MenuController.refresh()
+		end
+	end)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- UI helpers
+-- Detail pane helpers (right half of a pause tab)
 -------------------------------------------------------------------------------------------------------------------------
 
-local function apply(inst: any, props: Kit.Props?)
-	if props then
-		for k, v in props do
-			inst[k] = v
+local C = Theme.Colors
+
+local function clearDetail(f: Frame)
+	for _, c in f:GetChildren() do
+		if c:IsA("GuiObject") then
+			c:Destroy()
 		end
 	end
 end
 
-local function mix(a: Color3, b: Color3, t: number): Color3
-	return Color3.new(a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t)
+local detailOrder = 0
+local function nextOrder(): number
+	detailOrder += 1
+	return detailOrder
 end
 
--- Small body-copy text (Gotham, no outline).
-local function bodyLabel(text: string, size: number, props: Kit.Props?): TextLabel
-	local lbl = Kit.new("TextLabel", {
-		BackgroundTransparency = 1,
-		Text = text,
-		TextSize = size,
-		FontFace = Theme.Fonts.Body,
-		TextColor3 = Theme.Colors.TextDim,
-		TextWrapped = true,
-		RichText = true,
+-- plain = `text` is user text (a display name): escaped after the upper-casing so < > & show as written.
+local function dTitle(f: Frame, text: string, color: Color3?, plain: boolean?)
+	local shown = string.upper(text)
+	Kit.text(if plain then RichText.escape(shown) else shown, "condensed", 24, {
+		Name = "Title",
+		Size = UDim2.new(1, 0, 0, 32),
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, 0, 0, size + 6),
-	})
-	apply(lbl, props)
-	return lbl
-end
-
--- Display label that shrinks long strings to fit (max = size).
-local function fitLabel(text: string, size: number, props: Kit.Props?): TextLabel
-	local lbl = Kit.label(text, size, { TextScaled = true, TextWrapped = false })
-	Kit.new("UITextSizeConstraint", { MaxTextSize = size, MinTextSize = math.max(8, size - 8), Parent = lbl })
-	apply(lbl, props)
-	return lbl
-end
-
--- Lighter rounded card for content inside a window.
-local function card(props: Kit.Props?): Frame
-	local f = Kit.new("Frame", { BackgroundColor3 = Theme.Colors.PanelLight, BorderSizePixel = 0 })
-	Kit.corner().Parent = f
-	Kit.stroke().Parent = f
-	Kit.gradient(WHITE, Color3.fromRGB(196, 196, 214)).Parent = f
-	apply(f, props)
-	return f
-end
-
--- Rounded square with a big emoji.
-local function iconTile(icon: string, color: Color3, size: number, props: Kit.Props?): Frame
-	local f = Kit.new("Frame", {
-		Name = "IconTile",
-		BackgroundColor3 = color,
-		BorderSizePixel = 0,
-		Size = UDim2.fromOffset(size, size),
-	})
-	Kit.corner(UDim.new(0, math.floor(size * 0.26))).Parent = f
-	Kit.stroke(Theme.Colors.Stroke, 3).Parent = f
-	Kit.gradient(WHITE, Color3.fromRGB(150, 150, 168)).Parent = f
-	Kit.new("TextLabel", {
-		Name = "Icon",
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.72, 0.72),
-		Text = icon,
-		TextScaled = true,
-		FontFace = Theme.Fonts.Display,
-		TextColor3 = WHITE,
+		TextColor3 = color or C.Text,
+		LayoutOrder = nextOrder(),
 		Parent = f,
 	})
-	apply(f, props)
-	return f
 end
 
--- Pill with outlined text; returns (frame, label).
-local function chip(text: string, color: Color3, size: number?, props: Kit.Props?): (Frame, TextLabel)
-	local s = size or 14
-	local f = Kit.new("Frame", {
-		Name = "Chip",
-		BackgroundColor3 = color,
-		BorderSizePixel = 0,
-		Size = UDim2.fromOffset(0, s + 12),
-		AutomaticSize = Enum.AutomaticSize.X,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = f
-	Kit.stroke(Theme.Colors.Stroke, 2).Parent = f
-	Kit.new("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = f })
-	local lbl = Kit.label(text, s, {
-		Name = "Text",
-		Size = UDim2.fromScale(0, 1),
-		AutomaticSize = Enum.AutomaticSize.X,
-		TextWrapped = false,
-		Parent = f,
-	})
-	apply(f, props)
-	return f, lbl
-end
-
-local function setButton(btn: TextButton, text: string, color: Color3, enabled: boolean, keepColor: boolean?)
-	btn.Text = text
-	btn.BackgroundColor3 = if enabled or keepColor then color else Theme.Colors.Disabled
-	btn.TextColor3 = if enabled or keepColor then WHITE else DIM_TEXT
-	btn:SetAttribute("Disabled", not enabled)
-end
-
-local SHAKE_INFO = TweenInfo.new(0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 2, true)
-local function shake(target: GuiObject)
-	target.Rotation = 0
-	TweenService:Create(target, SHAKE_INFO, { Rotation = 5 }):Play()
-end
-
--- Activated handler with click sound, disabled-shake and a tiny double-tap guard.
-local function onPress(btn: GuiButton, fn: () -> ())
-	btn.Activated:Connect(function()
-		if btn:GetAttribute("Disabled") == true then
-			playSound("Click")
-			shake(btn)
-			return
-		end
-		local now = os.clock()
-		local ready = btn:GetAttribute("ReadyAt")
-		if typeof(ready) == "number" and now < ready then
-			return
-		end
-		btn:SetAttribute("ReadyAt", now + 0.25)
-		playSound("Click")
-		fn()
-	end)
-end
-
--- Floating "+LEVEL!" style text that rises and fades over a gui.
-local FLOAT_INFO = TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local function floatText(parent: GuiObject, text: string, color: Color3)
-	local lbl = Kit.label(text, 28, {
-		Name = "Float",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.45),
-		Size = UDim2.fromOffset(280, 36),
-		TextColor3 = color,
-		ZIndex = 20,
-		Parent = parent,
-	})
-	Kit.pop(lbl, 1.5)
-	TweenService:Create(lbl, FLOAT_INFO, { Position = UDim2.fromScale(0.5, -0.15), TextTransparency = 1 }):Play()
-	local stroke = lbl:FindFirstChildOfClass("UIStroke")
-	if stroke then
-		TweenService:Create(stroke, FLOAT_INFO, { Transparency = 1 }):Play()
-	end
-	task.delay(1, function()
-		lbl:Destroy()
-	end)
-end
-
--- Looping glow on a gui's first UIStroke (claimable things). Restores the stroke when turned off.
-local PULSE_INFO = TweenInfo.new(0.55, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-type Pulse = { tween: Tween, color: Color3, thickness: number }
-local pulses: { [Instance]: Pulse } = setmetatable({}, { __mode = "k" }) :: any
-local function setPulse(target: GuiObject, on: boolean, color: Color3?)
-	local stroke = target:FindFirstChildOfClass("UIStroke")
-	if not stroke then
-		return
-	end
-	local existing = pulses[target]
-	if on then
-		if existing then
-			return
-		end
-		local tween = TweenService:Create(stroke, PULSE_INFO, { Thickness = 6, Color = color or WHITE })
-		pulses[target] = { tween = tween, color = stroke.Color, thickness = stroke.Thickness }
-		tween:Play()
-	elseif existing then
-		existing.tween:Cancel()
-		pulses[target] = nil
-		stroke.Color = existing.color
-		stroke.Thickness = existing.thickness
-	end
-end
-
--- Vertical list helper for window bodies.
-local function vlist(parent: Instance, padding: number?, hAlign: Enum.HorizontalAlignment?)
-	Kit.list(Enum.FillDirection.Vertical, padding or 10, hAlign or Enum.HorizontalAlignment.Center).Parent = parent
-end
-
-local function autoFrame(name: string, order: number, parent: Instance): Frame
-	return Kit.new("Frame", {
-		Name = name,
-		BackgroundTransparency = 1,
+local function dLine(f: Frame, text: string, color: Color3?, size: number?)
+	Kit.text(text, "body", size or 14, {
+		Name = "Line",
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = order,
-		Parent = parent,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = color or C.Text,
+		LayoutOrder = nextOrder(),
+		Parent = f,
 	})
 end
 
-local function grid(parent: Instance, cell: Vector2, pad: number)
-	Kit.new("UIGridLayout", {
-		CellSize = UDim2.fromOffset(cell.X, cell.Y),
-		CellPadding = UDim2.fromOffset(pad, pad),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		HorizontalAlignment = Enum.HorizontalAlignment.Center,
-		Parent = parent,
-	})
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Gear Shop
--------------------------------------------------------------------------------------------------------------------------
-
--- Fixed tab bar under the window header; moves the body below it. Returns select(i).
-local function makeTabs(ctx: Ctx, labels: { string }, accent: Color3, onSelect: (number) -> ()): (number) -> ()
-	local bar = Kit.new("Frame", {
-		Name = "Tabs",
+local function dPair(f: Frame, label: string, value: string, color: Color3?)
+	local row = Kit.new("Frame", {
+		Name = "Pair",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(14, 64),
-		Size = UDim2.new(1, -28, 0, 46),
-		Parent = ctx.win,
+		Size = UDim2.new(1, 0, 0, 22),
+		LayoutOrder = nextOrder(),
+		Parent = f,
 	})
-	Kit.list(Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center).Parent =
-		bar
-	ctx.body.Position = UDim2.fromOffset(0, 114)
-	ctx.body.Size = UDim2.new(1, 0, 1, -118)
-	local buttons: { TextButton } = {}
-	local function selectTab(i: number)
-		for j, b in buttons do
-			b.BackgroundColor3 = if j == i then accent else Theme.Colors.Panel
-			b.TextColor3 = if j == i then WHITE else Theme.Colors.TextDim
+	Kit.text(string.upper(label), "condensedMedium", 14, {
+		Size = UDim2.fromScale(0.55, 1),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = C.TextDim,
+		Parent = row,
+	})
+	Kit.text(value, "condensedMedium", 16, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(1, 0),
+		Size = UDim2.fromScale(0.45, 1),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextColor3 = color or C.Text,
+		Parent = row,
+	})
+end
+
+local function dBar(f: Frame, fraction: number, color: Color3)
+	local bar, set = Kit.progressBar(color, {
+		Name = "Progress",
+		Size = UDim2.new(1, 0, 0, 6),
+		LayoutOrder = nextOrder(),
+		Parent = f,
+	})
+	bar.BackgroundColor3 = color:Lerp(C.Black, 0.6)
+	set(fraction, false)
+end
+
+local function dGap(f: Frame, h: number)
+	Kit.new("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, h),
+		LayoutOrder = nextOrder(),
+		Parent = f,
+	})
+end
+
+local function dAction(f: Frame, key: string?, label: string, fn: () -> ())
+	local btn = Kit.instructionButton(if Kit.isTouch() then nil else key, label, {
+		LayoutOrder = nextOrder(),
+		Parent = f,
+	})
+	if Kit.isTouch() then
+		btn.BackgroundColor3 = C.TextPure
+		btn.BackgroundTransparency = 0
+		btn.Size = UDim2.fromOffset(0, 40)
+		Kit.padding(0, 14).Parent = btn
+		local l = btn:FindFirstChild("Label")
+		if l and l:IsA("TextLabel") then
+			l.TextColor3 = C.Black
+			l.TextSize = 18
 		end
-		onSelect(i)
 	end
-	for i, text in labels do
-		local b = Kit.button(text, Theme.Colors.Panel, {
-			Name = "Tab" .. i,
-			Size = UDim2.fromOffset(220, 44),
-			TextSize = 22,
-			LayoutOrder = i,
-			Parent = bar,
-		})
-		table.insert(buttons, b)
-		onPress(b, function()
-			selectTab(i)
-		end)
-	end
-	return selectTab
+	btn.Activated:Connect(fn)
 end
 
-local function buildUpgradeCard(parent: Instance, row: UpgradeRow, order: number): any
-	local c = card({ Name = row.id, Size = UDim2.new(1, 0, 0, 92), LayoutOrder = order, Parent = parent })
-	iconTile(row.icon, row.color, 72, { Position = UDim2.fromOffset(12, 10), Parent = c })
-	Kit.label(row.name, 24, {
-		Name = "Title",
-		Position = UDim2.fromOffset(98, 6),
-		Size = UDim2.new(1, -430, 0, 28),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = c,
-	})
-	bodyLabel(row.description, 14, {
-		Name = "Description",
-		Position = UDim2.fromOffset(98, 34),
-		Size = UDim2.new(1, -430, 0, 34),
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Parent = c,
-	})
-	local pipRow = Kit.new("Frame", {
-		Name = "Pips",
+local redescribe: (tab: Tab, force: boolean?) -> ()
+
+-- A two-pane tab: list left (42%), detail panel right.
+local function twoPane(tab: Tab, content: Frame, subtitle: string)
+	local left = Kit.new("Frame", {
+		Name = "ListHost",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(98, 70),
-		Size = UDim2.new(1, -430, 0, 16),
-		Parent = c,
+		Size = UDim2.fromScale(0.42, 1),
+		Parent = content,
 	})
-	Kit.list(Enum.FillDirection.Horizontal, 5, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center).Parent =
-		pipRow
-	local pips: { Frame } = {}
-	for i = 1, row.maxLevel do
-		local pip = Kit.new("Frame", {
-			Name = "Pip" .. i,
-			BackgroundColor3 = PIP_EMPTY,
-			BorderSizePixel = 0,
-			Size = UDim2.fromOffset(30, 14),
-			LayoutOrder = i,
-			Parent = pipRow,
-		})
-		Kit.corner(UDim.new(1, 0)).Parent = pip
-		Kit.stroke(Theme.Colors.Stroke, 2).Parent = pip
-		table.insert(pips, pip)
+	local touch = Kit.isTouch()
+	tab.list = ListMenu.embed(left, {
+		title = subtitle,
+		subtitle = subtitle,
+		visibleRows = if touch then 6 else 13,
+		bindKeys = false,
+	})
+	local detail = Kit.panel({
+		Name = "Detail",
+		Position = UDim2.fromScale(0.44, 0),
+		Size = UDim2.fromScale(0.56, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Parent = content,
+	})
+	Kit.padding(14, 18).Parent = detail
+	Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Left).Parent = detail
+	Kit.new("UISizeConstraint", { MinSize = Vector2.new(0, 120), Parent = detail })
+	tab.detail = detail
+	tab.list.Moved:Connect(function()
+		redescribe(tab)
+	end)
+	tab.list.Selected:Connect(function(item: any)
+		if tab.select then
+			tab.select(tab, item)
+		end
+	end)
+	tab.list.Changed:Connect(function(item: any, index: number)
+		if tab.change then
+			tab.change(tab, item, index)
+		end
+	end)
+end
+
+-- Rebuild the detail pane only when what it shows changed (force: state the signature cannot see changed).
+redescribe = function(tab: Tab, force: boolean?)
+	local list = tab.list
+	local detail = tab.detail
+	if not (list and detail and tab.describe) then
+		return
 	end
-	local levelLabel = Kit.label("LV 0", 15, {
-		Name = "Level",
-		Size = UDim2.fromOffset(70, 18),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		LayoutOrder = 100,
-		Parent = pipRow,
-	})
-	bodyLabel(row.caption, 13, {
-		Name = "Caption",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -178, 0, 16),
-		Size = UDim2.fromOffset(154, 18),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = c,
-	})
-	local valueLabel = Kit.label("", 24, {
-		Name = "Value",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -178, 0, 36),
-		Size = UDim2.fromOffset(154, 30),
-		TextWrapped = false,
-		Parent = c,
-	})
-	local button = Kit.button("$0", Theme.Colors.Cash, {
-		Name = "Buy",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -14, 0.5, 0),
-		Size = UDim2.fromOffset(152, 56),
-		TextSize = 26,
-		Parent = c,
-	})
-	local id = row.id
-	onPress(button, function()
-		Net.fire("BuyUpgrade", id)
-		Kit.pop(button, 0.88)
-	end)
-	return { card = c, pips = pips, level = levelLabel, value = valueLabel, button = button, color = row.color }
+	local item = list:getSelected()
+	local sig = if item then MenuController.detailSignature(item, if tab.sig then tab.sig(tab, item) else nil) else ""
+	if not force and sig == tab.describedSig then
+		return
+	end
+	tab.describedSig = sig
+	clearDetail(detail)
+	detailOrder = 0
+	if item then
+		tab.describe(tab, item)
+	end
 end
 
-local function buildToolCard(parent: Instance, row: ToolRow, order: number): any
-	local c = card({ Name = row.id, LayoutOrder = order, Parent = parent })
-	iconTile(row.icon, row.color, 104, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 14),
-		Parent = c,
-	})
-	Kit.label(
-		row.name,
-		26,
-		{ Name = "Title", Position = UDim2.fromOffset(8, 124), Size = UDim2.new(1, -16, 0, 30), Parent = c }
-	)
-	bodyLabel(row.description, 14, {
-		Name = "Description",
-		Position = UDim2.fromOffset(12, 158),
-		Size = UDim2.new(1, -24, 0, 56),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Parent = c,
-	})
-	chip(`⏱️ {fmtNum(row.cooldown)}s cooldown`, Theme.Colors.Background, 14, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 216),
-		Parent = c,
-	})
-	local button = Kit.button("", Theme.Colors.Cash, {
-		Name = "Buy",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -12),
-		Size = UDim2.fromOffset(190, 54),
-		TextSize = 24,
-		Parent = c,
-	})
-	local badge = chip("OWNED", Theme.Colors.Cash, 15, {
-		Name = "Owned",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -8, 0, 8),
-		Rotation = 10,
-		Visible = false,
-		ZIndex = 5,
-		Parent = c,
-	})
-	local id = row.id
-	onPress(button, function()
-		Net.fire("BuyTool", id)
-		Kit.pop(button, 0.88)
-	end)
-	return { card = c, button = button, badge = badge }
+local function focusSection(tab: Tab, sectionId: string?)
+	local list = tab.list
+	if not (list and sectionId) then
+		return
+	end
+	for i, item in list.items do
+		if item.data and item.data.section == sectionId and not item.separator then
+			list:select(i)
+			return
+		end
+	end
 end
 
-local function refreshGearShop(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
+-------------------------------------------------------------------------------------------------------------------------
+-- JOBS: daily contracts, the 7-day streak, playtime gifts
+-------------------------------------------------------------------------------------------------------------------------
+
+local function sessionExtra(): number
+	return os.clock() - playtimeAt
+end
+
+local function refreshJobs(tab: Tab)
+	local snap = getSnapshot()
+	local income = currentIncome()
+	local items = {}
+	local resetIn = MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))
+	table.insert(items, { separator = true, label = "Daily contracts  ·  new in " .. resetIn })
+	for _, row in MenuController.contractRows(if snap then snap.contracts else nil, income) do
+		table.insert(items, {
+			id = row.id,
+			label = row.text,
+			value = if row.claimed then "PAID" elseif row.done then "DONE" else MenuController.contractProgressText(row),
+			disabled = row.done,
+			data = { section = "contracts", row = row },
+		})
+	end
+	table.insert(items, { separator = true, label = "Daily reward" })
+	local daily = if snap then snap.daily else nil
+	for i, state in MenuController.dailyTileStates(daily) do
+		local info = MenuController.rewardInfo(Economy.DAILY_REWARDS[i], income)
+		local key = "daily"
+		table.insert(items, {
+			id = "daily" .. i,
+			label = `Day {i}   {info.text}`,
+			value = if state == "ready" and isPending(key) then "..." else MenuController.dailyRowValue(state, nil),
+			disabled = state ~= "ready",
+			color = if state == "ready" then C.Green else nil,
+			data = { section = "daily", day = i, state = state, info = info },
+		})
+	end
+	table.insert(items, { separator = true, label = "Playtime gifts" })
+	for _, tile in MenuController.playtimeTiles(playtimeBase, sessionExtra()) do
+		local def = Economy.PLAYTIME_REWARDS[tile.index]
+		local info = MenuController.rewardInfo(def, income)
+		local key = "gift" .. tile.index
+		local value = if tile.state == "claimed"
+			then "CLAIMED"
+			elseif tile.state == "ready" then (if isPending(key) then "..." else "CLAIM")
+			else Format.clock(math.ceil(tile.remaining))
+		table.insert(items, {
+			id = key,
+			label = `{def.minutes} min   {info.text}`,
+			value = value,
+			disabled = tile.state ~= "ready",
+			color = if tile.state == "ready" then C.Green else nil,
+			data = { section = "gifts", tile = tile, info = info },
+		})
+	end
+	tab.list:setItems(items, true)
+	redescribe(tab)
+end
+
+local function describeJobs(tab: Tab, item: any)
+	local f = tab.detail :: Frame
+	local d = item.data or {}
+	if d.section == "contracts" then
+		local row = d.row
+		dTitle(f, row.text)
+		dLine(f, "Daily contract. Progress counts automatically; the reward pays out the moment it is done.", C.TextDim)
+		dGap(f, 4)
+		dPair(f, "Progress", MenuController.contractProgressText(row))
+		dBar(f, row.fraction, if row.done then C.Green else C.Yellow)
+		dPair(f, "Reward", Format.cash(row.rewardCash), C.Green)
+		local snap = getSnapshot()
+		if MenuController.canSwapContract(if snap then snap.contracts else nil, row, SWAP_AVAILABLE) then
+			dGap(f, 6)
+			dAction(f, "X", "Swap this job (free, once a day)", function()
+				Net.fire(SWAP_REMOTE, row.id)
+				playSound("Click")
+				markPending("swap")
+			end)
+		end
+	elseif d.section == "daily" then
+		dTitle(f, `Day {d.day} reward`)
+		dLine(f, `{d.info.text}{if d.info.sub then "  (" .. d.info.sub .. ")" else ""}`, d.info.color, 18)
+		local snap = getSnapshot()
+		local streak = if snap and typeof(snap.daily) == "table" then num(snap.daily.streak, 0) else 0
+		dPair(f, "Current streak", `{math.floor(streak)} days`)
+		if d.state == "ready" then
+			dLine(f, "Ready to claim. Come back every day to keep the streak.", C.Green)
+			dAction(f, "Enter", "Claim", function()
+				tab.select(tab, item)
+			end)
+		elseif d.state == "next" then
+			local left = MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))
+			dLine(f, `Claimable in {left}.`, C.TextDim)
+		elseif d.state == "claimed" then
+			dLine(f, "Claimed.", C.TextDim)
+		else
+			dLine(f, "Keep your streak going to reach this day.", C.TextDim)
+		end
+	elseif d.section == "gifts" then
+		dTitle(f, "Playtime gift")
+		dLine(f, `{d.info.text}{if d.info.sub then "  (" .. d.info.sub .. ")" else ""}`, d.info.color, 18)
+		dBar(f, d.tile.fraction, if d.tile.state == "ready" then C.Green else C.Yellow)
+		if d.tile.state == "ready" then
+			dAction(f, "Enter", "Claim", function()
+				tab.select(tab, item)
+			end)
+		elseif d.tile.state == "waiting" then
+			dLine(f, `Ready in {Format.clock(math.ceil(d.tile.remaining))} of play today.`, C.TextDim)
+		end
+	end
+end
+
+local function sigJobs(_tab: Tab, item: any): string
+	local d = item.data or {}
+	if d.section == "contracts" then
+		local snap = getSnapshot()
+		local canSwap = MenuController.canSwapContract(if snap then snap.contracts else nil, d.row, SWAP_AVAILABLE)
+		return `{canSwap}|{isPending("swap")}`
+	elseif d.section == "daily" then
+		local snap = getSnapshot()
+		local streak = if snap and typeof(snap.daily) == "table" then num(snap.daily.streak, 0) else 0
+		local left = if d.state == "next"
+			then MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))
+			else ""
+		return `{streak}|{left}`
+	end
+	return ""
+end
+
+local function selectJobs(_tab: Tab, item: any)
+	local d = item.data or {}
+	if d.section == "daily" and d.state == "ready" and not isPending("daily") then
+		Net.fire("ClaimDaily")
+		markPending("daily")
+		playSound("ClickBright")
+		MenuController.refresh()
+	elseif d.section == "gifts" and d.tile.state == "ready" and not isPending("gift" .. d.tile.index) then
+		Net.fire("ClaimPlaytime", d.tile.index)
+		markPending("gift" .. d.tile.index)
+		playSound("ClickBright")
+		MenuController.refresh()
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- GARAGE: the car collection (v1 Index) with a turntable preview
+-------------------------------------------------------------------------------------------------------------------------
+
+local preview: { view: ViewportFrame?, model: Model?, camera: Camera?, carId: string?, yaw: number } = { yaw = 30 }
+
+local function buildCarModel(carId: string): Model?
+	local ok, model = pcall(function()
+		local CarBuilder = (require :: any)(Shared:WaitForChild("Vehicle"):WaitForChild("CarBuilder"))
+		return CarBuilder.build(carId, "None", { forDisplay = true, noShell = false })
+	end)
+	if ok and typeof(model) == "Instance" and model:IsA("Model") then
+		return model
+	end
+	return nil
+end
+
+local function showPreview(f: Frame, carId: string?)
+	local view = Kit.new("ViewportFrame", {
+		Name = "Preview",
+		BackgroundColor3 = C.Black,
+		BackgroundTransparency = 0.4,
+		BorderSizePixel = 0,
+		Size = UDim2.new(1, 0, 0, 170),
+		Ambient = Color3.fromRGB(150, 150, 160),
+		LightColor = Color3.new(1, 1, 1),
+		LightDirection = Vector3.new(-0.5, -1, -0.6),
+		LayoutOrder = nextOrder(),
+		Parent = f,
+	})
+	preview.view = view
+	preview.model = nil
+	preview.carId = carId
+	if not carId then
+		return
+	end
+	task.spawn(function()
+		-- skimming the list with the mouse should not build a car per row passed over
+		task.wait(0.12)
+		if preview.view ~= view or not view.Parent then
+			return
+		end
+		local model = buildCarModel(carId)
+		if not model or preview.view ~= view or not view.Parent then
+			if model then
+				model:Destroy()
+			end
+			return
+		end
+		model.Parent = view
+		local cam = Instance.new("Camera")
+		cam.FieldOfView = VIEW_FOV
+		cam.Parent = view
+		view.CurrentCamera = cam
+		preview.model = model
+		preview.camera = cam
+	end)
+end
+
+local function refreshGarage(tab: Tab)
+	local snap = getSnapshot()
+	local disc = if snap then snap.discovered else nil
+	local found, total, bonus = MenuController.indexTotals(disc)
+	local items = {}
+	table.insert(items, {
+		separator = true,
+		label = `Collection {found}/{total}  ·  income bonus +{math.floor(bonus * 100 + 0.5)}%`,
+	})
+	for _, g in MenuController.indexGroups(disc) do
+		table.insert(items, { separator = true, label = `{g.rarity}  {g.found}/{g.total}` })
+		for _, def in g.cars do
+			local known = typeof(disc) == "table" and disc[def.id] == true
+			table.insert(items, {
+				id = def.id,
+				label = if known then def.name else "Undiscovered",
+				value = if known then Format.cash(def.income) .. "/s" else "",
+				color = if known then rarityColor(def.rarity) else nil,
+				locked = not known,
+				data = { section = "cars", def = def, known = known },
+			})
+		end
+	end
+	tab.list:setItems(items, true)
+	redescribe(tab)
+end
+
+local function describeGarage(tab: Tab, item: any)
+	local f = tab.detail :: Frame
+	local d = item.data or {}
+	local def = d.def
+	if not def then
+		return
+	end
+	if d.known then
+		dTitle(f, def.name)
+		Kit.text(string.upper(def.rarity), "condensedMedium", 14, {
+			Size = UDim2.new(1, 0, 0, 16),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = rarityColor(def.rarity),
+			LayoutOrder = nextOrder(),
+			Parent = f,
+		})
+		showPreview(f, def.id)
+		dPair(f, "Garage income", Format.cash(def.income) .. "/s", C.Green)
+		dPair(f, "Top speed", `{math.floor(def.topSpeed)}`)
+		dPair(f, "Found at", table.concat(MenuController.carSources(def), ", "))
+	else
+		dTitle(f, "Undiscovered", C.TextDim)
+		Kit.text(string.upper(def.rarity), "condensedMedium", 14, {
+			Size = UDim2.new(1, 0, 0, 16),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = rarityColor(def.rarity),
+			LayoutOrder = nextOrder(),
+			Parent = f,
+		})
+		showPreview(f, nil)
+		dLine(f, "Steal or buy this car to add it to your collection.", C.TextDim)
+		dPair(f, "Found at", table.concat(MenuController.carSources(def), ", "))
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- STATS: your numbers + Prestige (v1 Rebirth)
+-------------------------------------------------------------------------------------------------------------------------
+
+local function garageCount(snap: any): number
+	if typeof(snap) ~= "table" or typeof(snap.garage) ~= "table" then
+		return 0
+	end
+	local count = 0
+	for _ in snap.garage do
+		count += 1
+	end
+	return count
+end
+
+local function refreshStats(tab: Tab)
+	local snap = getSnapshot()
+	local stats: any = if snap and typeof(snap.stats) == "table" then snap.stats else {}
 	local cash = currentCash()
-	for _, row in MenuController.upgradeRows(snapshot, cash) do
-		local u = ui.upgrades[row.id]
-		if u then
-			for i, pip in u.pips do
-				pip.BackgroundColor3 = if i <= row.level then row.color else PIP_EMPTY
-			end
-			u.level.Text = if row.maxed then "MAX!" else `LV {row.level}/{row.maxLevel}`
-			if row.nextText then
-				u.value.Text =
-					`<font color="#{HEX_DIM}">{row.currentText}</font> → <font color="#{HEX_CASH}">{row.nextText}</font>`
-			else
-				u.value.Text = `<font color="#{HEX_GOLD}">{row.currentText}</font>`
-			end
-			if row.maxed then
-				setButton(u.button, "MAX ⭐", Theme.Colors.Gold, false, true)
-			else
-				setButton(u.button, Format.cash(row.price or 0), Theme.Colors.Cash, row.affordable)
-			end
-			if u.lastLevel ~= nil and row.level > u.lastLevel then
-				Kit.pop(u.card, 1.04)
-				floatText(u.card, "LEVEL UP!", row.color)
-			end
-			u.lastLevel = row.level
-		end
+	local rebirths = currentRebirths()
+	local v = MenuController.rebirthView(cash, rebirths)
+	local function n(k: string): string
+		return Format.commas(num(stats[k], 0))
 	end
-	for _, row in MenuController.toolRows(snapshot, cash) do
-		local t = ui.tools[row.id]
-		if t then
-			t.badge.Visible = row.owned
-			if row.owned then
-				setButton(t.button, "✅ OWNED", Theme.Colors.CashDark, false, true)
-			elseif row.price <= 0 then
-				setButton(t.button, "FREE", Theme.Colors.Cash, true)
-			else
-				setButton(t.button, Format.cash(row.price), Theme.Colors.Cash, row.affordable)
-			end
-			if t.lastOwned == false and row.owned then
-				Kit.pop(t.card, 1.05)
-				floatText(t.card, "NEW TOOL!", row.color)
-			end
-			t.lastOwned = row.owned
+	local mult = if snap and finite(snap.multiplier) then snap.multiplier else 1
+	local vip = player:GetAttribute("VIP") == true or (snap and typeof(snap.passes) == "table" and snap.passes.vip)
+	local items = {
+		{ separator = true, label = "Career" },
+		{ id = "cash", label = "Cash", value = Format.cash(cash), data = { section = "career" } },
+		{
+			id = "earned",
+			label = "Total earned",
+			value = Format.cash(if snap then num(snap.totalEarned, 0) else 0),
+			data = { section = "career" },
+		},
+		{
+			id = "income",
+			label = "Garage income",
+			value = Format.cash(currentIncome()) .. "/s",
+			data = { section = "career" },
+		},
+		{
+			id = "mult",
+			label = "Income multiplier",
+			value = MenuController.formatMultiplier(mult),
+			data = { section = "career" },
+		},
+		{ id = "cars", label = "Cars in garage", value = tostring(garageCount(snap)), data = { section = "career" } },
+		{ id = "steals", label = "Cars delivered", value = n("steals"), data = { section = "career" } },
+		{ id = "psteals", label = "Player steals", value = n("playerSteals"), data = { section = "career" } },
+		{ id = "hotdrops", label = "Hot drops", value = n("hotDrops"), data = { section = "career" } },
+		{ id = "busted", label = "Times busted", value = n("busted"), data = { section = "career" } },
+		{ id = "robbed", label = "Times robbed", value = n("timesRobbed"), data = { section = "career" } },
+		{ id = "vip", label = "VIP", value = if vip then "YES" else "NO", data = { section = "career" } },
+		{ separator = true, label = "Prestige" },
+		{ id = "prestige", label = "Prestige level", value = tostring(v.rebirths), data = { section = "prestige" } },
+		{
+			id = "prestige_go",
+			label = "Prestige now",
+			value = if v.canAfford then Format.cash(v.cost) else "NEED " .. Format.cash(v.missing),
+			disabled = not v.canAfford,
+			data = { section = "prestige", action = true },
+		},
+	}
+	-- the player list lives here (§8: the CoreGui PlayerList is off; leaderstats Cash / Steals still feed it)
+	local entries: { PlayerEntry } = {}
+	for _, p in Players:GetPlayers() do
+		local ls = p:FindFirstChild("leaderstats")
+		local cashV = ls and ls:FindFirstChild("Cash")
+		local stealsV = ls and ls:FindFirstChild("Steals")
+		local cashA = p:GetAttribute("Cash")
+		table.insert(entries, {
+			userId = p.UserId,
+			name = Kit.sanitize(p.DisplayName),
+			cash = if cashV and cashV:IsA("NumberValue")
+				then cashV.Value
+				elseif typeof(cashA) == "number" then cashA
+				else 0,
+			steals = if stealsV and stealsV:IsA("IntValue") then stealsV.Value else 0,
+			rebirths = num(p:GetAttribute("Rebirths"), 0),
+			wanted = num(p:GetAttribute("Wanted"), 0),
+			isYou = p == player,
+		})
+	end
+	table.insert(items, { separator = true, label = `Players in this city  ·  {#entries}` })
+	for _, row in MenuController.playerRows(entries) do
+		table.insert(items, row)
+	end
+	tab.list:setItems(items, true)
+	redescribe(tab)
+end
+
+local function sigStats(_tab: Tab, item: any): string
+	local d = item.data or {}
+	if d.section == "prestige" then
+		local v = MenuController.rebirthView(currentCash(), currentRebirths())
+		local snap = getSnapshot()
+		local armed = os.clock() - prestigeArmedAt < CONFIRM_WINDOW
+		local kept = MenuController.keptCarsText(MenuController.keptCars(if snap then snap.garage else nil))
+		return `{armed}|{v.canAfford}|{v.rebirths}|{math.floor(v.fraction * 100)}|{kept}`
+	elseif d.section == "players" then
+		local e = d.entry
+		return `{e.steals}|{e.rebirths}|{e.wanted}`
+	end
+	return ""
+end
+
+local function describeStats(tab: Tab, item: any)
+	local f = tab.detail :: Frame
+	local d = item.data or {}
+	if d.section == "prestige" then
+		local v = MenuController.rebirthView(currentCash(), currentRebirths())
+		local snap = getSnapshot()
+		dTitle(f, "Prestige", C.Gold)
+		dLine(
+			f,
+			"Cash in your run for a permanent income bonus. Your cash, garage cars and upgrades reset; your best cars stay.",
+			C.TextDim
+		)
+		dGap(f, 4)
+		dPair(f, "Level", `{v.rebirths} -> {v.rebirths + 1}`)
+		dPair(
+			f,
+			"Income bonus",
+			`{MenuController.formatMultiplier(v.multiplier)} -> {MenuController.formatMultiplier(v.nextMultiplier)}`,
+			C.Green
+		)
+		dPair(f, "Cost", Format.cash(v.cost))
+		dBar(f, v.fraction, if v.canAfford then C.Green else C.Gold)
+		local kept = MenuController.keptCarsText(MenuController.keptCars(if snap then snap.garage else nil))
+		dPair(f, "You keep", if kept ~= "" then kept else "-")
+		if v.canAfford then
+			local armed = os.clock() - prestigeArmedAt < CONFIRM_WINDOW
+			dAction(f, "Enter", if armed then "Confirm prestige" else "Prestige", function()
+				tab.select(tab, { data = { section = "prestige", action = true } })
+			end)
 		end
+	elseif d.section == "players" then
+		local e: PlayerEntry = d.entry
+		dTitle(f, e.name, nil, true)
+		dPair(f, "Cash", Format.cash(e.cash), C.Green)
+		dPair(f, "Cars delivered", Format.commas(e.steals))
+		dPair(f, "Prestige level", tostring(math.floor(e.rebirths)))
+		dPair(
+			f,
+			"Wanted",
+			if e.wanted > 0 then `{math.floor(e.wanted)} star{if e.wanted >= 2 then "s" else ""}` else "-",
+			if e.wanted > 0 then C.Red else nil
+		)
+	else
+		dTitle(f, item.label)
+		dLine(f, item.value or "", C.Text, 22)
 	end
 end
 
-BUILDERS.GearShop = function(ctx: Ctx)
-	local ui = { upgrades = {}, tools = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 10)
-	local upgradesFrame = autoFrame("Upgrades", 1, body)
-	vlist(upgradesFrame, 10)
-	for i, row in MenuController.upgradeRows(nil, 0) do
-		ui.upgrades[row.id] = buildUpgradeCard(upgradesFrame, row, i)
+local function selectStats(tab: Tab, item: any)
+	local d = item.data or {}
+	if not (d.section == "prestige" and d.action) then
+		return
 	end
-	local toolsFrame = autoFrame("Tools", 2, body)
-	toolsFrame.Visible = false
-	vlist(toolsFrame, 12)
-	local toolGrid = autoFrame("Grid", 1, toolsFrame)
-	grid(toolGrid, Vector2.new(234, 312), 10)
-	for i, row in MenuController.toolRows(nil, 0) do
-		ui.tools[row.id] = buildToolCard(toolGrid, row, i)
+	local v = MenuController.rebirthView(currentCash(), currentRebirths())
+	local snap = getSnapshot()
+	if not v.canAfford then
+		toast("warning", "You need " .. Format.cash(v.missing) .. " more to prestige.")
+		return
 	end
-	bodyLabel("🎒 Tools go in your hotbar. Bonk thieves out of your cars to get them back!", 15, {
-		Name = "Tip",
-		LayoutOrder = 2,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = toolsFrame,
-	})
-	local selectTab = makeTabs(ctx, { "🔧 UPGRADES", "🧰 TOOLS" }, Theme.Colors.Secondary, function(i)
-		upgradesFrame.Visible = i == 1
-		toolsFrame.Visible = i == 2
-		ctx.body.CanvasPosition = Vector2.zero
-	end)
-	selectTab(1)
-	ui.selectTab = selectTab
-	ctx.refresh = refreshGearShop
+	if MenuController.garageBusy(if snap then snap.garage else nil) then
+		toast("warning", "Bring your cars home first: one is out driving or being stolen.")
+		return
+	end
+	if os.clock() - prestigeArmedAt < CONFIRM_WINDOW then
+		prestigeArmedAt = -math.huge
+		Net.fire("Rebirth")
+		playSound("ClickBright")
+	else
+		prestigeArmedAt = os.clock()
+		playSound("Click")
+		toast("info", "Press again to confirm your prestige.")
+	end
+	redescribe(tab, true)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Store (Robux)
+-- STORE (Robux)
 -------------------------------------------------------------------------------------------------------------------------
 
 local function promptPurchase(item: StoreItem)
@@ -1488,7 +1755,7 @@ local function promptPurchase(item: StoreItem)
 	end)
 	if not ok then
 		warn("[MenuController] purchase prompt failed: " .. tostring(err))
-		toast("error", "The store isn't available right now. Try again in a moment!")
+		toast("error", "The store isn't available right now. Try again in a moment.")
 	end
 end
 
@@ -1496,8 +1763,7 @@ local function priceKey(item: StoreItem): string
 	return item.kind .. ":" .. tostring(item.id)
 end
 
--- Fetches a Robux price once (GetProductInfoAsync); calls done() when it becomes known.
-local function fetchPrice(item: StoreItem, done: () -> ())
+local function fetchPrice(item: StoreItem)
 	local key = priceKey(item)
 	if priceCache[key] ~= nil then
 		return
@@ -1510,1628 +1776,114 @@ local function fetchPrice(item: StoreItem, done: () -> ())
 		end)
 		if ok and typeof(info) == "table" and finite(info.PriceInRobux) then
 			priceCache[key] = info.PriceInRobux
-			done()
+			MenuController.refresh()
 		end
 	end)
 end
 
-local function buildStoreCard(parent: Instance, item: StoreItem, order: number): any
-	local accent = if item.kind == "pass" then Theme.Colors.Gold else Theme.Colors.Secondary
-	local c = card({ Name = item.key, LayoutOrder = order, Parent = parent })
-	iconTile(
-		item.icon,
-		accent,
-		72,
-		{ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12), Parent = c }
-	)
-	fitLabel(
-		item.name,
-		22,
-		{ Name = "Title", Position = UDim2.fromOffset(8, 90), Size = UDim2.new(1, -16, 0, 26), Parent = c }
-	)
-	bodyLabel(item.description, 13, {
-		Name = "Description",
-		Position = UDim2.fromOffset(12, 118),
-		Size = UDim2.new(1, -24, 0, 46),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Parent = c,
-	})
-	local button = Kit.button("BUY", Theme.Colors.Cash, {
-		Name = "Buy",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -10),
-		Size = UDim2.fromOffset(178, 48),
-		TextSize = 24,
-		Parent = c,
-	})
-	onPress(button, function()
-		-- re-checked at tap time: the button may not have refreshed yet (e.g. stars just ran out)
-		if MenuController.storeBlock(item, getSnapshot(), attrNumber("Wanted")) ~= nil then
-			shake(button)
-			return
-		end
-		promptPurchase(item)
-	end)
-	return { card = c, button = button, item = item }
-end
+local BLOCK_TEXT: { [string]: string } = {
+	owned = "OWNED",
+	notWanted = "NOT WANTED",
+}
 
-local function refreshStore(ctx: Ctx, snapshot: any)
-	local wanted = attrNumber("Wanted")
-	for _, entry in ctx.ui.cards do
-		local item: StoreItem = entry.item
-		local block = MenuController.storeBlock(item, snapshot, wanted)
-		if block == "owned" then
-			setButton(entry.button, "✅ OWNED", Theme.Colors.CashDark, false, true)
-		elseif block == "notWanted" then
-			setButton(entry.button, "😇 NOT WANTED", Theme.Colors.Cash, false)
-		else
-			local price = priceCache[priceKey(item)]
-			setButton(
-				entry.button,
-				if typeof(price) == "number" then `R$ {price}` else "R$ BUY",
-				Theme.Colors.Cash,
-				true
-			)
-		end
+local function refreshStore(tab: Tab)
+	local snap = getSnapshot()
+	local store = MenuController.storeItems(if snap then snap.passes else nil)
+	local wanted = attrNumber("Wanted") or 0
+	local items = {}
+	if store.comingSoon then
+		table.insert(items, { separator = true, label = "The store opens soon" })
 	end
-end
-
-local function sectionHeader(parent: Instance, text: string, sub: string, color: Color3, order: number)
-	local row = Kit.new("Frame", {
-		Name = "Header" .. order,
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 32),
-		LayoutOrder = order,
-		Parent = parent,
-	})
-	Kit.list(Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center).Parent =
-		row
-	Kit.label(text, 26, {
-		Size = UDim2.fromScale(0, 1),
-		AutomaticSize = Enum.AutomaticSize.X,
-		TextWrapped = false,
-		TextColor3 = color,
-		LayoutOrder = 1,
-		Parent = row,
-	})
-	bodyLabel(sub, 15, { Size = UDim2.new(0, 260, 1, 0), LayoutOrder = 2, Parent = row })
-end
-
-BUILDERS.Store = function(ctx: Ctx)
-	local ui = { cards = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 12)
-	local items = MenuController.storeItems(nil)
-	if items.comingSoon then
-		local c = card({ Name = "ComingSoon", Size = UDim2.new(1, 0, 0, 300), LayoutOrder = 1, Parent = body })
-		iconTile("🚧", Theme.Colors.Gold, 110, {
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, 0, 0, 24),
-			Parent = c,
-		})
-		Kit.label("STORE COMING SOON!", 38, {
-			Position = UDim2.fromOffset(0, 148),
-			Size = UDim2.new(1, 0, 0, 44),
-			TextColor3 = Theme.Colors.Gold,
-			Parent = c,
-		})
-		bodyLabel(
-			"Passes and boosts are on the way. Until then, every car in Hotwire City is earned on the streets. Go steal something shiny! 🚗💨",
-			17,
-			{
-				Position = UDim2.fromOffset(60, 200),
-				Size = UDim2.new(1, -120, 0, 70),
-				TextXAlignment = Enum.TextXAlignment.Center,
-				TextColor3 = Theme.Colors.Text,
-				Parent = c,
-			}
-		)
-		-- Point players at the free stuff instead of a dead end.
-		local row = Kit.new("Frame", {
-			Name = "FreeStuff",
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, 70),
-			LayoutOrder = 2,
-			Parent = body,
-		})
-		Kit.list(Enum.FillDirection.Horizontal, 16, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center).Parent =
-			row
-		for i, link in
-			{
-				{ "🎟️ ENTER A CODE", Theme.Colors.Secondary, "Codes" },
-				{ "🎁 FREE DAILY GIFT", Theme.Colors.Primary, "Daily" },
-			}
-		do
-			local b = Kit.button(link[1] :: string, link[2] :: Color3, {
-				Name = link[3] :: string,
-				Size = UDim2.fromOffset(270, 58),
-				TextSize = 24,
-				LayoutOrder = i,
-				Parent = row,
-			})
-			onPress(b, function()
-				MenuController.open(link[3] :: string)
-			end)
-		end
-		ctx.refresh = nil
-		return
-	end
-	bodyLabel("💎 Optional extras. No loot boxes: you always know exactly what you get.", 15, {
-		Name = "Intro",
-		LayoutOrder = 1,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = body,
-	})
-	local order = 2
-	local function section(list: { StoreItem }, title: string, sub: string, color: Color3)
+	local function add(list: { StoreItem }, caption: string)
 		if #list == 0 then
 			return
 		end
-		sectionHeader(body, title, sub, color, order)
-		local holder = autoFrame("Grid" .. order, order + 1, body)
-		grid(holder, Vector2.new(236, 222), 10)
-		for i, item in list do
-			table.insert(ui.cards, buildStoreCard(holder, item, i))
-		end
-		order += 2
-	end
-	section(items.passes, "⭐ GAME PASSES", "yours forever", Theme.Colors.Gold)
-	section(items.products, "⚡ BOOSTS", "one-time use", Theme.Colors.Secondary)
-	ctx.refresh = refreshStore
-	ctx.onOpen = function(c: Ctx)
-		for _, entry in c.ui.cards do
-			fetchPrice(entry.item, function()
-				if c.open then
-					refreshStore(c, getSnapshot())
-				end
-			end)
-		end
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Car Index
--------------------------------------------------------------------------------------------------------------------------
-
-local STAT_MAX = { speed = 1, accel = 1 }
-for _, def in Cars.List do
-	STAT_MAX.speed = math.max(STAT_MAX.speed, def.topSpeed)
-	STAT_MAX.accel = math.max(STAT_MAX.accel, def.accel)
-end
-
-local function isDiscovered(id: string): boolean
-	local s = getSnapshot()
-	return s ~= nil and typeof(s.discovered) == "table" and s.discovered[id] == true
-end
-
--- shell: dress it in the hero mesh (the detail view); cards stay procedural (see the header).
-local function buildCarModel(carId: string, shell: boolean?): Model?
-	local ok, model = pcall(function()
-		local CarBuilder = (require :: any)(Shared:WaitForChild("Vehicle"):WaitForChild("CarBuilder"))
-		return CarBuilder.build(carId, "None", { forDisplay = true, noShell = shell ~= true })
-	end)
-	if ok and typeof(model) == "Instance" and model:IsA("Model") then
-		return model
-	end
-	if not ok then
-		warn("[MenuController] Index preview failed for " .. carId .. ": " .. tostring(model))
-	end
-	return nil
-end
-
--- Parents `model` into `view`, reuses `camera` (or creates the viewport's Camera) and frames the model.
--- Returns (camera, center, size). The camera is tracked by the caller, never read back from view.CurrentCamera.
-local function attachModel(
-	view: ViewportFrame,
-	model: Model,
-	yaw: number,
-	pitch: number,
-	camera: Camera?
-): (Camera, Vector3, Vector3)
-	model.Parent = view
-	local cam: Camera
-	if camera and camera.Parent == view then
-		cam = camera
-	else
-		cam = Instance.new("Camera")
-		cam.FieldOfView = VIEW_FOV
-		cam.Parent = view
-		view.CurrentCamera = cam
-	end
-	local cf, size = model:GetBoundingBox()
-	local center = cf.Position
-	cam.CFrame = MenuController.cameraCFrame(center, size, VIEW_FOV, yaw, pitch)
-	return cam, center, size
-end
-
-local function makeViewport(props: Kit.Props?): ViewportFrame
-	local vp = Kit.new("ViewportFrame", {
-		Name = "View",
-		BackgroundColor3 = Theme.Colors.Background,
-		BorderSizePixel = 0,
-		Ambient = Color3.fromRGB(150, 150, 170),
-		LightColor = WHITE,
-		LightDirection = Vector3.new(-0.5, -1, -0.6),
-	})
-	Kit.corner(Theme.CornerSmall).Parent = vp
-	apply(vp, props)
-	return vp
-end
-
--- Model needed for a card? Undiscovered Secret cars stay a "❓" (no silhouette) to keep the mystery.
-local function needsModel(def: CarDef, discovered: boolean): boolean
-	return discovered or def.rarity ~= "Secret"
-end
-
-local function ensureCardModel(entry: any)
-	if entry.model or entry.failed then
-		return
-	end
-	local model = buildCarModel(entry.def.id)
-	if not model then
-		entry.failed = true
-		return
-	end
-	entry.model = model
-	entry.camera, entry.center, entry.size = attachModel(entry.view, model, CARD_YAW, CARD_PITCH, entry.camera)
-end
-
-local function styleIndexCard(ctx: Ctx, entry: any, discovered: boolean)
-	local def: CarDef = entry.def
-	local selected = ctx.ui.selected == def.id
-	entry.stroke.Color = if selected then WHITE else rarityColor(def.rarity)
-	entry.stroke.Thickness = if selected then 5 else 3
-	entry.view.ImageColor3 = if discovered then WHITE else SILHOUETTE
-	entry.mystery.Visible = not needsModel(def, discovered)
-	entry.name.Text = if discovered then def.name else "???"
-	entry.name.TextColor3 = if discovered then WHITE else Theme.Colors.TextDim
-	entry.income.Text = if discovered then `{Format.cash(def.income)}/s` else "$?/s"
-	entry.income.TextColor3 = if discovered then Theme.Colors.Cash else Theme.Colors.Disabled
-	entry.button.BackgroundColor3 = if discovered then Theme.Colors.PanelLight else Theme.Colors.Panel
-end
-
-local updateIndexDetail: (Ctx) -> () -- forward declaration
-
-local function selectCar(ctx: Ctx, id: string)
-	local ui = ctx.ui
-	local previous = ui.selected
-	ui.selected = id
-	for _, cid in { previous, id } do
-		local entry = cid and ui.cards[cid]
-		if entry then
-			styleIndexCard(ctx, entry, isDiscovered(cid))
-		end
-	end
-	local entry = ui.cards[id]
-	if entry then
-		Kit.pop(entry.button, 1.08)
-	end
-	updateIndexDetail(ctx)
-end
-
-local function buildIndexCard(ctx: Ctx, parent: Instance, def: CarDef, order: number): any
-	local button = Kit.new("TextButton", {
-		Name = def.id,
-		AutoButtonColor = false,
-		Text = "",
-		BackgroundColor3 = Theme.Colors.PanelLight,
-		BorderSizePixel = 0,
-		LayoutOrder = order,
-		Parent = parent,
-	})
-	Kit.corner(Theme.CornerSmall).Parent = button
-	local stroke = Kit.stroke(rarityColor(def.rarity), 3)
-	stroke.Parent = button
-	Kit.gradient(WHITE, Color3.fromRGB(190, 190, 208)).Parent = button
-	local view = makeViewport({
-		BackgroundColor3 = mix(rarityColor(def.rarity), Theme.Colors.Background, 0.72),
-		Position = UDim2.fromOffset(6, 6),
-		Size = UDim2.new(1, -12, 0, 80),
-		Parent = button,
-	})
-	local mystery = Kit.label("❓", 40, {
-		Name = "Mystery",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(1, 1),
-		Visible = false,
-		Parent = view,
-	})
-	local name = fitLabel(def.name, 16, {
-		Name = "CarName",
-		Position = UDim2.fromOffset(4, 90),
-		Size = UDim2.new(1, -8, 0, 22),
-		Parent = button,
-	})
-	local income = Kit.label("", 15, {
-		Name = "Income",
-		Position = UDim2.fromOffset(4, 113),
-		Size = UDim2.new(1, -8, 0, 20),
-		Parent = button,
-	})
-	Kit.juice(button)
-	local entry = {
-		def = def,
-		button = button,
-		stroke = stroke,
-		view = view,
-		mystery = mystery,
-		name = name,
-		income = income,
-		model = nil :: Model?,
-		camera = nil :: Camera?,
-		center = nil :: Vector3?,
-		size = nil :: Vector3?,
-		failed = false,
-		discovered = nil :: boolean?,
-	}
-	button.MouseEnter:Connect(function()
-		ctx.ui.hovered = def.id
-	end)
-	button.MouseLeave:Connect(function()
-		if ctx.ui.hovered == def.id then
-			ctx.ui.hovered = nil
-		end
-	end)
-	onPress(button, function()
-		selectCar(ctx, def.id)
-	end)
-	return entry
-end
-
-local function buildIndexDetail(ctx: Ctx): any
-	local panel = card({
-		Name = "Detail",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 66),
-		Size = UDim2.new(0, INDEX_DETAIL_W, 1, -78),
-		Parent = ctx.win,
-	})
-	local view = makeViewport({ Position = UDim2.fromOffset(10, 10), Size = UDim2.new(1, -20, 0, 150), Parent = panel })
-	local mystery = Kit.label("❓", 80, {
-		Name = "Mystery",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(1, 1),
-		Visible = false,
-		Parent = view,
-	})
-	local name = fitLabel("TAP A CAR", 26, {
-		Name = "CarName",
-		Position = UDim2.fromOffset(10, 166),
-		Size = UDim2.new(1, -20, 0, 30),
-		Parent = panel,
-	})
-	local rarityChip, rarityText = chip("COMMON", Theme.Colors.Panel, 14, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 198),
-		Parent = panel,
-	})
-	local flavor = bodyLabel("", 14, {
-		Name = "Flavor",
-		Position = UDim2.fromOffset(12, 230),
-		Size = UDim2.new(1, -24, 0, 52),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextColor3 = Theme.Colors.Text,
-		Parent = panel,
-	})
-	local function valueRow(y: number, caption: string): TextLabel
-		bodyLabel(caption, 14, {
-			Position = UDim2.fromOffset(12, y),
-			Size = UDim2.fromOffset(110, 22),
-			TextColor3 = Theme.Colors.Text,
-			Parent = panel,
-		})
-		return Kit.label("", 19, {
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, y - 2),
-			Size = UDim2.fromOffset(140, 24),
-			TextXAlignment = Enum.TextXAlignment.Right,
-			TextWrapped = false,
-			Parent = panel,
-		})
-	end
-	local function statBar(y: number, caption: string, color: Color3): (number, boolean?) -> ()
-		bodyLabel(caption, 13, {
-			Position = UDim2.fromOffset(12, y),
-			Size = UDim2.fromOffset(84, 20),
-			TextColor3 = Theme.Colors.Text,
-			Parent = panel,
-		})
-		local _, set = Kit.progressBar(color, {
-			Position = UDim2.fromOffset(98, y + 3),
-			Size = UDim2.new(1, -110, 0, 14),
-			Parent = panel,
-		})
-		return set
-	end
-	local income = valueRow(288, "💵 INCOME")
-	local price = valueRow(314, "🏷️ PRICE")
-	local setSpeed = statBar(342, "🏁 SPEED", Theme.Colors.Secondary)
-	local setAccel = statBar(366, "⚡ ACCEL", Theme.Colors.Primary)
-	local setGrip = statBar(390, "🛞 GRIP", Theme.Colors.Warning)
-	local where = bodyLabel("", 13, {
-		Name = "Where",
-		Position = UDim2.fromOffset(10, 416),
-		Size = UDim2.new(1, -20, 0, 36),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = panel,
-	})
-	return {
-		panel = panel,
-		view = view,
-		mystery = mystery,
-		name = name,
-		rarityChip = rarityChip,
-		rarityText = rarityText,
-		flavor = flavor,
-		income = income,
-		price = price,
-		setSpeed = setSpeed,
-		setAccel = setAccel,
-		setGrip = setGrip,
-		where = where,
-		model = nil :: Model?,
-		camera = nil :: Camera?,
-		center = nil :: Vector3?,
-		size = nil :: Vector3?,
-		carId = nil :: string?,
-	}
-end
-
-updateIndexDetail = function(ctx: Ctx)
-	local ui = ctx.ui
-	local d = ui.detail
-	local id: string? = ui.selected
-	local def = if id then Cars.get(id) else nil
-	if not def then
-		d.name.Text = "TAP A CAR"
-		d.flavor.Text = "Pick any car to see its stats."
-		return
-	end
-	local discovered = isDiscovered(def.id)
-	local hidden = not needsModel(def, discovered)
-	if d.carId ~= def.id or (d.model == nil and not hidden) then
-		if d.model then
-			d.model:Destroy()
-			d.model = nil
-		end
-		d.carId = def.id
-		if not hidden then
-			local model = buildCarModel(def.id, true) -- not a clone of the (shell-less) card model
-			if model then
-				d.model = model
-				d.camera, d.center, d.size = attachModel(d.view, model, CARD_YAW + (ui.spinYaw or 0), 16, d.camera)
-			end
-		end
-	end
-	d.view.ImageColor3 = if discovered then WHITE else SILHOUETTE
-	d.view.BackgroundColor3 = mix(rarityColor(def.rarity), Theme.Colors.Background, 0.7)
-	d.mystery.Visible = hidden
-	d.name.Text = if discovered then def.name else "???"
-	local tier = (Rarity.Tiers :: any)[def.rarity]
-	d.rarityChip.BackgroundColor3 = if tier then tier.color else Theme.Colors.Panel
-	d.rarityText.Text = string.upper(def.rarity)
-	if discovered then
-		d.flavor.Text = def.flavor
-	elseif def.rarity == "Secret" then
-		d.flavor.Text = "A secret car. Nobody knows where it hides... 👀"
-	else
-		d.flavor.Text = "Not discovered yet! Steal one to add it to your Index."
-	end
-	d.income.Text = if discovered then `{Format.cash(def.income)}/s` else "???"
-	d.income.TextColor3 = Theme.Colors.Cash
-	d.price.Text = if not discovered
-		then "???"
-		elseif def.dealer and def.price > 0 then Format.cash(def.price)
-		else "Not for sale"
-	d.setSpeed(if discovered then def.topSpeed / STAT_MAX.speed else 0, true)
-	d.setAccel(if discovered then def.accel / STAT_MAX.accel else 0, true)
-	d.setGrip(if discovered then math.clamp((def.grip - 0.7) / 0.3, 0.05, 1) else 0, true)
-	d.where.Text = "Found at: " .. table.concat(MenuController.carSources(def), "  ·  ")
-end
-
-local function refreshIndex(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
-	local disc: any = if snapshot and typeof(snapshot.discovered) == "table" then snapshot.discovered else {}
-	for _, group in MenuController.indexGroups(disc) do
-		local g = ui.groups[group.rarity]
-		if g then
-			g.title.Text = `{string.upper(group.rarity)}  <font color="#FFFFFF">{group.found}/{group.total}</font>`
-			if not group.bonusEligible then
-				g.badgeText.Text = "💎 Robux exclusive"
-				g.badge.BackgroundColor3 = Theme.Colors.Panel
-			elseif group.complete then
-				g.badgeText.Text = `✅ +{math.floor(Economy.INDEX_RARITY_BONUS * 100 + 0.5)}% INCOME`
-				g.badge.BackgroundColor3 = Theme.Colors.CashDark
-			else
-				g.badgeText.Text = `+{math.floor(Economy.INDEX_RARITY_BONUS * 100 + 0.5)}% income when complete`
-				g.badge.BackgroundColor3 = Theme.Colors.Panel
-			end
-		end
-		for _, def in group.cars do
-			local entry = ui.cards[def.id]
-			if entry then
-				local discovered = disc[def.id] == true
-				if entry.discovered ~= discovered then
-					local wasLocked = entry.discovered == false
-					entry.discovered = discovered
-					styleIndexCard(ctx, entry, discovered)
-					if ctx.open and discovered and not entry.model then
-						ensureCardModel(entry) -- e.g. a Secret car (shown as "❓", no model yet) just got discovered
-					end
-					if wasLocked and discovered then
-						Kit.pop(entry.button, 1.2)
-						floatText(entry.button, "NEW!", Theme.Colors.Gold)
-					end
-				end
-			end
-		end
-	end
-	local found, total, bonus = MenuController.indexTotals(disc)
-	-- only animate real changes: snapshots arrive often and each tween is a per-frame thread
-	if ui.summaryText:GetAttribute("Value") ~= found then
-		Kit.tweenNumber(ui.summaryText, found, function(n: number): string
-			return `📖 COLLECTED {math.floor(n + 0.5)}/{total}`
-		end)
-	end
-	ui.setSummary(found / math.max(1, total), true)
-	ui.bonusText.Text = if bonus > 0
-		then `🏆 INDEX BONUS +{math.floor(bonus * 100 + 0.5)}% INCOME`
-		else "Complete a rarity for +income!"
-	updateIndexDetail(ctx)
-end
-
--- Default selection when the Index opens: your best discovered car, else the first car.
-local function defaultSelection(): string?
-	local best: CarDef? = nil
-	for _, def in Cars.List do
-		if isDiscovered(def.id) and (best == nil or def.income > (best :: CarDef).income) then
-			best = def
-		end
-	end
-	return if best then best.id elseif Cars.List[1] then Cars.List[1].id else nil
-end
-
-local function spinStep(ctx: Ctx, dt: number)
-	local ui = ctx.ui
-	ui.spinYaw = ((ui.spinYaw or 0) + dt * SPIN_SPEED) % 360
-	local yaw = CARD_YAW + ui.spinYaw
-	local d = ui.detail
-	if d.camera and d.center and d.size then
-		d.camera.CFrame = MenuController.cameraCFrame(d.center, d.size, VIEW_FOV, yaw, 16)
-	end
-	local spinning: { [string]: boolean } = {}
-	for _, id in { ui.selected, ui.hovered } do
-		local entry = id and ui.cards[id]
-		if entry and entry.camera and entry.center and entry.size then
-			spinning[id] = true
-			entry.camera.CFrame = MenuController.cameraCFrame(entry.center, entry.size, VIEW_FOV, yaw, CARD_PITCH)
-		end
-	end
-	-- cards that stopped spinning snap back to the catalog pose
-	for id in ui.spun do
-		if not spinning[id] then
-			local entry = ui.cards[id]
-			if entry and entry.camera and entry.center and entry.size then
-				entry.camera.CFrame =
-					MenuController.cameraCFrame(entry.center, entry.size, VIEW_FOV, CARD_YAW, CARD_PITCH)
-			end
-		end
-	end
-	ui.spun = spinning
-end
-
-local function onIndexOpen(ctx: Ctx)
-	local ui = ctx.ui
-	if not ui.selected then
-		local id = defaultSelection()
-		if id then
-			selectCar(ctx, id)
-		end
-	end
-	ctx.session:Connect(RunService.PreRender, function(dt: number)
-		spinStep(ctx, dt)
-	end)
-	-- Build the viewport previews progressively, a few per frame, only while the Index is open.
-	ctx.session:Add(task.spawn(function()
-		local builtThisFrame = 0
-		for _, group in MenuController.indexGroups(nil) do
-			for _, def in group.cars do
-				if not ctx.open then
-					return
-				end
-				local entry = ui.cards[def.id]
-				if entry and not entry.model and not entry.failed and needsModel(def, isDiscovered(def.id)) then
-					ensureCardModel(entry)
-					builtThisFrame += 1
-					if builtThisFrame >= MODELS_PER_FRAME then
-						builtThisFrame = 0
-						task.wait()
-					end
-				end
-			end
-		end
-		if ctx.open then
-			updateIndexDetail(ctx)
-		end
-	end))
-end
-
-BUILDERS.Index = function(ctx: Ctx)
-	local ui = { cards = {}, groups = {}, selected = nil, hovered = nil, spinYaw = 0, spun = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	body.Size = UDim2.new(1, -(INDEX_DETAIL_W + 16), 1, -64)
-	vlist(body, 10, Enum.HorizontalAlignment.Left)
-
-	local summary = card({ Name = "Summary", Size = UDim2.new(1, 0, 0, 66), LayoutOrder = 0, Parent = body })
-	ui.summaryText = Kit.label("📖 COLLECTED 0/0", 22, {
-		Name = "Count",
-		Position = UDim2.fromOffset(14, 6),
-		Size = UDim2.new(0.5, -14, 0, 26),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false,
-		Parent = summary,
-	})
-	ui.bonusText = fitLabel("", 16, {
-		Name = "Bonus",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 9),
-		Size = UDim2.new(0.5, -10, 0, 22),
-		TextXAlignment = Enum.TextXAlignment.Right,
-		TextColor3 = Theme.Colors.Gold,
-		Parent = summary,
-	})
-	local _, setSummary = Kit.progressBar(PURPLE, {
-		Name = "Bar",
-		Position = UDim2.fromOffset(14, 38),
-		Size = UDim2.new(1, -28, 0, 16),
-		Parent = summary,
-	})
-	ui.setSummary = setSummary
-
-	for gi, group in MenuController.indexGroups(nil) do
-		local holder = autoFrame(group.rarity, gi, body)
-		vlist(holder, 8, Enum.HorizontalAlignment.Left)
-		local header = Kit.new("Frame", {
-			Name = "Header",
-			BackgroundColor3 = Theme.Colors.Background,
-			BorderSizePixel = 0,
-			Size = UDim2.new(1, 0, 0, 40),
-			LayoutOrder = 1,
-			Parent = holder,
-		})
-		Kit.corner(Theme.CornerSmall).Parent = header
-		Kit.stroke(group.color, 2).Parent = header
-		local stripe = Kit.new("Frame", {
-			Name = "Stripe",
-			BackgroundColor3 = group.color,
-			BorderSizePixel = 0,
-			Position = UDim2.fromOffset(6, 6),
-			Size = UDim2.new(0, 6, 1, -12),
-			Parent = header,
-		})
-		Kit.corner(UDim.new(1, 0)).Parent = stripe
-		local title = Kit.label(string.upper(group.rarity), 22, {
-			Name = "Title",
-			Position = UDim2.fromOffset(20, 0),
-			Size = UDim2.new(0.5, -20, 1, 0),
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextWrapped = false,
-			TextColor3 = group.color,
-			Parent = header,
-		})
-		local badge, badgeText = chip("", Theme.Colors.Panel, 13, {
-			Name = "Badge",
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.new(1, -8, 0.5, 0),
-			Parent = header,
-		})
-		ui.groups[group.rarity] = { title = title, badge = badge, badgeText = badgeText }
-		local cardsFrame = autoFrame("Cards", 2, holder)
-		Kit.new("UIGridLayout", {
-			CellSize = UDim2.fromOffset(INDEX_CARD.X, INDEX_CARD.Y),
-			CellPadding = UDim2.fromOffset(8, 8),
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			HorizontalAlignment = Enum.HorizontalAlignment.Left,
-			Parent = cardsFrame,
-		})
-		for ci, def in group.cars do
-			ui.cards[def.id] = buildIndexCard(ctx, cardsFrame, def, ci)
-		end
-	end
-	ui.detail = buildIndexDetail(ctx)
-	ctx.refresh = refreshIndex
-	ctx.onOpen = onIndexOpen
-	ctx.onClose = function(c: Ctx)
-		c.ui.hovered = nil
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Daily rewards
--------------------------------------------------------------------------------------------------------------------------
-
-local function buildDailyTile(parent: Instance, index: number, reward: any): any
-	local info = MenuController.rewardInfo(reward, 0)
-	local isJackpot = index == #Economy.DAILY_REWARDS
-	local tile = Kit.new("Frame", {
-		Name = "Day" .. index,
-		BackgroundColor3 = Theme.Colors.PanelLight,
-		BorderSizePixel = 0,
-		Size = UDim2.fromOffset(94, 178),
-		LayoutOrder = index,
-		Parent = parent,
-	})
-	Kit.corner().Parent = tile
-	local stroke = Kit.stroke(if isJackpot then Theme.Colors.Gold else Theme.Colors.Stroke, 3)
-	stroke.Parent = tile
-	Kit.gradient(WHITE, Color3.fromRGB(190, 190, 208)).Parent = tile
-	Kit.label("DAY " .. index, 18, {
-		Name = "Day",
-		Position = UDim2.fromOffset(0, 6),
-		Size = UDim2.new(1, 0, 0, 22),
-		TextColor3 = if isJackpot then Theme.Colors.Gold else WHITE,
-		Parent = tile,
-	})
-	iconTile(info.icon, if isJackpot then Theme.Colors.Gold else Theme.Colors.Panel, 54, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 32),
-		Parent = tile,
-	})
-	fitLabel(info.text, 18, {
-		Name = "Reward",
-		Position = UDim2.fromOffset(4, 92),
-		Size = UDim2.new(1, -8, 0, 22),
-		TextColor3 = info.color,
-		Parent = tile,
-	})
-	local sub = bodyLabel(info.sub or "", 12, {
-		Name = "Sub",
-		Position = UDim2.fromOffset(2, 116),
-		Size = UDim2.new(1, -4, 0, 16),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextWrapped = false,
-		Parent = tile,
-	})
-	local state = Kit.label("", 15, {
-		Name = "State",
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 0, 1, -8),
-		Size = UDim2.new(1, 0, 0, 22),
-		Parent = tile,
-	})
-	local done = Kit.new("Frame", {
-		Name = "Claimed",
-		BackgroundColor3 = Theme.Colors.Background,
-		BackgroundTransparency = 0.35,
-		BorderSizePixel = 0,
-		Size = UDim2.fromScale(1, 1),
-		Visible = false,
-		ZIndex = 5,
-		Parent = tile,
-	})
-	Kit.corner().Parent = done
-	Kit.label("✅", 44, {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.45),
-		Size = UDim2.fromOffset(60, 54),
-		ZIndex = 6,
-		Parent = done,
-	})
-	return { tile = tile, stroke = stroke, sub = sub, state = state, done = done, reward = reward, jackpot = isJackpot }
-end
-
-local function refreshDaily(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
-	local view = if snapshot then snapshot.daily else nil
-	local states = MenuController.dailyTileStates(view)
-	local streak = if typeof(view) == "table" then math.max(0, math.floor(num(view.streak, 0))) else 0
-	ui.streak.Text = if streak > 0 then `🔥 {streak}-DAY STREAK!` else "🔥 START YOUR STREAK!"
-	local income = currentIncome()
-	for i, t in ui.tiles do
-		local st = states[i] or "locked"
-		local info = MenuController.rewardInfo(t.reward, income)
-		t.sub.Text = info.sub or ""
-		t.done.Visible = st == "claimed"
-		setPulse(t.tile, st == "ready", Theme.Colors.Primary)
-		if st ~= "ready" then
-			t.stroke.Color = if st == "next"
-				then Theme.Colors.Secondary
-				elseif t.jackpot then Theme.Colors.Gold
-				else Theme.Colors.Stroke
-			t.stroke.Thickness = if st == "next" then 4 else 3
-		end
-		t.tile.BackgroundColor3 = if st == "ready"
-			then Theme.Colors.Primary
-			elseif st == "locked" then Theme.Colors.Panel
-			else Theme.Colors.PanelLight
-		if st == "ready" then
-			t.state.Text = "TODAY!"
-			t.state.TextColor3 = WHITE
-		elseif st == "next" then
-			t.state.Text = "TOMORROW"
-			t.state.TextColor3 = Theme.Colors.Secondary
-		elseif st == "locked" then
-			t.state.Text = if t.jackpot then "JACKPOT" else "🔒"
-			t.state.TextColor3 = if t.jackpot then Theme.Colors.Gold else Theme.Colors.TextDim
-		else
-			t.state.Text = ""
-		end
-	end
-	local canClaim = typeof(view) == "table" and view.canClaim == true
-	if ui.lastCanClaim == true and not canClaim then
-		-- just claimed: celebrate the tile that was ready
-		local t = ui.tiles[ui.lastReady or 0]
-		if t then
-			Kit.pop(t.tile, 1.15)
-			floatText(t.tile, "CLAIMED!", Theme.Colors.Cash)
-		end
-		ui.pendingUntil = 0
-	end
-	ui.lastCanClaim = canClaim
-	ui.lastReady = table.find(states, "ready")
-	local pending = os.clock() < (ui.pendingUntil or 0)
-	if canClaim and not pending then
-		local day = ui.lastReady or 1
-		setButton(ui.claim, `🎁 CLAIM DAY {day}!`, Theme.Colors.Primary, true)
-		setPulse(ui.claim, true)
-	elseif canClaim then
-		setButton(ui.claim, "CLAIMING...", Theme.Colors.Primary, false)
-		setPulse(ui.claim, false)
-	else
-		setButton(
-			ui.claim,
-			`⏳ NEXT IN {MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))}`,
-			Theme.Colors.Primary,
-			false
-		)
-		setPulse(ui.claim, false)
-	end
-end
-
-BUILDERS.Daily = function(ctx: Ctx)
-	local ui = { tiles = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 10)
-	ui.streak = Kit.label("🔥 START YOUR STREAK!", 32, {
-		Name = "Streak",
-		Size = UDim2.new(1, 0, 0, 38),
-		TextColor3 = Theme.Colors.Warning,
-		LayoutOrder = 1,
-		Parent = body,
-	})
-	bodyLabel("Claim a reward every day. Miss a day and the streak starts over!", 15, {
-		LayoutOrder = 2,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = body,
-	})
-	local row = Kit.new("Frame", {
-		Name = "Tiles",
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 182),
-		LayoutOrder = 3,
-		Parent = body,
-	})
-	Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center).Parent =
-		row
-	for i, reward in Economy.DAILY_REWARDS do
-		ui.tiles[i] = buildDailyTile(row, i, reward)
-	end
-	local footer = Kit.new("Frame", {
-		Name = "Footer",
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 76),
-		LayoutOrder = 4,
-		Parent = body,
-	})
-	ui.claim = Kit.button("🎁 CLAIM!", Theme.Colors.Primary, {
-		Name = "Claim",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(340, 64),
-		TextSize = 28,
-		Parent = footer,
-	})
-	onPress(ui.claim, function()
-		Net.fire("ClaimDaily")
-		ui.pendingUntil = os.clock() + PENDING_SECONDS
-		refreshDaily(ctx, getSnapshot())
-	end)
-	ctx.primary = ui.claim
-	ctx.refresh = refreshDaily
-	ctx.onClose = function(c: Ctx)
-		c.ui.lastCanClaim = nil
-	end
-	ctx.tick = function(c: Ctx)
-		refreshDaily(c, getSnapshot())
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Contracts
--------------------------------------------------------------------------------------------------------------------------
-
-local function buildContractCard(parent: Instance, order: number): any
-	local c = card({ Name = "Contract" .. order, Size = UDim2.new(1, 0, 0, 110), LayoutOrder = order, Parent = parent })
-	local icon = iconTile("🎯", Theme.Colors.Warning, 78, { Position = UDim2.fromOffset(14, 16), Parent = c })
-	local title = fitLabel("", 22, {
-		Name = "Title",
-		Position = UDim2.fromOffset(106, 12),
-		Size = UDim2.new(1, -306, 0, 30),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = c,
-	})
-	local bar, setBar = Kit.progressBar(Theme.Colors.Warning, {
-		Name = "Bar",
-		Position = UDim2.fromOffset(106, 54),
-		Size = UDim2.new(1, -306, 0, 24),
-		Parent = c,
-	})
-	local progress = Kit.label("", 16, {
-		Name = "Progress",
-		Size = UDim2.fromScale(1, 1),
-		ZIndex = 3,
-		Parent = bar,
-	})
-	bodyLabel("REWARD", 13, {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 16),
-		Size = UDim2.fromOffset(176, 18),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = c,
-	})
-	local reward = Kit.label("", 28, {
-		Name = "Reward",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 34),
-		Size = UDim2.fromOffset(176, 34),
-		TextColor3 = Theme.Colors.Cash,
-		TextWrapped = false,
-		Parent = c,
-	})
-	local rewardSub = bodyLabel("", 13, {
-		Name = "RewardSub",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 70),
-		Size = UDim2.fromOffset(176, 18),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = c,
-	})
-	local stamp = Kit.label("✅ DONE!", 34, {
-		Name = "Stamp",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 40, 0.5, 0),
-		Size = UDim2.fromOffset(220, 44),
-		Rotation = -8,
-		TextColor3 = Theme.Colors.Cash,
-		Visible = false,
-		ZIndex = 6,
-		Parent = c,
-	})
-	-- daily free swap (only shown while the server offers it; see MenuController.canSwapContract)
-	local swap = Kit.button("🎲 SWAP", Theme.Colors.Secondary, {
-		Name = "Swap",
-		Position = UDim2.fromOffset(106, 82),
-		Size = UDim2.fromOffset(150, 24),
-		TextSize = 15,
-		Visible = false,
-		Parent = c,
-	})
-	return {
-		card = c,
-		icon = icon:FindFirstChild("Icon"),
-		title = title,
-		setBar = setBar,
-		progress = progress,
-		reward = reward,
-		rewardSub = rewardSub,
-		stamp = stamp,
-		swap = swap,
-		swapArmedUntil = 0,
-		swapPendingUntil = 0,
-	}
-end
-
-local function refreshContracts(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
-	local contracts = if snapshot then snapshot.contracts else nil
-	local rows = MenuController.contractRows(contracts, currentIncome())
-	local now = os.clock()
-	for i, slot in ui.cards do
-		local row = rows[i]
-		slot.card.Visible = row ~= nil
-		local canSwap = row ~= nil
-			and now >= slot.swapPendingUntil
-			and MenuController.canSwapContract(contracts, row, SWAP_AVAILABLE)
-		slot.swap.Visible = canSwap
-		if canSwap then
-			local armed = now < slot.swapArmedUntil
-			setButton(
-				slot.swap,
-				if armed then "🎲 TAP TO SWAP" else "🎲 SWAP",
-				if armed then Theme.Colors.Danger else Theme.Colors.Secondary,
-				true
-			)
-		end
-		slot.rowId = if row then row.id else nil
-		if row then
-			if slot.icon then
-				slot.icon.Text = row.icon
-			end
-			slot.title.Text = row.text
-			slot.setBar(row.fraction, true)
-			slot.progress.Text = if row.done then "" else MenuController.contractProgressText(row)
-			slot.reward.Text = "≈ " .. Format.cash(row.rewardCash)
-			slot.rewardSub.Text = MenuController.durationWords(row.rewardSeconds) .. " of income"
-			slot.stamp.Visible = row.done
-			slot.stamp.Text = if row.claimed then "✅ CLAIMED!" else "✅ DONE!"
-			slot.card.BackgroundColor3 = if row.done then Theme.Colors.Panel else Theme.Colors.PanelLight
-			if slot.lastId == row.id and slot.lastDone == false and row.done then
-				Kit.pop(slot.card, 1.05)
-				Kit.pop(slot.stamp, 1.6)
-			end
-			slot.lastId = row.id
-			slot.lastDone = row.done
-		end
-	end
-	ui.empty.Visible = #rows == 0
-	ui.timer.Text =
-		`🔄 NEW CONTRACTS IN {MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))}`
-end
-
-BUILDERS.Contracts = function(ctx: Ctx)
-	local ui = { cards = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 10)
-	local top = Kit.new("Frame", {
-		Name = "Top",
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 40),
-		LayoutOrder = 0,
-		Parent = body,
-	})
-	bodyLabel("Finish jobs for big cash. Rewards grow with your income!", 15, {
-		Position = UDim2.fromOffset(4, 0),
-		Size = UDim2.new(1, -290, 1, 0),
-		Parent = top,
-	})
-	local timerChip, timerText = chip("🔄 NEW CONTRACTS IN 00:00", Theme.Colors.Background, 15, {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.fromScale(1, 0.5),
-		Parent = top,
-	})
-	ui.timerChip = timerChip
-	ui.timer = timerText
-	for i = 1, Economy.CONTRACTS_PER_DAY do
-		local slot = buildContractCard(body, i)
-		ui.cards[i] = slot
-		onPress(slot.swap, function()
-			local id = slot.rowId
-			if typeof(id) ~= "string" then
-				return
-			end
-			local now = os.clock()
-			if now < slot.swapArmedUntil then
-				-- second tap: swap (one per day, the server decides which job you get)
-				slot.swapArmedUntil = 0
-				slot.swapPendingUntil = now + PENDING_SECONDS
-				Net.fire(SWAP_REMOTE, id)
-			else
-				slot.swapArmedUntil = now + CONFIRM_WINDOW
-				shake(slot.swap)
-			end
-			refreshContracts(ctx, getSnapshot())
-		end)
-	end
-	ui.empty = bodyLabel("📭 Your contracts are on the way. Check back in a moment!", 17, {
-		Name = "Empty",
-		LayoutOrder = 50,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextColor3 = Theme.Colors.Text,
-		Visible = false,
-		Parent = body,
-	})
-	ctx.refresh = refreshContracts
-	ctx.tick = function(c: Ctx)
-		c.ui.timer.Text =
-			`🔄 NEW CONTRACTS IN {MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))}`
-		-- a swap confirm / pending state just ran out: redraw so the button resets
-		local now = os.clock()
-		for _, slot in c.ui.cards do
-			if
-				(slot.swapArmedUntil > 0 and now >= slot.swapArmedUntil)
-				or (slot.swapPendingUntil > 0 and now >= slot.swapPendingUntil)
-			then
-				slot.swapArmedUntil = 0
-				slot.swapPendingUntil = 0
-				refreshContracts(c, getSnapshot())
-				return
-			end
-		end
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Playtime gifts
--------------------------------------------------------------------------------------------------------------------------
-
-local function sessionExtra(): number
-	return math.max(0, os.clock() - playtimeAt)
-end
-
-local function buildGiftTile(parent: Instance, index: number, def: any): any
-	local info = MenuController.rewardInfo(def, 0)
-	local tile = card({ Name = "Gift" .. index, LayoutOrder = index, Parent = parent })
-	iconTile(info.icon, if def.kind == "car" then info.color else Theme.Colors.Panel, 62, {
-		Position = UDim2.fromOffset(12, 12),
-		Parent = tile,
-	})
-	fitLabel(info.text, 24, {
-		Name = "Reward",
-		Position = UDim2.fromOffset(84, 14),
-		Size = UDim2.new(1, -94, 0, 28),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = info.color,
-		Parent = tile,
-	})
-	local sub = bodyLabel("", 13, {
-		Name = "Sub",
-		Position = UDim2.fromOffset(84, 44),
-		Size = UDim2.new(1, -94, 0, 20),
-		Parent = tile,
-	})
-	local timer = Kit.label("", 26, {
-		Name = "Timer",
-		Position = UDim2.fromOffset(0, 84),
-		Size = UDim2.new(1, 0, 0, 30),
-		Parent = tile,
-	})
-	local barFrame, setBar = Kit.progressBar(Theme.Colors.Cash, {
-		Name = "Bar",
-		Position = UDim2.fromOffset(16, 124),
-		Size = UDim2.new(1, -32, 0, 14),
-		Parent = tile,
-	})
-	local claim = Kit.button("CLAIM!", Theme.Colors.Cash, {
-		Name = "Claim",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 90),
-		Size = UDim2.fromOffset(176, 52),
-		TextSize = 26,
-		Visible = false,
-		Parent = tile,
-	})
-	return {
-		tile = tile,
-		def = def,
-		sub = sub,
-		timer = timer,
-		bar = barFrame,
-		setBar = setBar,
-		claim = claim,
-		pendingUntil = 0,
-	}
-end
-
-local function refreshGifts(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
-	local income = currentIncome()
-	-- playtimeBase is captured when each snapshot arrives; fall back to the current one before start() ran
-	local base = playtimeBase or (if snapshot then snapshot.playtime else nil)
-	local extra = if playtimeBase then sessionExtra() else 0
-	local tiles = MenuController.playtimeTiles(base, extra)
-	-- sessionSeconds = seconds played TODAY (UTC, saved across rejoins), not just this session
-	local session = (if typeof(base) == "table" then num(base.sessionSeconds, 0) else 0) + extra
-	ui.session.Text = `🕒 Played today: {Format.clock(session)}`
-	local resetIn = MenuController.formatHhMm(MenuController.secondsUntilUtcMidnight(serverNow()))
-	ui.footer.Text = `Play time counts all day, even if you rejoin. New gifts in {resetIn}!`
-	for i, t in ui.tiles do
-		local st = tiles[i]
-		if st then
-			local info = MenuController.rewardInfo(t.def, income)
-			local pending = os.clock() < t.pendingUntil
-			t.sub.Text = if info.sub and t.def.kind ~= "car" then info.sub else `after {t.def.minutes} min`
-			t.timer.Visible = st.state ~= "ready"
-			t.bar.Visible = st.state == "waiting"
-			t.claim.Visible = st.state == "ready"
-			t.tile.BackgroundColor3 = if st.state == "claimed" then Theme.Colors.Panel else Theme.Colors.PanelLight
-			if st.state == "waiting" then
-				t.timer.Text = "⏳ " .. Format.clock(math.ceil(st.remaining))
-				t.timer.TextColor3 = WHITE
-				t.setBar(st.fraction, false)
-			elseif st.state == "claimed" then
-				t.timer.Text = "✅ CLAIMED"
-				t.timer.TextColor3 = Theme.Colors.TextDim
-			end
-			if st.state == "ready" then
-				setButton(t.claim, if pending then "..." else "CLAIM!", Theme.Colors.Cash, not pending)
-			end
-			setPulse(t.claim, st.state == "ready" and not pending)
-			if t.lastState == "waiting" and st.state == "ready" then
-				Kit.pop(t.tile, 1.08)
-			elseif t.lastState == "ready" and st.state == "claimed" then
-				Kit.pop(t.tile, 1.1)
-				floatText(t.tile, "GOT IT!", Theme.Colors.Cash)
-			end
-			t.lastState = st.state
-		end
-	end
-end
-
-BUILDERS.Gifts = function(ctx: Ctx)
-	local ui = { tiles = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 10)
-	Kit.label("FREE GIFTS FOR PLAYING!", 28, {
-		Name = "Headline",
-		Size = UDim2.new(1, 0, 0, 34),
-		TextColor3 = Theme.Colors.Cash,
-		LayoutOrder = 1,
-		Parent = body,
-	})
-	ui.session = bodyLabel("🕒 Played today: 0:00", 15, {
-		Name = "Session",
-		LayoutOrder = 2,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextColor3 = Theme.Colors.Text,
-		Parent = body,
-	})
-	local tilesFrame = autoFrame("Tiles", 3, body)
-	grid(tilesFrame, Vector2.new(226, 152), 10)
-	for i, def in Economy.PLAYTIME_REWARDS do
-		local t = buildGiftTile(tilesFrame, i, def)
-		ui.tiles[i] = t
-		onPress(t.claim, function()
-			Net.fire("ClaimPlaytime", i)
-			t.pendingUntil = os.clock() + PENDING_SECONDS
-			refreshGifts(ctx, getSnapshot())
-		end)
-	end
-	ui.footer = bodyLabel("Play time counts all day, even if you rejoin. New gifts every day!", 13, {
-		LayoutOrder = 4,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = body,
-	})
-	ctx.refresh = refreshGifts
-	ctx.tick = function(c: Ctx)
-		refreshGifts(c, getSnapshot())
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Rebirth
--------------------------------------------------------------------------------------------------------------------------
-
-local KEEP_CARS_LINE = if Economy.REBIRTH_KEEP_CARS == 1
-	then "🚗 Your best car"
-	else `🚗 Your best {Economy.REBIRTH_KEEP_CARS} cars`
-
-local function refreshRebirth(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
-	local view = MenuController.rebirthView(currentCash(), currentRebirths())
-	local nowText = MenuController.formatMultiplier(view.multiplier)
-	local nextText = MenuController.formatMultiplier(view.nextMultiplier)
-	ui.mult.Text = `<font color="#{HEX_DIM}">{nowText}</font> → {nextText}`
-	ui.count.Text = `REBIRTHS: {view.rebirths}`
-	ui.cost.Text = "COST: " .. Format.cash(view.cost)
-	ui.setBar(view.fraction, true)
-	ui.barText.Text = `{Format.cash(view.cash)} / {Format.cash(view.cost)}`
-	local keptText = MenuController.keptCarsText(MenuController.keptCars(if snapshot then snapshot.garage else nil))
-	ui.keepCar.Text = KEEP_CARS_LINE .. (if keptText ~= "" then ` ({keptText})` else "")
-	local busy = MenuController.garageBusy(if snapshot then snapshot.garage else nil)
-	local now = os.clock()
-	if now < (ui.pendingUntil or 0) then
-		setButton(ui.button, "♻️ REBIRTHING...", REBIRTH_COLOR, false, true)
-	elseif not view.canAfford then
-		setButton(ui.button, `NEED {Format.cash(view.missing)} MORE`, REBIRTH_COLOR, false)
-		ui.confirmUntil = 0
-	elseif busy then
-		setButton(ui.button, "PARK YOUR CARS FIRST", REBIRTH_COLOR, false)
-		ui.confirmUntil = 0
-	elseif now < (ui.confirmUntil or 0) then
-		setButton(ui.button, "⚠️ TAP AGAIN TO CONFIRM", Theme.Colors.Danger, true)
-	else
-		setButton(ui.button, "♻️ REBIRTH", REBIRTH_COLOR, true)
-	end
-	setPulse(ui.button, view.canAfford and not busy and now >= (ui.pendingUntil or 0), Theme.Colors.Gold)
-	if ui.lastRebirths ~= nil and view.rebirths > ui.lastRebirths then
-		Kit.pop(ui.showcase, 1.08)
-		floatText(ui.showcase, "REBIRTHED!", Theme.Colors.Gold)
-		ui.pendingUntil = 0
-	end
-	ui.lastRebirths = view.rebirths
-end
-
-local function listCard(parent: Instance, title: string, color: Color3, lines: { string }, order: number): { TextLabel }
-	local c = card({ Name = "List" .. order, Size = UDim2.new(0.5, -5, 1, 0), LayoutOrder = order, Parent = parent })
-	Kit.label(title, 20, {
-		Position = UDim2.fromOffset(12, 6),
-		Size = UDim2.new(1, -24, 0, 26),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = color,
-		Parent = c,
-	})
-	local labels = {}
-	for i, line in lines do
-		table.insert(
-			labels,
-			bodyLabel(line, 14, {
-				Position = UDim2.fromOffset(14, 36 + (i - 1) * 22),
-				Size = UDim2.new(1, -24, 0, 20),
-				TextColor3 = Theme.Colors.Text,
-				TextWrapped = false,
-				TextTruncate = Enum.TextTruncate.AtEnd,
-				Parent = c,
+		table.insert(items, { separator = true, label = caption })
+		for _, it in list do
+			fetchPrice(it)
+			local block = MenuController.storeBlock(it, snap, wanted)
+			local price = priceCache[priceKey(it)]
+			table.insert(items, {
+				id = it.key,
+				label = it.name,
+				value = if block
+					then BLOCK_TEXT[block] or ""
+					elseif typeof(price) == "number" then `R$ {price}`
+					else "...",
+				disabled = block ~= nil,
+				data = { section = "store", item = it, block = block },
 			})
-		)
+		end
 	end
-	return labels
+	add(store.passes, "Game passes")
+	add(store.products, "Products")
+	tab.list:setItems(items, true)
+	redescribe(tab)
 end
 
-BUILDERS.Rebirth = function(ctx: Ctx)
-	local ui: any = {}
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 10)
-
-	local showcase = card({ Name = "Showcase", Size = UDim2.new(1, 0, 0, 108), LayoutOrder = 1, Parent = body })
-	ui.showcase = showcase
-	bodyLabel("INCOME MULTIPLIER", 14, {
-		Position = UDim2.fromOffset(0, 6),
-		Size = UDim2.new(1, 0, 0, 18),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = showcase,
-	})
-	ui.mult = Kit.label("x1 → x1.5", 50, {
-		Name = "Multiplier",
-		Position = UDim2.fromOffset(0, 22),
-		Size = UDim2.new(1, 0, 0, 56),
-		TextColor3 = Theme.Colors.Gold,
-		TextWrapped = false,
-		Parent = showcase,
-	})
-	-- perks are income + lock time only: rebirths never change spawn luck (world spawns are shared)
-	bodyLabel(
-		`💰 +{math.floor(Economy.REBIRTH_INCOME_BONUS * 100 + 0.5)}% income   •   🔒 +10s garage lock   (every rebirth)`,
-		13,
-		{
-			Position = UDim2.fromOffset(0, 82),
-			Size = UDim2.new(1, 0, 0, 18),
-			TextXAlignment = Enum.TextXAlignment.Center,
-			Parent = showcase,
-		}
-	)
-
-	local costCard = card({ Name = "Cost", Size = UDim2.new(1, 0, 0, 84), LayoutOrder = 2, Parent = body })
-	ui.cost = Kit.label("COST: $0", 24, {
-		Name = "CostText",
-		Position = UDim2.fromOffset(14, 6),
-		Size = UDim2.new(0.6, 0, 0, 30),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false,
-		Parent = costCard,
-	})
-	ui.count = Kit.label("REBIRTHS: 0", 18, {
-		Name = "Count",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 10),
-		Size = UDim2.new(0.4, -14, 0, 24),
-		TextXAlignment = Enum.TextXAlignment.Right,
-		TextColor3 = Theme.Colors.TextDim,
-		Parent = costCard,
-	})
-	local bar, setBar = Kit.progressBar(Theme.Colors.Cash, {
-		Name = "Bar",
-		Position = UDim2.fromOffset(14, 44),
-		Size = UDim2.new(1, -28, 0, 28),
-		Parent = costCard,
-	})
-	ui.setBar = setBar
-	ui.barText = Kit.label("", 17, { Name = "BarText", Size = UDim2.fromScale(1, 1), ZIndex = 3, Parent = bar })
-
-	local cols = Kit.new("Frame", {
-		Name = "KeepLose",
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 150),
-		LayoutOrder = 3,
-		Parent = body,
-	})
-	Kit.list(Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Top).Parent =
-		cols
-	local keep = listCard(cols, "✅ YOU KEEP", Theme.Colors.Cash, {
-		KEEP_CARS_LINE,
-		"🔧 All upgrades & tools",
-		"📖 Your Car Index",
-		"💎 Passes & Robux cars",
-		"♻️ Bigger income, forever",
-	}, 1)
-	ui.keepCar = keep[1]
-	-- RebirthService pays uncollected garage cash out first (it counts toward Total Earned), then cash resets
-	listCard(cols, "❌ YOU LOSE", Theme.Colors.Danger, {
-		`💵 Cash (resets to {Format.cash(Economy.STARTING_CASH)})`,
-		"💰 Garage cash (paid out, then reset)",
-		"🚗 Every other car",
-		"🅿️ Bought garage slots",
-		"💡 Spend it on upgrades first!",
-	}, 2)
-
-	local footer = Kit.new("Frame", {
-		Name = "Footer",
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 76),
-		LayoutOrder = 4,
-		Parent = body,
-	})
-	ui.button = Kit.button("♻️ REBIRTH", REBIRTH_COLOR, {
-		Name = "Rebirth",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(400, 66),
-		TextSize = 30,
-		Parent = footer,
-	})
-	onPress(ui.button, function()
-		local now = os.clock()
-		if now < (ui.confirmUntil or 0) then
-			ui.confirmUntil = 0
-			ui.pendingUntil = now + PENDING_SECONDS
-			Net.fire("Rebirth")
-		else
-			ui.confirmUntil = now + CONFIRM_WINDOW
-			shake(ui.button)
-			task.delay(CONFIRM_WINDOW + 0.05, function()
-				if ctx.open then
-					refreshRebirth(ctx, getSnapshot())
-				end
-			end)
-		end
-		refreshRebirth(ctx, getSnapshot())
-	end)
-	ctx.primary = ui.button
-	ctx.refresh = refreshRebirth
-	ctx.onClose = function(c: Ctx)
-		c.ui.confirmUntil = 0
+local function describeStore(tab: Tab, item: any)
+	local f = tab.detail :: Frame
+	local d = item.data or {}
+	local it = d.item
+	if not it then
+		dTitle(f, "Store")
+		dLine(f, "Passes and boosts arrive soon.", C.TextDim)
+		return
 	end
-	ctx.tick = function(c: Ctx)
-		-- re-enables the button when a refused rebirth's pending state times out
-		if (c.ui.pendingUntil or 0) > 0 and os.clock() >= c.ui.pendingUntil then
-			c.ui.pendingUntil = 0
-			refreshRebirth(c, getSnapshot())
-		end
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Codes
--------------------------------------------------------------------------------------------------------------------------
-
-BUILDERS.Codes = function(ctx: Ctx)
-	local ui: any = {}
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 14)
-	bodyLabel("🎟️ Got a code? Punch it in for free loot!", 18, {
-		LayoutOrder = 1,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextColor3 = Theme.Colors.Text,
-		Parent = body,
-	})
-	local box = Kit.new("TextBox", {
-		Name = "CodeBox",
-		BackgroundColor3 = Theme.Colors.Background,
-		BorderSizePixel = 0,
-		Size = UDim2.fromOffset(440, 62),
-		FontFace = Theme.Fonts.Display,
-		TextSize = 30,
-		Text = "",
-		PlaceholderText = "ENTER CODE",
-		PlaceholderColor3 = Theme.Colors.Disabled,
-		TextColor3 = WHITE,
-		ClearTextOnFocus = false,
-		LayoutOrder = 2,
-		Parent = body,
-	})
-	Kit.corner().Parent = box
-	Kit.stroke(Theme.Colors.Secondary, 3).Parent = box
-	ui.box = box
-	local button = Kit.button("REDEEM", Theme.Colors.Cash, {
-		Name = "Redeem",
-		Size = UDim2.fromOffset(240, 58),
-		TextSize = 28,
-		LayoutOrder = 3,
-		Parent = body,
-	})
-	ui.button = button
-	bodyLabel("New codes drop with updates and milestones. Follow the game so you never miss one!", 13, {
-		LayoutOrder = 4,
-		Size = UDim2.new(1, -40, 0, 36),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = body,
-	})
-	local function redeem()
-		if button:GetAttribute("Disabled") == true then
-			return
-		end
-		local text = string.gsub(box.Text, "%s+", "")
-		if text == "" or #text > 32 then
-			shake(box)
-			playSound("Click")
-			return
-		end
-		Net.fire("RedeemCode", text)
-		box.Text = ""
-		box:ReleaseFocus()
-		Kit.pop(button, 0.9)
-		setButton(button, "SENT!", Theme.Colors.Cash, false, true)
-		task.delay(1.5, function()
-			setButton(button, "REDEEM", Theme.Colors.Cash, true)
+	dTitle(f, it.name, if it.kind == "pass" then C.Gold else C.Text)
+	dLine(f, it.description, C.Text)
+	dGap(f, 6)
+	if d.block then
+		dLine(f, if d.block == "owned" then "You own this." else "Only while the police are after you.", C.TextDim)
+	else
+		dAction(f, "Enter", "Purchase", function()
+			tab.select(tab, item)
 		end)
 	end
-	onPress(button, redeem)
-	box.FocusLost:Connect(function(enterPressed: boolean)
-		if enterPressed then
-			redeem()
-		end
-	end)
-	ctx.primary = box
-	ctx.refresh = nil
+	dLine(f, "Robux purchases never sell power over other players.", C.TextDim, 12)
+end
+
+local function selectStore(_tab: Tab, item: any)
+	local d = item.data or {}
+	if not d.item then
+		return
+	end
+	if d.block then
+		playSound("Click")
+		return
+	end
+	promptPurchase(d.item)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Settings
+-- SETTINGS
 -------------------------------------------------------------------------------------------------------------------------
 
-type SettingRow = { key: string, icon: string, title: string, desc: string, color: Color3 }
-local SETTING_ROWS: { SettingRow } = {
-	{ key = "music", icon = "🎵", title = "MUSIC", desc = "City ambience and music", color = Theme.Colors.Primary },
-	{
-		key = "sfx",
-		icon = "🔊",
-		title = "SOUND FX",
-		desc = "Engines, sirens, cash and bonks",
-		color = Theme.Colors.Secondary,
-	},
+type SettingDef = { key: string, label: string, desc: string, server: boolean }
+
+local SETTING_DEFS: { SettingDef } = {
+	{ key = "music", label = "Music and radio", desc = "Car radio and background music.", server = true },
+	{ key = "sfx", label = "Sound effects", desc = "Engines, sirens, the city and the interface.", server = true },
 	{
 		key = "hideHud",
-		icon = "🎥",
-		title = "STREAMER MODE",
-		desc = "Hide the HUD for clean clips. Tap 👁️ to bring it back.",
-		color = Theme.Colors.Warning,
+		label = "Streamer mode",
+		desc = "Hides the HUD and other players' names for clean clips. Turn it off here, or on a touch screen with "
+			.. "the small HUD button in the top-left corner.",
+		server = true,
 	},
 	{
 		key = "autoAccelerate",
-		icon = "🚗",
-		title = "AUTO-DRIVE",
-		desc = "Cars speed up on their own. Great on mobile!",
-		color = Theme.Colors.Cash,
+		label = "Auto-accelerate",
+		desc = "Cars drive forward on their own; steer and brake only. Handy on touch screens.",
+		server = true,
+	},
+	{
+		key = "speedo",
+		label = "Speed readout",
+		desc = "Shows your speed in mph while driving (GTA has none; off by default).",
+		server = true,
 	},
 }
-
-local KNOB_ON = UDim2.new(1, -40, 0.5, 0)
-local KNOB_OFF = UDim2.new(0, 4, 0.5, 0)
-
-local function setSwitch(sw: any, on: boolean, animate: boolean)
-	local knobPos = if on then KNOB_ON else KNOB_OFF
-	local color = if on then Theme.Colors.Cash else Theme.Colors.Disabled
-	if animate then
-		TweenService:Create(sw.knob, Theme.TweenMedium, { Position = knobPos }):Play()
-		TweenService:Create(sw.track, Theme.TweenMedium, { BackgroundColor3 = color }):Play()
-	else
-		sw.knob.Position = knobPos
-		sw.track.BackgroundColor3 = color
-	end
-	sw.text.Text = if on then "ON" else "OFF"
-	sw.text.Position = if on then UDim2.fromOffset(12, 0) else UDim2.new(1, -46, 0, 0)
-	sw.on = on
-end
 
 local function applySettingLocally(key: string, value: boolean)
 	if key == "music" or key == "sfx" then
@@ -3139,354 +1891,456 @@ local function applySettingLocally(key: string, value: boolean)
 		if sounds and typeof(sounds.setEnabled) == "function" then
 			pcall(sounds.setEnabled, key, value)
 		end
+	elseif key == "speedo" then
+		player:SetAttribute("HC_ShowSpeedo", value)
 	end
 end
 
-local function refreshSettings(ctx: Ctx, snapshot: any)
-	local ui = ctx.ui
-	local settings = if snapshot then snapshot.settings else nil
+local function settingNow(def: SettingDef): boolean
+	if not def.server then
+		return (localPrefs :: any)[def.key] == true
+	end
+	local snap = getSnapshot()
 	local overrides: { [string]: boolean } = {}
 	for k, o in settingOverrides do
 		overrides[k] = o.value
 	end
-	for key, sw in ui.switches do
-		local value = MenuController.settingValue(settings, overrides, key)
-		if sw.on ~= value then
-			setSwitch(sw, value, sw.on ~= nil)
-		end
-	end
-	local stats: any = if snapshot and typeof(snapshot.stats) == "table" then snapshot.stats else {}
-	local function stat(k: string): string
-		return Format.short(num(stats[k], 0))
-	end
-	ui.stats.steals.Text = "🚗 Steals: " .. stat("steals")
-	ui.stats.playerSteals.Text = "🦹 Player steals: " .. stat("playerSteals")
-	ui.stats.hotDrops.Text = "📦 Hot Drops: " .. stat("hotDrops")
-	ui.stats.busted.Text = "🚓 Busted: " .. stat("busted")
-	ui.stats.timesRobbed.Text = "😱 Robbed: " .. stat("timesRobbed")
-	ui.stats.totalEarned.Text = "💰 Earned: " .. Format.cash(if snapshot then num(snapshot.totalEarned, 0) else 0)
+	return MenuController.settingValue(if snap then snap.settings else nil, overrides, def.key)
 end
 
-local function buildSettingRow(parent: Instance, row: SettingRow, order: number): any
-	local c = card({ Name = row.key, Size = UDim2.new(1, 0, 0, 74), LayoutOrder = order, Parent = parent })
-	iconTile(row.icon, row.color, 54, { Position = UDim2.fromOffset(12, 10), Parent = c })
-	Kit.label(row.title, 22, {
-		Position = UDim2.fromOffset(80, 8),
-		Size = UDim2.new(1, -200, 0, 28),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = c,
-	})
-	bodyLabel(row.desc, 13, {
-		Position = UDim2.fromOffset(80, 38),
-		Size = UDim2.new(1, -200, 0, 30),
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Parent = c,
-	})
-	local track = Kit.new("TextButton", {
-		Name = "Switch",
-		AutoButtonColor = false,
-		Text = "",
-		BackgroundColor3 = Theme.Colors.Disabled,
-		BorderSizePixel = 0,
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -14, 0.5, 0),
-		Size = UDim2.fromOffset(100, 46),
-		Parent = c,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = track
-	Kit.stroke().Parent = track
-	local text = Kit.label("OFF", 16, {
-		Name = "State",
-		Size = UDim2.new(0, 34, 1, 0),
-		Position = UDim2.new(1, -46, 0, 0),
-		TextWrapped = false,
-		Parent = track,
-	})
-	local knob = Kit.new("Frame", {
-		Name = "Knob",
-		BackgroundColor3 = WHITE,
-		BorderSizePixel = 0,
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = KNOB_OFF,
-		Size = UDim2.fromOffset(36, 36),
-		Parent = track,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = knob
-	Kit.stroke(Theme.Colors.Stroke, 2).Parent = knob
-	Kit.juice(track)
-	local sw = { track = track, knob = knob, text = text, on = nil :: boolean? }
-	onPress(track, function()
-		local value = not (sw.on == true)
-		settingOverrides[row.key] = { value = value, at = os.clock() }
-		setSwitch(sw, value, true)
-		applySettingLocally(row.key, value)
-		Net.fire("SetSetting", row.key, value)
-	end)
-	return sw
-end
-
-BUILDERS.Settings = function(ctx: Ctx)
-	local ui = { switches = {}, stats = {} }
-	ctx.ui = ui
-	local body = ctx.body
-	vlist(body, 10)
-	for i, row in SETTING_ROWS do
-		ui.switches[row.key] = buildSettingRow(body, row, i)
-	end
-	local statsCard = card({ Name = "Stats", Size = UDim2.new(1, 0, 0, 100), LayoutOrder = 10, Parent = body })
-	Kit.label("📊 YOUR STATS", 20, {
-		Position = UDim2.fromOffset(14, 6),
-		Size = UDim2.new(1, -28, 0, 24),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = statsCard,
-	})
-	local statGrid = Kit.new("Frame", {
-		Name = "Grid",
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(14, 34),
-		Size = UDim2.new(1, -28, 0, 60),
-		Parent = statsCard,
-	})
-	Kit.new("UIGridLayout", {
-		CellSize = UDim2.new(1 / 3, -6, 0, 26),
-		CellPadding = UDim2.fromOffset(8, 4),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		Parent = statGrid,
-	})
-	for i, key in { "steals", "playerSteals", "hotDrops", "busted", "timesRobbed", "totalEarned" } do
-		ui.stats[key] = bodyLabel("", 14, {
-			Name = key,
-			LayoutOrder = i,
-			TextColor3 = Theme.Colors.Text,
-			TextWrapped = false,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			Parent = statGrid,
+local function refreshSettings(tab: Tab)
+	local items = { { separator = true, label = "Game" } }
+	for _, def in SETTING_DEFS do
+		table.insert(items, {
+			id = def.key,
+			label = def.label,
+			options = { "Off", "On" },
+			optionIndex = if settingNow(def) then 2 else 1,
+			desc = def.desc,
+			data = { section = "settings", def = def },
 		})
 	end
-	ctx.refresh = refreshSettings
+	table.insert(items, { separator = true, label = "More" })
+	table.insert(items, { id = "codes", label = "Redeem a code", value = "PHONE", data = { section = "codes" } })
+	local tut = lazy("TutorialController")
+	if tut and typeof(tut.isActive) == "function" and tut.isActive() then
+		table.insert(items, { id = "skip", label = "Skip the tutorial", value = "", data = { section = "skip" } })
+	end
+	tab.list:setItems(items, true)
+	redescribe(tab)
+end
+
+local function setSetting(def: SettingDef, value: boolean)
+	if def.server then
+		settingOverrides[def.key] = { value = value, at = os.clock() }
+		Net.fire("SetSetting", def.key, value)
+	end
+	applySettingLocally(def.key, value)
+	playSound("Click")
+end
+
+local function describeSettings(tab: Tab, item: any)
+	local f = tab.detail :: Frame
+	local d = item.data or {}
+	if d.section == "settings" then
+		dTitle(f, d.def.label)
+		dLine(f, d.def.desc, C.TextDim)
+		dPair(f, "Now", if settingNow(d.def) then "ON" else "OFF", if settingNow(d.def) then C.Green else C.TextDim)
+		dLine(
+			f,
+			if Kit.isTouch() then "Tap the selected row to switch." else "Left / Right or Enter to switch.",
+			C.TextDim,
+			if Kit.isTouch() then 16 else 12
+		)
+	elseif d.section == "codes" then
+		dTitle(f, "Codes")
+		dLine(f, "Codes are redeemed in the Codes app on your phone.", C.TextDim)
+	elseif d.section == "skip" then
+		dTitle(f, "Skip the tutorial")
+		dLine(f, "You can always find help in the phone's Jobs app.", C.TextDim)
+	end
+end
+
+local function changeSettings(tab: Tab, item: any, index: number)
+	local d = item.data or {}
+	if d.section == "settings" then
+		setSetting(d.def, index == 2)
+		redescribe(tab, true)
+	end
+end
+
+local function selectSettings(tab: Tab, item: any)
+	local d = item.data or {}
+	if d.section == "settings" then
+		local now = settingNow(d.def)
+		item.optionIndex = if now then 1 else 2
+		setSetting(d.def, not now)
+		tab.list:setItems(tab.list.items, true)
+		redescribe(tab, true)
+	elseif d.section == "codes" then
+		MenuController.closePause()
+		local phone = lazy("PhoneController")
+		if phone and typeof(phone.openApp) == "function" then
+			pcall(phone.openApp, "codes")
+		end
+	elseif d.section == "skip" then
+		local tut = lazy("TutorialController")
+		if tut and typeof(tut.skip) == "function" then
+			pcall(tut.skip)
+		end
+		refreshSettings(tab)
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Window management
+-- Gear counter (list menu)
 -------------------------------------------------------------------------------------------------------------------------
 
-local function ensureGui(): ScreenGui
-	local existing = gui
-	if existing then
-		return existing
+local function refreshGear()
+	if not gear then
+		return
 	end
-	local g = Kit.screen("Menus", Theme.Layers.Menus)
-	g.IgnoreGuiInset = true -- full-bleed backdrop; windows are centered so the top bar never covers them
-	local b = Kit.new("TextButton", {
-		Name = "Backdrop",
-		AutoButtonColor = false,
-		Text = "",
-		BackgroundColor3 = Color3.fromRGB(6, 6, 18),
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		Size = UDim2.fromScale(1, 1),
-		Visible = false,
-		ZIndex = 0,
-		Parent = g,
-	})
-	b.Activated:Connect(function()
-		MenuController.close()
+	local snap = getSnapshot()
+	local cash = currentCash()
+	local items = { { separator = true, label = "Upgrades" } }
+	for _, row in MenuController.upgradeRows(snap, cash) do
+		local key = "up:" .. row.id
+		local value = if row.maxed then "MAX" elseif isPending(key) then "..." else Format.cash(row.price or 0)
+		table.insert(items, {
+			id = row.id,
+			label = `{row.name}  {row.level}/{row.maxLevel}`,
+			value = value,
+			disabled = row.maxed or not row.affordable,
+			desc = if row.maxed
+				then `{row.description} Maxed out: {row.currentText}.`
+				else `{row.description} {row.caption}: {row.currentText} -> {row.nextText}.`,
+			data = { kind = "upgrade", row = row },
+		})
+	end
+	table.insert(items, { separator = true, label = "Tools" })
+	for _, row in MenuController.toolRows(snap, cash) do
+		local key = "tool:" .. row.id
+		table.insert(items, {
+			id = row.id,
+			label = row.name,
+			value = if row.owned then "OWNED" elseif isPending(key) then "..." else Format.cash(row.price),
+			disabled = row.owned or not row.affordable,
+			desc = row.description,
+			data = { kind = "tool", row = row },
+		})
+	end
+	gear:setItems(items, true)
+	gear:setSubtitle("Gear  ·  " .. Format.cash(cash))
+end
+
+local function selectGear(item: any)
+	local d = item.data or {}
+	local row = d.row
+	if not row then
+		return
+	end
+	if d.kind == "upgrade" then
+		-- the row shows "..." while a buy is on its way: a second Enter / tap must not buy a second level
+		if row.maxed or isPending("up:" .. row.id) then
+			playSound("Click")
+			return
+		elseif not row.affordable then
+			toast("warning", "Not enough cash for " .. row.name .. ".")
+			return
+		end
+		Net.fire("BuyUpgrade", row.id)
+		markPending("up:" .. row.id)
+	elseif d.kind == "tool" then
+		if row.owned or isPending("tool:" .. row.id) then
+			playSound("Click")
+			return
+		elseif not row.affordable then
+			toast("warning", "Not enough cash for " .. row.name .. ".")
+			return
+		end
+		Net.fire("BuyTool", row.id)
+		markPending("tool:" .. row.id)
+	end
+	playSound("ClickBright")
+	refreshGear()
+end
+
+local function ensureGear(): any
+	if gear then
+		return gear
+	end
+	gear = ListMenu.new({ title = "Gear Shop", banner = "gear", subtitle = "Gear" })
+	gear.Selected:Connect(selectGear)
+	gear.Closed:Connect(function()
+		suspendShoulderCamera("gear", false)
+		if current == "GearShop" then
+			current = nil
+			MenuController.Closed:Fire("GearShop")
+		end
 	end)
-	gui = g
-	backdrop = b
-	return g
+	return gear
 end
 
-local function ensurePage(name: string): Ctx?
-	local existing = pages[name]
-	if existing then
-		return existing
+-------------------------------------------------------------------------------------------------------------------------
+-- Pause menu
+-------------------------------------------------------------------------------------------------------------------------
+
+local TAB_IMPL: {
+	[string]: {
+		subtitle: string,
+		refresh: (Tab) -> (),
+		describe: (Tab, any) -> (),
+		select: ((Tab, any) -> ())?,
+		change: ((Tab, any, number) -> ())?,
+		sig: ((Tab, any) -> string)?,
+	},
+} =
+	{
+		JOBS = { subtitle = "Jobs", refresh = refreshJobs, describe = describeJobs, select = selectJobs, sig = sigJobs },
+		GARAGE = { subtitle = "Car collection", refresh = refreshGarage, describe = describeGarage },
+		STATS = {
+			subtitle = "Stats",
+			refresh = refreshStats,
+			describe = describeStats,
+			select = selectStats,
+			sig = sigStats,
+		},
+		STORE = { subtitle = "Store", refresh = refreshStore, describe = describeStore, select = selectStore },
+		SETTINGS = {
+			subtitle = "Settings",
+			refresh = refreshSettings,
+			describe = describeSettings,
+			select = selectSettings,
+			change = changeSettings,
+		},
+	}
+
+local function commaCash(n: number): string
+	return "$" .. Format.commas(n)
+end
+
+local function pauseInfo()
+	if not pause then
+		return
 	end
-	local def = PAGE_DEFS[name]
-	local builder = BUILDERS[name]
-	if not def or not builder then
+	local clock = Lighting.ClockTime
+	local h = math.floor(clock)
+	local m = math.floor((clock - h) * 60)
+	local day = os.date("!%A", math.floor(serverNow()))
+	pause:setInfo(
+		player.DisplayName,
+		`{string.upper(string.sub(day, 1, 3))} {string.format("%02d:%02d", h, m)}`,
+		commaCash(currentCash())
+	)
+end
+
+local NAV_ACTION = "HC_PauseNav"
+
+local function activeTab(): Tab?
+	if not (pause and pause:isOpen()) then
 		return nil
 	end
-	local g = ensureGui()
-	local win, body, kitClose = Kit.window(g, def.title, def.accent, UDim2.fromOffset(def.size.X, def.size.Y))
-	win.Name = name
-	win.Active = true -- swallow clicks so they never reach the backdrop
-	win.ZIndex = 2
-	-- Replace Kit's close button: its built-in handler hides the window behind our back (races a quick reopen).
-	kitClose:Destroy()
-	local header = win:FindFirstChild("Header") :: Frame?
-	local close = Kit.button("X", Theme.Colors.Danger, {
-		Name = "Close",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -10, 0.5, 0),
-		Size = UDim2.fromOffset(46, 46),
-		TextSize = 26,
-		ZIndex = 3,
-		Parent = header or win,
-	})
-	if header then
-		-- glossy highlight across the top half of the header
-		local shine = Kit.new("Frame", {
-			Name = "Shine",
-			BackgroundColor3 = WHITE,
-			BackgroundTransparency = 0.82,
-			BorderSizePixel = 0,
-			Position = UDim2.fromOffset(8, 4),
-			Size = UDim2.new(1, -16, 0.38, 0),
-			ZIndex = 1,
-			Parent = header,
-		})
-		Kit.corner(Theme.CornerSmall).Parent = shine
-	end
-	body.VerticalScrollBarInset = Enum.ScrollBarInset.Always
-	body.ScrollBarImageColor3 = def.accent
-	local ctx: Ctx = {
-		name = name,
-		size = def.size,
-		win = win,
-		body = body,
-		closeButton = close,
-		open = false,
-		openToken = 0,
-		session = Trove.new(),
-		ui = {},
-		primary = nil,
-		refresh = nil,
-		tick = nil,
-		onOpen = nil,
-		onClose = nil,
-	}
-	onPress(close, function()
-		MenuController.close(name)
-	end)
-	builder(ctx)
-	pages[name] = ctx
-	return ctx
+	return tabs[pause:getTab()]
 end
 
-local function refreshCtx(ctx: Ctx)
-	local fn = ctx.refresh
-	if fn then
-		local ok, err = pcall(fn, ctx, getSnapshot())
-		if not ok then
-			warn(("[MenuController] refresh %s failed: %s"):format(ctx.name, tostring(err)))
+local function bindNav()
+	ContextActionService:BindActionAtPriority(
+		NAV_ACTION,
+		function(_, state: Enum.UserInputState, input: InputObject)
+			if state ~= Enum.UserInputState.Begin then
+				return Enum.ContextActionResult.Pass
+			end
+			local tab = activeTab()
+			local list = tab and tab.list
+			if not list then
+				return Enum.ContextActionResult.Pass
+			end
+			local k = input.KeyCode
+			if k == Enum.KeyCode.Up or k == Enum.KeyCode.DPadUp then
+				list:move(-1)
+			elseif k == Enum.KeyCode.Down or k == Enum.KeyCode.DPadDown then
+				list:move(1)
+			elseif k == Enum.KeyCode.Left or k == Enum.KeyCode.DPadLeft then
+				list:change(-1)
+			elseif k == Enum.KeyCode.Right or k == Enum.KeyCode.DPadRight then
+				list:change(1)
+			elseif k == Enum.KeyCode.Return or k == Enum.KeyCode.KeypadEnter or k == Enum.KeyCode.ButtonA then
+				list:activate()
+			elseif k == Enum.KeyCode.X or k == Enum.KeyCode.ButtonX then
+				if tab and tab.id == "JOBS" then
+					local item = list:getSelected()
+					local d = item and item.data
+					local snap = getSnapshot()
+					if
+						d
+						and d.section == "contracts"
+						and MenuController.canSwapContract(if snap then snap.contracts else nil, d.row, SWAP_AVAILABLE)
+					then
+						Net.fire(SWAP_REMOTE, d.row.id)
+						playSound("Click")
+					end
+				end
+			else
+				return Enum.ContextActionResult.Pass
+			end
+			return Enum.ContextActionResult.Sink
+		end,
+		false,
+		Enum.ContextActionPriority.High.Value + 29,
+		Enum.KeyCode.Up,
+		Enum.KeyCode.Down,
+		Enum.KeyCode.Left,
+		Enum.KeyCode.Right,
+		Enum.KeyCode.Return,
+		Enum.KeyCode.KeypadEnter,
+		Enum.KeyCode.X,
+		Enum.KeyCode.DPadUp,
+		Enum.KeyCode.DPadDown,
+		Enum.KeyCode.DPadLeft,
+		Enum.KeyCode.DPadRight,
+		Enum.KeyCode.ButtonA,
+		Enum.KeyCode.ButtonX
+	)
+end
+
+local function onTab(id: string)
+	local map = lazy("MapScreenController")
+	if id == "MAP" then
+		pause:setTransparent(true)
+		pause:setFooter({ { key = "Q", label = "Prev" }, { key = "E", label = "Next" } })
+		if map and typeof(map.show) == "function" then
+			pcall(map.show)
+		end
+	else
+		pause:setTransparent(false)
+		if map and typeof(map.hide) == "function" then
+			pcall(map.hide)
+		end
+		pause:setFooter({
+			{ key = "Enter", label = "Select" },
+			{ key = "Q", label = "Prev" },
+			{ key = "E", label = "Next" },
+		})
+		local tab = tabs[id]
+		if tab and tab.refresh then
+			tab.refresh(tab)
+			if tab.focus then
+				focusSection(tab, tab.focus)
+				tab.focus = nil
+			end
+			redescribe(tab)
 		end
 	end
+	playSound("Click")
 end
 
-local function queueRefresh()
+local function ensurePause(): any
+	if pause then
+		return pause
+	end
+	pause = PauseMenu.new({ tabs = MenuController.PAUSE_TABS })
+	for id, impl in TAB_IMPL do
+		local tab: Tab = {
+			id = id,
+			refresh = impl.refresh,
+			describe = impl.describe,
+			select = impl.select,
+			change = impl.change,
+			sig = impl.sig,
+		}
+		twoPane(tab, pause:content(id), impl.subtitle)
+		tabs[id] = tab
+	end
+	pause.TabChanged:Connect(onTab)
+	pause.Closed:Connect(function()
+		ContextActionService:UnbindAction(NAV_ACTION)
+		local map = lazy("MapScreenController")
+		if map and typeof(map.hide) == "function" then
+			pcall(map.hide)
+		end
+		local was = current
+		if was and MenuController.ROUTES[was] and MenuController.ROUTES[was].kind == "pause" then
+			current = nil
+			MenuController.Closed:Fire(was)
+		end
+		suspendShoulderCamera("pause", false)
+		MenuController.PauseChanged:Fire(false)
+	end)
+	return pause
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Public API
+-------------------------------------------------------------------------------------------------------------------------
+
+MenuController.PauseChanged = Signal.new() -- (open: boolean)
+
+-- Open the pause menu on a tab ("MAP", "JOBS", "GARAGE", "STATS", "STORE", "SETTINGS").
+function MenuController.openPause(tabId: string?, focus: string?)
+	local p = ensurePause()
+	local id = if typeof(tabId) == "string" and tabs[tabId] ~= nil or tabId == "MAP" then tabId else nil
+	if gear and gear:isOpen() then
+		gear:close()
+	end
+	local phone = lazy("PhoneController")
+	if phone and typeof(phone.close) == "function" then
+		pcall(phone.close)
+	end
+	if id and focus and tabs[id] then
+		tabs[id].focus = focus
+	end
+	local wasOpen = p:isOpen()
+	pauseInfo()
+	p:open(id)
+	if not wasOpen then
+		bindNav()
+		playSound("Whoosh")
+		suspendShoulderCamera("pause", true)
+		MenuController.PauseChanged:Fire(true)
+	end
+end
+
+function MenuController.closePause()
+	if pause and pause:isOpen() then
+		pause:close()
+	end
+end
+
+function MenuController.isPauseOpen(): boolean
+	return pause ~= nil and pause:isOpen()
+end
+
+function MenuController.togglePause(tabId: string?)
+	if MenuController.isPauseOpen() and (tabId == nil or pause:getTab() == tabId) then
+		MenuController.closePause()
+	else
+		MenuController.openPause(tabId)
+	end
+end
+
+-- Re-render whatever is open (snapshot / cash changes, purchases).
+function MenuController.refresh()
 	if refreshQueued then
 		return
 	end
 	refreshQueued = true
 	task.defer(function()
 		refreshQueued = false
-		local name = current
-		local ctx = if name then pages[name] else nil
-		if ctx and ctx.open then
-			refreshCtx(ctx)
-		end
-	end)
-end
-
-local function showBackdrop(on: boolean)
-	local b = backdrop
-	if not b then
-		return
-	end
-	if on then
-		b.Visible = true
-		TweenService:Create(b, Theme.TweenMedium, { BackgroundTransparency = BACKDROP_TRANSPARENCY }):Play()
-	else
-		local tween = TweenService:Create(b, Theme.TweenFast, { BackgroundTransparency = 1 })
-		tween.Completed:Once(function()
-			if current == nil then
-				b.Visible = false
+		local tab = activeTab()
+		if tab and tab.refresh then
+			local ok, err = pcall(tab.refresh :: any, tab)
+			if not ok then
+				warn("[MenuController] refresh failed: " .. tostring(err))
 			end
-		end)
-		tween:Play()
-	end
-end
-
-local function isGamepadInput(): boolean
-	local ok, last = pcall(function()
-		return UserInputService:GetLastInputType()
-	end)
-	return ok and typeof(last) == "EnumItem" and string.find(last.Name, "Gamepad", 1, true) ~= nil
-end
-
--- Target UIScale of a window for the current screen (see MenuController.windowScale).
-local function fitScale(ctx: Ctx): number
-	local cam = Workspace.CurrentCamera
-	local g = gui
-	local screenScale = if g then g:FindFirstChildOfClass("UIScale") else nil
-	if not cam or not screenScale then
-		return 1
-	end
-	return MenuController.windowScale(cam.ViewportSize, screenScale.Scale, ctx.size)
-end
-
-local function showWindow(ctx: Ctx)
-	local win = ctx.win
-	ctx.openToken += 1
-	win.Visible = true
-	local scale = win:FindFirstChildOfClass("UIScale")
-	if scale then
-		local target = fitScale(ctx)
-		scale.Scale = target * 0.6
-		TweenService:Create(scale, Theme.TweenPop, { Scale = target }):Play()
-	end
-	win.Position = UDim2.fromScale(0.5, 0.56)
-	TweenService:Create(win, Theme.TweenMedium, { Position = UDim2.fromScale(0.5, 0.52) }):Play()
-end
-
-local function hideWindow(ctx: Ctx, instant: boolean)
-	local win = ctx.win
-	local scale = win:FindFirstChildOfClass("UIScale")
-	if instant or not scale then
-		win.Visible = false
-		return
-	end
-	local token = ctx.openToken
-	local tween = TweenService:Create(scale, Theme.TweenFast, { Scale = scale.Scale * 0.6 })
-	tween.Completed:Once(function()
-		if ctx.open or ctx.openToken ~= token then
-			return -- reopened while closing
 		end
-		win.Visible = false
-	end)
-	tween:Play()
-end
-
-local function deactivate(ctx: Ctx, instant: boolean)
-	if not ctx.open then
-		return
-	end
-	ctx.open = false
-	ctx.session:Clean()
-	for target in pulses do
-		if target:IsDescendantOf(ctx.win) then
-			setPulse(target :: GuiObject, false)
+		if gear and gear:isOpen() then
+			refreshGear()
 		end
-	end
-	if ctx.onClose then
-		pcall(ctx.onClose :: any, ctx)
-	end
-	hideWindow(ctx, instant)
-	local ok, selected = pcall(function()
-		return GuiService.SelectedObject
+		if pause and pause:isOpen() then
+			pauseInfo()
+		end
 	end)
-	if ok and typeof(selected) == "Instance" and selected:IsDescendantOf(ctx.win) then
-		pcall(function()
-			GuiService.SelectedObject = nil
-		end)
-	end
-	MenuController.Closed:Fire(ctx.name)
 end
-
--------------------------------------------------------------------------------------------------------------------------
--- Public API
--------------------------------------------------------------------------------------------------------------------------
 
 function MenuController.has(name: string): boolean
 	return MenuController.resolveName(name) ~= nil
@@ -3506,64 +2360,54 @@ function MenuController.open(name: string): boolean
 	if not canon then
 		return false
 	end
-	local ok, result = pcall(ensurePage, canon)
-	if not ok then
-		warn(("[MenuController] could not build %s: %s"):format(canon, tostring(result)))
+	local route = MenuController.ROUTES[canon]
+	if not route or not started then
 		return false
-	end
-	local ctx = result :: Ctx?
-	if not ctx then
-		return false
-	end
-	if current == canon and ctx.open then
-		local scale = ctx.win:FindFirstChildOfClass("UIScale")
-		if scale then
-			local target = fitScale(ctx)
-			scale.Scale = target * 1.04
-			TweenService:Create(scale, Theme.TweenPop, { Scale = target }):Play()
-		end
-		return true
 	end
 	local prev = current
-	if prev then
-		local prevCtx = pages[prev]
-		current = nil
-		if prevCtx then
-			deactivate(prevCtx, true)
-		end
+	if prev and prev ~= canon then
+		MenuController.close(prev)
 	end
 	current = canon
-	ctx.open = true
-	ctx.session:Clean()
-	showBackdrop(true)
-	showWindow(ctx)
-	if ctx.onOpen then
-		local okOpen, err = pcall(ctx.onOpen :: any, ctx)
-		if not okOpen then
-			warn(("[MenuController] onOpen %s failed: %s"):format(canon, tostring(err)))
+	if route.kind == "list" then
+		local g = ensureGear()
+		MenuController.closePause()
+		refreshGear()
+		g:open()
+		suspendShoulderCamera("gear", true)
+		current = canon
+	elseif route.kind == "pause" then
+		MenuController.openPause(route.tab, route.focus)
+		current = canon
+	elseif route.kind == "phone" then
+		MenuController.closePause()
+		local phone = lazy("PhoneController")
+		if phone and typeof(phone.openApp) == "function" then
+			pcall(phone.openApp, route.app)
 		end
-	end
-	refreshCtx(ctx)
-	if isGamepadInput() then
-		pcall(function()
-			GuiService.SelectedObject = ctx.primary or ctx.closeButton
-		end)
 	end
 	MenuController.Opened:Fire(canon)
 	return true
 end
 
 function MenuController.close(name: string?): boolean
-	local canon = if name == nil then current else MenuController.resolveName(name)
-	if canon == nil or current ~= canon then
+	local target = if name ~= nil then MenuController.resolveName(name) else current
+	if target == nil or current ~= target then
 		return false
 	end
+	local route = MenuController.ROUTES[target]
 	current = nil
-	local ctx = pages[canon]
-	if ctx then
-		deactivate(ctx, false)
+	if route and route.kind == "list" and gear then
+		gear:close()
+	elseif route and route.kind == "pause" then
+		MenuController.closePause()
+	elseif route and route.kind == "phone" then
+		local phone = lazy("PhoneController")
+		if phone and typeof(phone.close) == "function" then
+			pcall(phone.close)
+		end
 	end
-	showBackdrop(false)
+	MenuController.Closed:Fire(target)
 	return true
 end
 
@@ -3579,7 +2423,13 @@ function MenuController.toggle(name: string): boolean
 end
 
 function MenuController.closeAll()
-	MenuController.close()
+	if current then
+		MenuController.close(current)
+	end
+	MenuController.closePause()
+	if gear then
+		gear:close()
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -3603,7 +2453,16 @@ local function onSnapshot(snapshot: any)
 			settingOverrides[key] = nil
 		end
 	end
-	queueRefresh()
+	-- the saved speed readout setting (VehicleClient reads the local attribute)
+	local overrides: { [string]: boolean } = {}
+	for k, o in settingOverrides do
+		overrides[k] = o.value
+	end
+	local speedo = MenuController.settingValue(settings, overrides, "speedo")
+	if player:GetAttribute("HC_ShowSpeedo") ~= speedo then
+		player:SetAttribute("HC_ShowSpeedo", speedo)
+	end
+	MenuController.refresh()
 end
 
 function MenuController.init() end
@@ -3613,37 +2472,40 @@ function MenuController.start()
 		return
 	end
 	started = true
-	ensureGui()
+	ListMenu.tick = function()
+		playSound("Click")
+	end
+	player:SetAttribute("HC_ShowSpeedo", DEFAULT_SETTINGS.speedo)
 
 	StateController.Changed:Connect(onSnapshot)
 	local existing = StateController.get()
 	if existing then
 		onSnapshot(existing)
 	end
-	-- Wanted: the Store's "Lose the Cops" button is only enabled while you have stars
 	for _, attr in { "Cash", "IncomePerSec", "Rebirths", "Wanted" } do
-		player:GetAttributeChangedSignal(attr):Connect(queueRefresh)
+		player:GetAttributeChangedSignal(attr):Connect(MenuController.refresh)
 	end
 
+	-- P: pause menu (last tab); M is the map (MapScreenController). Esc belongs to Roblox, and so does the gamepad's
+	-- Start (it opens Roblox's menu and arrives here as gameProcessed): gamepads use Back / View (ButtonSelect). That
+	-- button also toggles Roblox's gamepad GUI selection, so that is switched off: our menus drive themselves with the
+	-- D-pad / A / B (ContextActionService).
+	pcall(function()
+		GuiService.AutoSelectGuiEnabled = false
+	end)
 	UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
-		if current == nil then
+		if gameProcessed then
 			return
 		end
-		local key = input.KeyCode
-		-- Backspace = keyboard "back" (Esc is mostly eaten by the Roblox menu); never while typing in the Codes box
-		local back = key == Enum.KeyCode.Escape
-			or key == Enum.KeyCode.ButtonB
-			or (key == Enum.KeyCode.Backspace and not gameProcessed)
-		if back then
-			MenuController.close()
+		local k = input.KeyCode
+		if k == Enum.KeyCode.P or k == Enum.KeyCode.ButtonSelect or k == Enum.KeyCode.ButtonStart then
+			MenuController.togglePause(nil)
 		end
 	end)
-	-- Esc / Android back open the Roblox menu instead of reaching InputBegan: close ours so it isn't left behind it
+	-- Esc / Android back open the Roblox menu: close ours so nothing is left behind it
 	pcall(function()
 		GuiService.MenuOpened:Connect(function()
-			if current ~= nil then
-				MenuController.close()
-			end
+			MenuController.closeAll()
 		end)
 	end)
 
@@ -3664,23 +2526,24 @@ function MenuController.start()
 		end
 	end)
 
-	-- 1 Hz ticker for countdowns (daily reset, contracts reset, playtime gifts).
+	-- 1 Hz: countdowns (daily reset, gifts), the pause clock; the garage preview turntable spins per frame
+	RunService.RenderStepped:Connect(function(dt: number)
+		local model = preview.model
+		local cam = preview.camera
+		local view = preview.view
+		if model and cam and view and view.Parent and model.Parent == view then
+			preview.yaw = (preview.yaw + SPIN_SPEED * dt) % 360
+			local cf, size = model:GetBoundingBox()
+			cam.CFrame = MenuController.cameraCFrame(cf.Position, size, VIEW_FOV, preview.yaw, CARD_PITCH)
+		end
+	end)
 	while true do
 		task.wait(1)
-		local name = current
-		local ctx = if name then pages[name] else nil
-		local scale = if ctx and ctx.open then ctx.win:FindFirstChildOfClass("UIScale") else nil
-		if ctx and scale then
-			local target = fitScale(ctx)
-			if math.abs(scale.Scale - target) > 0.02 then
-				TweenService:Create(scale, Theme.TweenMedium, { Scale = target }):Play()
-			end
-		end
-		if ctx and ctx.open and ctx.tick then
-			local ok, err = pcall(ctx.tick :: any, ctx)
-			if not ok then
-				warn(("[MenuController] tick %s failed: %s"):format(ctx.name, tostring(err)))
-			end
+		local tab = activeTab()
+		if tab and (tab.id == "JOBS" or tab.id == "STATS") then
+			MenuController.refresh()
+		elseif pause and pause:isOpen() then
+			pauseInfo()
 		end
 	end
 end

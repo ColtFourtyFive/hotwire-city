@@ -1,0 +1,130 @@
+{
+ "errors": [
+  "Technology: The current thread cannot read 'Technology' (lacking capability RobloxScript)"
+ ],
+ "file": {
+  "atmosphereDensity": 0.1599999964237213,
+  "lightingAttributes": [],
+  "lightingStyle": "Enum.LightingStyle.Realistic",
+  "materialVariants": 22,
+  "moonAngularSize": 0,
+  "overrides": {
+   "Asphalt": "HC_Asphalt",
+   "Brick": "HC_BrickRed",
+   "ClayRoofTiles": "HC_RoofTiles",
+   "Concrete": "HC_Concrete",
+   "CorrodedMetal": "HC_RustyMetal",
+   "Grass": "HC_Grass",
+   "Ground": "HC_DryGrass",
+   "LeafyGrass": "HC_GrassLeafy",
+   "Marble": "HC_Terrazzo",
+   "Pavement": "HC_Sidewalk",
+   "Pebble": "HC_GravelRoof",
+   "Plaster": "HC_Stucco",
+   "Rock": "HC_Rock",
+   "Sand": "HC_Sand",
+   "Slate": "HC_RockSlate",
+   "WoodPlanks": "HC_WoodPlanks"
+  },
+  "overridesActive": 16,
+  "overridesWanted": 16,
+  "placeVersion": 31,
+  "prioritizeLightingQuality": true
+ },
+ "lightingStyleAtEnd": "Enum.LightingStyle.Realistic",
+ "look": {
+  "12": {
+   "brightness": 3,
+   "clock": 12,
+   "density": 0.1599999964237213,
+   "exposure": 0,
+   "haze": 0.800000011920929,
+   "moon": 0,
+   "outdoorAmbient": [
+    120,
+    124,
+    132
+   ],
+   "saturation": 0.019999999552965164,
+   "sky": "day",
+   "sunElevation": 79.49911986979565,
+   "tint": [
+    255,
+    252,
+    246
+   ]
+  },
+  "17.6": {
+   "brightness": 2.783704996109009,
+   "clock": 17.598888397216797,
+   "density": 0.17729631066322327,
+   "exposure": 0.12432670593261719,
+   "haze": 0.800000011920929,
+   "moon": 0,
+   "outdoorAmbient": [
+    120,
+    115,
+    113
+   ],
+   "saturation": -0.008111060597002506,
+   "sky": "day",
+   "sunElevation": 5.915510175744395,
+   "tint": [
+    252,
+    249,
+    244
+   ]
+  },
+  "22.5": {
+   "brightness": 1.2000000476837158,
+   "clock": 18.200000762939453,
+   "density": 0.11999999731779099,
+   "exposure": 0.800000011920929,
+   "haze": 0.3499999940395355,
+   "moon": 1.5,
+   "outdoorAmbient": [
+    60,
+    70,
+    92
+   ],
+   "saturation": -0.20000000298023224,
+   "sky": "night",
+   "sunElevation": -2.9497114968859255,
+   "tint": [
+    212,
+    226,
+    255
+   ]
+  }
+ },
+ "probe": {
+  "date": "2026-10-27",
+  "task": "universes/10773288390/places/106226892419530/versions/31/luau-execution-sessions/6d105a61-fc48-48ee-acd5-a344caf028cc/tasks/6d105a61-fc48-48ee-acd5-a344caf028cc",
+  "tool": "tools/look/probe_place.py"
+ },
+ "runtime": {
+  "attribute": 16,
+  "moonZeroAccepted": 0,
+  "overrides": {
+   "Asphalt": "HC_Asphalt",
+   "Brick": "HC_BrickRed",
+   "ClayRoofTiles": "HC_RoofTiles",
+   "Concrete": "HC_Concrete",
+   "CorrodedMetal": "HC_RustyMetal",
+   "Grass": "HC_Grass",
+   "Ground": "HC_DryGrass",
+   "LeafyGrass": "HC_GrassLeafy",
+   "Marble": "HC_Terrazzo",
+   "Pavement": "HC_Sidewalk",
+   "Pebble": "HC_GravelRoof",
+   "Plaster": "HC_Stucco",
+   "Rock": "HC_Rock",
+   "Sand": "HC_Sand",
+   "Slate": "HC_RockSlate",
+   "WoodPlanks": "HC_WoodPlanks"
+  },
+  "overridesActive": 16,
+  "overridesAfterInit": 16,
+  "summary": "[MaterialOverrides] probe: 16 active (0 set, 16 already)"
+ }
+}

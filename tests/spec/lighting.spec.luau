@@ -4,7 +4,7 @@
 -- TimeOfDay attributes (held at night, one jump, EngineClockOverride), sky face swaps + per-sky stars / discs /
 -- clouds, rate-limited yaw, the parked night glow, TimeOfDayLock / AtmosphereOffsetOverride / CloudsOverride, dim lit
 -- windows (LitWindow + v1 glass NightGlow; facade-sized parts never Neon), terrain water + material colours, wet
--- streets, and the v1 contract.
+-- streets, the v1 contract, the runtime base-material overrides (job 0009), the job 0011 sweep overrides and the moon.
 return function(t)
 	local H = t.H
 	local fs = require("@lune/fs")
@@ -138,6 +138,102 @@ return function(t)
 		L.setClockTime(12)
 		t.eq(fresh.SkyboxFt, Look.Skies.day.faces.Ft, "faces written to the replacement (write cache reset)")
 		t.eq(count("Sky"), 1)
+	end)
+
+	t.test("init: base-material overrides applied on the server (job 0009), idempotent, failures summarised", function()
+		local MS = H.game:GetService("MaterialService")
+		local MO = H.require("src/shared/Util/MaterialOverrides")
+		-- the real engine of job 0009: the file's <Material>Name properties are not honoured -> stock names
+		table.clear(H.materialOverrides)
+		t.eq(MS:GetBaseMaterialOverride(Enum.Material.Asphalt), "Asphalt", "stock name before init")
+		L.init()
+		local n = 0
+		for base, variant in Look.Overrides do
+			n += 1
+			t.eq(MS:GetBaseMaterialOverride(Enum.Material[base]), variant, "server override " .. base)
+		end
+		t.ok(n >= 16, "every override: " .. n)
+		t.eq(MS:GetAttribute(MO.ATTRIBUTE), n, "MaterialService HCOverridesActive")
+		t.eq(MO.countActive(), n)
+		-- idempotent: re-init writes nothing
+		local writes = 0
+		local realSet = MO._set
+		MO._set = function(mat, name)
+			writes += 1
+			realSet(mat, name)
+		end
+		L.init()
+		t.eq(writes, 0, "already-active overrides are not set again")
+		local r = MO.apply("server")
+		t.eq(#r.already, n)
+		MO._set = realSet
+		-- an engine error is caught and reported, never thrown; a missing variant is not pointed at
+		table.clear(H.materialOverrides)
+		H.materialOverrideError = "boom"
+		local okInit = pcall(L.init)
+		H.materialOverrideError = nil
+		t.ok(okInit, "init survives SetBaseMaterialOverride errors")
+		local r2 = MO.apply("server", { Asphalt = "HC_Asphalt", Brick = "HC_Missing", Bogus = "HC_Sand" }, true)
+		t.eq(#r2.set, 1, "Asphalt set")
+		t.eq(#r2.missing, 1, "the missing variant is listed")
+		t.eq(r2.pending.HC_Missing, "Brick")
+		t.eq(#r2.failed, 1, "a bad base material fails cleanly")
+		t.ok(r2.failed[1]:find("Bogus", 1, true) ~= nil, "failure names the material")
+		t.eq(MS:GetBaseMaterialOverride(Enum.Material.Brick), "Brick", "Brick not pointed at a missing variant")
+		t.ok(MO.summary("server", r2):find("missing variant: Brick -> HC_Missing", 1, true) ~= nil, "summary")
+		L.init() -- back to all active
+		t.eq(MO.countActive(), n)
+	end)
+
+	t.test("sweep overrides (job 0011): Workspace attributes replace look values live, cleared = the look", function()
+		L.setClockTime(12)
+		local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+		local cc = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
+		t.near(atmo.Density, Look.AtmosphereDensity.day, 0.005, "day Density from Look.AtmosphereDensity")
+		Workspace:SetAttribute("AtmosphereDensityOverride", 0.27)
+		Workspace:SetAttribute("ExposureOverride", 1.5)
+		Workspace:SetAttribute("TintOverride", Color3.fromRGB(200, 220, 255))
+		Workspace:SetAttribute("BrightnessOverride", 2)
+		Workspace:SetAttribute("SaturationOverride", -0.25)
+		Workspace:SetAttribute("OutdoorAmbientOverride", Color3.fromRGB(90, 100, 120))
+		Workspace:SetAttribute("AtmosphereHazeOverride", 0.5)
+		L.setClockTime(12)
+		t.near(atmo.Density, 0.27, 1e-6, "density override")
+		t.near(atmo.Haze, 0.5, 1e-6, "haze override")
+		t.near(Lighting.ExposureCompensation, 1.5, 1e-6, "exposure override")
+		t.near(Lighting.Brightness, 2, 1e-6, "brightness override")
+		t.near(cc.Saturation, -0.25, 1e-6, "saturation override")
+		t.near(cc.TintColor.R * 255, 200, 1, "tint override")
+		t.near(Lighting.OutdoorAmbient.G * 255, 100, 1, "outdoor ambient override")
+		for name in L.OVERRIDE_ATTRIBUTES do
+			Workspace:SetAttribute(name, nil)
+		end
+		L.setClockTime(12)
+		t.near(atmo.Density, Look.Presets.day.atmosphere.density, 0.005, "back to the preset")
+		t.near(Lighting.ExposureCompensation, Look.Presets.day.exposure, 0.011)
+		t.near(cc.TintColor.B * 255, Look.Presets.day.colorCorrection.tint[3], 1.6)
+	end)
+
+	t.test("moon: hidden while the engine sun is up, small at twilight, MoonSizeOverride", function()
+		local sky = Lighting:FindFirstChildOfClass("Sky")
+		local real = L._sunDirection
+		L._sunDirection = function()
+			return nil -- headless: the measured model at the engine clock
+		end
+		L.setClockTime(12)
+		t.eq(sky.MoonAngularSize, 0, "noon: no moon")
+		L.setClockTime(17.6) -- job 0009's golden lock: a big moon sat on the horizon
+		t.eq(sky.MoonAngularSize, 0, "golden hour: no moon")
+		L.setClockTime(18.8)
+		t.eq(Lighting:GetAttribute("Sky"), "blue")
+		t.near(sky.MoonAngularSize, Look.SkyStyle.moonAngularSize, 1e-6, "twilight: a small moon")
+		Workspace:SetAttribute("MoonSizeOverride", 4)
+		L.setClockTime(12.01)
+		t.near(sky.MoonAngularSize, 4, 1e-6, "override shows it at noon")
+		Workspace:SetAttribute("MoonSizeOverride", nil)
+		L.setClockTime(12)
+		t.eq(sky.MoonAngularSize, 0)
+		L._sunDirection = real
 	end)
 
 	t.test("init: terrain water and terrain material colours from Config/Look", function()

@@ -1,7 +1,9 @@
 --!strict
--- NPCService (docs/ART_PASS.md AP3): the city's humans - traffic / police drivers, sidewalk pedestrians,
--- shopkeepers and the BUSTED officer. Mild rating: NPCs never die (Dead state disabled, health pinned to max) and
--- only ever fall over comically.
+-- NPCService (docs/ART_PASS.md AP3, gta_combat §9.2 / §9.5): the city's humans - traffic / police drivers, sidewalk
+-- pedestrians, shopkeepers, the BUSTED officer and armed on-foot officers. Moderate rating, no gore: pedestrians and
+-- on-foot officers can be DOWNED by weapons (NPCService.damage keeps their health in the record; the Humanoid's own
+-- health and Dead state stay off so the engine never breaks joints), then ragdoll with every joint intact and fade
+-- out after DOWNED_FADE seconds. Drivers / shopkeepers are never damageable.
 --
 --  * TEMPLATES (built once in start(), off the boot path): one R15 model per role from the curated catalog outfits
 --    (Server/Config/NPCOutfits) via Players:CreateHumanoidModelFromDescription(desc, R15) inside pcall (full outfit,
@@ -33,9 +35,13 @@
 --    humanoid-free dummy) and no more pedestrians spawn.
 --
 -- Public API: Ready (Signal), isReady(), spawnDriver(seat, role?): Model?, driverVisible(car): boolean (callers skip
---   humanoid drivers in closed hero shells), ejectComic(npc, fromVelocity?),
+--   humanoid drivers in closed hero shells), eject(npc, fromVelocity?) (alias ejectComic),
 --   spawnOfficerAt(cframe, lifetime?): Model?, canSpawn(kind): boolean, getCounts(), buildRig(look?, rng?): Model
 --   (harness-compatible procedural R15 rig).
+-- Combat v2: spawnOfficerOnFoot(cframe, loadout): Model? (budget "officerFoot"), damage(model, amount, attacker?, info?)
+--   -> { applied, killed, kind, taken }, isDowned(model), witnessesNear(pos, radius): boolean, panic(pos, radius)
+--   (gunfire: 70 % flee / 30 % cower), getRecordKind(model), setOfficerWeapon(model, weaponId).
+--   Downed: Signal(kind, model, attacker?). Walking NPCs' body parts are CanQuery (bullets hit head / limbs).
 -- Pure helpers (tests/spec/npc.spec.luau): _sidewalkRing, _clampToBlock, _fleeDecision, _carHitsPed, _budgetAllows,
 --   _pedTarget, _seatedScale, _pickSpawn, _shopkeeperSpots, _poseSeated, _measure, _solveJoints, _ragdoll; test
 --   hooks _buildTemplates(useAvatars), _reset().
@@ -53,6 +59,11 @@ local MapLayout = require(Shared.Util.MapLayout)
 local GridLayout = require(Shared.Util.GridLayout) -- grid-locked block wandering until NPCs move to WorldQuery
 local Net = require(Shared.Net)
 local Signal = require(Shared.Util.Signal)
+local Ragdoll = require(Shared.Combat.Ragdoll)
+local WeaponModels = require(Shared.Combat.WeaponModels)
+local Weapons = require(Shared.Config.Weapons)
+local Animations = require(Shared.Config.Animations)
+local PoliceConfig = require(Shared.Config.Police)
 local NPCOutfits = require(script.Parent.Parent.Config.NPCOutfits)
 local VehicleService = require(script.Parent.VehicleService)
 
@@ -61,6 +72,7 @@ type Car = VehicleService.Car
 local NPCService = {}
 
 NPCService.Ready = Signal.new() -- () once every role has a template
+NPCService.Downed = Signal.new() -- (kind: string, model: Model, attacker: Player?)
 
 -- TUNING -------------------------------------------------------------------------------------------------------------
 
@@ -68,6 +80,8 @@ local S = MapConfig.GRID_SPACING
 local CURB_TOP = GridLayout.CURB_TOP
 local BLOCK_HALF = (S - MapConfig.ROAD_WIDTH) / 2 -- 60: block edge (curb) from the block center
 
+-- officerFoot is its own pool (on top of `total`): armed officers must be able to get out even when the city's
+-- drivers and pedestrians fill the shared budget.
 NPCService.BUDGET = {
 	total = 40,
 	traffic = 16,
@@ -75,7 +89,15 @@ NPCService.BUDGET = {
 	pedestrian = 14,
 	shopkeeper = 3,
 	officer = 2,
+	officerFoot = PoliceConfig.OFFICER_FOOT_MAX, -- armed on-foot officers (PoliceCombatService)
 } :: { [string]: number }
+NPCService.PED_HEALTH = 100
+NPCService.DOWNED_FADE = PoliceConfig.DOWNED_FADE_AFTER -- seconds a downed body lies there before fading
+NPCService.FADE_TIME = 0.6
+NPCService.PANIC_RADIUS = 80
+NPCService.PANIC_FLEE_CHANCE = 0.7
+NPCService.COWER_TIME = 4
+NPCService.WITNESS_EYE = 2 -- studs above the root for witness line of sight
 NPCService.TEMPLATE_TIMEOUT = 20 -- seconds to wait for avatar templates before using procedural rigs
 NPCService.PED_TICK = 0.25 -- pedestrian steering / hit / flee pass (4 Hz)
 NPCService.MANAGE_TICK = 1 -- spawn / despawn pass
@@ -158,6 +180,11 @@ type Rec = {
 	animSpeed: number,
 	home: CFrame?, -- anchored shopkeepers: where they stand
 	hitAt: number,
+	-- combat v2
+	health: number,
+	armor: number,
+	downed: boolean,
+	weaponId: string?, -- on-foot officers: the gun they carry
 }
 
 type FastCar = {
@@ -373,9 +400,12 @@ function NPCService._budgetAllows(kind: string, live: { [string]: number }): boo
 	if (live[kind] or 0) >= cap then
 		return false
 	end
+	if kind == "officerFoot" then
+		return true -- separate pool (see BUDGET)
+	end
 	local total = 0
 	for k, n in live do
-		if k ~= "total" then
+		if k ~= "total" and k ~= "officerFoot" then
 			total += n
 		end
 	end
@@ -998,32 +1028,10 @@ function NPCService._solveJoints(model: Model)
 	end
 end
 
--- Ragdoll: every Motor6D but the root joint becomes a limited BallSocketConstraint (motor disabled).
+-- Ragdoll: every Motor6D but the root joint becomes a limited BallSocketConstraint (motor disabled). Shared/Combat/
+-- Ragdoll owns the conversion (player deaths use it too).
 function NPCService._ragdoll(model: Model)
-	for _, d in model:GetDescendants() do
-		if d:IsA("Motor6D") and d.Name ~= "Root" and d.Part0 and d.Part1 then
-			local p0, p1 = d.Part0 :: BasePart, d.Part1 :: BasePart
-			local a0 = Instance.new("Attachment")
-			a0.Name = "Rag0_" .. d.Name
-			a0.CFrame = d.C0
-			a0.Parent = p0
-			local a1 = Instance.new("Attachment")
-			a1.Name = "Rag1_" .. d.Name
-			a1.CFrame = d.C1
-			a1.Parent = p1
-			local bs = Instance.new("BallSocketConstraint")
-			bs.Name = "Rag_" .. d.Name
-			bs.Attachment0 = a0
-			bs.Attachment1 = a1
-			bs.LimitsEnabled = true
-			bs.UpperAngle = if d.Name == "Neck" then 35 else 75
-			bs.TwistLimitsEnabled = true
-			bs.TwistLowerAngle = -45
-			bs.TwistUpperAngle = 45
-			bs.Parent = p1
-			d.Enabled = false
-		end
-	end
+	Ragdoll.enable(model)
 end
 
 -- TEMPLATES ------------------------------------------------------------------------------------------------------------
@@ -1201,6 +1209,10 @@ local function register(model: Model, kind: string): Rec
 		animSpeed = 1,
 		home = nil,
 		hitAt = 0,
+		health = NPCService.PED_HEALTH,
+		armor = 0,
+		downed = false,
+		weaponId = nil,
 	}
 	npcs[model] = rec
 	counts[kind] = (counts[kind] or 0) + 1
@@ -1460,8 +1472,8 @@ function NPCService.spawnDriver(seatPart: BasePart, role: string?): Model?
 	return npc
 end
 
--- Comic bail-out (carjack, ram, wreck): unweld from the car, ragdoll, fling along fromVelocity's horizontal direction
--- (25..50 studs/s, random when it is ~zero) plus an upward pop and a tumble, then gone after EJECT_TIME. Never dies.
+-- Bail-out (carjack, ram, wreck): unweld from the car, ragdoll, fling along fromVelocity's horizontal direction
+-- (25..50 studs/s, random when it is ~zero) plus an upward pop and a tumble, then gone after EJECT_TIME.
 function NPCService.ejectComic(npcModel: Model, fromVelocity: Vector3?)
 	if typeof(npcModel) ~= "Instance" or not npcModel:IsA("Model") or npcModel.Parent == nil then
 		return
@@ -1541,6 +1553,8 @@ function NPCService.ejectComic(npcModel: Model, fromVelocity: Vector3?)
 	end)
 end
 
+NPCService.eject = NPCService.ejectComic -- v2 name (gta_combat §13.2); ejectComic stays for older callers
+
 -- A standing NPC (feet at groundCF, facing its LookVector) in the NPCs folder. anchored: a non-colliding statue
 -- that only animates (shopkeepers / officer).
 local function spawnStanding(key: string, groundCF: CFrame, anchored: boolean, kind: string, skin: Color3?): Rec?
@@ -1573,8 +1587,19 @@ local function spawnStanding(key: string, groundCF: CFrame, anchored: boolean, k
 		end
 	else
 		root.CanCollide = true -- walkers: the root is their collision box (limbs never collide)
+		-- ...but every body part is hittable by bullets (head, limbs: the client's hit ray must reach them; the
+		-- templates turn CanQuery off everywhere but the root). Accessories and carried guns stay unqueryable, and
+		-- limbs keep CanCollide = false, so car wheel rays (RespectCanCollide) still ignore them.
+		for _, d in npc:GetChildren() do
+			if d:IsA("BasePart") and R15_BODY[d.Name] then
+				d.CanQuery = true
+			end
+		end
 	end
-	npc.Name = if kind == "pedestrian" then "Pedestrian" elseif kind == "officer" then "Officer" else "Shopkeeper"
+	npc.Name = if kind == "pedestrian"
+		then "Pedestrian"
+		elseif kind == "officer" or kind == "officerFoot" then "Officer"
+		else "Shopkeeper"
 	npc.Parent = npcFolder()
 	disableStates(hum, WALKER_STATES_OFF)
 	keepAlive(hum)
@@ -1754,7 +1779,7 @@ local function knockDown(rec: Rec, vel: Vector3, now: number)
 		root.AssemblyAngularVelocity = axis * -rng:NextNumber(6, 10) + Vector3.new(0, rng:NextNumber(-4, 4), 0)
 		root:SetNetworkOwner(nil)
 	end)
-	pcall(Net.fireNear, "Effect", pos, 160, "Bonk", { position = pos + Vector3.new(0, 2, 0), sound = "Bonk" })
+	pcall(Net.fireNear, "Sound", pos, 120, "BodyFall", pos)
 end
 
 local function getUp(rec: Rec, now: number)
@@ -1801,6 +1826,333 @@ local function startFlee(rec: Rec, pos: Vector3, dir: Vector3, now: number)
 	end
 	moveTo(rec, NPCService._clampToBlock(pos + dir * NPCService.FLEE_DIST, rec.bx, rec.bz), now)
 	playAnim(rec, "walk", NPCService.RUN_SPEED / NPCService.WALK_ANIM_REF)
+end
+
+-- COMBAT (v2) -----------------------------------------------------------------------------------------------------------
+
+local gunAnimObjects: { [string]: Animation } = {}
+
+local function playGunHold(rec: Rec, weaponId: string)
+	local def = Weapons.get(weaponId)
+	local hum = rec.humanoid
+	if not def or not hum then
+		return
+	end
+	local key = def.anims.idle
+	local anim = Animations[key]
+	if not anim or anim.id == "" then
+		return
+	end
+	local animator = hum:FindFirstChildOfClass("Animator")
+	if not animator then
+		return
+	end
+	local a = gunAnimObjects[key]
+	if not a then
+		a = Instance.new("Animation")
+		a.AnimationId = anim.id
+		gunAnimObjects[key] = a
+	end
+	pcall(function()
+		local track = (animator :: any):LoadAnimation(a)
+		track.Priority = anim.priority
+		track.Looped = true
+		track:Play(0.2)
+		rec.tracks.gun = track
+	end)
+end
+
+-- Puts a weapon model in the NPC's right hand (visual; PoliceCombatService does the shooting).
+local function armNpc(model: Model, weaponId: string)
+	local def = Weapons.get(weaponId)
+	local hand = model:FindFirstChild("RightHand") or model:FindFirstChild("Right Arm")
+	if not def or not hand or not hand:IsA("BasePart") then
+		return
+	end
+	local gun = Instance.new("Model")
+	gun.Name = "Weapon"
+	local handle = WeaponModels.assemble(gun, def.asset.model, def.asset.scale)
+	WeaponModels.weld(gun, handle)
+	local grip = hand:FindFirstChild("RightGripAttachment")
+	local gripCF = if grip and grip:IsA("Attachment") then grip.CFrame else CFrame.new(0, -hand.Size.Y / 2, 0)
+	handle.CFrame = hand.CFrame * gripCF * def.asset.grip:Inverse()
+	for _, d in gun:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanQuery = false
+			d.Massless = true
+		end
+	end
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = hand
+	w.Part1 = handle
+	w.Parent = handle
+	gun.Parent = model
+end
+
+-- An armed police officer on foot at groundCFrame (feet), server-owned and walking (PoliceCombatService steers it).
+-- loadout: { weapon: string, armor: number? }. Budget "officerFoot" (PoliceConfig.OFFICER_FOOT_MAX).
+function NPCService.spawnOfficerOnFoot(cframe: CFrame, loadout: { weapon: string, armor: number? }): Model?
+	if typeof(cframe) ~= "CFrame" or not ready or not NPCService.canSpawn("officerFoot") then
+		return nil
+	end
+	local rec = spawnStanding("police", cframe, false, "officerFoot")
+	if not rec then
+		return nil
+	end
+	rec.health = PoliceConfig.OFFICER_HEALTH
+	rec.armor = math.max(0, loadout.armor or 0)
+	rec.weaponId = loadout.weapon
+	rec.state = "stand"
+	local root, hum = rec.root, rec.humanoid
+	if hum then
+		hum.WalkSpeed = 15
+	end
+	if root then
+		try(function()
+			root:SetNetworkOwner(nil)
+		end)
+	end
+	if loadout.weapon ~= "taser" then
+		armNpc(rec.model, loadout.weapon)
+	else
+		armNpc(rec.model, "pistol") -- holstered look until the custom taser model; tasing is server-side
+	end
+	loadTracks(rec)
+	playAnim(rec, "idle")
+	playGunHold(rec, loadout.weapon)
+	rec.model:SetAttribute("Officer", true)
+	return rec.model
+end
+
+-- Swap an on-foot officer's gun (PoliceCombatService: a 1-star taser officer draws his star's gun when the chase
+-- escalates): the hand model and the hold animation follow.
+function NPCService.setOfficerWeapon(model: Model, weaponId: string)
+	local rec = npcs[model]
+	if not rec or rec.downed or rec.kind ~= "officerFoot" or rec.weaponId == weaponId then
+		return
+	end
+	rec.weaponId = weaponId
+	local old = model:FindFirstChild("Weapon")
+	if old and old:IsA("Model") then
+		old:Destroy()
+	end
+	armNpc(model, if weaponId == "taser" then "pistol" else weaponId)
+	local held = rec.tracks.gun
+	if held then
+		pcall(function()
+			held:Stop(0.2)
+		end)
+		rec.tracks.gun = nil
+	end
+	playGunHold(rec, weaponId)
+end
+
+-- Walk / idle animation for externally steered NPCs (PoliceCombatService).
+function NPCService.setMoving(model: Model, moving: boolean, speed: number?)
+	local rec = npcs[model]
+	if not rec or rec.downed then
+		return
+	end
+	if moving then
+		playAnim(rec, "walk", (speed or 12) / NPCService.WALK_ANIM_REF)
+	else
+		playAnim(rec, "idle")
+	end
+end
+
+function NPCService.isDowned(model: Model): boolean
+	local rec = npcs[model]
+	return rec ~= nil and rec.downed
+end
+
+function NPCService.getRecordKind(model: Model): string?
+	local rec = npcs[model]
+	return rec and rec.kind
+end
+
+local function fadeOut(rec: Rec)
+	local model = rec.model
+	task.delay(NPCService.DOWNED_FADE, function()
+		if model.Parent == nil then
+			unregister(rec)
+			return
+		end
+		local steps = 6
+		for i = 1, steps do
+			local tr = i / steps
+			for _, d in model:GetDescendants() do
+				local fades = (d:IsA("BasePart") and d.Name ~= "HumanoidRootPart") or d:IsA("Decal")
+				if fades then
+					local item = d :: any
+					item.Transparency = math.max(item.Transparency, tr)
+				end
+			end
+			task.wait(NPCService.FADE_TIME / steps)
+		end
+		despawn(rec)
+	end)
+end
+
+-- Downed: ragdoll with every joint intact (no blood, no limb loss), fade after DOWNED_FADE. No persistence.
+local function down(rec: Rec, fromDir: Vector3?, attacker: Player?)
+	if rec.downed then
+		return
+	end
+	rec.downed = true
+	rec.state = "downed"
+	local model = rec.model
+	local root, hum = rec.root, rec.humanoid
+	for _, track in rec.tracks do
+		pcall(track.Stop, track, 0.1)
+	end
+	rec.playing = nil
+	if rec.home and root then
+		root.Anchored = false
+	end
+	if hum then
+		hum.PlatformStand = true
+		try(function()
+			hum:MoveTo(root and root.Position or Vector3.zero)
+		end)
+	end
+	for _, d in model:GetChildren() do
+		if d:IsA("BasePart") then
+			d.Anchored = false
+			d.CanQuery = false
+			d.CanTouch = false
+			local body = d ~= root and R15_BODY[d.Name] == true
+			d.CanCollide = body
+		end
+	end
+	Ragdoll.enable(model)
+	local push = if fromDir and fromDir.Magnitude > 0.1 then flat(fromDir).Unit * 6 else Vector3.zero
+	if root then
+		try(function()
+			root.AssemblyLinearVelocity = push + Vector3.new(0, 4, 0)
+			root:SetNetworkOwner(nil)
+		end)
+		pcall(Net.fireNear, "Sound", root.Position, 120, "BodyFall", root.Position)
+	end
+	local kind = rec.kind
+	NPCService.Downed:Fire(kind, model, attacker)
+	fadeOut(rec)
+end
+
+-- Weapon damage to an NPC (gta_combat §9.5). Only pedestrians and on-foot officers can be hurt. Officers' armor
+-- absorbs first. Returns { applied, killed, kind, taken }.
+function NPCService.damage(model: Model, amount: number, attacker: Player?, info: any): { [string]: any }
+	local rec = npcs[model]
+	if not rec or rec.downed or typeof(amount) ~= "number" or amount ~= amount or amount <= 0 then
+		return { applied = false, killed = false }
+	end
+	local kind = rec.kind
+	local damageable = kind == "pedestrian" or kind == "officerFoot"
+	if not damageable then
+		return { applied = false, killed = false }
+	end
+	local raw = math.min(amount, 1e4)
+	local fromArmor = math.min(rec.armor, raw)
+	rec.armor -= fromArmor
+	local taken = raw - fromArmor
+	rec.health = math.max(0, rec.health - taken)
+	rec.hitAt = os.clock()
+	local fromDir: Vector3? = nil
+	if typeof(info) == "table" and typeof(info.from) == "Vector3" and rec.root then
+		fromDir = rec.root.Position - info.from
+	end
+	local outKind = if kind == "officerFoot" then "officer" else "pedestrian"
+	if rec.health <= 0 then
+		down(rec, fromDir, attacker)
+		return { applied = true, killed = true, kind = outKind, taken = taken + fromArmor }
+	end
+	-- hit but standing: pedestrians run from where the shot came from
+	if kind == "pedestrian" and rec.root and rec.ring then
+		local away = if fromDir then flat(fromDir) else flat(rng:NextUnitVector())
+		if away.Magnitude > 0.1 then
+			startFlee(rec, rec.root.Position, away.Unit, os.clock())
+		end
+	end
+	return { applied = true, killed = false, kind = outKind, taken = taken + fromArmor }
+end
+
+local witnessParams: RaycastParams? = nil
+
+local function lineOfSight(a: Vector3, b: Vector3): boolean
+	local p = witnessParams
+	if not p then
+		p = RaycastParams.new()
+		p.FilterType = Enum.RaycastFilterType.Exclude
+		p.IgnoreWater = true
+		p.RespectCanCollide = true
+		witnessParams = p
+	end
+	local exclude: { Instance } = { npcFolder() }
+	for _, pl in Players:GetPlayers() do
+		if pl.Character then
+			table.insert(exclude, pl.Character)
+		end
+	end
+	for _, name in { "Vehicles", "Effects" } do
+		local f = Workspace:FindFirstChild(name)
+		if f then
+			table.insert(exclude, f)
+		end
+	end
+	p.FilterDescendantsInstances = exclude
+	local dir = b - a
+	if dir.Magnitude < 1 then
+		return true
+	end
+	return Workspace:Raycast(a, dir, p) == nil
+end
+
+-- Does any pedestrian or on-foot officer within `radius` of pos have line of sight to it?
+function NPCService.witnessesNear(pos: Vector3, radius: number): boolean
+	local eyeUp = Vector3.new(0, NPCService.WITNESS_EYE, 0)
+	for model, rec in npcs do
+		if not rec.downed and (rec.kind == "pedestrian" or rec.kind == "officerFoot" or rec.kind == "shopkeeper") then
+			local root = rec.root
+			if root and model.Parent then
+				local p = root.CFrame.Position
+				if (p - pos).Magnitude <= radius and lineOfSight(p + eyeUp, pos + eyeUp) then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+-- Gunfire panic: pedestrians within `radius` flee (70 %) or cower in place (30 %).
+function NPCService.panic(pos: Vector3, radius: number?)
+	local r = radius or NPCService.PANIC_RADIUS
+	local now = os.clock()
+	for _, rec in npcs do
+		if rec.kind == "pedestrian" and not rec.downed and rec.root and rec.state ~= "fallen" then
+			local p = rec.root.CFrame.Position
+			local away = flat(p - pos)
+			if away.Magnitude <= r and rec.state ~= "flee" and rec.state ~= "cower" then
+				if rng:NextNumber() < NPCService.PANIC_FLEE_CHANCE then
+					local dir = if away.Magnitude > 0.5 then away.Unit else flat(rng:NextUnitVector())
+					if dir.Magnitude > 0.1 then
+						startFlee(rec, p, dir.Unit, now)
+						rec.stateUntil = now + NPCService.FLEE_TIME * 2
+					end
+				else
+					rec.state = "cower"
+					rec.stateUntil = now + NPCService.COWER_TIME
+					local hum = rec.humanoid
+					if hum then
+						try(function()
+							hum:MoveTo(p)
+						end)
+					end
+					playAnim(rec, "idle")
+				end
+			end
+		end
+	end
 end
 
 -- Every car moving at HIT_SPEED+ (position now and at the last pass, velocity, footprint).
@@ -1878,6 +2230,9 @@ local function fleeDir(pos: Vector3): Vector3?
 end
 
 local function stepWalker(rec: Rec, now: number)
+	if rec.downed then
+		return -- lying there until fadeOut removes it
+	end
 	local root, hum = rec.root, rec.humanoid
 	if not root or not hum or root.Parent == nil or rec.model.Parent == nil then
 		despawn(rec)
@@ -1909,7 +2264,7 @@ local function stepWalker(rec: Rec, now: number)
 		despawn(rec)
 		return
 	end
-	if rec.state == "flee" then
+	if rec.state == "flee" or rec.state == "cower" then
 		if now >= rec.stateUntil then
 			if not rejoin(rec, now) then
 				despawn(rec)
@@ -2322,6 +2677,23 @@ function NPCService.start()
 			pcall(recheckHotdogStand)
 		end)
 	end)
+
+	-- gunfire panic (any player's shot; PoliceCombatService calls panic for police fire)
+	local weaponModule = script.Parent:FindFirstChild("WeaponService")
+	if weaponModule and weaponModule:IsA("ModuleScript") then
+		local okW, WeaponService = pcall(require, weaponModule :: any)
+		if okW and typeof(WeaponService) == "table" and WeaponService.Fired then
+			local lastPanic = 0
+			WeaponService.Fired:Connect(function(_player: Player, _weaponId: string, origin: Vector3)
+				local t = os.clock()
+				if t - lastPanic < 0.25 or typeof(origin) ~= "Vector3" then
+					return
+				end
+				lastPanic = t
+				pcall(NPCService.panic, origin, NPCService.PANIC_RADIUS)
+			end)
+		end
+	end
 
 	local pedAcc, manageAcc = 0, 0
 	local lastErr: { [string]: number } = {}
