@@ -390,12 +390,11 @@ local function gradeAt(x: number, z: number): number
 	local d, kind = shore(x, z)
 	if d <= 0 then
 		-- seabed
+		-- one smooth shelf everywhere (no seams between coast kinds); quays drop straight to 26
 		if kind == "quay" then
-			return -26
-		elseif kind == "beach" then
-			return math.max(-46, SHORE_Y.beach - 0.035 * -d - 0.6)
+			return math.max(-58, -26 - 0.03 * -d)
 		end
-		return math.max(-64, 1 - 0.18 * -d - 3)
+		return math.max(-58, -0.6 - 0.05 * -d)
 	end
 	local inland = inlandHeight(x, z)
 	local band = COAST_BAND[kind]
@@ -557,7 +556,7 @@ local DISTRICTS: { DistrictDef } = {
 		name = "Pinnacle Heights",
 		style = "glass_towers",
 		materials = { "GlassCurtain", "Concrete", "BrushedMetal", "Granite" },
-		poly = poly({ { -1240, -1740 }, { 1590, -1740 }, { 1590, 1290 }, { -1240, 1290 } }),
+		poly = poly({ { -1240, -2050 }, { 1590, -2020 }, { 1590, 1290 }, { -1240, 1290 } }),
 		priority = 2,
 		height = { 70, 640 },
 		peak = { 150, -200, 1500 },
@@ -586,7 +585,7 @@ local DISTRICTS: { DistrictDef } = {
 		name = "Midtown",
 		style = "commercial_midrise",
 		materials = { "Stucco", "Brick", "Glass", "Concrete" },
-		poly = poly({ { -3570, -1740 }, { -1240, -1740 }, { -1240, 1290 }, { -3570, 1290 } }),
+		poly = poly({ { -3570, -2050 }, { -1240, -2050 }, { -1240, 1290 }, { -3570, 1290 } }),
 		priority = 2,
 		height = { 30, 220 },
 		peak = { -2000, -400, 1600 },
@@ -1751,10 +1750,17 @@ addWay(
 	{ lanes = 1, maxGrade = 0.15 }
 )
 addWay(
-	"Laurel Crest",
-	"street",
-	smooth({ { -2100, -3260 }, { -2050, -2900 }, { -2250, -2650 } }, 160),
-	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+	"Laurel Canyon Drive",
+	"rural",
+	smooth({
+		{ -2100, -3260 },
+		{ -2050, -2900 },
+		{ -2250, -2650 },
+		{ -1960, -2470 },
+		{ -2180, -2300 },
+		{ -2000, -2115 },
+	}, 130),
+	{ lanes = 1, maxGrade = 0.15 }
 )
 addWay(
 	"Bel Mar Lane",
@@ -1781,9 +1787,33 @@ addWay(
 	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
 )
 addWay(
-	"Canyon View Drive",
+	"Coldwater Drive",
+	"rural",
+	smooth({ { 700, -3050 }, { 650, -2700 }, { 900, -2450 }, { 700, -2300 }, { 820, -2150 } }, 140),
+	{ lanes = 1, maxGrade = 0.15 }
+)
+addWay(
+	"Mirador Court",
 	"street",
-	smooth({ { 700, -3050 }, { 650, -2700 }, { 900, -2450 } }, 160),
+	smooth({ { 60, -2760 }, { 380, -2700 }, { 420, -2480 } }, 120),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Sierra Vista Lane",
+	"street",
+	smooth({ { -3550, -2620 }, { -3250, -2560 }, { -3150, -2380 } }, 120),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Glen Oaks Road",
+	"street",
+	smooth({ { -1720, -2470 }, { -1050, -2560 }, { -800, -2750 } }, 160),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Summit Ridge Road",
+	"street",
+	smooth({ { -2600, -3180 }, { -2500, -3550 }, { -2250, -3700 } }, 160),
 	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
 )
 
@@ -3426,9 +3456,8 @@ local POI_DEFS: { PoiDef } = {
 		id = "Dealership",
 		name = "Hotwire Motors",
 		kind = "dealership",
-		at = { -2000, -400 },
+		at = { -1900, -420 }, -400 },
 		size = { 220, 40, 170 },
-		road = "Crown Boulevard",
 		setback = 10,
 		tags = { "showroom" },
 	},
@@ -3935,9 +3964,8 @@ local POI_DEFS: { PoiDef } = {
 		id = "Casino",
 		name = "Lucky Seven Casino",
 		kind = "landmark",
-		at = { -2250, -1450 },
+		at = { -2450, -1250 }, -1450 },
 		size = { 200, 120, 160 },
-		road = "Gilded Mile",
 		setback = 20,
 		tags = { "futureHeist" },
 	},

@@ -1,0 +1,4 @@
+_cache/
+__pycache__/
+out/glb/
+out/texlib/
