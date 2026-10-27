@@ -15,9 +15,15 @@
 --  * Aim: hold RMB / LT / AIM toggle (touch) -> ShoulderCamera aim + character faces the camera. Touch / gamepad aim
 --    assist (Shared/Combat/AimAssist): lock onto NPC cops / pedestrians (2.5 s break, flick to switch), friction +
 --    magnetism only against players.
+--  * A press only counts for PRESS_WINDOW seconds: a click made while unarmed / seated / stunned never fires the gun
+--    drawn later.
+--  * Aim pose (§11.3): the gun's aim hold animation plus an IKControl (LookAt, UpperTorso -> Head) toward the aim
+--    point; the pitch goes to the server with WeaponAim and comes back as the character's AimPitch attribute, which
+--    every client uses to pose the other characters that aim.
 --  * Quick select 1-8 (press again to cycle within a slot), 0 holsters, V swaps shoulders (ShoulderCamera).
 --  * Surrender: hold H / pad D-down (1 s) or the SURRENDER button at 1-2 stars with police close.
---  * Touch: FIRE (drag to look), AIM, RELOAD, shoulder swap, SURRENDER and a weapon button that opens the wheel.
+--  * Touch (only while touch is the preferred input): FIRE (drag anywhere to look, even off the button), AIM,
+--    RELOAD, shoulder swap, SURRENDER and a weapon button that opens the wheel.
 -- Public: Changed (Signal), getState(), select(id), holster(), owns(id), ownedMap(), inventory(), gadgets(),
 --   medkits(), equipped(), setFistsMode(on), isGunDrawn(), canSurrender(), reload().
 
@@ -32,6 +38,7 @@ local CollectionService = game:GetService("CollectionService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
 local Signal = require(Shared:WaitForChild("Util"):WaitForChild("Signal"))
+local Trove = require(Shared:WaitForChild("Util"):WaitForChild("Trove"))
 local Weapons = require(Shared:WaitForChild("Config"):WaitForChild("Weapons"))
 local Animations = require(Shared:WaitForChild("Config"):WaitForChild("Animations"))
 local Combat = Shared:WaitForChild("Combat")
@@ -60,6 +67,11 @@ WeaponClient.FACE_AFTER_SHOT = 0.6
 WeaponClient.FIRE_BUTTON = 110
 WeaponClient.AIM_BUTTON = 80
 WeaponClient.RELOAD_BUTTON = 56
+WeaponClient.PRESS_WINDOW = 0.2 -- a click / tap is buffered this long, then forgotten
+WeaponClient.ASSIST_SCAN = 0.1 -- aim-assist candidate rescan interval (10 Hz)
+WeaponClient.FLICK_DECAY = 0.15 -- seconds: look input older than this no longer adds up to a flick
+WeaponClient.AIM_PITCH_SEND = 0.25 -- seconds between aim-pitch updates to the server
+WeaponClient.AIM_IK_RANGE = 200 -- pose other aiming characters within this many studs
 
 type Ammo = { mag: number, reserve: number, tint: string? }
 
@@ -70,9 +82,19 @@ local equippedId: string? = nil
 local equippedTool: Tool? = nil
 local drawnAt = 0
 local firing = false
-local pressed = false
+local pressedAt = -math.huge
 local aiming = false
 local aimToggle = false
+local fireInput: InputObject? = nil
+local charTrove = Trove.new()
+local wheelModule: any = nil
+local deathModule: any = nil
+local assistList: { AimAssist.Candidate } = {}
+local assistAt = -math.huge
+local flickAcc = 0
+local pitchSentAt = 0
+local pitchSent: number? = nil
+local holsterRequestedAt = -math.huge
 local nextShotAt = 0
 local lastShotAt = -math.huge
 local bloom = 0
@@ -125,6 +147,22 @@ function WeaponClient._canFire(
 	return true
 end
 
+-- Is a press made at `at` still wanted at `now` (pure, tested)? Older presses are stale: they never fire.
+function WeaponClient._pressValid(at: number, now: number): boolean
+	return now - at >= 0 and now - at < WeaponClient.PRESS_WINDOW
+end
+
+-- Flick accumulator step (pure, tested): look input decays over FLICK_DECAY; returns (newAcc, side -1/0/+1). A
+-- detected flick resets the accumulator.
+function WeaponClient._flickStep(acc: number, deltaRightDeg: number, dt: number): (number, number)
+	local a = acc * math.exp(-math.max(0, dt) / WeaponClient.FLICK_DECAY) + deltaRightDeg
+	local side = AimAssist.flick(a)
+	if side ~= 0 then
+		return 0, side
+	end
+	return a, 0
+end
+
 -- HELPERS ----------------------------------------------------------------------------------------------------------------
 
 local function lazy(name: string): any
@@ -156,9 +194,25 @@ local function lastInputAssisted(): boolean
 	return t == Enum.UserInputType.Touch or string.sub(t.Name, 1, 7) == "Gamepad"
 end
 
+-- Cached module references (looked up once instead of FindFirstChild + require every frame).
+local function wheel(): any
+	if wheelModule == nil then
+		wheelModule = lazy("WeaponWheel")
+	end
+	return wheelModule
+end
+
 local function wheelOpen(): boolean
-	local wheel = lazy("WeaponWheel")
-	return wheel ~= nil and typeof(wheel.isOpen) == "function" and wheel.isOpen() == true
+	local w = wheel()
+	return w ~= nil and typeof(w.isOpen) == "function" and w.isOpen() == true
+end
+
+local function deathScreenActive(): boolean
+	if deathModule == nil then
+		deathModule = lazy("DeathScreenController")
+	end
+	local d = deathModule
+	return d ~= nil and typeof(d.isActive) == "function" and d.isActive() == true
 end
 
 local function inBlockedZone(): boolean
@@ -255,16 +309,17 @@ local function playAnim(key: string?)
 end
 
 local function setHold(key: string?)
+	local t = if key and key ~= "" then track(key) else nil
+	if t and t == currentHold then
+		return -- already holding it (handguns aim with their idle hold)
+	end
 	if currentHold then
 		pcall(currentHold.Stop, currentHold, 0.15)
 		currentHold = nil
 	end
-	if key and key ~= "" then
-		local t = track(key)
-		if t then
-			pcall(t.Play, t, 0.15)
-			currentHold = t
-		end
+	if t then
+		pcall(t.Play, t, 0.15)
+		currentHold = t
 	end
 end
 
@@ -398,9 +453,15 @@ function WeaponClient.select(id: string)
 	Net.fire("WeaponEquip", id)
 end
 
+local startAim: (boolean) -> () = function() end
+
 function WeaponClient.holster()
 	fistsMode = false
+	holsterRequestedAt = os.clock()
 	Net.fire("WeaponEquip", "none")
+	-- predicted: the camera lets go now (VehicleClient reads the FOV as we get into a car), the Tool follows
+	startAim(false)
+	ShoulderCamera.setEngaged(false)
 	notifyChanged()
 end
 
@@ -414,10 +475,12 @@ local function refreshEngagement()
 	local alive = hum ~= nil and hum.Health > 0
 	local seated = hum ~= nil and hum.SeatPart ~= nil
 	local gun = Weapons.isGun(equippedDef())
-	ShoulderCamera.setEngaged(gun and alive and not seated, equippedId)
+	-- the WASTED / BUSTED camera owns the view until it finishes
+	ShoulderCamera.setEngaged(gun and alive and not seated and not deathScreenActive(), equippedId)
 	if not gun then
-		aiming = false
-		ShoulderCamera.setAiming(false)
+		-- the gun went away (holster, safe zone, BUSTED...): aim off on the server too, and the AIM toggle with it
+		aimToggle = false
+		startAim(false)
 	end
 end
 
@@ -425,6 +488,9 @@ local function onToolChanged(tool: Instance, added: boolean)
 	if not tool:IsA("Tool") then
 		return
 	end
+	-- a weapon change forgets any buffered click (it was meant for the previous hand)
+	pressedAt = -math.huge
+	firing = false
 	local id = tool:GetAttribute("WeaponId")
 	if added then
 		if typeof(id) == "string" then
@@ -433,7 +499,7 @@ local function onToolChanged(tool: Instance, added: boolean)
 			drawnAt = os.clock()
 			fistsMode = false
 			local def = Weapons.get(id)
-			setHold(if def then def.anims.idle else nil)
+			setHold(if def then (if aiming and Weapons.isGun(def) then def.anims.aim else def.anims.idle) else nil)
 		else
 			equippedId = nil
 			equippedTool = nil
@@ -632,12 +698,20 @@ local function swing(def: WeaponDef)
 	end
 end
 
+-- Nothing may fire right now: forget the click and stop holding the trigger (it is never replayed later).
+local function dropTrigger()
+	pressedAt = -math.huge
+	firing = false
+end
+
 local function tryFire()
 	local char, hum, root = characterParts()
 	if not char or not hum or not root or hum.Health <= 0 or hum.SeatPart then
+		dropTrigger()
 		return
 	end
 	if player:GetAttribute("Stunned") == true or wheelOpen() or inBlockedZone() then
+		dropTrigger()
 		return
 	end
 	local def = equippedDef()
@@ -645,16 +719,18 @@ local function tryFire()
 		def = Weapons.get("fists")
 	end
 	if not def then
+		dropTrigger()
 		return
 	end
+	local now = os.clock()
+	local pressed = WeaponClient._pressValid(pressedAt, now)
 	if Weapons.isMelee(def) then
 		if pressed or firing then
-			pressed = false
+			pressedAt = -math.huge
 			swing(def)
 		end
 		return
 	end
-	local now = os.clock()
 	local a = inventory[def.id]
 	local mag = if a then a.mag else 0
 	local reloading = now < reloadUntil
@@ -664,14 +740,17 @@ local function tryFire()
 	end
 	if mag <= 0 then
 		if pressed then
-			pressed = false
+			pressedAt = -math.huge
 			emptyClick()
 			WeaponClient.reload()
 		end
 		return
 	end
 	if WeaponClient._canFire(def, mag, now, drawnAt, nextShotAt, reloading) then
-		pressed = false
+		pressedAt = -math.huge
+		-- face the camera BEFORE the shot leaves, so the server's facing check sees the turn
+		ShoulderCamera.setFacing(true)
+		ShoulderCamera.faceNow()
 		shoot(def, char, hum, root)
 	end
 end
@@ -725,17 +804,35 @@ local function candidates(camPos: Vector3, camDir: Vector3, char: Model?): { Aim
 end
 
 local function aimAssist(dt: number)
+	-- look input is consumed every frame, so a flick only ever counts what was swiped just now
+	local lookDelta = ShoulderCamera.consumeLookDelta()
 	if not aiming or not ShoulderCamera.isEngaged() or not lastInputAssisted() then
 		lockTarget = nil
+		flickAcc = 0
 		ShoulderCamera.setFriction(1)
 		return
 	end
 	local char = player.Character
 	local camPos, camDir = ShoulderCamera.getAimRay()
-	local list = candidates(camPos, camDir, char)
 	local now = os.clock()
+	-- candidates (a GetChildren + a raycast each) are rescanned at 10 Hz, not every frame
+	if now - assistAt >= WeaponClient.ASSIST_SCAN then
+		assistAt = now
+		assistList = candidates(camPos, camDir, char)
+	end
+	local list = assistList
 	if lockTarget and (lockTarget.Parent == nil or AimAssist.lockExpired(lockedAt, now)) then
 		lockTarget = nil
+	end
+	-- flick switching (§11.2): a quick swipe / stick flick moves the lock to the next target on that side
+	local side
+	flickAcc, side = WeaponClient._flickStep(flickAcc, lookDelta, dt)
+	if lockTarget and side ~= 0 then
+		local nextKey = AimAssist.switchLock(list, lockTarget, side)
+		if typeof(nextKey) == "Instance" and nextKey:IsA("Model") then
+			lockTarget = nextKey
+			lockedAt = now
+		end
 	end
 	local best: AimAssist.Candidate? = nil
 	for _, c in list do
@@ -785,26 +882,186 @@ local function aimAssist(dt: number)
 	end
 end
 
-local function startAim(on: boolean)
-	local gun = Weapons.isGun(equippedDef())
+-- Aim pitch in whole degrees for the server (replicated as the character's AimPitch attribute).
+local function aimPitchDeg(): number
+	return math.floor(math.deg(ShoulderCamera.getPitch()) + 0.5)
+end
+
+startAim = function(on: boolean)
+	local def = equippedDef()
+	local gun = Weapons.isGun(def)
+	local was = aiming
 	aiming = on and gun
 	ShoulderCamera.setAiming(aiming)
 	if aiming then
 		ShoulderCamera.setFacing(true)
 		if lastInputAssisted() then
 			local camPos, camDir = ShoulderCamera.getAimRay()
-			local key = AimAssist.pickLock(candidates(camPos, camDir, player.Character), "Full")
+			assistList = candidates(camPos, camDir, player.Character)
+			assistAt = os.clock()
+			local key = AimAssist.pickLock(assistList, "Full")
 			lockTarget = if typeof(key) == "Instance" and key:IsA("Model") then key else nil
 			lockedAt = os.clock()
 		end
 	else
 		lockTarget = nil
 	end
+	-- aim pose: the class's aim hold while aiming, back to its idle hold after
+	if gun and def and aiming ~= was then
+		setHold(if aiming then def.anims.aim else def.anims.idle)
+	end
 	if lastAimSent ~= aiming then
 		lastAimSent = aiming
-		Net.fire("WeaponAim", aiming)
+		if aiming then
+			pitchSent = aimPitchDeg()
+			pitchSentAt = os.clock()
+			Net.fire("WeaponAim", true, pitchSent)
+		else
+			pitchSent = nil
+			Net.fire("WeaponAim", false)
+		end
 	end
 	notifyChanged()
+end
+
+-- AIM POSE (§11.3) ---------------------------------------------------------------------------------------------------------
+-- IKControl (LookAt, chain UpperTorso -> Head) toward the aim point: ours follows the crosshair, other aiming
+-- characters follow their replicated AimPitch (degrees) and root yaw. Targets are Attachments in Terrain so they
+-- don't ride along with the chain they bend.
+
+type Pose = { ik: IKControl, target: Attachment }
+local poses: { [Model]: Pose } = {}
+local poseScanAt = -math.huge
+
+-- The world point an aiming character looks at, from its root look vector and aim pitch (pure, tested).
+function WeaponClient._aimTarget(head: Vector3, look: Vector3, pitchDeg: number, dist: number): Vector3
+	local flat = Vector3.new(look.X, 0, look.Z)
+	flat = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.new(0, 0, -1)
+	local p = math.rad(math.clamp(pitchDeg, -80, 80))
+	return head + (flat * math.cos(p) + Vector3.new(0, math.sin(p), 0)) * dist
+end
+
+local function poseFor(char: Model): Pose?
+	local existing = poses[char]
+	if existing and existing.ik.Parent and existing.target.Parent then
+		return existing
+	end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local torso = char:FindFirstChild("UpperTorso")
+	local head = char:FindFirstChild("Head")
+	if not hum or not torso or not head or not torso:IsA("BasePart") or not head:IsA("BasePart") then
+		return nil
+	end
+	local ok, made = pcall(function(): Pose
+		local target = Instance.new("Attachment")
+		target.Name = "HC_AimTarget"
+		target.Parent = Workspace.Terrain
+		local ik = Instance.new("IKControl")
+		ik.Name = "HC_AimIK"
+		ik.Type = Enum.IKControlType.LookAt
+		ik.ChainRoot = torso
+		ik.EndEffector = head
+		ik.Target = target
+		ik.Weight = 0
+		ik.Parent = hum
+		return { ik = ik, target = target }
+	end)
+	if not ok then
+		return nil
+	end
+	poses[char] = made
+	return made
+end
+
+local function dropPose(char: Model)
+	local p = poses[char]
+	if not p then
+		return
+	end
+	poses[char] = nil
+	pcall(function()
+		p.target:Destroy()
+		if p.ik.Parent then
+			p.ik:Destroy()
+		end
+	end)
+end
+
+local function setPoseWeight(p: Pose, w: number, dt: number)
+	local cur = p.ik.Weight
+	local nextW = cur + (w - cur) * math.clamp(dt * 12, 0, 1)
+	if math.abs(nextW - w) < 0.01 then
+		nextW = w
+	end
+	if nextW ~= cur then
+		p.ik.Weight = nextW
+	end
+end
+
+local function updatePoses(dt: number)
+	local now = os.clock()
+	local char = player.Character
+	-- ours: toward the crosshair while aiming
+	if char then
+		local on = aiming and ShoulderCamera.isEngaged()
+		local mine = if on then poseFor(char) else poses[char]
+		if mine then
+			setPoseWeight(mine, if on then 1 else 0, dt)
+			if on then
+				local camPos, camDir = ShoulderCamera.getAimRay()
+				mine.target.WorldPosition = camPos + camDir * 60
+			end
+		end
+	end
+	-- others: who aims nearby (10 Hz)
+	if now - poseScanAt >= 0.1 then
+		poseScanAt = now
+		local _, _, myRoot = characterParts()
+		for _, p in Players:GetPlayers() do
+			local c = p.Character
+			if p ~= player and c then
+				local root = c:FindFirstChild("HumanoidRootPart")
+				local near = myRoot ~= nil
+					and root ~= nil
+					and root:IsA("BasePart")
+					and (root.Position - myRoot.Position).Magnitude <= WeaponClient.AIM_IK_RANGE
+				if near and typeof(c:GetAttribute("AimPitch")) == "number" then
+					poseFor(c)
+				end
+			end
+		end
+		for c in poses do
+			if c.Parent == nil then
+				dropPose(c)
+			end
+		end
+	end
+	for c, pose in poses do
+		if c ~= char then
+			local pitch = c:GetAttribute("AimPitch")
+			local head = c:FindFirstChild("Head")
+			local root = c:FindFirstChild("HumanoidRootPart")
+			if typeof(pitch) == "number" and head and head:IsA("BasePart") and root and root:IsA("BasePart") then
+				setPoseWeight(pose, 1, dt)
+				pose.target.WorldPosition = WeaponClient._aimTarget(head.Position, root.CFrame.LookVector, pitch, 60)
+			else
+				setPoseWeight(pose, 0, dt)
+			end
+		end
+	end
+end
+
+-- While aiming, the pitch follows the camera to the server (rate-limited, only when it moved).
+local function sendAimPitch(now: number)
+	if not aiming or now - pitchSentAt < WeaponClient.AIM_PITCH_SEND then
+		return
+	end
+	local p = aimPitchDeg()
+	if pitchSent == nil or math.abs(p - (pitchSent :: number)) >= 3 then
+		pitchSent = p
+		pitchSentAt = now
+		Net.fire("WeaponAim", true, p)
+	end
 end
 
 -- SURRENDER ---------------------------------------------------------------------------------------------------------------
@@ -867,14 +1124,27 @@ local function circleButton(parent: Instance, name: string, text: string, size: 
 		Text = text,
 		TextColor3 = Style.Colors.Text,
 		FontFace = Style.font("Condensed"),
-		TextSize = math.floor(size * 0.24),
+		TextScaled = true, -- long labels (SURRENDER) shrink to stay inside the circle
 		Visible = false,
 		Parent = parent,
 	}) :: TextButton
 	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = b })
 	Kit.new("UIStroke", { Color = Style.Colors.Text, Transparency = 0.7, Thickness = 1, Parent = b })
+	local pad = UDim.new(0.16, 0)
+	Kit.new("UIPadding", { PaddingLeft = pad, PaddingRight = pad, PaddingTop = pad, PaddingBottom = pad, Parent = b })
+	Kit.new("UITextSizeConstraint", { MaxTextSize = math.floor(size * 0.24), MinTextSize = 8, Parent = b })
 	return b
 end
+
+-- Touch cluster (anchor bottom-right, design px; Kit.screen scales them): FIRE and AIM by the thumb, RELOAD / SWAP
+-- to their left (clear of the top-right weapon button and ammo readout), SURRENDER further left.
+WeaponClient.TOUCH_LAYOUT = {
+	fire = UDim2.new(1, -24, 1, -168),
+	aim = UDim2.new(1, -148, 1, -150),
+	reload = UDim2.new(1, -240, 1, -150),
+	swap = UDim2.new(1, -240, 1, -216),
+	surrender = UDim2.new(1, -330, 1, -168),
+}
 
 local function buildTouchUI()
 	local touchMin = (Theme :: any).TouchMinScale or 0.72
@@ -882,11 +1152,12 @@ local function buildTouchUI()
 	pcall(function()
 		(gui :: any).ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	end)
-	local fire = circleButton(gui, "Fire", "FIRE", WeaponClient.FIRE_BUTTON, UDim2.new(1, -24, 1, -168))
-	local aim = circleButton(gui, "Aim", "AIM", WeaponClient.AIM_BUTTON, UDim2.new(1, -148, 1, -150))
-	local reload = circleButton(gui, "Reload", "RELOAD", WeaponClient.RELOAD_BUTTON, UDim2.new(1, -46, 1, -296))
-	local swap = circleButton(gui, "Swap", "SWAP", 48, UDim2.new(1, -150, 1, -250))
-	local surrender = circleButton(gui, "Surrender", "SURRENDER", 84, UDim2.new(1, -250, 1, -168))
+	local L = WeaponClient.TOUCH_LAYOUT
+	local fire = circleButton(gui, "Fire", "FIRE", WeaponClient.FIRE_BUTTON, L.fire)
+	local aim = circleButton(gui, "Aim", "AIM", WeaponClient.AIM_BUTTON, L.aim)
+	local reload = circleButton(gui, "Reload", "RELOAD", WeaponClient.RELOAD_BUTTON, L.reload)
+	local swap = circleButton(gui, "Swap", "SWAP", 48, L.swap)
+	local surrender = circleButton(gui, "Surrender", "SURRENDER", 84, L.surrender)
 	local weapon = Kit.new("TextButton", {
 		Name = "WeaponButton",
 		AnchorPoint = Vector2.new(1, 0),
@@ -902,24 +1173,31 @@ local function buildTouchUI()
 		Visible = true,
 		Parent = gui,
 	}) :: TextButton
+	-- FIRE: the touch that starts on the button is followed through UserInputService, so dragging off the button
+	-- keeps looking around and lifting the finger anywhere stops full-auto
 	fire.InputBegan:Connect(function(input: InputObject)
 		if input.UserInputType == Enum.UserInputType.Touch then
+			fireInput = input
+			ShoulderCamera.setClaimedTouch(input)
 			firing = true
-			pressed = true
+			pressedAt = os.clock()
 		end
 	end)
-	fire.InputChanged:Connect(function(input: InputObject)
-		if input.UserInputType == Enum.UserInputType.Touch then
+	UserInputService.TouchMoved:Connect(function(input: InputObject)
+		if input == fireInput then
 			ShoulderCamera.addLook(input.Delta.X, input.Delta.Y)
 		end
 	end)
-	fire.InputEnded:Connect(function(input: InputObject)
-		if input.UserInputType == Enum.UserInputType.Touch then
+	UserInputService.TouchEnded:Connect(function(input: InputObject)
+		if input == fireInput then
+			fireInput = nil
+			ShoulderCamera.setClaimedTouch(nil)
 			firing = false
 		end
 	end)
 	aim.Activated:Connect(function()
-		aimToggle = not aimToggle
+		-- toggle from the real state: a forced aim-off (weapon swap, holster) never eats the next tap
+		aimToggle = not aiming
 		startAim(aimToggle)
 	end)
 	reload.Activated:Connect(WeaponClient.reload)
@@ -928,9 +1206,9 @@ local function buildTouchUI()
 		Net.fire("Surrender")
 	end)
 	weapon.Activated:Connect(function()
-		local wheel = lazy("WeaponWheel")
-		if wheel and typeof(wheel.toggle) == "function" then
-			wheel.toggle()
+		local w = wheel()
+		if w and typeof(w.toggle) == "function" then
+			w.toggle()
 		end
 	end)
 	touchUI =
@@ -940,6 +1218,14 @@ end
 local function refreshTouchUI()
 	local ui = touchUI
 	if not ui then
+		return
+	end
+	-- a touchscreen laptop played with mouse and keyboard gets no thumb buttons
+	local touchNow = Kit.isTouch()
+	if ui.gui.Enabled ~= touchNow then
+		ui.gui.Enabled = touchNow
+	end
+	if not touchNow then
 		return
 	end
 	local def = equippedDef()
@@ -980,7 +1266,7 @@ local function onInputBegan(input: InputObject, processed: boolean)
 	local key = input.KeyCode
 	if t == Enum.UserInputType.MouseButton1 or key == Enum.KeyCode.ButtonR2 then
 		firing = true
-		pressed = true
+		pressedAt = os.clock()
 	elseif t == Enum.UserInputType.MouseButton2 or key == Enum.KeyCode.ButtonL2 then
 		startAim(true)
 	elseif key == Enum.KeyCode.R or key == Enum.KeyCode.ButtonX then
@@ -1018,31 +1304,41 @@ end
 
 -- LIFECYCLE ---------------------------------------------------------------------------------------------------------------
 
+-- Per-character connections live in charTrove: cleaned when the character goes away, so an old body is never kept
+-- alive by our handlers.
 local function onCharacter(char: Model)
+	charTrove:Clean()
+	for c in poses do
+		if c ~= char then
+			dropPose(c)
+		end
+	end
 	equippedId = nil
 	equippedTool = nil
 	aiming = false
 	aimToggle = false
-	firing = false
-	pressed = false
+	dropTrigger()
 	reloadUntil = 0
 	reloadId = nil
 	fistsMode = false
 	table.clear(anims)
 	currentHold = nil
 	refreshEngagement()
-	char.ChildAdded:Connect(function(c)
+	charTrove:Connect(char.ChildAdded, function(c)
 		onToolChanged(c, true)
 	end)
-	char.ChildRemoved:Connect(function(c)
+	charTrove:Connect(char.ChildRemoved, function(c)
 		onToolChanged(c, false)
 	end)
 	for _, c in char:GetChildren() do
 		onToolChanged(c, true)
 	end
 	local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 10)
+	if player.Character ~= char then
+		return -- replaced while we waited
+	end
 	if hum and hum:IsA("Humanoid") then
-		hum.Seated:Connect(function(active: boolean)
+		charTrove:Connect(hum.Seated, function(active: boolean)
 			if active then
 				-- holster on entering a car (the server does too); drive-by is phase 2
 				Net.fire("WeaponEquip", "none")
@@ -1050,8 +1346,8 @@ local function onCharacter(char: Model)
 			end
 			refreshEngagement()
 		end)
-		hum.Died:Connect(function()
-			firing = false
+		charTrove:Connect(hum.Died, function()
+			dropTrigger()
 			startAim(false)
 			ShoulderCamera.setEngaged(false)
 		end)
@@ -1074,6 +1370,10 @@ function WeaponClient.start()
 		buildTouchUI()
 	end
 	player.CharacterAdded:Connect(onCharacter)
+	player.CharacterRemoving:Connect(function(char: Model)
+		charTrove:Clean()
+		dropPose(char)
+	end)
 	if player.Character then
 		task.spawn(onCharacter, player.Character)
 	end
@@ -1084,6 +1384,8 @@ function WeaponClient.start()
 		tryFire()
 		flush(false)
 		aimAssist(dt)
+		sendAimPitch(now)
+		updatePoses(dt)
 		if not aiming and now - lastShotAt > WeaponClient.FACE_AFTER_SHOT then
 			ShoulderCamera.setFacing(false)
 		end
@@ -1097,6 +1399,15 @@ function WeaponClient.start()
 		if uiAcc >= 0.2 then
 			uiAcc = 0
 			refreshTouchUI()
+			-- a gun in hand with the camera let go (the death / arrest screen just finished): take it back, unless we
+			-- just asked to holster and the Tool hasn't left yet
+			if
+				Weapons.isGun(equippedDef())
+				and not ShoulderCamera.isEngaged()
+				and now - holsterRequestedAt > 1
+			then
+				refreshEngagement()
+			end
 		end
 	end)
 end

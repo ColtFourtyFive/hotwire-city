@@ -55,7 +55,7 @@ Remotes.ClientToServer = {
 	"WeaponReload", -- (weaponId: string)
 	"WeaponEquip", -- (weaponId: string | "none")
 	"WeaponMelee", -- (weaponId: string, aimDir: Vector3)
-	"WeaponAim", -- (aiming: boolean) aim-at-officer (brandish) + police "armed" checks
+	"WeaponAim", -- (aiming: boolean, pitchDeg: number?) brandish / "armed" checks + the replicated aim pitch
 	"BuyWeapon", -- (weaponId: string)
 	"BuyAmmo", -- (weaponId: string, full: boolean?) one ammo box, or fill to the reserve cap
 	"BuyArmor", -- (armorId: string)
@@ -70,6 +70,7 @@ Remotes.ClientToServer = {
 Remotes.Unreliable = {
 	"ShotFx", -- (shooterKey: number, weaponIndex: number, origin: Vector3, endpoints: {Vector3}, kinds: {number})
 	"PoliceShotFx", -- (unitKey: number, weaponIndex: number, origin: Vector3, endpoints: {Vector3}, kinds: {number})
+	"DistantShot", -- (origin: Vector3, weaponIndex: number) a far-away gunshot's tail (beyond the ShotFx radius)
 }
 
 -- RemoteFunctions: client -> server

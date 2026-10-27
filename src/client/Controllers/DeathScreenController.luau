@@ -10,9 +10,12 @@
 --  * WASTED: t=1.0 grade + a slow dolly up and back (2 studs/s) with a 6 degree dutch tilt and FOV -10 over 5 s;
 --    t=1.2 shard; t=4.4 HC_Fade (DisplayOrder 60) to black; after the server respawns us (5 s): fade in 0.6 s, grade
 --    off, feed "Treated at <Hospital>. Bill -$X".
---  * BUSTED (alive): grade + a 3/4 camera on us and the nearest officer, shard at 0.15 s, the world (not the band)
---    fades to black over the server's release teleport (1.1 s) and back, the shard holds to 4 s, feed "Released from
---    Police HQ. Bail -$X". BUSTED after dying while wanted follows the WASTED timing.
+--  * BUSTED (alive, §5.9 timeline): t=0 the shoulder camera lets go; t=1.0 grade + a 3/4 camera on us and the
+--    nearest officer; t=1.2 shard; t=4.4 the world (not the band) fades to black before the server's release
+--    teleport (WantedService.RELEASE_DELAY = 5 s) and is revealed at 5.3 s; out at 6 s; feed "Released from Police
+--    HQ. Bail -$X". BUSTED after dying while wanted follows the WASTED timing.
+--  * The whole sequence holds ShoulderCamera's "death" suspension: a drawn gun can't overwrite the death / arrest
+--    camera (and WeaponClient won't re-engage it) until finish().
 --  * While our shard is up, the v1 cartoon overlay (HUDController's HC_Busted) is switched off.
 -- Remotes: Wasted({ by, police, bill, hospital }), Busted(lostCash, carLabel?).
 
@@ -30,16 +33,19 @@ local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Style = require(UI:WaitForChild("CombatStyle"))
 
+local ShoulderCamera = require(script.Parent:WaitForChild("ShoulderCamera"))
+
 local DeathScreenController = {}
 
 DeathScreenController.GRADE_AT = 1.0
 DeathScreenController.SHARD_AT = 1.2
 DeathScreenController.FADE_AT = 4.4
 DeathScreenController.FADE_TIME = 0.6
-DeathScreenController.BUSTED_SHARD_AT = 0.15
-DeathScreenController.BUSTED_BLACK_AT = 0.6
-DeathScreenController.BUSTED_REVEAL_AT = 1.7
-DeathScreenController.BUSTED_OUT_AT = 4.0
+DeathScreenController.BUSTED_GRADE_AT = 1.0
+DeathScreenController.BUSTED_SHARD_AT = 1.2
+DeathScreenController.BUSTED_BLACK_AT = 4.4 -- the release teleport happens at WantedService.RELEASE_DELAY (5 s)
+DeathScreenController.BUSTED_REVEAL_AT = 5.3
+DeathScreenController.BUSTED_OUT_AT = 6.0
 DeathScreenController.SAFETY = 9 -- clean up even if no respawn arrives
 DeathScreenController.BAND_Y = 0.488
 DeathScreenController.BAND_H = 0.195
@@ -494,10 +500,18 @@ local function fadeBlack(on: boolean, time: number)
 	end
 end
 
+-- The sequence owns the camera: the shoulder camera disengages first (restoring the pre-gun FOV) and stays out
+-- until finish().
+local function takeCamera()
+	ShoulderCamera.setEngaged(false)
+	ShoulderCamera.setSuspended("death", true)
+end
+
 local function finish(time: number)
 	active = nil
 	awaitingRespawn = false
 	restoreCamera()
+	ShoulderCamera.setSuspended("death", false)
 	setGrade(false, time)
 	local v = getView()
 	v.worldFade.BackgroundTransparency = 1
@@ -525,6 +539,7 @@ local function deadSequence(kind: string, titleText: string, color: Color3, subt
 	local my = token
 	active = kind
 	awaitingRespawn = true
+	takeCamera()
 	local target = rootPosition()
 	task.delay(DeathScreenController.GRADE_AT, function()
 		if my ~= token then
@@ -580,11 +595,18 @@ function DeathScreenController.showBusted(lost: number, carLabel: string?)
 	token += 1
 	local my = token
 	active = "busted"
-	setGrade(true, 0.4)
-	arrestShot(root)
-	play("Busted")
+	takeCamera()
 	play("Handcuffs")
 	local v = getView()
+	task.delay(DeathScreenController.BUSTED_GRADE_AT, function()
+		if my ~= token then
+			return
+		end
+		setGrade(true, 0.6)
+		local r = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		arrestShot(if r and r:IsA("BasePart") then r else root :: BasePart)
+		play("Busted")
+	end)
 	task.delay(DeathScreenController.BUSTED_SHARD_AT, function()
 		if my == token then
 			shardIn("busted", Style.Colors.Blue, subtitle)
@@ -592,7 +614,7 @@ function DeathScreenController.showBusted(lost: number, carLabel: string?)
 	end)
 	task.delay(DeathScreenController.BUSTED_BLACK_AT, function()
 		if my == token then
-			tween(v.worldFade, 0.4, { BackgroundTransparency = 0 })
+			tween(v.worldFade, DeathScreenController.FADE_TIME, { BackgroundTransparency = 0 })
 		end
 	end)
 	task.delay(DeathScreenController.BUSTED_REVEAL_AT, function()

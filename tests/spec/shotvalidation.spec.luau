@@ -149,12 +149,14 @@ return function(t)
 		local n = 0
 		while result == "ok" and n < 100 do
 			n += 1
+			SV.beginPacket(a) -- one bad packet each
 			result = SV.addAudit(a, "origin", n * 0.1)
 		end
 		t.eq(result, "drop", "drop first")
 		t.ok(SV.isDropping(a, n * 0.1 + 1))
 		while result ~= "kick" and n < 200 do
 			n += 1
+			SV.beginPacket(a)
 			result = SV.addAudit(a, "origin", n * 0.1)
 		end
 		t.eq(result, "kick")
@@ -163,6 +165,33 @@ return function(t)
 		SV.addAudit(b, "origin", 0)
 		SV.decayAudit(b, 600)
 		t.eq(b.score, 0)
+	end)
+
+	t.test("audit: lag never scores (stale / facing are free); one packet adds at most the largest weight", function()
+		local a = SV.newAudit(0)
+		-- a second of SMG fire through a server hitch: every shot "stale", every pellet behind a not-yet-turned back
+		for i = 1, 20 do
+			SV.beginPacket(a)
+			for _ = 1, 4 do
+				t.eq(SV.addAudit(a, "stale", i * 0.05), "ok")
+				t.eq(SV.addAudit(a, "facing", i * 0.05), "ok")
+			end
+		end
+		t.eq(a.score, 0, "honest lag costs nothing")
+		t.eq(#a.window, 0)
+		t.eq(a.reasons.stale, 80, "still counted for the admin log")
+		-- one shotgun packet with 4 shots x 8 bad pellets: capped at one origin-sized weight
+		local b = SV.newAudit(0)
+		SV.beginPacket(b)
+		for _ = 1, 32 do
+			SV.addAudit(b, "pellet", 1)
+		end
+		SV.addAudit(b, "origin", 1)
+		t.eq(b.score, SV.PACKET_CAP, "capped per packet")
+		t.eq(SV.PACKET_CAP, 3)
+		SV.beginPacket(b)
+		SV.addAudit(b, "pellet", 1) -- same instant: no decay in between
+		t.eq(b.score, SV.PACKET_CAP + SV.WEIGHTS.pellet, "the next packet has its own budget")
 	end)
 
 	t.test("HitboxHistory ring: interpolates, clamps to newest / oldest, wraps", function()

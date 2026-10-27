@@ -10,6 +10,10 @@
 --    world surfaces, sparks on metal, a small GREY cloth puff on characters: never red, no blood, no decals on
 --    people); near-miss whiz when a remote tracer passes within WHIZ_RADIUS of the local head.
 --  * Gun audio through SoundController.playGunshot (shot / tail / mech layers, distance rules, radio ducking).
+--    Impact audio: one sound per shot (the first pellet that lands; every pellet still gets its dust / sparks), at
+--    most IMPACT_SOUNDS_PER_S per shooter, so a shotgun blast or an SMG burst never floods the positional voice pool.
+--  * DistantShot(origin, weaponIndex): a gunshot beyond the ShotFx radius, heard as a low-passed tail
+--    (SoundController.playDistantGunshot).
 --  * Effect remote names it renders: TaserShot { from, to, hit } (two thin probe wires), TireBurst { position },
 --    StripDrop { position }, MeleeHit { position }.
 -- Pure helpers (tests): _closestPointOnSegment, _impactStyle.
@@ -34,6 +38,7 @@ ShotFxController.TRACER_LENGTH = 9
 ShotFxController.WHIZ_RADIUS = 4
 ShotFxController.MAX_DISTANCE = 600 -- FX farther than this from the camera are skipped (audio still plays)
 ShotFxController.FLASH_TIME = 0.05
+ShotFxController.IMPACT_SOUNDS_PER_S = 8
 
 local TRACER_COLOR = Color3.fromRGB(255, 226, 168)
 local FLASH_COLOR = Color3.fromRGB(255, 196, 120)
@@ -62,6 +67,20 @@ function ShotFxController._impactStyle(kind: number): (string?, Color3, number, 
 	return nil, DUST, 0, nil
 end
 
+-- Impact-sound budget per shooter (pure, tested): a token bucket of IMPACT_SOUNDS_PER_S tokens refilling at that
+-- rate. Returns true (and spends a token) when this impact may play its sound.
+export type SoundBudget = { tokens: number, at: number }
+function ShotFxController._takeImpactSound(b: SoundBudget, now: number): boolean
+	local rate = ShotFxController.IMPACT_SOUNDS_PER_S
+	b.tokens = math.min(rate, b.tokens + math.max(0, now - b.at) * rate)
+	b.at = now
+	if b.tokens < 1 then
+		return false
+	end
+	b.tokens -= 1
+	return true
+end
+
 -- STATE ---------------------------------------------------------------------------------------------------------------
 
 type Tracer = {
@@ -86,6 +105,8 @@ local nextFlash = 1
 local activeCount = 0
 local vfx: any = nil
 local sound: any = nil
+local soundBudgets: { [any]: SoundBudget } = {}
+local budgetSweepAt = 0
 
 local function lazy(name: string): any
 	local mod = script.Parent:FindFirstChild(name)
@@ -246,7 +267,7 @@ local function startTracer(from: Vector3, to: Vector3, remote: boolean)
 	end
 end
 
-local function impact(pos: Vector3, kind: number, normal: Vector3?)
+local function impact(pos: Vector3, kind: number, normal: Vector3?, withSound: boolean)
 	local preset, color, count, key = ShotFxController._impactStyle(kind)
 	local cam = camPos()
 	if cam and (cam - pos).Magnitude > ShotFxController.MAX_DISTANCE then
@@ -257,13 +278,32 @@ local function impact(pos: Vector3, kind: number, normal: Vector3?)
 		pcall(lib.burst, preset, pos, { count = count, scale = 0.35, color = color, direction = normal })
 	end
 	local snd = getSound()
-	if key and snd then
+	if withSound and key and snd then
 		pcall(snd.play, key, pos)
 	end
 end
 
+local function budgetFor(shooterKey: any, now: number): SoundBudget
+	local b = soundBudgets[shooterKey]
+	if not b then
+		b = { tokens = ShotFxController.IMPACT_SOUNDS_PER_S, at = now }
+		soundBudgets[shooterKey] = b
+	end
+	-- forget idle shooters now and then
+	if now - budgetSweepAt > 10 then
+		budgetSweepAt = now
+		for k, other in soundBudgets do
+			if now - other.at > 10 and k ~= shooterKey then
+				soundBudgets[k] = nil
+			end
+		end
+	end
+	return b
+end
+
 -- Renders one shot: muzzle flash, tracers to every endpoint, impacts, and the shooter's gun audio.
 local function render(
+	shooterKey: any,
 	weaponId: string?,
 	origin: Vector3,
 	endpoints: { Vector3 },
@@ -281,15 +321,23 @@ local function render(
 	if near then
 		flashAt(origin)
 	end
+	local now = os.clock()
+	local soundTaken = false
 	for i, e in endpoints do
 		if typeof(e) == "Vector3" then
 			startTracer(origin, e, remote)
 			local kind = kinds[i] or 0
 			if kind ~= 0 then
+				-- one impact sound per shot (the first pellet that lands), within the shooter's budget
+				local withSound = false
+				if not soundTaken then
+					soundTaken = true
+					withSound = ShotFxController._takeImpactSound(budgetFor(shooterKey, now), now)
+				end
 				-- impact lands when the tracer arrives
 				local delay = (e - origin).Magnitude / ShotFxController.TRACER_SPEED
 				local n = normals and normals[i]
-				task.delay(delay, impact, e, kind, n)
+				task.delay(delay, impact, e, kind, n, withSound)
 			end
 		end
 	end
@@ -303,10 +351,10 @@ function ShotFxController.localShot(
 	kinds: { number },
 	normals: { Vector3 }?
 )
-	render(weaponId, origin, endpoints, kinds, false, normals)
+	render("local", weaponId, origin, endpoints, kinds, false, normals)
 end
 
-local function onRemoteShot(_shooterKey: any, weaponIndex: any, origin: any, endpoints: any, kinds: any)
+local function onRemoteShot(shooterKey: any, weaponIndex: any, origin: any, endpoints: any, kinds: any)
 	if typeof(origin) ~= "Vector3" or typeof(endpoints) ~= "table" then
 		return
 	end
@@ -321,7 +369,20 @@ local function onRemoteShot(_shooterKey: any, weaponIndex: any, origin: any, end
 			table.insert(kindList, if typeof(k) == "number" then k else 0)
 		end
 	end
-	render(if def then def.id else nil, origin, list, kindList, true, nil)
+	local key = if typeof(shooterKey) == "number" then shooterKey else "remote"
+	render(key, if def then def.id else nil, origin, list, kindList, true, nil)
+end
+
+-- A gunshot beyond the ShotFx radius: only its distant tail.
+local function onDistantShot(origin: any, weaponIndex: any)
+	if typeof(origin) ~= "Vector3" or not Net.isFiniteVector(origin) or typeof(weaponIndex) ~= "number" then
+		return
+	end
+	local def = Weapons.List[weaponIndex]
+	local snd = getSound()
+	if def and snd and typeof(snd.playDistantGunshot) == "function" then
+		pcall(snd.playDistantGunshot, def.sounds, origin)
+	end
 end
 
 -- EFFECT REMOTE (gadgets / melee) -------------------------------------------------------------------------------------
@@ -453,6 +514,7 @@ function ShotFxController.start()
 	local ok, err = pcall(function()
 		Net.listenUnreliable("ShotFx", onRemoteShot)
 		Net.listenUnreliable("PoliceShotFx", onRemoteShot)
+		Net.listenUnreliable("DistantShot", onDistantShot)
 	end)
 	if not ok then
 		warn("[ShotFxController] shot remotes unavailable: " .. tostring(err))

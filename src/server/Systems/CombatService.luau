@@ -531,12 +531,17 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 -- Stun a player for `seconds` (player attribute Stunned=true; clients freeze controls). Also used by police tasers and
--- heavy melee hits.
-function CombatService.stun(victim: Player, seconds: number)
+-- heavy melee hits. No stun-lock: while a stun runs and for STUN_IMMUNITY_AFTER after it, further stuns are refused
+-- (they neither land nor extend the current one) unless `force` (the BUSTED freeze). Returns true when it landed;
+-- callers only knock the victim down when it did.
+function CombatService.stun(victim: Player, seconds: number, force: boolean?): boolean
 	if seconds <= 0 or not victim.Parent then
-		return
+		return false
 	end
 	local now = os.clock()
+	if not force and now < (immuneUntil[victim] or -math.huge) then
+		return false
+	end
 	local untilTime = math.max(stunUntil[victim] or 0, now + seconds)
 	stunUntil[victim] = untilTime
 	immuneUntil[victim] = untilTime + STUN_IMMUNITY_AFTER
@@ -551,6 +556,7 @@ function CombatService.stun(victim: Player, seconds: number)
 			victim:SetAttribute("Stunned", false)
 		end
 	end)
+	return true
 end
 
 function CombatService.isStunned(player: Player): boolean

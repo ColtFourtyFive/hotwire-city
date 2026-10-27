@@ -101,6 +101,7 @@ type Suspect = {
 	roadblock: Roadblock?,
 	lastRoadblockAt: number,
 	passengerReadyAt: { [number]: number },
+	passengerShots: { [number]: number }, -- shots per unit at the current acquisition (warning shots first)
 }
 
 type Pickup = { part: BasePart, expiresAt: number }
@@ -339,6 +340,7 @@ local function getSuspect(player: Player): Suspect
 			roadblock = nil,
 			lastRoadblockAt = -math.huge,
 			passengerReadyAt = {},
+			passengerShots = {},
 		}
 		suspects[player] = sc
 	end
@@ -637,11 +639,14 @@ local function taser(o: Officer, sc: Suspect, info: SuspectInfo, now: number)
 		return
 	end
 	o.taserReadyAt = now + Police.TASER_COOLDOWN
-	call("CombatService", "stun", sc.player, Police.TASER_STUN)
-	local dir = flat(info.pos - o.root.Position)
-	local push = if dir.Magnitude > 0.1 then dir.Unit * 10 else Vector3.zero
-	pcall(Net.fireClient, "Knockback", sc.player, push + Vector3.new(0, 6, 0), Police.TASER_STUN)
-	pcall(Net.fireNear, "Effect", origin, 250, "TaserShot", { from = origin, to = info.pos, hit = true })
+	-- stun immunity applies to tasers too (no stun-lock): the wire still flies, but only a landed stun knocks down
+	local okS, landed = call("CombatService", "stun", sc.player, Police.TASER_STUN)
+	if okS and landed == true then
+		local dir = flat(info.pos - o.root.Position)
+		local push = if dir.Magnitude > 0.1 then dir.Unit * 10 else Vector3.zero
+		pcall(Net.fireClient, "Knockback", sc.player, push + Vector3.new(0, 6, 0), Police.TASER_STUN)
+	end
+	pcall(Net.fireNear, "Effect", origin, 250, "TaserShot", { from = origin, to = info.pos, hit = okS and landed == true })
 end
 
 -- OFFICER THINK ---------------------------------------------------------------------------------------------------------
@@ -661,6 +666,13 @@ local function officerThink(o: Officer, sc: Suspect, info: SuspectInfo, now: num
 	end
 	local stars = sc.stars
 	local eye = o.root.Position + Vector3.new(0, 1.5, 0)
+	-- an officer who got out at 1 star carries a taser; once the chase escalates he draws his star's gun
+	if o.weapon == "taser" and stars >= 2 then
+		o.weapon = loadoutWeapon(stars)
+		if NPC and typeof(NPC.setOfficerWeapon) == "function" then
+			pcall(NPC.setOfficerWeapon, o.model, o.weapon)
+		end
+	end
 	-- suspect gone / cleared / in a fast car / far from the cruiser: go back to the car
 	local unitPos = if o.unitModel and o.unitModel.PrimaryPart then o.unitModel.PrimaryPart.Position else o.home
 	local tooFar = info.valid and flatDist(info.pos, unitPos) > PoliceCombatService.RETURN_DIST
@@ -730,16 +742,20 @@ local function officerThink(o: Officer, sc: Suspect, info: SuspectInfo, now: num
 		end
 		return
 	end
-	-- Engage: face and fire when allowed
+	-- Engage: face and fire when allowed. Hold fire (protected, surrendering, safe zone, just released...) covers the
+	-- taser too.
 	setState(o, "Engage", now)
 	stopAndFace(o, info.pos)
+	local okHold, hold = call("DamageService", "policeHoldFire", sc.player)
+	local holding = okHold and hold == true
 	if o.weapon == "taser" then
-		taser(o, sc, info, now)
+		if not holding then
+			taser(o, sc, info, now)
+		end
 		return
 	end
 	local lethal = PoliceAim.lethal(stars, armed, info.inVehicle, info.speed)
-	local okHold, hold = call("DamageService", "policeHoldFire", sc.player)
-	local fire = PoliceAim.mayFire({ protected = okHold and hold == true, lethal = lethal })
+	local fire = PoliceAim.mayFire({ protected = holding, lethal = lethal })
 	if not fire or now < o.readyAt or now < o.nextShotAt then
 		return
 	end
@@ -823,17 +839,27 @@ local function passengerFire(sc: Suspect, info: SuspectInfo, now: number)
 		if u.mode == "chase" and u.speed > 5 then
 			local readyAt = sc.passengerReadyAt[u.id] or 0
 			local pos = u.chassis.Position
-			if now >= readyAt and flatDist(pos, info.pos) <= Police.PASSENGER_RANGE then
+			local inRange = flatDist(pos, info.pos) <= Police.PASSENGER_RANGE
+			if not inRange then
+				sc.passengerShots[u.id] = nil -- target lost: the next acquisition starts with warning shots again
+			elseif now >= readyAt then
 				local cf = u.chassis.CFrame
 				local origin = (cf * CFrame.new(2.6, 2.2, -1)).Position
-				if
-					clear(origin, info.pos + Vector3.new(0, 1, 0), { u.model })
-					and not bystanderOnLine(origin, info.pos, sc.player)
-				then
+				if not clear(origin, info.pos + Vector3.new(0, 1, 0), { u.model }) then
+					sc.passengerShots[u.id] = nil
+				elseif not bystanderOnLine(origin, info.pos, sc.player) then
 					local range = PoliceCombatService.PASSENGER_INTERVAL
 					sc.passengerReadyAt[u.id] = now + rng:NextNumber(range[1], range[2])
-					if policeShot(sc, info, "pistol", origin, 100000 + u.id, 99) then
-						if info.inVehicle and info.car and rng:NextNumber() < Police.PASSENGER_TIRE_CHANCE then
+					-- §9.3: the first WARNING_SHOTS at a newly acquired target always miss, from a window too
+					local shots = sc.passengerShots[u.id] or 0
+					if policeShot(sc, info, "pistol", origin, 100000 + u.id, shots) then
+						sc.passengerShots[u.id] = shots + 1
+						if
+							not PoliceAim.isWarningShot(shots)
+							and info.inVehicle
+							and info.car
+							and rng:NextNumber() < Police.PASSENGER_TIRE_CHANCE
+						then
 							call("VehicleService", "popTires", info.car, Weapons.TIRE_POP_TIME)
 						end
 					end
@@ -987,13 +1013,23 @@ local function aimingAtPolice(root: BasePart): boolean
 	return false
 end
 
+-- Aiming a gun we actually hold (the server's Aiming flag is cleared on every holster, but never trust one flag for
+-- a crime).
+local function aimingGun(player: Player): boolean
+	local okA, aiming = call("WeaponService", "isAiming", player)
+	if not okA or aiming ~= true then
+		return false
+	end
+	local okE, equipped = call("WeaponService", "equipped", player)
+	return okE and typeof(equipped) == "string" and Weapons.isGun(Weapons.get(equipped))
+end
+
 local function brandishPass(now: number)
 	for _, player in Players:GetPlayers() do
 		local sc = suspects[player]
-		local okA, aiming = call("WeaponService", "isAiming", player)
 		local char = player.Character
 		local root = char and char:FindFirstChild("HumanoidRootPart")
-		if okA and aiming == true and root and root:IsA("BasePart") and aimingAtPolice(root) then
+		if root and root:IsA("BasePart") and aimingGun(player) and aimingAtPolice(root) then
 			sc = sc or getSuspect(player)
 			sc.aimSince = sc.aimSince or now
 			if now - (sc.aimSince :: number) >= Police.BRANDISH_TIME then

@@ -36,13 +36,15 @@ export type ClaimedHit = { p: any, x: Vector3, k: number }
 export type Shot = { w: string, t: number, o: Vector3, d: Vector3, s: number, a: boolean, h: { ClaimedHit } }
 
 -- AUDIT (§10.7) -----------------------------------------------------------------------------------------------------
+-- Only claims an honest client can't make score. Lag can: a stale timestamp (jitter, a server hitch) and a facing
+-- that hasn't replicated yet (turning to shoot behind you) only drop that shot's hits, like "state".
 ShotValidation.WEIGHTS = {
 	future = 3,
-	stale = 3,
+	stale = 0,
 	origin = 3,
 	los = 2,
 	angle = 2,
-	facing = 2,
+	facing = 0,
 	pellet = 2,
 	target = 1,
 	range = 1,
@@ -56,6 +58,12 @@ ShotValidation.AUDIT_DROP = 30 -- above this: silently drop the player's hits fo
 ShotValidation.AUDIT_DROP_TIME = 60
 ShotValidation.AUDIT_KICK = 80 -- above this within AUDIT_KICK_WINDOW: kick (no automatic bans)
 ShotValidation.AUDIT_KICK_WINDOW = 120
+-- One packet (<= 4 shots, several pellets each) adds at most the largest single weight, so one burst of lag or one
+-- bad shotgun blast can never stack a pellet-by-pellet score.
+ShotValidation.PACKET_CAP = 0
+for _, w in ShotValidation.WEIGHTS do
+	ShotValidation.PACKET_CAP = math.max(ShotValidation.PACKET_CAP, w)
+end
 
 local function finite(n: any): boolean
 	return typeof(n) == "number" and n == n and n ~= math.huge and n ~= -math.huge
@@ -202,7 +210,8 @@ function ShotValidation.checkPellet(expected: { Vector3 }, k: number, origin: Ve
 	return Ballistics.angleBetween(to, e) <= ShotValidation.PELLET_SLACK
 end
 
--- 7c. FACING: no shooting behind your own back (rewound root look vector).
+-- 7c. FACING: no shooting behind your own back. WeaponService accepts the rewound OR the live root look vector:
+-- the turn to face the camera replicates a moment after the shot that caused it.
 function ShotValidation.checkFacing(dir: Vector3, facing: Vector3): boolean
 	local f = Vector3.new(facing.X, 0, facing.Z)
 	local d = Vector3.new(dir.X, 0, dir.Z)
@@ -272,10 +281,16 @@ export type Audit = {
 	dropUntil: number,
 	window: { { t: number, w: number } }, -- weights added within the kick window
 	reasons: { [string]: number },
+	packet: number, -- weight added since the current packet began (at most PACKET_CAP)
 }
 
 function ShotValidation.newAudit(now: number): Audit
-	return { score = 0, at = now, dropUntil = -math.huge, window = {}, reasons = {} }
+	return { score = 0, at = now, dropUntil = -math.huge, window = {}, reasons = {}, packet = 0 }
+end
+
+-- A new WeaponFire packet starts: its rejections share one PACKET_CAP budget.
+function ShotValidation.beginPacket(a: Audit)
+	a.packet = 0
 end
 
 function ShotValidation.decayAudit(a: Audit, now: number)
@@ -295,12 +310,13 @@ end
 -- Adds a rejection. Returns "ok" | "drop" (start dropping hits) | "kick".
 function ShotValidation.addAudit(a: Audit, reason: string, now: number): string
 	ShotValidation.decayAudit(a, now)
-	local w = ShotValidation.WEIGHTS[reason] or 1
+	a.reasons[reason] = (a.reasons[reason] or 0) + 1
+	local w = math.min(ShotValidation.WEIGHTS[reason] or 1, ShotValidation.PACKET_CAP - a.packet)
 	if w <= 0 then
 		return "ok"
 	end
+	a.packet += w
 	a.score += w
-	a.reasons[reason] = (a.reasons[reason] or 0) + 1
 	table.insert(a.window, { t = now, w = w })
 	local inWindow = 0
 	for _, e in a.window do

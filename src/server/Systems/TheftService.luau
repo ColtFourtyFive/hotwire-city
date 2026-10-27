@@ -354,7 +354,7 @@ function TheftService._canSteal(s: StealState): (boolean, string, string)
 	elseif not s.thiefAlive then
 		return false, "dead", "You can't steal right now."
 	elseif s.thiefStunned then
-		return false, "stunned", "💫 You're seeing stars!"
+		return false, "stunned", "You're stunned."
 	elseif s.thiefDriving then
 		return false, "driving", "Hop out of your car first!"
 	elseif s.thiefBusy then
@@ -800,7 +800,7 @@ local function canTakeover(theft: Theft, player: Player): (boolean, string?)
 		return false, nil
 	end
 	if player:GetAttribute("Stunned") == true then
-		return false, "💫 You're seeing stars!"
+		return false, "You're stunned."
 	end
 	local other = byThief[player]
 	if other and other ~= theft then

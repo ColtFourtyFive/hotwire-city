@@ -11,20 +11,25 @@
 -- Shots (WeaponFire, <= 4 per packet, <= 20 packets/s) run §10.2 in order; a failed check drops that shot's hits
 -- (or the packet) and scores the ShotAudit:
 --   1 shape  2 state (alive, owned + equipped, draw time done, not reloading / seated / stunned / safe)  3 rate (token
---   bucket per weapon)  4 ammo (server magazine)  -> ShotFx to nearby clients (misses visible too)
+--   bucket per weapon)  4 ammo (server magazine), then the muzzle must be near the LIVE head (else nothing is relayed)
+--   -> gunfire crime at our position, ShotFx to nearby clients (misses visible too), DistantShot to far ones
 --   5 time (-0.05 <= rewind <= min(0.35, 2 ping + 0.1))  6 origin (near the REWOUND head, clear path)
---   7 direction (max spread + 1 deg; shotguns: regenerated pellets within 1.5 deg; no shooting behind your back)
---   8 range  9 target (claimed point near the victim part's rewound position, sampled at t - (ping / 2 + 0.1))
---   10 line of sight  11 DamageService.canDamage  12 apply (+ crimes, theft drop)  13 HitConfirm / DamageTaken.
+--   7 direction (max spread + 1 deg; shotguns: regenerated pellets within 1.5 deg; no shooting behind your back:
+--   rewound or live facing)  8 range  9 target (claimed point near the victim part's rewound position, sampled at
+--   t - (ping / 2 + 0.1))  10 line of sight  11 DamageService.canDamage  12 apply (+ crimes, theft drop)
+--   13 HitConfirm / DamageTaken.
 -- Audit: score decays 10 / min; > 30 silently drops the player's hits for 60 s (logged via AdminService);
--- > 80 within 2 min kicks with a generic message. Damage, health, armor, ammo, zones are never read from a client.
+-- > 80 within 2 min kicks with a generic message. Lag never scores (stale / facing / state weigh 0) and one packet
+-- adds at most ShotValidation.PACKET_CAP. Damage, health, armor, ammo, zones are never read from a client.
+-- Melee (WeaponMelee) passes the same draw gate (safe zones) and only swings where the body faces.
 --
 -- Public API: owns(player, id), giveWeapon(player, id, freeMags?), addAmmo(player, id, rounds): number,
 --   reserveSpace(player, id): number, setTint(player, id, tintId), equipped(player): string?, holster(player),
 --   holsterGuns(player), pushState(player), ammoOf(player, id): (mag, reserve), addMagazineForClass(player): boolean,
---   onBusted(player), getAudit(player)
+--   onBusted(player), getAudit(player), isAiming(player)
 -- Signals: Fired(player, weaponId, origin: Vector3, dir: Vector3), Equipped(player, weaponId?)
--- Player attributes: EquippedWeapon (id or ""), Aiming (bool), Reloading (bool).
+-- Player attributes: EquippedWeapon (id or ""), Aiming (bool, cleared whenever no gun is in hand), Reloading (bool).
+-- Character attribute: AimPitch (degrees, while aiming; other clients pose the upper body with it).
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -54,6 +59,10 @@ WeaponService.MELEE_POINT_BLANK = 3
 WeaponService.MELEE_STUN = { bat = 0.9, crowbar = 0.9, nightstick = 0.9 } :: { [string]: number }
 WeaponService.MELEE_KNOCK = 28
 WeaponService.SOUND_RADIUS = 160
+WeaponService.DISTANT_RADIUS = 1200 -- distant-gunfire tails reach this far (beyond the ShotFx radius)
+WeaponService.DISTANT_INTERVAL = 0.5 -- at most 2 distant tails per second per shooter
+WeaponService.AIM_PITCH_LIMIT = 70 -- degrees; the replicated upper-body aim pitch (character attribute AimPitch)
+WeaponService.AIM_PITCH_STEP = 3 -- degrees; smaller changes are not re-replicated
 
 type Ammo = { mag: number, reserve: number }
 type Reload = { id: string, endsAt: number, perShell: boolean, token: number }
@@ -72,6 +81,7 @@ type Inv = {
 	aiming: boolean,
 	conns: { RBXScriptConnection },
 	loaded: boolean,
+	distantReadyAt: number,
 }
 
 local invs: { [Player]: Inv } = {}
@@ -81,7 +91,20 @@ local losParams: RaycastParams? = nil
 
 -- HOOKS --------------------------------------------------------------------------------------------------------------
 local systemCache: { [string]: any } = {}
+-- Tests swap these (tests/spec/weaponservice.spec.luau): system(name) -> fake module; fire(how, name, ...) records
+-- remotes instead of sending them (how = "client" | "near" | "nearUnreliable" | "clientUnreliable").
+local hooks: { system: ((string) -> any)?, fire: ((string, string, ...any) -> ())? } = { system = nil, fire = nil }
+
+function WeaponService._setHooks(overrides: { [string]: any }?)
+	hooks.system = if overrides then overrides.system else nil
+	hooks.fire = if overrides then overrides.fire else nil
+	table.clear(systemCache)
+end
+
 local function sys(name: string): any
+	if hooks.system then
+		return hooks.system(name)
+	end
 	local cached = systemCache[name]
 	if cached ~= nil then
 		return cached
@@ -118,10 +141,40 @@ local function serverNow(): number
 	return if ok and typeof(t) == "number" then t else os.clock()
 end
 
-local function notify(player: Player, kind: string, text: string, duration: number?)
-	if player.Parent then
-		Net.fireClient("Notify", player, kind, text, duration)
+local function fireClient(name: string, player: Player, ...: any)
+	if hooks.fire then
+		hooks.fire("client", name, player, ...)
+	elseif player.Parent then
+		Net.fireClient(name, player, ...)
 	end
+end
+
+local function fireNear(name: string, position: Vector3, radius: number, ...: any)
+	if hooks.fire then
+		hooks.fire("near", name, position, radius, ...)
+	else
+		Net.fireNear(name, position, radius, ...)
+	end
+end
+
+local function fireNearUnreliable(name: string, points: { Vector3 }, radius: number, except: Player?, ...: any)
+	if hooks.fire then
+		hooks.fire("nearUnreliable", name, points, radius, except, ...)
+	else
+		pcall(Net.fireNearUnreliable, name, points, radius, except, ...)
+	end
+end
+
+local function fireClientUnreliable(name: string, player: Player, ...: any)
+	if hooks.fire then
+		hooks.fire("clientUnreliable", name, player, ...)
+	else
+		pcall(Net.fireClientUnreliable, name, player, ...)
+	end
+end
+
+local function notify(player: Player, kind: string, text: string, duration: number?)
+	fireClient("Notify", player, kind, text, duration)
 end
 
 local function getData(player: Player): any
@@ -302,6 +355,7 @@ local function newInv(player: Player): Inv
 		aiming = false,
 		conns = {},
 		loaded = false,
+		distantReadyAt = 0,
 	}
 end
 
@@ -362,8 +416,8 @@ end
 
 local function sendAmmo(inv: Inv, id: string)
 	local a = inv.ammo[id]
-	if a and inv.player.Parent then
-		Net.fireClient("AmmoState", inv.player, id, a.mag, a.reserve)
+	if a then
+		fireClient("AmmoState", inv.player, id, a.mag, a.reserve)
 	end
 end
 
@@ -393,7 +447,7 @@ function WeaponService.pushState(player: Player)
 	if okPass and hasTaser == true and not table.find(gadgets, "taser") then
 		table.insert(gadgets, 1, "taser")
 	end
-	Net.fireClient("CombatState", player, {
+	fireClient("CombatState", player, {
 		weapons = list,
 		gadgets = gadgets,
 		equipped = inv.equipped,
@@ -504,6 +558,19 @@ local function cancelReload(inv: Inv)
 	end
 end
 
+-- Aiming ends (holster, gun swapped for melee, respawn): the brandish / "armed" checks read this, so it must never
+-- outlive the gun. Also drops the replicated aim pitch other clients pose the upper body with.
+local function clearAim(inv: Inv)
+	inv.aiming = false
+	pcall(function()
+		inv.player:SetAttribute("Aiming", false)
+		local char = inv.player.Character
+		if char and char:GetAttribute("AimPitch") ~= nil then
+			char:SetAttribute("AimPitch", nil)
+		end
+	end)
+end
+
 local function setEquipped(inv: Inv, id: string?)
 	if inv.equipped == id then
 		return
@@ -511,6 +578,9 @@ local function setEquipped(inv: Inv, id: string?)
 	cancelReload(inv)
 	inv.equipped = id
 	inv.equippedAt = os.clock()
+	if id == nil or not Weapons.isGun(Weapons.get(id)) then
+		clearAim(inv)
+	end
 	pcall(function()
 		inv.player:SetAttribute("EquippedWeapon", id or "")
 	end)
@@ -925,6 +995,31 @@ local KIND_MISS, KIND_WORLD, KIND_BODY, KIND_METAL = 0, 1, 2, 3
 
 type PendingHit = { target: Target, part: BasePart, x: Vector3, raw: number }
 
+-- Distant gunfire (gta_combat §11.6): players beyond the ShotFx radius (FX_RADIUS..DISTANT_RADIUS) hear a quiet,
+-- low-passed tail, at most once per DISTANT_INTERVAL per shooter (`DistantShot(origin, weaponIndex)`, unreliable).
+local function relayDistant(inv: Inv, origin: Vector3, weaponId: string, now: number)
+	if now < inv.distantReadyAt then
+		return
+	end
+	inv.distantReadyAt = now + WeaponService.DISTANT_INTERVAL
+	local near2 = Weapons.FX_RADIUS * Weapons.FX_RADIUS
+	local far2 = WeaponService.DISTANT_RADIUS * WeaponService.DISTANT_RADIUS
+	local index = Weapons.Index[weaponId] or 0
+	for _, p in Players:GetPlayers() do
+		if p ~= inv.player then
+			local char = p.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if root and root:IsA("BasePart") then
+				local d = root.Position - origin
+				local d2 = d.X * d.X + d.Y * d.Y + d.Z * d.Z
+				if d2 > near2 and d2 <= far2 then
+					fireClientUnreliable("DistantShot", p, origin, index)
+				end
+			end
+		end
+	end
+end
+
 local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: number)
 	local player = inv.player
 	-- 1. shape
@@ -988,12 +1083,24 @@ local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: 
 	end
 	a.mag -= 1
 	writeAmmo(inv, shot.w)
+	-- the muzzle must be near our LIVE head before the server acts on the shot at all (relay, crime, signals): a
+	-- claim of a muzzle across the map would put tracers, flashes and the gunfire crime somewhere else. Generous:
+	-- the full MAX_REWIND of movement on top of ORIGIN_BASE; the hit checks below use the tight rewound test.
+	local liveHead = char:FindFirstChild("Head")
+	local liveHeadPos = if liveHead and liveHead:IsA("BasePart")
+		then liveHead.Position
+		else root.Position + Vector3.new(0, 1.5, 0)
+	local liveSpeed = root.AssemblyLinearVelocity.Magnitude
+	if not ShotValidation.checkOrigin(shot.o, liveHeadPos, liveSpeed, ShotValidation.MAX_REWIND) then
+		rejectShot(inv, "origin", ("live %.1f studs"):format((shot.o - liveHeadPos).Magnitude))
+		return
+	end
 	if Damage then
 		pcall(Damage.onFired, player)
 	end
 	WeaponService.Fired:Fire(player, shot.w, shot.o, shot.d)
 	if Damage and typeof(Damage.reportCrime) == "function" then
-		pcall(Damage.reportCrime, player, "gunfire", shot.o)
+		pcall(Damage.reportCrime, player, "gunfire", root.Position)
 	end
 
 	-- cosmetic relay (misses included): endpoints per pellet
@@ -1028,8 +1135,7 @@ local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: 
 			table.insert(fxPoints, x)
 		end
 	end
-	pcall(
-		Net.fireNearUnreliable,
+	fireNearUnreliable(
 		"ShotFx",
 		fxPoints,
 		Weapons.FX_RADIUS,
@@ -1040,6 +1146,7 @@ local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: 
 		endpoints,
 		kinds
 	)
+	relayDistant(inv, shot.o, shot.w, now)
 	if #shot.h == 0 then
 		return
 	end
@@ -1084,8 +1191,11 @@ local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: 
 		rejectShot(inv, "los", "head -> muzzle")
 		return
 	end
-	-- 7c. facing
-	if not ShotValidation.checkFacing(shot.d, rootCF.LookVector) then
+	-- 7c. facing: the rewound OR the live facing (the turn toward the camera replicates just after the first shot)
+	if
+		not ShotValidation.checkFacing(shot.d, rootCF.LookVector)
+		and not ShotValidation.checkFacing(shot.d, root.CFrame.LookVector)
+	then
 		rejectShot(inv, "facing")
 		return
 	end
@@ -1201,7 +1311,7 @@ local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: 
 				player
 			)
 			if ok and res == true then
-				Net.fireClient("HitConfirm", player, "armor", hit.x)
+				fireClient("HitConfirm", player, "armor", hit.x)
 				if target.car.kind == "Police" then
 					call("DamageService", "reportCrime", player, "copShot", hit.x, true)
 				end
@@ -1215,6 +1325,7 @@ local function onFire(player: Player, packet: any)
 	if not inv or not inv.loaded then
 		return
 	end
+	ShotValidation.beginPacket(inv.audit) -- one packet scores at most PACKET_CAP
 	local n = ShotValidation.packetSize(packet)
 	if not n then
 		rejectShot(inv, "shape")
@@ -1280,6 +1391,15 @@ local function onMelee(player: Player, id: any, aimDir: any)
 	if hum.SeatPart ~= nil or player:GetAttribute("Stunned") == true then
 		return
 	end
+	-- the same draw gate as guns: fists have no Tool, so the safe-zone holster never touches them (no punching out
+	-- of a gun store / hospital / spray shop)
+	local Damage = sys("DamageService")
+	if Damage and typeof(Damage.canDraw) == "function" then
+		local okD, allowed = pcall(Damage.canDraw, player, id)
+		if not okD or allowed ~= true then
+			return
+		end
+	end
 	local now = os.clock()
 	if now < inv.meleeReadyAt - 0.08 then
 		return
@@ -1289,7 +1409,13 @@ local function onMelee(player: Player, id: any, aimDir: any)
 		return
 	end
 	local reach = (def.meleeReach or 4.5) + WeaponService.MELEE_SLACK
-	local forwards = { root.CFrame.LookVector, aimDir :: Vector3 }
+	-- the client's swing direction only widens the cone when it is roughly where our (server-side) body faces:
+	-- no hitting someone standing behind us
+	local look = root.CFrame.LookVector
+	local forwards = { look }
+	if ShotValidation.checkFacing(aimDir :: Vector3, look) then
+		table.insert(forwards, aimDir :: Vector3)
+	end
 	local candidates = meleeTargets(player, root.Position, reach)
 	local Combat = sys("CombatService")
 	if not Combat or typeof(Combat.selectTarget) ~= "function" then
@@ -1342,13 +1468,17 @@ local function onMelee(player: Player, id: any, aimDir: any)
 						then flat.Unit
 						else Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z)
 					if stun and not result.killed then
-						call("CombatService", "stun", victim, stun)
-						Net.fireClient(
-							"Knockback",
-							victim,
-							dir * WeaponService.MELEE_KNOCK + Vector3.new(0, 18, 0),
-							stun
-						)
+						-- no stun-lock: inside the victim's stun immunity the hit still hurts but neither stuns
+						-- nor knocks down
+						local okS, landed = call("CombatService", "stun", victim, stun)
+						if okS and landed == true then
+							fireClient(
+								"Knockback",
+								victim,
+								dir * WeaponService.MELEE_KNOCK + Vector3.new(0, 18, 0),
+								stun
+							)
+						end
 					end
 					-- a swing at a driver knocks them out of the seat (v1's "bonk the thief out of your car")
 					if okCar and car and not result.killed then
@@ -1368,9 +1498,9 @@ local function onMelee(player: Player, id: any, aimDir: any)
 			if result and result.applied then
 				local sound = def.sounds.shot[1]
 				if sound then
-					Net.fireNear("Sound", tpos, WeaponService.SOUND_RADIUS, sound, tpos)
+					fireNear("Sound", tpos, WeaponService.SOUND_RADIUS, sound, tpos)
 				end
-				Net.fireNear("Effect", tpos, 200, "MeleeHit", { position = tpos + Vector3.new(0, 1, 0) })
+				fireNear("Effect", tpos, 200, "MeleeHit", { position = tpos + Vector3.new(0, 1, 0) })
 			end
 			return
 		end
@@ -1379,16 +1509,46 @@ end
 
 -- AIM (brandish / armed) ---------------------------------------------------------------------------------------------------
 
-local function onAim(player: Player, aiming: any)
+-- Aim pitch in degrees for the replicated upper-body pose (character attribute AimPitch; nil when not aiming):
+-- validated, clamped, and only re-written when it moved by AIM_PITCH_STEP or more. Returns the value written.
+function WeaponService._aimPitch(current: number?, claimed: any): number?
+	if typeof(claimed) ~= "number" or claimed ~= claimed or math.abs(claimed) == math.huge then
+		return current
+	end
+	local limit = WeaponService.AIM_PITCH_LIMIT
+	local step = WeaponService.AIM_PITCH_STEP
+	local p = math.clamp(math.floor(claimed / step + 0.5) * step, -limit, limit)
+	if current ~= nil and math.abs(p - current) < step then
+		return current
+	end
+	return p
+end
+
+-- WeaponAim(aiming: boolean, pitchDeg: number?)
+local function onAim(player: Player, aiming: any, pitch: any)
 	local inv = invs[player]
 	if not inv or typeof(aiming) ~= "boolean" then
 		return
 	end
-	inv.aiming = aiming and inv.equipped ~= nil and Weapons.isGun(Weapons.get(inv.equipped))
+	local allowed = aiming and inv.equipped ~= nil and Weapons.isGun(Weapons.get(inv.equipped))
+	if not allowed then
+		clearAim(inv)
+		return
+	end
+	inv.aiming = true
 	pcall(function()
-		player:SetAttribute("Aiming", inv.aiming)
+		player:SetAttribute("Aiming", true)
+		local char = player.Character
+		if char then
+			local cur = char:GetAttribute("AimPitch")
+			local nextPitch = WeaponService._aimPitch(if typeof(cur) == "number" then cur else nil, pitch)
+			if nextPitch ~= cur then
+				char:SetAttribute("AimPitch", nextPitch)
+			end
+		end
 	end)
 end
+WeaponService._onAim = onAim
 
 function WeaponService.isAiming(player: Player): boolean
 	local inv = invs[player]
@@ -1408,10 +1568,7 @@ local function onCharacter(player: Player, char: Model)
 	local inv = getInv(player)
 	disconnect(inv)
 	setEquipped(inv, nil)
-	inv.aiming = false
-	pcall(function()
-		player:SetAttribute("Aiming", false)
-	end)
+	clearAim(inv)
 	table.insert(
 		inv.conns,
 		char.ChildAdded:Connect(function(child)
@@ -1474,6 +1631,16 @@ local function onPlayerRemoving(player: Player)
 	invs[player] = nil
 end
 
+-- Test seams (tests/spec/weaponservice.spec.luau).
+WeaponService._getInv = getInv
+WeaponService._processShot = processShot
+WeaponService._onFire = onFire
+WeaponService._onMelee = onMelee
+WeaponService._setEquipped = setEquipped
+function WeaponService._removeInv(player: Player)
+	invs[player] = nil
+end
+
 function WeaponService.init()
 	for _, def in Weapons.List do
 		getTemplate(def.id)
@@ -1484,7 +1651,7 @@ function WeaponService.init()
 	end, 4)
 	Net.on("WeaponEquip", requestEquip, 8)
 	Net.on("WeaponMelee", onMelee, 8)
-	Net.on("WeaponAim", onAim, 6)
+	Net.on("WeaponAim", onAim, 10) -- aim on / off plus the aim pitch while aiming (<= 4 / s)
 end
 
 function WeaponService.start()

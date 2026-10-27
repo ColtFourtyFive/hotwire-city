@@ -57,7 +57,10 @@ local MAX_STARS = PoliceConfig.MAX_STARS
 local BUST_GRACE = 8 -- seconds after a bust during which no heat can be added
 local NEW_PLAYER_WINDOW = 30 -- brand-new players get halved heat for this long after joining
 local DECAY_INTERVAL = 0.25
-local RELEASE_DELAY = 1.1 -- seconds between the BUSTED stamp and the teleport to Police HQ
+-- Seconds between BUSTED and the teleport to Police HQ: the arrest shot holds while the shard is up (gta_ui_language
+-- §5.9: grade at 1.0 s, shard at 1.2 s, black at ~4.4 s); the player stays frozen (stunned) and protected until then.
+local RELEASE_DELAY = 5.0
+WantedService.RELEASE_DELAY = RELEASE_DELAY
 local RELEASE_STUN_EXTRA = 0.3 -- busted players stay stunned a moment past the teleport (no hopping into cars)
 local RESPAWN_AT_HQ_WINDOW = 60 -- a died-while-wanted bust sends the next spawn within this long to Police HQ
 local SPRAY_COOLDOWN = 1.5
@@ -566,7 +569,8 @@ end
 local function stunForRelease(player: Player): boolean
 	local CombatService = sys("CombatService")
 	if CombatService and typeof(CombatService.stun) == "function" then
-		local ok = pcall(CombatService.stun, player, RELEASE_DELAY + RELEASE_STUN_EXTRA)
+		-- forced: an arrest right after a taser stun must still freeze the suspect (stun immunity is for fights)
+		local ok = pcall(CombatService.stun, player, RELEASE_DELAY + RELEASE_STUN_EXTRA, true)
 		if ok then
 			return false
 		end
@@ -667,6 +671,10 @@ function WantedService.bust(player: Player, reason: string?): boolean
 		return true -- no body to stun or move; the respawn goes to Police HQ
 	end
 	local rawStun = stunForRelease(player)
+	-- the cuffed suspect can't be shot while the arrest plays, and the release at Police HQ starts spawn protection
+	if DamageService and typeof(DamageService.grantProtection) == "function" then
+		pcall(DamageService.grantProtection, player, RELEASE_DELAY + RELEASE_STUN_EXTRA)
+	end
 	task.delay(RELEASE_DELAY, function()
 		local okR, errR = pcall(releaseCharacter, player)
 		if not okR then

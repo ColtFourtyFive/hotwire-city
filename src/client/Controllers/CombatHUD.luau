@@ -131,7 +131,15 @@ local markerUntil = 0
 local markerFade = 0
 local lowGrade: ColorCorrectionEffect? = nil
 local castParams: RaycastParams? = nil
+local castFilterDirty = true
+local overAt = -math.huge -- the crosshair's "over a person" raycast runs at OVER_RATE, not every frame
+local overResult = false
+local vignetteEdges: { Frame }? = nil
 local protectedHighlights: { [Player]: Highlight } = {}
+
+CombatHUD.OVER_INTERVAL = 1 / 12
+local CAST_EXCLUDE = { ClientFX = true, Effects = true, HC_ClientSounds = true }
+local TICK_DIRS = { Vector2.new(0, -1), Vector2.new(0, 1), Vector2.new(-1, 0), Vector2.new(1, 0) }
 
 local function lazy(name: string): any
 	local mod = script.Parent:FindFirstChild(name)
@@ -557,6 +565,7 @@ local function setFill(seg: Segment, frac: number)
 	}):Play()
 end
 
+-- Built once; the filter only changes on a new character or a new top-level effects folder.
 local function getCastParams(): RaycastParams
 	local p = castParams
 	if not p then
@@ -565,21 +574,24 @@ local function getCastParams(): RaycastParams
 		p.IgnoreWater = true
 		castParams = p
 	end
-	local list: { Instance } = {}
-	if player.Character then
-		table.insert(list, player.Character)
-	end
-	for _, name in { "ClientFX", "Effects", "HC_ClientSounds" } do
-		local f = Workspace:FindFirstChild(name)
-		if f then
-			table.insert(list, f)
+	if castFilterDirty then
+		castFilterDirty = false
+		local list: { Instance } = {}
+		if player.Character then
+			table.insert(list, player.Character)
 		end
+		for name in CAST_EXCLUDE do
+			local f = Workspace:FindFirstChild(name)
+			if f then
+				table.insert(list, f)
+			end
+		end
+		p.FilterDescendantsInstances = list
 	end
-	p.FilterDescendantsInstances = list
 	return p
 end
 
-local function overPerson(range: number): boolean
+local function overPersonNow(range: number): boolean
 	local cam = Workspace.CurrentCamera
 	if not cam then
 		return false
@@ -597,6 +609,15 @@ local function overPerson(range: number): boolean
 		model = model:FindFirstAncestorOfClass("Model")
 	end
 	return false
+end
+
+-- Throttled: the dot's colour can lag a twelfth of a second.
+local function overPerson(range: number, now: number): boolean
+	if now - overAt >= CombatHUD.OVER_INTERVAL then
+		overAt = now
+		overResult = overPersonNow(range)
+	end
+	return overResult
 end
 
 local function updateBars(v: View, now: number)
@@ -640,9 +661,21 @@ local function updateLowHealth(v: View, hp: number, alive: boolean)
 	end
 	v.vignette.Visible = k > 0
 	if k > 0 then
-		for _, f in v.vignette:GetChildren() do
-			if f:IsA("Frame") then
-				f.BackgroundTransparency = 1 - 0.65 * k
+		local edges = vignetteEdges
+		if not edges then
+			local list: { Frame } = {}
+			for _, f in v.vignette:GetChildren() do
+				if f:IsA("Frame") then
+					table.insert(list, f)
+				end
+			end
+			edges = list
+			vignetteEdges = list
+		end
+		local alpha = 1 - 0.65 * k
+		for _, f in edges :: { Frame } do
+			if f.BackgroundTransparency ~= alpha then
+				f.BackgroundTransparency = alpha
 			end
 		end
 	end
@@ -680,15 +713,20 @@ local function updateWeapon(v: View, now: number)
 		and (def.class == "SMG" or def.class == "Rifle" or def.class == "Shotgun")
 	local cam = Workspace.CurrentCamera
 	if v.dot.Visible and def then
-		v.dot.BackgroundColor3 = if overPerson(def.maxRange) then Style.Colors.Red else Style.Colors.TextPure
+		v.dot.BackgroundColor3 = if overPerson(def.maxRange, now) then Style.Colors.Red else Style.Colors.TextPure
+	end
+	-- spread once per frame, no per-tick allocations
+	local px = 0
+	if showTicks and cam then
+		px = math.clamp(CombatHUD._spreadPixels(st.spread, cam.FieldOfView, cam.ViewportSize.Y), 4, 140) + 4
 	end
 	for i, tick in v.ticks do
-		tick.Visible = showTicks
+		if tick.Visible ~= showTicks then
+			tick.Visible = showTicks
+		end
 		if showTicks and cam then
-			local px = math.clamp(CombatHUD._spreadPixels(st.spread, cam.FieldOfView, cam.ViewportSize.Y), 4, 140) + 4
-			local offsets = { Vector2.new(0, -px), Vector2.new(0, px), Vector2.new(-px, 0), Vector2.new(px, 0) }
-			local o = offsets[i]
-			tick.Position = UDim2.new(0.5, o.X, 0.5, o.Y)
+			local d = TICK_DIRS[i]
+			tick.Position = UDim2.new(0.5, d.X * px, 0.5, d.Y * px)
 		end
 	end
 end
@@ -787,6 +825,14 @@ function CombatHUD.start()
 		end
 		if typeof(amount) == "number" and amount > 0 and ShoulderCamera.isEngaged() then
 			ShoulderCamera.shake(0.12)
+		end
+	end)
+	player.CharacterAdded:Connect(function()
+		castFilterDirty = true
+	end)
+	Workspace.ChildAdded:Connect(function(child: Instance)
+		if CAST_EXCLUDE[child.Name] then
+			castFilterDirty = true
 		end
 	end)
 	local slowAcc = 0

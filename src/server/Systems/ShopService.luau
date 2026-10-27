@@ -132,7 +132,7 @@ function ShopService.buyUpgrade(player: Player, upgradeId: any): (boolean, strin
 	local def = Economy.Upgrades[upgradeId]
 	if not ok then
 		if priceOrReason == "maxed" then
-			notify(player, "error", `{def.name} is already MAXED! ⭐`)
+			notify(player, "error", `{def.name} is fully upgraded.`)
 		end
 		return false, priceOrReason :: string
 	end

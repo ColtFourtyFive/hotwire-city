@@ -40,7 +40,8 @@
 --   (harness-compatible procedural R15 rig).
 -- Combat v2: spawnOfficerOnFoot(cframe, loadout): Model? (budget "officerFoot"), damage(model, amount, attacker?, info?)
 --   -> { applied, killed, kind, taken }, isDowned(model), witnessesNear(pos, radius): boolean, panic(pos, radius)
---   (gunfire: 70 % flee / 30 % cower), getRecordKind(model). Downed: Signal(kind, model, attacker?).
+--   (gunfire: 70 % flee / 30 % cower), getRecordKind(model), setOfficerWeapon(model, weaponId).
+--   Downed: Signal(kind, model, attacker?). Walking NPCs' body parts are CanQuery (bullets hit head / limbs).
 -- Pure helpers (tests/spec/npc.spec.luau): _sidewalkRing, _clampToBlock, _fleeDecision, _carHitsPed, _budgetAllows,
 --   _pedTarget, _seatedScale, _pickSpawn, _shopkeeperSpots, _poseSeated, _measure, _solveJoints, _ragdoll; test
 --   hooks _buildTemplates(useAvatars), _reset().
@@ -1585,6 +1586,14 @@ local function spawnStanding(key: string, groundCF: CFrame, anchored: boolean, k
 		end
 	else
 		root.CanCollide = true -- walkers: the root is their collision box (limbs never collide)
+		-- ...but every body part is hittable by bullets (head, limbs: the client's hit ray must reach them; the
+		-- templates turn CanQuery off everywhere but the root). Accessories and carried guns stay unqueryable, and
+		-- limbs keep CanCollide = false, so car wheel rays (RespectCanCollide) still ignore them.
+		for _, d in npc:GetChildren() do
+			if d:IsA("BasePart") and R15_BODY[d.Name] then
+				d.CanQuery = true
+			end
+		end
 	end
 	npc.Name = if kind == "pedestrian"
 		then "Pedestrian"
@@ -1913,6 +1922,29 @@ function NPCService.spawnOfficerOnFoot(cframe: CFrame, loadout: { weapon: string
 	playGunHold(rec, loadout.weapon)
 	rec.model:SetAttribute("Officer", true)
 	return rec.model
+end
+
+-- Swap an on-foot officer's gun (PoliceCombatService: a 1-star taser officer draws his star's gun when the chase
+-- escalates): the hand model and the hold animation follow.
+function NPCService.setOfficerWeapon(model: Model, weaponId: string)
+	local rec = npcs[model]
+	if not rec or rec.downed or rec.kind ~= "officerFoot" or rec.weaponId == weaponId then
+		return
+	end
+	rec.weaponId = weaponId
+	local old = model:FindFirstChild("Weapon")
+	if old and old:IsA("Model") then
+		old:Destroy()
+	end
+	armNpc(model, if weaponId == "taser" then "pistol" else weaponId)
+	local held = rec.tracks.gun
+	if held then
+		pcall(function()
+			held:Stop(0.2)
+		end)
+		rec.tracks.gun = nil
+	end
+	playGunHold(rec, weaponId)
 end
 
 -- Walk / idle animation for externally steered NPCs (PoliceCombatService).

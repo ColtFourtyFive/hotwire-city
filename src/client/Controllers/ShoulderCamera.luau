@@ -11,8 +11,15 @@
 --  * Recoil: kicks add a decaying pitch offset (RECOIL_DECAY per 1/60 s, capped) plus a permanent yaw drift; small
 --    shake per shot. Scoped idle sway 0.3°, Shift holds breath for 3 s.
 --  * While aiming or firing the character's yaw follows the camera (Humanoid.AutoRotate off).
+--  * Engaging saves the camera's FOV and disengaging restores it (VehicleClient / the on-foot camera own theirs).
+--  * The PC cursor is locked to the centre AND hidden while engaged. Any screen that needs the cursor must call
+--    setSuspended(<its name>, true) while it is open and setSuspended(<its name>, false) when it closes (the weapon
+--    wheel does; B2's phone, pause menu and MenuController must too), otherwise its buttons can't be clicked while a
+--    gun is drawn. The "death" suspension (DeathScreenController) also hands the camera over completely.
 -- API: setEngaged(on, weaponId?), setAiming(on), setFacing(on), addRecoil(pitch, yaw), shake(deg), addLook(dxPx, dyPx),
---   swapShoulder(), setSuspended(reason, on), getAimRay() -> (origin, dir), isEngaged(), isAiming(), setFriction(mult).
+--   swapShoulder(), setSuspended(reason, on), isSuspended(reason?), getAimRay() -> (origin, dir), isEngaged(),
+--   isAiming(), setFriction(mult), consumeLookDelta() -> degrees turned right by the player since the last call
+--   (aim-assist flick switching), getPitch() -> radians.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -64,6 +71,8 @@ type State = {
 	breathReadyAt: number,
 	stick: Vector2,
 	savedMouse: Enum.MouseBehavior?,
+	savedFov: number?, -- the camera FOV when we engaged (restored on disengage)
+	lookRight: number, -- degrees of player look input to the right since the last consumeLookDelta (flicks)
 }
 
 local st: State = {
@@ -88,9 +97,12 @@ local st: State = {
 	breathReadyAt = 0,
 	stick = Vector2.zero,
 	savedMouse = nil,
+	savedFov = nil,
+	lookRight = 0,
 }
 
 local castParams: RaycastParams? = nil
+local castFilterDirty = true
 local rng = Random.new()
 
 -- PURE -----------------------------------------------------------------------------------------------------------------
@@ -139,8 +151,10 @@ local function applyMouse()
 			st.savedMouse = UserInputService.MouseBehavior
 		end
 		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+		UserInputService.MouseIconEnabled = false -- the crosshair is the cursor
 	elseif st.savedMouse ~= nil then
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+		UserInputService.MouseIconEnabled = true
 		st.savedMouse = nil
 	end
 end
@@ -169,17 +183,26 @@ function ShoulderCamera.setEngaged(on: boolean, weaponId: string?)
 			st.yaw = math.atan2(-look.X, -look.Z)
 			st.pitch = math.asin(math.clamp(look.Y, -0.99, 0.99))
 			st.fov = cam.FieldOfView
-			cam.CameraType = Enum.CameraType.Scriptable
+			st.savedFov = cam.FieldOfView
+			if not st.suspended.death then
+				cam.CameraType = Enum.CameraType.Scriptable
+			end
 		end
 		st.dist = ShoulderCamera.HIP_DISTANCE
 		st.distVel = 0
+		st.lookRight = 0
 	elseif not on and st.engaged then
 		st.engaged = false
 		st.aiming = false
 		ShoulderCamera.setFacing(false)
-		if cam then
+		local fov = st.savedFov
+		st.savedFov = nil
+		-- the death / arrest camera owns the view: leave it alone
+		if cam and not st.suspended.death then
 			cam.CameraType = Enum.CameraType.Custom
-			cam.FieldOfView = Weapons.HIP_FOV
+			if fov then
+				cam.FieldOfView = fov
+			end
 		end
 	end
 	st.weaponId = weaponId
@@ -207,6 +230,44 @@ function ShoulderCamera.setSuspended(reason: string, on: boolean)
 	applyMouse()
 end
 
+-- Any suspension (no reason) or that one.
+function ShoulderCamera.isSuspended(reason: string?): boolean
+	if reason then
+		return st.suspended[reason] == true
+	end
+	return suspendedNow()
+end
+
+-- Degrees the player turned the view to the right since the last call (negative = left); aim-assist flicks.
+function ShoulderCamera.consumeLookDelta(): number
+	local d = st.lookRight
+	st.lookRight = 0
+	return d
+end
+
+-- Current view pitch in radians (the replicated aim pose).
+function ShoulderCamera.getPitch(): number
+	return st.pitch
+end
+
+-- A touch someone else turns into look input (WeaponClient's FIRE drag): the free-screen drag handler skips it so
+-- it never counts twice.
+local claimedTouch: InputObject? = nil
+function ShoulderCamera.setClaimedTouch(input: InputObject?)
+	claimedTouch = input
+end
+
+-- Turn the character to the camera's yaw right now (before a shot leaves; the render step keeps it there).
+function ShoulderCamera.faceNow()
+	if not st.engaged then
+		return
+	end
+	local _, hum, root = characterParts()
+	if hum and root and hum.Health > 0 and hum.SeatPart == nil then
+		root.CFrame = CFrame.new(root.Position) * CFrame.fromOrientation(0, st.yaw, 0)
+	end
+end
+
 function ShoulderCamera.setFriction(mult: number)
 	st.friction = math.clamp(mult, 0.1, 1)
 end
@@ -230,6 +291,7 @@ function ShoulderCamera.addLook(dx: number, dy: number)
 	end
 	local k = math.rad(ShoulderCamera.TOUCH_DEG_PER_PX) * st.friction
 	st.yaw -= dx * k
+	st.lookRight += math.deg(dx * k)
 	st.pitch =
 		math.clamp(st.pitch - dy * k, -math.rad(ShoulderCamera.PITCH_LIMIT), math.rad(ShoulderCamera.PITCH_LIMIT))
 end
@@ -260,7 +322,9 @@ end
 
 -- RENDER ---------------------------------------------------------------------------------------------------------------
 
-local function getCastParams(char: Model?): RaycastParams
+-- Built once; the filter is rebuilt only when it may have changed (new character, a top-level folder appeared).
+local CAST_EXCLUDE = { ClientFX = true, Effects = true, NPCs = true }
+local function getCastParams(): RaycastParams
 	local p = castParams
 	if not p then
 		p = RaycastParams.new()
@@ -269,26 +333,30 @@ local function getCastParams(char: Model?): RaycastParams
 		p.RespectCanCollide = true
 		castParams = p
 	end
-	local exclude: { Instance } = {}
-	if char then
-		table.insert(exclude, char)
-	end
-	for _, name in { "ClientFX", "Effects", "NPCs" } do
-		local f = Workspace:FindFirstChild(name)
-		if f then
-			table.insert(exclude, f)
+	if castFilterDirty then
+		castFilterDirty = false
+		local exclude: { Instance } = {}
+		local char = player.Character
+		if char then
+			table.insert(exclude, char)
 		end
+		for name in CAST_EXCLUDE do
+			local f = Workspace:FindFirstChild(name)
+			if f then
+				table.insert(exclude, f)
+			end
+		end
+		p.FilterDescendantsInstances = exclude
 	end
-	p.FilterDescendantsInstances = exclude
 	return p
 end
 
 local function update(dt: number)
-	if not st.engaged then
+	if not st.engaged or st.suspended.death then
 		return
 	end
 	local cam = Workspace.CurrentCamera
-	local char, hum, root = characterParts()
+	local _, hum, root = characterParts()
 	if not cam or not root or not hum or hum.Health <= 0 then
 		return
 	end
@@ -299,6 +367,7 @@ local function update(dt: number)
 	if st.stick.Magnitude > 0.15 and not suspendedNow() then
 		local rate = math.rad(ShoulderCamera.STICK_DEG_PER_S) * dt * st.friction
 		st.yaw -= st.stick.X * rate
+		st.lookRight += math.deg(st.stick.X * rate)
 		st.pitch = math.clamp(
 			st.pitch + st.stick.Y * rate,
 			-math.rad(ShoulderCamera.PITCH_LIMIT),
@@ -339,9 +408,8 @@ local function update(dt: number)
 	local dist = offset.Magnitude
 	local dir = if dist > 1e-3 then offset / dist else Vector3.zAxis
 	local hit = nil
-	local okCast, res = pcall(function()
-		return Workspace:Spherecast(pivot, ShoulderCamera.COLLISION_RADIUS, offset, getCastParams(char))
-	end)
+	local okCast, res =
+		pcall(Workspace.Spherecast, Workspace, pivot, ShoulderCamera.COLLISION_RADIUS, offset, getCastParams())
 	if okCast then
 		hit = res
 	end
@@ -376,12 +444,13 @@ function ShoulderCamera.start()
 				k *= math.clamp(sens, 0.1, 4)
 			end
 			st.yaw -= input.Delta.X * k
+			st.lookRight += math.deg(input.Delta.X * k)
 			st.pitch = math.clamp(
 				st.pitch - input.Delta.Y * k,
 				-math.rad(ShoulderCamera.PITCH_LIMIT),
 				math.rad(ShoulderCamera.PITCH_LIMIT)
 			)
-		elseif input.UserInputType == Enum.UserInputType.Touch and not processed then
+		elseif input.UserInputType == Enum.UserInputType.Touch and not processed and input ~= claimedTouch then
 			local vp = Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
 			if input.Position.X > vp.X * 0.4 then
 				ShoulderCamera.addLook(input.Delta.X, input.Delta.Y)
@@ -412,7 +481,13 @@ function ShoulderCamera.start()
 		end
 	end)
 	player.CharacterAdded:Connect(function()
+		castFilterDirty = true
 		ShoulderCamera.setEngaged(false)
+	end)
+	Workspace.ChildAdded:Connect(function(child: Instance)
+		if CAST_EXCLUDE[child.Name] then
+			castFilterDirty = true
+		end
 	end)
 end
 

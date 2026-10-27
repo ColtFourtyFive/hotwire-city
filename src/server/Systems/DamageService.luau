@@ -5,7 +5,8 @@
 -- Health / armor
 --   * The server keeps health + armor per player in its own table and writes Humanoid.Health from it. The default
 --     character "Health" regen script is removed on spawn (it would heal 1 %/s); client-side Health changes are
---     ignored (anything that raises Health is put back; unexplained drops are adopted as world damage).
+--     ignored (anything that raises Health is put back; an unexplained drop is adopted as the new health but is not
+--     damage, so the death it causes classifies as a plain death).
 --   * Regen: 6 s after the last damage, +4 HP/s up to 50 (never above). Own garage: +25 HP/s to 100 after 3 s inside,
 --     not while In Combat. Armor (0..100) absorbs 100 % of damage first; it is persisted (data.armor) and lost on
 --     WASTED / BUSTED. Med kits: +40 over 1.5 s, carry 3, not within 1 s of taking damage.
@@ -14,7 +15,8 @@
 --   * Safe zones (MapLayout.safeZones): no damage in or out; weapons holstered. Your own garage protects only you
 --     and you may still hit a raider inside it. Entering while In Combat: protection starts after 5 s inside.
 --   * Passive mode (SetPassive): immune and harmless to players; can't enable while wanted, In Combat, or carrying a
---     player-stolen car; 5 min re-enable cooldown; turning it off locks weapons for 10 s.
+--     player-stolen car; 5 min re-enable cooldown; turning it off locks weapons for 10 s. Getting wanted switches it
+--     off at once (forcePassiveOff, no cooldown / lock), and a wanted player never counts as passive.
 --   * Rookie protection: the first 30 min of total playtime work like passive (persisted countdown). Ends early on
 --     dealing player damage, buying a rifle, or opting out.
 --   * Revenge immunity: an attacker who downs you twice within 3 min can't damage you for 5 min (and you may enable
@@ -24,9 +26,10 @@
 --     (players only; once per pair per 30 min). No other reward for downing a player.
 -- Death (Humanoid.Died): DamageModel.classifyDeath -> "wasted" (damage within 10 s, or a plain death) or "busted"
 --   (reset while wanted). Busted -> WantedService.bust(player, "died"). Wasted -> stars cleared (theft fails like a
---   bust), armor 0, hospital bill min(5 % cash, 120 s income) (free for rookies / undamaged deaths), Wasted remote,
---   ragdoll (joints intact), respawn after Players.RespawnTime = 5 at the nearest hospital (PlotService asks
---   consumeHospitalRespawn), spawn protection.
+--   bust), armor 0, hospital bill min(5 % cash, 120 s income) (free for rookies and for deaths no player or cop
+--   caused), Wasted remote, ragdoll (joints intact), respawn after Players.RespawnTime = 5 at the nearest hospital
+--   (PlotService asks consumeHospitalRespawn), spawn protection. A BUSTED arrest grants protection while cuffed and
+--   after the release (grantProtection).
 --
 -- Replicated player attributes: Armor, InCombat, Protected (server time until), Passive, Rookie, Bounty, Menace,
 -- SafeZone (zone kind or ""), WeaponsLockedUntil (server time).
@@ -82,6 +85,7 @@ export type DamageInfo = {
 	position: Vector3?, -- hit point
 	from: Vector3?, -- where the shot came from (damage arc)
 	melee: boolean?,
+	defense: boolean?, -- set by DamageService: the attacker was defending (own garage, own car); no Menace count
 }
 
 export type HitResult = {
@@ -412,6 +416,12 @@ function DamageService.canDraw(player: Player, weaponId: string): (boolean, stri
 	return true, nil
 end
 
+-- Passive mode protects only while clean: getting wanted switches it off (forcePassiveOff), and a wanted player is
+-- never treated as passive even for a moment.
+local function passiveNow(player: Player, st: PState): boolean
+	return st.passive and wantedOf(player) <= 0
+end
+
 -- Pure protection rule (tested): may `attacker` damage `victim`? All inputs are plain flags.
 export type RuleCtx = {
 	sameTeam: boolean?, -- reserved (no crews in v2: friendly fire is on)
@@ -468,8 +478,11 @@ function DamageService.canDamage(attacker: Player?, victim: Player): (boolean, s
 		and MapLayout.plotAt(victimRoot.Position) == plot
 	local attackerKind = DamageService.safeZoneKind(attacker)
 	return DamageService._ruleCanDamage({
-		victimProtected = vs.god or vs.passive or vs.rookie or (not vs.firedSinceSpawn and now < vs.protectedUntil),
-		attackerHarmless = as.passive or as.rookie,
+		victimProtected = vs.god
+			or passiveNow(victim, vs)
+			or vs.rookie
+			or (not vs.firedSinceSpawn and now < vs.protectedUntil),
+		attackerHarmless = passiveNow(attacker, as) or as.rookie,
 		revengeImmune = now < (vs.immuneFrom[attacker.UserId] or 0),
 		victimSafe = DamageService.isSafe(victim),
 		attackerSafe = attackerKind ~= nil and attackerKind ~= "garage",
@@ -491,7 +504,7 @@ function DamageService.policeHoldFire(player: Player): boolean
 	if not st.firedSinceSpawn and now < st.protectedUntil then
 		return true
 	end
-	if st.passive or st.rookie then
+	if passiveNow(player, st) or st.rookie then
 		return true
 	end
 	if DamageService.isSafe(player) then
@@ -648,6 +661,36 @@ function DamageService.setPassive(player: Player, on: boolean): (boolean, string
 	return true, nil
 end
 
+-- Getting wanted ends passive mode at once (no cooldown, no weapons lock): a passive player who earns stars (a bat
+-- swing at an officer is allowed) must not stay immune to the police and to bounty hunters. Returns true when it
+-- was on.
+function DamageService.forcePassiveOff(player: Player): boolean
+	local st = states[player]
+	if not st or not st.passive then
+		return false
+	end
+	st.passive = false
+	setAttr(player, "Passive", false)
+	local data = getData(player)
+	if data and typeof(data.combat) == "table" then
+		data.combat.passivePref = false
+	end
+	notify(player, "warning", "Passive mode is off: you're wanted.", 4)
+	return true
+end
+
+-- Spawn-style protection that starts after `delay` seconds (the BUSTED arrest: protected while cuffed, then
+-- SPAWN_PROTECTION after the release at Police HQ; the police also hold fire for HOLD_FIRE_RESPAWN after it).
+function DamageService.grantProtection(player: Player, delay: number)
+	local st = getState(player)
+	local now = hooks.clock()
+	local wait = math.max(0, delay)
+	st.firedSinceSpawn = false
+	st.protectedUntil = math.max(st.protectedUntil, now + wait + DamageService.SPAWN_PROTECTION)
+	st.spawnAt = math.max(st.spawnAt, now + wait)
+	setAttr(player, "Protected", hooks.serverNow() + wait + DamageService.SPAWN_PROTECTION)
+end
+
 -- CRIMES ---------------------------------------------------------------------------------------------------------------
 
 -- Witness check for a crime at pos (pedestrians / officers with line of sight via NPCService; cruisers via
@@ -737,6 +780,9 @@ local function onPlayerHitPlayer(attacker: Player, victim: Player, info: DamageI
 		victimStealingFromAttacker = stealing,
 		victimWanted = victimWanted,
 	})
+	-- no heat = vigilante (wanted victim) or defense (raider in your garage, thief in your car): a down then never
+	-- counts toward Menace either (§8)
+	info.defense = not heat
 	-- TheftService records the hit (revenge bonus / knockout feed) before anything drops the car
 	call("TheftService", "onThiefHit", attacker, victim)
 	if heat then
@@ -815,6 +861,15 @@ end
 
 -- NPC damage (pedestrians / officers): NPCService owns their health; crimes and the shooter's hit marker live here.
 function DamageService.applyNpcDamage(model: Model, info: DamageInfo): HitResult
+	-- safe zones: no damage out of them either (gun stores, hospital, spray shops; your own garage is excepted, as in
+	-- canDraw)
+	local attacker = info.source
+	if attacker then
+		local kind = DamageService.safeZoneKind(attacker)
+		if kind ~= nil and kind ~= "garage" then
+			return { applied = false, healthTaken = 0, armorTaken = 0, killed = false, reason = "attackerSafe" }
+		end
+	end
 	local ok, res = call("NPCService", "damage", model, info.amount, info.source, info)
 	if not ok or typeof(res) ~= "table" or not res.applied then
 		return { applied = false, healthTaken = 0, armorTaken = 0, killed = false, reason = "npc" }
@@ -893,7 +948,7 @@ local function payBounty(killer: Player, victim: Player, vs: PState)
 	notify(victim, "warning", ("Your bounty was claimed: -$%d"):format(amount), 4)
 end
 
-local function onKilledBy(killer: Player, victim: Player)
+local function onKilledBy(killer: Player, victim: Player, info: DamageInfo?)
 	local ks = getState(killer)
 	local vs = getState(victim)
 	local now = hooks.clock()
@@ -916,8 +971,8 @@ local function onKilledBy(killer: Player, victim: Player)
 	if victimWanted >= 4 or DamageService.isMenace(victim) then
 		payBounty(killer, victim, vs)
 	end
-	-- menace: downing non-wanted players
-	if victimWanted <= 0 then
+	-- menace: downing non-wanted players (defending your garage / your car never counts)
+	if victimWanted <= 0 and not (info and info.defense) then
 		table.insert(ks.downHistory, { t = now, rookie = vs.rookie or vs.passive })
 		if CrimeRules.isMenace(ks.downHistory, now) then
 			ks.menaceOffences += 1
@@ -926,17 +981,20 @@ local function onKilledBy(killer: Player, victim: Player)
 			setAttr(killer, "Menace", true)
 			table.clear(ks.downHistory)
 			call("WantedService", "raiseTo", killer, Police.MIN_STARS.menace, "menace", nil)
-			notify(killer, "warning", "You are a MENACE: police and bounty hunters are after you.", 5)
+			notify(killer, "warning", "You are a menace: the police and bounty hunters are after you.", 5)
 		end
 	end
 end
+DamageService._onKilledBy = onKilledBy
 
 local function chargeHospital(player: Player, st: PState, info: DamageInfo?): number
 	local data = getData(player)
 	if not data then
 		return 0
 	end
-	local free = st.rookie or info == nil
+	-- no bill without someone to blame: plain deaths (falls, water, resets) and anything not from a player or the
+	-- police are free, as are rookies
+	local free = st.rookie or info == nil or (info.source == nil and not info.police)
 	local bill = DamageModel.hospitalBill(
 		data.cash or 0,
 		incomeOf(player),
@@ -990,10 +1048,11 @@ local function onDied(player: Player, character: Model)
 	pcall(hooks.fireClient, "Wasted", player, { by = by, police = police, bill = bill, hospital = hospitalName })
 	local killer = info and info.source
 	if killer and killer.Parent then
-		onKilledBy(killer, player)
+		onKilledBy(killer, player, info)
 	end
 	DamageService.Downed:Fire(player, info, kind)
 end
+DamageService._onDied = onDied
 
 -- True once after a WASTED death: PlotService spawns that character at the returned hospital CFrame.
 function DamageService.consumeHospitalRespawn(player: Player): CFrame?
@@ -1018,9 +1077,38 @@ local function disconnectAll(st: PState)
 	table.clear(st.conns)
 end
 
+-- Humanoid.HealthChanged that we didn't write. Nothing heals but us (a rise is put back). A drop nobody caused (a
+-- reset, the void, water) is adopted as the new health but NOT recorded as damage: the death it leads to is a plain
+-- death (§7.1: BUSTED while wanted, otherwise WASTED with no bill), never a fresh "damaged" WASTED.
+function DamageService._onHealthChanged(player: Player, h: number)
+	local st = states[player]
+	if not st or st.writing or st.dead then
+		return
+	end
+	if h > st.health + 0.5 then
+		writeHumanoid(st)
+	elseif h < st.health - 0.5 then
+		st.health = math.max(0, math.floor(h))
+	end
+end
+
+-- Hair, hats and other accessories don't stop bullets: rays pass them and reach the head / body behind (otherwise a
+-- head-height shot through a hat would count as a limb hit).
+local function unqueryAccessory(inst: Instance)
+	if inst:IsA("BasePart") and inst.Parent and inst.Parent:IsA("Accessory") then
+		pcall(function()
+			inst.CanQuery = false
+		end)
+	end
+end
+
 local function onCharacter(player: Player, character: Model)
 	local st = getState(player)
 	disconnectAll(st)
+	for _, d in character:GetDescendants() do
+		unqueryAccessory(d)
+	end
+	table.insert(st.conns, character.DescendantAdded:Connect(unqueryAccessory))
 	local now = hooks.clock()
 	st.dead = false
 	st.health = DamageModel.MAX_HEALTH
@@ -1059,17 +1147,10 @@ local function onCharacter(player: Player, character: Model)
 	table.insert(
 		st.conns,
 		hum.HealthChanged:Connect(function(h: number)
-			if st.writing or st.dead or hum ~= st.humanoid then
+			if hum ~= st.humanoid then
 				return
 			end
-			if h > st.health + 0.5 then
-				writeHumanoid(st) -- nothing heals but us
-			elseif h < st.health - 0.5 then
-				-- an unexplained drop (fall, water, reset): adopt it as world damage
-				st.health = math.max(0, math.floor(h))
-				st.lastDamageAt = hooks.clock()
-				st.lastDamage = { amount = 0 }
-			end
+			DamageService._onHealthChanged(player, h)
 		end)
 	)
 	table.insert(
@@ -1190,6 +1271,9 @@ function DamageService.useMedKit(player: Player): (boolean, string?)
 	if st.health >= DamageModel.MAX_HEALTH then
 		return false, "You're already at full health."
 	end
+	if now < st.medkitUntil then
+		return false, "Already patching up."
+	end
 	local data = getData(player)
 	if not data or (tonumber(data.medkits) or 0) <= 0 then
 		return false, "No med kits. Buy them at a gun store."
@@ -1272,6 +1356,14 @@ function DamageService.start()
 	if DataService and DataService.Loaded then
 		DataService.Loaded:Connect(function(player: Player)
 			loadFromData(player)
+		end)
+	end
+	local WantedService = sys("WantedService")
+	if WantedService and WantedService.Changed then
+		WantedService.Changed:Connect(function(player: Player, stars: number)
+			if stars > 0 then
+				DamageService.forcePassiveOff(player)
+			end
 		end)
 	end
 	Players.PlayerAdded:Connect(onPlayerAdded)

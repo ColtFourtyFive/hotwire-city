@@ -1289,7 +1289,7 @@ onUnitTouched = function(unit: Unit, hit: BasePart)
 	local before = WantedService.getStars(driver)
 	WantedService.addHeat(driver, PoliceConfig.Heat.copHit, "copHit")
 	if WantedService.getStars(driver) > before then
-		pcall(Net.fireClient, "Notify", driver, "warning", "💥 You rammed a cop! +1★", 2.5)
+		pcall(Net.fireClient, "Notify", driver, "warning", "You rammed a police car.", 2.5)
 	end
 end
 
@@ -1944,7 +1944,7 @@ local function spawnHeli(st: Suspect, now: number)
 	model.Parent = getEffectsFolder()
 	st.heli = heli
 	table.insert(helis, heli)
-	pcall(Net.fireClient, "Notify", st.player, "warning", "🚁 Police chopper inbound! Outrun it or break cover!", 4)
+	pcall(Net.fireClient, "Notify", st.player, "warning", "Police helicopter inbound. Break line of sight.", 4)
 end
 
 local function destroyHeli(heli: Heli)
