@@ -613,7 +613,7 @@ return function(t)
 	end)
 
 	-- Fullscreen map ------------------------------------------------------------------------------------------------------
-	t.test("map legend fits phones (two columns above its button, scrolls when short)", function()
+	t.test("map legend fits phones (2-3 columns above its button, scrolls only when short)", function()
 		local n = #MapScreen.legendEntries()
 		t.ok(n >= 17, "every blip kind explained, got " .. n)
 		local top = Cfg.MAP.CHROME_TOP
@@ -622,7 +622,8 @@ return function(t)
 				local _, cw, ch = phoneCanvas(vp[1], vp[2], topbar, 0.72)
 				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
 				local lay = MapScreen.legendLayout(n, cw, ch, true)
-				t.eq(lay.cols, 2, tag)
+				t.ok(lay.cols == 2 or lay.cols == 3, tag)
+				t.ok(not lay.scrolls, tag .. ": every row visible without scrolling")
 				t.ok(ch - lay.bottom - lay.height >= top - 1e-6, tag .. ": below the title / hint")
 				t.ok(lay.bottom >= 18 + 48 + 8, tag .. ": above the LEGEND / HIDE button")
 				-- clear of the zoom column (64 px + 18 margin) on the right
@@ -634,6 +635,8 @@ return function(t)
 		t.eq(lay.cols, 1)
 		t.ok(not lay.scrolls, "720p fits")
 		t.ok(720 - lay.bottom - lay.height >= top, "below the header")
+		-- a roomy tablet keeps two columns
+		t.eq(MapScreen.legendLayout(n, 1280, 900, true).cols, 2, "tablet: two columns")
 		-- a very short window scrolls instead of overflowing
 		local short = MapScreen.legendLayout(n, 1280, 400, false)
 		t.ok(short.scrolls, "scrolls")

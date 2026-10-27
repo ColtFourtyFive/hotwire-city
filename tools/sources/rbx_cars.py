@@ -43,7 +43,10 @@ def run(mid, render=True):
     if render:
         r = subprocess.run([sys.executable, "-I", os.path.join(HERE, "rbx_to_blender.py"), str(mid)],
                            capture_output=True, text=True)
-        print((r.stdout.strip().splitlines() or ["(no output)"])[-1][:300])
+        if r.returncode != 0:
+            print(f"{mid}: render FAILED (exit {r.returncode}): {(r.stderr.strip().splitlines() or [''])[-1][:300]}")
+        else:
+            print((r.stdout.strip().splitlines() or ["(no output)"])[-1][:300])
     import rbx_car_map
     print(rbx_car_map.summary_line(rbx_car_map.analyze(mid)))
     return True

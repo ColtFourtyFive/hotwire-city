@@ -14,8 +14,8 @@ Outputs (desktop at 1280x720 design scale 1, phones at the HUD's 0.55 floor with
     hud_phone_16x9_minimap.png       667x375 phone: the compact radar, the 52 px menu strip in two rows
     hud_phone_driving_minimap.png    844x390 while driving (menu hidden, feed below the radar)
     map_fullscreen_desktop.png       fullscreen map with legend, labels, blips, GPS route + chip
-    map_fullscreen_phone.png         844x390 phone, legend open (two columns above its button)
-    map_fullscreen_phone_16x9.png    640x360 phone, legend open (scrolls)
+    map_fullscreen_phone.png         844x390 phone, legend open (columns above its button)
+    map_fullscreen_phone_16x9.png    640x360 phone, legend open
 """
 import argparse, json, math, os, re, subprocess, sys
 
@@ -666,15 +666,23 @@ def scene_map(routes, out, W, H, phone):
            [("flame", (255, 190, 40), "Hot Drop"), ("pin", (186, 94, 255), "Waypoint"),
             ("dot", (255, 60, 60), "Police"), ("heli", (255, 80, 80), "Police Chopper"),
             ("dot", (0, 214, 255), "Other Players")]
-    cols = 2 if phone else 1
-    nrows = math.ceil(len(rows) / cols)
     rowh, colw = C["LEGEND_ROW"], C["LEGEND_COLUMN"]
-    full = 24 + 30 + nrows * rowh + (nrows - 1) * 2
     bottom = 18 + (48 + 8 if phone else 0)
-    canvas_h = H / cs
-    height = max(min(full, canvas_h - bottom - 84 - 8), 24 + 30 + rowh)
+    canvas_h = (H - (58 if phone else 0)) / cs  # the chrome is inset-relative in the game
+    max_h = canvas_h - bottom - 84 - 8
+
+    def shape(c):
+        nr = math.ceil(len(rows) / c)
+        return 24 + 30 + nr * rowh + (nr - 1) * 2, 24 + c * colw + (c - 1) * 8
+
+    cols = 2 if phone else 1
+    full, width = shape(cols)
+    if phone and full > max_h and 18 + shape(3)[1] <= W / cs - 100:
+        cols = 3
+        full, width = shape(3)
+    height = max(min(full, max_h), 24 + 30 + rowh)
     scrolls = height < full
-    width = 24 + cols * colw + (cols - 1) * 8 + (8 if scrolls else 0)
+    width += 8 if scrolls else 0
     top = H - bottom * cs - height * cs
     rounded(d, [18 * cs, top, (18 + width) * cs, H - bottom * cs], 14 * cs, fill=THEME["Panel"] + (240,),
             outline=(10, 11, 22), width=int(3 * cs))

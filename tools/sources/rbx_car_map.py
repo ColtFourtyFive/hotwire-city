@@ -542,7 +542,8 @@ def analyze(model_id):
                         elif isinstance(v, str) and re.fullmatch(r"\d{8,17}", v.strip()):
                             payload.add(int(v))
                 lits = s.get("numericLiterals") if isinstance(s.get("numericLiterals"), list) else []
-                payload |= {int(x) for x in lits if len(x) >= 10}
+                # asset ids are 8-16 digits today; longer literals (e.g. 18-digit hashes) are not payloads
+                payload |= {int(x) for x in lits if 10 <= len(x) <= 16}
                 flagged.append({"path": upath[n["id"]], "class": n["class"], "flags": bad, "requireIds": req,
                                 "payloadIds": sorted(payload)})
     for n in nodes:
@@ -612,13 +613,17 @@ def analyze(model_id):
             return
         leaf_by_group = defaultdict(list)
         if i in vis_ids:
-            leaf_by_group[group[i]].append(rel(i))
+            # the container is itself a visible part (e.g. a MeshPart with child parts in other groups):
+            # select it by its own path, not "<path>/<path>"
+            selectors[group[i]].append(rel(i))
         for c in kids[i]:
             part_leaf = c in vis_ids and sum(sub_groups[c].values()) == 1
             if kids[c] and sub_groups[c] and not part_leaf:
                 emit(c)
             elif c in vis_ids:
-                leaf_by_group[group[c]].append(byid[c]["name"] + ("#%s" % upath[c].rsplit("#", 1)[1] if "#" in upath[c].rsplit("/", 1)[-1] else ""))
+                # the child's own path segment (name, plus "#k" only when the name repeats among siblings);
+                # sliced from upath because names may themselves contain "/" or "#"
+                leaf_by_group[group[c]].append(upath[c][len(upath[i]) + 1:])
         for g, names in leaf_by_group.items():
             base = rel(i)
             names = sorted(set(names))

@@ -98,6 +98,7 @@
       "rogatka_low_m134_0",
       "bolt_low_m134_0"
     ],
-    "render_s": 9.0
+    "hidden_helpers": [],
+    "render_s": 34.5
   }
 }

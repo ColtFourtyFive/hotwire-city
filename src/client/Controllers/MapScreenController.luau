@@ -170,28 +170,34 @@ export type LegendLayout = {
 	scrolls: boolean,
 }
 
--- Legend panel for `count` rows on the chrome canvas (design px, inset-relative): one column on desktop (bottom-left),
--- two on touch, opening above the LEGEND / HIDE button. Never taller than the space between the title / hint header
--- (MAP.CHROME_TOP) and its bottom edge: the rows scroll instead.
-function MapScreenController.legendLayout(
-	count: number,
-	_canvasW: number,
-	canvasH: number,
-	touch: boolean
-): LegendLayout
-	local cols = if touch then 2 else 1
-	local rows = math.max(1, math.ceil(count / cols))
-	local content = rows * MAP.LEGEND_ROW + (rows - 1) * LEGEND_ROW_GAP
-	local full = LEGEND_PAD * 2 + LEGEND_HEADER + content
+-- Legend panel for `count` rows on the chrome canvas (design px, inset-relative): one column on desktop (bottom-left);
+-- on touch it opens above the LEGEND / HIDE button in two columns, three when two would have to scroll and three
+-- still leave the zoom column free. Never taller than the space between the title / hint header (MAP.CHROME_TOP)
+-- and its bottom edge: the rows scroll instead.
+function MapScreenController.legendLayout(count: number, canvasW: number, canvasH: number, touch: boolean): LegendLayout
 	local bottom = LEGEND_MARGIN + (if touch then LEGEND_TOGGLE_HEIGHT + 8 else 0)
 	local maxH = canvasH - bottom - MAP.CHROME_TOP - 8
 	local minH = LEGEND_PAD * 2 + LEGEND_HEADER + MAP.LEGEND_ROW
+	local function shape(cols: number): (number, number)
+		local rows = math.max(1, math.ceil(count / cols))
+		local full = LEGEND_PAD * 2 + LEGEND_HEADER + rows * MAP.LEGEND_ROW + (rows - 1) * LEGEND_ROW_GAP
+		local width = LEGEND_PAD * 2 + cols * MAP.LEGEND_COLUMN + (cols - 1) * LEGEND_COLUMN_GAP
+		return full, width
+	end
+	local cols = if touch then 2 else 1
+	local full, width = shape(cols)
+	if touch and full > maxH then
+		local full3, width3 = shape(3)
+		-- the zoom / recenter column (64 px) sits at the right edge, 18 px in
+		if LEGEND_MARGIN + width3 <= canvasW - 18 - 64 - 18 then
+			cols, full, width = 3, full3, width3
+		end
+	end
 	local height = math.max(math.min(full, maxH), minH)
 	local scrolls = height < full
-	local width = LEGEND_PAD * 2
-		+ cols * MAP.LEGEND_COLUMN
-		+ (cols - 1) * LEGEND_COLUMN_GAP
-		+ (if scrolls then 8 else 0)
+	if scrolls then
+		width += 8 -- room for the scroll bar
+	end
 	return { cols = cols, width = width, height = height, bottom = bottom, scrolls = scrolls }
 end
 
