@@ -1381,6 +1381,9 @@ type PoliceRec = {
 	light: PointLight?,
 	scannedAt: number,
 	off: boolean, -- server turned the siren off (Siren attribute false: unit leaving or wrecked)
+	glareRed: BillboardGui?, -- glare sprites on the first red / blue light (built once, toggled with the phase)
+	glareBlue: BillboardGui?,
+	glareShown: boolean,
 }
 local policeCars: { [Model]: PoliceRec } = {}
 local sirenPhase = false
@@ -1410,10 +1413,60 @@ end
 local function trackPolice(inst: Instance)
 	local model = policeModelOf(inst)
 	if model and not policeCars[model] then
-		local rec: PoliceRec =
-			{ model = model, reds = {}, blues = {}, light = nil, scannedAt = -math.huge, off = false }
+		local rec: PoliceRec = {
+			model = model,
+			reds = {},
+			blues = {},
+			light = nil,
+			scannedAt = -math.huge,
+			off = false,
+			glareShown = false,
+		}
 		scanSirens(rec)
 		policeCars[model] = rec
+	end
+end
+
+local function destroyGlare(rec: PoliceRec)
+	if rec.glareRed then
+		rec.glareRed:Destroy()
+		rec.glareRed = nil
+	end
+	if rec.glareBlue then
+		rec.glareBlue:Destroy()
+		rec.glareBlue = nil
+	end
+	rec.glareShown = false
+end
+
+local function hideGlare(rec: PoliceRec)
+	if rec.glareShown then
+		rec.glareShown = false
+		if rec.glareRed then
+			rec.glareRed.Enabled = false
+		end
+		if rec.glareBlue then
+			rec.glareBlue.Enabled = false
+		end
+	end
+end
+
+-- Glare sprites flip with the siren phase (red / blue). Built lazily once per car when it first flashes nearby.
+local function showGlare(rec: PoliceRec, redOn: boolean)
+	if not rec.glareRed and rec.reds[1] then
+		local ok, gui = pcall(VFXLibrary.sprite, "SirenGlare", rec.reds[1], SIREN_RED)
+		rec.glareRed = if ok then gui else nil
+	end
+	if not rec.glareBlue and rec.blues[1] then
+		local ok, gui = pcall(VFXLibrary.sprite, "SirenGlare", rec.blues[1], SIREN_BLUE)
+		rec.glareBlue = if ok then gui else nil
+	end
+	rec.glareShown = true
+	if rec.glareRed then
+		rec.glareRed.Enabled = redOn
+	end
+	if rec.glareBlue then
+		rec.glareBlue.Enabled = not redOn
 	end
 end
 
@@ -1425,6 +1478,7 @@ local function untrackPolice(inst: Instance)
 			if rec.light then
 				rec.light:Destroy()
 			end
+			destroyGlare(rec)
 			policeCars[model] = nil
 		end
 	end
@@ -1441,6 +1495,7 @@ local function updateSirens()
 			if rec.light then
 				rec.light:Destroy()
 			end
+			destroyGlare(rec)
 			policeCars[model] = nil
 			continue
 		end
@@ -1458,6 +1513,7 @@ local function updateSirens()
 			if rec.light then
 				rec.light.Enabled = false
 			end
+			hideGlare(rec)
 			continue
 		end
 		rec.off = false
@@ -1466,6 +1522,7 @@ local function updateSirens()
 			if rec.light then
 				rec.light.Enabled = false
 			end
+			hideGlare(rec)
 			continue
 		end
 		if #rec.reds + #rec.blues == 0 and now - rec.scannedAt > 1 then
@@ -1495,6 +1552,7 @@ local function updateSirens()
 			light.Enabled = true
 			light.Color = if redOn then SIREN_RED else SIREN_BLUE
 		end
+		showGlare(rec, redOn)
 	end
 end
 
@@ -1661,7 +1719,9 @@ local BOOST_WHOOSH_GAP = 1.2 -- s between boost-start whooshes per car (nitro ta
 type BoostRec = {
 	model: Model,
 	exhaust: Attachment,
-	flame: ParticleEmitter,
+	flame: VFXLibrary.Stream?,
+	core: VFXLibrary.Stream?,
+	jet: VFXLibrary.BeamRig?,
 	light: PointLight,
 	on: boolean,
 	expiresAt: number,
@@ -1698,38 +1758,26 @@ local function releaseBoost(rec: BoostRec)
 	if boosts[rec.model] == rec then
 		boosts[rec.model] = nil
 	end
+	VFXLibrary.releaseStream(rec.flame)
+	VFXLibrary.releaseStream(rec.core)
+	local jet = rec.jet
+	if jet then
+		jet.beam:Destroy()
+		jet.a0:Destroy()
+		jet.a1:Destroy()
+	end
 	rec.exhaust:Destroy()
 end
 
--- Exhaust attachment at the car's tail (+Z; fronts face -Z) with the same flame look as our own (VehicleClient).
+-- Exhaust attachment at the car's tail (+Z; fronts face -Z) with the same nitro look as our own (VehicleClient):
+-- flipbook flame stream + hot core glow + (quality permitting) the shock-diamond jet beam.
 local function buildBoost(model: Model, chassis: BasePart): BoostRec
 	local length = model:GetAttribute("Length")
 	local halfLength = math.max(chassis.Size.Z / 2, if typeof(length) == "number" then length / 2 - 0.3 else 0)
 	local exhaust = Instance.new("Attachment")
 	exhaust.Name = "HC_RemoteNitro"
 	exhaust.Position = Vector3.new(0, 0, halfLength + 0.3)
-
-	local flame = Instance.new("ParticleEmitter")
-	flame.Name = "NitroFlame"
-	flame.Texture = TEX_FIRE
-	flame.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-		ColorSequenceKeypoint.new(0.25, Theme.Colors.Secondary),
-		ColorSequenceKeypoint.new(0.7, Theme.Colors.Primary),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 40, 255)),
-	})
-	flame.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.8), NumberSequenceKeypoint.new(1, 0.2) })
-	flame.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(1, 1) })
-	flame.Lifetime = NumberRange.new(0.12, 0.26)
-	flame.Rate = 120
-	flame.Speed = NumberRange.new(28, 40)
-	flame.SpreadAngle = Vector2.new(8, 8)
-	flame.LightEmission = 1
-	flame.LightInfluence = 0
-	flame.EmissionDirection = Enum.NormalId.Back
-	flame.ZOffset = 1
-	flame.Enabled = false
-	flame.Parent = exhaust
+	exhaust.Parent = chassis
 
 	local light = Instance.new("PointLight")
 	light.Name = "NitroLight"
@@ -1740,11 +1788,16 @@ local function buildBoost(model: Model, chassis: BasePart): BoostRec
 	light.Enabled = false
 	light.Parent = exhaust
 
-	exhaust.Parent = chassis
+	local jet: VFXLibrary.BeamRig? = nil
+	if VFXLibrary.tier().extras then
+		jet = VFXLibrary.beam("NitroJet", chassis, exhaust.Position, Vector3.new(0, 0, 1))
+	end
 	local rec: BoostRec = {
 		model = model,
 		exhaust = exhaust,
-		flame = flame,
+		flame = VFXLibrary.stream("NitroFlame", exhaust),
+		core = VFXLibrary.stream("NitroCore", exhaust),
+		jet = jet,
 		light = light,
 		on = false,
 		expiresAt = 0,
@@ -1753,6 +1806,19 @@ local function buildBoost(model: Model, chassis: BasePart): BoostRec
 	}
 	boosts[model] = rec
 	return rec
+end
+
+local function setBoostFx(rec: BoostRec, on: boolean)
+	if rec.flame then
+		VFXLibrary.setStream(rec.flame, on)
+	end
+	if rec.core then
+		VFXLibrary.setStream(rec.core, on)
+	end
+	if rec.jet then
+		rec.jet.beam.Enabled = on
+	end
+	rec.light.Enabled = on
 end
 
 local function setBoost(model: Model, on: boolean)
@@ -1773,9 +1839,8 @@ local function setBoost(model: Model, on: boolean)
 		live.expiresAt = now + BOOST_TTL
 		if not live.on then
 			live.on = true
-			live.flame.Enabled = true
-			live.light.Enabled = true
-			live.flame:Emit(20)
+			setBoostFx(live, true)
+			fx("Backfire", live.exhaust.WorldPosition, { direction = live.exhaust.WorldCFrame.LookVector * -1 })
 			if now - live.whooshAt >= BOOST_WHOOSH_GAP then
 				live.whooshAt = now
 				playSound("Whoosh", live.exhaust.WorldPosition)
@@ -1783,8 +1848,7 @@ local function setBoost(model: Model, on: boolean)
 		end
 	elseif rec and rec.on then
 		rec.on = false
-		rec.flame.Enabled = false
-		rec.light.Enabled = false
+		setBoostFx(rec, false)
 		rec.releaseAt = now + BOOST_LINGER
 	end
 end

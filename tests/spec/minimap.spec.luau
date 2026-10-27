@@ -306,6 +306,83 @@ return function(t)
 		t.ok(fx < 1100 and fz > -1100, "pan stays near the island")
 	end)
 
+	-- Radar runtime (headless): GPS route -> pills, trimming, re-route when straying, arrival clears the waypoint.
+	t.test("radar runtime: route, trim, re-route, arrival", function()
+		H.setMode("client")
+		local lp = H.localPlayer
+		local char = H.roblox.Instance.new("Model")
+		char.Name = "MinimapTestChar"
+		local root = H.roblox.Instance.new("Part")
+		root.Name = "HumanoidRootPart"
+		root.CFrame = H.roblox.CFrame.new(-300, 3, 160)
+		root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		root.Parent = char
+		char.Parent = H.workspace
+		lp.Character = char
+		pcall(function()
+			lp.UserId = 4242
+		end)
+		local Kit = H.require("src/client/UI/Kit")
+		-- Lune instances have no engine events: a plain ScreenGui instead of Kit.screen's auto-scaling one
+		Kit.screen = function(name, order)
+			local g = H.roblox.Instance.new("ScreenGui")
+			g.Name = name
+			g.DisplayOrder = order
+			g.Parent = lp:FindFirstChild("PlayerGui")
+			return g
+		end
+		local M = H.require("src/client/Controllers/MinimapController")
+		local WP = H.require("src/client/Controllers/WaypointController")
+		local ok, err = pcall(function()
+			M.mount()
+			local function run(frames)
+				for _ = 1, frames do
+					M.step(1 / 30)
+				end
+			end
+			WP.set(Cfg.CUSTOM_WAYPOINT.ID, Vector3.new(480, 0, -400), nil, "WAYPOINT")
+			run(10)
+			local pts = M.getRoute()
+			t.ok(pts ~= nil and #pts >= 2, "route to the custom waypoint")
+			local id = M.getGpsTarget()
+			t.eq(id, Cfg.CUSTOM_WAYPOINT.ID, "GPS follows the custom waypoint")
+			local radar = lp.PlayerGui.HC_Minimap.Radar
+			local shown = 0
+			for _, f in radar.Clip.Spin.World.Route.Core:GetChildren() do
+				if f.Visible then
+					shown += 1
+				end
+			end
+			t.ok(shown >= 1, "route pills drawn")
+			t.ok(radar.Distance.Visible, "distance pill shown")
+			local before = M.getRemaining()
+			t.ok(before > 0, "remaining distance")
+			-- drive 200 studs along the first leg: the remaining distance shrinks, same route
+			root.CFrame = H.roblox.CFrame.new(-100, 3, 160)
+			run(20)
+			t.ok(M.getRemaining() < before - 150, "trimmed as you drive")
+			-- stray far away: re-routed from the new spot
+			root.CFrame = H.roblox.CFrame.new(-700, 3, 700)
+			run(40)
+			local r2 = M.getRoute()
+			t.ok(r2 ~= nil and (r2[1] - Vector3.new(-700, 0, 700)).Magnitude < 80, "re-routed from where you are")
+			-- arrive: the custom waypoint clears itself and the route goes away
+			root.CFrame = H.roblox.CFrame.new(475, 3, -395)
+			run(20)
+			t.ok(not WP.has(Cfg.CUSTOM_WAYPOINT.ID), "custom waypoint cleared on arrival")
+			t.eq(M.getRoute(), nil, "route cleared")
+			t.ok(not radar.Distance.Visible, "distance pill hidden")
+		end)
+		-- leave the shared harness player as other specs expect it (Destroy clears the Character ref)
+		char:Destroy()
+		local gui = lp.PlayerGui:FindFirstChild("HC_Minimap")
+		if gui then
+			gui:Destroy()
+		end
+		H.setMode("server")
+		t.ok(ok, tostring(err))
+	end)
+
 	t.test("tap vs drag", function()
 		t.ok(MapScreen.isTap(3, 0.1), "short + still = tap")
 		t.ok(not MapScreen.isTap(40, 0.1), "moved = drag")

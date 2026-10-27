@@ -1117,17 +1117,17 @@ end
 -- Frame update
 -------------------------------------------------------------------------------------------------------------------------
 
-local function headingDeg(root: BasePart): number
-	local look = root.CFrame.LookVector
+local function headingDeg(cf: CFrame): number
+	local look = cf.LookVector
 	return MinimapController.headingOf(look.X, look.Z)
 end
 
-local function radarRotation(root: BasePart): number
+local function radarRotation(cf: CFrame): number
 	local mode = RADAR.ROTATE
 	if mode == "north" then
 		return 0
 	elseif mode == "heading" then
-		return -headingDeg(root)
+		return -headingDeg(cf)
 	end
 	local cam = Workspace.CurrentCamera
 	if not cam then
@@ -1157,7 +1157,8 @@ local function update(dt: number)
 	local step = accum
 	accum = 0
 
-	local pos = root.Position
+	local rootCf = root.CFrame
+	local pos = rootCf.Position
 	collectWaypoints()
 	if slowAccum >= SLOW_DT then
 		slowAccum = 0
@@ -1175,7 +1176,7 @@ local function update(dt: number)
 	zoom = MinimapController.smooth(zoom, MinimapController.zoomFor(driving, speed), step, RADAR.ZOOM_RESPONSE)
 	local radius = (diameter - RADAR.BORDER * 2) / 2
 	local scale = radius / zoom
-	local rot = radarRotation(root)
+	local rot = radarRotation(rootCf)
 
 	-- map container
 	if math.abs(scale - lastScale) > 1e-4 then
@@ -1189,7 +1190,7 @@ local function update(dt: number)
 		r.world.Position = UDim2.fromOffset(wx, wy)
 	end
 	r.spin.Rotation = rot
-	r.arrow.Rotation = headingDeg(root) + rot
+	r.arrow.Rotation = headingDeg(rootCf) + rot
 	local nx, ny = MinimapController.rotate(0, -(diameter / 2 - 3), rot)
 	r.north.Position = UDim2.new(0.5, nx, 0.5, ny)
 
@@ -1405,10 +1406,18 @@ end
 
 function MinimapController.init() end
 
-function MinimapController.start()
+-- Build the radar without wiring any engine events (start() calls this first; headless tests call it alone).
+function MinimapController.mount()
+	if radar then
+		return
+	end
 	buildPois()
 	radar = buildRadar()
 	applyLayout()
+end
+
+function MinimapController.start()
+	MinimapController.mount()
 	local r = radar :: Radar
 
 	local cam = Workspace.CurrentCamera

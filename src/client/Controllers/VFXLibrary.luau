@@ -114,6 +114,22 @@ function VFXLibrary.gearOf(frac: number, shifts: { number }?): number
 	return gear
 end
 
+-- Gear tracking with hysteresis: up as soon as a shift point is crossed, down only `hysteresis` below it.
+-- Returns (gear, upshifted).
+function VFXLibrary.nextGear(current: number, frac: number, shifts: { number }?, hysteresis: number?): (number, boolean)
+	local list = shifts or VFX.GEAR_SHIFTS
+	local target = VFXLibrary.gearOf(frac, list)
+	if target > current then
+		return target, true
+	end
+	local h = hysteresis or 0.04
+	local g = current
+	while g > target and frac < (list[g] or 0) - h do
+		g -= 1
+	end
+	return g, false
+end
+
 -- Dust color for a surface material name, nil for paved / hard surfaces.
 function VFXLibrary.dustColor(materialName: string): Color3?
 	return VFX.SurfaceDust[materialName]
