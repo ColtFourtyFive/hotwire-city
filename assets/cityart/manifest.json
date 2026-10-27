@@ -1,0 +1,1002 @@
+{
+ "awning_bean_there": {
+  "category": "signs",
+  "file": "assets/cityart/signs/awning_bean_there.png",
+  "sha1": "f81f4f474c22861197fa837b30104cd15957cccc",
+  "name": "HC city awning_bean_there",
+  "operation": "operations/4157005b-4693-4d9a-8a36-819468b76869",
+  "assetId": 123391197199879,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "awning_fade_away": {
+  "category": "signs",
+  "file": "assets/cityart/signs/awning_fade_away.png",
+  "sha1": "68e98fc00d176e5271faa071ce3b6d456bee79be",
+  "name": "HC city awning_fade_away",
+  "operation": "operations/39cf3b25-ec27-4412-8497-638b48af0954",
+  "assetId": 123756696901000,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "awning_glazed_confused": {
+  "category": "signs",
+  "file": "assets/cityart/signs/awning_glazed_confused.png",
+  "sha1": "19a865290ccea582843c2ba963a260f0e6b147e9",
+  "name": "HC city awning_glazed_confused",
+  "operation": "operations/30f6bb6c-4ee0-4885-809f-3dc20ce4b550",
+  "assetId": 126411798108089,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "awning_palmera_surf": {
+  "category": "signs",
+  "file": "assets/cityart/signs/awning_palmera_surf.png",
+  "sha1": "ecb4e53932781e520df1ae38b68d295a7451a7f2",
+  "name": "HC city awning_palmera_surf",
+  "operation": "operations/c1941ebf-b307-4372-92d1-0d5850589561",
+  "assetId": 85388735967161,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "awning_taco_tsunami": {
+  "category": "signs",
+  "file": "assets/cityart/signs/awning_taco_tsunami.png",
+  "sha1": "560755ae76a29d27b1482cec19f7523fdc0c9907",
+  "name": "HC city awning_taco_tsunami",
+  "operation": "operations/f2398fe4-9f9d-4279-b5f8-cd825efa6a69",
+  "assetId": 121908566893298,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_bean_there": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_bean_there.png",
+  "sha1": "21129231d3043a8f262961606367bde36cf69942",
+  "name": "HC city bb_bean_there",
+  "operation": "operations/5f5310db-9592-443a-b1f5-34014e9d372f",
+  "assetId": 105443404622978,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_borrowed_wheels": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_borrowed_wheels.png",
+  "sha1": "509add9a023d467fe7106bdced407b50a051dce7",
+  "name": "HC city bb_borrowed_wheels",
+  "operation": "operations/2955071a-2e3b-45ed-8a79-a3cf21debb3d",
+  "assetId": 130241147628352,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_brutus": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_brutus.png",
+  "sha1": "fd739e5cf7dc895e691112c0b066c092770506dc",
+  "name": "HC city bb_brutus",
+  "operation": "operations/beb75663-2e99-4af6-9cce-33d4d3c68efa",
+  "assetId": 95732423688677,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_coinstack": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_coinstack.png",
+  "sha1": "565ab378121143eb94201e0ec20add899b9e6c3d",
+  "name": "HC city bb_coinstack",
+  "operation": "operations/5927157f-1324-4a82-8776-0cd591ae758e",
+  "assetId": 88450379750151,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_cureall": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_cureall.png",
+  "sha1": "09ca2aea66b245c0e5bb6897577f49da7d496947",
+  "name": "HC city bb_cureall",
+  "operation": "operations/6fb6ac22-4205-4823-b729-36e54fcdd2fc",
+  "assetId": 113276198123528,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_hotwire_motors": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_hotwire_motors.png",
+  "sha1": "3c4503859bb23a9ee3eaefab3a2bc1707480484c",
+  "name": "HC city bb_hotwire_motors",
+  "operation": "operations/e11accf2-647f-4f54-8204-6aee836ac59a",
+  "assetId": 115740152729039,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_kazoku": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_kazoku.png",
+  "sha1": "30c30a72ca0a2c4b04d84e84aced239490431023",
+  "name": "HC city bb_kazoku",
+  "operation": "operations/c7ada26a-e131-437c-9b1e-3d369302a50f",
+  "assetId": 83455974676363,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_neon_fm": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_neon_fm.png",
+  "sha1": "5cca41ce4f4116134a6b347ee4a6af4104110b99",
+  "name": "HC city bb_neon_fm",
+  "operation": "operations/61cc8b31-0d0a-4f67-8829-f8fafec2944d",
+  "assetId": 131935255355880,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_nitro_cola": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_nitro_cola.png",
+  "sha1": "af2004f32ab447e8bed80c5d891617c8387d32ec",
+  "name": "HC city bb_nitro_cola",
+  "operation": "operations/0a788b0d-b7e6-4d51-89ad-3bae03b9a8cd",
+  "assetId": 94517901276785,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_onebar": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_onebar.png",
+  "sha1": "4a6b9882d9b8f4a6bf7c03631601080ab52e20b0",
+  "name": "HC city bb_onebar",
+  "operation": "operations/7ce09f31-bafc-480b-9de3-41e5f295353b",
+  "assetId": 74895273854448,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_overvolt": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_overvolt.png",
+  "sha1": "98ae0237e21e73fe4ca184cb02162c002552fe07",
+  "name": "HC city bb_overvolt",
+  "operation": "operations/a0336083-03e3-41d5-a230-fea1942a7f07",
+  "assetId": 120871306924109,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_patty_wagon": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_patty_wagon.png",
+  "sha1": "5476525a15aa84571f484f5eef93161621e14016",
+  "name": "HC city bb_patty_wagon",
+  "operation": "operations/6fc9f0da-9812-4e45-b384-78bf1d7688de",
+  "assetId": 119555607150439,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_petrolux": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_petrolux.png",
+  "sha1": "266462fbcc74cdea1162e9c60d3356ce5309c703",
+  "name": "HC city bb_petrolux",
+  "operation": "operations/1288ce4d-2ad4-47af-9237-10f43cb25f8a",
+  "assetId": 90019740133248,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_tourism": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_tourism.png",
+  "sha1": "1565a7dda4cf935733edcdacf4c487cb92e1859c",
+  "name": "HC city bb_tourism",
+  "operation": "operations/5ce13ffb-0d4b-4112-98dc-9b518ec969f0",
+  "assetId": 75106983913326,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bb_vantara": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bb_vantara.png",
+  "sha1": "e5d0b856caea626531dc919114c1168dcf10c78b",
+  "name": "HC city bb_vantara",
+  "operation": "operations/a6fe81b5-75c6-4b7c-9d90-7f9529375c24",
+  "assetId": 124464760621492,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_bass_drop": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_bass_drop.png",
+  "sha1": "c59bd94ebab7c48565e32fbadf01d04b2038657f",
+  "name": "HC city bbp_bass_drop",
+  "operation": "operations/148f572b-94dd-4597-9666-86f01db09995",
+  "assetId": 118538328785790,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_fuel_rush": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_fuel_rush.png",
+  "sha1": "a3550dff32abf0ae8ee951ffe2de1847e11a28bb",
+  "name": "HC city bbp_fuel_rush",
+  "operation": "operations/5908a7a6-0c90-4b91-a312-32843aba2ddb",
+  "assetId": 88112005754641,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_lucky_mart": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_lucky_mart.png",
+  "sha1": "0b0c001df8588e27a8f54ae629d007e31e80fc1e",
+  "name": "HC city bbp_lucky_mart",
+  "operation": "operations/a7694ce1-a709-4708-bd70-86b11fa81d44",
+  "assetId": 124930021128532,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_onebar": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_onebar.png",
+  "sha1": "9d53948e2e1760e0a73b53321f08170e1e459d0c",
+  "name": "HC city bbp_onebar",
+  "operation": "operations/c8bb6c85-f228-45d0-9ae0-161cb9886d1d",
+  "assetId": 80777185711413,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_overvolt": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_overvolt.png",
+  "sha1": "15aa13c59c1d14b4197491d1c93b7e7c0001285d",
+  "name": "HC city bbp_overvolt",
+  "operation": "operations/5e11027f-a134-4a20-b781-7af3baa03c2f",
+  "assetId": 122005372831558,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_patty_wagon": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_patty_wagon.png",
+  "sha1": "52ad3290674b7ce67ba68e50b75afeb86cafc606",
+  "name": "HC city bbp_patty_wagon",
+  "operation": "operations/1265a9e2-84c3-4f8d-b90c-3133ea49355b",
+  "assetId": 132151376632424,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_pinnacle_reserve": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_pinnacle_reserve.png",
+  "sha1": "9b27baaea62a1169114132935538949fca098fab",
+  "name": "HC city bbp_pinnacle_reserve",
+  "operation": "operations/fa55f42f-22b4-43c6-abe2-80b22b01f3ad",
+  "assetId": 110894386559979,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_quikstop": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_quikstop.png",
+  "sha1": "3b441ab991dec28895c1519eccf05800c0943eba",
+  "name": "HC city bbp_quikstop",
+  "operation": "operations/2b0ddca8-9388-4d6c-9af3-25558baa4876",
+  "assetId": 97804054649663,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_sipngo": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_sipngo.png",
+  "sha1": "da67feb63c711d3e13a2a6e170fa2cf56b1de220",
+  "name": "HC city bbp_sipngo",
+  "operation": "operations/d25638ab-b869-4cce-9279-651a37c3f30e",
+  "assetId": 129924687754468,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bbp_sunburst": {
+  "category": "billboards",
+  "file": "assets/cityart/billboards/bbp_sunburst.png",
+  "sha1": "09a3b21887ae667a4b9c80c167dffc10c790e5ff",
+  "name": "HC city bbp_sunburst",
+  "operation": "operations/445add3b-f4f4-4014-8d6a-428249d980c3",
+  "assetId": 111287062903536,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bus_borrowed_wheels": {
+  "category": "posters",
+  "file": "assets/cityart/posters/bus_borrowed_wheels.png",
+  "sha1": "d9dbcb4ec6d812744a88b589135a761720fb1db0",
+  "name": "HC city bus_borrowed_wheels",
+  "operation": "operations/01aacf1b-f910-4535-9899-7d3f6979a188",
+  "assetId": 84664707687521,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bus_cureall": {
+  "category": "posters",
+  "file": "assets/cityart/posters/bus_cureall.png",
+  "sha1": "58452da0e6f196d710076911e8069faecc672894",
+  "name": "HC city bus_cureall",
+  "operation": "operations/d1a85138-f84c-44df-9406-3ec79260e3cb",
+  "assetId": 124758404261906,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bus_kazoku": {
+  "category": "posters",
+  "file": "assets/cityart/posters/bus_kazoku.png",
+  "sha1": "406b9e9eb372f45647c50f0c8a59e96e46a598e3",
+  "name": "HC city bus_kazoku",
+  "operation": "operations/8186cebf-9b32-4e0e-b953-e38541a1c549",
+  "assetId": 116124615237953,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "bus_sipngo": {
+  "category": "posters",
+  "file": "assets/cityart/posters/bus_sipngo.png",
+  "sha1": "5e18b839c3ea125fe01361a056a559311fc1867e",
+  "name": "HC city bus_sipngo",
+  "operation": "operations/a107f519-e4fd-4942-9e74-517e8ffc73b3",
+  "assetId": 139607198158442,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_bass_drop": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_bass_drop.png",
+  "sha1": "f7273a00b5a3df83773002526f85fbf2980bb8e7",
+  "name": "HC city logo_bass_drop",
+  "operation": "operations/25c4145e-f92c-40ab-927b-5be99e37ece7",
+  "assetId": 93090524466147,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_bean_there": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_bean_there.png",
+  "sha1": "cf4220d5a9f128dae9d2398e0b63adfb03405947",
+  "name": "HC city logo_bean_there",
+  "operation": "operations/b072bae3-c15b-4d4b-838a-477d7fb0c772",
+  "assetId": 110771303267334,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_borrowed_wheels": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_borrowed_wheels.png",
+  "sha1": "d93f16e7903bbf621276aebcf7f898035177ce42",
+  "name": "HC city logo_borrowed_wheels",
+  "operation": "operations/f80a179b-5cc7-4118-9e9e-992a920f0be8",
+  "assetId": 109552551864463,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_brutus": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_brutus.png",
+  "sha1": "b5b8003a3942a08435c1cace183709acbacedaa3",
+  "name": "HC city logo_brutus",
+  "operation": "operations/b5414ccf-4551-4119-a5c5-8fba00ef665f",
+  "assetId": 138721956714809,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_coinstack": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_coinstack.png",
+  "sha1": "de257e28314c0166e55785820efd050fcb07f8be",
+  "name": "HC city logo_coinstack",
+  "operation": "operations/9583eb74-3411-42b0-94e9-ee5db93ea4ba",
+  "assetId": 84744576131954,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_cureall": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_cureall.png",
+  "sha1": "77452004cfeb40394b47d4e1849bf14385f79a9b",
+  "name": "HC city logo_cureall",
+  "operation": "operations/c6b164ea-832e-41e9-a949-c301de132c04",
+  "assetId": 100454471689275,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_drip_district": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_drip_district.png",
+  "sha1": "ae9a683fd8cacb7a56cfdbf13e5f88afbc05820e",
+  "name": "HC city logo_drip_district",
+  "operation": "operations/3781665a-57f9-4064-a717-fbb9986f1ecd",
+  "assetId": 114890861798703,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_fuel_rush": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_fuel_rush.png",
+  "sha1": "1e9b1909e25b27b065f68a19059b7491b7b7b81d",
+  "name": "HC city logo_fuel_rush",
+  "operation": "operations/1e98a929-9261-42cd-bdc7-3e36c2c8f48c",
+  "assetId": 131509659818788,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_hotwire_motors": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_hotwire_motors.png",
+  "sha1": "b88076bd45ffae555104e93f6134c7067fe9012d",
+  "name": "HC city logo_hotwire_motors",
+  "operation": "operations/45ae3fc1-1356-4a4d-9446-cef1bc72cc10",
+  "assetId": 73955052112486,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_iron_tide": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_iron_tide.png",
+  "sha1": "24e62d785115a0e0ee095796012d1b9f59a5f983",
+  "name": "HC city logo_iron_tide",
+  "operation": "operations/d6165b0c-67c0-4579-9641-68d61937a836",
+  "assetId": 136602758895291,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_kazoku": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_kazoku.png",
+  "sha1": "1402a244c9a571fa3951054b7749a6d8e94ab15a",
+  "name": "HC city logo_kazoku",
+  "operation": "operations/bd2c5e38-2369-43bd-94ae-b11d7a30772a",
+  "assetId": 128207413277206,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_lucky_mart": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_lucky_mart.png",
+  "sha1": "2a690d6ef1bc9733bda60f1b439664c9589d38ac",
+  "name": "HC city logo_lucky_mart",
+  "operation": "operations/baef754e-e5e7-4fb7-b4a5-93d0ad6357cd",
+  "assetId": 110196301915223,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_neon_fm": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_neon_fm.png",
+  "sha1": "cdd814a1f23021ee49f44c93b8f21e9d2eca2632",
+  "name": "HC city logo_neon_fm",
+  "operation": "operations/71f4ef42-05c3-49ac-9ba8-a14b382e306e",
+  "assetId": 105431794906257,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_nitro_cola": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_nitro_cola.png",
+  "sha1": "fb2722919b70a2d94b13080c9310748edaab71e0",
+  "name": "HC city logo_nitro_cola",
+  "operation": "operations/7d0b24f7-7723-44ff-aeb5-6a594aa19b69",
+  "assetId": 108068534736633,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_onebar": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_onebar.png",
+  "sha1": "a97c40d2a2c2126a5cccc6a691fcd6b80091a3dd",
+  "name": "HC city logo_onebar",
+  "operation": "operations/2d74e55d-3c99-4235-831d-849a21cbebe0",
+  "assetId": 100835252827830,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_overshare": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_overshare.png",
+  "sha1": "de2d4b8e62174279cf2ef7231b90d356b22754a5",
+  "name": "HC city logo_overshare",
+  "operation": "operations/cc2570fc-72a4-45c0-a3c2-3fe4b60f3ad1",
+  "assetId": 107997451129860,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_overvolt": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_overvolt.png",
+  "sha1": "56f4c149289db581c16527c3cd15b0bc40a0d39b",
+  "name": "HC city logo_overvolt",
+  "operation": "operations/517e9688-3b9f-4301-bd13-f46ee47d1d19",
+  "assetId": 109560534833274,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_patty_wagon": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_patty_wagon.png",
+  "sha1": "2a654e5e2e330cc22f5c4f6a2fd55423ec12948b",
+  "name": "HC city logo_patty_wagon",
+  "operation": "operations/b066bc21-8422-4b05-a773-46ab3ae50aba",
+  "assetId": 85488447515366,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_petrolux": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_petrolux.png",
+  "sha1": "42435e4b99d91c6d86844681215eee7c7603c431",
+  "name": "HC city logo_petrolux",
+  "operation": "operations/922dc42a-df89-4561-a2f1-1ae098354d12",
+  "assetId": 73571066550735,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_pinnacle_reserve": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_pinnacle_reserve.png",
+  "sha1": "630e412374fec7443d928377f68713a33642c0d7",
+  "name": "HC city logo_pinnacle_reserve",
+  "operation": "operations/e37cb730-9a32-4ec5-9353-1ec3886700b5",
+  "assetId": 126608030393304,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_quikstop": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_quikstop.png",
+  "sha1": "d7805e319e8adb158d9be6340f02c0970212fb3d",
+  "name": "HC city logo_quikstop",
+  "operation": "operations/01c2cf11-dbe5-4616-9157-b25a635a3a7a",
+  "assetId": 123931273543921,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_sipngo": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_sipngo.png",
+  "sha1": "f91d129d57cf89801210bb3f79d88857eaec6f8b",
+  "name": "HC city logo_sipngo",
+  "operation": "operations/91b72f65-defe-4b36-aeb3-773bcd85a046",
+  "assetId": 100179771002557,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_sunburst": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_sunburst.png",
+  "sha1": "f864e779a2a6507a072d472f96199aa97e8a3083",
+  "name": "HC city logo_sunburst",
+  "operation": "operations/d711d366-03f4-42cb-841f-cd0367348e53",
+  "assetId": 88326423957879,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "logo_vantara": {
+  "category": "logos",
+  "file": "assets/cityart/logos/logo_vantara.png",
+  "sha1": "fc326850918b1b4dd15a5b1dbf24ac35d197fdba",
+  "name": "HC city logo_vantara",
+  "operation": "operations/8ec7a4cb-2022-4370-8770-db5e6e60bff4",
+  "assetId": 130193479852334,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "mural_coast_cruiser": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/mural_coast_cruiser.png",
+  "sha1": "5805bbf749271ea365e27a1d396cab8821d9bbc3",
+  "name": "HC city mural_coast_cruiser",
+  "operation": "operations/4c07ad2e-c2d5-43c9-bb89-c3e1198d61d3",
+  "assetId": 104819053211780,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "mural_foundry_face": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/mural_foundry_face.png",
+  "sha1": "09f1916374be3426b2a1d8f188bb64ad03de63d4",
+  "name": "HC city mural_foundry_face",
+  "operation": "operations/63fdc707-7778-4527-9ca5-b185e807c572",
+  "assetId": 109000203275470,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "mural_palmera_postcard": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/mural_palmera_postcard.png",
+  "sha1": "7c9666aabbc40b7f88457b2b2b3429834fe2b2a0",
+  "name": "HC city mural_palmera_postcard",
+  "operation": "operations/c45fd49b-ae8e-4ca6-a96d-5c694e9ac62d",
+  "assetId": 125532545285890,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "mural_whale": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/mural_whale.png",
+  "sha1": "cb7dcee3cf0039b4e3dd5e4a0cae26036b6fc649",
+  "name": "HC city mural_whale",
+  "operation": "operations/abeafd59-39bb-4fbb-aaae-bd5a40bd5a13",
+  "assetId": 121512614887268,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "poster_hcpd_psa": {
+  "category": "posters",
+  "file": "assets/cityart/posters/poster_hcpd_psa.png",
+  "sha1": "393b5a4e947933ea4704569384b66f5cafc0d1ed",
+  "name": "HC city poster_hcpd_psa",
+  "operation": "operations/1b2d39ce-0f1a-4ab9-a6e5-cd3678f9f586",
+  "assetId": 125524630502989,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "poster_speedway": {
+  "category": "posters",
+  "file": "assets/cityart/posters/poster_speedway.png",
+  "sha1": "7c77e6e9f12573eb61793eae27be6140f59bec40",
+  "name": "HC city poster_speedway",
+  "operation": "operations/32a21986-c35e-494b-bd2d-9464074c6017",
+  "assetId": 114397682561072,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "poster_synth_night": {
+  "category": "posters",
+  "file": "assets/cityart/posters/poster_synth_night.png",
+  "sha1": "37e16907cd53e66dfb2dcd54472ae2329b631e0e",
+  "name": "HC city poster_synth_night",
+  "operation": "operations/1ba4a426-27b3-4ea0-aeaa-93e6e1fa26b5",
+  "assetId": 77080412750372,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "pylon_rattlesnake_diner": {
+  "category": "signs",
+  "file": "assets/cityart/signs/pylon_rattlesnake_diner.png",
+  "sha1": "004fa616a2fcfbf36a2764264cb0c2c51d97325d",
+  "name": "HC city pylon_rattlesnake_diner",
+  "operation": "operations/9ba00627-8f1c-4893-b551-57da3de56739",
+  "assetId": 93629604813776,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "pylon_sleepy_cactus": {
+  "category": "signs",
+  "file": "assets/cityart/signs/pylon_sleepy_cactus.png",
+  "sha1": "ab59c8e38c50abd925efd2d2ad65270d18640f3d",
+  "name": "HC city pylon_sleepy_cactus",
+  "operation": "operations/d0009a09-83c4-4fca-a065-7b6e8dd1fddb",
+  "assetId": 94340789621630,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_borrowed_wheels": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_borrowed_wheels.png",
+  "sha1": "26723b434cf353f82b417f49d555135120cd8e16",
+  "name": "HC city sign_borrowed_wheels",
+  "operation": "operations/f74ec4f1-c9a9-472c-8818-196edd9ed73b",
+  "assetId": 101807268065406,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_coinstack": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_coinstack.png",
+  "sha1": "87af2cb061b3dcc81dd1909d1309bfdcc2faed80",
+  "name": "HC city sign_coinstack",
+  "operation": "operations/1b43502f-24c0-43ca-811f-1c919db2a935",
+  "assetId": 80682961736467,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_cureall": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_cureall.png",
+  "sha1": "b8da6ebc8b31e4ec47f4d05c8d5655a4e2343bf4",
+  "name": "HC city sign_cureall",
+  "operation": "operations/93775687-1347-4a5a-896b-30f667e6a4f1",
+  "assetId": 104456659664420,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_dockside_salvage": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_dockside_salvage.png",
+  "sha1": "ea4b82b74e128d329a63d00ace501a27275ba785",
+  "name": "HC city sign_dockside_salvage",
+  "operation": "operations/9716eba3-e462-4211-8570-46c5b269f7b1",
+  "assetId": 114814197651620,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_drip_district": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_drip_district.png",
+  "sha1": "ac6ca6c55227245fcebb6d280064d1c7ac1a31fb",
+  "name": "HC city sign_drip_district",
+  "operation": "operations/59492113-6ee9-4451-a4f6-306da3d70cbd",
+  "assetId": 78723762786352,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_foundry_records": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_foundry_records.png",
+  "sha1": "c3cfd14c12fb45ceefc0c9597230efbc7bc3a395",
+  "name": "HC city sign_foundry_records",
+  "operation": "operations/f82bf82e-c18f-49a3-9e8b-ad4f40bd53eb",
+  "assetId": 99442460003370,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_fresh_coat": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_fresh_coat.png",
+  "sha1": "39dbc941597b6b13c3cf9acdd6b1899db4fa55ba",
+  "name": "HC city sign_fresh_coat",
+  "operation": "operations/752f501a-9788-4fd7-929b-f5bbeac2fa61",
+  "assetId": 76727413159462,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_fuel_rush": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_fuel_rush.png",
+  "sha1": "a0d2196ea7126443eb6d439c37a55664a4bb236b",
+  "name": "HC city sign_fuel_rush",
+  "operation": "operations/bf137cfe-b8fb-4c2f-b9ce-720a0f0eaea4",
+  "assetId": 135633329338998,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_glitter_gold": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_glitter_gold.png",
+  "sha1": "bc31edf49ab4b1644087ff0dc90ac84c36988a43",
+  "name": "HC city sign_glitter_gold",
+  "operation": "operations/d6758600-c703-4c1f-9910-772bbd618255",
+  "assetId": 125177515939252,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_hotwire_customs": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_hotwire_customs.png",
+  "sha1": "4eab3e8dd44371cd3d7946ac3ccb3133a2301a13",
+  "name": "HC city sign_hotwire_customs",
+  "operation": "operations/0f765b34-e8d7-4d71-a82b-e2dda3e8c3b8",
+  "assetId": 121476613828911,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_hotwire_motors": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_hotwire_motors.png",
+  "sha1": "2ee9b9e057cf744efc15aef2355132b4ab15cf4e",
+  "name": "HC city sign_hotwire_motors",
+  "operation": "operations/0bfad858-e89d-4902-bb66-ca5cc0058c11",
+  "assetId": 132957477850130,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_iron_tide": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_iron_tide.png",
+  "sha1": "f9645aa82f0e65d842ce8fd53545c928e444e47a",
+  "name": "HC city sign_iron_tide",
+  "operation": "operations/ef848d03-00e6-4c3f-b07c-8a4e77821cd2",
+  "assetId": 77129886579105,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_legendaire": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_legendaire.png",
+  "sha1": "bfca00f57ca9d306cb330ff17fc30c3996ee357a",
+  "name": "HC city sign_legendaire",
+  "operation": "operations/3d208417-b540-4e99-a9a1-c865512434d0",
+  "assetId": 120461776540566,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_lock_load": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_lock_load.png",
+  "sha1": "e03e9efd76127c064f328fcb2a58062aeb975b97",
+  "name": "HC city sign_lock_load",
+  "operation": "operations/c01b8aad-1f51-45c9-b204-9dacffb6b35f",
+  "assetId": 92661376158482,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_lucky_mart": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_lucky_mart.png",
+  "sha1": "1ce0f2988e8d209f996ef97e86434f4f3e49c838",
+  "name": "HC city sign_lucky_mart",
+  "operation": "operations/f0187b76-7822-466b-b418-5dd1bdd6dfb3",
+  "assetId": 133222360582653,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_mount_mercy": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_mount_mercy.png",
+  "sha1": "21537bdd02d7551b47a9621dc7bf8a6d2bdcd1d9",
+  "name": "HC city sign_mount_mercy",
+  "operation": "operations/58679044-b3cb-460f-8704-8b169b426a2f",
+  "assetId": 135670293105222,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_muscle_beach": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_muscle_beach.png",
+  "sha1": "88fe8d3ccf274fcd00a9fed47913732937d39360",
+  "name": "HC city sign_muscle_beach",
+  "operation": "operations/ecdfcf13-3f38-49eb-a5ab-8a5ffdced1cd",
+  "assetId": 112062545391004,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_onebar": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_onebar.png",
+  "sha1": "cf7f97a6357f8e2c8fd4536c6a4c0440b27bf000",
+  "name": "HC city sign_onebar",
+  "operation": "operations/4e1c0dc4-e755-4146-9163-09096ee54bd2",
+  "assetId": 136254956590012,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_patty_wagon": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_patty_wagon.png",
+  "sha1": "e34a0e7c4283d4e4c428fe6ebf4869ad0bbab666",
+  "name": "HC city sign_patty_wagon",
+  "operation": "operations/9a696fd4-9297-47bb-8633-95e77182189e",
+  "assetId": 93173152169633,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_petrolux": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_petrolux.png",
+  "sha1": "74933aa2b451ff02b6ce00c1b6a0e54dae43989f",
+  "name": "HC city sign_petrolux",
+  "operation": "operations/47404389-7851-491a-aa86-5bab8e2499c6",
+  "assetId": 92659320203879,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_pinnacle_reserve": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_pinnacle_reserve.png",
+  "sha1": "5fcb1658b6f26c8163e7fafcba2e7a7a0ac408c6",
+  "name": "HC city sign_pinnacle_reserve",
+  "operation": "operations/bdc2e6ad-6487-426f-8bb9-5f44bff67d1a",
+  "assetId": 139640515907029,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_quikstop": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_quikstop.png",
+  "sha1": "a54913538db5bf35fecddc27cec5831f78d11012",
+  "name": "HC city sign_quikstop",
+  "operation": "operations/c00e3d53-dab4-460e-a109-0f5eedb8de90",
+  "assetId": 105195980582006,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_rustys_chop": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_rustys_chop.png",
+  "sha1": "bc0c1acb960907d9bbdecb2fe3d2c6d6d60a6a46",
+  "name": "HC city sign_rustys_chop",
+  "operation": "operations/b81c0ec6-2799-44c3-ab67-bdac360005d1",
+  "assetId": 108965536301159,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_sipngo": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_sipngo.png",
+  "sha1": "63f5c62c563d43a04ebdb0c6c58927af882cb80d",
+  "name": "HC city sign_sipngo",
+  "operation": "operations/8dd23c01-e2f7-4ffd-9bca-92cc472ee157",
+  "assetId": 109612874063723,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_spin_city": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_spin_city.png",
+  "sha1": "9f5ae0ccf269f0c8f16bb98d1600355e15f7a5de",
+  "name": "HC city sign_spin_city",
+  "operation": "operations/090352b8-f309-4e19-984a-3a271e5a147c",
+  "assetId": 116782271038615,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_stackhouse": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_stackhouse.png",
+  "sha1": "8ebf2eea0cacf0597b1d61e4bc41e8898bd5a4b2",
+  "name": "HC city sign_stackhouse",
+  "operation": "operations/515316ef-ecdb-4512-869f-d1f4f3aeaef4",
+  "assetId": 129516736976804,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "sign_sunburst": {
+  "category": "signs",
+  "file": "assets/cityart/signs/sign_sunburst.png",
+  "sha1": "1e5493e2945e7e3c65b27310c8ebf90b992dd15f",
+  "name": "HC city sign_sunburst",
+  "operation": "operations/8b08f86f-5b50-4839-a80c-bedad0336d8f",
+  "assetId": 122065696164513,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "stencil_foundry_key": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/stencil_foundry_key.png",
+  "sha1": "65c40dcc3d1ca142ddf221356f8df561d246dc13",
+  "name": "HC city stencil_foundry_key",
+  "operation": "operations/3443d866-c35b-4a8f-bf70-07614ed681ea",
+  "assetId": 88341827303564,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "stencil_sir_fluffington": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/stencil_sir_fluffington.png",
+  "sha1": "a98517c539537d1cc5777cc73a1fb6498b425cc4",
+  "name": "HC city stencil_sir_fluffington",
+  "operation": "operations/6ae046ea-9ec3-4b28-bae1-385927962817",
+  "assetId": 113749901665623,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "tag_hotwire": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/tag_hotwire.png",
+  "sha1": "003829d23d97f2aecb6b9157d0b81049cba489a2",
+  "name": "HC city tag_hotwire",
+  "operation": "operations/cca85964-2cf5-4b18-8a02-d0a47ef283e5",
+  "assetId": 111306351215278,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "tag_hotwire_city_script": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/tag_hotwire_city_script.png",
+  "sha1": "a309693d3e8128007fcf16cb810b5031053e10a0",
+  "name": "HC city tag_hotwire_city_script",
+  "operation": "operations/15de3a64-2ae8-4ce9-9b1a-ee0ee48b9618",
+  "assetId": 81952058699400,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "tag_palmera": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/tag_palmera.png",
+  "sha1": "94152c19af00178810bdf5293069f423a0f53ea9",
+  "name": "HC city tag_palmera",
+  "operation": "operations/b483cdf1-8437-4820-b49b-612b43b4afcd",
+  "assetId": 106160095352080,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ },
+ "tag_southgate": {
+  "category": "graffiti",
+  "file": "assets/cityart/graffiti/tag_southgate.png",
+  "sha1": "552cedc93f6625de0ac1ee5231f9790a71db38cc",
+  "name": "HC city tag_southgate",
+  "operation": "operations/bf38fa29-02fe-413d-88b7-4719091fd19a",
+  "assetId": 73008690982767,
+  "assetType": "Image",
+  "moderation": "Reviewing"
+ }
+}
