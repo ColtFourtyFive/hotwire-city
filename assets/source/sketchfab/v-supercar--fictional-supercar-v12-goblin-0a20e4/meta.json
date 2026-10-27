@@ -1,0 +1,51 @@
+{
+  "source": "sketchfab",
+  "uid": "0a20e49ad5774d778567cb5c3f345786",
+  "slug": "v-supercar--fictional-supercar-v12-goblin-0a20e4",
+  "name": "Fictional supercar - V12 Goblin",
+  "class": "supercar",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "ollitei",
+    "displayName": "ollitei",
+    "profileUrl": "https://sketchfab.com/ollitei"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/fictional-supercar-v12-goblin-0a20e49ad5774d778567cb5c3f345786",
+  "faceCount": 86623,
+  "vertexCount": 46836,
+  "materialCount": 5,
+  "textureCount": 10,
+  "animationCount": 0,
+  "likeCount": 694,
+  "tags": [
+    "goblin",
+    "automotive",
+    "supercar",
+    "fictional",
+    "v12",
+    "3dsmax",
+    "vehicle",
+    "design",
+    "car",
+    "free"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "A fictional car design project created some time in 2012. Unique exterior. No interior.\n\nCheck out the annotations for more information about the design process.\n\nThis car was also featured at seriouswheels.com:\nhttp://www.seriouswheels.com/cars/2013/top-2013-V12-Goblin-Concept-by-Olli-Teittinen.html",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-supercar--fictional-supercar-v12-goblin-0a20e4/model.glb",
+  "fileBytes": 5370864,
+  "sha256": "9e9c3e082c502bffc45b9313e9cfc1998a6a50339fda5763d9d04f6aedf129eb",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:04+00:00",
+  "notes": null
+}

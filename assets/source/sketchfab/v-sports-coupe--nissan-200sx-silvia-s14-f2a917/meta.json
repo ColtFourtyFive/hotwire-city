@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "f2a917a924734a89a020e7f970e55e7c",
+  "slug": "v-sports-coupe--nissan-200sx-silvia-s14-f2a917",
+  "name": "Nissan 200SX Silvia S14",
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Lexyc16",
+    "displayName": "Lexyc16",
+    "profileUrl": "https://sketchfab.com/Lexyc16"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/nissan-200sx-silvia-s14-f2a917a924734a89a020e7f970e55e7c",
+  "faceCount": 18231,
+  "vertexCount": 11465,
+  "materialCount": 17,
+  "textureCount": 2,
+  "animationCount": 0,
+  "likeCount": 360,
+  "tags": [
+    "nissan",
+    "japan",
+    "coupe",
+    "silvia",
+    "game-ready",
+    "s14",
+    "200sx",
+    "low-poly",
+    "game",
+    "car",
+    "sport",
+    "noai"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "The S14 Silvia debuted in Japan towards the end of 1993. It was lower and wider than the S13. New rounded styling contributed to the illusion of a greater increase in size than actually occurred. Wheelbase and track were both increased, leading to slightly improved handling. Unlike export markets, where sales of the S14 chassis variants faltered, the Silvia remained popular in Japan. However, the width dimension exceeded 1,700 mm (67 in), which pushed this generation out of the compact class tax bracket and made Japanese buyers liable for higher road taxes. Sales of the S14 also faltered becau",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-sports-coupe--nissan-200sx-silvia-s14-f2a917/model.glb",
+  "fileBytes": 1117472,
+  "sha256": "0096b5a88d285d881d3b2cd1777edf865a547461876b7b28c08802bdc02775f6",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:00+00:00",
+  "notes": null
+}

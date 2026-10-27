@@ -548,5 +548,25 @@
   "mb": 7.5,
   "license": "by",
   "conversion": "none"
+ },
+ "f2a917a924734a89a020e7f970e55e7c": {
+  "status": "ok",
+  "slug": "v-sports-coupe--nissan-200sx-silvia-s14-f2a917",
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "name": "Nissan 200SX Silvia S14",
+  "mb": 1.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "0a20e49ad5774d778567cb5c3f345786": {
+  "status": "ok",
+  "slug": "v-supercar--fictional-supercar-v12-goblin-0a20e4",
+  "class": "supercar",
+  "kind": "vehicle",
+  "name": "Fictional supercar - V12 Goblin",
+  "mb": 5.4,
+  "license": "by",
+  "conversion": "none"
  }
 }
