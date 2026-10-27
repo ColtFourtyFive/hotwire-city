@@ -429,6 +429,7 @@ return function(t)
 
 	-- Phones: HUD layout with the radar in the corner (review: menu into the thumbstick zone, feed into the cash pill)
 	local PHONES = { { 844, 390 }, { 667, 375 }, { 640, 360 }, { 896, 414 }, { 932, 430 }, { 736, 414 } }
+	local HUD_TOP = 6 -- HUDController.layout: touch buttons start this far below the topbar inset
 	local function phoneCanvas(w, h, topbar, floor)
 		local s = math.clamp(math.min(w / 1280, h / 720), 0.55, 1.6)
 		if floor then
@@ -448,7 +449,7 @@ return function(t)
 				local s, cw, ch = phoneCanvas(vp[1], vp[2], topbar)
 				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
 				local m = M.touchMetrics(cw, ch, s)
-				local strip = HUD.touchStripLayout(count, cw, ch, m.reserve, Cfg.RADAR.TOUCH_TOP)
+				local strip = HUD.touchStripLayout(count, cw, ch, m.reserve, HUD_TOP)
 				t.ok(strip.fits, tag .. ": strip fits")
 				t.ok(
 					strip.bottom <= ch / 3 + 1e-6,
@@ -487,7 +488,7 @@ return function(t)
 				local s, cw, ch = phoneCanvas(vp[1], vp[2], topbar)
 				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
 				local m = M.touchMetrics(cw, ch, s)
-				local strip = HUD.touchStripLayout(#HUD.MENU, cw, ch, m.reserve, Cfg.RADAR.TOUCH_TOP)
+				local strip = HUD.touchStripLayout(#HUD.MENU, cw, ch, m.reserve, HUD_TOP)
 				for _, menuShown in { true, false } do
 					local x, y = HUD.touchFeedAnchor(strip, menuShown, m.bottom)
 					t.eq(x, 12, tag .. ": feed at the left edge")

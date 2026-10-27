@@ -48,5 +48,84 @@
   "sha256": "156805e5d8a69c3048bd76f7408937a4260bee2aeb30d30c27327d728a3f79ef",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:15+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      3.0706,
+      1.4524,
+      0.8044
+    ],
+    "dims_m": [
+      1.452,
+      3.071,
+      0.804
+    ],
+    "front_evidence": "none",
+    "flipped": false,
+    "mesh_objects": 25,
+    "triangles": 6915,
+    "materials": 14,
+    "material_names": [
+      "badges",
+      "black_metallic",
+      "body",
+      "brake_dics_and_caps",
+      "carbon_fibre",
+      "glass",
+      "interior",
+      "interior_A",
+      "lights",
+      "mesh",
+      "mirror",
+      "rims",
+      "silver",
+      "tyres"
+    ],
+    "textures": 5,
+    "texture_max_px": 512,
+    "wheel_named": [
+      "tyres_tyres_0",
+      "tyres_rims_0",
+      "tyres.001_tyres_0",
+      "tyres.001_rims_0"
+    ],
+    "wheel_geom": [],
+    "wheels_separate": true,
+    "logo_named": [
+      "badges_badges_0"
+    ],
+    "glass_materials": [
+      "glass"
+    ],
+    "animations": 3,
+    "object_names": [
+      "body_carbon fibre_0",
+      "body_body_0",
+      "body_black metallic_0",
+      "body_mesh_0",
+      "body_lights_0",
+      "body_glass_0",
+      "body_silver_0",
+      "spoiler_body_0",
+      "spoiler_silver_0",
+      "spoiler_lights_0",
+      "side mirrors_body_0",
+      "side mirrors_carbon fibre_0",
+      "side mirrors_mirror_0",
+      "windows_glass_0",
+      "windows_black metallic_0",
+      "tyres_tyres_0",
+      "tyres_rims_0",
+      "tyres.001_tyres_0",
+      "tyres.001_rims_0",
+      "interior.001_interior_0",
+      "interior.001_mirror_0",
+      "badges_badges_0",
+      "brake dics and caps_brake dics and caps_0",
+      "wipers_black metallic_0",
+      "interior_interior A_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 32.8
+  }
 }

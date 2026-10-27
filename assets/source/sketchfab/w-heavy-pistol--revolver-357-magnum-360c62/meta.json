@@ -74,6 +74,7 @@
     "object_names": [
       "defaultMaterial"
     ],
-    "render_s": 8.1
+    "hidden_helpers": [],
+    "render_s": 31.8
   }
 }
