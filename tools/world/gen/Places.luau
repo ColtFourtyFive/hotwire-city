@@ -1166,7 +1166,7 @@ return function(WorldLayout: any)
 			name = "Mount Mercy Medical Center",
 			kind = "hospital",
 			at = { 1000, -900 },
-			size = { 176, 150, 180 },
+			size = { 160, 150, 200 },
 			setback = 12,
 			tags = { "respawn", "helipad" },
 		},
@@ -1373,5 +1373,1541 @@ return function(WorldLayout: any)
 	WorldLayout.POIs = POIs
 	WorldLayout.Plots = Plots
 
-	--@@PART2@@
+	---------------------------------------------------------------------------------------------------------------------
+	-- 13. Tower plan + parcels (lots)
+	---------------------------------------------------------------------------------------------------------------------
+
+	type Parcel = {
+		id: number,
+		district: string,
+		subzone: string?,
+		use: string,
+		cframe: CFrame, -- ground centre (Y = street level at the frontage), LookVector faces the street
+		size: Vector3, -- X frontage width, Y height (0 = open lot), Z depth
+		floors: number,
+		edge: number,
+		style: string,
+		seed: number,
+		tower: boolean?, -- part of the tower plan (skyline)
+		podium: { number }?, -- { height, tower setback } for planned towers
+		crown: string?, -- spire | slant | stepped | helipad | lit_band | machinery | flat
+		stilts: boolean?, -- hills: the lot falls away from the street (house on stilts / cantilevered)
+	}
+	local Parcels: { Parcel } = {}
+
+	local PCELL = 160
+	local parcelCells: { [number]: { number } } = {}
+	local parcelObbs: { OBB } = {}
+	local function obbBounds(b: OBB): (number, number, number, number)
+		local r = math.sqrt(b.hw * b.hw + b.hd * b.hd)
+		return b.cx - r, b.cz - r, b.cx + r, b.cz + r
+	end
+	local function overlapsAny(b: OBB, margin: number): boolean
+		local x0, z0, x1, z1 = obbBounds(b)
+		for cx = math.floor(x0 / PCELL), math.floor(x1 / PCELL) do
+			for cz = math.floor(z0 / PCELL), math.floor(z1 / PCELL) do
+				local list = parcelCells[WorldGen.cellKey(cx, cz)]
+				if list then
+					for _, id in list do
+						if WorldGen.obbOverlap(b, parcelObbs[id], margin) then
+							return true
+						end
+					end
+				end
+			end
+		end
+		return false
+	end
+	local function insertObb(b: OBB): number
+		table.insert(parcelObbs, b)
+		local id = #parcelObbs
+		local x0, z0, x1, z1 = obbBounds(b)
+		WorldGen.hashBox(parcelCells, PCELL, x0, z0, x1, z1, id)
+		return id
+	end
+	for _, r in reserved do
+		insertObb(r.obb)
+	end
+
+	-- Open areas that never get lots: every reserved area (parks, plazas, hero sites, rail yard, golf, channel) plus the
+	-- palm park / sand west of Palmera Drive, the airfield and the container terminal interior (yards placed below).
+	local NO_LOTS: { { P2 } } = {}
+	for _, area in WorldLayout.ReservedAreas do
+		table.insert(NO_LOTS, area.poly)
+	end
+	table.insert(NO_LOTS, poly({ { -6000, -2400 }, { -4560, -2400 }, { -4560, 1720 }, { -6000, 1720 } }))
+	table.insert(NO_LOTS, poly({ { -6000, 3100 }, { -2400, 3100 }, { -2400, 4500 }, { -6000, 4500 } }))
+	table.insert(NO_LOTS, poly({ { -1800, 3540 }, { 2900, 3540 }, { 2900, 4500 }, { -1800, 4500 } }))
+	local noLotBoxes: { { number } } = {}
+	for i, area in NO_LOTS do
+		local x0, z0, x1, z1 = WorldGen.polyBounds(area)
+		noLotBoxes[i] = { x0, z0, x1, z1 }
+	end
+	local function inNoLot(x: number, z: number): boolean
+		for ai, area in NO_LOTS do
+			local bb = noLotBoxes[ai]
+			if x >= bb[1] and x <= bb[3] and z >= bb[2] and z <= bb[4] and WorldGen.pointInPoly(area, x, z) then
+				return true
+			end
+		end
+		return false
+	end
+
+	local OPEN_USES: { [string]: boolean } =
+		{ plaza = true, parking_lot = true, park = true, yard = true, container_yard = true }
+	local LOW_USES: { [string]: number } = {
+		retail = 26,
+		restaurant = 22,
+		corner_store = 18,
+		retail_strip = 20,
+		house = 24,
+		duplex = 28,
+		church = 40,
+		shop = 18,
+		diner = 16,
+		motel = 24,
+		shed = 18,
+		barn = 30,
+		farmhouse = 24,
+		gallery = 30,
+		brewery = 34,
+		nightclub = 34,
+		theater = 46,
+		mansion = 34,
+		villa = 30,
+		warehouse = 40,
+		factory = 56,
+		hangar = 50,
+		parking_garage = 48,
+		civic = 60,
+	}
+	local function useWeights(uses: { { any } }, r: number): string
+		local total = 0
+		for _, u in uses do
+			total += u[2]
+		end
+		local acc = 0
+		for _, u in uses do
+			acc += u[2] / total
+			if r <= acc then
+				return u[1]
+			end
+		end
+		return uses[#uses][1]
+	end
+
+	-- Planned towers: Pinnacle (POI, 760) + 3 at 560-650, 8 at 380-520 and 20 at 220-350 within 650 of (150, -300);
+	-- Palmera North condo towers; the Gilded Mile x Crown hotel cluster (gta critique 1). Footprints >= 160 x 160 on
+	-- 40-70 podiums with a 10-20 tower setback, each with a crown so the top 12 read differently against the sky.
+	local CROWNS = { "spire", "slant", "stepped", "helipad", "lit_band", "machinery" }
+	type Cluster = {
+		id: string,
+		center: { number },
+		radius: number,
+		box: { number }?,
+		outer: number?, -- the 220-350 group may spill to this radius (whole half-blocks are scarce inside the core)
+		heights: { number },
+		uses: { string },
+		minW: number,
+	}
+	local function spread(n: number, lo: number, hi: number, seed: number): { number }
+		local out: { number } = {}
+		for i = 1, n do
+			local t = if n == 1 then 0.5 else (i - 1) / (n - 1)
+			local j = (WorldGen.hash(i, seed, 401) - 0.5) * (hi - lo) / math.max(n, 2) * 0.8
+			table.insert(out, math.floor(hi - (hi - lo) * t + j + 0.5))
+		end
+		return out
+	end
+	local CLUSTERS: { Cluster } = {
+		{
+			id = "core",
+			center = { 150, -300 },
+			radius = 650,
+			outer = 900,
+			heights = (function(): { number }
+				local h: { number } = {}
+				for _, list in { spread(3, 560, 650, 1), spread(8, 380, 520, 2), spread(20, 220, 350, 3) } do
+					for _, v in list do
+						table.insert(h, v)
+					end
+				end
+				return h
+			end)(),
+			uses = { "office_tower", "office_tower", "residential_tower", "hotel", "office_tower" },
+			minW = 160,
+		},
+		{
+			id = "palmera_north",
+			center = { -4100, -1580 },
+			radius = 520,
+			box = { -4350, -2000, -3850, -1150 },
+			heights = spread(6, 220, 360, 4),
+			uses = { "residential_tower" },
+			minW = 160,
+		},
+		{
+			id = "gilded",
+			center = { -1960, -300 },
+			radius = 480,
+			outer = 650,
+			heights = spread(5, 260, 380, 5),
+			uses = { "hotel", "residential_tower", "office_tower" },
+			minW = 160,
+		},
+	}
+	local TowerPlan: { { any } } = {}
+	local pinnacle = poiById.PinnacleTower
+	if pinnacle then
+		table.insert(TowerPlan, {
+			id = "PinnacleTower",
+			cluster = "core",
+			height = pinnacle.size.Y,
+			pos = pinnacle.cframe.Position,
+			crown = "spire",
+		})
+	end
+	do
+		local seqT = 0
+		for _, cl in CLUSTERS do
+			-- candidate footprints: every frontage slot in the cluster, 3 widths, depth to the next road behind
+			type Cand = { obb: OBB, cf: CFrame, edge: number, dist: number, w: number, d: number }
+			local cands: { Cand } = {}
+			local cx0, cz0 = cl.center[1], cl.center[2]
+			for ei, e in Edges do
+				if
+					e.layer ~= 0
+					or e.elevated
+					or e.bridge
+					or not (e.class == "boulevard" or e.class == "avenue" or e.class == "street")
+				then
+					continue
+				end
+				local pts = edgePts[ei].pts
+				local near = false
+				for _, p in pts do
+					if WorldGen.dist(p.x, p.z, cx0, cz0) < (cl.outer or cl.radius) + 150 then
+						near = true
+						break
+					end
+				end
+				if not near then
+					continue
+				end
+				local ra = endClear(ei, e.a) + 4
+				local rb = endClear(ei, e.b) + 4
+				local s = ra + cl.minW / 2
+				while s <= e.length - rb - cl.minW / 2 do
+					local px, py, pz, tx, tz = edgeAt(ei, s)
+					local rx, rz = WorldGen.right(tx, tz)
+					for _, side in { 1, -1 } do
+						local nx, nz = rx * side, rz * side
+						local front = e.width / 2 + e.sidewalk + 4
+						for _, wd in { { 200, 220 }, { 200, 190 }, { 180, 190 }, { 180, 165 }, { 160, 165 }, { 160, 160 } } do
+							local w, d = wd[1], wd[2]
+							local ccx, ccz = px + nx * (front + d / 2), pz + nz * (front + d / 2)
+							local dist = WorldGen.dist(ccx, ccz, cx0, cz0)
+							if dist > (cl.outer or cl.radius) then
+								continue
+							end
+							if cl.box then
+								local bx = cl.box :: { number }
+								if ccx < bx[1] or ccx > bx[3] or ccz < bx[2] or ccz > bx[4] then
+									continue
+								end
+							end
+							local obb: OBB = { cx = ccx, cz = ccz, ux = tx, uz = tz, hw = w / 2, hd = d / 2 }
+							local inset: OBB = { cx = ccx, cz = ccz, ux = tx, uz = tz, hw = w / 2 - 1.5, hd = d / 2 - 1.5 }
+							if roadHit(inset, 0.5) or deckOver(obb, 8) or inNoLot(ccx, ccz) then
+								continue
+							end
+							local center = Vector3.new(ccx, py, ccz)
+							table.insert(cands, {
+								obb = obb,
+								cf = CFrame.lookAt(center, center + Vector3.new(-nx, 0, -nz)),
+								edge = ei,
+								dist = dist,
+								w = w,
+								d = d,
+							})
+						end
+					end
+					s += 10
+				end
+			end
+			-- tallest first, each at the free candidate closest to its target ring (tallest nearest the centre)
+			local n = #cl.heights
+			for i, h in cl.heights do
+				local target = cl.radius * 0.85 * math.sqrt((i - 0.5) / n)
+				local best: Cand? = nil
+				local bestScore = math.huge
+				local slim = h < 360 -- the 220-350 group packs on 160 x 160-165 sites; taller towers take the big ones
+				for _, c in cands do
+					if (slim and c.w > 160) or (not slim and c.dist > cl.radius) then
+						continue
+					end
+					local score = math.abs(c.dist - target) - (if slim then 0 else (c.w + c.d) * 0.15)
+					if score < bestScore and not overlapsAny(c.obb, 8) then
+						bestScore = score
+						best = c
+					end
+				end
+				if not best then
+					table.insert(PlacementErrors, ("tower %s #%d (%d): no site"):format(cl.id, i, h))
+					continue
+				end
+				local c = best :: Cand
+				insertObb(c.obb)
+				table.insert(reserved, { obb = c.obb, what = "tower " .. cl.id .. i })
+				seqT += 1
+				local did = districtAt(c.obb.cx, c.obb.cz)
+				local sz = subzoneAt(c.obb.cx, c.obb.cz)
+				local use = cl.uses[(i - 1) % #cl.uses + 1]
+				local rank = #TowerPlan + 1
+				local crown = if rank <= 12
+					then CROWNS[(rank - 1) % #CROWNS + 1]
+					else (if WorldGen.hash(i, seqT, 403) < 0.5 then "machinery" else "flat")
+				local podiumH = 40 + math.floor(30 * WorldGen.hash(i, seqT, 404))
+				local setback = 10 + math.floor(10 * WorldGen.hash(i, seqT, 405))
+				local style = if sz and sz.style then sz.style else districtById[did].style
+				table.insert(Parcels, {
+					id = #Parcels + 1,
+					district = did,
+					subzone = sz and sz.id or nil,
+					use = use,
+					cframe = c.cf,
+					size = Vector3.new(c.w, h, c.d),
+					floors = math.floor(h / S.STOREY),
+					edge = c.edge,
+					style = style,
+					seed = math.floor(WorldGen.hash(seqT, 7, 406) * 2 ^ 31),
+					tower = true,
+					podium = { podiumH, setback },
+					crown = crown,
+				})
+				table.insert(TowerPlan, {
+					id = cl.id .. "_" .. i,
+					cluster = cl.id,
+					height = h,
+					pos = c.cf.Position,
+					crown = crown,
+					parcel = #Parcels,
+				})
+			end
+		end
+	end
+	WorldLayout.TowerPlan = TowerPlan
+
+	local LOT_CLASSES: { [string]: number } = { boulevard = 1, avenue = 2, street = 3, rural = 4 }
+	local FILL: { [string]: boolean } = { downtown = true, midtown = true, beach = true, foundry = true }
+	local LOT_GAP: { [string]: number } = {
+		downtown = 2,
+		midtown = 3,
+		beach = 4,
+		foundry = 3,
+		southgate = 8,
+		rust = 18,
+		hills = 22,
+		port = 20,
+		airport = 30,
+		cactus = 10,
+		driftwood = 10,
+		mesa = 160,
+	}
+	local FLAT_DISTRICT: { [string]: boolean } = {
+		downtown = true,
+		midtown = true,
+		beach = true,
+		foundry = true,
+		rust = true,
+		southgate = true,
+		port = true,
+		airport = true,
+	}
+
+	-- Distance from a lot's front face along the inward normal to the next road footprint behind it (capped).
+	local function backDistance(fx: number, fz: number, nx: number, nz: number, cap: number): number
+		local d = 12
+		while d < cap do
+			if roadClearance(fx + nx * d, fz + nz * d, 1) then
+				local lo = d - 12
+				while d - lo > 3 do
+					local mid = (lo + d) / 2
+					if roadClearance(fx + nx * mid, fz + nz * mid, 1) then
+						d = mid
+					else
+						lo = mid
+					end
+				end
+				return d
+			end
+			d += 12
+		end
+		return cap
+	end
+
+	-- Style of a lot: its sub-zone's (or district's), dithered with the neighbour's within 200 studs of a border so
+	-- styles blend over ~400-stud bands instead of switching at a line (gta critique 8).
+	local function zoneKey(x: number, z: number): (string, any)
+		local sz = subzoneAt(x, z)
+		local did = districtAt(x, z)
+		return did .. "/" .. (if sz then sz.id else ""), sz
+	end
+	local function styleRules(x: number, z: number, seq: number): (any, any, boolean)
+		local key, sz = zoneKey(x, z)
+		local did = districtAt(x, z)
+		for _, r in { 100, 200 } do
+			for _, o in { { r, 0 }, { -r, 0 }, { 0, r }, { 0, -r } } do
+				local nk, nsz = zoneKey(x + o[1], z + o[2])
+				if nk ~= key then
+					local p = if r == 100 then 0.4 else 0.2
+					if WorldGen.hash(seq, math.floor(x), 410) < p then
+						return districtById[districtAt(x + o[1], z + o[2])], nsz, true
+					end
+					return districtById[did], sz, false
+				end
+			end
+		end
+		return districtById[did], sz, false
+	end
+
+	local function parcelHeight(rangeH: { number }, peak: any, use: string, x: number, z: number, r: number): number
+		if OPEN_USES[use] then
+			return 0
+		end
+		local lowH = LOW_USES[use]
+		if lowH then
+			return math.floor(lowH * (0.85 + 0.4 * r))
+		end
+		local h0, h1 = rangeH[1], rangeH[2]
+		local f = r
+		if peak then
+			local d = WorldGen.dist(x, z, peak[1], peak[2])
+			local near = 1 - math.clamp(d / peak[3], 0, 1)
+			f = math.clamp(near * near * (0.55 + 0.45 * r) + 0.12 * r, 0, 1)
+		end
+		if use == "hotel" or use == "beach_hotel" then
+			f = math.max(f, 0.35)
+		end
+		return math.floor(h0 + (h1 - h0) * f)
+	end
+
+	local LotsUnderDecks = 0
+	do
+		local seq = #Parcels
+		local order: { number } = {}
+		for ei, e in Edges do
+			if LOT_CLASSES[e.class] and e.layer == 0 and not e.bridge and not e.elevated then
+				table.insert(order, ei)
+			end
+		end
+		table.sort(order, function(a: number, b: number): boolean
+			local ra, rb = LOT_CLASSES[Edges[a].class], LOT_CLASSES[Edges[b].class]
+			if ra ~= rb then
+				return ra < rb
+			end
+			return a < b
+		end)
+
+		local function tryPlace(
+			ei: number,
+			did: string,
+			cs: number,
+			side: number,
+			width: number,
+			depth: number,
+			setback: number,
+			useRule: { { any } },
+			heightRange: { number },
+			peak: any,
+			style: string,
+			szId: string?
+		): boolean
+			local e = Edges[ei]
+			local px, py, pz, tx, tz = edgeAt(ei, cs)
+			local rx, rz = WorldGen.right(tx, tz)
+			local nx, nz = rx * side, rz * side
+			local front = e.width / 2 + e.sidewalk + setback
+			local cx, cz = px + nx * (front + depth / 2), pz + nz * (front + depth / 2)
+			local obb: OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2, hd = depth / 2 }
+			if overlapsAny(obb, 1) or districtAt(cx, cz) ~= did then
+				return false
+			end
+			local inset: OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2 - 1.5, hd = depth / 2 - 1.5 }
+			if roadHit(inset, 0.5) then
+				return false
+			end
+			for _, c in WorldGen.obbCorners(obb) do
+				if not landAtLeast(c.x, c.z, 30) or inNoLot(c.x, c.z) then
+					return false
+				end
+			end
+			if inNoLot(cx, cz) then
+				return false
+			end
+			local stilts = false
+			if not FLAT_DISTRICT[did] then
+				local rel, lo = relief(obb)
+				if rel > 46 then
+					return false
+				end
+				-- hills: ground falling away behind the frontage -> stilts / cantilever
+				if did == "hills" and rel > 14 then
+					local back = gradeAt(cx + nx * depth / 2, cz + nz * depth / 2)
+					stilts = back < py - 8
+				end
+				local _ = lo
+			end
+			seq += 1
+			local use = useWeights(useRule, WorldGen.hash(seq, ei, 77))
+			-- gta critique 10: nothing but open lots under a deck (+8 margin); buildings would pierce it and the
+			-- deck needs pier sites
+			if deckOver(obb, 8) then
+				if not OPEN_USES[use] then
+					LotsUnderDecks += 1
+					use = "parking_lot"
+				end
+			end
+			local height = parcelHeight(heightRange, peak, use, cx, cz, WorldGen.hash(seq, 5, 78))
+			local center = Vector3.new(cx, py, cz)
+			insertObb(obb)
+			table.insert(Parcels, {
+				id = #Parcels + 1,
+				district = did,
+				subzone = szId,
+				use = use,
+				cframe = CFrame.lookAt(center, center + Vector3.new(-nx, 0, -nz)),
+				size = Vector3.new(width, height, depth),
+				floors = if height > 0 then math.max(1, math.floor(height / S.STOREY)) else 0,
+				edge = ei,
+				style = style,
+				seed = math.floor(WorldGen.hash(seq, 3, 79) * 2 ^ 31),
+				stilts = if stilts then true else nil,
+			})
+			return true
+		end
+
+		for _, ei in order do
+			local e = Edges[ei]
+			for sideIdx, side in { 1, -1 } do
+				local s0 = endClear(ei, e.a) + 2
+				local s1 = e.length - endClear(ei, e.b) - 2
+				local F = s1 - s0
+				if F < 40 then
+					continue
+				end
+				local mx, _, mz, mtx, mtz = edgeAt(ei, (s0 + s1) / 2)
+				local mrx, mrz = WorldGen.right(mtx, mtz)
+				local probe = e.width / 2 + e.sidewalk + 40
+				local qx, qz = mx + mrx * side * probe, mz + mrz * side * probe
+				local did = districtAt(qx, qz)
+				local dist, sz, blended = styleRules(qx, qz, ei * 2 + sideIdx)
+				local rule = dist.lot
+				if e.class == "rural" and not (did == "hills" or did == "mesa" or did == "cactus") then
+					continue
+				end
+				local width = (sz and sz.width) or rule.width
+				local setbackR = (sz and sz.setback) or rule.setback
+				local uses = (sz and sz.uses) or rule.uses
+				local heightR = (sz and sz.height) or dist.height
+				local style = (sz and sz.style) or dist.style
+				local szId = if sz then sz.id else nil
+				local _ = blended
+				local gap = LOT_GAP[did] or 6
+				local avg = (width[1] + width[2]) / 2
+				local n = math.max(1, math.floor((F + gap) / (avg + gap) + 0.5))
+				local weights: { number } = {}
+				local wsum = 0
+				for k = 1, n do
+					local r = 0.75 + 0.5 * WorldGen.hash(ei * 2 + sideIdx, k, 9001)
+					weights[k] = r
+					wsum += r
+				end
+				local usable = F - gap * (n - 1)
+				if usable / n < width[1] * 0.55 then
+					continue
+				end
+				local s = s0
+				for k = 1, n do
+					local wdt = usable * weights[k] / wsum
+					local cs = s + wdt / 2
+					s += wdt + gap
+					local h2 = WorldGen.hash(ei, k, 9002 + sideIdx)
+					if h2 > rule.density then
+						continue
+					end
+					local h3 = WorldGen.hash(ei, k, 9003 + sideIdx)
+					local setback = setbackR[1] + (setbackR[2] - setbackR[1]) * h3
+					local px, _, pz, tx, tz = edgeAt(ei, cs)
+					local rx, rz = WorldGen.right(tx, tz)
+					local nx, nz = rx * side, rz * side
+					local front = e.width / 2 + e.sidewalk + setback
+					local back = backDistance(px + nx * front, pz + nz * front, nx, nz, rule.depth[2] * 2 + 60)
+					local base = rule.depth[1] + (rule.depth[2] - rule.depth[1]) * h2
+					local depth
+					if FILL[did] then
+						depth = math.clamp(back / 2 - 3, rule.depth[1] * 0.55, rule.depth[2] * 1.5)
+					else
+						depth = math.min(base, back / 2 - 3)
+					end
+					if depth < rule.depth[1] * 0.45 then
+						continue
+					end
+					local function tp(c: number, w: number, d: number): boolean
+						return tryPlace(ei, did, c, side, w, d, setback, uses, heightR, dist.peak, style, szId)
+					end
+					local placed = tp(cs, wdt, depth) or tp(cs, wdt, depth * 0.7) or tp(cs, wdt, depth * 0.5)
+					if not placed and wdt > width[1] * 1.1 then
+						local half = wdt * 0.55
+						placed = tp(cs + (wdt - half) / 2, half, depth)
+							or tp(cs - (wdt - half) / 2, half, depth)
+							or tp(cs + (wdt - half) / 2, half, depth * 0.6)
+							or tp(cs - (wdt - half) / 2, half, depth * 0.6)
+					end
+				end
+			end
+		end
+	end
+	WorldLayout.LotsUnderDecks = LotsUnderDecks
+
+	-- Port container yards + warehouses (two rows inside the terminal), airport hangars along Hangar Road and the
+	-- terminal parking structures inside the Terminal Drive loop (gta critique 11).
+	do
+		local seq = #Parcels
+		local function add(did: string, use: string, x: number, z: number, w: number, d: number, h: number, yaw: number)
+			local center = Vector3.new(x, gradeAt(x, z), z)
+			local cf = CFrame.new(center) * CFrame.Angles(0, math.rad(yaw), 0)
+			local ux, uz = cf.RightVector.X, cf.RightVector.Z
+			local obb: OBB = { cx = x, cz = z, ux = ux, uz = uz, hw = w / 2, hd = d / 2 }
+			for _, c in WorldGen.obbCorners(obb) do
+				if not landAtLeast(c.x, c.z, 30) then
+					return
+				end
+			end
+			if roadHit(obb, 2) or overlapsAny(obb, 3) then
+				return
+			end
+			if deckOver(obb, 8) and not OPEN_USES[use] then
+				return
+			end
+			insertObb(obb)
+			seq += 1
+			table.insert(Parcels, {
+				id = #Parcels + 1,
+				district = did,
+				use = use,
+				cframe = cf,
+				size = Vector3.new(w, h, d),
+				floors = if h > 0 then math.max(1, math.floor(h / S.STOREY)) else 0,
+				edge = 0,
+				style = districtById[did].style,
+				seed = math.floor(WorldGen.hash(seq, 4, 80) * 2 ^ 31),
+			})
+		end
+		for _, row in { 3760, 4200 } do
+			local x = -1450
+			while x < 2550 do
+				local r = WorldGen.hash(x, row, 81)
+				local w = 220 + 100 * r
+				local use = if r < 0.62 then "container_yard" elseif r < 0.88 then "warehouse" else "shed"
+				add("port", use, x + w / 2, row, w - 24, 240, if use == "container_yard" then 0 else 44, 0)
+				x += w
+			end
+		end
+		local hx = -3560
+		while hx < -2350 do
+			add("airport", "hangar", hx, 3010, 150, 130, 52, 0)
+			hx += 175
+		end
+		add("airport", "parking_garage", -4330, 2390, 300, 170, 48, 0)
+		add("airport", "parking_garage", -3890, 2390, 300, 170, 48, 0)
+	end
+
+	WorldLayout.Parcels = Parcels
+
+	---------------------------------------------------------------------------------------------------------------------
+	-- 14. Landmarks, prop clusters, vistas, zones, Hot Drops, ballistic stunt jumps, helipads, safe / restricted zones
+	---------------------------------------------------------------------------------------------------------------------
+
+	type Landmark = {
+		id: string,
+		name: string,
+		kind: string,
+		cframe: CFrame,
+		size: Vector3,
+		district: string,
+		note: string?,
+	}
+	local function lm(
+		id: string,
+		name: string,
+		kind: string,
+		x: number,
+		z: number,
+		yaw: number,
+		size: { number },
+		note: string?,
+		y: number?
+	): Landmark
+		local gy = y or gradeAt(x, z)
+		local cf = CFrame.new(Vector3.new(x, gy, z)) * CFrame.Angles(0, math.rad(yaw), 0)
+		return {
+			id = id,
+			name = name,
+			kind = kind,
+			cframe = cf,
+			size = Vector3.new(size[1], size[2], size[3]),
+			district = districtAt(x, z),
+			note = note,
+		}
+	end
+
+	-- First edge with this name (and an optional predicate).
+	local function edgeNamed(name: string, pred: ((any) -> boolean)?): number?
+		for i, e in Edges do
+			if e.name == name and (pred == nil or pred(e)) then
+				return i
+			end
+		end
+		return nil
+	end
+	local function midOf(ei: number): (number, number, number, number, number)
+		return edgeAt(ei, Edges[ei].length / 2)
+	end
+	local function bridgeLandmark(
+		id: string,
+		name: string,
+		kind: string,
+		road: string,
+		size: { number },
+		note: string
+	): Landmark?
+		local ei = edgeNamed(road, function(e: any): boolean
+			return e.bridge
+		end)
+		if not ei then
+			table.insert(PlacementErrors, "landmark " .. id .. ": no bridge edge on " .. road)
+			return nil
+		end
+		local x, y, z, tx, tz = midOf(ei)
+		local yaw = math.deg(math.atan2(-tx, -tz))
+		return lm(id, name, kind, x, z, yaw, { size[1], size[2], Edges[ei].length }, note, y)
+	end
+
+	-- SUNWOOD sign: on the summit ridge on Liberty Avenue's axis above the observatory, base >= 450, facing the city
+	-- (LookVector ~ (0.09, 0, 0.996): gta critique 3). The 9 sample points across the letters feed the vista test.
+	local SIGN_W, SIGN_H = 720, 110
+	local signCf: CFrame
+	do
+		local sx = -150
+		local best: number? = nil
+		local z = -3440
+		while z >= -3620 do
+			local lo = math.huge
+			for k = -4, 4 do
+				lo = math.min(lo, gradeAt(sx + k * SIGN_W / 8 * 0.996, z - k * SIGN_W / 8 * 0.09))
+			end
+			if lo >= 452 then
+				best = z
+				break
+			end
+			z -= 10
+		end
+		local bz = best or -3560
+		local base = gradeAt(sx, bz)
+		local pos = Vector3.new(sx, base, bz)
+		signCf = CFrame.lookAt(pos, pos + Vector3.new(0.09, 0, 0.996))
+	end
+	local signSamples: { Vector3 } = {}
+	for k = -4, 4 do
+		local off = signCf.RightVector * (k * SIGN_W / 8 * 0.94)
+		local p = signCf.Position + off
+		table.insert(signSamples, Vector3.new(p.X, gradeAt(p.X, p.Z) + SIGN_H * 0.55, p.Z))
+	end
+
+	local Landmarks: { Landmark } = {
+		{
+			id = "SunwoodSign",
+			name = "SUNWOOD sign",
+			kind = "hill_sign",
+			cframe = signCf,
+			size = Vector3.new(SIGN_W, SIGN_H, 20),
+			district = "hills",
+			note = "giant white letters on the summit ridge, each on its own footing; lit at night; faces the city",
+		},
+		lm("Lighthouse", "Northpoint Lighthouse", "lighthouse", 1540, -4600, 0, { 40, 120, 40 }),
+		lm(
+			"WindFarm",
+			"Red Mesa Wind Farm",
+			"wind_farm",
+			5300,
+			-2900,
+			0,
+			{ 700, 160, 500 },
+			"12 turbines on Mount Talon's east shoulder (see PropClusters)"
+		),
+		lm("Reservoir", "Mesa Reservoir Dam", "dam", 2950, -2440, 0, { 520, 70, 50 }),
+		lm("Speedway", "Dustbowl Speedway", "race_track", 4420, 2820, 0, { 900, 30, 600 }, "dirt oval with grandstand"),
+		lm("Quarry", "Talon Quarry", "quarry", 4930, -2700, 20, { 420, 60, 320 }, "benched pit on the peak's flank"),
+		lm("MountTalon", "Mount Talon", "peak", 4300, -3030, 0, { 2600, 960, 2600 }, "summit lookout at the trail end"),
+		lm("OilField", "Derrick Flats Oil Field", "oil_field", 3650, -1550, 0, { 500, 30, 700 }, "20 pumpjacks"),
+		lm("TrailerPark", "Sundown Trailer Park", "trailer_park", 3700, -900, 0, { 260, 14, 200 }),
+		lm("Substation", "Red Mesa Substation", "substation", 3560, 220, 0, { 160, 30, 120 }, "pylons run north"),
+		lm("Prison", "Red Mesa State Prison", "prison", 4650, 1400, 0, { 900, 40, 700 }, "walled; 6 guard towers"),
+		lm(
+			"RailYard",
+			"Rust Flats Rail Yard",
+			"rail_yard",
+			3015,
+			1350,
+			0,
+			{ 1370, 10, 340 },
+			"8 tracks, boxcars, a gantry"
+		),
+		lm(
+			"Cranes",
+			"Iron Bay Gantry Cranes",
+			"cranes",
+			700,
+			4480,
+			0,
+			{ 2600, 220, 80 },
+			"8 ship-to-shore cranes along the south quay"
+		),
+		lm(
+			"CargoShip",
+			"MV Rust Bucket",
+			"ship",
+			600,
+			4680,
+			90,
+			{ 70, 90, 900 },
+			"container ship docked at the south quay",
+			0
+		),
+		lm("ControlTower", "HCI Control Tower", "tower", -3750, 2990, 0, { 40, 160, 40 }),
+		lm("Runway09R", "Runway 09R/27L", "runway", -4065, 3330, 0, { 2570, 1, 150 }),
+		lm("Runway09L", "Runway 09L/27R", "runway", -4170, 3790, 0, { 2960, 1, 150 }, "reclaimed land"),
+		lm("Marina", "Palmera Marina", "marina", -5100, 2250, 0, { 720, 4, 900 }, "4 jetties + breakwater"),
+		lm("Breakwater", "Marina Breakwater", "breakwater", -5450, 1720, 80, { 40, 8, 520 }, nil, 4),
+		lm("Driftwood", "Driftwood", "hamlet", 5780, -2200, 0, { 400, 20, 500 }, "beach shacks below the Coast Hwy"),
+		lm("LibertySquare", "Liberty Square", "park", 80, 427, 0, { 351, 2, 350 }, "City Hall's park square"),
+		lm(
+			"EchoPark",
+			"Echo Park",
+			"park",
+			-1750,
+			1870,
+			0,
+			{ 600, 30, 380 },
+			"lake, ballfield and palms (Southgate Little League)"
+		),
+		lm("ObservatoryDome", "Starview Dome", "observatory", -520, -3150, 0, { 90, 60, 90 }),
+		lm("CoveBeach", "Hidden Cove", "beach", -2900, -4120, 0, { 500, 2, 120 }, "secret beach under the cliffs"),
+		lm(
+			"GolfCourse",
+			"Sunwood Country Club course",
+			"golf",
+			-4035,
+			-2510,
+			0,
+			{ 770, 2, 540 },
+			"9 holes, clubhouse on Sunwood Blvd"
+		),
+		lm("Mesas", "Red Mesa Buttes", "mesa", 4620, -1700, 40, { 860, 120, 260 }),
+		lm("Cuesta", "Red Mesa Escarpment", "escarpment", 5200, -575, 0, { 200, 70, 3450 }),
+	}
+	for _, b in {
+		{ "CrownViaduct", "Crown Street Viaduct", "bridge_arch", "Crown Boulevard", { 110, 30 }, "lit concrete arches" },
+		{ "MissionTruss", "Mission Truss Bridge", "bridge_truss", "Mission Avenue", { 90, 40 }, "steel truss" },
+		{ "CanyonBridge", "Canyon Bridge", "bridge_arch", "Skyline Drive", { 90, 40 }, "arch over Sunwood Canyon" },
+		{ "HarborBridge", "Harbor Lift Bridge", "bridge_lift", "Harbor Avenue", { 90, 30 }, "raised 25 s / 4 min" },
+		{ "IronBayBridge", "Iron Bay Bridge", "bridge_cable", "H2 Port Expressway (southbound)", { 120, 160 }, "pylons" },
+	} do
+		local l = bridgeLandmark(b[1], b[2], b[3], b[4], b[5], b[6])
+		if l then
+			table.insert(Landmarks, l)
+		end
+	end
+	WorldLayout.Landmarks = Landmarks
+
+	-- Prop clusters the builders scatter (one MeshPart / model kind each).
+	local PropClusters: { { kind: string, name: string, points: { Vector3 } } } = {}
+	local function cluster(kind: string, name: string, list: { { number } })
+		local pts: { Vector3 } = {}
+		for _, p in list do
+			table.insert(pts, Vector3.new(p[1], gradeAt(p[1], p[2]), p[2]))
+		end
+		table.insert(PropClusters, { kind = kind, name = name, points = pts })
+	end
+	do
+		local pump: { { number } } = {}
+		for i = 0, 19 do
+			local x = 3470 + (i % 4) * 110 + (WorldGen.hash(i, 1, 420) - 0.5) * 40
+			local z = -1850 + (i // 4) * 130 + (WorldGen.hash(i, 2, 420) - 0.5) * 40
+			if not roadClearance(x, z, 10) then
+				table.insert(pump, { x, z })
+			end
+		end
+		cluster("pumpjack", "Derrick Flats Oil Field", pump)
+		local turb: { { number } } = {}
+		for i = 0, 11 do
+			table.insert(turb, { 5050 + (i % 4) * 170, -3150 + (i // 4) * 170 })
+		end
+		cluster("wind_turbine", "Red Mesa Wind Farm", turb)
+		local pyl: { { number } } = {}
+		local line = WorldGen.densify(poly({ { 3560, 220 }, { 3900, -900 }, { 4300, -1900 }, { 5100, -2800 } }), 300)
+		for _, p in line do
+			table.insert(pyl, { p.x, p.z })
+		end
+		cluster("pylon", "Substation line", pyl)
+		cluster("guard_tower", "Red Mesa State Prison", {
+			{ 4210, 1060 },
+			{ 4650, 1060 },
+			{ 5090, 1060 },
+			{ 4210, 1740 },
+			{ 4650, 1740 },
+			{ 5090, 1740 },
+		})
+		local jetties: { { number } } = {}
+		for _, z in { 1960, 2160, 2360, 2560 } do
+			table.insert(jetties, { -4950, z })
+		end
+		cluster("jetty", "Palmera Marina (400-stud jetties, west from the east quay)", jetties)
+		local trailers: { { number } } = {}
+		for i = 0, 13 do
+			table.insert(trailers, { 3620 + (i % 7) * 34, -960 + (i // 7) * 60 })
+		end
+		cluster("trailer", "Sundown Trailer Park", trailers)
+	end
+	WorldLayout.PropClusters = PropClusters
+
+	-- Line-of-sight occluders: lots, POIs, plots (boxes) and the terrain.
+	type Box = { obb: OBB, base: number, top: number, what: string }
+	local boxes: { Box } = {}
+	local boxCells: { [number]: { number } } = {}
+	local BCELL = 160
+	local function addBox(b: OBB, base: number, top: number, what: string)
+		table.insert(boxes, { obb = b, base = base, top = top, what = what })
+		local x0, z0, x1, z1 = obbBounds(b)
+		WorldGen.hashBox(boxCells, BCELL, x0, z0, x1, z1, #boxes)
+	end
+	local function cfObb(cf: CFrame, size: Vector3): OBB
+		return {
+			cx = cf.Position.X,
+			cz = cf.Position.Z,
+			ux = cf.RightVector.X,
+			uz = cf.RightVector.Z,
+			hw = size.X / 2,
+			hd = size.Z / 2,
+		}
+	end
+	for _, p in Parcels do
+		if p.size.Y > 0 then
+			addBox(cfObb(p.cframe, p.size), p.cframe.Position.Y, p.cframe.Position.Y + p.size.Y, "lot " .. p.use)
+		end
+	end
+	for _, p in POIs do
+		if p.size.Y > 0 then
+			addBox(cfObb(p.cframe, p.size), p.cframe.Position.Y, p.cframe.Position.Y + p.size.Y, p.id)
+		end
+	end
+	for _, p in Plots do
+		addBox(cfObb(p.cframe, p.size), p.cframe.Position.Y, p.cframe.Position.Y + p.size.Y, p.name)
+	end
+	local function boxAt(x: number, y: number, z: number, margin: number): string?
+		local list = boxCells[WorldGen.cellKey(math.floor(x / BCELL), math.floor(z / BCELL))]
+		if not list then
+			return nil
+		end
+		for _, id in list do
+			local b = boxes[id]
+			if y >= b.base - 1 and y <= b.top + margin and WorldGen.obbContains(b.obb, x, z, margin) then
+				return b.what
+			end
+		end
+		return nil
+	end
+	local function deckAt(x: number, y: number, z: number): string?
+		local hit: string? = nil
+		WorldGen.segQuery(elevSegs, x, z, 0, function(id: number)
+			if hit then
+				return
+			end
+			local ei = elevSegs.owner[id]
+			local e = Edges[ei]
+			local t, _, _, d =
+				WorldGen.projectSeg(x, z, elevSegs.ax[id], elevSegs.az[id], elevSegs.bx[id], elevSegs.bz[id])
+			if d <= e.width / 2 + 2 then
+				local k = elevSegs.segNo[id]
+				local pts = edgePts[ei].pts
+				local dy = pts[k].y + (pts[k + 1].y - pts[k].y) * t
+				if y > dy - 6 and y < dy + 4 then
+					hit = "deck " .. e.name
+				end
+			end
+		end)
+		return hit
+	end
+	local function visible(a: Vector3, b: Vector3): boolean
+		local d = (b - a).Magnitude
+		local n = math.ceil(d / 20)
+		for i = 1, n - 1 do
+			local p = a:Lerp(b, i / n)
+			if heightAt(p.X, p.Z) > p.Y or boxAt(p.X, p.Y, p.Z, 0) then
+				return false
+			end
+		end
+		return true
+	end
+	WorldLayout._visible = visible
+
+	-- Named vista points (eye height 6 above the road / deck). The sign must show >= 5 of its 9 samples from each.
+	local Vistas: { { name: string, pos: Vector3 } } = {}
+	local function vista(name: string, x: number, z: number, y: number?)
+		table.insert(Vistas, { name = name, pos = Vector3.new(x, (y or gradeAt(x, z)) + 6, z) })
+	end
+	do
+		local pierEdge = edgeNamed("Palmera Pier")
+		if pierEdge then
+			local e = Edges[pierEdge]
+			local far = if e.points[1].X < e.points[#e.points].X then e.points[1] else e.points[#e.points]
+			vista("Palmera Pier end", far.X, far.Z, far.Y)
+		end
+		vista("H1 west deck", -3650, -900, DECK_Y)
+		vista("H1 north-west deck", -2500, ctx.ringCenter[1].z - 3315 + 1515, DECK_Y)
+		vista("H1 south deck", -150, 1385, DECK_Y)
+		vista("Echo Park", -1750, 1870)
+		vista("Liberty at Crown", -150, -250)
+	end
+	-- the north-west deck vista sits on the ring centerline near (-2500, -1800)
+	do
+		local _, _, px, pz = WorldGen.polyProject(ctx.ringCenter, -2500, -1800)
+		Vistas[3].pos = Vector3.new(px, DECK_Y + 6, pz)
+		local _, _, sx, sz = WorldGen.polyProject(ctx.ringCenter, -150, 1385)
+		Vistas[4].pos = Vector3.new(sx, DECK_Y + 6, sz)
+	end
+	local SignVisibility: { [string]: number } = {}
+	for _, v in Vistas do
+		local n = 0
+		for _, sp in signSamples do
+			if visible(v.pos, sp) then
+				n += 1
+			end
+		end
+		SignVisibility[v.name] = n
+	end
+	WorldLayout.Vistas = Vistas
+	WorldLayout.SignSamples = signSamples
+	WorldLayout.SignVisibility = SignVisibility
+
+	type Zone = {
+		id: string,
+		name: string,
+		cframe: CFrame,
+		size: Vector3,
+		district: string,
+		note: string?,
+		pool: string?,
+		heat: number?,
+		exempt: { string }?,
+		respawns: { CFrame }?,
+	}
+	local function zone(id: string, name: string, x: number, z: number, size: { number }, note: string?, y: number?): Zone
+		local gy = y or gradeAt(x, z)
+		return {
+			id = id,
+			name = name,
+			cframe = CFrame.new(x, gy + size[2] / 2, z),
+			size = Vector3.new(size[1], size[2], size[3]),
+			district = districtAt(x, z),
+			note = note,
+		}
+	end
+
+	-- Restricted zones: entering raises the wanted level (GTA airport / port rule). Activities inside carry an explicit
+	-- flag (exempt list here, or `heat` on the drop / jump) so stars never stack by accident (gameplay critique 14).
+	local RestrictedZones: { Zone } = {
+		zone("rz_airside", "HCI Airside", -4170, 3560, { 3300, 300, 760 }, "1 star on entry, 3 if you stay 10 s"),
+		zone("rz_port", "Iron Bay Container Terminal", 500, 3960, { 4200, 300, 840 }, "1 star on entry after the gate"),
+		zone("rz_prison", "Red Mesa State Prison", 4650, 1400, { 900, 300, 700 }, "3 stars inside the walls"),
+	}
+	RestrictedZones[1].exempt = { "race_airport" }
+	WorldLayout.RestrictedZones = RestrictedZones
+	local function inRestricted(p: Vector3): Zone?
+		for _, rz in RestrictedZones do
+			local lp = rz.cframe:PointToObjectSpace(p)
+			if math.abs(lp.X) <= rz.size.X / 2 and math.abs(lp.Z) <= rz.size.Z / 2 then
+				return rz
+			end
+		end
+		return nil
+	end
+
+	-- Hot Drop zones. Normal pool: inside the Active Core, each within 60 s at 100 studs/s of >= 5 garages (checked by
+	-- the tests on the road graph). Long Haul pool: the far-flung ones, with a 60 s warning and a rarer roll
+	-- (gameplay critiques 5, 6). Respawns (filled in section 16) put players WASTED at a drop back 600-900 away.
+	local HotDrops: { Zone } = {}
+	local function drop(id: string, name: string, x: number, z: number, size: { number }, pool: string, heat: number?)
+		local zz = zone(id, name, x, z, size)
+		zz.pool = pool
+		zz.heat = heat
+		table.insert(HotDrops, zz)
+	end
+	drop("hd_plaza", "Hotwire Plaza", 526, -410, { 160, 40, 160 }, "normal")
+	drop("hd_liberty", "Liberty Square", 80, 427, { 180, 40, 180 }, "normal")
+	drop("hd_gilded", "Gilded Mile lot", -2250, -520, { 140, 40, 140 }, "normal")
+	drop("hd_echo", "Echo Park", -1750, 1870, { 180, 40, 160 }, "normal")
+	drop("hd_arena", "Iron Bay Arena lot", 1240, 2300, { 200, 40, 160 }, "normal")
+	drop("hd_underring", "Under the Ring", 760, 1460, { 200, 40, 120 }, "normal")
+	drop("hd_foundry", "Brewery lot", 2800, -400, { 140, 40, 140 }, "normal")
+	drop("hd_railyard", "Rail Yard", 2900, 1350, { 200, 40, 160 }, "normal")
+	drop("hd_pier", "Palmera Pier lot", -4620, -950, { 140, 40, 140 }, "normal")
+	drop("hd_strip", "Sunwood Strip", -1650, -2150, { 160, 40, 140 }, "normal")
+	drop("hd_port", "Container Yard", 1200, 4000, { 200, 40, 200 }, "longhaul", 1)
+	drop("hd_airport", "Hangar Apron", -2900, 3150, { 220, 40, 180 }, "longhaul")
+	drop("hd_observatory", "Observatory lot", -520, -2980, { 140, 40, 140 }, "longhaul")
+	drop("hd_cactus", "Cactus Junction", 4330, -560, { 160, 40, 160 }, "longhaul")
+	drop("hd_speedway", "Speedway infield", 4420, 2820, { 240, 40, 160 }, "longhaul")
+	drop("hd_cove", "Hidden Cove lookout", -2700, -3800, { 140, 40, 140 }, "longhaul")
+	WorldLayout.HotDrops = HotDrops
+	WorldLayout.HotDropRules = {
+		normalWarning = 20, -- seconds; the event service uses max(20, 0.8 x median active-player ETA)
+		longHaulWarning = 60,
+		longHaulWeight = 0.25, -- relative roll weight vs a normal drop
+		minPlayersWithin = 3, -- pick the zone / run with the tightest ETA spread and >= 3 players within 45 s
+		withinSeconds = 45,
+		firstDropAt = 210, -- a first drop near the newest player at ~3:30 (gameplay critique 12)
+		respawnMin = 600,
+		respawnMax = 900,
+	}
+
+	-- Stunt jumps: lip CFrame (LookVector = jump direction), the landing computed from a ballistic arc at minSpeed with
+	-- Scale.GRAVITY (gameplay critiques 3, 4). Kinds: kicker (ramp on a road), drop (off a deck / roof / cliff edge),
+	-- splash (lands in the water; the car is returned automatically).
+	type Jump = {
+		id: string,
+		name: string,
+		kind: string,
+		cframe: CFrame,
+		size: Vector3,
+		angle: number, -- launch angle (degrees)
+		minSpeed: number,
+		landing: Vector3,
+		airtime: number,
+		apex: number,
+		runup: number, -- straight run-up behind the lip (road / deck / roof / ground)
+		heat: number?,
+		note: string?,
+	}
+	local G = S.GRAVITY
+	-- Flight from lip along (dx, dz): returns landing point, airtime, apex, what blocked it (nil = clean landing).
+	local function fly(lip: Vector3, dx: number, dz: number, angle: number, v: number): (Vector3, number, number, string?)
+		local a = math.rad(angle)
+		local vh, vy = v * math.cos(a), v * math.sin(a)
+		local dt = 1 / 120
+		local t = 0
+		local apex = lip.Y
+		while t < 8 do
+			t += dt
+			local x = lip.X + dx * vh * t
+			local z = lip.Z + dz * vh * t
+			local y = lip.Y + vy * t - 0.5 * G * t * t
+			apex = math.max(apex, y)
+			local ground = heightAt(x, z)
+			local water = not landAtLeast(x, z, 0)
+			if water then
+				ground = math.max(ground, 0)
+			end
+			if y <= ground then
+				return Vector3.new(x, ground, z), t, apex, nil
+			end
+			if t > 0.05 then
+				local what = boxAt(x, y, z, 1) or deckAt(x, y, z)
+				if what then
+					return Vector3.new(x, y, z), t, apex, what
+				end
+			end
+		end
+		return lip, 0, apex, "never lands"
+	end
+	WorldLayout._fly = fly
+	-- Straight run-up behind a point along a road chain (studs where the heading stays within 15 degrees).
+	local function runupOnRoads(x: number, z: number, dx: number, dz: number): number
+		local ei, _ = WorldGen.nearestEdge(edgeIndex, x, z, 25, function(i: number): boolean
+			return not Edges[i].elevated or Edges[i].class == "ramp"
+		end)
+		if not ei then
+			return 0
+		end
+		local chain = roadChain(ei)
+		local _, s0 = WorldGen.polyProject(chain.pts, x, z)
+		local _, _, tx, tz = WorldGen.polyAtCum(chain.pts, chain.cum, s0)
+		local sign = if tx * dx + tz * dz >= 0 then 1 else -1
+		local cos15 = math.cos(math.rad(15))
+		local run = 0
+		while run < 400 do
+			local s = s0 - sign * (run + 10)
+			if s < 0 or s > chain.cum[#chain.cum] then
+				break
+			end
+			local _, _, ux, uz = WorldGen.polyAtCum(chain.pts, chain.cum, s)
+			if (ux * dx + uz * dz) * sign < cos15 then
+				break
+			end
+			run += 10
+		end
+		return run
+	end
+	WorldLayout._runup = runupOnRoads
+	local StuntJumps: { Jump } = {}
+	local function jump(
+		id: string,
+		name: string,
+		kind: string,
+		lip: Vector3,
+		dx: number,
+		dz: number,
+		angle: number,
+		minSpeed: number,
+		size: { number },
+		runup: number?,
+		note: string?
+	): Jump?
+		local l = math.sqrt(dx * dx + dz * dz)
+		dx, dz = dx / l, dz / l
+		local landing, airtime, apex, blocked = fly(lip, dx, dz, angle, minSpeed)
+		if blocked then
+			table.insert(PlacementErrors, ("jump %s: %s"):format(id, blocked))
+		end
+		local j: Jump = {
+			id = id,
+			name = name,
+			kind = kind,
+			cframe = CFrame.lookAt(lip, lip + Vector3.new(dx, 0, dz)),
+			size = Vector3.new(size[1], size[2], size[3]),
+			angle = angle,
+			minSpeed = minSpeed,
+			landing = landing,
+			airtime = airtime,
+			apex = apex,
+			runup = runup or runupOnRoads(lip.X, lip.Z, dx, dz),
+			note = note,
+		}
+		if inRestricted(lip) or inRestricted(landing) then
+			j.heat = 1
+		end
+		table.insert(StuntJumps, j)
+		return j
+	end
+	-- a kicker on a road: lip = road point + ramp height, heading along the road's tangent (sign toward (hx, hz))
+	local function roadKicker(
+		id: string,
+		name: string,
+		road: string,
+		x: number,
+		z: number,
+		hx: number,
+		hz: number,
+		lift: number,
+		angle: number,
+		v: number,
+		size: { number }
+	)
+		local ei = WorldGen.nearestEdge(edgeIndex, x, z, 400, function(i: number): boolean
+			return Edges[i].name == road
+		end)
+		if not ei then
+			table.insert(PlacementErrors, "jump " .. id .. ": no road " .. road)
+			return
+		end
+		local _, s = WorldGen.polyProject(edgePts[ei].pts, x, z)
+		local px, py, pz, tx, tz = edgeAt(ei, s)
+		if tx * hx + tz * hz < 0 then
+			tx, tz = -tx, -tz
+		end
+		jump(id, name, "kicker", Vector3.new(px, py + lift, pz), tx, tz, angle, v, size)
+	end
+
+	-- Pier Plunge: off the end of the pier into the bay (splash: VehicleService returns the car).
+	do
+		local ei = edgeNamed("Palmera Pier")
+		if ei then
+			local e = Edges[ei]
+			local far, near = e.points[#e.points], e.points[#e.points - 1]
+			if e.points[1].X < far.X then
+				far, near = e.points[1], e.points[2]
+			end
+			local d = (far - near) * Vector3.new(1, 0, 1)
+			local j = jump("sj_pier", "Pier Plunge", "splash", far + Vector3.new(0, 4, 0), d.X, d.Z, 12, 90, { 16, 4, 24 })
+			if j then
+				j.runup = e.length
+			end
+		end
+	end
+	-- Channel Drop: off the east wall top of the Rust River at the end of an east-west street, onto the channel floor.
+	do
+		local CH = WorldTerrain.Channel
+		local _, s = WorldGen.polyProject(CH.points, 2045, -1636)
+		local cx, cz, tx, tz = WorldGen.polyAt(CH.points, s)
+		local rx, rz = WorldGen.right(tx, tz) -- channel runs north -> south; right = west
+		local half = WorldTerrain.channelFloorHalf(cz) + CH.wallRun
+		local lipX, lipZ = cx - rx * half, cz - rz * half -- east wall top
+		jump(
+			"sj_channel",
+			"Channel Drop",
+			"drop",
+			Vector3.new(lipX, GRADE + 3, lipZ),
+			rx,
+			rz,
+			8,
+			90,
+			{ 16, 3, 20 },
+			runupOnRoads(lipX + 60 * -rx, lipZ + 60 * -rz, rx, rz),
+			"run up Brass St, across Riverside Drive, off the wall onto the floor"
+		)
+	end
+	-- Boxcar Hop: north off the end of Boxcar Ave over the first boxcar line into the yard.
+	do
+		local best: Vector3?, dir: Vector3? = nil, nil
+		for _, e in Edges do
+			if e.name == "Boxcar Ave" then
+				for _, k in { 1, #e.points } do
+					local p = e.points[k]
+					if best == nil or p.Z < (best :: Vector3).Z then
+						local q = e.points[if k == 1 then 2 else #e.points - 1]
+						best, dir = p, (p - q) * Vector3.new(1, 0, 1)
+					end
+				end
+			end
+		end
+		if best and dir then
+			local d = (dir :: Vector3).Unit
+			jump("sj_railyard", "Boxcar Hop", "kicker", (best :: Vector3) + d * 6 + Vector3.new(0, 6, 0), d.X, d.Z, 16, 100, {
+				16,
+				6,
+				30,
+			})
+		end
+	end
+	-- Container Stack: a 28-high ramp of containers on Container Road, landing back on the road (restricted: heat 1).
+	roadKicker("sj_port", "Container Stack", "Container Road", 1700, 3995, 1, 0, 28, 10, 110, { 16, 28, 80 })
+	-- Skyline Drop: off the outside of a Sunwood Canyon Road hairpin, down the fall line onto the leg below.
+	do
+		local best: { any }? = nil
+		for ei, e in Edges do
+			if e.name ~= "Sunwood Canyon Road" then
+				continue
+			end
+			local pts = edgePts[ei].pts
+			local cum = edgeCum[ei]
+			local L = cum[#cum]
+			local s = 40
+			while s < L - 40 do
+				local _, _, ax, az = WorldGen.polyAtCum(pts, cum, s - 35)
+				local _, _, bx, bz = WorldGen.polyAtCum(pts, cum, s + 35)
+				if ax * bx + az * bz < -0.5 then
+					-- hairpin apex near s; try both travel directions
+					for _, sgn in { 1, -1 } do
+						local ix, iz = if sgn > 0 then ax else -bx, if sgn > 0 then az else -bz
+						local px, py, pz = edgeAt(ei, s)
+						local lip = Vector3.new(px + ix * 14, py + 4, pz + iz * 14)
+						if heightAt(lip.X + ix * 30, lip.Z + iz * 30) < py - 6 then
+							local landing, airtime, _, blocked = fly(lip, ix, iz, 10, 90)
+							local onRoad = roadClearance(landing.X, landing.Z, 0)
+							if not blocked and onRoad then
+								local score = airtime - math.abs(px + 1450) / 2000
+								if best == nil or score > (best :: { any })[1] then
+									best = { score, lip, ix, iz }
+								end
+							end
+						end
+					end
+				end
+				s += 10
+			end
+		end
+		if best then
+			local b = best :: { any }
+			jump(
+				"sj_hills",
+				"Skyline Drop",
+				"drop",
+				b[2],
+				b[3],
+				b[4],
+				10,
+				90,
+				{ 16, 4, 24 },
+				nil,
+				"outside of a hairpin, down the fall line onto the leg below"
+			)
+		else
+			table.insert(PlacementErrors, "jump sj_hills: no hairpin with a clean landing")
+		end
+	end
+	-- Unfinished Ramp: off the end of the dead-end flyover stub (layer 2) toward the Rust River.
+	do
+		local stubName = ctx.stubWay.name
+		for ei, e in Edges do
+			if e.name == stubName then
+				local endNode = if #Nodes[e.b].edges == 1 then e.b else e.a
+				local pts = edgePts[ei].pts
+				local p, q
+				if endNode == e.b then
+					p, q = pts[#pts], pts[#pts - 1]
+				else
+					p, q = pts[1], pts[2]
+				end
+				local dx, dz = p.x - q.x, p.z - q.z
+				local j = jump(
+					"sj_construction",
+					"Unfinished Ramp",
+					"drop",
+					Vector3.new(p.x, p.y + 1, p.z),
+					dx,
+					dz,
+					4,
+					110,
+					{ 16, 2, 20 },
+					e.length,
+					"dead-end flyover stub off the H1 east leg; lands in the channel"
+				)
+				local _ = j
+				break
+			end
+		end
+	end
+	-- Mesa Launch: off the butte rim at the top of Mesa Track.
+	do
+		local ei = edgeNamed("Mesa Track")
+		if ei then
+			local e = Edges[ei]
+			local endNode = if #Nodes[e.b].edges == 1 then e.b else e.a
+			local pts = edgePts[ei].pts
+			local p, q
+			if endNode == e.b then
+				p, q = pts[#pts], pts[#pts - 3]
+			else
+				p, q = pts[1], pts[4]
+			end
+			local dx, dz = p.x - q.x, p.z - q.z
+			local l = math.sqrt(dx * dx + dz * dz)
+			local lip = Vector3.new(p.x + dx / l * 20, heightAt(p.x + dx / l * 20, p.z + dz / l * 20) + 4, p.z + dz / l * 20)
+			jump("sj_mesa", "Mesa Launch", "drop", lip, dx, dz, 12, 100, { 16, 4, 24 }, nil, "off the caprock rim")
+		end
+	end
+	roadKicker("sj_dunes", "Dune Kicker", "Dustbowl Road", 4150, 1700, 0, -1, 6, 16, 100, { 16, 6, 30 })
+	-- Parking Deck: off the roof edge of Crown Street Parking onto Crown Boulevard.
+	do
+		local p = poiById.ParkingDeck
+		if p then
+			local look = p.cframe.LookVector
+			local lip = p.cframe.Position + look * (p.size.Z / 2) + Vector3.new(0, p.size.Y + 1, 0)
+			jump(
+				"sj_garage",
+				"Parking Deck",
+				"drop",
+				lip,
+				look.X,
+				look.Z,
+				6,
+				80,
+				{ 16, 2, 16 },
+				p.size.Z - 10,
+				"up the ramps, across the roof, over the parapet kicker onto Crown Boulevard"
+			)
+		end
+	end
+	-- Cove Cliff: north off the cliff edge onto the Hidden Cove sand.
+	do
+		local x, z = -2900, -3960
+		local lip = Vector3.new(x, heightAt(x, z) + 3, z)
+		local run = 0
+		while run < 300 and math.abs(heightAt(x, z + run + 10) - heightAt(x, z + run)) < 4 do
+			run += 10
+		end
+		jump("sj_cove", "Cove Cliff", "drop", lip, 0, -1, 8, 90, { 16, 3, 20 }, run, "off-road run-up from the H9 end")
+	end
+	-- Speedway Tabletop: a dirt tabletop on the oval's back straight.
+	jump(
+		"sj_speedway",
+		"Speedway Tabletop",
+		"kicker",
+		Vector3.new(4420, gradeAt(4420, 2700) + 8, 2700),
+		-1,
+		0,
+		14,
+		90,
+		{ 30, 8, 40 },
+		400,
+		"on the speedway's back straight (flat pad, 400 run-up)"
+	)
+	WorldLayout.StuntJumps = StuntJumps
+
+	-- Helipads: roof pads follow their buildings.
+	local Helipads: { Zone } = {
+		zone("heli_mercy", "Mount Mercy roof", 0, 0, { 40, 4, 40 }, "on HospitalCentral roof"),
+		zone("heli_hcpd", "HCPD HQ roof", 0, 0, { 40, 4, 40 }, "on PoliceHQ roof"),
+		zone("heli_pinnacle", "Pinnacle Tower roof", 0, 0, { 40, 4, 40 }, "on PinnacleTower roof"),
+		zone("heli_airport1", "HCI Helipad 1", -3450, 2810, { 50, 4, 50 }),
+		zone("heli_airport2", "HCI Helipad 2", -3370, 2810, { 50, 4, 50 }),
+		zone("heli_port", "Iron Bay Helipad", 2600, 4150, { 50, 4, 50 }),
+		zone("heli_hills", "Sunwood Estate Helipad", -2200, -3350, { 50, 4, 50 }),
+	}
+	do
+		local roof = { heli_mercy = "HospitalCentral", heli_hcpd = "PoliceHQ", heli_pinnacle = "PinnacleTower" }
+		for _, h in Helipads do
+			local poiId = (roof :: any)[h.id]
+			local p = poiId and poiById[poiId]
+			if p then
+				h.cframe = p.cframe + Vector3.new(0, p.size.Y + 2, 0)
+				h.district = p.district
+			end
+		end
+		-- every planned tower with a helipad crown gets one too
+		for _, t in TowerPlan do
+			if t.crown == "helipad" and t.parcel then
+				local pc = Parcels[t.parcel]
+				table.insert(
+					Helipads,
+					{
+						id = "heli_" .. t.id,
+						name = t.id .. " roof",
+						cframe = pc.cframe + Vector3.new(0, pc.size.Y + 2, 0),
+						size = Vector3.new(40, 4, 40),
+						district = pc.district,
+					}
+				)
+			end
+		end
+	end
+	WorldLayout.Helipads = Helipads
+
+	-- Safe zones: hospital doors (spawn protection) and dealership floors.
+	local SafeZones: { Zone } = {}
+	for _, p in POIs do
+		if p.kind == "hospital" then
+			table.insert(SafeZones, {
+				id = "safe_" .. p.id,
+				name = p.name,
+				cframe = p.cframe + Vector3.new(0, 20, 0),
+				size = Vector3.new(p.size.X + 40, 40, p.size.Z + 60),
+				district = p.district,
+				note = "5 s spawn protection, no weapons",
+			})
+		elseif p.kind == "dealership" then
+			table.insert(SafeZones, {
+				id = "safe_" .. p.id,
+				name = p.name,
+				cframe = p.cframe + Vector3.new(0, 20, 0),
+				size = Vector3.new(p.size.X, 40, p.size.Z),
+				district = p.district,
+				note = "no weapons inside the showroom",
+			})
+		end
+	end
+	WorldLayout.SafeZones = SafeZones
+
+	--@@PART4@@
 end

@@ -2646,6 +2646,7 @@ type GridSpec = {
 	us: { number }, -- streets running along v, at these u offsets
 	vs: { number }, -- streets running along u, at these v offsets
 	alleys: { number }?, -- alleys running along v at these u offsets (mid-block chase shortcuts, no AI traffic)
+	noAlleys: { P2 }?, -- no alley inside this polygon (tower sites)
 	clip: { P2 },
 	class: RoadClass?,
 	lanes: number?,
@@ -2721,6 +2722,7 @@ local GRIDS: { GridSpec } = {
 		us = midtownUs,
 		vs = range(-1500, 1650, 270, 35, 203),
 		alleys = midpoints(midtownUs),
+		noAlleys = poly({ { -2330, -620 }, { -1560, -620 }, { -1560, 60 }, { -2330, 60 } }), -- Gilded tower cluster
 		clip = poly({ { -3570, -1700 }, { -1240, -1700 }, { -1240, 1280 }, { -3570, 1280 } }),
 		parking = true,
 		drop = 0.12,
@@ -2991,7 +2993,27 @@ local function generateGrid(g: GridSpec)
 		emit("u", i, pts)
 	end
 	for i, u in g.alleys or {} do
-		emit("u", i, uLine(i + 50, u), true)
+		local line = uLine(i + 50, u)
+		if g.noAlleys then
+			-- tower sites: no mid-block alley there (gta critique 1: towers need whole half-blocks)
+			local run: { P2 } = {}
+			local function flush()
+				if #run >= 2 and WorldGen.polyLength(run) > 120 then
+					emit("u", i, run, true)
+				end
+				run = {}
+			end
+			for _, p in line do
+				if WorldGen.pointInPoly(g.noAlleys :: { P2 }, p.x, p.z) then
+					flush()
+				else
+					table.insert(run, p)
+				end
+			end
+			flush()
+		else
+			emit("u", i, line, true)
+		end
 	end
 	for i, v in g.vs do
 		local pts: { P2 } = {}

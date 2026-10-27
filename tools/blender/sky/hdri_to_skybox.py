@@ -47,14 +47,18 @@ LUM = np.array([0.2126, 0.7152, 0.0722], np.float32)
 # i.e. auto-exposure; ev is applied on top. haze: horizon whitening toward haze_color (matches Atmosphere).
 PRESETS = {
     "day": dict(hdri="kloofendal_48d_partly_cloudy_puresky", label="Clear GTA day (scattered cumulus)",
-                key=0.42, ev=0.0, tonemap="agx", sat=1.0, sun_az=235.0, haze=0.22, haze_color=(0.80, 0.84, 0.88),
+                key=0.42, ev=0.0, tonemap="agx", sat=1.06, sun_az=235.0, haze=0.12, haze_color=(0.78, 0.84, 0.92),
                 ground="haze", clock_hint=14.5),
-    "golden": dict(hdri="kloppenheim_06_puresky", label="Golden hour with clouds",
-                   key=0.30, ev=0.0, tonemap="agx", sat=1.08, sun_az=255.0, haze=0.18, haze_color=(0.98, 0.80, 0.60),
+    "golden": dict(hdri="table_mountain_2_puresky", label="Golden hour with clouds",
+                   key=0.24, ev=0.0, tonemap="agx", sat=1.1, sun_az=255.0, haze=0.04, haze_color=(1.0, 0.78, 0.55),
+                   wb=(1.03, 1.0, 0.96), warm=0.75, warm_color=(1.0, 0.55, 0.25), warm_width=24.0, ground_dark=0.6,
+                   hl_warm=0.7, hl_color=(1.0, 0.74, 0.48), band=0.7, band_color=(1.0, 0.62, 0.42), band_width=9.0,
                    ground="haze", clock_hint=17.6),
     "night": dict(hdri="qwantani_dusk_2_puresky", label="Blue-hour / night city",
-                  key=0.075, ev=0.0, tonemap="agx", sat=1.0, sun_az=285.0, haze=0.0, haze_color=(0.30, 0.33, 0.42),
-                  ground="haze", glow=0.55, glow_color=(1.0, 0.56, 0.26), glow_width=9.0, clock_hint=19.4),
+                  key=0.045, ev=0.0, tonemap="agx", sat=1.05, sun_az=285.0, haze=0.0, haze_color=(0.30, 0.33, 0.42),
+                  wb=(0.84, 0.94, 1.16), ground="haze", ground_dark=0.85, glow=1.4, glow_color=(1.0, 0.45, 0.14),
+                  glow_width=5.0,
+                  glow_az=20.0, clock_hint=19.4),
 }
 
 
@@ -170,13 +174,24 @@ def find_and_remove_sun(img, keep=False):
                 irradiance=float(E_rgb @ LUM), color=(E_rgb / max(1e-6, E_rgb.max())).tolist(),
                 pixels=int(m.sum()))
     if not keep:
+        # Inpaint the disc (+2 px) by diffusion from its boundary inside a padded window: the surrounding glow
+        # continues smoothly across, with no dark hole and no hard ring (Roblox's own sun is drawn there).
         img = img.copy()
-        # feather: dilate the mask a little and blend to the fill so no hard ring remains
         mm = m.copy()
         for _ in range(2):
             mm = mm | np.roll(mm, 1, 0) | np.roll(mm, -1, 0) | np.roll(mm, 1, 1) | np.roll(mm, -1, 1)
-        img[mm] = np.minimum(img[mm], fill[None, :] * 1.5)
-        img[m] = fill
+        ys2, xs2 = np.nonzero(mm)
+        p = 6
+        ya, yb = max(0, ys2.min() - p), min(H, ys2.max() + p + 1)
+        xa, xb = max(0, xs2.min() - p), min(W, xs2.max() + p + 1)
+        win = img[ya:yb, xa:xb].copy()
+        mw = mm[ya:yb, xa:xb]
+        ring = (~mw) & (np.roll(mw, 1, 0) | np.roll(mw, -1, 0) | np.roll(mw, 1, 1) | np.roll(mw, -1, 1))
+        win[mw] = np.median(win[ring], axis=0) if ring.any() else fill
+        for _ in range(max(60, 4 * max(yb - ya, xb - xa))):
+            avg = (np.roll(win, 1, 0) + np.roll(win, -1, 0) + np.roll(win, 1, 1) + np.roll(win, -1, 1)) * 0.25
+            win[mw] = avg[mw]
+        img[ya:yb, xa:xb] = win
     return img, info
 
 
@@ -225,13 +240,38 @@ def process(hdr, cfg, log):
     img = img * gain
     log(f"  sun found={sun.get('found')} phi={sun.get('phi', 0):.1f} el={sun.get('el', 0):.1f} "
         f"E={sun.get('irradiance', 0):.1f}; sky mean {mean_up:.3f} -> gain {gain:.3f}")
+    if cfg.get("wb"):
+        img = img * np.array(cfg["wb"], np.float32)[None, None, :]
+    if cfg.get("warm", 0) > 0 and cfg.get("_sun_phi") is not None:
+        ph = np.radians(np.linspace(-180, 180, W, endpoint=False) + 180.0 / W)[None, :]
+        e = np.radians(el)[:, None]
+        ps, es = math.radians(cfg["_sun_phi"]), math.radians(cfg["_sun_el"])
+        cosang = np.sin(e) * math.sin(es) + np.cos(e) * math.cos(es) * np.cos(ph - ps)
+        ang = np.degrees(np.arccos(np.clip(cosang, -1, 1)))
+        k = cfg["warm"] * np.exp(-ang / cfg.get("warm_width", 35.0))[..., None]
+        wc = np.array(cfg.get("warm_color", (1.0, 0.65, 0.35)), np.float32)
+        img = img * (1 + k * (wc[None, None, :] - 1) * 0.5) + img * k * 0.25 * wc[None, None, :]
+    if cfg.get("hl_warm", 0) > 0:
+        # split-tone: sunlit cloud tops / bright haze go warm, the blue sky stays blue (golden-hour read)
+        Lm = img @ LUM
+        ref = float(np.median(Lm[el > 3]))
+        w = np.clip((Lm / max(ref, 1e-6) - 0.9) / 1.2, 0, 1)[..., None] * cfg["hl_warm"]
+        img = img * (1 - w) + img * np.array(cfg.get("hl_color", (1.0, 0.78, 0.55)), np.float32)[None, None, :] * w
+    if cfg.get("band", 0) > 0:
+        # warm/pink band low on the horizon, strongest under the sun
+        ph = np.linspace(-180, 180, W, endpoint=False)[None, :, None]
+        ps = cfg.get("_sun_phi", 0.0)
+        toward = 0.35 + 0.65 * np.cos(np.radians(ph - ps) / 2) ** 4
+        bw_ = np.where(elc >= 0, np.exp(-elc / cfg.get("band_width", 10.0)), 1.0)
+        f = cfg["band"] * bw_ * toward
+        img = img * (1 - f) + img * np.array(cfg.get("band_color", (1.0, 0.6, 0.45)), np.float32)[None, None, :] * f
     # horizon colour before haze (for Atmosphere hints)
     band = (el > 0.5) & (el < 6)
     horizon = img[band].reshape(-1, 3).mean(0)
     # optional warm light-pollution band (city at night)
     if cfg.get("glow", 0) > 0:
         gw = cfg.get("glow_width", 9.0)
-        prof = np.exp(-np.maximum(elc, 0) / gw) * (elc > -2)
+        prof = np.where(elc >= 0, np.exp(-elc / gw), np.exp(elc / 1.5))
         az = np.linspace(-180, 180, W, endpoint=False)[None, :, None]
         # brighter toward downtown (compass glow_az), never zero
         ga = cfg.get("glow_az", 30.0) - cfg["_yaw"]
@@ -248,8 +288,16 @@ def process(hdr, cfg, log):
     # and darken slowly, like a hazy sea surface.
     if cfg.get("ground", "haze") == "haze":
         hrow = img[(el > 0.2) & (el < 2.5)].reshape(-1, W, 3).mean(0)  # per-column horizon colour
-        t = np.clip(-elc / 30.0, 0, 1)
-        below = hrow[None, :, :] * (1 - 0.55 * t)
+        k = max(3, W // 16)  # circular box blur along azimuth (no streaks below bright clouds / the sun)
+        c = np.cumsum(np.concatenate([hrow[-k:], hrow, hrow[:k]], 0), axis=0)
+        hrow = (c[2 * k:] - c[:-2 * k]) / (2 * k)
+        hrow = hrow[:W] if len(hrow) >= W else np.resize(hrow, (W, 3))
+        t = np.clip(-elc / 12.0, 0, 1)
+        flat = hrow.mean(0)[None, None, :]
+        dark = cfg.get("ground_dark", 0.55)
+        below = (hrow[None, :, :] * (1 - t) + flat * t) * (1 - dark * t)
+        bl = (below @ LUM)[..., None]
+        below = bl + (below - bl) * (1 - cfg.get("ground_desat", 0.45) * t)
         blend = np.clip(-elc / 1.5 + 0.0, 0, 1)
         img = np.where(elc < 0, img * (1 - blend) + below * blend, img)
     sat = cfg.get("sat", 1.0)
@@ -404,9 +452,12 @@ def test_pattern(W=2048, H=1024):
         el = 90 - (r + 0.5) / H * 180
         c = (int(70 + 90 * max(el, 0) / 90), int(110 + 80 * max(el, 0) / 90), 200) if el >= 0 else (90, 70, 40)
         d.line([(0, r), (W, r)], fill=c)
-    for k in range(0, 360, 15):
+    for k in range(0, 360, 15):  # meridians every 15 deg, offset 7.5 so none sits exactly on a cube edge
+        x = (k + 7.5) / 360 * W
+        d.line([(x, 0), (x, H)], fill=(150, 150, 150), width=1)
+    for k in range(0, 360, 90):
         x = k / 360 * W
-        d.line([(x, 0), (x, H)], fill=(255, 255, 255) if k % 90 == 0 else (150, 150, 150), width=3 if k % 90 == 0 else 1)
+        d.line([(x, 0), (x, H)], fill=(255, 255, 255), width=3)
     for e in range(-75, 90, 15):
         y = (90 - e) / 180 * H
         d.line([(0, y), (W, y)], fill=(255, 60, 60) if e == 0 else (150, 150, 150), width=4 if e == 0 else 1)
@@ -416,6 +467,8 @@ def test_pattern(W=2048, H=1024):
         x = ((a + 180) % 360) / 360 * W
         d.text((x - 30, H / 2 - 150), name, fill=(255, 255, 255), font=big)
         d.text((x - 46, H / 2 + 30), f"{a}°", fill=(255, 230, 120), font=font(40))
+        for e, tag in ((60, "up"), (-60, "dn")):  # small letters that land on the Up / Dn faces
+            d.text((x - 40, (90 - e) / 180 * H - 22), f"{name}{tag}", fill=(255, 255, 0), font=font(36))
     return np.asarray(img).astype(np.float32) / 255.0
 
 
@@ -425,6 +478,19 @@ def write_sky(name, cfg, log=print, n=1024):
     hdr = load_hdr(src)
     log(f"[{name}] {os.path.basename(src)} {hdr.shape[1]}x{hdr.shape[0]}")
     _, sun0 = find_and_remove_sun(hdr, keep=True)
+    if not sun0.get("found"):
+        # no disc (behind clouds / below the horizon): orient by the brightest glow near the horizon instead
+        H, W = hdr.shape[:2]
+        el = (0.5 - (np.arange(H) + 0.5) / H) * 180.0
+        band = (el > -1) & (el < 25)
+        prof = (hdr[band] @ LUM).mean(0)
+        k = max(3, W // 36)
+        c = np.cumsum(np.concatenate([prof[-k:], prof, prof[:k]]))
+        prof = (c[2 * k:] - c[:-2 * k])[:W]
+        col = int(np.argmax(prof))
+        sun0 = {"found": True, "glow_only": True, "phi": ((col + 0.5) / W - 0.5) * 360.0, "el": 0.0}
+        log(f"  no sun disc: brightest horizon glow at phi {sun0['phi']:.1f}")
+    cfg["_sun_phi"], cfg["_sun_el"] = sun0["phi"], sun0["el"]
     # yaw: put the HDRI sun (or glow) at the requested compass azimuth
     target = cfg.get("sun_az")
     if cfg.get("sun_dir"):
@@ -458,7 +524,9 @@ def write_sky(name, cfg, log=print, n=1024):
         "convention": "SkyboxFt=-Z, Bk=+Z, Lf=+X, Rt=-X; Up top=+X; Dn top=-X (Studio job 0005)",
         "settings": {k: v for k, v in cfg.items() if not k.startswith("_")},
         "yaw_deg": round(yaw, 2),
-        "sun": {"in_hdri": sun0.get("found"), "painted_out": not cfg.get("keep_sun", False),
+        "sun": {"in_hdri": bool(sun0.get("found") and not sun0.get("glow_only")),
+                "oriented_by": "horizon glow (no sun disc)" if sun0.get("glow_only") else "sun disc",
+                "painted_out": bool(sun0.get("found") and not sun0.get("glow_only") and not cfg.get("keep_sun", False)),
                 "compass_az": None if sun_az is None else round(sun_az % 360, 1),
                 "elevation": None if not sun0.get("found") else round(sun0["el"], 1),
                 "roblox_dir": sun_vec,
@@ -476,9 +544,57 @@ def write_sky(name, cfg, log=print, n=1024):
         "seconds": round(time.time() - t0, 1),
     }
     json.dump(info, open(os.path.join(dst, "sky.json"), "w"), indent=1)
+    os.makedirs(PROTO, exist_ok=True)
+    view_sheet(name, faces8, info, os.path.join(PROTO, f"{name}_views.png"))
     log(f"  wrote {dst} yaw={yaw:.1f} sun_az={info['sun']['compass_az']} max edge err {max(errs.values()):.2f} "
         f"({info['seconds']}s)")
     return faces8, info
+
+
+def view_from_faces(faces8, az, pitch, fov, w=480, h=270):
+    """Perspective view rebuilt from the six face images using the Roblox convention (inverse mapping per pixel),
+    i.e. what a player sees. Views that straddle face edges double as a seam check."""
+    a, p = math.radians(az), math.radians(pitch)
+    fwd = np.array([math.cos(p) * math.sin(a), math.sin(p), -math.cos(p) * math.cos(a)])
+    right = np.cross(fwd, [0, 1, 0])
+    right /= np.linalg.norm(right)
+    up = np.cross(right, fwd)
+    t = math.tan(math.radians(fov) / 2)
+    xs = (np.arange(w) + 0.5) / w * 2 - 1
+    ys = (np.arange(h) + 0.5) / h * 2 - 1
+    X, Y = np.meshgrid(xs * t, -ys * t * h / w)
+    D = fwd[None, None, :] + X[..., None] * right[None, None, :] + Y[..., None] * up[None, None, :]
+    D /= np.linalg.norm(D, axis=-1, keepdims=True)
+    out = np.zeros((h, w, 3), np.uint8)
+    ax = np.argmax(np.abs(D), axis=-1)
+    x, y, z = D[..., 0], D[..., 1], D[..., 2]
+    sel = {"Lf": (ax == 0) & (x > 0), "Rt": (ax == 0) & (x <= 0), "Up": (ax == 1) & (y > 0),
+           "Dn": (ax == 1) & (y <= 0), "Bk": (ax == 2) & (z > 0), "Ft": (ax == 2) & (z <= 0)}
+    with np.errstate(divide="ignore", invalid="ignore"):
+        uv = {"Ft": (x / -z, -y / -z), "Bk": (-x / z, -y / z), "Lf": (z / x, -y / x), "Rt": (-z / -x, -y / -x),
+              "Up": (-z / y, -x / y), "Dn": (-z / -y, x / -y)}
+    for f, m in sel.items():
+        if not m.any():
+            continue
+        u, v = uv[f][0][m], uv[f][1][m]
+        n = faces8[f].shape[0]
+        px = np.clip(((u + 1) / 2 * n).astype(int), 0, n - 1)
+        py = np.clip(((v + 1) / 2 * n).astype(int), 0, n - 1)
+        out[m] = faces8[f][py, px]
+    return out
+
+
+def view_sheet(name, faces8, info, path):
+    sa = info["sun"]["compass_az"] or 0.0
+    views = [(sa, 8, 90, "toward sun"), (sa + 180, 8, 90, "away from sun"), (sa + 90, 50, 100, "up 50"),
+             (sa - 45, -2, 90, "horizon, 45 off sun")]
+    tiles = []
+    for az, pitch, fov, lab in views:
+        im = Image.fromarray(view_from_faces(faces8, az, pitch, fov))
+        ImageDraw.Draw(im).text((6, 4), f"{name}: az {az % 360:.0f} pitch {pitch} fov {fov} ({lab})", fill=(255, 255, 0))
+        tiles.append(np.asarray(im))
+    sheet = np.concatenate([np.concatenate(tiles[:2], 1), np.concatenate(tiles[2:], 1)], 0)
+    Image.fromarray(sheet).save(path, optimize=True)
 
 
 def cross_sheet(names, path):
@@ -487,7 +603,9 @@ def cross_sheet(names, path):
     tp = test_pattern()
     faces = make_faces(tp, 0.0, n=512, ss=1)
     tp8 = {f: (np.clip(a, 0, 1) * 255).astype(np.uint8) for f, a in faces.items()}
-    errs = edge_check({f: a.astype(np.float32) for f, a in tp8.items()})
+    from PIL import ImageFilter
+    blur = np.asarray(Image.fromarray((tp * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(3))).astype(np.float32) / 255
+    errs = edge_check({f: (np.clip(a, 0, 1) * 255).astype(np.float32) for f, a in make_faces(blur, 0.0, n=512, ss=1).items()})
     blocks = [cross_image(tp8, tile, f"Test pattern via Roblox convention - max edge error {max(errs.values()):.2f}/255")]
     for n in names:
         d = os.path.join(OUT, n)
