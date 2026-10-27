@@ -59,8 +59,6 @@ for _, key in keys do
 	local template = AssetLibrary._normalize(raw, key, Assets.Hero[key])
 
 	local plain = build(key, { forDisplay = true })
-	local drivable = build(key, nil)
-	local seat = drivable:FindFirstChild("DriverSeat")
 
 	local lib = Instance.new("Folder")
 	lib.Name = "AssetLibrary"
@@ -70,6 +68,7 @@ for _, key in keys do
 	template.Parent = hero
 	Harness.replicated.AssetLibrary = lib
 	local dressed = build(key, { forDisplay = true })
+	local seat = build(key, nil):FindFirstChild("DriverSeat") -- dressed drivable car (open-top shells move the seat)
 	Harness.replicated.AssetLibrary = nil
 
 	local shellPart = dressed:FindFirstChild(CarBuilder.SHELL_NAME):FindFirstChild("Mesh")

@@ -12,6 +12,10 @@
 -- line of sight; it matches 90% of a fast car's top speed, so nitro and buildings break its view). The server keeps
 -- the heli's logical state and publishes HeliCFrame / SpotPos model attributes at ~10 Hz; EffectsController renders.
 -- Cruisers' top speed scales with stars AND with the suspect's car (a Legendary can't just outrun a 5-star chase).
+-- Officers (docs/ART_PASS.md AP3): every cruiser gets a seated NPCService officer (police outfit; TrafficService's
+-- block dummy in police blue until NPCService is ready / over budget, upgraded on NPCService.Ready). A wrecked
+-- cruiser's officer is yeeted out (NPCService.ejectComic). On WantedService.Busted an officer steps out beside the
+-- busted player (nearest cruiser's side) for BUST_OFFICER_TIME seconds: purely visual.
 --
 -- Public API (docs/SPEC.md §6):
 --   isSeen(player): boolean      any unit / the heli currently sees this suspect (WantedService decay)
@@ -19,7 +23,7 @@
 -- Pure helpers (tests/spec/police.spec.luau, incl. kinematic driving + chase simulations): _steerToward,
 --   _nextWaypoint (grid routing w/ turn feasibility + hysteresis), _drive (control law: corner speed, K-turns,
 --   anti-orbit), _usePursuit, _roadAnchor, _roadLines, _updateStuck, _newStuck, _isRam, _allocateUnits,
---   _orientedLane, _spawnCandidates, _carTopSpeed, _unitSpeedMult, _heliMaxSpeed, _isClearOf
+--   _orientedLane, _spawnCandidates, _carTopSpeed, _unitSpeedMult, _heliMaxSpeed, _isClearOf, _bustOfficerSpot
 -- Fairness: cops spawn behind you out of view, 1-star cops are slower than you, rubber-banding only happens out
 -- of sight, ramming heat only counts when YOU hit THEM, hiding in your own garage is a safe house (cops wait
 -- outside, no bust, no "seen"), and cops overshoot corners if you juke them at speed.
@@ -106,6 +110,9 @@ local RAM_SPEED = 40
 local RAM_COOLDOWN = 10
 local POLICE_DAMAGE_MULT = 1
 local POLICE_NITRO_SECONDS = 3
+local BUST_OFFICER_TIME = 4 -- the BUSTED officer stands beside the player this long (visual only)
+local BUST_OFFICER_OFFSET = 4.5 -- studs from the player toward the nearest cruiser
+local BUST_OFFICER_UNIT_RANGE = 80 -- a cruiser farther than this: the officer stands at the player's right
 
 -- Stars -> top speed multiplier: 1-star cops are beatable, 5-star cops are relentless.
 local SPEED_MULT_BY_STARS = { 0.82, 0.9, 0.97, 1.03, 1.08 }
@@ -166,6 +173,7 @@ type Unit = {
 	health: number,
 	speedMult: number,
 	stuck: Stuck,
+	npc: Model?, -- the seated officer (NPCService humanoid or TrafficService block dummy)
 }
 
 type Heli = {
@@ -752,6 +760,10 @@ end
 
 -- UNIT LIFECYCLE ----------------------------------------------------------------------------------------
 
+local function hasHumanoid(npc: Model?): boolean
+	return npc ~= nil and npc:FindFirstChildOfClass("Humanoid") ~= nil
+end
+
 local function removeUnit(unit: Unit)
 	if not unit.alive then
 		return
@@ -812,6 +824,16 @@ local function markWrecked(unit: Unit, now: number)
 	if st then
 		st.nextSpawnAt = math.max(st.nextSpawnAt, now + WRECK_RESPAWN_DELAY)
 	end
+	-- the officer gets yeeted out of the wreck (comic ragdoll; the block dummy just stays in its seat)
+	local npc = unit.npc
+	if npc and npc.Parent and hasHumanoid(npc) then
+		local NPCService = sys("NPCService")
+		if NPCService and typeof(NPCService.ejectComic) == "function" then
+			unit.npc = nil
+			local fling = unit.chassis.AssemblyLinearVelocity * 0.5 + unit.chassis.CFrame.RightVector * 30
+			pcall(NPCService.ejectComic, npc, fling)
+		end
+	end
 end
 
 local function damageUnit(unit: Unit, amount: number, now: number)
@@ -828,6 +850,75 @@ local function damageUnit(unit: Unit, amount: number, now: number)
 			markWrecked(unit, now)
 		end
 	end
+end
+
+-- BUSTED officer spot (ground-level CFrame facing the suspect): BUST_OFFICER_OFFSET from the suspect toward the
+-- nearest cruiser (it "stepped out" of it) when one is within BUST_OFFICER_UNIT_RANGE, else at the suspect's right.
+function PoliceService._bustOfficerSpot(suspectPos: Vector3, suspectLook: Vector3, unitPos: Vector3?): CFrame
+	local toward: Vector3
+	local d = if unitPos then flatDist(unitPos, suspectPos) else math.huge
+	if unitPos and d > 1 and d <= BUST_OFFICER_UNIT_RANGE then
+		toward = flat(unitPos - suspectPos).Unit
+	else
+		local look = flat(suspectLook)
+		look = if look.Magnitude > 0.1 then look.Unit else Vector3.new(0, 0, -1)
+		toward = look:Cross(Vector3.yAxis)
+	end
+	local p = suspectPos + toward * BUST_OFFICER_OFFSET
+	return CFrame.lookAt(p, Vector3.new(suspectPos.X, p.Y, suspectPos.Z))
+end
+
+-- Top of the ground under `p` (characters, cars and NPCs ignored).
+local function groundBelow(p: Vector3): number?
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.IgnoreWater = true
+	params.RespectCanCollide = true
+	local exclude: { Instance } = {}
+	for _, pl in Players:GetPlayers() do
+		if pl.Character then
+			table.insert(exclude, pl.Character)
+		end
+	end
+	for _, name in { "Vehicles", "NPCs", "Effects" } do
+		local f = Workspace:FindFirstChild(name)
+		if f then
+			table.insert(exclude, f)
+		end
+	end
+	params.FilterDescendantsInstances = exclude
+	local hit = Workspace:Raycast(p + Vector3.new(0, 6, 0), Vector3.new(0, -40, 0), params)
+	return if hit then hit.Position.Y else nil
+end
+
+-- BUSTED moment: an officer steps out beside the busted player (visual only, gone after BUST_OFFICER_TIME).
+local function onBusted(player: Player)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return -- died-while-wanted bust: no body to stand next to
+	end
+	local NPCService = sys("NPCService")
+	if not NPCService or typeof(NPCService.spawnOfficerAt) ~= "function" then
+		return
+	end
+	local pos = root.Position
+	local unitPos: Vector3? = nil
+	local best = math.huge
+	local st = suspects[player]
+	if st then
+		for _, u in st.units do
+			if u.alive and u.chassis.Parent then
+				local d = flatDist(u.chassis.Position, pos)
+				if d < best then
+					best, unitPos = d, u.chassis.Position
+				end
+			end
+		end
+	end
+	local spot = PoliceService._bustOfficerSpot(pos, root.CFrame.LookVector, unitPos)
+	local y = groundBelow(spot.Position) or (pos.Y - 3)
+	NPCService.spawnOfficerAt(spot + Vector3.new(0, y - spot.Position.Y, 0), BUST_OFFICER_TIME)
 end
 
 -- Is `pos` at least SPAWN_CLEARANCE (flat) away from every blocker position?
@@ -953,6 +1044,54 @@ end
 
 local onUnitTouched: (Unit, BasePart) -> ()
 
+-- Seats an officer in a cruiser: NPCService's police humanoid, else (allowDummy) TrafficService's block dummy in
+-- police blue. nil when neither is available.
+local function attachOfficer(car: any, model: Model, chassis: BasePart, allowDummy: boolean): Model?
+	local seat = car.seat
+	if typeof(seat) ~= "Instance" or not seat:IsA("BasePart") then
+		seat = model:FindFirstChild("DriverSeat")
+	end
+	if typeof(seat) ~= "Instance" or not seat:IsA("BasePart") or seat.Parent == nil then
+		return nil
+	end
+	local NPCService = sys("NPCService")
+	if NPCService and typeof(NPCService.spawnDriver) == "function" then
+		local ok, npc = pcall(NPCService.spawnDriver, seat, "police")
+		if ok and typeof(npc) == "Instance" and npc:IsA("Model") then
+			return npc
+		end
+	end
+	if not allowDummy then
+		return nil
+	end
+	local TrafficService = sys("TrafficService")
+	if TrafficService and typeof(TrafficService.attachDummy) == "function" then
+		local ok, npc = pcall(TrafficService.attachDummy, model, seat, chassis, TrafficService.POLICE_PALETTE)
+		if ok and typeof(npc) == "Instance" and npc:IsA("Model") then
+			return npc
+		end
+	end
+	return nil
+end
+
+-- Swap block-dummy officers (or empty seats) for NPCService humanoids once it is ready.
+local function upgradeOfficers()
+	for _, unit in units do
+		local old = unit.npc
+		if not unit.alive or unit.mode == "wrecked" or hasHumanoid(old) or not unit.model.Parent then
+			continue
+		end
+		local human = attachOfficer(unit.car, unit.model, unit.chassis, false)
+		if not human then
+			break -- not ready / over budget
+		end
+		unit.npc = human
+		if old then
+			old:Destroy()
+		end
+	end
+end
+
 local function spawnUnit(st: Suspect, now: number): boolean
 	local VehicleService = sys("VehicleService")
 	if not VehicleService or typeof(VehicleService.spawn) ~= "function" then
@@ -1023,6 +1162,7 @@ local function spawnUnit(st: Suspect, now: number): boolean
 		health = VehicleConfig.MAX_HEALTH,
 		speedMult = 1,
 		stuck = PoliceService._newStuck(),
+		npc = attachOfficer(car, model, chassis, true),
 	}
 	unit.trove:Connect(chassis.Touched, function(hit: BasePart)
 		onUnitTouched(unit, hit)
@@ -2122,6 +2262,16 @@ function PoliceService.init()
 		end
 	end)
 
+	WantedService.Busted:Connect(function(player: Player)
+		if typeof(player) ~= "Instance" or player.Parent ~= Players then
+			return
+		end
+		local ok, err = pcall(onBusted, player)
+		if not ok then
+			warn("[PoliceService] busted officer failed: " .. tostring(err))
+		end
+	end)
+
 	local VehicleService = sys("VehicleService")
 	if VehicleService and VehicleService.Destroyed then
 		VehicleService.Destroyed:Connect(function(car: any, reason: any)
@@ -2143,6 +2293,15 @@ function PoliceService.init()
 end
 
 function PoliceService.start()
+	local NPCService = sys("NPCService")
+	if NPCService and NPCService.Ready then
+		NPCService.Ready:Connect(function()
+			local ok, err = pcall(upgradeOfficers)
+			if not ok then
+				warn("[PoliceService] officer upgrade failed: " .. tostring(err))
+			end
+		end)
+	end
 	local function onPlayerAdded(player: Player)
 		local st = getSuspect(player)
 		setBustProgress(st, 0)

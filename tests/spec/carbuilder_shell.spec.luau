@@ -333,6 +333,49 @@ return function(t)
 		end)
 	end)
 
+	t.test("police-style civilian cars hide their static sirens under the mesh's own lightbar", function()
+		withTemplates({ makeTemplate("retired_cruiser", SEDAN) }, function()
+			local m = CarBuilder.build("retired_cruiser", "None")
+			t.eq(m:GetAttribute("HeroMesh"), true, "dressed")
+			for _, name in { "SirenRed", "SirenBlue" } do
+				local siren = m:FindFirstChild(name)
+				t.ok(siren, name .. " kept as a part")
+				t.eq(siren.Transparency, 1, name .. " hidden")
+				t.ok(siren:GetAttribute("PreShellOffset") == nil, name .. " not moved")
+			end
+		end)
+	end)
+
+	t.test("open-top shells lower the DriverSeat into the mesh seat (re-welded, restored by removeShell)", function()
+		withTemplates({ makeTemplate("toilet_turbo", { X = 8.8, Y = 6.4, Z = 7.3 }) }, function()
+			local bare = CarBuilder.build("toilet_turbo", "None")
+			local m = CarBuilder.build("toilet_turbo", "None")
+			local chassis = m.PrimaryPart
+			local function seatY(model)
+				return model.PrimaryPart.CFrame:ToObjectSpace(model:FindFirstChild("DriverSeat").CFrame).Position
+			end
+			t.ok(bare:GetAttribute("HeroMesh") == true, "both dressed (template installed for both)")
+			local seat = m:FindFirstChild("DriverSeat")
+			t.ok(weldedToChassis(seat, chassis), "seat re-welded")
+			local welds = 0
+			for _, c in seat:GetChildren() do
+				if c:IsA("WeldConstraint") then
+					welds += 1
+				end
+			end
+			t.eq(welds, 1, "single seat weld")
+			local pre = seat:GetAttribute("PreShellOffset")
+			t.ok(typeof(pre) == "CFrame", "pre-shell seat spot remembered")
+			t.near(seatY(m).Y, pre.Position.Y - 0.8, 1e-4, "seat lowered 0.8")
+			t.near(seatY(m).Z, pre.Position.Z, 1e-4, "same z")
+			CarBuilder.removeShell(m)
+			t.near(seatY(m).Y, pre.Position.Y, 1e-4, "seat restored")
+			local display = CarBuilder.build("toilet_turbo", "None", { forDisplay = true })
+			t.ok(display:FindFirstChild("DriverSeat") == nil, "display cars have no seat to move")
+			t.eq(display:GetAttribute("HeroMesh"), true, "display toilet dressed")
+		end)
+	end)
+
 	t.test("mutations swap the shell texture for the mutation material and None restores it", function()
 		withTemplates({ makeTemplate("grandma_sedan", SEDAN) }, function()
 			local m = CarBuilder.build("grandma_sedan", "None", { forDisplay = true })

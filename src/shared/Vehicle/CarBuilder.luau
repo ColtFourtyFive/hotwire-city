@@ -28,12 +28,14 @@
 --   * HERO SHELLS (docs/ART_PASS.md AP1): build/buildDef end with applyShell(model). When the template
 --     ReplicatedStorage.AssetLibrary.Hero[CarId] exists (police: "police_unit"), its clone becomes the Model child
 --     CarBuilder.SHELL_NAME ("HeroShell"): scaled to Length (uniformly shrunk if wider than Width x 1.15), bottom on the
---     ground plane under the chassis, centered on BodyCenter, every part unanchored / Massless / CanCollide, CanQuery,
---     CanTouch false and WeldConstraint-ed to the Chassis. The procedural visuals stay but get Transparency 1 (their
---     SurfaceGuis are disabled; the original value is kept in attribute "ShellHidden") so Headlight beams, wheel welds
---     and attachments keep working; police SirenRed/SirenBlue stay visible, raised onto the shell roof. Model
---     attributes HeroMesh = true and ShellHeight (shell roof above the ground). No template (Lune harness, failed or
---     not-yet-loaded asset) = no-op: the procedural car is the fallback. removeShell(model) undoes it.
+--     ground plane under the chassis (SHELL_LIFT: hover car floats), centered on BodyCenter, every part unanchored /
+--     Massless / CanCollide, CanQuery, CanTouch false and WeldConstraint-ed to the Chassis. The procedural visuals stay
+--     but get Transparency 1 (their SurfaceGuis are disabled; the original value is kept in attribute "ShellHidden")
+--     so Headlight beams, wheel welds and attachments keep working; the police unit's SirenRed/SirenBlue stay visible,
+--     raised onto the shell roof (other cars hide theirs: the mesh has its own lightbar). Open-top shells
+--     (SHELL_SEAT_DROP) lower the DriverSeat into the mesh's seat. Model attributes HeroMesh = true and ShellHeight
+--     (shell roof above the ground). No template (Lune harness, failed or not-yet-loaded asset) = no-op: the
+--     procedural car is the fallback. removeShell(model) undoes it.
 --
 -- BUILT POSE: the ground plane is y = 0, the car is centered on x/z and faces -Z (pivot LookVector).
 -- Wheels rest on the ground; the chassis center sits RideHeight above it. Spawn with
@@ -185,8 +187,20 @@ local SIREN_GAP = 0.05 -- police sirens sit this far above the shell roof
 local HIDDEN_ATTR = "ShellHidden" -- procedural part / decal hidden by applyShell: its old Transparency (guis: true)
 local PRE_SHELL_ATTR = "PreShellOffset" -- siren CFrame relative to the chassis before applyShell raised it
 local STASH_NAME = "ShellStash" -- Folder parking a shell part's SurfaceAppearance while a mutation hides the texture
--- direct children applyShell never hides: physics / invisible parts, and the police lights (EffectsController flashes)
-local SHELL_KEEP = { Chassis = true, DriverSeat = true, BumpStop = true, SirenRed = true, SirenBlue = true }
+-- direct children applyShell never hides (physics / invisible parts); the police unit also keeps its siren lights
+-- (EffectsController flashes them). Other police-style cars (retired_cruiser) wear the mesh's own static lightbar.
+local SHELL_KEEP = { Chassis = true, DriverSeat = true, BumpStop = true }
+local SIREN_NAMES = { SirenRed = true, SirenBlue = true }
+-- Open-top shells whose seat sits lower than the procedural body's: DriverSeat drop (studs) so the rider sits in
+-- the mesh's seat instead of hovering above it (measured with tools/shell_lineup.py; skipped while occupied).
+local SHELL_SEAT_DROP: { [string]: number } = {
+	toilet_turbo = 0.8,
+	rubber_ducky = 1.2,
+}
+-- Shells that float instead of standing on the ground (studs above it): the hover car's pods hover like its glow.
+local SHELL_LIFT: { [string]: number } = {
+	hover_car = 0.8,
+}
 
 local function rgb(r: number, g: number, b: number): Color3
 	return Color3.fromRGB(r, g, b)
@@ -2078,9 +2092,10 @@ local function scaleExtras(part: BasePart, f: number)
 end
 
 -- Procedural visuals -> Transparency 1 (kept as parts: welds, attachments, Headlight beams, sparkles keep working).
-local function hideProcedural(model: Model, chassis: BasePart)
+local function hideProcedural(model: Model, chassis: BasePart, keepSirens: boolean)
 	for _, child in model:GetChildren() do
-		if child:IsA("BasePart") and child ~= chassis and not SHELL_KEEP[child.Name] and child.Transparency < 1 then
+		local keep = SHELL_KEEP[child.Name] or (keepSirens and SIREN_NAMES[child.Name])
+		if child:IsA("BasePart") and child ~= chassis and not keep and child.Transparency < 1 then
 			child:SetAttribute(HIDDEN_ATTR, child.Transparency)
 			child.Transparency = 1
 			for _, d in child:GetDescendants() do
@@ -2096,16 +2111,38 @@ local function hideProcedural(model: Model, chassis: BasePart)
 	end
 end
 
--- A police light raised onto the shell roof (same x/z over the chassis), re-welded at its new spot.
-local function raiseSiren(part: BasePart, chassis: BasePart, ground: CFrame, roofY: number)
+-- Moves a welded part to `target` (remembering its pre-shell spot for removeShell) and re-welds it there.
+local function moveWelded(part: BasePart, chassis: BasePart, target: CFrame)
 	if part:GetAttribute(PRE_SHELL_ATTR) == nil then
 		part:SetAttribute(PRE_SHELL_ATTR, chassis.CFrame:ToObjectSpace(part.CFrame))
 	end
 	unweld(part)
+	part.CFrame = target
+	weldToChassis(chassis, part)
+end
+
+-- A police light raised onto the shell roof (same x/z over the chassis).
+local function raiseSiren(part: BasePart, chassis: BasePart, ground: CFrame, roofY: number)
 	local rel = ground:ToObjectSpace(part.CFrame)
 	local p = rel.Position
-	part.CFrame = ground * CFrame.new(p.X, roofY + SIREN_GAP + part.Size.Y / 2, p.Z) * rel.Rotation
-	weldToChassis(chassis, part)
+	moveWelded(part, chassis, ground * CFrame.new(p.X, roofY + SIREN_GAP + part.Size.Y / 2, p.Z) * rel.Rotation)
+end
+
+-- Lower the DriverSeat into an open-top shell's seat (never under a seated driver: a late re-skin leaves it be).
+local function fitSeat(model: Model, chassis: BasePart, key: string)
+	local drop = SHELL_SEAT_DROP[key]
+	local found = model:FindFirstChild("DriverSeat")
+	if not drop or not found or not found:IsA("VehicleSeat") then
+		return
+	end
+	local seat = found :: VehicleSeat
+	local okOcc, occupant = pcall(function()
+		return seat.Occupant
+	end)
+	if okOcc and occupant ~= nil then
+		return
+	end
+	moveWelded(seat, chassis, seat.CFrame * CFrame.new(0, -drop, 0))
 end
 
 -- Dress a built car in its hero mesh shell (see the contract at the top). Returns true when the model wears a shell
@@ -2153,10 +2190,11 @@ function CarBuilder.applyShell(model: Model): boolean
 		f = width * SHELL_WIDTH_SLACK / math.max(size.X, 0.01)
 	end
 
-	-- ground plane under the body center; the shell's bottom-center goes there
+	-- ground plane under the body center (+ SHELL_LIFT for floaters); the shell's bottom-center goes there
 	local center = model:GetAttribute("BodyCenter")
 	local c = if typeof(center) == "Vector3" then center else Vector3.zero
-	local ground = chassis.CFrame * CFrame.new(c.X, -ride, c.Z)
+	local lift = SHELL_LIFT[key] or 0
+	local ground = chassis.CFrame * CFrame.new(c.X, -ride + lift, c.Z)
 	local anchor = V((minV.X + maxV.X) / 2, minV.Y, (minV.Z + maxV.Z) / 2)
 	for _, p in parts do
 		local rel = ref:ToObjectSpace(p.CFrame)
@@ -2177,13 +2215,15 @@ function CarBuilder.applyShell(model: Model): boolean
 
 	local roofY = size.Y * f
 	model:SetAttribute("HeroMesh", true)
-	model:SetAttribute("ShellHeight", roofY)
-	hideProcedural(model, chassis)
+	model:SetAttribute("ShellHeight", roofY + lift)
+	local police = key == Cars.Police.id
+	hideProcedural(model, chassis, police)
 	for _, child in model:GetChildren() do
-		if child:IsA("BasePart") and (child.Name == "SirenRed" or child.Name == "SirenBlue") then
+		if police and child:IsA("BasePart") and SIREN_NAMES[child.Name] then
 			raiseSiren(child, chassis, ground, roofY)
 		end
 	end
+	fitSeat(model, chassis, key)
 	local mutation = model:GetAttribute("Mutation")
 	CarBuilder.applyMutation(model, if typeof(mutation) == "string" then mutation :: MutationId else "None")
 	return true

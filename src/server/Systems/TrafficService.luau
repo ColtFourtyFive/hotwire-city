@@ -16,15 +16,20 @@
 --    pedestrians, honk at players blocking them, and break intersection deadlocks with a short "patience" ghost.
 --    Police cars, hot drops and anchored cars are "hard" blockers: never ghosted into; a car stuck behind one
 --    vanishes out of view after STATIC_GIVEUP (in view after HARD_GIVEUP).
---  * NPC driver: a little block-figure dummy (no Humanoid) welded in the driver seat.
+--  * NPC driver: a seated R15 humanoid from NPCService.spawnDriver (catalog outfit, welded to the seat, no physics).
+--    Until NPCService is ready (or when it is over its humanoid budget) the little block-figure dummy (no Humanoid)
+--    sits there instead; dummies are upgraded on NPCService.Ready, then UPGRADES_PER_TICK per manage pass for cars
+--    out of players' close view.
 --  * "Carjack" prompt (hold = rarity hotwireTime x 0.9; the car brakes as soon as someone starts holding): the NPC
---    gets yeeted out of the car (comic tumble, removed after 3s), kind -> Loot, the player is seated (no heat or
---    credit if seat() refuses), heat max(Heat.carjack, rarity.wantedOnSteal) (DECISIONS §1).
+--    gets yeeted out of the car (NPCService.ejectComic ragdoll / the dummy's comic tumble, removed after 3s),
+--    kind -> Loot, the player is seated (no heat or credit if seat() refuses), heat max(Heat.carjack,
+--    rarity.wantedOnSteal) (DECISIONS §1).
 --  * A player-driven car hitting a traffic car at > RAM_SPEED relative speed releases it to physics: NPC bails,
 --    kind -> unowned Loot (VehicleService settles it on its suspension), VehicleService's abandon rules clean it up.
 --
 -- Public API: none required by the spec. Extras: getCount(): number, release(car, reason?), buildDriver(seatCFrame, scale,
---   rng): Model (harness-compatible), driverScale(model, seat): number. Pure path helpers prefixed with _ are
+--   rng, palette?): Model (harness-compatible), attachDummy(model, seat, weldTo, palette?): Model (PoliceService's
+--   fallback too), driverScale(model, seat): number, POLICE_PALETTE. Pure path helpers prefixed with _ are
 --   exposed for tests/spec/vehicleservice.spec.luau.
 
 local Players = game:GetService("Players")
@@ -92,6 +97,8 @@ TrafficService.RAM_SPEED = 35
 TrafficService.KNOCKED_OFF_DIST = 25 -- chassis this far from its carrot = shoved off the road: release it
 TrafficService.CARJACK_HOLD_MULT = 0.9
 TrafficService.NPC_DEBRIS_TIME = 3
+TrafficService.UPGRADES_PER_TICK = 2 -- block dummies swapped for NPCService humanoids per manage pass...
+TrafficService.UPGRADE_HIDDEN_DIST = 120 -- ...only for cars at least this far from every player
 TrafficService.SCAN_TICK = 0.1
 TrafficService.MANAGE_TICK = 1
 TrafficService.ALIGN_RESPONSIVENESS = 25 -- AlignOrientation
@@ -611,14 +618,27 @@ local HATS = {
 
 local FIGURE_HEIGHT = 3.15 -- seated figure height (seat top -> hat top) at scale 1
 
+export type Palette = { shirt: Color3?, hat: Color3? }
+
+-- Police cruiser dummies (PoliceService's fallback when NPCService has no officer for it).
+TrafficService.POLICE_PALETTE = {
+	shirt = Color3.fromRGB(40, 90, 210),
+	hat = Color3.fromRGB(28, 50, 130),
+} :: Palette
+
 -- Builds the seated dummy driver (8 parts, no Humanoid) on a seat. Harness-compatible (pure construction).
-function TrafficService.buildDriver(seatCFrame: CFrame, scale: number, r: Random): Model
+-- palette overrides the random shirt / hat colors (the random picks are still drawn, so sequences stay stable).
+function TrafficService.buildDriver(seatCFrame: CFrame, scale: number, r: Random, palette: Palette?): Model
 	local model = Instance.new("Model")
 	model.Name = "NPCDriver"
 	local s = math.clamp(scale, 0.4, 1.2)
 	local shirt = SHIRTS[r:NextInteger(1, #SHIRTS)]
 	local skin = SKINS[r:NextInteger(1, #SKINS)]
 	local hat = HATS[r:NextInteger(1, #HATS)]
+	if palette then
+		shirt = palette.shirt or shirt
+		hat = palette.hat or hat
+	end
 	local function part(name: string, shape: Enum.PartType, size: Vector3, cf: CFrame, color: Color3): Part
 		local p = Instance.new("Part")
 		p.Name = name
@@ -699,20 +719,72 @@ function TrafficService.driverScale(model: Model, seat: BasePart): number
 	return math.clamp((height - 0.35 - seatTop) / FIGURE_HEIGHT, 0.6, 1)
 end
 
--- Comic NPC bail-out: unweld, tumble away from `away`, gone after NPC_DEBRIS_TIME.
+-- The block dummy, welded ("ToCar") to `weldTo` and parented to the car model.
+function TrafficService.attachDummy(model: Model, seat: BasePart, weldTo: BasePart, palette: Palette?): Model
+	local npc = TrafficService.buildDriver(seat.CFrame, TrafficService.driverScale(model, seat), rng, palette)
+	local torso = npc.PrimaryPart
+	if torso then
+		local w = Instance.new("WeldConstraint")
+		w.Name = "ToCar"
+		w.Part0 = torso
+		w.Part1 = weldTo
+		w.Parent = torso
+	end
+	npc.Parent = model
+	return npc
+end
+
+-- NPCService, when it is loaded and exposes the driver API (it boots after us: always looked up lazily).
+local function npcService(): any
+	local mod = sys("NPCService")
+	if mod and typeof(mod.spawnDriver) == "function" and typeof(mod.ejectComic) == "function" then
+		return mod
+	end
+	return nil
+end
+
+local function isHumanoidDriver(npc: Model?): boolean
+	return npc ~= nil and npc:FindFirstChildOfClass("Humanoid") ~= nil
+end
+
+-- A humanoid civilian from NPCService when it can give one (ready, under budget), else (allowDummy) the block dummy.
+local function attachDriver(car: Car, allowDummy: boolean): Model?
+	local seat = car.seat
+	local NPC = npcService()
+	if NPC and seat and seat.Parent then
+		local ok, npc = pcall(NPC.spawnDriver, seat, "civilian")
+		if ok and typeof(npc) == "Instance" and npc:IsA("Model") then
+			return npc
+		end
+	end
+	if not allowDummy or not seat then
+		return nil
+	end
+	return TrafficService.attachDummy(car.model, seat, car.chassis)
+end
+
+-- Comic NPC bail-out: unweld, tumble away from `away`, gone after NPC_DEBRIS_TIME. Humanoid drivers get
+-- NPCService.ejectComic (ragdoll); the block dummy tumbles as one piece.
 local function ejectNPC(e: Entry, away: Vector3?)
 	local npc = e.npc
 	e.npc = nil
 	if not npc or not npc.Parent then
 		return
 	end
+	local chassis = e.chassis
+	local dir = if away and flat(away).Magnitude > 0.1 then flat(away).Unit else -chassis.CFrame.RightVector
+	if isHumanoidDriver(npc) then
+		local NPC = npcService()
+		local fling = dir * rng:NextNumber(28, 42) + flat(chassis.AssemblyLinearVelocity) * 0.4
+		if NPC and pcall(NPC.ejectComic, npc, fling) then
+			return
+		end
+	end
 	local torso = npc.PrimaryPart
 	if not torso then
 		npc:Destroy()
 		return
 	end
-	local chassis = e.chassis
-	local dir = if away and flat(away).Magnitude > 0.1 then flat(away).Unit else -chassis.CFrame.RightVector
 	pcall(function()
 		local toCar = torso:FindFirstChild("ToCar")
 		if toCar then
@@ -986,19 +1058,8 @@ local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): E
 		chassis.AssemblyLinearVelocity = vel0
 	end)
 
-	-- driver dummy
-	local seat = car.seat
-	local npc = TrafficService.buildDriver(seat.CFrame, TrafficService.driverScale(model, seat), rng)
-	local torso = npc.PrimaryPart
-	if torso then
-		local w = Instance.new("WeldConstraint")
-		w.Name = "ToCar"
-		w.Part0 = torso
-		w.Part1 = chassis
-		w.Parent = torso
-	end
-	npc.Parent = model
-	e.npc = npc
+	-- driver: NPCService humanoid, or the block dummy until NPCService can give one
+	e.npc = attachDriver(car, true)
 	trove:Add(function()
 		-- if the car is despawned with its driver still inside, the dummy goes with it
 		if e.npc and e.npc.Parent == model then
@@ -1302,6 +1363,33 @@ local function step(dt: number)
 	end
 end
 
+-- Swap block dummies for NPCService humanoids (at most `limit`; with `roots`, only cars out of players' close view).
+local function upgradeDrivers(limit: number, roots: { Vector3 }?)
+	if npcService() == nil then
+		return
+	end
+	local n = 0
+	for car, e in entries do
+		if n >= limit then
+			break
+		end
+		local old = e.npc
+		if e.released or car.destroyed or old == nil or old.Parent == nil or isHumanoidDriver(old) then
+			continue
+		end
+		if roots and minDist(e.chassis.CFrame.Position, roots) < TrafficService.UPGRADE_HIDDEN_DIST then
+			continue
+		end
+		local human = attachDriver(car, false)
+		if not human then
+			break -- not ready / over budget
+		end
+		e.npc = human
+		old:Destroy()
+		n += 1
+	end
+end
+
 local function countEntries(): number
 	local n = 0
 	for _ in entries do
@@ -1490,6 +1578,13 @@ local function managePass()
 		end
 	end
 
+	if nRoots > 0 then
+		local NPC = npcService()
+		if NPC and typeof(NPC.isReady) == "function" and NPC.isReady() then
+			upgradeDrivers(TrafficService.UPGRADES_PER_TICK, roots)
+		end
+	end
+
 	if count >= target or nRoots == 0 then
 		return
 	end
@@ -1511,6 +1606,16 @@ function TrafficService.init()
 end
 
 function TrafficService.start()
+	-- every block dummy gets a humanoid as soon as NPCService's templates exist
+	local NPC = npcService()
+	if NPC and NPC.Ready then
+		NPC.Ready:Connect(function()
+			local ok, err = pcall(upgradeDrivers, math.huge, nil)
+			if not ok then
+				warn("[TrafficService] driver upgrade failed: " .. tostring(err))
+			end
+		end)
+	end
 	local scanAcc, manageAcc = 0, 0
 	local frameDt = 0
 	local lastErr: { [string]: number } = {}

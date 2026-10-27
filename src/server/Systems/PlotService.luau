@@ -496,11 +496,11 @@ function PlotService._dressLayout(index: number): { DressSpot }
 	-- Loot corner: the safe (always) right of the collect pad, then cash, gold on the safe + a money bag left of the
 	-- pad, a giant trophy, and finally a second cash heap + gold stack. Tier t needs LOOT_TIERS[t] $/s.
 	local cx = G.COLLECT_CENTER.X
-	local cash = onBackWall("LootCash", "money_pile", 5, cx + 15.9, 0, 1)
+	local cash = onBackWall("LootCash", "money_pile", 5, cx + 15.5, 0, 1)
 	local heapTop = cash.cf.Position + Vector3.new(0, cash.size.Y * 0.8, 0) -- tier 4 heaps more cash on top
-	table.insert(spots, onBackWall("LootSafe", "safe_vault", 5.5, cx + 10.4, 0, 0))
+	table.insert(spots, onBackWall("LootSafe", "safe_vault", 5.3, cx + 10.4, 0, 0))
 	table.insert(spots, cash)
-	table.insert(spots, onBackWall("LootGold", "gold_bars", 3, cx + 10.4, dims("safe_vault", 5.5).Y, 2))
+	table.insert(spots, onBackWall("LootGold", "gold_bars", 3, cx + 10.4, dims("safe_vault", 5.3).Y, 2))
 	table.insert(spots, onBackWall("LootBag", "money_bag", 3, cx - 8.9, 0, 2))
 	table.insert(spots, onBackWall("LootTrophy", "trophy", 5, cx + 21.2, 0, 3))
 	table.insert(spots, spotAt("LootCash2", "money_pile", 4, heapTop, Vector3.xAxis, 4))
@@ -602,7 +602,14 @@ local PLACEHOLDER: { [string]: (m: Model, b: CFrame, s: Vector3, accent: Color3)
 			prop(m, "Upright", Vector3.new(0.35, s.Y, s.Z), cf, C.metal, Enum.Material.Metal)
 		end
 		for _, f in { 0.06, 0.48, 0.9 } do
-			prop(m, "Board", Vector3.new(s.X - 0.7, 0.25, s.Z), b * CFrame.new(0, s.Y * f, 0), C.acUnit, Enum.Material.Metal)
+			prop(
+				m,
+				"Board",
+				Vector3.new(s.X - 0.7, 0.25, s.Z),
+				b * CFrame.new(0, s.Y * f, 0),
+				C.acUnit,
+				Enum.Material.Metal
+			)
 		end
 		prop(m, "Box", Vector3.new(s.X * 0.3, 1.6, s.Z * 0.8), b * CFrame.new(-s.X * 0.2, s.Y * 0.48 + 0.92, 0), accent)
 	end,
@@ -647,14 +654,22 @@ local PLACEHOLDER: { [string]: (m: Model, b: CFrame, s: Vector3, accent: Color3)
 	gold_bars = function(m, b, s)
 		local h = s.Y / 3
 		for k, f in { { 1, 1 }, { 0.68, 0.72 }, { 0.36, 0.44 } } do
-			local bar = prop(m, "Gold", Vector3.new(s.X * f[1], h, s.Z * f[2]), b * CFrame.new(0, h * (k - 0.5), 0), C.gold)
+			local bar =
+				prop(m, "Gold", Vector3.new(s.X * f[1], h, s.Z * f[2]), b * CFrame.new(0, h * (k - 0.5), 0), C.gold)
 			bar.Reflectance = 0.15
 		end
 	end,
 	trophy = function(m, b, s)
 		local base = Color3.fromRGB(30, 30, 36)
 		prop(m, "Base", Vector3.new(s.X * 0.5, s.Y * 0.16, s.Z * 0.9), b * CFrame.new(0, s.Y * 0.08, 0), base)
-		prop(m, "Stem", Vector3.new(0.6, s.Y * 0.26, 0.6), b * CFrame.new(0, s.Y * 0.29, 0), C.gold, Enum.Material.Metal)
+		prop(
+			m,
+			"Stem",
+			Vector3.new(0.6, s.Y * 0.26, 0.6),
+			b * CFrame.new(0, s.Y * 0.29, 0),
+			C.gold,
+			Enum.Material.Metal
+		)
 		local cupH = s.Y * 0.42
 		local cup = prop(
 			m,
@@ -690,7 +705,7 @@ local PLACEHOLDER: { [string]: (m: Model, b: CFrame, s: Vector3, accent: Color3)
 local function slotModel(parent: Instance, spot: DressSpot, origin: CFrame, accent: Color3): Model
 	local m = Instance.new("Model")
 	m.Name = spot.name
-	local base = origin * spot.cf
+	local base = origin * CFrame.new(0, PlotService.FLOOR_LIFT, 0) * spot.cf
 	local build = PLACEHOLDER[spot.role]
 	if build then
 		build(m, base, spot.size, accent)
@@ -712,12 +727,19 @@ end
 
 -- A framed ad poster on the inside of the front wall (Decal art from Config/Assets.Images).
 local function poster(parent: Instance, origin: CFrame, x: number, image: string, accent: Color3)
-	local w, h = 12, 6.75 -- the ad art is 16:9
-	local y = 13.6
+	local w, h = 13, 7.3 -- the ad art is 16:9
+	local y = 15.4 -- above the lock sign / shelf, below the ceiling lights
 	local inward = CFrame.Angles(0, math.pi, 0) -- Front face looks into the garage (+Z)
 	local wallZ = G.FRONT_Z + G.WALL_THICKNESS
-	deco(parent, "PosterFrame", Vector3.new(w + 0.8, h + 0.8, 0.16), origin * CFrame.new(x, y, wallZ + 0.24) * inward, accent)
-	local art = deco(parent, "Poster", Vector3.new(w, h, 0.1), origin * CFrame.new(x, y, wallZ + 0.37) * inward, C.white)
+	deco(
+		parent,
+		"PosterFrame",
+		Vector3.new(w + 0.8, h + 0.8, 0.16),
+		origin * CFrame.new(x, y, wallZ + 0.24) * inward,
+		accent
+	)
+	local art =
+		deco(parent, "Poster", Vector3.new(w, h, 0.1), origin * CFrame.new(x, y, wallZ + 0.37) * inward, C.white)
 	local d = Instance.new("Decal")
 	d.Name = "Art"
 	d.Face = Enum.NormalId.Front
@@ -1057,6 +1079,24 @@ function PlotService.buildGarageModel(index: number): Model
 			shadow = false,
 		}
 	)
+	-- city logo painted inside the turntable ring (Top-face art reads upright from the owner spawn)
+	local logoArt = Assets.Images.logo_hotwire_city
+	if logoArt then
+		local mat = makePart(
+			building,
+			"FloorLogo",
+			Vector3.new(14, 0.04, 7.9),
+			L(dov.X, LIFT + 0.12, dov.Z),
+			C.logoBg,
+			{ collide = false, transparency = 1, query = false, shadow = false }
+		)
+		local d = Instance.new("Decal")
+		d.Name = "Logo"
+		d.Face = Enum.NormalId.Top
+		d.Texture = logoArt
+		d.Transparency = 0.08
+		d.Parent = mat
+	end
 	for _, sx in { -1, 1 } do
 		local bpos = Vector3.new(sx * 32, 13, BZ - T - 0.15)
 		local banner = deco(
@@ -1367,6 +1407,28 @@ function PlotService.buildGarageModel(index: number): Model
 		3
 	)
 	stats.FontFace = FONT_BODY
+	-- city logo on a backing board crowning the owner sign (art on both faces: street + rooftop side)
+	local logo = Assets.Images.logo_hotwire_city
+	if logo then
+		local crownW, crownH = 17, 9.5 -- 16:9 like the logo art
+		local signTop = sp.Y + signSize.Y / 2
+		local crown = makePart(
+			building,
+			"SignLogo",
+			Vector3.new(crownW, crownH, 0.8),
+			L(sp.X, signTop + 0.35 + crownH / 2, sp.Z),
+			C.logoBg,
+			{ collide = false, query = false, shadow = false }
+		)
+		neon(building, "SignLogoTrim", Vector3.new(crownW + 0.6, 0.35, 1), L(sp.X, signTop + 0.17, sp.Z), accent)
+		for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
+			local d = Instance.new("Decal")
+			d.Name = "Logo"
+			d.Face = face
+			d.Texture = logo
+			d.Parent = crown
+		end
+	end
 
 	-- Side wall murals (visible from the street)
 	for _, face in { Enum.NormalId.Left, Enum.NormalId.Right } do
@@ -1390,7 +1452,7 @@ function PlotService.buildGarageModel(index: number): Model
 	-- Hangout props --------------------------------------------------------------------------------------------------
 	local couchColor = accent:Lerp(Color3.new(0, 0, 0), 0.35)
 	local cushion = accent:Lerp(Color3.new(1, 1, 1), 0.15)
-	local couchX, couchZ = -15, BZ - T - 3.4
+	local couchX, couchZ = -17.5, BZ - T - 3.4 -- left of the collect pad (the loot corner is on its right)
 	makePart(
 		building,
 		"CouchSeat",
@@ -1425,44 +1487,53 @@ function PlotService.buildGarageModel(index: number): Model
 		accent:Lerp(C.dark, 0.6),
 		Enum.Material.Fabric
 	)
-	-- workbench + pegboard (right of the collect pad)
-	local benchX, benchZ = 15, BZ - T - 2
-	makePart(
-		building,
-		"Toolbox",
-		Vector3.new(10, 3.2, 3.4),
-		L(benchX, LIFT + 1.6, benchZ),
-		C.toolbox,
-		{ material = Enum.Material.Metal }
+	-- Kit dressing: wall-prop slots (MapDresser) + the loot corner (dressed and toggled here) ------------------------
+	local dressing = Instance.new("Folder")
+	dressing.Name = "Dressing"
+	dressing.Parent = model
+	local loot = Instance.new("Model")
+	loot.Name = "Loot"
+	loot.Parent = model
+	local tierModels: { Model } = {}
+	for t = 1, #PlotService.LOOT_TIERS do
+		local tm = Instance.new("Model")
+		tm.Name = "Tier" .. t
+		tm:SetAttribute("LootTier", t)
+		tm.Parent = loot
+		tierModels[t] = tm
+	end
+	for _, spot in PlotService._dressLayout(index) do
+		local parent: Instance = if spot.tier == nil
+			then dressing
+			elseif spot.tier == 0 then loot
+			else tierModels[spot.tier]
+		slotModel(parent, spot, origin, accent)
+	end
+	-- a warm glow over the pile once the trophy shows up
+	local glowAt = G.COLLECT_CENTER + Vector3.new(16, 7, 2)
+	local glow = makePart(
+		tierModels[3],
+		"LootGlow",
+		Vector3.new(0.4, 0.4, 0.4),
+		L(glowAt.X, glowAt.Y, glowAt.Z),
+		C.gold,
+		{ collide = false, transparency = 1, query = false, shadow = false }
 	)
-	deco(building, "BenchTop", Vector3.new(10.4, 0.4, 3.8), L(benchX, LIFT + 3.4, benchZ), C.peg, Enum.Material.Wood)
-	deco(building, "Pegboard", Vector3.new(10, 5, 0.3), L(benchX, 7, BZ - T - 0.15), C.peg, Enum.Material.Wood)
-	for i = 1, 3 do
-		deco(building, "Drawer", Vector3.new(9, 0.2, 0.1), L(benchX, LIFT + 0.6 + i * 0.75, benchZ - 1.72), C.metal)
-	end
-	-- tire stacks + barrels by the front-right corner
-	local tireStack = { { 36, -37, 3 }, { 39.6, -37.5, 2 }, { 37.5, -33.8, 1 } }
-	for _, ts in tireStack do
-		for k = 1, ts[3] do
-			makePart(
-				building,
-				"Tire",
-				Vector3.new(1.2, 3.4, 3.4),
-				L(ts[1], LIFT + 0.6 + (k - 1) * 1.2, ts[2]) * CFrame.Angles(0, 0, math.pi / 2),
-				C.tire,
-				{ shape = Enum.PartType.Cylinder, material = Enum.Material.Rubber }
-			)
-		end
-	end
-	for i, bp in { { 43, -39.5 }, { 43, -36.2 } } do
-		makePart(
-			building,
-			"Barrel",
-			Vector3.new(4, 2.8, 2.8),
-			L(bp[1], LIFT + 2, bp[2]) * CFrame.Angles(0, 0, math.pi / 2),
-			if i == 1 then accent else C.metal,
-			{ shape = Enum.PartType.Cylinder, material = Enum.Material.Metal }
-		)
+	local glowLight = Instance.new("PointLight")
+	glowLight.Color = C.gold
+	glowLight.Range = 16
+	glowLight.Brightness = 1.3
+	glowLight.Shadows = false
+	glowLight.Parent = glow
+	model:SetAttribute("LootTier", #PlotService.LOOT_TIERS)
+
+	-- ad posters inside the front wall + the city logo over the owner sign (front) and on its back
+	local ads = Assets.billboardAds()
+	if #ads > 0 then
+		local first = ((index - 1) * 3) % #ads + 1
+		local second = ((index - 1) * 3 + 4) % #ads + 1
+		poster(building, origin, -24.9, ads[first], accent)
+		poster(building, origin, 24.9, ads[if second == first then first % #ads + 1 else second], accent)
 	end
 
 	-- Display folder + owner spawn ----------------------------------------------------------------------------------
@@ -1499,6 +1570,9 @@ type PlotState = PlotInfo & {
 	lastShown: number,
 	lastLockDuration: number, -- seconds of the last button lock (sets the proportional re-arm)
 	spawn: SpawnLocation?, -- "PlotSpawn": the owner's RespawnLocation
+	lootTierModels: { Model }, -- Loot.Tier1..N (parented to Loot only while unlocked)
+	lootSlots: { Model }, -- every LootSlot of every tier (dressed even while hidden)
+	lootTier: number, -- tier currently shown (-1 = not applied yet)
 }
 
 local plots: { PlotState } = {}
@@ -1597,6 +1671,89 @@ local function moveCharacterHome(player: Player)
 	local root = char:FindFirstChild("HumanoidRootPart")
 	if root and root:IsA("BasePart") then
 		root.AssemblyLinearVelocity = Vector3.zero
+	end
+end
+
+-- Loot corner ------------------------------------------------------------------------------------------------------
+
+local function ownerIncome(st: PlotState): number
+	local owner = st.owner
+	local ips = owner and owner:GetAttribute("IncomePerSec")
+	if typeof(ips) ~= "number" then
+		ips = st.model:GetAttribute("IncomePerSec")
+	end
+	return if typeof(ips) == "number" then ips else 0
+end
+
+-- Show the loot tiers the owner's income has unlocked (vacant garages keep just the safe).
+local function updateLoot(st: PlotState)
+	local tier = if st.owner then PlotService._lootTier(ownerIncome(st)) else 0
+	if tier ~= st.lootTier then
+		st.lootTier = tier
+		PlotService._applyLootTier(st.model, st.lootTierModels, tier)
+	end
+end
+
+-- Swap one loot placeholder for its AssetLibrary mesh (scaled to the slot's Fit). False while the template is missing:
+-- the placeholder simply stays (procedural fallback).
+local function dressLootSlot(slot: Model): boolean
+	if slot:GetAttribute("Dressed") == true then
+		return true
+	end
+	local AssetLibrary = sys("AssetLibrary")
+	local role = slot:GetAttribute("Role")
+	if not AssetLibrary or typeof(AssetLibrary.get) ~= "function" or typeof(role) ~= "string" then
+		return false
+	end
+	local okGet, template = pcall(AssetLibrary.get, "Props", role)
+	if not okGet or typeof(template) ~= "Instance" or not template:IsA("Model") then
+		return false
+	end
+	local def = Assets.Props[role]
+	local fit = slot:GetAttribute("Fit")
+	local ground = slot:GetPivot()
+	local ok, res = pcall(function(): Model
+		local c = (template :: Model):Clone()
+		if def and typeof(fit) == "number" and fit > 0 and math.abs(fit - def.size) > 1e-3 then
+			c:ScaleTo(c:GetScale() * fit / def.size)
+		end
+		c:PivotTo(ground)
+		return c
+	end)
+	if not ok or typeof(res) ~= "Instance" then
+		warn(("[PlotService] loot mesh %s failed: %s"):format(role, tostring(res)))
+		return false
+	end
+	local mesh = res :: Model
+	for _, d in mesh:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CastShadow = false
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+		end
+	end
+	-- the placeholder goes only once the mesh stands in its place
+	for _, child in slot:GetChildren() do
+		if child:IsA("BasePart") then
+			child:Destroy()
+		end
+	end
+	mesh.Name = "Mesh"
+	mesh.Parent = slot
+	slot.WorldPivot = ground
+	slot:SetAttribute("Dressed", true)
+	return true
+end
+
+-- Dress every loot slot (of every plot, hidden tiers included) whose role is `role` (nil = all).
+local function dressLoot(role: string?)
+	for _, st in plots do
+		for _, slot in st.lootSlots do
+			if role == nil or slot:GetAttribute("Role") == role then
+				dressLootSlot(slot)
+			end
+		end
 	end
 end
 
@@ -1925,6 +2082,7 @@ local function assign(player: Player): number?
 				end)
 			end
 			setSign(st)
+			updateLoot(st)
 			PlotService.PlotAssigned:Fire(player, st.index)
 			return st.index
 		end
@@ -1966,6 +2124,7 @@ local function release(player: Player)
 	end
 	resetPads(st)
 	setSign(st)
+	updateLoot(st)
 	PlotService.PlotReleased:Fire(player, index)
 end
 
@@ -2092,6 +2251,9 @@ function PlotService.init()
 			lastShown = -1,
 			lastLockDuration = 0,
 			spawn = nil,
+			lootTierModels = PlotService._lootTierModels(model),
+			lootSlots = {},
+			lootTier = -1,
 		}
 		-- The owner's RespawnLocation (set in assign). Invisible, flush with the floor at OwnerSpawn; Neutral because
 		-- teamless players can only use neutral spawns; disabled while the garage is vacant.
@@ -2111,6 +2273,15 @@ function PlotService.init()
 		spawnPad.Enabled = false
 		spawnPad.Parent = model
 		st.spawn = spawnPad
+		local lootRoot = model:FindFirstChild("Loot")
+		if lootRoot then
+			for _, d in lootRoot:GetDescendants() do
+				if d:IsA("Model") and CollectionService:HasTag(d, PlotService.TAG_LOOT) then
+					table.insert(st.lootSlots, d)
+				end
+			end
+		end
+		updateLoot(st) -- vacant: just the safe (before the model enters Workspace)
 		plots[index] = st
 		model.Parent = folder
 
@@ -2132,6 +2303,19 @@ function PlotService.init()
 end
 
 function PlotService.start()
+	-- Loot meshes: dress what AssetLibrary already holds, then each Props template as it lands (wall-prop slots are
+	-- MapDresser's). Idempotent per slot, so a template landing between Connect and the first pass is harmless.
+	local AssetLibrary = sys("AssetLibrary")
+	local ready = AssetLibrary and AssetLibrary.Ready
+	if ready and typeof(ready.Connect) == "function" then
+		ready:Connect(function(cat: string, key: string)
+			if cat == "Props" then
+				dressLoot(key)
+			end
+		end)
+	end
+	dressLoot(nil)
+
 	local handled: { [Player]: boolean } = {}
 	local function onPlayer(player: Player)
 		if handled[player] then
@@ -2181,6 +2365,9 @@ function PlotService.start()
 						end
 					end
 				end
+			end
+			if doSign then
+				updateLoot(st)
 			end
 			if doSign and st.owner then
 				setSign(st)

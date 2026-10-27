@@ -10,6 +10,8 @@
 --  * Rarity-colored pulsing ground glow + light under Epic+ cars, sparkles for Legendary+ (Secret cycles hue). The
 --    light and sparkles only run within FX_RANGE of the camera (PERF-13).
 --  * StealPrompt.HoldDuration scaled locally by the player's HoldMultiplier attribute (server re-validates).
+--  * Turntable rims (art pass): a slow marquee chase runs around the 8 neon rims; a Rare+ car tints its pad's rim with
+--    its rarity color, an empty pad's rim dims. 8 Color writes every RIM_INTERVAL, only near the showroom.
 --  * Prompt audience filter (used by TheftService's dropped-car prompts): any ProximityPrompt under
 --    Workspace.Vehicles with attribute OnlyUserId (number) is hidden for everyone else; HideForUserId hides it for
 --    that one user. Purely cosmetic: the server re-checks who triggered what.
@@ -41,6 +43,8 @@ DealershipClient.SPIN_RANGE = 260 -- only spin cars this close to the camera
 DealershipClient.FX_RANGE = 160 -- glow PointLight + sparkles are switched off beyond this (mobile GPU budget)
 DealershipClient.BILLBOARD_DISTANCE = 120
 DealershipClient.TIMER_INTERVAL = 0.25
+DealershipClient.RIM_INTERVAL = 0.1 -- turntable rim chase refresh
+DealershipClient.RIM_RANGE = 300 -- rims animate only while the camera is this close to a pad
 
 local player = Players.LocalPlayer
 
@@ -60,6 +64,7 @@ type Tracked = {
 	fxOn: boolean, -- light + sparkles currently enabled
 	glowColor: Color3,
 	rainbowGlow: boolean,
+	rimTint: Color3?, -- rarity color for the pad rim (Rare and up)
 	trove: any,
 }
 
@@ -68,6 +73,9 @@ type PadBoard = {
 	gui: BillboardGui,
 	status: TextLabel,
 	timer: TextLabel,
+	rim: BasePart?, -- the neon rim DealershipService builds into each turntable
+	rimBase: Color3,
+	index: number,
 	trove: any,
 }
 
@@ -75,6 +83,7 @@ local tracked: { [Model]: Tracked } = {}
 local padBoards: { [BasePart]: PadBoard } = {}
 local fxFolder: Folder? = nil
 local timerAccum = 0
+local rimAccum = 0
 local hiddenPrompts: { [ProximityPrompt]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
 -- Pure helpers (exposed for tests) ---------------------------------------------------------------------------------
@@ -112,6 +121,17 @@ function DealershipClient._displayColor(rarity: string): Color3
 	end
 	local tier = Rarity.Tiers[rarity :: any]
 	return if tier then tier.color else Theme.Colors.Text
+end
+
+-- Rim color for pad `index` at time t: the chase wave brightens toward white; Rare+ cars tint it with their rarity,
+-- an empty pad dims to a third.
+function DealershipClient._rimColor(base: Color3, tint: Color3?, empty: boolean, t: number, index: number): Color3
+	local wave = (math.sin(t * 3.2 - index * 0.785) + 1) * 0.5
+	local c = tint or base
+	if empty then
+		return c:Lerp(Color3.new(0, 0, 0), 0.65)
+	end
+	return c:Lerp(Color3.new(1, 1, 1), 0.35 * wave * wave)
 end
 
 -- Helpers ----------------------------------------------------------------------------------------------------------
@@ -370,8 +390,13 @@ local function track(model: Instance)
 		fxOn = true,
 		glowColor = Theme.Colors.Text,
 		rainbowGlow = false,
+		rimTint = nil,
 		trove = Trove.new(),
 	}
+	local tier = Rarity.Tiers[def.rarity]
+	if tier and tier.order >= 3 then
+		rec.rimTint = DealershipClient._displayColor(def.rarity)
+	end
 	tracked[model] = rec
 	local ok, err = pcall(buildBillboard, rec, def, mut)
 	if not ok then
@@ -434,7 +459,18 @@ local function trackPad(inst: Instance)
 	local status = textRow(gui, "Status", "SOLD!", 0, 0.62, Theme.Colors.Cash)
 	local timer = textRow(gui, "Timer", "", 0.64, 0.34, Theme.Colors.Text, Theme.Fonts.BodyHeavy)
 	gui.Parent = inst
-	local board: PadBoard = { part = inst, gui = gui, status = status, timer = timer, trove = Trove.new() }
+	local index = num(inst:GetAttribute("PadIndex"), 0)
+	local rim = inst:FindFirstChild("Rim" .. index)
+	local board: PadBoard = {
+		part = inst,
+		gui = gui,
+		status = status,
+		timer = timer,
+		rim = if rim and rim:IsA("BasePart") then rim else nil,
+		rimBase = if rim and rim:IsA("BasePart") then rim.Color else Color3.new(1, 1, 1),
+		index = index,
+		trove = Trove.new(),
+	}
 	board.trove:Add(gui)
 	padBoards[inst] = board
 	board.trove:Connect(inst.AttributeChanged, function()
@@ -484,6 +520,23 @@ end
 
 -- Frame loop ------------------------------------------------------------------------------------------------------------
 
+local function updateRims(t: number, camPos: Vector3)
+	local tintAt: { [number]: Color3 } = {}
+	for model, rec in tracked do
+		local idx = model:GetAttribute("PadIndex")
+		if typeof(idx) == "number" and rec.rimTint then
+			tintAt[idx] = rec.rimTint
+		end
+	end
+	for part, board in padBoards do
+		local rim = board.rim
+		if rim and rim.Parent and (part.Position - camPos).Magnitude <= DealershipClient.RIM_RANGE then
+			local empty = part:GetAttribute("Empty") == true
+			rim.Color = DealershipClient._rimColor(board.rimBase, tintAt[board.index], empty, t, board.index)
+		end
+	end
+end
+
 local function step(dt: number)
 	local cam = Workspace.CurrentCamera
 	local camPos = if cam then cam.CFrame.Position else Vector3.zero
@@ -528,6 +581,12 @@ local function step(dt: number)
 				end
 			end
 		end
+	end
+
+	rimAccum += dt
+	if rimAccum >= DealershipClient.RIM_INTERVAL then
+		rimAccum = 0
+		updateRims(t, camPos)
 	end
 
 	timerAccum += dt

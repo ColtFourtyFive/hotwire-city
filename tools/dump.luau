@@ -4,6 +4,9 @@
 --   lune run tools/dump.luau car <carId|police|all> [mutation] out.json
 --   lune run tools/dump.luau map out.json
 --   lune run tools/dump.luau plot <index> out.json
+--   lune run tools/dump.luau mapslots out.json   (art pass: AssetSlots + their resolved kit key, every part with its
+--                                                 slot index, Billboard boards + ad image, terrain ops; see
+--                                                 tools/preview_dressed.py)
 --
 -- Contracts used: Shared/Vehicle/CarBuilder.build(carId, mutation, {forDisplay=true}) / .buildDef(def, ...)
 --                 Server/Systems/MapBuilder.build(parent) -> Folder
@@ -73,6 +76,126 @@ elseif kind == "plot" then
 	local model = PlotService.buildGarageModel(index)
 	local parts = Harness.dumpParts(model)
 	writeGroups({ { title = ("plot %d (%d parts)"):format(index, #parts), parts = parts } }, out)
+elseif kind == "mapslots" then
+	local out = args[2]
+	local MapBuilder = Harness.require("src/server/Systems/MapBuilder")
+	local MapDresser = Harness.require("src/server/Systems/MapDresser")
+	local Assets = Harness.require("src/shared/Config/Assets")
+	local folder = MapBuilder.build(Harness.workspace)
+	table.clear(Harness.terrainOps)
+	local terrain = Harness.workspace:FindFirstChildOfClass("Terrain")
+	MapBuilder.buildTerrain(terrain)
+	local slotOf = {}
+	local slots = {}
+	for i, m in MapBuilder.slots(folder) do
+		local category, key = MapDresser.resolve(m)
+		local boxes = {}
+		for _, b in MapBuilder.slotBoxes(m) do
+			table.insert(boxes, { cframe = { b.cframe:GetComponents() }, size = { b.size.X, b.size.Y, b.size.Z } })
+		end
+		table.insert(slots, {
+			name = m.Name,
+			path = m:GetFullName(),
+			category = m:GetAttribute("Category"),
+			role = m:GetAttribute("Role"),
+			key = key or "",
+			fit = m:GetAttribute("Fit"),
+			yaw = m:GetAttribute("Yaw") or 0,
+			cframe = { m:GetPivot():GetComponents() },
+			boxes = boxes,
+		})
+		for _, d in m:GetDescendants() do
+			if d:IsA("BasePart") then
+				slotOf[d] = i
+			end
+		end
+	end
+	local parts = {}
+	for _, d in folder:GetDescendants() do
+		if d:IsA("BasePart") then
+			local shape = "Block"
+			if d:IsA("Part") then
+				shape = d.Shape.Name
+			elseif d:IsA("WedgePart") then
+				shape = "Wedge"
+			elseif d:IsA("CornerWedgePart") then
+				shape = "CornerWedge"
+			end
+			table.insert(parts, {
+				name = d.Name,
+				shape = shape,
+				size = { d.Size.X, d.Size.Y, d.Size.Z },
+				cframe = { d.CFrame:GetComponents() },
+				color = { math.floor(d.Color.R * 255), math.floor(d.Color.G * 255), math.floor(d.Color.B * 255) },
+				transparency = d.Transparency,
+				material = d.Material.Name,
+				canCollide = d.CanCollide,
+				slot = slotOf[d] or 0,
+				nightGlow = d:HasTag("NightGlow"),
+			})
+		end
+	end
+	local ads = Assets.billboardAds()
+	local boards = {}
+	for _, d in folder:GetDescendants() do
+		if d:IsA("BasePart") and d:HasTag("Billboard") then
+			table.insert(boards, {
+				cframe = { d.CFrame:GetComponents() },
+				size = { d.Size.X, d.Size.Y, d.Size.Z },
+				back = d:GetAttribute("AdBack") == true,
+				image = MapDresser.adFor(d, ads) or "",
+			})
+		end
+	end
+	local images = {}
+	for _, d in folder:GetDescendants() do
+		if d:IsA("BasePart") and d:GetAttribute("Image") then
+			table.insert(images, {
+				cframe = { d.CFrame:GetComponents() },
+				size = { d.Size.X, d.Size.Y, d.Size.Z },
+				image = d:GetAttribute("Image"),
+			})
+		end
+	end
+	local ops = {}
+	for _, op in Harness.terrainOps do
+		if op[1] == "FillBlock" then
+			table.insert(ops, {
+				cframe = { op[2]:GetComponents() },
+				size = { op[3].X, op[3].Y, op[3].Z },
+				material = op[4].Name,
+			})
+		end
+	end
+	local nb, np = 0, 0
+	for _, sl in slots do
+		if sl.category == "Buildings" then
+			nb += 1
+		else
+			np += 1
+		end
+	end
+	local slotParts = 0
+	for _, p in parts do
+		if p.slot > 0 then
+			slotParts += 1
+		end
+	end
+	print(
+		("map parts: %d (%d in placeholders, %d remain dressed); slots: %d buildings, %d props; boards %d"):format(
+			#parts,
+			slotParts,
+			#parts - slotParts,
+			nb,
+			np,
+			#boards
+		)
+	)
+	fs.writeFile(
+		out,
+		serde.encode("json", { slots = slots, parts = parts, boards = boards, images = images, terrain = ops })
+	)
+	print("wrote " .. out)
 else
 	print("usage: see header")
 	process.exit(1)

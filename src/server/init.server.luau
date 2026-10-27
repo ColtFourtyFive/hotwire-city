@@ -11,6 +11,7 @@ local Net = require(ReplicatedStorage.Shared.Net)
 local ORDER = {
 	"MapBuilder",
 	"AssetLibrary",
+	"MapDresser",
 	"LightingService",
 	"DataService",
 	"MonetizationService",
@@ -23,6 +24,7 @@ local ORDER = {
 	"DealershipService",
 	"StreetSpawnService",
 	"TrafficService",
+	"NPCService",
 	"CombatService",
 	"EventService",
 	"RewardsService",

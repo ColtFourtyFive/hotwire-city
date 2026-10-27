@@ -16,6 +16,9 @@
 --    too long ago is stale (no "tap once, trigger later with a locally zeroed HoldDuration").
 --  * Mythic/Secret stock is announced server-wide (Announce + EventFeed + a temporary Waypoint).
 --  * A big countdown sign ("NEW STOCK IN m:ss") stands behind the back row.
+--  * Art pass dressing (buildDressing, Workspace.Dealership.Dressing): a car_showroom "flagship" backdrop on the back
+--    half of the roof, palms, a hot dog stand and a bench in the back corners (AssetSlots for MapDresser), Hotwire
+--    Motors / Gold Rush banners and logo flags (Decals). Nothing touches the pads, aisle, drive-out or restock sign.
 --
 -- Pure helpers (_price, _stealHold, _stealHeat, _holdOk, _padRestockAt, _rollStock, ...) and the harness-compatible
 -- builders (buildShowroom, buildDisplay) are exposed for tests / tools.
@@ -26,6 +29,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
+local Assets = require(Shared.Config.Assets)
 local Cars = require(Shared.Config.Cars)
 local Economy = require(Shared.Config.Economy)
 local EconomyMath = require(Shared.Util.EconomyMath)
@@ -511,6 +515,303 @@ function DealershipService.buildShowroom(parent: Instance, floorYs: { number }?)
 	local signPos = Vector3.new(c.X, floor, c.Z) + DealershipService.SIGN_OFFSET
 	local board = DealershipService.buildSign(parent, CFrame.lookAt(signPos, signPos + Vector3.new(0, 0, -1)))
 	return tables, board
+end
+
+-- Showroom dressing (art pass AP2b) ---------------------------------------------------------------------------------
+-- 3D props are Models tagged "AssetSlot" (attributes Category, Role, Fit, Footprint; WorldPivot = the ground CFrame,
+-- LookVector = the asset's front) that MapDresser swaps for kit meshes; their procedural placeholder is the fallback.
+-- Banners / flags are thin parts with Decal art (Config/Assets.Images). Everything is non-colliding and stays off the
+-- pads, the middle aisle, the north drive-out and the sidewalk ring (dealership spec).
+
+-- Normalized kit dims per stud of `fit` (W, H, D; from `python3 tools/kitgeo.py dims`).
+local KIT_DIMS: { [string]: Vector3 } = {
+	car_showroom = Vector3.new(1, 0.406, 0.708),
+	hotdog_stand = Vector3.new(1.175, 1, 1.245),
+	palm_tree_a = Vector3.new(0.61, 1, 0.653),
+	palm_tree_b = Vector3.new(0.598, 1, 0.617),
+	bench = Vector3.new(1, 0.667, 0.55),
+}
+
+DealershipService.ROOF_Y = 19.6 -- top of MapBuilder's showroom canopy (studs above the floor)
+DealershipService.BACKDROP_FIT = 72 -- car_showroom footprint width: a glass "flagship" floor over the back half of the roof
+DealershipService.BACKDROP_BACK_Z = 48 -- its back edge (showroom-local +Z; the canopy ends at 48.5)
+DealershipService.FLAG_HEIGHT = 30
+
+local LOGO_BG = Color3.fromRGB(18, 20, 38) -- the logo art's background
+
+local function decal(p: BasePart, face: Enum.NormalId, image: string?)
+	if not image then
+		return
+	end
+	local d = Instance.new("Decal")
+	d.Name = "Art"
+	d.Face = face
+	d.Texture = image
+	d.Parent = p
+end
+
+local function deco(parent: Instance, name: string, size: Vector3, cf: CFrame, color: Color3, props: { [string]: any }?)
+	local spec: { [string]: any } = {
+		Name = name,
+		Size = size,
+		CFrame = cf,
+		Color = color,
+		Material = Enum.Material.SmoothPlastic,
+		Parent = parent,
+	}
+	for k, v in props or {} do
+		spec[k] = v
+	end
+	return part(spec)
+end
+
+local SLOT_PLACEHOLDER: { [string]: (m: Model, b: CFrame, s: Vector3) -> () } = {
+	car_showroom = function(m, b, s)
+		-- no procedural stand-in on the roof: without the mesh the showroom simply looks as before
+		deco(m, "Footprint", s, b * CFrame.new(0, s.Y / 2, 0), Color3.new(1, 1, 1), { Transparency = 1 })
+	end,
+	palm_tree_a = function(m, b, s)
+		deco(
+			m,
+			"Trunk",
+			Vector3.new(s.Y * 0.92, 1.1, 1.1),
+			b * CFrame.new(0, s.Y * 0.46, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			Color3.fromRGB(150, 104, 62),
+			{
+				Shape = Enum.PartType.Cylinder,
+				Material = Enum.Material.Wood,
+			}
+		)
+		for i = 0, 3 do
+			local yaw = i * math.pi / 2 + math.pi / 4
+			local len = s.X * 0.55
+			deco(
+				m,
+				"Frond",
+				Vector3.new(2.2, 0.3, len),
+				b
+					* CFrame.new(0, s.Y * 0.9, 0)
+					* CFrame.Angles(0, yaw, 0)
+					* CFrame.Angles(-0.35, 0, 0)
+					* CFrame.new(0, 0, -len / 2),
+				if i % 2 == 0 then Color3.fromRGB(60, 170, 70) else Color3.fromRGB(40, 140, 60),
+				{ Material = Enum.Material.Grass }
+			)
+		end
+	end,
+	hotdog_stand = function(m, b, s)
+		deco(
+			m,
+			"Cart",
+			Vector3.new(s.X * 0.8, s.Y * 0.38, s.Z * 0.5),
+			b * CFrame.new(0, s.Y * 0.24, 0),
+			Color3.fromRGB(220, 50, 50)
+		)
+		deco(
+			m,
+			"Counter",
+			Vector3.new(s.X * 0.84, 0.3, s.Z * 0.56),
+			b * CFrame.new(0, s.Y * 0.44, 0),
+			Color3.new(1, 1, 1)
+		)
+		deco(
+			m,
+			"Pole",
+			Vector3.new(0.3, s.Y * 0.55, 0.3),
+			b * CFrame.new(0, s.Y * 0.72, 0),
+			Color3.fromRGB(200, 200, 210),
+			{
+				Material = Enum.Material.Metal,
+			}
+		)
+		deco(
+			m,
+			"Umbrella",
+			Vector3.new(0.5, s.X * 0.9, s.X * 0.9),
+			b * CFrame.new(0, s.Y - 0.25, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			Color3.fromRGB(255, 205, 40),
+			{
+				Shape = Enum.PartType.Cylinder,
+			}
+		)
+	end,
+	bench = function(m, b, s)
+		local wood = Color3.fromRGB(176, 120, 70)
+		deco(
+			m,
+			"Seat",
+			Vector3.new(s.X, 0.4, s.Z * 0.6),
+			b * CFrame.new(0, s.Y * 0.42, -s.Z * 0.1),
+			wood,
+			{ Material = Enum.Material.Wood }
+		)
+		deco(
+			m,
+			"Back",
+			Vector3.new(s.X, s.Y * 0.42, 0.3),
+			b * CFrame.new(0, s.Y * 0.74, s.Z * 0.3),
+			wood,
+			{ Material = Enum.Material.Wood }
+		)
+		for _, sx in { -1, 1 } do
+			deco(
+				m,
+				"Leg",
+				Vector3.new(0.4, s.Y * 0.42, s.Z * 0.6),
+				b * CFrame.new(sx * (s.X / 2 - 0.6), s.Y * 0.21, 0),
+				NAVY,
+				{
+					Material = Enum.Material.Metal,
+				}
+			)
+		end
+	end,
+}
+SLOT_PLACEHOLDER.palm_tree_b = SLOT_PLACEHOLDER.palm_tree_a
+
+local function assetSlot(
+	parent: Instance,
+	name: string,
+	category: string,
+	role: string,
+	fit: number,
+	ground: CFrame
+): Model
+	local size = (KIT_DIMS[role] or Vector3.one) * fit
+	local m = Instance.new("Model")
+	m.Name = name
+	local build = SLOT_PLACEHOLDER[role]
+	if build then
+		build(m, ground, size)
+	end
+	m.WorldPivot = ground
+	m:SetAttribute("Category", category)
+	m:SetAttribute("Role", role)
+	m:SetAttribute("Fit", fit)
+	m:SetAttribute("Footprint", size)
+	CollectionService:AddTag(m, "AssetSlot")
+	m.Parent = parent
+	return m
+end
+
+-- Builds the showroom dressing into `parent` (a "Dressing" Model) on the floor at `floorY` (default: curb height).
+-- opts.backdrop = false skips the car_showroom roof backdrop (when the map already places one). Harness-compatible.
+function DealershipService.buildDressing(parent: Instance, floorY: number?, opts: { backdrop: boolean? }?): Model
+	local c = MapLayout.poiCenter("Dealership")
+	local o = Vector3.new(c.X, floorY or c.Y, c.Z)
+	local function at(x: number, y: number, z: number): Vector3
+		return o + Vector3.new(x, y, z)
+	end
+	local north = Vector3.new(0, 0, -1)
+	local model = Instance.new("Model")
+	model.Name = "Dressing"
+
+	-- flagship backdrop on the back half of the roof (never over the drive-out, never down among the pads)
+	if not (opts and opts.backdrop == false) then
+		local fit = DealershipService.BACKDROP_FIT
+		local depth = KIT_DIMS.car_showroom.Z * fit
+		local g = at(0, DealershipService.ROOF_Y, DealershipService.BACKDROP_BACK_Z - depth / 2)
+		assetSlot(model, "ShowroomBackdrop", "Buildings", "car_showroom", fit, CFrame.lookAt(g, g + north))
+	end
+
+	-- back corners: an indoor palm in a planter each side, the hot dog stand (left) and a customer bench (right)
+	for i, sx in { -1, 1 } do
+		local p = at(sx * 45, 0, 40.5)
+		deco(
+			model,
+			"Planter",
+			Vector3.new(6, 1.6, 6),
+			CFrame.new(p + Vector3.new(0, 0.8, 0)),
+			Color3.fromRGB(214, 170, 130)
+		)
+		deco(
+			model,
+			"PlanterTrim",
+			Vector3.new(6.3, 0.25, 6.3),
+			CFrame.new(p + Vector3.new(0, 1.55, 0)),
+			if i == 1 then PINK else CYAN,
+			{
+				Material = Enum.Material.Neon,
+			}
+		)
+		local g = p + Vector3.new(0, 1.6, 0)
+		assetSlot(
+			model,
+			"Palm" .. i,
+			"Props",
+			if i == 1 then "palm_tree_a" else "palm_tree_b",
+			14,
+			CFrame.lookAt(g, g + north)
+		)
+	end
+	local hd = at(-30, 0, 40.2)
+	assetSlot(model, "HotdogStand", "Props", "hotdog_stand", 8, CFrame.lookAt(hd, hd + north))
+	local bn = at(30, 0, 41)
+	assetSlot(model, "Bench", "Props", "bench", 8, CFrame.lookAt(bn, bn + north))
+
+	-- ad frieze along the top of the west glass (faces the spawn plaza; art on both faces)
+	local images = Assets.Images
+	local bw, bh = 13, 7.3 -- the ad art is 16:9
+	for i, z in { -34.85, -11.5, 11.5, 34.35 } do
+		local p = at(-50.45, 16 - 0.2 - bh / 2, z)
+		local b = deco(model, "Banner", Vector3.new(bw, bh, 0.2), CFrame.lookAt(p, p + Vector3.new(-1, 0, 0)), NAVY)
+		decal(b, Enum.NormalId.Front, if i % 2 == 1 then images.ad_hotwire_motors else images.ad_gold_rush)
+		decal(b, Enum.NormalId.Back, if i % 2 == 1 then images.ad_gold_rush else images.ad_hotwire_motors)
+	end
+	-- rooftop billboards flanking the north sign (the drive-out below stays clear up to the canopy: hero shells
+	-- reach 15 studs)
+	for i, sx in { -1, 1 } do
+		local p = at(sx * 42, DealershipService.ROOF_Y + 0.3 + bh / 2, -47.6)
+		local b = deco(model, "RoofBanner", Vector3.new(bw, bh, 0.3), CFrame.lookAt(p, p + north), NAVY)
+		decal(b, Enum.NormalId.Front, if i == 1 then images.ad_hotwire_motors else images.ad_gold_rush)
+		decal(b, Enum.NormalId.Back, if i == 1 then images.ad_gold_rush else images.ad_hotwire_motors)
+		deco(
+			model,
+			"RoofBannerBase",
+			Vector3.new(bw + 0.6, 0.3, 1.2),
+			CFrame.new(p - Vector3.new(0, bh / 2 + 0.15, 0)),
+			if i == 1 then PINK else CYAN,
+			{ Material = Enum.Material.Neon }
+		)
+	end
+
+	-- logo flags on the four lot corners (outside the pillar line, inside the lot)
+	local h = DealershipService.FLAG_HEIGHT
+	for i, corner in { Vector3.new(-1, 0, -1), Vector3.new(1, 0, -1), Vector3.new(-1, 0, 1), Vector3.new(1, 0, 1) } do
+		local base = at(corner.X * 51.2, 0, corner.Z * 51.2)
+		deco(
+			model,
+			"FlagPole",
+			Vector3.new(h, 0.6, 0.6),
+			CFrame.new(base + Vector3.new(0, h / 2, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+			Color3.fromRGB(235, 238, 245),
+			{
+				Shape = Enum.PartType.Cylinder,
+				Material = Enum.Material.Metal,
+			}
+		)
+		deco(
+			model,
+			"FlagCap",
+			Vector3.new(1.3, 1.3, 1.3),
+			CFrame.new(base + Vector3.new(0, h + 0.5, 0)),
+			if i % 2 == 1 then PINK else CYAN,
+			{
+				Shape = Enum.PartType.Ball,
+				Material = Enum.Material.Neon,
+			}
+		)
+		local n = corner.Unit -- flags face out diagonally: readable from the plaza and the north road
+		local along = Vector3.new(-n.Z, 0, n.X) * (if corner.X * corner.Z > 0 then 1 else -1)
+		local fw, fh = 10, 5.6 -- 16:9 logo art
+		local fc = base + Vector3.new(0, h - fh / 2 - 0.4, 0) + along * (fw / 2 + 0.3)
+		local flag = deco(model, "Flag", Vector3.new(fw, fh, 0.15), CFrame.lookAt(fc, fc + n), LOGO_BG)
+		decal(flag, Enum.NormalId.Front, images.logo_hotwire_city)
+		decal(flag, Enum.NormalId.Back, images.logo_hotwire_city)
+	end
+
+	model.Parent = parent
+	return model
 end
 
 -- Builds one anchored display car standing on `topCf` (turntable top, facing the street). Chassis anchored, the
@@ -1144,6 +1445,23 @@ function DealershipService.init()
 	end
 	local tables, board = DealershipService.buildShowroom(f, floorYs)
 	signBoard = board
+	-- art pass dressing (MapDresser dresses its AssetSlots later); skip the roof backdrop if the map placed one
+	local old = f:FindFirstChild("Dressing")
+	if old then
+		old:Destroy()
+	end
+	local mapBackdrop = false
+	for _, inst in CollectionService:GetTagged("AssetSlot") do
+		local role = inst:GetAttribute("Role")
+		if (role == "car_showroom" or role == "building_car_showroom") and not inst:IsDescendantOf(f) then
+			mapBackdrop = true
+			break
+		end
+	end
+	local okDress, errDress = pcall(DealershipService.buildDressing, f, floorYs[1], { backdrop = not mapBackdrop })
+	if not okDress then
+		warn("[DealershipService] showroom dressing failed: " .. tostring(errDress))
+	end
 	table.clear(pads)
 	for i, cf in padCfs do
 		local top = floorYs[i] + DealershipService.TURNTABLE_HEIGHT

@@ -340,12 +340,12 @@ end
 local function merged(base: Outfit, partial: { [string]: any }, name: string): Outfit
 	local o = emptyOutfit(name)
 	for _, f in { "Shirt", "Pants" } do
-		local v = partial[f]
-		;(o :: any)[f] = if v ~= nil then v else (base :: any)[f]
+		local v = partial[f];
+		(o :: any)[f] = if v ~= nil then v else (base :: any)[f]
 	end
 	for _, f in { "HatAccessory", "HairAccessory", "FaceAccessory" } do
-		local v = partial[f]
-		;(o :: any)[f] = table.clone(if v ~= nil then v else (base :: any)[f])
+		local v = partial[f];
+		(o :: any)[f] = table.clone(if v ~= nil then v else (base :: any)[f])
 	end
 	return o
 end
