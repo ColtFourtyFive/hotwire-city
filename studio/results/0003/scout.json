@@ -1,0 +1,362 @@
+[
+ {
+  "category": "cars_sedan",
+  "assetId": 97965573521866,
+  "name": "Mercedes Car Vehicle Sedan German Realistic RP",
+  "creator": "nov4_gg2010",
+  "parts": 115,
+  "meshParts": 107,
+  "textures": 0,
+  "scriptsRemoved": 25,
+  "size": [
+   17,
+   6,
+   9
+  ]
+ },
+ {
+  "category": "cars_sedan",
+  "assetId": 116549755605901,
+  "name": "Eft French Sedan Car Vehicle Realistic RP",
+  "creator": "Swift_Hawk217",
+  "parts": 55,
+  "meshParts": 47,
+  "textures": 24,
+  "scriptsRemoved": 22,
+  "size": [
+   73,
+   45,
+   151
+  ]
+ },
+ {
+  "category": "cars_sedan",
+  "assetId": 132078381973405,
+  "name": "Prius Sedan Realistic RP Eco Car",
+  "creator": "Xz_SilvervBCelestial",
+  "parts": 96,
+  "meshParts": 90,
+  "textures": 12,
+  "scriptsRemoved": 3,
+  "size": [
+   7,
+   5,
+   16
+  ]
+ },
+ {
+  "category": "cars_sedan",
+  "assetId": 951086064,
+  "name": "[PUBLIC] 2009 Nissan Maxima",
+  "creator": "turbo_isaac",
+  "parts": 56,
+  "meshParts": 45,
+  "textures": 0,
+  "scriptsRemoved": 71,
+  "size": [
+   18,
+   5,
+   8
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 11881862706,
+  "name": "Realistic cars: Jaguar sports car",
+  "creator": "DominicF1Fan",
+  "parts": 230,
+  "meshParts": 212,
+  "textures": 0,
+  "scriptsRemoved": 24,
+  "size": [
+   9,
+   5,
+   19
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 140417184564372,
+  "name": "Realistic Sports Car Racer Speed Drive",
+  "creator": "tempestzneon",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 6,
+  "size": [
+   9,
+   7,
+   20
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 87717693644018,
+  "name": "Brookhaven Car Realistic Luxury Sports GT",
+  "creator": "Quicwhi4528",
+  "parts": 20,
+  "meshParts": 8,
+  "textures": 4,
+  "scriptsRemoved": 3,
+  "size": [
+   19,
+   4,
+   8
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 3204824887,
+  "name": "Chrystler ME412",
+  "creator": "VloneDerrick",
+  "parts": 30,
+  "meshParts": 16,
+  "textures": 0,
+  "scriptsRemoved": 64,
+  "size": [
+   19,
+   5,
+   10
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 138255866612822,
+  "name": "2008 Mercury Mariner",
+  "creator": "yiypoo1024",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   5,
+   5,
+   12
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 14746413121,
+  "name": "2005 Nissan Patrol",
+  "creator": "children3295",
+  "parts": 144,
+  "meshParts": 98,
+  "textures": 6,
+  "scriptsRemoved": 31,
+  "size": [
+   18,
+   6,
+   8
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 117276253886376,
+  "name": "2011 Kia Sorento EX",
+  "creator": "yiypoo1024",
+  "parts": 64,
+  "meshParts": 48,
+  "textures": 32,
+  "scriptsRemoved": 4,
+  "size": [
+   10,
+   7,
+   20
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 73893179863762,
+  "name": "2005 Nissan Murano",
+  "creator": "yiypoo1024",
+  "parts": 24,
+  "meshParts": 16,
+  "textures": 20,
+  "scriptsRemoved": 16,
+  "size": [
+   9,
+   6,
+   16
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 16390639371,
+  "name": "Realistic Police Car",
+  "creator": "reachin4stars",
+  "parts": 237,
+  "meshParts": 166,
+  "textures": 1,
+  "scriptsRemoved": 114,
+  "size": [
+   8,
+   6,
+   19
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 103123587729335,
+  "name": "Realistic Police Car Decoration Map RP Detailed",
+  "creator": "StarNeon5292",
+  "parts": 127,
+  "meshParts": 49,
+  "textures": 6,
+  "scriptsRemoved": 5,
+  "size": [
+   10,
+   8,
+   18
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 113053967699143,
+  "name": "Realistic Police Car Cop City Pursuit RP",
+  "creator": "KingJames_the67",
+  "parts": 185,
+  "meshParts": 72,
+  "textures": 23,
+  "scriptsRemoved": 13,
+  "size": [
+   14,
+   9,
+   27
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 73440173280832,
+  "name": "Realistic Police Car Map Outdoor Siren Vehicle",
+  "creator": "VortexoWByteStormC12",
+  "parts": 1,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 6,
+  "size": [
+   4,
+   4,
+   2
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 89890547548224,
+  "name": "Ford F-150 XLT Supercrew",
+  "creator": "NameNotRick925",
+  "parts": 41,
+  "meshParts": 24,
+  "textures": 32,
+  "scriptsRemoved": 27,
+  "size": [
+   10,
+   8,
+   24
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 10141791793,
+  "name": "2020 GMC 2500 AT4 Bot Dev Kaidan Only",
+  "creator": "liquidbunny1033",
+  "parts": 299,
+  "meshParts": 138,
+  "textures": 4,
+  "scriptsRemoved": 63,
+  "size": [
+   10,
+   9,
+   23
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 8271014113,
+  "name": "Silverado Crawler",
+  "creator": "SubXero_X",
+  "parts": 160,
+  "meshParts": 92,
+  "textures": 600,
+  "scriptsRemoved": 46,
+  "size": [
+   12,
+   9,
+   21
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 126180570128588,
+  "name": "2022 Toyota Tundra Arctic Frozen Blizzard Survival",
+  "creator": "FusionLigh_t997732",
+  "parts": 59,
+  "meshParts": 41,
+  "textures": 6,
+  "scriptsRemoved": 1,
+  "size": [
+   22,
+   7,
+   9
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 94301391128632,
+  "name": "Taxi Car Vehicle Realistic Ride Mode On Mesh Taxi",
+  "creator": "CraftEagle24001",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 10,
+  "size": [
+   7,
+   5,
+   18
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 112789212430129,
+  "name": "Taxi Car Vehicle Realistic Ride City Roleplay",
+  "creator": "TigerWraithPixel2016",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   7,
+   5,
+   18
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 131180706902259,
+  "name": "Realistic Box Truck Delivery Cargo Haul Van",
+  "creator": "ElijahStar9036",
+  "parts": 3,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   9,
+   12,
+   25
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 71284840505836,
+  "name": "Panal Van (Model made by Gutzow)",
+  "creator": "Gutzow",
+  "parts": 15,
+  "meshParts": 15,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   7,
+   19
+  ]
+ }
+]
