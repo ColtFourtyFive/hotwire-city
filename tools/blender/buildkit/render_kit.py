@@ -37,7 +37,8 @@ def north_lot_y(D):
     return ROAD_W / 2 + SIDE_W + D / 2
 
 
-def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w=40.0, palm_kind="fan", side_w=SIDE_W):
+def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w=40.0, palm_kind="fan", side_w=SIDE_W,
+           no_cars=None):
     """East-west avenue centred on y=0 with sidewalks both sides (lots start at |y| = ROAD_W/2 + SIDE_W)."""
     c = col()
     S.road(c, x0, -ROAD_W / 2, x1, ROAD_W / 2, axis="x")
@@ -58,8 +59,9 @@ def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w
         x += lamps
         k += 1
     if cars:
+        nc = no_cars or (x0 - 1, x0 - 1)
         S.parked_row(c, x0 + 10, x1 - 10, ROAD_W / 2 - 4.2, heading=180, seed=seed + 1, prob=0.55)
-        S.parked_row(c, x0 + 10, x1 - 10, -ROAD_W / 2 + 4.2, heading=0, seed=seed + 2, prob=0.55)
+        S.parked_row(c, max(x0 + 10, nc[1]), x1 - 10, -ROAD_W / 2 + 4.2, heading=0, seed=seed + 2, prob=0.55)
         # a few moving-lane cars for life
         for k in range(3):
             S.car(c, r.uniform(x0 + 40, x1 - 40), r.choice([-1, 1]) * 9.0, heading=r.choice([0, 180]), seed=r.randint(0, 999))
@@ -121,9 +123,9 @@ def sc_midtown(a, night=False):
         S.night()
     else:
         S.world("sky_late_afternoon", sun_az=-140.0)
-    avenue(-260, 260, night=night, lamps=60, palms=(46, 62), seed=5, far_w=0)
+    avenue(-420, 520, night=night, lamps=60, palms=(46, 62), seed=5, far_w=0, no_cars=(-420, -150))
     x = -150.0
-    seeds = [3, 1, 6, 2, 8]
+    seeds = [3, 1, 6, 2, 8, 11, 7, 12]
     for i, sd in enumerate(seeds):
         party = ["left", "right"]
         if i == 0:
@@ -134,10 +136,12 @@ def sc_midtown(a, night=False):
         W, D = B.footprint
         BK.instantiate(B, col(), loc=(x + W / 2, north_lot_y(D), 0), rot_z=0, night=night)
         x += W
-    for i, sd in enumerate([4, 9, 5]):
+    x = -120.0
+    for i, sd in enumerate([4, 9, 5, 10, 13, 14]):
         B = BK.build("midtown", sd, party=["left", "right"], D=40)
         W, D = B.footprint
-        BK.instantiate(B, col(), loc=(-120 + i * 52 + W / 2, -north_lot_y(D), 0), rot_z=180, night=night)
+        BK.instantiate(B, col(), loc=(x + W / 2, -north_lot_y(D), 0), rot_z=180, night=night)
+        x += W
     S.ground(col(), -600, -600, 600, 600, "sidewalk", z=0.0)
     return finish("midtown_night" if night else "midtown_street", (-205, -30, 6.0), (-40, 60, 48), 20, a.samples, a.res,
                   night=night)

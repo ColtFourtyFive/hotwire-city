@@ -408,7 +408,7 @@ def midtown(seed=0, **kw):
         ops_up, ops_gf = [], []
         cols = B.columns(F.W, sp, 3.5, ww)
         if side in party:
-            F.wall(B.b("Walls"), 0, top)
+            F.wall(B.b("Walls"), gf, top)
             F.wall(B.b("Trim"), 0, gf)
             B.grime(F, 0, F.W, top - 10, top, "soot")
             continue

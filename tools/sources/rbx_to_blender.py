@@ -354,8 +354,10 @@ FACE_AXES = {  # face -> (normal, right, up) in part space
     "Back": ((0, 0, 1), (1, 0, 0), (0, 1, 0)),
     "Right": ((1, 0, 0), (0, 0, -1), (0, 1, 0)),
     "Left": ((-1, 0, 0), (0, 0, 1), (0, 1, 0)),
-    "Top": ((0, 1, 0), (1, 0, 0), (0, 0, -1)),
-    "Bottom": ((0, -1, 0), (1, 0, 0), (0, 0, 1)),
+    # Top/Bottom: the Front-face frame tilted onto the face (image top -> Back on Top). Verified only
+    # indirectly (hood decals read correctly from the car's front); not confirmed against Studio.
+    "Top": ((0, 1, 0), (-1, 0, 0), (0, 0, 1)),
+    "Bottom": ((0, -1, 0), (-1, 0, 0), (0, 0, -1)),
 }
 
 

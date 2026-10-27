@@ -59,14 +59,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      2.9143,
-      6.3551,
-      2.7836
+      2.8015,
+      6.3259,
+      2.7742
     ],
     "dims_m": [
-      2.914,
-      6.355,
-      2.784
+      2.801,
+      6.326,
+      2.774
     ],
     "front_evidence": "names(front=50,rear=10)",
     "flipped": false,
@@ -214,6 +214,6 @@
       "Side floor_metal_0",
       "Side floor.001_metal_0"
     ],
-    "render_s": 36.1
+    "render_s": 30.0
   }
 }

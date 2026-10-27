@@ -508,6 +508,54 @@ def analyze(model_id):
         groups_out[g]["rules"][rule[i]] += 1
     groups_json = {g: {"count": len(v["paths"]), "rules": dict(v["rules"].most_common(6)), "paths": sorted(v["paths"])}
                    for g, v in sorted(groups_out.items())}
+    # compact selectors: a subtree whose visible parts all share one group becomes "path/**"
+    root_id = nodes[0]["id"] if nodes else 0
+    vis_ids = {n["id"] for n in vis}
+    sub_groups = {}
+
+    def collect(i):
+        gs = Counter()
+        if i in vis_ids:
+            gs[group[i]] += 1
+        for c in kids[i]:
+            gs.update(collect(c))
+        sub_groups[i] = gs
+        return gs
+    collect(root_id)
+
+    def rel(i):
+        p_ = upath[i]
+        return p_.split("/", 1)[1] if "/" in p_ else "."
+
+    selectors = defaultdict(list)
+
+    def emit(i):
+        gs = sub_groups[i]
+        if not gs:
+            return
+        if len(gs) == 1 and (kids[i] or i == root_id):
+            g = next(iter(gs))
+            selectors[g].append(rel(i) + "/**" if i != root_id else "**")
+            return
+        leaf_by_group = defaultdict(list)
+        if i in vis_ids:
+            leaf_by_group[group[i]].append(rel(i))
+        for c in kids[i]:
+            if kids[c] and sub_groups[c]:
+                emit(c)
+            elif c in vis_ids:
+                leaf_by_group[group[c]].append(byid[c]["name"] + ("#%s" % upath[c].rsplit("#", 1)[1] if "#" in upath[c].rsplit("/", 1)[-1] else ""))
+        for g, names in leaf_by_group.items():
+            base = rel(i)
+            names = sorted(set(names))
+            if len(names) > 6:
+                selectors[g].append(f"{base}/{{{', '.join(names[:6])}, +{len(names) - 6} more}}")
+            else:
+                selectors[g].append(f"{base}/{{{', '.join(names)}}}" if len(names) > 1 else f"{base}/{names[0]}")
+    emit(root_id)
+    for g in groups_json:
+        groups_json[g]["selectors"] = selectors.get(g, [])
+
     out = {
         "assetId": int(model_id),
         "name": nodes[0]["name"] if nodes else "",

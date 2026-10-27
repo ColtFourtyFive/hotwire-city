@@ -1424,7 +1424,7 @@ do
 			local _ = x
 			local _ = Lw
 			-- deck until z -2150, then a 7% descent
-			local d = math.max(0, -2150 - z)
+			local d = math.max(0, -2480 - z) -- hold the deck past the trumpet's direct-ramp merges
 			return math.max(GRADE, DECK_Y - d * 0.07)
 		end
 	end
@@ -2313,6 +2313,47 @@ local function lowRampAt(w: Way, s: number, L: number): number
 end
 
 local function cleanGenerated()
+
+-- Snap loose ends of ground roads onto the road they were drawn to join (fillets pull control points off the final
+-- polyline): an endpoint within 45 studs of another ground road, but not on it, is moved onto it. Cul-de-sacs
+-- (keepDeadEnd) only snap their first point.
+do
+	local idx = WorldGen.segIndex(128)
+	local function isGround(w: Way): boolean
+		return w.layer == 0 and not w.noCross and w.class ~= "freeway" and w.class ~= "ramp"
+	end
+	for wi, w in ways do
+		if isGround(w) then
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(idx, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, wi, k, 0)
+			end
+		end
+	end
+	for wi, w in ways do
+		if not isGround(w) then
+			continue
+		end
+		local ends = if w.keepDeadEnd then { 1 } else { 1, #w.pts }
+		for _, ei in ends do
+			local p = w.pts[ei]
+			local best: P2? = nil
+			local bestD = 45
+			WorldGen.segQuery(idx, p.x, p.z, 45, function(id: number)
+				if idx.owner[id] == wi then
+					return
+				end
+				local _, x, z, d = WorldGen.projectSeg(p.x, p.z, idx.ax[id], idx.az[id], idx.bx[id], idx.bz[id])
+				if d < bestD then
+					bestD = d
+					best = P(x, z)
+				end
+			end)
+			if best and bestD > 0.05 then
+				w.pts[ei] = best :: P2
+			end
+		end
+	end
+end
 	-- corridor & ramp blockers, arterials: segment indexes
 	type Blocker = { w: Way, half: number, cum: { number }, L: number }
 	local blockers: { Blocker } = {}
@@ -2697,6 +2738,9 @@ local function alignWay(w: Way)
 		local pts = WorldGen.densify(w.pts, 40)
 		local cum = WorldGen.polyCum(pts)
 		local L = cum[#cum]
+		-- ramps between two roads take their end heights from the roads they join
+		local rampY0 = pinFrom(pts[1].x, pts[1].z, 1.6) or w.y0 or GRADE
+		local rampY1 = pinFrom(pts[#pts].x, pts[#pts].z, 1.6) or w.y1 or GRADE
 		local ys = table.create(#pts, 0)
 		for k = 1, #pts do
 			local acc = cum[k]
@@ -2706,7 +2750,7 @@ local function alignWay(w: Way)
 			elseif w.yMode == "deck" then
 				y = DECK_Y
 			elseif w.yMode == "ramp" then
-				y = easedRamp(w.y0 or GRADE, w.y1 or GRADE)(acc, L)
+				y = easedRamp(rampY0, rampY1)(acc, L)
 			else
 				y = (w.profile :: (number, number) -> number)(acc, L)
 			end
@@ -2758,6 +2802,49 @@ gedges = WorldGen.pruneStubs(#gnodes, gedges, 130, function(e: WorldGen.GEdge): 
 end)
 gedges = WorldGen.mergeChains(#gnodes, gedges)
 gnodes, gedges = WorldGen.compact(gnodes, gedges)
+
+-- Graph repair: a generated one-way street that dead-ends (or starts from nowhere) becomes two-way; whatever is still
+-- outside the main strongly connected component is dropped and reported (tests keep authored roads at zero).
+local forcedTwoWay: { [WorldGen.GEdge]: boolean } = {}
+local droppedEdges: { string } = {}
+do
+	local function isOneWay(e: WorldGen.GEdge): boolean
+		return ways[e.way].oneWay and not forcedTwoWay[e]
+	end
+	local changed = true
+	while changed do
+		changed = false
+		local inb, outb = table.create(#gnodes, 0), table.create(#gnodes, 0)
+		for _, e in gedges do
+			outb[e.a] += 1
+			inb[e.b] += 1
+			if not isOneWay(e) then
+				inb[e.a] += 1
+				outb[e.b] += 1
+			end
+		end
+		for _, e in gedges do
+			if isOneWay(e) and ways[e.way].generated and (inb[e.a] == 0 or outb[e.b] == 0) then
+				forcedTwoWay[e] = true
+				changed = true
+			end
+		end
+	end
+	local arcs0 = WorldGen.arcs(#gnodes, gedges, function(i: number): boolean
+		return isOneWay(gedges[i])
+	end)
+	local comp, _, _, main = WorldGen.scc(#gnodes, arcs0)
+	local kept: { WorldGen.GEdge } = {}
+	for _, e in gedges do
+		if comp[e.a] == main and comp[e.b] == main then
+			table.insert(kept, e)
+		else
+			table.insert(droppedEdges, ways[e.way].name .. (if ways[e.way].generated then "" else " (authored)"))
+		end
+	end
+	gedges = kept
+	gnodes, gedges = WorldGen.compact(gnodes, gedges)
+end
 
 _T("7. Exported road graph")
 -------------------------------------------------------------------------------------------------------------------------
@@ -2849,9 +2936,9 @@ for i, e in gedges do
 		length = e.length,
 		class = w.class,
 		name = w.name,
-		oneWay = w.oneWay,
-		lanesF = w.lanes,
-		lanesB = if w.oneWay then 0 else w.lanes,
+		oneWay = w.oneWay and not forcedTwoWay[e],
+		lanesF = if forcedTwoWay[e] then math.max(1, w.lanes // 2) else w.lanes,
+		lanesB = if not w.oneWay then w.lanes elseif forcedTwoWay[e] then math.max(1, w.lanes // 2) else 0,
 		laneWidth = LANE,
 		median = w.median,
 		parking = w.parking,
@@ -3162,48 +3249,117 @@ local FRONTAGE_CLASSES: { [string]: boolean } =
 type PlaceOpts = { classes: { [string]: boolean }?, setback: number?, side: number?, road: string? }
 
 -- Place a w x d footprint fronting the road nearest (x, z). Returns cframe, entrance, edge, obb (or nil).
+local PlacementErrors: { string } = {}
+WorldLayout.PlacementErrors = PlacementErrors
+
+-- A footprint is clear when no sample point (corners, edge midpoints, interior grid) touches a road footprint
+-- (curb + sidewalk), it does not overlap another reserved footprint and it stands on land.
+local function footprintClear(obb: WorldGen.OBB): boolean
+	local vx, vz = -obb.uz, obb.ux
+	for i = -2, 2 do
+		for j = -2, 2 do
+			local x = obb.cx + obb.ux * obb.hw * i / 2 + vx * obb.hd * j / 2
+			local z = obb.cz + obb.uz * obb.hw * i / 2 + vz * obb.hd * j / 2
+			if roadClearance(x, z, 1) then
+				return false
+			end
+			if (math.abs(i) == 2 or math.abs(j) == 2) and not landAtLeast(x, z, 12) then
+				return false
+			end
+		end
+	end
+	for _, r in reserved do
+		if WorldGen.obbOverlap(obb, r.obb, 4) then
+			return false
+		end
+	end
+	return true
+end
+
+-- Place a w x d footprint fronting a road near (x, z): the nearest allowed edges are tried in order, sliding along
+-- each (and trying both sides) until the footprint is clear. Returns cframe, entrance, edge, obb (nil if no road).
 local function placeOnFrontage(
 	x: number,
 	z: number,
 	w: number,
 	d: number,
-	o: PlaceOpts?
+	o: PlaceOpts?,
+	label: string?
 ): (CFrame?, Vector3, number, WorldGen.OBB?)
 	local opts: PlaceOpts = o or {}
 	local classes = opts.classes or FRONTAGE_CLASSES
-	local ei = WorldGen.nearestEdge(edgeIndex, x, z, 900, function(i: number): boolean
-		local e = Edges[i]
-		return classes[e.class] == true and e.layer == 0 and not e.bridge and (opts.road == nil or e.name == opts.road)
+	-- candidate edges by distance
+	local cands: { { number } } = {}
+	local seen: { [number]: boolean } = {}
+	WorldGen.segQuery(roadSegs, x, z, 700, function(id: number)
+		local ei = roadSegs.owner[id]
+		local e = Edges[ei]
+		if seen[ei] or classes[e.class] ~= true or e.layer ~= 0 or e.bridge or (opts.road ~= nil and e.name ~= opts.road) then
+			return
+		end
+		seen[ei] = true
+		local dist = WorldGen.polyProject(edgePts[ei].pts, x, z)
+		table.insert(cands, { dist, ei })
 	end)
-	if ei == nil then
-		return nil, Vector3.zero, 0, nil
+	if #cands == 0 then
+		local ei = WorldGen.nearestEdge(edgeIndex, x, z, 3000, function(i: number): boolean
+			local e = Edges[i]
+			return classes[e.class] == true and e.layer == 0 and not e.bridge and (opts.road == nil or e.name == opts.road)
+		end)
+		if ei == nil then
+			return nil, Vector3.zero, 0, nil
+		end
+		table.insert(cands, { 0, ei })
 	end
-	local e = Edges[ei]
-	local pts = edgePts[ei].pts
-	local _, s = WorldGen.polyProject(pts, x, z)
-	-- keep clear of the junctions at both ends
-	local ra = nodeRadius(e.a) + w / 2 + 12
-	local rb = nodeRadius(e.b) + w / 2 + 12
-	if e.length > ra + rb then
-		s = math.clamp(s, ra, e.length - rb)
-	else
-		s = e.length / 2
+	table.sort(cands, function(p: { number }, q: { number }): boolean
+		if p[1] ~= q[1] then
+			return p[1] < q[1]
+		end
+		return p[2] < q[2]
+	end)
+	local firstCf: CFrame? = nil
+	local firstEntrance, firstEdge, firstObb = Vector3.zero, 0, nil :: WorldGen.OBB?
+	for ci = 1, math.min(#cands, 6) do
+		local ei = cands[ci][2]
+		local e = Edges[ei]
+		local _, s0 = WorldGen.polyProject(edgePts[ei].pts, x, z)
+		local ra = nodeRadius(e.a) + w / 2 + 8
+		local rb = nodeRadius(e.b) + w / 2 + 8
+		if e.length <= ra + rb then
+			continue
+		end
+		local px0, _, pz0, tx0, tz0 = edgeAt(ei, math.clamp(s0, ra, e.length - rb))
+		local rx0, rz0 = WorldGen.right(tx0, tz0)
+		local pref = opts.side or (if (x - px0) * rx0 + (z - pz0) * rz0 >= 0 then 1 else -1)
+		for _, side in { pref, -pref } do
+			for k = 0, 30 do
+				local off = (if k % 2 == 1 then 1 else -1) * math.ceil(k / 2) * 40
+				local s = s0 + off
+				if s < ra or s > e.length - rb then
+					continue
+				end
+				local px, py, pz, tx, tz = edgeAt(ei, s)
+				local rx, rz = WorldGen.right(tx, tz)
+				local nx, nz = rx * side, rz * side
+				local setback = opts.setback or 6
+				local curb = e.width / 2
+				local frontDist = curb + e.sidewalk + setback
+				local cx, cz = px + nx * (frontDist + d / 2), pz + nz * (frontDist + d / 2)
+				local center = Vector3.new(cx, py, cz)
+				local cf = CFrame.lookAt(center, center + Vector3.new(-nx, 0, -nz))
+				local entrance = Vector3.new(px + nx * curb, py, pz + nz * curb)
+				local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = w / 2, hd = d / 2 }
+				if firstCf == nil then
+					firstCf, firstEntrance, firstEdge, firstObb = cf, entrance, ei, obb
+				end
+				if footprintClear(obb) then
+					return cf, entrance, ei, obb
+				end
+			end
+		end
 	end
-	local px, py, pz, tx, tz = edgeAt(ei, s)
-	local rx, rz = WorldGen.right(tx, tz)
-	local side = opts.side or (if (x - px) * rx + (z - pz) * rz >= 0 then 1 else -1)
-	local nx, nz = rx * side, rz * side
-	local setback = opts.setback or 6
-	local curb = e.width / 2
-	local frontDist = curb + e.sidewalk + setback
-	local cx, cz = px + nx * (frontDist + d / 2), pz + nz * (frontDist + d / 2)
-	local center = Vector3.new(cx, py, cz)
-	local look = Vector3.new(-nx, 0, -nz)
-	local cf = CFrame.lookAt(center, center + look)
-	local entrance = Vector3.new(px + nx * curb, py, pz + nz * curb)
-	-- OBB: width axis = road tangent
-	local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = w / 2, hd = d / 2 }
-	return cf, entrance, ei, obb
+	table.insert(PlacementErrors, (label or "footprint") .. (" near %d, %d"):format(x, z))
+	return firstCf, firstEntrance, firstEdge, firstObb
 end
 
 local POIs: { POI } = {}
@@ -3222,8 +3378,14 @@ type PoiDef = {
 }
 
 local function addPOI(def: PoiDef): POI?
-	local cf, entrance, ei, obb =
-		placeOnFrontage(def.at[1], def.at[2], def.size[1], def.size[3], { setback = def.setback, road = def.road })
+	local cf, entrance, ei, obb = placeOnFrontage(
+		def.at[1],
+		def.at[2],
+		def.size[1],
+		def.size[3],
+		{ setback = def.setback, road = def.road },
+		def.id
+	)
 	if not cf or not obb then
 		return nil
 	end
@@ -3848,12 +4010,12 @@ local POI_DEFS: { PoiDef } = {
 type PlotDef = { name: string, at: { number }, road: string? }
 local PLOT_DEFS: { PlotDef } = {
 	{ name = "Palmera Garage", at = { -3960, -120 } },
-	{ name = "Sunwood Garage", at = { -2100, -2250 }, road = "Sunwood Boulevard" },
-	{ name = "Pinnacle Garage", at = { 650, -1430 } },
-	{ name = "Foundry Garage", at = { 2700, -950 } },
-	{ name = "Rust Flats Garage", at = { 2700, 900 } },
-	{ name = "Southgate East Garage", at = { 1150, 1900 } },
-	{ name = "Southgate West Garage", at = { -1750, 2100 } },
+	{ name = "Sunwood Garage", at = { -520, -2300 } },
+	{ name = "Pinnacle Garage", at = { 1250, -680 } },
+	{ name = "Foundry Garage", at = { 2300, -760 } },
+	{ name = "Rust Flats Garage", at = { 2330, 960 } },
+	{ name = "Southgate East Garage", at = { 300, 1840 } },
+	{ name = "Southgate West Garage", at = { -1620, 1860 } },
 	{ name = "Midtown Garage", at = { -3000, 1000 } },
 }
 local PLOT_W, PLOT_D = 140, 150 -- reserved garage footprint (frontage x depth)
@@ -4996,7 +5158,9 @@ WorldLayout.Stats = {
 	pois = #POIs,
 	parking = #parking,
 	roadLength = roadLength,
+	droppedEdges = #droppedEdges,
 }
+WorldLayout.DroppedEdges = droppedEdges
 
 -- Internal handles for WorldQuery (not part of the data contract).
 WorldLayout._edgeIndex = edgeIndex

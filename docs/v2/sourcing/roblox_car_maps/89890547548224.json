@@ -123,6 +123,9 @@
     "Ford F-150 XLT Supercrew/Body/MeshPart#4",
     "Ford F-150 XLT Supercrew/Body/Texture",
     "Ford F-150 XLT Supercrew/Body/Underbody"
+   ],
+   "selectors": [
+    "Body/{Chrome, MeshPart#2, MeshPart#3, MeshPart#4, Texture, Underbody}"
    ]
   },
   "Glass": {
@@ -132,6 +135,9 @@
    },
    "paths": [
     "Ford F-150 XLT Supercrew/Body/MeshPart#1"
+   ],
+   "selectors": [
+    "Body/MeshPart#1"
    ]
   },
   "Paint": {
@@ -141,6 +147,9 @@
    },
    "paths": [
     "Ford F-150 XLT Supercrew/Body/Model/Paint"
+   ],
+   "selectors": [
+    "Body/Model/**"
    ]
   },
   "WheelStatic_FL": {
@@ -150,6 +159,9 @@
    },
    "paths": [
     "Ford F-150 XLT Supercrew/Wheels/FL/Fixed/Caliper"
+   ],
+   "selectors": [
+    "Wheels/FL/Fixed/**"
    ]
   },
   "WheelStatic_FR": {
@@ -159,6 +171,9 @@
    },
    "paths": [
     "Ford F-150 XLT Supercrew/Wheels/FR/Fixed/Caliper"
+   ],
+   "selectors": [
+    "Wheels/FR/Fixed/**"
    ]
   },
   "WheelStatic_RL": {
@@ -168,6 +183,9 @@
    },
    "paths": [
     "Ford F-150 XLT Supercrew/Wheels/RL/Fixed/Caliper"
+   ],
+   "selectors": [
+    "Wheels/RL/Fixed/**"
    ]
   },
   "WheelStatic_RR": {
@@ -177,6 +195,9 @@
    },
    "paths": [
     "Ford F-150 XLT Supercrew/Wheels/RR/Fixed/Caliper"
+   ],
+   "selectors": [
+    "Wheels/RR/Fixed/**"
    ]
   },
   "Wheel_FL": {
@@ -188,6 +209,9 @@
     "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Disk",
     "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Rim",
     "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre"
+   ],
+   "selectors": [
+    "Wheels/FL/Parts/**"
    ]
   },
   "Wheel_FR": {
@@ -199,6 +223,9 @@
     "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Disk",
     "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Rim",
     "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre"
+   ],
+   "selectors": [
+    "Wheels/FR/Parts/**"
    ]
   },
   "Wheel_RL": {
@@ -210,6 +237,9 @@
     "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Disk",
     "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Rim",
     "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre"
+   ],
+   "selectors": [
+    "Wheels/RL/Parts/**"
    ]
   },
   "Wheel_RR": {
@@ -221,6 +251,9 @@
     "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Disk",
     "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Rim",
     "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre"
+   ],
+   "selectors": [
+    "Wheels/RR/Parts/**"
    ]
   }
  },

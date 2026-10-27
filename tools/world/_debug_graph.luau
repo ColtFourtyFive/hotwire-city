@@ -40,3 +40,7 @@ for _, n in W.Nodes do
 	end
 end
 for _, e in W.RouteErrors do print(e) end
+print("dropped", #W.DroppedEdges)
+for _, n in W.DroppedEdges do print("  drop", n) end
+for k, v in W.Stats do print(k, v) end
+for _, p in W.Plots do print(p.name, math.floor(p.nearestOnRamp)) end
