@@ -1617,11 +1617,11 @@ local H7 = stackT(
 	{ Lb = 620, Ln = 380, Lm = 260, A2 = 600, A3 = 780, turn = 230 }
 )
 H7.setProfile(function(sc: number): number
-	return eased(DECK_Y, GRADE, (sc - 1020) / 420)
+	return eased(DECK_Y, GRADE, (sc - 470) / 420) -- sc = 0 where the branch carriageways start (after the stack)
 end)
 local H7tail = corridorTail(
 	H7,
-	H7.cum[#H7.cum] - 1460,
+	H7.cum[#H7.cum] - 920,
 	"H7 Airport Freeway",
 	"boulevard",
 	{ lanes = 2, median = 12, parking = false, sidewalk = 14 }
@@ -1680,6 +1680,7 @@ do
 		traffic = false,
 		tags = { stub = true },
 	})
+	stubWay.oneWay = false -- drive up, jump off, or drive back down
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1688,6 +1689,12 @@ end
 
 local function smooth(ctrl: { { number } }, r: number?): { P2 }
 	return WorldGen.fillet(poly(ctrl), r or 260, nil, 30)
+end
+
+-- The point of way w nearest (x, z): connectors are authored to start exactly on the road they leave.
+local function onWay(w: Way, x: number, z: number): P2
+	local _, _, px, pz = WorldGen.polyProject(w.pts, x, z)
+	return P(px, pz)
 end
 
 -- Palmera Drive: beachfront boulevard (palms in a wide median); north end becomes Cliffside Road, south end runs into
@@ -1895,7 +1902,7 @@ do
 		tags = { departures = true },
 	})
 end
-addWay(
+local hangarRoad = addWay(
 	"Hangar Road",
 	"service",
 	smooth({ { -3150, 2617 }, { -3100, 2720 }, { -2950, 2800 }, { -2600, 2900 } }, 200),
@@ -1906,7 +1913,7 @@ addWay("Runway 09L/27R", "runway", { P(-5650, 3790), P(-2690, 3790) }, { lanes =
 addWay(
 	"Taxiway Alpha",
 	"service",
-	{ P(-3000, 2700), P(-3000, 3150), P(-2900, 3330) },
+	{ onWay(hangarRoad, -2900, 2820), P(-2900, 3150), P(-2900, 3330) },
 	{ lanes = 1, traffic = false, keepDeadEnd = true }
 )
 addWay(
@@ -1981,7 +1988,7 @@ addWay(
 )
 
 -- Foothill Road: from the Foundry along the reservoir's south shore (dam) and west of it up to the north coast.
-addWay(
+local foothill = addWay(
 	"Foothill Road",
 	"rural",
 	smooth({
@@ -2078,6 +2085,7 @@ do
 		a -= math.sqrt(step * step - dd * dd) / d
 		d, y = nd, ny
 	end
+	table.insert(pts, 1, onWay(foothill, pts[1].x, pts[1].z))
 	addWay("Talon Summit Trail", "dirt", pts, { keepDeadEnd = true, traffic = false, maxGrade = 0.16 })
 end
 
@@ -2142,7 +2150,7 @@ local HILL_ROADS: { { any } } = {
 	{ "Chaparral Lane", "street", { { -2250, -2650 }, { -2450, -2700 }, { -2560, -2850 } }, 120, true },
 	{ "Ridgeview Lane", "street", { { -1420, -2930 }, { -1180, -2960 }, { -960, -3170 } }, 140, false },
 	{ "Overlook Drive", "street", { { -360, -2860 }, { -650, -2850 }, { -800, -2750 } }, 120, false },
-	{ "Sycamore Ridge", "street", { { 650, -2700 }, { 560, -2880 }, { 400, -2980 } }, 120, true },
+	{ "Sycamore Ridge", "street", { { 665, -2860 }, { 540, -2910 }, { 400, -2980 } }, 120, true },
 	{ "Pinecrest Way", "street", { { 300, -2160 }, { 250, -2350 }, { 420, -2450 } }, 120, false },
 	{ "Canyon Crest Drive", "street", { { -1780, -2770 }, { -1950, -2830 }, { -2050, -2900 } }, 100, false },
 	{ "Glen Oaks Road", "street", { { -1720, -2470 }, { -1050, -2560 }, { -800, -2750 } }, 160, false },
@@ -2257,10 +2265,12 @@ do
 			y1 = GRADE,
 		})
 	end
-	channelRamp("Channel Ramp North", -1560, 1, -1, riverside)
+	-- Floor points chosen so each ramp lands on its bank road mid-block (>= clear radii + 26 from the nearest junction)
+	-- and the floor never dead-ends more than ~300 studs past the last ramp.
+	channelRamp("Channel Ramp North", -1480, 1, -1, riverside)
 	channelRamp("Channel Ramp Crown", -120, 1, -1, riverside)
-	channelRamp("Channel Ramp Rail Yard", 1620, 1, -1, riverside)
-	channelRamp("Channel Ramp South", 2700, -1, -1, westBank)
+	channelRamp("Channel Ramp Rail Yard", 1940, 1, -1, riverside)
+	channelRamp("Channel Ramp South", 2560, -1, -1, westBank)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -2308,6 +2318,9 @@ local function snapEnds(onlyGenerated: boolean)
 		end
 	end
 end
+snapEnds(false)
+-- A second pass re-attaches roads whose target moved in the first (Hangar Road on the H7 tail after the tail's own
+-- end snapped onto the Terminal Drive loop).
 snapEnds(false)
 
 diamond(H1, liberty, -150, -1800, { label = "H1 Liberty" })
@@ -3699,15 +3712,27 @@ do
 					if o.a == drop then
 						o.a = keep
 						pts[1] = { x = kp.x, y = kp.y, z = kp.z }
-						-- smooth the re-ended start: drop vertices now behind the new end
-						while #pts > 2 and WorldGen.dist(pts[2].x, pts[2].z, kp.x, kp.z) < 25 do
+						-- smooth the re-ended start: drop vertices now behind the new end or making a kink
+						while
+							#pts > 2
+							and (
+								WorldGen.dist(pts[2].x, pts[2].z, kp.x, kp.z) < 25
+								or WorldGen.maxTurn({ pts[1], pts[2], pts[3] }) > math.rad(45)
+							)
+						do
 							table.remove(pts, 2)
 						end
 					end
 					if o.b == drop then
 						o.b = keep
 						pts[#pts] = { x = kp.x, y = kp.y, z = kp.z }
-						while #pts > 2 and WorldGen.dist(pts[#pts - 1].x, pts[#pts - 1].z, kp.x, kp.z) < 25 do
+						while
+							#pts > 2
+							and (
+								WorldGen.dist(pts[#pts - 1].x, pts[#pts - 1].z, kp.x, kp.z) < 25
+								or WorldGen.maxTurn({ pts[#pts - 2], pts[#pts - 1], pts[#pts] }) > math.rad(45)
+							)
+						do
 							table.remove(pts, #pts - 1)
 						end
 					end

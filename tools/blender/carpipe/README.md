@@ -186,6 +186,15 @@ All 11 test cars pass `validate_glb.py`. The output length is `auto` (real metre
 | camaro | OpenGameArt, Lotnik, CC-BY 3.0 | 6,124 → 6,096 | `.blend` with mirror and subdivision modifiers, no textures, no names. Front/back confidence is low (0.54). Robustness test only. |
 | bmw27 | blender.org benchmark scene, **licence unverified** | 220,096 → 15,573 | Two cars in one file (`select` keeps one), collection instances, geometry-node badges, a light card and a floor (both dropped). Robustness test only, never ship. |
 
+**Renders** are in `docs/v2/proto/carpipe/`, at 960×540, Cycles CPU, ≤ 64 samples, OIDN:
+
+- per car: `<id>_sheet.png`, a 2×2 of before / after / roles / three paint colours in the golden-hour street;
+- `lineup_street_day.png` and `lineup_street_night.png`: eight converted cars together;
+- `all_cars_after.png`: every car's GLB in the studio;
+- `carconcept_street_night.png`, `carconcept_after_rear.png`.
+
+The street, night and lineup shots use `render_lineup.py`. It emulates the Roblox TintMask route so that recolours of atlas-painted cars show up.
+
 `SOURCING.md` evaluates the options for getting 20+ realistic cars: Sketchfab API, Creator Store and AI image-to-3D. It includes a shortlist of 32 fictional CC-BY cars.
 
 ## Known limits
@@ -197,5 +206,6 @@ All 11 test cars pass `validate_glb.py`. The output length is `auto` (real metre
 - The interior is decimated hard (1.5k tris). That is fine behind tinted glass, but rough close up.
 - Paint in an atlas needs SurfaceAppearance authoring in Studio, because TintMask textures can't be set from scripts.
 - Police lightbars and taxi signs are not their own objects yet. They land in Glass, Lights or Trim depending on their materials. The game's contract wants `SirenRed`/`SirenBlue` parts, so add a `roles` regex per car, or split them out in Studio.
+- Very dense wheels lose a lot at 900 tris each. The BMW27's subdivided 19k-tri wheels come out chunky, with the spokes partly lost. Raise `budget.Wheel` for hero cars; the 18k car limit still has room on most cars.
 - Texel use in the atlases is 25–70%. Smart-project packing beat every re-pack we tried, but dense decimated parts still waste space.
 - Nothing has been imported into Roblox yet. Open Cloud upload, MeshPart import of the four wheels with their node origins, and `CarpipeRig.luau` all still need a real-engine test.
