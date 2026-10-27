@@ -1028,11 +1028,14 @@ function BuildingService.start()
 			running += 1
 			state[key] = "loading"
 			task.spawn(function()
-				local model = loadTemplate(Buildings.Templates[key])
-				if model then
+				local ok, model = pcall(loadTemplate, Buildings.Templates[key])
+				if ok and model then
 					templates[key] = model
 					state[key] = "ready"
 				else
+					if not ok then
+						warn(("[BuildingService] %s: load error %s"):format(key, tostring(model)))
+					end
 					state[key] = "failed"
 				end
 				running -= 1
