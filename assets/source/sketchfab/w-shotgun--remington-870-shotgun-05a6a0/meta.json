@@ -79,6 +79,7 @@
       "defaultMaterial",
       "defaultMaterial.001"
     ],
-    "render_s": 16.3
+    "hidden_helpers": [],
+    "render_s": 27.4
   }
 }

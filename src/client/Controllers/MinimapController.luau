@@ -422,7 +422,7 @@ end
 -- Draw the route from (sx, sz) (the player's spot projected onto segment `first`): segment 1 is always the head,
 -- (sx, sz) -> points[first + 1] (hidden while it has no length), then points[first + 1 .. n], then an optional faded
 -- tail to the real target (tx, tz) when it is off the road. Slot 1 being the head is what lets the per-frame
--- moveHead touch only that segment. Hides leftovers. nil points clears.
+-- moveRouteHead touch only that segment. Hides leftovers. nil points clears.
 function MinimapController.drawRoute(
 	r: RouteRenderer,
 	points: { Vector3 }?,
