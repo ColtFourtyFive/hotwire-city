@@ -198,6 +198,13 @@ def multiply_ao(color_path, ao_path, strength=0.7):
     save_np(c, color_path)
 
 
+def _hue(rgb, mx, mn):
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    dlt = np.maximum(mx - mn, 1e-6)
+    h = np.where(mx == r, ((g - b) / dlt) % 6, np.where(mx == g, (b - r) / dlt + 2, (r - g) / dlt + 4))
+    return (h * 60.0) % 360.0
+
+
 def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     """Build the two recolour textures for a body whose paint lives inside a texture:
       * out_tint:    SurfaceAppearance AlphaMode=TintMask: alpha=1 on paint, paint RGB -> neutral shading
@@ -237,7 +244,17 @@ def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     bright = lum[..., 0] / plum
     pchroma = paint.max() - paint.min()
     if pchroma > 0.12:
-        m = (d < 0.35) & (bright > 0.35) & (bright < 1.8)
+        # chromatic paint: hue within +-24 deg, enough saturation, broad value band (keeps worn/faded/lit panels)
+        mx = rgb.max(-1)
+        mn = rgb.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1e-4)
+        hue = _hue(rgb, mx, mn)
+        pmx, pmn = float(paint.max()), float(paint.min())
+        psat = (pmx - pmn) / max(pmx, 1e-4)
+        phue = float(_hue(paint[None, None, :], np.array([[pmx]]), np.array([[pmn]]))[0, 0])
+        dh = np.abs((hue - phue + 180.0) % 360.0 - 180.0)
+        m = (dh < 24.0) & (sat > 0.4 * psat) & (mx > 0.25 * pmx) & (mx < 2.6 * pmx + 0.05)
+        m |= (d < 0.35) & (bright > 0.35) & (bright < 1.8)
     else:  # achromatic paint: rely on brightness band + low chroma
         cchroma = rgb.max(-1) - rgb.min(-1)
         m = (cchroma < 0.10) & (bright > 0.7) & (bright < 1.35)

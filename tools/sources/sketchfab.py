@@ -448,7 +448,12 @@ def download(uid: str, slug: str | None = None, cls: str | None = None, kind: st
         conversion = "none"
     else:
         work = out_dir / "_gltf"
-        conversion = gltf_zip_to_glb(data, work, glb_path)
+        try:
+            conversion = gltf_zip_to_glb(data, work, glb_path)
+        finally:
+            # the unpacked archive is only scratch for packing; don't leave a second copy beside model.glb
+            import shutil
+            shutil.rmtree(work, ignore_errors=True)
 
     thumb_rel = None
     if meta.get("thumb"):
