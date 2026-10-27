@@ -3581,14 +3581,25 @@ local function pathPoints(path: { number }): { Vector3 }
 	return out
 end
 
-local function routeThrough(stops: { Vector3 }, useArcs: { { WorldGen.Arc } }, usable: ((Edge) -> boolean)?): ({ Vector3 }, number)
+local RouteErrors: { string } = {}
+WorldLayout.RouteErrors = RouteErrors
+
+local function routeThrough(
+	id: string,
+	stops: { Vector3 },
+	useArcs: { { WorldGen.Arc } },
+	usable: ((Edge) -> boolean)?
+): ({ Vector3 }, number)
 	local all: { Vector3 } = {}
 	local total = 0
 	for i = 1, #stops - 1 do
 		local a = nearestNodeTo(stops[i].X, stops[i].Z, usable)
 		local b = nearestNodeTo(stops[i + 1].X, stops[i + 1].Z, usable)
 		local path, cost = WorldGen.astar(#Nodes, useArcs, nodePos, a, b)
-		assert(path, "route: no path between stops " .. i .. " and " .. (i + 1))
+		if path == nil then
+			table.insert(RouteErrors, ("%s: no path from stop %d to %d"):format(id, i, i + 1))
+			continue
+		end
 		total += cost
 		local pts = pathPoints(path)
 		for k, p in pts do
@@ -3615,7 +3626,7 @@ local function addRoute(id: string, name: string, kind: string, stops: { Vector3
 	end, function(i: number): boolean
 		return usable(Edges[i])
 	end) else trafficArcs
-	local path, length = routeThrough(stops, useArcs, usable)
+	local path, length = routeThrough(id, stops, useArcs, usable)
 	table.insert(Routes, { id = id, name = name, kind = kind, stops = stops, path = path, length = length, laps = laps })
 end
 

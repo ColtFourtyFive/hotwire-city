@@ -1,0 +1,44 @@
+{
+  "source": "sketchfab",
+  "uid": "8765868e46bc4b7985cc57af60d16577",
+  "slug": "v-limousine--gmc-hummer-h2-limo-876586",
+  "name": "GMC Hummer H2 Limo",
+  "class": "limousine",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "maregajavier",
+    "displayName": "maregajavier",
+    "profileUrl": "https://sketchfab.com/maregajavier"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/gmc-hummer-h2-limo-8765868e46bc4b7985cc57af60d16577",
+  "faceCount": 2280,
+  "vertexCount": 1170,
+  "materialCount": 1,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 41,
+  "tags": [
+    "hummer",
+    "limousine",
+    "gmc-1951-grande"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-limousine--gmc-hummer-h2-limo-876586/model.glb",
+  "fileBytes": 314528,
+  "sha256": "e936725122d21bccdfbe90c72130bd70b2d0717c03ac847731f85ba2077753cd",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:54+00:00",
+  "notes": null
+}

@@ -1,0 +1,43 @@
+{
+  "source": "sketchfab",
+  "uid": "a0330ed5d12c4379b2835ee12800b964",
+  "slug": "v-lowrider--chevrolet-impala-1963-home-work-7-a0330e",
+  "name": "Chevrolet Impala 1963 - Home Work 7 (anatomy)",
+  "class": "lowrider",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DmitryBorisov",
+    "displayName": "Dmitry Borisov",
+    "profileUrl": "https://sketchfab.com/DmitryBorisov"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/chevrolet-impala-1963-home-work-7-anatomy-a0330ed5d12c4379b2835ee12800b964",
+  "faceCount": 127540,
+  "vertexCount": 73110,
+  "materialCount": 28,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 73,
+  "tags": [
+    "xyz-school-draftpunk-3",
+    "draftpunk-3"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "chevrolet impala 1963",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-lowrider--chevrolet-impala-1963-home-work-7-a0330e/model.glb",
+  "fileBytes": 6316436,
+  "sha256": "7aae8a2ad4fc03d7413b90017f685abc2e213305b0b68635a145fc20eccd31d7",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:06+00:00",
+  "notes": null
+}

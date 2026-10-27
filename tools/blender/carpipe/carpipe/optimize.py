@@ -106,6 +106,36 @@ def drop_small_islands(ob, min_diag, keep_frac=0.0):
     return len(kill)
 
 
+def decimate_meshlab(ob, target_tris):
+    """Quadric edge collapse via pymeshlab (ignores UV seams/boundaries; fine because we re-bake)."""
+    import pymeshlab
+
+    triangulate(ob)
+    me = ob.data
+    v = np.empty(len(me.vertices) * 3)
+    me.vertices.foreach_get("co", v)
+    f = np.empty(len(me.polygons) * 3, dtype=np.int64)
+    me.polygons.foreach_get("vertices", f)
+    ms = pymeshlab.MeshSet()
+    ms.add_mesh(pymeshlab.Mesh(vertex_matrix=v.reshape(-1, 3), face_matrix=f.reshape(-1, 3).astype(np.int32)))
+    ms.meshing_decimation_quadric_edge_collapse(targetfacenum=int(target_tris), preserveboundary=False,
+                                                preservenormal=True, preservetopology=False, optimalplacement=True,
+                                                planarquadric=True, qualitythr=0.3, autoclean=True)
+    m = ms.current_mesh()
+    nv = m.vertex_matrix()
+    nf = m.face_matrix()
+    mats = [s.material for s in ob.material_slots]
+    new = bpy.data.meshes.new(me.name)
+    new.from_pydata(nv.tolist(), [], nf.tolist())
+    for mt in mats:
+        new.materials.append(mt)
+    new.update()
+    old = ob.data
+    ob.data = new
+    bpy.data.meshes.remove(old)
+    return tri_count(ob)
+
+
 def decimate(ob, target_tris, symmetric=False):
     t = tri_count(ob)
     if t <= target_tris:
@@ -123,6 +153,10 @@ def decimate(ob, target_tris, symmetric=False):
         bpy.ops.object.modifier_apply(modifier=m.name)
         if tri_count(ob) <= target_tris:
             break
+    if tri_count(ob) > 1.03 * target_tris:  # collapse stalled (open boundaries, UV seams): quadric fallback
+        before = tri_count(ob)
+        decimate_meshlab(ob, int(target_tris * 0.98))
+        log(f"{ob.name}: blender decimate stalled at {before}, pymeshlab -> {tri_count(ob)}")
     return tri_count(ob)
 
 

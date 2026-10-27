@@ -1,0 +1,48 @@
+{
+  "source": "sketchfab",
+  "uid": "ee87869496e245bfb4e7e2b0b1339aa6",
+  "slug": "v-fire-truck--augmented-firetruck-clean-ee8786",
+  "name": "Augmented Firetruck *clean*",
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "NPotamianos",
+    "displayName": "NPotamianos",
+    "profileUrl": "https://sketchfab.com/NPotamianos"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/augmented-firetruck-clean-ee87869496e245bfb4e7e2b0b1339aa6",
+  "faceCount": 44838,
+  "vertexCount": 23067,
+  "materialCount": 1,
+  "textureCount": 6,
+  "animationCount": 0,
+  "likeCount": 33,
+  "tags": [
+    "mars",
+    "fire",
+    "nad",
+    "uqac",
+    "tp5",
+    "yorkland"
+  ],
+  "categories": [
+    "cars-vehicles",
+    "electronics-gadgets"
+  ],
+  "description": "3d modeling project for my 1st semester studies final",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-fire-truck--augmented-firetruck-clean-ee8786/model.glb",
+  "fileBytes": 3844724,
+  "sha256": "98093a487004c432addb74ffa81d8b9394fe4bd4b8f162973a8514fd7aac6344",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:36+00:00",
+  "notes": null
+}

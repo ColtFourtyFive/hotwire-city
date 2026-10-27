@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "db303e2cef1642cabec0b2b9b7a8bb6b",
+  "slug": "v-lowrider--impala-lowpoly-db303e",
+  "name": "Impala Lowpoly",
+  "class": "lowrider",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "bagatela.qc",
+    "displayName": "Bagatela Qualquer Coisa",
+    "profileUrl": "https://sketchfab.com/bagatela.qc"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/impala-lowpoly-db303e2cef1642cabec0b2b9b7a8bb6b",
+  "faceCount": 11364,
+  "vertexCount": 6456,
+  "materialCount": 9,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 49,
+  "tags": [
+    "classic",
+    "impala",
+    "lowrider",
+    "maya",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-lowrider--impala-lowpoly-db303e/model.glb",
+  "fileBytes": 629252,
+  "sha256": "7706ba8229f269a595a36c22f2a6c9c8a10915f50e556b859fd2df422535e240",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:02+00:00",
+  "notes": null
+}

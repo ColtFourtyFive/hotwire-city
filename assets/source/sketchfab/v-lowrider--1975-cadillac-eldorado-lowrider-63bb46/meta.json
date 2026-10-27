@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "63bb4688f48a443aaace3a9c7c79aadb",
+  "slug": "v-lowrider--1975-cadillac-eldorado-lowrider-63bb46",
+  "name": "1975 Cadillac Eldorado (Lowrider)",
+  "class": "lowrider",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "maregajavier",
+    "displayName": "maregajavier",
+    "profileUrl": "https://sketchfab.com/maregajavier"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/1975-cadillac-eldorado-lowrider-63bb4688f48a443aaace3a9c7c79aadb",
+  "faceCount": 7398,
+  "vertexCount": 4408,
+  "materialCount": 4,
+  "textureCount": 3,
+  "animationCount": 0,
+  "likeCount": 14,
+  "tags": [
+    "cadillac",
+    "ps2",
+    "lowrider",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "art-abstract",
+    "cars-vehicles"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-lowrider--1975-cadillac-eldorado-lowrider-63bb46/model.glb",
+  "fileBytes": 871476,
+  "sha256": "54fec2698b9265d0fd2a3c6c77abda0ebda3e28c56e635f512ced9a9b8362011",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:09+00:00",
+  "notes": null
+}

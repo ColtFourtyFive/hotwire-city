@@ -1,0 +1,50 @@
+{
+  "source": "sketchfab",
+  "uid": "4ed60d3a62144a1a87dbd35b585da3e2",
+  "slug": "v-limousine--mercedes-w126-limousine-lowpoly-fo-4ed60d",
+  "name": "Mercedes W126 Limousine lowpoly for 3D-printing",
+  "class": "limousine",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "fishermans",
+    "displayName": "fishermans garage",
+    "profileUrl": "https://sketchfab.com/fishermans"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mercedes-w126-limousine-lowpoly-for-3d-printing-4ed60d3a62144a1a87dbd35b585da3e2",
+  "faceCount": 18236,
+  "vertexCount": 9177,
+  "materialCount": 1,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 61,
+  "tags": [
+    "mercedes",
+    "3d-printing",
+    "mercedes-benz",
+    "s-class",
+    "limousine",
+    "w126",
+    "lowpoly",
+    "stretch-limo",
+    "noai"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "This work is based on a Sketchup-file. Unfortunately I don\u00b4t remember the name of its author. Anyway, thanks for the great model! Several years ago I converted and repaired it into a watertight STL-file. Sadly the resolution of the model is only useful for printing in small scales.\n\nMy purpose is to provide watertight STL-files for you, which can easily be modified for 3D-printing, according to your references. Therefore, most of my models are not repaired into one single shell. This may be a bit more difficult for the preparation of the build, but helps you a lot, if you want to personalize t",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-limousine--mercedes-w126-limousine-lowpoly-fo-4ed60d/model.glb",
+  "fileBytes": 899988,
+  "sha256": "4c3b435472085abb1fea7c08ca034b410bf7ab91c478aa64944ee3aeff2c62cc",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:52+00:00",
+  "notes": null
+}

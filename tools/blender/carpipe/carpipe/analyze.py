@@ -46,8 +46,9 @@ KW_TRIM = [r"chrome", r"metal", r"plastic", r"rubber", r"grill", r"trim", r"badg
            r"blocker", r"_pipe", r"muffler", r"_tank", r"bumper_?black", r"_cladding"]
 KW_TRIM_STRONG = [r"wiper", r"gasket", r"_seal", r"handle", r"chrome", r"rubber", r"_trim", r"trim_", r"weather_?strip",
                   r"_frame", r"mirror", r"badge", r"emblem", r"logo", r"licen[cs]e", r"_plate"]
-KW_PAINT = [r"paint", r"_body", r"body_", r"bodywork", r"car_?shell", r"_shell", r"lack", r"karosserie",
-            r"exterior", r"_coat", r"carbody", r"_hood_", r"_door_?[lr]?_", r"fender", r"_roof", r"_panel"]
+KW_PAINT_STRONG = [r"paint", r"lack", r"karosserie", r"car_?paint", r"carbody", r"body_?colou?r", r"_coat"]
+KW_PAINT = KW_PAINT_STRONG + [r"_body", r"body_", r"bodywork", r"car_?shell", r"_shell", r"exterior", r"_hood_",
+                              r"_door_?[lr]?_", r"fender", r"_roof"]
 KW_WHEEL = [r"wheel", r"tire", r"tyre", r"_rim", r"rims?_", r"rubber", r"reifen", r"felge", r"_rad_", r"_whl",
             r"alloy", r"_hub", r"spoke", r"lug_?nut", r"wheel_?view"]
 KW_CALIPER = [r"caliper", r"brake_?pad", r"bremssattel"]
@@ -626,12 +627,15 @@ class Car:
                     why[i] = f"cfg:{rx}"
                     break
             if hit is None:
-                srcs = ([nm_mat] if not m["generic"] else []) + [nm_obj]
-                for s in srcs:
-                    hit = self._role_from_name(s)
-                    if hit is not None:
-                        why[i] = f"name:{s[:40]}"
-                        break
+                rm = self._role_from_name(nm_mat) if not m["generic"] else None
+                ro = self._role_from_name(nm_obj)
+                if rm is not None and not (rm == BODY and not kw_match(nm_mat, KW_PAINT_STRONG)
+                                           and ro in (INTERIOR, GLASS, LIGHT_F, DISCARD)):
+                    hit, why[i] = rm, f"mat:{nm_mat[:30]}"
+                elif ro is not None:
+                    hit, why[i] = ro, f"obj:{nm_obj[:30]}"
+                elif rm is not None:
+                    hit, why[i] = rm, f"mat:{nm_mat[:30]}"
             if hit is None:
                 hit = self._role_from_props(m)
                 if hit is not None:

@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "f4910577387c491bb37832d4abb1b01e",
+  "slug": "v-bus--man-lion-s-city-12g-efficiencyhybr-f49105",
+  "name": "MAN Lion's City 12G (EfficiencyHybrid)",
+  "class": "bus",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "karpworkz",
+    "displayName": "KarpWorkz",
+    "profileUrl": "https://sketchfab.com/karpworkz"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/man-lions-city-12g-efficiencyhybrid-f4910577387c491bb37832d4abb1b01e",
+  "faceCount": 68550,
+  "vertexCount": 40543,
+  "materialCount": 92,
+  "textureCount": 13,
+  "animationCount": 0,
+  "likeCount": 55,
+  "tags": [
+    "european",
+    "bus",
+    "buses",
+    "busworld"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "**MAN Lion's City 12G EfficiencyHybrid**\n\n* I listed this model free as I am going to be making a version two of this project! Stay tuned for that as am going to be adding alot more details into that.\n\n* Enjoy the model! Please add the credit \"**Made By KarpWorkz**\" if you are going to use this inside of a game.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-bus--man-lion-s-city-12g-efficiencyhybr-f49105/model.glb",
+  "fileBytes": 5555752,
+  "sha256": "c349ceda607f26b268954ede50af5c1a8a2772c1169d8d0c9067820c5947c9c8",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:17+00:00",
+  "notes": null
+}

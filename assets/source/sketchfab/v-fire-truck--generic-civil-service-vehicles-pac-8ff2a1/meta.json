@@ -1,0 +1,60 @@
+{
+  "source": "sketchfab",
+  "uid": "8ff2a13f30914932a70c7950cfa58465",
+  "slug": "v-fire-truck--generic-civil-service-vehicles-pac-8ff2a1",
+  "name": "Generic civil service vehicles pack",
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "comrade1280",
+    "displayName": "Comrade1280",
+    "profileUrl": "https://sketchfab.com/comrade1280"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/generic-civil-service-vehicles-pack-8ff2a13f30914932a70c7950cfa58465",
+  "faceCount": 92709,
+  "vertexCount": 55143,
+  "materialCount": 43,
+  "textureCount": 57,
+  "animationCount": 0,
+  "likeCount": 1180,
+  "tags": [
+    "police",
+    "truck",
+    "transportation",
+    "ambulance",
+    "standard",
+    "transport",
+    "urban",
+    "civil",
+    "bus",
+    "cab",
+    "taxi",
+    "garbage",
+    "service",
+    "emergency",
+    "rescue",
+    "firefight",
+    "vehicle",
+    "plane",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Low-poly pack of generic civil service vehicles. Suitable for exterior landscape renderings and can be used in gamedev as props, or in mobile games as player vehicle. All cars are bearing minimum to none similarities to real life cars and completly trademark clame proof\n\nSpecs are:\nAmbulance - tris \u2013 9404 verts \u2013 5678,\nCity bus - tris \u2013 9062 verts \u2013 5236,\nFire truck - tris \u2013 12110 verts \u2013 7619,\nGarbage truck - tris \u2013 12747 verts \u2013 7739,\nPolice sedan - tris \u2013 8454 verts \u2013 5307,\nPostal van - tris \u2013 6031 verts \u2013 3284,\nSchool bus - tris \u2013 11472 verts \u2013 7116,\nService truck - tris \u2013 8216 verts \u2013 471",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-fire-truck--generic-civil-service-vehicles-pac-8ff2a1/model.glb",
+  "fileBytes": 22612644,
+  "sha256": "7a02f1d46d9f4bdf7268d7737445e6fd08a98c44371a289d89aef6c4d7a78e31",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:40+00:00",
+  "notes": null
+}

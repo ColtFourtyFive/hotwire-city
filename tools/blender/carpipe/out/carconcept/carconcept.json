@@ -247,21 +247,21 @@
     },
     "secondary": {
       "object": "Body2",
-      "material": "Panel Sides",
+      "material": "Paint 2 Carmine",
       "color_srgb": [
-        0.0473,
-        0.0473,
-        0.0473
+        0.2144,
+        0.2144,
+        0.2144
       ],
       "textured": false,
-      "metallic": 0.0,
-      "roughness": 0.4000000059604645
+      "metallic": 1.0,
+      "roughness": 0.30000001192092896
     },
     "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
   },
   "objects": {
     "Body": {
-      "tris": 6550,
+      "tris": 7000,
       "bbox_min": [
         -4.4268,
         0.4099,
@@ -269,22 +269,22 @@
       ],
       "bbox_max": [
         4.4256,
-        4.3265,
+        4.3259,
         7.6725
       ],
       "textures": {}
     },
     "Body2": {
-      "tris": 1000,
+      "tris": 999,
       "bbox_min": [
-        -4.1839,
-        0.4474,
-        -4.95
+        -4.4145,
+        0.4065,
+        -8.7553
       ],
       "bbox_max": [
-        4.1832,
-        3.4058,
-        3.7335
+        4.4136,
+        4.3493,
+        7.6639
       ],
       "textures": {}
     },
@@ -331,30 +331,30 @@
       "textures": {}
     },
     "Trim": {
-      "tris": 4604,
+      "tris": 2482,
       "bbox_min": [
-        -4.4116,
-        0.445,
-        -8.7674
+        -3.9753,
+        0.6516,
+        -7.1941
       ],
       "bbox_max": [
-        4.4109,
-        4.3304,
-        7.5222
+        4.0039,
+        3.4576,
+        7.3298
       ],
       "textures": {}
     },
     "Interior": {
-      "tris": 743,
+      "tris": 1496,
       "bbox_min": [
-        -4.2817,
-        0.355,
-        -8.6924
+        -4.2344,
+        0.3798,
+        -8.7413
       ],
       "bbox_max": [
-        4.2738,
-        4.5816,
-        7.4498
+        4.2337,
+        4.2936,
+        7.3824
       ],
       "textures": {}
     },
@@ -417,7 +417,7 @@
   },
   "triangles": {
     "source": 212407,
-    "total": 17932,
+    "total": 17012,
     "limits": {
       "car": 18000,
       "body": 7000,
@@ -448,9 +448,9 @@
       "area": 115.692
     },
     "Body2": {
-      "islands": 2,
-      "faces": 3374,
-      "area": 58.946
+      "islands": 16,
+      "faces": 24152,
+      "area": 46.59
     },
     "Glass": {
       "islands": 6,
@@ -468,14 +468,14 @@
       "area": 3.729
     },
     "Trim": {
-      "islands": 130,
-      "faces": 63053,
-      "area": 241.369
+      "islands": 114,
+      "faces": 38901,
+      "area": 194.779
     },
     "Interior": {
-      "islands": 85,
-      "faces": 37667,
-      "area": 442.261
+      "islands": 87,
+      "faces": 41041,
+      "area": 501.207
     },
     "Discard": {
       "islands": 26,

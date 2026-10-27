@@ -435,7 +435,7 @@ def shockwave_ring():
     x, y = grid(S)
     r = np.sqrt(x * x + y * y)
     th = np.arctan2(y, x)
-    front = smoothstep(0.92, 0.86, r) * np.power(smoothstep(0.3, 0.86, r), 2.6)
+    front = smoothstep(0.92, 0.86, r) * np.power(smoothstep(0.45, 0.86, r), 4.0)
     rim = np.exp(-np.power((r - 0.875) / 0.016, 2))
     ang = spectral_noise(1, 512, rng, beta=1.2, fmin=6)[0]
     idx = ((th + math.pi) / (2 * math.pi) * 511).astype(np.int64) % 512

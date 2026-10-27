@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "f81da34570b145deb463fa091604d251",
+  "slug": "v-compact--1991-honda-civic-eg6-f81da3",
+  "name": "1991 Honda Civic EG6",
+  "class": "compact",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "rifdanzz",
+    "displayName": "rifdanzz",
+    "profileUrl": "https://sketchfab.com/rifdanzz"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/1991-honda-civic-eg6-f81da34570b145deb463fa091604d251",
+  "faceCount": 21594,
+  "vertexCount": 12245,
+  "materialCount": 11,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 133,
+  "tags": [
+    "cars",
+    "honda",
+    "civic",
+    "jdm",
+    "estilo",
+    "eg6",
+    "vehicle",
+    "car",
+    "japanese",
+    "vehilce"
+  ],
+  "categories": [
+    "cars-vehicles",
+    "places-travel"
+  ],
+  "description": "5th Gen Honda Civic\nHatchback\n2 doors",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-compact--1991-honda-civic-eg6-f81da3/model.glb",
+  "fileBytes": 1677568,
+  "sha256": "0bf94a7d3d3f6dd574a64b15c08820735cdaf78a7213d4d747af438a886d3710",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:33+00:00",
+  "notes": null
+}

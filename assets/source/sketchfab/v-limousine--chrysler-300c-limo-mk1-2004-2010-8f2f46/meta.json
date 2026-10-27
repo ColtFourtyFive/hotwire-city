@@ -1,0 +1,40 @@
+{
+  "source": "sketchfab",
+  "uid": "8f2f466f668b4958831cd5f2d6da299a",
+  "slug": "v-limousine--chrysler-300c-limo-mk1-2004-2010-8f2f46",
+  "name": "Chrysler 300C Limo MK1 2004-2010",
+  "class": "limousine",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "szymonpasterczyk",
+    "displayName": "Merc_TV",
+    "profileUrl": "https://sketchfab.com/szymonpasterczyk"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/chrysler-300c-limo-mk1-2004-2010-8f2f466f668b4958831cd5f2d6da299a",
+  "faceCount": 102953,
+  "vertexCount": 59258,
+  "materialCount": 54,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 4,
+  "tags": [],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Other Names:\nChrysler 300",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-limousine--chrysler-300c-limo-mk1-2004-2010-8f2f46/model.glb",
+  "fileBytes": 6827248,
+  "sha256": "302f620341fe07510986278d1637f6482ac6f4d9443828f4afcf199ad22d4dc9",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:07:49+00:00",
+  "notes": null
+}
