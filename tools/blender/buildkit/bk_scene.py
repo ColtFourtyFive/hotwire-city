@@ -197,9 +197,14 @@ def haze(color=(0.62, 0.70, 0.80), amount=0.55, night=False):
     if night:
         gl = ng.nodes.new("CompositorNodeGlare")
         try:
-            gl.glare_type = "BLOOM"
+            gl.glare_type = "BLOOM"          # Blender <= 4.x
         except Exception:
             pass
+        if "Type" in gl.inputs:              # Blender 5.x: the glare type is a menu socket
+            try:
+                gl.inputs["Type"].default_value = "Bloom"
+            except Exception:
+                pass
         for k, v in (("Threshold", 1.0), ("Strength", 0.6), ("Size", 0.6)):
             if k in gl.inputs:
                 try:

@@ -1,0 +1,1999 @@
+{
+ "v-ambulance--ambulance-b78313": {
+  "class": "ambulance",
+  "kind": "vehicle",
+  "author": "mk2design",
+  "brand": [
+   "ford"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 4,
+  "tex_max": 1024,
+  "materials": 3,
+  "extensions": [
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-ambulance--shvan-92-ambulance-low-poly-model-2856dd": {
+  "class": "ambulance",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Shvan92_Body_Badges",
+   "Shvan92_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-ambulance--stw-ambulance-c9c7a0": {
+  "class": "ambulance",
+  "kind": "vehicle",
+  "author": "ramonaflowers",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 1,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-armored-truck--bope-caveir-o-armored-truck-e36169": {
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "author": "42manako",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 24,
+  "textures": 11,
+  "tex_max": 1024,
+  "materials": 20,
+  "extensions": [
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-armored-truck--md-84-armored-low-poly-model-26e809": {
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "MD84Armored_Body_Badges",
+   "MD84Armored_Body_Badges_Carbadges_misc_U_0",
+   "MD84Armored_Hood_Badges",
+   "MD84Armored_Hood_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 15,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-armored-truck--swat-police-van-5b9076": {
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "author": "Zack_Hawley",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 18,
+  "tex_max": 1024,
+  "materials": 6,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-box-truck--box-truck-b0e878": {
+  "class": "box_truck",
+  "kind": "vehicle",
+  "author": "CristianRus",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 2,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-box-truck--lct-3000-07-low-poly-model-3be03b": {
+  "class": "box_truck",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "LCT300007_Body_Badges",
+   "LCT300007_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-box-truck--lct-3000-95-low-poly-model-663a09": {
+  "class": "box_truck",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "LCT300095_Body_Badges",
+   "LCT300095_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-bus--bus-c13716": {
+  "class": "bus",
+  "kind": "vehicle",
+  "author": "tnikita",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 17,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-bus--city-bus-rigged-5236-36646f": {
+  "class": "bus",
+  "kind": "vehicle",
+  "author": "grox777",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 8,
+  "textures": 8,
+  "tex_max": 1024,
+  "materials": 6,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_materials_emissive_strength",
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "v-bus--generic-town-bus-14fe03": {
+  "class": "bus",
+  "kind": "vehicle",
+  "author": "own.guest",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 2,
+  "tex_max": 1024,
+  "materials": 20,
+  "extensions": [
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-bus--man-lion-s-city-12g-efficiencyhybr-f49105": {
+  "class": "bus",
+  "kind": "vehicle",
+  "author": "karpworkz",
+  "brand": [
+   "man"
+  ],
+  "rip_names": [],
+  "logo_names": [
+   "Badge_Color",
+   "Layer_001.001_Badge Color_0",
+   "Layer_001.002_Badge Color_0",
+   "Layer_001.003_Badge Color_0",
+   "Layer_001.004_Badge Color_0",
+   "Layer_001.005_Badge Color_0",
+   "Layer_001.006_Badge Color_0",
+   "Layer_001.007_Badge Color_0"
+  ],
+  "wheel_nodes": 0,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 92,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_materials_emissive_strength"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-compact--1991-honda-civic-eg6-f81da3": {
+  "class": "compact",
+  "kind": "vehicle",
+  "author": "rifdanzz",
+  "brand": [
+   "honda"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 1,
+  "tex_max": 1024,
+  "materials": 11,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-compact--ace-11-low-poly-model-055ff8": {
+  "class": "compact",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Ace11_Body_Badges",
+   "Ace11_Body_Badges_Carbadges_misc_U_0",
+   "Ace11_Bumper_Front_Badges",
+   "Ace11_Bumper_Front_Badges_Carbadges_misc_U_0",
+   "Carbadges_misc_U"
+  ],
+  "wheel_nodes": 8,
+  "textures": 12,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-compact--milano-95-low-poly-model-122a22": {
+  "class": "compact",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Milano95_Body_Badges",
+   "Milano95_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 9,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-fire-truck--augmented-firetruck-clean-ee8786": {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "author": "NPotamianos",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 5,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-fire-truck--fire-engine-with-ladder-low-poly-b72d3b": {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "author": "afcm.contact",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 4,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 14,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-fire-truck--generic-civil-service-vehicles-pac-8ff2a1": {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "author": "comrade1280",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "CityBus_decals",
+   "ambulance_decals_tex_0",
+   "citybus_CityBus_decals_0",
+   "decals_tex",
+   "decals_tex_0",
+   "decals_tex_1",
+   "fire_truck_firetruck_decals_0",
+   "firetruck_decals"
+  ],
+  "wheel_nodes": 0,
+  "textures": 50,
+  "tex_max": 1024,
+  "materials": 43,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-fire-truck--german-ladder-fire-truck-man-tga-t-403fbe": {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "author": "cm_dp",
+  "brand": [
+   "man"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 14,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-limousine--chrysler-300c-limo-mk1-2004-2010-8f2f46": {
+  "class": "limousine",
+  "kind": "vehicle",
+  "author": "szymonpasterczyk",
+  "brand": [
+   "chrysler"
+  ],
+  "rip_names": [
+   "bonnet_dam_2-material",
+   "bonnet_dummy",
+   "boot_dam_3-material",
+   "boot_dummy",
+   "boot_ok_4-material",
+   "bump_front_dummy",
+   "bump_rear_dummy",
+   "chassis_dummy"
+  ],
+  "logo_names": [],
+  "wheel_nodes": 1,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 54,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-limousine--gmc-hummer-h2-limo-876586": {
+  "class": "limousine",
+  "kind": "vehicle",
+  "author": "maregajavier",
+  "brand": [
+   "gmc",
+   "hummer"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 1,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-limousine--mercedes-w126-limousine-lowpoly-fo-4ed60d": {
+  "class": "limousine",
+  "kind": "vehicle",
+  "author": "fishermans",
+  "brand": [
+   "benz",
+   "mercedes"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-lowrider--1975-cadillac-eldorado-lowrider-63bb46": {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "author": "maregajavier",
+  "brand": [
+   "cadillac"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 512,
+  "materials": 4,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-lowrider--chevrolet-impala-1963-home-work-7-a0330e": {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "author": "DmitryBorisov",
+  "brand": [
+   "chevrolet"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 28,
+  "extensions": [
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-lowrider--impala-1964-lowrider-c68508": {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "author": "mrkuza",
+  "brand": [
+   "chevrolet"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 10,
+  "tex_max": 1024,
+  "materials": 18,
+  "extensions": [
+   "KHR_materials_transmission"
+  ],
+  "animations": 1,
+  "skins": 0
+ },
+ "v-lowrider--impala-lowpoly-db303e": {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "author": "bagatela.qc",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 9,
+  "extensions": [
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-luxury-sedan--free-2010-lincoln-town-car-9828f8": {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "author": "Velrifea",
+  "brand": [
+   "ford",
+   "lincoln"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 2,
+  "tex_max": 1024,
+  "materials": 16,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-luxury-sedan--gourami-luxury-saloon-bf29ac": {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "author": "ministephen",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Logo"
+  ],
+  "wheel_nodes": 0,
+  "textures": 10,
+  "tex_max": 1024,
+  "materials": 23,
+  "extensions": [
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-luxury-sedan--mercedes-benz-s-class-w222-148c7b": {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "author": "Ryan.Qin",
+  "brand": [
+   "benz",
+   "mercedes"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 31,
+  "tex_max": 1024,
+  "materials": 10,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-luxury-sedan--trinity-03-low-poly-model-32ac06": {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Trinity03_Bumper_Front_Badges",
+   "Trinity03_Bumper_Front_Badges_Carbadges_misc_U_0",
+   "Trinity03_Trunkdoor_Badges",
+   "Trinity03_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 14,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-motorcycle--suzuki-gsxr-750-3e05cd": {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "author": "kaleemullah550",
+  "brand": [
+   "suzuki"
+  ],
+  "rip_names": [
+   "detach_element_B_25_pivot_chassis",
+   "detach_element_B_25_pivot_chassis_Material #4_0",
+   "detach_element_D_25_pivot_chassis",
+   "detach_element_D_25_pivot_chassis_Material #4_0",
+   "detach_element_FL_20_pivot_chassis",
+   "detach_element_FL_20_pivot_chassis_Material #4_0",
+   "detach_element_FR_20_pivot_chassis",
+   "detach_element_FR_20_pivot_chassis_Material #4_0"
+  ],
+  "logo_names": [],
+  "wheel_nodes": 8,
+  "textures": 5,
+  "tex_max": 1024,
+  "materials": 6,
+  "extensions": [
+   "KHR_materials_emissive_strength",
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-motorcycle--yamaha-r1-7b3343": {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "author": "ejsnowy",
+  "brand": [
+   "yamaha"
+  ],
+  "rip_names": [],
+  "logo_names": [
+   "Main_Decals",
+   "Main_Decals_-_Aluminum",
+   "Main_Decals_-_Plastics",
+   "Yam_R1_Body_Main_Decals_-_Aluminum_0",
+   "Yam_R1_Body_Main_Decals_-_Plastics_0",
+   "Yam_R1_Body_Main_Decals_0",
+   "Yam_R1_Front_Fender_Main_Decals_-_Aluminum_0",
+   "Yam_R1_Fuel_Cap_Main_Decals_0"
+  ],
+  "wheel_nodes": 10,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 31,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-muscle--duke-69-low-poly-model-46fed7": {
+  "class": "muscle",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Duke69_Body_Badges",
+   "Duke69_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 4,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-muscle--free-dodge-challenger-srt-38a1fd": {
+  "class": "muscle",
+  "kind": "vehicle",
+  "author": "Lambo_SC04",
+  "brand": [
+   "dodge"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 2,
+  "tex_max": 1024,
+  "materials": 22,
+  "extensions": [
+   "KHR_materials_emissive_strength",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-muscle--phoenix-455-71-low-poly-model-955edc": {
+  "class": "muscle",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Phoenix445_Body_Badges",
+   "Phoenix445_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 12,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-pickup--2018-chevrolet-silverado-centennia-10c645": {
+  "class": "pickup",
+  "kind": "vehicle",
+  "author": "amogusstrikesback2",
+  "brand": [
+   "chevrolet"
+  ],
+  "rip_names": [
+   "detach_bumper_front",
+   "detach_bumper_front_details",
+   "detach_bumper_front_details_Material.002_0",
+   "detach_door_L",
+   "detach_door_L_carpaint",
+   "detach_door_L_carpaint_Material.001_0",
+   "detach_door_L_details",
+   "detach_door_L_details_Material.002_0"
+  ],
+  "logo_names": [],
+  "wheel_nodes": 30,
+  "textures": 7,
+  "tex_max": 1024,
+  "materials": 6,
+  "extensions": [
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-pickup--conquer-89-pickup-low-poly-model-6c48c9": {
+  "class": "pickup",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "CnqerP89_Badges_Body",
+   "CnqerP89_Badges_Body_Carbadges_misc_U_0",
+   "CnqerP89_Trunkdoor_Badges",
+   "CnqerP89_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-pickup--ford-f-150-606bcc": {
+  "class": "pickup",
+  "kind": "vehicle",
+  "author": "amogusstrikesback2",
+  "brand": [
+   "ford"
+  ],
+  "rip_names": [
+   "chassis_pivot_bottom",
+   "chassis_pivot_bottom_Material.007_0",
+   "chassis_pivot_cargo",
+   "chassis_pivot_cargo_Material.003_0",
+   "chassis_pivot_carpaint",
+   "chassis_pivot_carpaint_Material.001_0",
+   "chassis_pivot_chrome",
+   "chassis_pivot_chrome_Material.004_0"
+  ],
+  "logo_names": [],
+  "wheel_nodes": 24,
+  "textures": 8,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-pickup--lightbody-90-md-pickup-low-poly-mo-3b3ac5": {
+  "class": "pickup",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "UTLTRUCK90_Badges_Body",
+   "UTLTRUCK90_Badges_Body_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 9,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-police-cruiser--2001-crown-victoria-police-interce-9f30d3": {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "author": "haoliu95",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 1,
+  "textures": 22,
+  "tex_max": 1024,
+  "materials": 7,
+  "extensions": [
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-police-cruiser--illinois-90-police-cruiser-low-pol-dc8162": {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Illinois90_Body_Badges",
+   "Illinois90_Body_Badges_Carbadges_misc_U_0",
+   "Illinois90_Trunkdoor_Badges",
+   "Illinois90_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-police-cruiser--murphy-97-cruiser-low-poly-model-31f0ac": {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Murphy92_Hood_Badges003",
+   "Murphy92_Hood_Badges003_Carbadges_misc_U_0",
+   "Murphy92_Trunkdoor_Badges003",
+   "Murphy92_Trunkdoor_Badges003_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 13,
+  "textures": 16,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-police-cruiser--trinity-03-cop-interceptor-low-pol-6a5c6c": {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Trinity03_Bumper_Front_Badges",
+   "Trinity03_Bumper_Front_Badges_Carbadges_misc_U_0",
+   "Trinity03_Trunkdoor_Badges",
+   "Trinity03_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 14,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-police-suv--lowpoly-generic-suv-police-259fc1": {
+  "class": "police_suv",
+  "kind": "vehicle",
+  "author": "mk2design",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 8,
+  "textures": 5,
+  "tex_max": 1024,
+  "materials": 7,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-police-suv--urban-10-cop-enforcer-low-poly-mod-745830": {
+  "class": "police_suv",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Urban10_Body_Badges",
+   "Urban10_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 16,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sedan--2006-toyota-camry-24-g-limited-3cf0bc": {
+  "class": "sedan",
+  "kind": "vehicle",
+  "author": "tonielpro520",
+  "brand": [
+   "toyota"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 5,
+  "tex_max": 1024,
+  "materials": 25,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sedan--illinois-90-low-poly-model-d60487": {
+  "class": "sedan",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Illinois90_Body_Badges",
+   "Illinois90_Body_Badges_Carbadges_misc_U_0",
+   "Illinois90_Trunkdoor_Badges",
+   "Illinois90_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sedan--kiri-10-low-poly-model-7fd6e1": {
+  "class": "sedan",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Kiri10_Body_Badges",
+   "Kiri10_Body_Badges_Carbadges_misc_U_0",
+   "Kiri10_Trunkdoor_Badges",
+   "Kiri10_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sedan--tozzo-98-low-poly-model-d43bb7": {
+  "class": "sedan",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Tozzo98_Badges_Front",
+   "Tozzo98_Badges_Front_Carbadges_misc_U_0",
+   "Tozzo98_Badges_Rear",
+   "Tozzo98_Badges_Rear_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 12,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sports-coupe--generic-coupe-azura-2e1a36": {
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "author": "mk2design",
+  "brand": [
+   "mitsubishi"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 4,
+  "textures": 6,
+  "tex_max": 1024,
+  "materials": 11,
+  "extensions": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sports-coupe--jdm-sport-99-low-poly-model-6dd4ae": {
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Gallo99_Badges_Front",
+   "Gallo99_Badges_Front_Carbadges_misc_U_0",
+   "Gallo99_Body_Badges",
+   "Gallo99_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 12,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-sports-coupe--nissan-200sx-silvia-s14-f2a917": {
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "author": "Lexyc16",
+  "brand": [
+   "nissan"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 2,
+  "tex_max": 1024,
+  "materials": 17,
+  "extensions": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-supercar--2017-mclaren-720s-f7bece": {
+  "class": "supercar",
+  "kind": "vehicle",
+  "author": "s0h1o9b",
+  "brand": [
+   "mclaren"
+  ],
+  "rip_names": [],
+  "logo_names": [
+   "badges",
+   "badges_badges_0"
+  ],
+  "wheel_nodes": 6,
+  "textures": 5,
+  "tex_max": 512,
+  "materials": 14,
+  "extensions": [
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 3,
+  "skins": 0
+ },
+ "v-supercar--cheetah-84-low-poly-model-c967ab": {
+  "class": "supercar",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Cheetah84_Body_Badges",
+   "Cheetah84_Body_Badges_Carbadges_misc_U_0",
+   "Cheetah84_Hood_Badges",
+   "Cheetah84_Hood_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 12,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-supercar--fictional-supercar-v12-goblin-0a20e4": {
+  "class": "supercar",
+  "kind": "vehicle",
+  "author": "ollitei",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 12,
+  "textures": 9,
+  "tex_max": 1024,
+  "materials": 5,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-supercar--saba-v12-95-low-poly-model-3ab977": {
+  "class": "supercar",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Saba95_Body_Badges",
+   "Saba95_Body_Badges_Carbadges_misc_U_0",
+   "Saba95_Hood_Badges",
+   "Saba95_Hood_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 12,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-suv--2011-range-rover-evoque-free-vehic-f7632f": {
+  "class": "suv",
+  "kind": "vehicle",
+  "author": "free-vehicle-archive",
+  "brand": [
+   "landrover",
+   "range rover",
+   "rangerover"
+  ],
+  "rip_names": [],
+  "logo_names": [
+   "Logo"
+  ],
+  "wheel_nodes": 0,
+  "textures": 18,
+  "tex_max": 1024,
+  "materials": 23,
+  "extensions": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-suv--lowpoly-generic-suv-edc994": {
+  "class": "suv",
+  "kind": "vehicle",
+  "author": "mk2design",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 8,
+  "textures": 5,
+  "tex_max": 1024,
+  "materials": 5,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-suv--mercedes-benz-g-class-w263-1a2a52": {
+  "class": "suv",
+  "kind": "vehicle",
+  "author": "Lexyc16",
+  "brand": [
+   "benz",
+   "mercedes"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 1,
+  "tex_max": 128,
+  "materials": 13,
+  "extensions": [
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular",
+   "KHR_materials_transmission",
+   "KHR_materials_emissive_strength"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-suv--urban-10-low-poly-model-2866ef": {
+  "class": "suv",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Urban10_Body_Badges",
+   "Urban10_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-taxi--2001-crown-victoria-taxi-game-prop-2429a8": {
+  "class": "taxi",
+  "kind": "vehicle",
+  "author": "haoliu95",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 1,
+  "textures": 21,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-taxi--canyon-75-taxi-low-poly-model-9e8f92": {
+  "class": "taxi",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Canyon75_Body_Badges",
+   "Canyon75_Body_Badges_Carbadges_misc_U_0",
+   "Carbadges_misc_U"
+  ],
+  "wheel_nodes": 8,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat",
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-taxi--illinois-90-taxi-2-low-poly-model-fa1a26": {
+  "class": "taxi",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Illinois90_Body_Badges",
+   "Illinois90_Body_Badges_Carbadges_misc_U_0",
+   "Illinois90_Trunkdoor_Badges",
+   "Illinois90_Trunkdoor_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 14,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-van--2003-chevrolet-express-gmc-savana-ed2a0b": {
+  "class": "van",
+  "kind": "vehicle",
+  "author": "ddiaz-design",
+  "brand": [
+   "chevrolet",
+   "gmc"
+  ],
+  "rip_names": [
+   "CG:M_TrafficBadge_Maxcar_chevrolet_express_2003_Mesh_lod0",
+   "CG:M_TrafficBadge_Maxcar_chevrolet_express_2003_Mesh_lod0_CG:phong9SG1_0",
+   "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficCarpaint_Max",
+   "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficCarpaint_Max_CG:phong5SG1_0",
+   "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficChassis_Max",
+   "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficChassis_Max_CG:phong10SG1_0",
+   "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficGlassOpaque_Mirror_Max",
+   "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficGlassOpaque_Mirror_Max_CG:phong12SG1_0"
+  ],
+  "logo_names": [
+   "CG:M_TrafficBadge_Maxcar_chevrolet_express_2003_Mesh_lod0",
+   "CG:M_TrafficBadge_Maxcar_chevrolet_express_2003_Mesh_lod0_CG:phong9SG1_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 16,
+  "tex_max": 1024,
+  "materials": 15,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-van--mercedes-benz-sprinter-2006-f69de1": {
+  "class": "van",
+  "kind": "vehicle",
+  "author": "Max-7215",
+  "brand": [
+   "benz",
+   "mercedes"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 26,
+  "tex_max": 1024,
+  "materials": 10,
+  "extensions": [],
+  "animations": 1,
+  "skins": 0
+ },
+ "v-van--shvan-92-low-poly-model-09d718": {
+  "class": "van",
+  "kind": "vehicle",
+  "author": "DanielZhabotinsky",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [
+   "Carbadges_misc_U",
+   "Shvan92_Body_Badges",
+   "Shvan92_Body_Badges_Carbadges_misc_U_0"
+  ],
+  "wheel_nodes": 8,
+  "textures": 13,
+  "tex_max": 1024,
+  "materials": 8,
+  "extensions": [
+   "KHR_materials_specular",
+   "KHR_texture_transform",
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-assault-rifle--ak-47-assault-rifle-46a36e": {
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "author": "so_O",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-assault-rifle--akm-free-lowpoly-409c88": {
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "author": "dan741vlasov",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-assault-rifle--low-poly-akm-849b7c": {
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 12,
+  "extensions": [
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-carbine--low-poly-hk416-059e96": {
+  "class": "carbine",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "hk4"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 12,
+  "extensions": [
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-carbine--low-poly-m4a1-8cab1c": {
+  "class": "carbine",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 11,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-carbine--m4-carbine-b516a8": {
+  "class": "carbine",
+  "kind": "weapon",
+  "author": "sinnik",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 10,
+  "tex_max": 1024,
+  "materials": 4,
+  "extensions": [
+   "KHR_materials_clearcoat"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-grenade--low-poly-m67-c233d2": {
+  "class": "grenade",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 5,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-grenade--m67-fragmentation-grenade-05e2a2": {
+  "class": "grenade",
+  "kind": "weapon",
+  "author": "vextin",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-grenade--m67-grenade-36a23c": {
+  "class": "grenade",
+  "kind": "weapon",
+  "author": "nickolasa.mcintosh",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-heavy-pistol--357-python-revolver-rigged-game-re-3b81c9": {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "author": "InfuriatingScholar",
+  "brand": [
+   "colt"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 9,
+  "tex_max": 1024,
+  "materials": 3,
+  "extensions": [
+   "KHR_materials_specular"
+  ],
+  "animations": 1,
+  "skins": 2
+ },
+ "w-heavy-pistol--desert-eagle-free-model-32838f": {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "author": "javadbayat",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 1,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-heavy-pistol--low-poly-desert-eagle-b81da2": {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "imi"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 11,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-heavy-pistol--revolver-357-magnum-360c62": {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "author": "Artem.Goyko",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-melee--alluminum-carbon-fiber-bat-672baf": {
+  "class": "melee",
+  "kind": "weapon",
+  "author": "MauriceBaxter",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-melee--baseball-bat-432955": {
+  "class": "melee",
+  "kind": "weapon",
+  "author": "Nirduk",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-melee--combat-knife-48e00d": {
+  "class": "melee",
+  "kind": "weapon",
+  "author": "San.Dro",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 9,
+  "tex_max": 1024,
+  "materials": 3,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-melee--m9-bayonet-default-365930": {
+  "class": "melee",
+  "kind": "weapon",
+  "author": "Firewarden",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-minigun--low-poly-m134-minigun-eed0c9": {
+  "class": "minigun",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 15,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-minigun--m134-handheld-minigun-8f008c": {
+  "class": "minigun",
+  "kind": "weapon",
+  "author": "boriseviav",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-pistol--9mm-pistol-43bc09": {
+  "class": "pistol",
+  "kind": "weapon",
+  "author": "TORI106",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 6,
+  "tex_max": 1024,
+  "materials": 2,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-pistol--g19-pistol-game-ready-free-version-e3412d": {
+  "class": "pistol",
+  "kind": "weapon",
+  "author": "Rotuma",
+  "brand": [
+   "glock"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 7,
+  "tex_max": 1024,
+  "materials": 2,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-pistol--low-poly-beretta-92fs-859943": {
+  "class": "pistol",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "beretta"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 6,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-pistol--low-poly-g17-60efc5": {
+  "class": "pistol",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 11,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-shotgun--low-poly-mossberg-590-c0551a": {
+  "class": "shotgun",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "mossberg"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 10,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-shotgun--low-poly-remington-870-876649": {
+  "class": "shotgun",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "remington"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 5,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-shotgun--remington-870-shotgun-05a6a0": {
+  "class": "shotgun",
+  "kind": "weapon",
+  "author": "Urpo",
+  "brand": [
+   "remington"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 6,
+  "tex_max": 1024,
+  "materials": 2,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-shotgun--remington-870-shotgun-6db0ad": {
+  "class": "shotgun",
+  "kind": "weapon",
+  "author": "milinam2002",
+  "brand": [
+   "remington"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-smg--low-poly-hk-mp5-80980f": {
+  "class": "smg",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "heckler"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 9,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-smg--low-poly-imi-uzi-d9f007": {
+  "class": "smg",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "imi"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 13,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-smg--low-poly-micro-uzi-833e1c": {
+  "class": "smg",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [
+   "imi"
+  ],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 11,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-smg--mp5-submachinegun-2a9ce6": {
+  "class": "smg",
+  "kind": "weapon",
+  "author": "michaelkarel",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 6,
+  "tex_max": 1024,
+  "materials": 3,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-sniper--low-poly-l115a3-a795ad": {
+  "class": "sniper",
+  "kind": "weapon",
+  "author": "TastyTony",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 0,
+  "tex_max": 0,
+  "materials": 18,
+  "extensions": [],
+  "animations": 0,
+  "skins": 1
+ },
+ "w-sniper--sniper-cdefd8": {
+  "class": "sniper",
+  "kind": "weapon",
+  "author": "bumstrum",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "w-sniper--sniper-rifle-gameready-free-e520b2": {
+  "class": "sniper",
+  "kind": "weapon",
+  "author": "pashtetuser",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ }
+}

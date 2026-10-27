@@ -92,7 +92,11 @@ for _, d in folder:GetDescendants() do
 		local entry = {
 			name = d.Name,
 			material = d.Material.Name,
-			color = { math.floor(d.Color.R * 255 + 0.5), math.floor(d.Color.G * 255 + 0.5), math.floor(d.Color.B * 255 + 0.5) },
+			color = {
+				math.floor(d.Color.R * 255 + 0.5),
+				math.floor(d.Color.G * 255 + 0.5),
+				math.floor(d.Color.B * 255 + 0.5),
+			},
 			shape = if d:IsA("Part") then d.Shape.Name else d.ClassName,
 		}
 		local lo, hi = yRange(cf, size)

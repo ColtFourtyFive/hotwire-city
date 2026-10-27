@@ -21,6 +21,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 WHEEL_RE = re.compile(r"wheel|tire|tyre|\brims?\b|_rims?|rims?_|whl|roda|колес", re.I)
+HELPER_RE = re.compile(r"sphere|plane|ground|floor|backdrop|background|shadow|shd|sky|studio|dome|env", re.I)
 STEER_RE = re.compile(r"steer|spare", re.I)
 FRONT_RE = re.compile(r"front|head ?lights?|headlamp|grill|hood|bonnet|windshield|windscreen|(?:^|[_\W])f[lr](?:$|[_\W\d])", re.I)
 REAR_RE = re.compile(r"rear|tail ?lights?|brake ?lights?|trunk|\bboot|exhaust|reverse|(?:^|[_\W])r[lr](?:$|[_\W\d])", re.I)
@@ -109,7 +110,21 @@ def main():
     if not meshes:
         raise SystemExit("no meshes")
 
-    # hide obviously non-model helpers (shadow planes baked as separate objects are kept – they show up)
+    # hide presentation helpers (backdrop spheres, ground planes) that are much bigger than the model itself
+    helpers = []
+    for o in list(meshes):
+        if not HELPER_RE.search(o.name):
+            continue
+        rest = [m for m in meshes if m is not o and m not in helpers]
+        if not rest:
+            continue
+        omn, omx = world_bbox([o]); rmn, rmx = world_bbox(rest)
+        if max(omx - omn) > 1.6 * max(rmx - rmn):
+            helpers.append(o)
+    for o in helpers:
+        o.hide_render = True
+        o.hide_set(True)
+        meshes.remove(o)
     # ---------------------------------------------------------------- root for re-orientation
     root = bpy.data.objects.new("PREVIEW_ROOT", None)
     scene.collection.objects.link(root)
@@ -243,6 +258,7 @@ def main():
         "glass_materials": glass[:12],
         "animations": len(bpy.data.actions),
         "object_names": names[:80],
+        "hidden_helpers": [o.name for o in helpers],
     })
 
     # ---------------------------------------------------------------- studio
@@ -363,7 +379,7 @@ def main():
     if a["kind"] == "vehicle":
         views = [("main", 35, 14, (W, Hh), 0.80), ("inset", 180 + 35, 14, (W // 2, Hh // 2), 0.80)]
     else:
-        views = [("main", 18, 12, (W, Hh), 1.12), ("inset", 180 + 18, 12, (W // 2, Hh // 2), 1.12)]
+        views = [("main", 18, 12, (W, Hh), 1.25), ("inset", 180 + 18, 12, (W // 2, Hh // 2), 1.15)]
     paths = []
     for tag, az, el, (rw, rh), fill in views:
         scene.render.resolution_x, scene.render.resolution_y = rw, rh

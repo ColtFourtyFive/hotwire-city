@@ -45,5 +45,88 @@
   "sha256": "b0b1e00d9dcd2503eae5be59c2b3b5aab545da325c0d73fe3f28ea97bde7b3c3",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:05+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      5.3579,
+      2.0021,
+      1.6571
+    ],
+    "dims_m": [
+      2.002,
+      5.358,
+      1.657
+    ],
+    "front_evidence": "names(front=9,rear=8)",
+    "flipped": true,
+    "mesh_objects": 29,
+    "triangles": 27082,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "UCB_BOTTOM",
+      "UCB_Interiors_1",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent",
+      "UTLTRUCK90_Bodymat"
+    ],
+    "textures": 14,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "UTLTRUCK90_Truckbed_Trim_UCB_BOTTOM_0",
+      "UTLTRUCK90_WheelStock_FL_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_RL_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_RR_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "UTLTRUCK90_WheelStock_FL_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_RL_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_RR_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "UTLTRUCK90_Badges_Body_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "UTLTRUCK90_Bumper_Front_UTLTRUCK90_Bodymat_0",
+      "UTLTRUCK90_Hood_UTLTRUCK90_Bodymat_0",
+      "UTLTRUCK90_Interior_UCB_Interiors_1_0",
+      "UTLTRUCK90_Body_UTLTRUCK90_Bodymat_0",
+      "UTLTRUCK90_Glass_Rear_UCB_Lights_and_Glass_Transperent_0",
+      "UTLTRUCK90_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "UTLTRUCK90_bottom_UCB_BOTTOM_0",
+      "UTLTRUCK90_Bumper_rear_UCB_BOTTOM_0",
+      "UTLTRUCK90_suspension_UCB_BOTTOM_0",
+      "UTLTRUCK90_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "UTLTRUCK90_Headlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "UTLTRUCK90_Bumper_front_inner_UCB_BOTTOM_0",
+      "UTLTRUCK90_Truckbed_UTLTRUCK90_Bodymat_0",
+      "UTLTRUCK90_Truckbed_Trim_UCB_BOTTOM_0",
+      "UTLTRUCK90_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "UTLTRUCK90_Steering_Wheel_UCB_Interiors_1_0",
+      "UTLTRUCK90_Headlights_UCB_Lights_and_Glass_0",
+      "UTLTRUCK90_Blinkers_UCB_Lights_and_Glass_0",
+      "UTLTRUCK90_Bullbar_B_UCB_BOTTOM_0",
+      "UTLTRUCK90_Taillights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "UTLTRUCK90_Reverse_UCB_Lights_and_Glass_0",
+      "UTLTRUCK90_Brakelights_UCB_Lights_and_Glass_0",
+      "UTLTRUCK90_WheelStock_FL_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_RL_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_RR_RB1c_Tire_1k_0",
+      "UTLTRUCK90_WheelStock_FR_RB1c_Tire_1k_0",
+      "UTLTRUCK90_Badges_Body_Carbadges_misc_U_0",
+      "UTLTRUCK90_Truck_Numberplate_Front_Numberplates_Misk_U_0",
+      "UTLTRUCK90_Truck_Numberplate_rear_Numberplates_Misk_U_0"
+    ],
+    "render_s": 44.3
+  }
 }

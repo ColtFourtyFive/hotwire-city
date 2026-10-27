@@ -12,9 +12,10 @@ Writes into <outdir>:
 Image space: +X world -> right, +Z world -> down (north up). The world square [world-min, world-min + world-size] maps
 onto the full image. Nothing is baked as text: district names are UI labels (Config/Minimap.DISTRICTS).
 
-Look: deep navy land with per-district lot tints, roads as bright lines over a darker asphalt casing (width and
-brightness by class: highway > avenue > street), subtle building footprints lit by height (rim light, roof inset,
-crisp south-east shadow), green parks with tree canopies, a soft rounded sandy coastline with wet sand, foam and a
+Look: deep navy land with per-district lot tints (violet downtown, blue midtown, plum Market Row, green suburbs,
+teal beachfront, warm grey docks) that also tint the roofs, roads as lines over a darker asphalt casing ranked by width
+and brightness (dim streets, bright avenues with a centre line, a glowing white ring highway with an amber median),
+building footprints lit by height (rim light, roof inset, crisp south-east shadow), green parks with tree canopies, a soft rounded sandy coastline with wet sand, foam and a
 shallow-water glow over a deep gradient ocean with faint depth contours. Everything is drawn at --ss x
 supersampling and downsampled with LANCZOS, so edges are clean at 1 px per stud.
 """
@@ -59,19 +60,25 @@ P = {
     "garage": (66, 54, 92),
     "garage_edge": (236, 70, 150),
     "shadow": (5, 7, 15),
-    "street": (124, 132, 158),
-    "avenue": (170, 177, 202),
-    "highway": (196, 202, 222),
-    "highway_mid": (236, 178, 72),
+    # road hierarchy reads by width AND brightness: dim narrow streets, bright avenues, a white ring highway with an
+    # amber median and a soft glow (GTA V pause-map style)
+    "street": (104, 112, 142),
+    "avenue": (184, 192, 220),
+    "highway": (238, 241, 250),
+    "highway_mid": (240, 176, 64),
+    "highway_casing": (30, 33, 48),
 }
+# District lot tints: distinct hues, still dark enough that every blip, the route and the roads pop over them.
 ZONE = {
-    "downtown": (32, 34, 52),
-    "midtown": (31, 35, 50),
-    "shops": (28, 41, 42),
-    "suburbs": (27, 46, 39),
-    "beachfront": (28, 45, 43),
-    "docks": (36, 38, 47),
+    "downtown": (40, 34, 66),  # violet core
+    "midtown": (27, 39, 68),  # blue
+    "shops": (50, 37, 50),  # plum (Market Row)
+    "suburbs": (25, 52, 41),  # green
+    "beachfront": (20, 52, 60),  # teal
+    "docks": (48, 45, 41),  # warm industrial grey
 }
+# How much of the district hue rubs off on building roofs (so whole districts read at a glance, not just the lots).
+ZONE_ROOF_TINT = 0.32
 POI_LOT = {
     "SpawnPlaza": (62, 56, 62),
     "Dealership": (58, 58, 80),
@@ -82,7 +89,7 @@ POI_LOT = {
     "Pier": (80, 64, 50),
 }
 # road line widths in studs (the casing is the full asphalt width)
-ROAD_LINE = {"alley": 8, "street": 12, "avenue": 16, "highway": 22}
+ROAD_LINE = {"alley": 7, "street": 10, "avenue": 17, "highway": 25}
 ROAD_ORDER = ["alley", "street", "avenue", "highway"]
 
 PAVED = {"Plaza", "FountainPlaza", "PlazaRing", "PoolDeck", "Driveway", "DrivewayRamp", "Concrete", "Path",
@@ -446,15 +453,24 @@ def render(geo, args):
         if cls in ("avenue", "highway"):
             glow = cv.mask()
             dg = ImageDraw.Draw(glow)
+            spread = 10 if cls == "highway" else 4
             for r in roads:
-                cv.road(dg, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w + 4, w / 2 + 2, 255)
-            paint(base, P[cls], cv.blur(glow, 4), 0.16)
+                cv.road(dg, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w + spread, w / 2 + spread / 2, 255)
+            paint(base, P[cls], cv.blur(glow, spread), 0.26 if cls == "highway" else 0.16)
             draw = ImageDraw.Draw(base)
+        if cls == "highway":
+            # dark casing so the bright carriageway has a crisp edge even over light lots
+            for r in roads:
+                cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w + 5, w / 2 + 2.5, P["highway_casing"])
         for r in roads:
             cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], w, w / 2, P[cls])
         if cls == "highway":
             for r in roads:
-                cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], 2.0, 1.0, P["highway_mid"])
+                cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], 3.2, 1.6, P["highway_mid"])
+        elif cls == "avenue":
+            # thin dark centre line: avenues read as two-way boulevards, streets stay plain
+            for r in roads:
+                cv.road(draw, r["a"][0], r["a"][1], r["b"][0], r["b"][1], 1.4, 0.7, lerp(P["avenue"], P["asphalt"], 0.6))
     print("roads done")
 
     # --- footprints ------------------------------------------------------------------------------------------------------
@@ -506,6 +522,22 @@ def render(geo, args):
         cv.circle(draw, x, z, r - 0.9, body)
         cv.circle(draw, x - r * 0.28, z - r * 0.3, r * 0.42, lerp(body, (255, 255, 255), 0.18))
 
+    # district of a footprint: the lot (axis-aligned box) containing its centroid
+    lots = []
+    for p in geo["parts"]:
+        if p["name"] == "Lot" and "hull" in p and p.get("zone") in ZONE:
+            xs = [q[0] for q in p["hull"]]
+            zs = [q[1] for q in p["hull"]]
+            lots.append((min(xs), min(zs), max(xs), max(zs), ZONE[p["zone"]]))
+
+    def zone_tint(h):
+        cx = sum(q[0] for q in h) / len(h)
+        cz = sum(q[1] for q in h) / len(h)
+        for x0, z0, x1, z1, col in lots:
+            if x0 <= cx <= x1 and z0 <= cz <= z1:
+                return col
+        return None
+
     # buildings: lowest first, rim light on the north-west edges, roof inset
     buildings.sort(key=lambda b: b[0])
     for top, h, kind in buildings:
@@ -518,6 +550,11 @@ def render(geo, args):
             fill = lerp(P["building_lo"], P["land"], 0.2)
         else:
             fill = lerp(P["building_lo"], P["building_hi"], t)
+        if kind in ("building", "structure"):
+            tint = zone_tint(h)
+            if tint:
+                # keep the height shading, pull the hue toward the district (brightened so roofs stay above lots)
+                fill = lerp(fill, lerp(tint, (255, 255, 255), 0.22 + 0.25 * t), ZONE_ROOF_TINT)
         rim = lerp(fill, (255, 255, 255), 0.2)
         cv.poly(draw, h, rim)
         inset = 1.4 if kind != "prop" else 0.7

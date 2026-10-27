@@ -72,7 +72,7 @@ Minimap.RADAR = {
 	-- desktop: design px kept free above the radar top for what pokes out of it (the N marker reaches ~8 px above
 	-- the rim, the wanted glow ~22 px), so the HUD menu column never overlaps them
 	TOP_CLEARANCE = 28,
-	TOUCH_TOP = 6, -- design px below the topbar inset (touch)
+	TOUCH_TOP = 10, -- design px below the topbar inset (touch); the N marker pokes ~11 px above the rim
 	-- Phones sit at the 0.55 UIScale floor: radar text and blips grow by Theme.TouchMinScale / scale (capped here)
 	-- so they read like the rest of the HUD; the radar circle itself (and the HUD space it reserves) does not.
 	TOUCH_BOOST_MAX = 1.4,

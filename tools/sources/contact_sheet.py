@@ -9,7 +9,7 @@ import argparse
 import json
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "assets" / "source" / "sketchfab"
@@ -59,8 +59,15 @@ def cell(meta, d):
         ins = d / "preview_inset.png"
         if ins.exists():
             t = Image.open(ins).convert("RGB").resize((CW // 3, CH // 3), Image.LANCZOS)
-            im.paste((200, 200, 200), (CW - t.width - 6, 4, CW - 2, t.height + 8))
-            im.paste(t, (CW - t.width - 4, 6))
+            # put the inset in whichever top corner of the main view is emptiest (lowest detail)
+            from PIL import ImageStat
+            gl = main.convert("L")
+            corners = {"tr": (CW - t.width - 6, 0, CW, t.height + 10), "tl": (0, 0, t.width + 6, t.height + 10),
+                       "br": (CW - t.width - 6, CH - t.height - 10, CW, CH)}
+            k = min(corners, key=lambda c: ImageStat.Stat(gl.crop(corners[c]).filter(ImageFilter.FIND_EDGES)).mean[0])
+            x0, y0 = corners[k][0] + 2, corners[k][1] + 4
+            im.paste((200, 200, 200), (x0 - 2, y0 - 2, x0 + t.width + 2, y0 + t.height + 2))
+            im.paste(t, (x0, y0))
     else:
         ImageDraw.Draw(im).text((20, CH // 2), "no preview", fill=(255, 90, 90), font=font(18))
     dr = ImageDraw.Draw(im)
