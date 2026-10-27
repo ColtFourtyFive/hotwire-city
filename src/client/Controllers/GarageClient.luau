@@ -2,12 +2,17 @@
 -- GarageClient: everything garage-related that differs per viewer.
 --   * own laser gate is non-collidable locally (and tinted cyan) so the owner walks/drives through their lock
 --   * Drive/Sell prompts only for the owner; Steal only for others when the owner is robbable (>= newbie cars,
---     not locked); StealPrompt.HoldDuration scaled locally by the player's HoldMultiplier attribute
+--     not locked) and the server wouldn't refuse anyway (victim already being robbed, victim's RobbableAt
+--     protection, your own garage full): the billboard says why instead (F7). StealPrompt.HoldDuration scaled
+--     locally by the player's HoldMultiplier attribute
 --   * billboards above display cars (name in rarity color, rarity + mutation pills, $/s, owner's uncollected $)
---   * pad visuals from server pad attributes (lock + price, next unlock, STOLEN!/OUT states) + "Unlock $X" prompt
+--   * pad visuals from server pad attributes (lock + price, next unlock, STOLEN!/OUT states) + "Unlock $X" prompt;
+--     +2 Slots pass pads read "MAX SLOTS" while the pass isn't on sale (id 0)
 --   * collect pad glow pulse + floating total while the owner has uncollected cash
---   * LOCK button / countdown pill (touch friendly) while inside your garage or while it's locked
+--   * LOCK button / countdown pill (touch friendly) while inside your garage or while it's locked (stacked above
+--     HUDController's HOME button outside); hidden in streamer mode (HUDController.VisibilityChanged)
 -- The server re-checks everything; this module is presentation only.
+-- Pure helpers (tests): _freeSlots, _stealBlock, _lockedPadLabel.
 
 local CollectionService = game:GetService("CollectionService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -29,12 +34,14 @@ local Trove = require(Shared.Util.Trove)
 local UI: any = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI.Kit)
 local Theme = require(UI.Theme)
+local StateController = require(script.Parent:WaitForChild("StateController"))
 
 local player = Players.LocalPlayer
 
 local GarageClient = {}
 
 local OWN_LASER = Color3.fromRGB(0, 214, 255) -- your own lock reads "friendly" (and lets you through)
+local LOCK_BOTTOM = 112 -- design px from the screen bottom to the LOCK pill's bottom edge (at least)
 local PULSE = TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 local BOB = TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 
@@ -64,7 +71,10 @@ local padPulses: { [BasePart]: Tween } = {}
 local collectFx: CollectFx? = nil
 
 local lockButton: TextButton? = nil
+local lockScreen: ScreenGui? = nil
 local lockState = "hidden"
+local hudHidden = false -- streamer mode (HUDController)
+local freeSlots: number? = nil -- my free garage slots from the snapshot (nil = unknown)
 
 -- helpers ----------------------------------------------------------------------------------------------------------
 
@@ -88,6 +98,70 @@ local function setText(lbl: Instance?, text: string, color: Color3?)
 			lbl.TextColor3 = color
 		end
 	end
+end
+
+-- Sibling controller, required lazily (nil if missing or it fails to load).
+local function controller(name: string): any
+	local inst = script.Parent:FindFirstChild(name)
+	if not inst or not inst:IsA("ModuleScript") then
+		return nil
+	end
+	local ok, mod = pcall(require, inst :: any)
+	return if ok then mod else nil
+end
+
+-- Pure helpers (tests) -------------------------------------------------------------------------------------------------
+
+-- Free garage slots from the local snapshot, mirroring GarageService.freeSlots (nil = no snapshot yet).
+function GarageClient._freeSlots(snapshot: any): number?
+	if typeof(snapshot) ~= "table" or typeof(snapshot.garage) ~= "table" then
+		return nil
+	end
+	local unlocked = math.clamp(num(snapshot.slotsUnlocked, Economy.START_SLOTS), 0, Economy.MAX_SLOTS)
+	local extra = math.max(0, num(snapshot.maxSlots, Economy.MAX_SLOTS) - Economy.MAX_SLOTS)
+	local capacity = math.min(unlocked + extra, MapLayout.maxPhysicalSlots())
+	local free = 0
+	for slot = 1, capacity do
+		if snapshot.garage[tostring(slot)] == nil then
+			free += 1
+		end
+	end
+	return free
+end
+
+-- Why the server would refuse a steal from a robbable garage (same order as TheftService._canSteal), or nil.
+-- robbableAt / now are Workspace:GetServerTimeNow() times; freeSlots nil = unknown (never blocks).
+function GarageClient._stealBlock(busy: boolean, robbableAt: number, now: number, slots: number?): string?
+	if busy then
+		return "🚨 BEING ROBBED"
+	elseif robbableAt > now then
+		return "🛡️ PROTECTED " .. Format.clock(math.ceil(robbableAt - now))
+	elseif slots ~= nil and slots <= 0 then
+		return "📦 YOUR GARAGE IS FULL"
+	end
+	return nil
+end
+
+-- Locked pad label: (icon, text, Theme.Colors key). Pass pads advertise the +2 Slots pass only while it is on sale
+-- (id ~= 0); otherwise they read MAX SLOTS, never a dead-end offer (DECISIONS #11).
+function GarageClient._lockedPadLabel(
+	passOnly: boolean,
+	passOnSale: boolean,
+	mine: boolean,
+	nextUnlock: boolean,
+	price: number
+): (string, string, string)
+	if passOnly then
+		if passOnSale then
+			return "🅿️", "+2 SLOTS PASS", "Gold"
+		end
+		return "🔒", "MAX SLOTS", "TextDim"
+	elseif mine and nextUnlock then
+		return "🔓", "UNLOCK " .. Format.cash(price), "Cash"
+	elseif mine and price > 0 then
+		return "🔒", Format.cash(price), "Warning"
+	end
+	return "🔒", "LOCKED", "Danger"
 end
 
 -- Gate --------------------------------------------------------------------------------------------------------------
@@ -116,6 +190,32 @@ end
 
 -- Display car prompts -----------------------------------------------------------------------------------------------
 
+-- Is one of this garage's cars being stolen right now (pad State "BeingStolen")?
+local function plotBusy(view: PlotView): boolean
+	for _, pad in view.pads do
+		if pad:GetAttribute("State") == "BeingStolen" then
+			return true
+		end
+	end
+	return false
+end
+
+-- Shows (or hides) why a car can't be stolen right now, on its billboard (non-owners only).
+local function setStealBlock(chassis: Instance, block: string?)
+	local tag = chassis:FindFirstChild("GarageTag")
+	local lbl = tag and tag:FindFirstChild("StealBlock")
+	if not lbl or not lbl:IsA("TextLabel") then
+		return
+	end
+	local show = block ~= nil
+	if lbl.Visible ~= show then
+		lbl.Visible = show
+	end
+	if block and lbl.Text ~= block then
+		lbl.Text = block
+	end
+end
+
 local function updatePrompts(model: Model)
 	local chassis = model:FindFirstChild("Chassis")
 	if not chassis then
@@ -133,10 +233,18 @@ local function updatePrompts(model: Model)
 		sell.Enabled = mine and not driving
 	end
 	if steal and steal:IsA("ProximityPrompt") then
+		-- no view yet (plots still loading) reads as 0 cars: setupPlot re-runs this once the view exists
 		local view = views[num(model:GetAttribute("PlotIndex"), 0)]
 		local cars = if view then num(view.model:GetAttribute("CarCount"), 0) else 0
 		local locked = view ~= nil and view.model:GetAttribute("Locked") == true
-		steal.Enabled = not mine and not driving and not locked and cars >= Economy.NEWBIE_PROTECTION_CARS
+		local robbable = not mine and not driving and not locked and cars >= Economy.NEWBIE_PROTECTION_CARS
+		local block: string? = nil
+		if robbable and view then
+			local robbableAt = num(view.model:GetAttribute("RobbableAt"), 0)
+			block = GarageClient._stealBlock(plotBusy(view), robbableAt, Workspace:GetServerTimeNow(), freeSlots)
+		end
+		steal.Enabled = robbable and block == nil
+		setStealBlock(chassis, block)
 		local base = num(steal:GetAttribute("BaseHold"), steal.HoldDuration)
 		local mult = num(player:GetAttribute("HoldMultiplier"), 1)
 		if mult <= 0 then
@@ -274,14 +382,31 @@ local function buildBillboard(model: Model, chassis: BasePart, trove: any)
 	})
 	Kit.new("UITextSizeConstraint", { MaxTextSize = 34, Parent = uncLbl })
 	uncLbl.Parent = bb
+	-- non-owners: why the Steal prompt is off (same row as the owner-only uncollected line)
+	local blockLbl = Kit.label("", 22, {
+		Name = "StealBlock",
+		Size = UDim2.fromScale(1, 0.22),
+		Position = UDim2.fromScale(0, 0.78),
+		TextScaled = true,
+		TextColor3 = Theme.Colors.Warning,
+		Visible = false,
+	})
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 30, Parent = blockLbl })
+	blockLbl.Parent = bb
 
 	local function refreshIncome()
 		incomeLbl.Text = Format.cash(num(model:GetAttribute("Income"), def.income)) .. "/s"
 	end
 	local function refreshUncollected()
-		local mine = model:GetAttribute("OwnerUserId") == player.UserId
+		-- other players never see this line: skip the per-tick text work for their cars (PERF-08)
+		if model:GetAttribute("OwnerUserId") ~= player.UserId then
+			if uncLbl.Visible then
+				uncLbl.Visible = false
+			end
+			return
+		end
 		local value = num(model:GetAttribute("Uncollected"), 0)
-		uncLbl.Visible = mine and value > 0
+		uncLbl.Visible = value > 0
 		uncLbl.Text = "💰 " .. Format.cash(value)
 	end
 	refreshIncome()
@@ -398,13 +523,10 @@ local function renderPad(view: PlotView, pad: BasePart)
 	local statusText, statusColor = "", Theme.Colors.TextDim
 	local icon, priceText, priceColor = "🔒", "LOCKED", Theme.Colors.Danger
 	if locked then
-		if passOnly then
-			icon, priceText, priceColor = "🅿️", "+2 SLOTS PASS", Theme.Colors.Gold
-		elseif mine and nextUnlock then
-			icon, priceText, priceColor = "🔓", "UNLOCK " .. Format.cash(price), Theme.Colors.Cash
-		elseif mine and price > 0 then
-			icon, priceText, priceColor = "🔒", Format.cash(price), Theme.Colors.Warning
-		end
+		local passOnSale = Monetization.Passes.slots.id ~= 0
+		local padIcon, padText, colorKey = GarageClient._lockedPadLabel(passOnly, passOnSale, mine, nextUnlock, price)
+		icon, priceText = padIcon, padText
+		priceColor = (Theme.Colors :: any)[colorKey] or Theme.Colors.Danger
 		statusText, statusColor = icon .. " " .. priceText, priceColor
 	elseif state == "BeingStolen" then
 		statusText, statusColor = "🚨 STOLEN!", Theme.Colors.Danger
@@ -616,8 +738,11 @@ local function setupPlot(inst: Instance)
 		local pad = model:WaitForChild("Pad" .. slot, 10)
 		if pad and pad:IsA("BasePart") then
 			table.insert(view.pads, pad)
-			trove:Connect(pad.AttributeChanged, function()
+			trove:Connect(pad.AttributeChanged, function(attr: string)
 				renderPad(view, pad)
+				if attr == "State" then
+					updatePlotPrompts(view) -- a car of this garage started / stopped being stolen
+				end
 			end)
 		end
 	end
@@ -627,7 +752,7 @@ local function setupPlot(inst: Instance)
 		elseif attr == "Locked" then
 			applyGate(view)
 			updatePlotPrompts(view)
-		elseif attr == "CarCount" then
+		elseif attr == "CarCount" or attr == "RobbableAt" then
 			updatePlotPrompts(view)
 		elseif attr == "Uncollected" then
 			if collectFx and collectFx.index == index then
@@ -637,6 +762,8 @@ local function setupPlot(inst: Instance)
 	end)
 	applyGate(view)
 	renderPads(view)
+	-- display cars set up before this view existed read 0 cars and hid their Steal prompt: re-evaluate them now
+	updatePlotPrompts(view)
 	if index == myIndex() and isMine(view) then
 		setupCollectFx(view)
 	end
@@ -649,7 +776,7 @@ local function buildLockUI()
 	local btn = Kit.button("🔒 LOCK GARAGE", Theme.Colors.Danger, {
 		Name = "LockButton",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -112),
+		Position = UDim2.new(0.5, 0, 1, -LOCK_BOTTOM),
 		Size = UDim2.fromOffset(250, 58),
 		Visible = false,
 	})
@@ -658,15 +785,39 @@ local function buildLockUI()
 		if lockState == "ready" then
 			Net.fire("LockGarage")
 			Kit.pop(btn, 1.15)
+		else
+			-- locked / recharging: the pill shows the countdown; acknowledge the tap instead of ignoring it
+			Kit.pop(btn, 0.9)
+			local sound = controller("SoundController")
+			if sound and typeof(sound.play) == "function" then
+				pcall(sound.play, "Click")
+			end
 		end
 	end)
 	lockButton = btn
+	lockScreen = screen
+end
+
+-- Design px HUDController keeps clear at bottom-center (hotbar + HOME), or 0. Both screens use Kit.uiScale().
+local function hudBottomClearance(): number
+	local hud = controller("HUDController")
+	if hud and typeof(hud.getBottomClearance) == "function" then
+		local ok, v = pcall(hud.getBottomClearance)
+		if ok and typeof(v) == "number" and v == v then
+			return v
+		end
+	end
+	return 0
 end
 
 local function updateLockUI()
 	local btn = lockButton
 	if not btn then
 		return
+	end
+	local screen = lockScreen
+	if screen and screen.Enabled == hudHidden then
+		screen.Enabled = not hudHidden -- streamer mode hides the pill too
 	end
 	local idx = myIndex()
 	local view = if idx then views[idx] else nil
@@ -684,6 +835,13 @@ local function updateLockUI()
 	local readyAt = num(view.model:GetAttribute("LockReadyAt"), 0)
 	local driving = player:GetAttribute("Driving") == true
 	btn.Visible = not driving and (inside or locked)
+	if btn.Visible then
+		-- outside your garage HOME sits at bottom-center: stack the pill above it rather than over it
+		local bottom = math.max(LOCK_BOTTOM, math.ceil(hudBottomClearance()) + 8)
+		if btn.Position.Y.Offset ~= -bottom then
+			btn.Position = UDim2.new(0.5, 0, 1, -bottom)
+		end
+	end
 	if locked then
 		lockState = "locked"
 		btn.Text = "🔒 LOCKED " .. Format.clock(endsAt - now)
@@ -716,6 +874,34 @@ function GarageClient.start()
 	player:GetAttributeChangedSignal("Driving"):Connect(updateAllPrompts)
 	player:GetAttributeChangedSignal("HoldMultiplier"):Connect(updateAllPrompts)
 
+	-- my free slots gate every Steal prompt (a full garage can't take a stolen car)
+	local function refreshFreeSlots()
+		local free = GarageClient._freeSlots(StateController.get())
+		if free ~= freeSlots then
+			freeSlots = free
+			updateAllPrompts()
+		end
+	end
+	StateController.Changed:Connect(refreshFreeSlots)
+	refreshFreeSlots()
+
+	task.spawn(function()
+		local hud = controller("HUDController")
+		if not hud then
+			return
+		end
+		if typeof(hud.isHidden) == "function" then
+			local ok, hidden = pcall(hud.isHidden)
+			hudHidden = ok and hidden == true
+		end
+		if hud.VisibilityChanged then
+			hud.VisibilityChanged:Connect(function(hidden: boolean)
+				hudHidden = hidden == true
+				pcall(updateLockUI)
+			end)
+		end
+	end)
+
 	task.spawn(function()
 		local folder = Workspace:WaitForChild("Plots", 60)
 		if not folder then
@@ -730,11 +916,26 @@ function GarageClient.start()
 		end
 	end)
 
+	local lastProtected = 0
 	while true do
 		task.wait(0.2)
 		local ok, err = pcall(updateLockUI)
 		if not ok then
 			warn("[GarageClient] lock UI: " .. tostring(err))
+		end
+		-- tick "PROTECTED m:ss" and re-enable Steal once a victim's RobbableAt passes
+		local now = Workspace:GetServerTimeNow()
+		if now - lastProtected >= 1 then
+			lastProtected = now
+			for _, view in views do
+				local at = num(view.model:GetAttribute("RobbableAt"), 0)
+				if at > 0 and at > now - 2 then
+					local okP, errP = pcall(updatePlotPrompts, view)
+					if not okP then
+						warn("[GarageClient] prompts: " .. tostring(errP))
+					end
+				end
+			end
 		end
 	end
 end

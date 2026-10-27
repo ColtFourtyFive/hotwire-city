@@ -9,12 +9,16 @@
 --    attributes CarId / Mutation / Price / Rarity / PadIndex / Income / RestockAt (Workspace:GetServerTimeNow()).
 --  * Prompts in the chassis: BuyPrompt ("Buy $X", hold 0.5) -> spend first, storeCar, refund on failure;
 --    StealPrompt ("Steal", hold = hotwireTime * DEALER_STEAL_HOLD_MULTIPLIER, scaled by the thief's hotwire
---    multiplier) -> display removed, drivable "Loot" car spawned on the pad, thief seated, +dealerSteal heat.
+--    multiplier) -> display removed, drivable "Loot" car spawned on the pad, thief seated, rarity-scaled heat
+--    (_stealHeat). If the seat fails the heist is undone (car back on the pad, no heat). A robbed pad stays empty
+--    until the next global restock (a sold one refills after PAD_RESTOCK).
+--  * Holds are validated server-side: an interrupted hold is forgotten (PromptButtonHoldEnded) and a hold that began
+--    too long ago is stale (no "tap once, trigger later with a locally zeroed HoldDuration").
 --  * Mythic/Secret stock is announced server-wide (Announce + EventFeed + a temporary Waypoint).
 --  * A big countdown sign ("NEW STOCK IN m:ss") stands behind the back row.
 --
--- Pure helpers (_price, _stealHold, _padRestockAt, _rollStock, ...) and the harness-compatible builders
--- (buildShowroom, buildDisplay) are exposed for tests / tools.
+-- Pure helpers (_price, _stealHold, _stealHeat, _holdOk, _padRestockAt, _rollStock, ...) and the harness-compatible
+-- builders (buildShowroom, buildDisplay) are exposed for tests / tools.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -45,8 +49,12 @@ DealershipService.TURNTABLE_HEIGHT = 0.35
 DealershipService.RARE_WAYPOINT_SECONDS = 45
 DealershipService.SAVE_NOW_PRICE = 50000 -- purchases at least this expensive force a save
 DealershipService.SIGN_OFFSET = Vector3.new(0, 0, 41) -- from the showroom center (behind the back row)
-DealershipService.SIGN_SIZE = Vector3.new(34, 10, 0.8)
-DealershipService.SIGN_BOTTOM = 9 -- studs above the floor
+-- Board + neon frame top end at floor + 17: clear of MapBuilder's back canopy (underside at +18) and light panel.
+DealershipService.SIGN_SIZE = Vector3.new(34, 8, 0.8)
+DealershipService.SIGN_BOTTOM = 8.5 -- studs above the floor
+DealershipService.HOLD_TOLERANCE = 0.9 -- a steal hold must last at least this fraction of the required time
+DealershipService.BUY_HOLD_TOLERANCE = 0.8 -- the short buy hold gets more latency slack
+DealershipService.HOLD_MAX_EXTRA = 1.5 -- seconds of slack before a hold that began long ago counts as stale
 
 DealershipService._rng = Random.new()
 
@@ -209,8 +217,42 @@ function DealershipService._stealHold(carId: string): number
 	return (if tier then tier.hotwireTime else 1) * Economy.DEALER_STEAL_HOLD_MULTIPLIER
 end
 
--- When a pad emptied at `now` refills: PAD_RESTOCK later, or at the global restock if that comes first.
-function DealershipService._padRestockAt(now: number, nextGlobal: number): number
+-- Wanted stars for robbing the showroom (DECISIONS #2): at least Heat.dealerSteal, one more than a street steal of
+-- the same rarity (Legendary 3, Mythic/Secret 4), never above 5.
+function DealershipService._stealHeat(carId: string): number
+	local def = Cars.get(carId)
+	local tier = def and Rarity.Tiers[def.rarity]
+	local street = if tier then tier.wantedOnSteal else 0
+	return math.min(5, math.max(PoliceConfig.Heat.dealerSteal, street + 1))
+end
+
+-- Server-side hold check. began = clock time of PromptButtonHoldBegan (nil = no live hold). `base` is the unscaled
+-- hold the prompt advertises (a client may show it before its HoldMultiplier replicates). Too short = released
+-- early; too old = a stale tap re-used by a Triggered with a locally zeroed HoldDuration.
+function DealershipService._holdOk(
+	began: number?,
+	now: number,
+	required: number,
+	base: number?,
+	tolerance: number?
+): boolean
+	if began == nil then
+		return false
+	end
+	local held = now - began
+	if held < required * (tolerance or DealershipService.HOLD_TOLERANCE) then
+		return false
+	end
+	local longest = math.max(required, base or required) * 1.25 + DealershipService.HOLD_MAX_EXTRA
+	return held <= longest
+end
+
+-- When a pad emptied at `now` refills: PAD_RESTOCK later, or at the global restock if that comes first. A robbed
+-- pad (stolen = true) stays empty until the global restock, so the showroom can't be farmed every 30s.
+function DealershipService._padRestockAt(now: number, nextGlobal: number, stolen: boolean?): number
+	if stolen then
+		return nextGlobal
+	end
 	return math.min(now + DealershipService.PAD_RESTOCK, nextGlobal)
 end
 
@@ -610,7 +652,7 @@ local function clearPad(pad: Pad, status: string?, now: number)
 		pad.carId = nil
 		pad.mutation = nil
 		pad.price = 0
-		pad.restockAt = DealershipService._padRestockAt(now, nextGlobal)
+		pad.restockAt = DealershipService._padRestockAt(now, nextGlobal, status == "stolen")
 		setTurntable(pad, true, status)
 	end
 end
@@ -646,6 +688,15 @@ local function nearPad(player: Player, pad: Pad): (boolean, Humanoid?)
 	return (root.Position - pad.cframe.Position).Magnitude <= DealershipService.REACH, hum
 end
 
+-- " Or unlock slot N for $X..." for garage-full messages (GarageService.fullHint; "" when n/a or unavailable).
+local function fullHint(player: Player): string
+	local _, hint = call("GarageService", "fullHint", player)
+	return if typeof(hint) == "string" then hint else ""
+end
+
+-- Forward declaration (defined with the stock helpers below; onSteal puts the car back when a heist is undone).
+local placeCar: (pad: Pad, entry: StockEntry, announce: boolean) -> ()
+
 -- Buy -----------------------------------------------------------------------------------------------------------------
 
 local function onBuy(player: Player, pad: Pad, model: Model)
@@ -655,7 +706,8 @@ local function onBuy(player: Player, pad: Pad, model: Model)
 	if pad.model ~= model or not carId or not mutation then
 		return
 	end
-	if not began or hooks.clock() - began < DealershipService.BUY_HOLD * 0.8 then
+	local hold = DealershipService.BUY_HOLD
+	if not DealershipService._holdOk(began, hooks.clock(), hold, hold, DealershipService.BUY_HOLD_TOLERANCE) then
 		return
 	end
 	local near = nearPad(player, pad)
@@ -675,7 +727,7 @@ local function onBuy(player: Player, pad: Pad, model: Model)
 	end
 	local _, free = call("GarageService", "freeSlots", player)
 	if typeof(free) ~= "number" or free <= 0 then
-		notify(player, "error", "📦 Your garage is full! Sell a car first.")
+		notify(player, "error", "📦 Your garage is full! Sell a car first." .. fullHint(player))
 		fireClient("Sound", player, "Click")
 		return
 	end
@@ -727,8 +779,8 @@ local function onSteal(player: Player, pad: Pad, model: Model)
 	if pad.model ~= model or not carId or not mutation then
 		return
 	end
-	local required = DealershipService._stealHold(carId) * holdMultiplier(player) * 0.9
-	if not began or hooks.clock() - began < required then
+	local base = DealershipService._stealHold(carId)
+	if not DealershipService._holdOk(began, hooks.clock(), base * holdMultiplier(player), base) then
 		return
 	end
 	local near, hum = nearPad(player, pad)
@@ -763,6 +815,9 @@ local function onSteal(player: Player, pad: Pad, model: Model)
 	local okSpawn, car = pcall(VS.spawn, carId, mutation, ground, "Loot", { source = "dealer", thief = player })
 	if not okSpawn or type(car) ~= "table" or car.model == nil then
 		warn("[DealershipService] VehicleService.spawn failed: " .. tostring(car))
+		if pad.model == nil and pad.carId == nil then
+			placeCar(pad, { carId = carId, mutation = mutation :: any }, false) -- nothing was taken: put it back
+		end
 		notify(player, "error", "The car wouldn't start! Try another one.")
 		return
 	end
@@ -770,11 +825,19 @@ local function onSteal(player: Player, pad: Pad, model: Model)
 	car.data.source = "dealer"
 	car.data.dealerPad = pad.index
 	car.data.stolenBy = player.UserId
-	local seatOk = call("VehicleService", "seat", car, player)
-	if not seatOk then
+	-- seat() never throws: it returns (ok, reason), so read its result, not pcall's flag. A failed seat undoes the
+	-- heist (no unclaimed Loot car left on the pad for a bystander, no heat or credit for a car never taken).
+	local okSeat, seated = call("VehicleService", "seat", car, player)
+	if not okSeat or seated ~= true then
 		warn("[DealershipService] VehicleService.seat failed for " .. player.Name)
+		call("VehicleService", "destroy", car, "error")
+		if pad.model == nil and pad.carId == nil then
+			placeCar(pad, { carId = carId, mutation = mutation :: any }, false)
+		end
+		notify(player, "error", "The car wouldn't start! Try again.")
+		return
 	end
-	call("WantedService", "addHeat", player, PoliceConfig.Heat.dealerSteal, "dealerSteal")
+	call("WantedService", "addHeat", player, DealershipService._stealHeat(carId), "dealerSteal")
 	call("RewardsService", "progress", player, "steal", 1)
 
 	local label = carLabel(carId, mutation)
@@ -782,7 +845,11 @@ local function onSteal(player: Player, pad: Pad, model: Model)
 	notify(player, "warning", `🚨 GRAND THEFT AUTO! Lose the cops and drive the {label} home!`)
 	local _, free = call("GarageService", "freeSlots", player)
 	if typeof(free) == "number" and free <= 0 then
-		notify(player, "info", "📦 Your garage is full: sell a car first, or chop this one at the Chop Shop!")
+		notify(
+			player,
+			"info",
+			"📦 Your garage is full: sell a car first, or chop this one at the Chop Shop!" .. fullHint(player)
+		)
 	end
 	fireNear("Sound", pos, 180, "GlassBreak", pos)
 	fireClient("Sound", player, "PeelOut", pos)
@@ -813,6 +880,13 @@ local function attachPrompts(pad: Pad, model: Model, chassis: BasePart)
 	buy.PromptButtonHoldBegan:Connect(function(p: Player)
 		pad.buyHolds[p] = hooks.clock()
 	end)
+	buy.PromptButtonHoldEnded:Connect(function(p: Player)
+		-- released early: forget the hold (a completed one ends after Triggered already consumed it)
+		local began = pad.buyHolds[p]
+		if began and hooks.clock() - began < DealershipService.BUY_HOLD * DealershipService.BUY_HOLD_TOLERANCE then
+			pad.buyHolds[p] = nil
+		end
+	end)
 	buy.Triggered:Connect(function(p: Player)
 		local ok, err = pcall(onBuy, p, pad, model)
 		if not ok then
@@ -825,7 +899,7 @@ local function attachPrompts(pad: Pad, model: Model, chassis: BasePart)
 	local steal = makePrompt(
 		"StealPrompt",
 		"Steal",
-		`🚨 Wanted +{PoliceConfig.Heat.dealerSteal}★`,
+		`🚨 Wanted +{DealershipService._stealHeat(carId)}★`,
 		base,
 		Enum.KeyCode.F,
 		Enum.KeyCode.ButtonY,
@@ -835,6 +909,12 @@ local function attachPrompts(pad: Pad, model: Model, chassis: BasePart)
 	steal:SetAttribute("BaseHoldDuration", base)
 	steal.PromptButtonHoldBegan:Connect(function(p: Player)
 		pad.stealHolds[p] = hooks.clock()
+	end)
+	steal.PromptButtonHoldEnded:Connect(function(p: Player)
+		local began = pad.stealHolds[p]
+		if began and hooks.clock() - began < base * holdMultiplier(p) * DealershipService.HOLD_TOLERANCE then
+			pad.stealHolds[p] = nil
+		end
 	end)
 	steal.Triggered:Connect(function(p: Player)
 		local ok, err = pcall(onSteal, p, pad, model)
@@ -886,7 +966,7 @@ local function hypeStock(pad: Pad, now: number)
 	end
 end
 
-local function placeCar(pad: Pad, entry: StockEntry, announce: boolean)
+placeCar = function(pad: Pad, entry: StockEntry, announce: boolean)
 	local parent = folder
 	if not parent then
 		return

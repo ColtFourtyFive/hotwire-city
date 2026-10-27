@@ -7,7 +7,8 @@
 --  * Billboards over each car: rarity pill, mutation, name, price (green if you can afford it), $/s and a live
 --    "NEW STOCK IN m:ss" from the car's RestockAt attribute (Workspace:GetServerTimeNow() based).
 --  * Empty turntables show "SOLD!" / "STOLEN!" + "NEW CAR IN 0:25".
---  * Rarity-colored pulsing ground glow + light under Epic+ cars, sparkles for Legendary+ (Secret cycles hue).
+--  * Rarity-colored pulsing ground glow + light under Epic+ cars, sparkles for Legendary+ (Secret cycles hue). The
+--    light and sparkles only run within FX_RANGE of the camera (PERF-13).
 --  * StealPrompt.HoldDuration scaled locally by the player's HoldMultiplier attribute (server re-validates).
 --  * Prompt audience filter (used by TheftService's dropped-car prompts): any ProximityPrompt under
 --    Workspace.Vehicles with attribute OnlyUserId (number) is hidden for everyone else; HideForUserId hides it for
@@ -37,6 +38,7 @@ local DealershipClient = {}
 
 DealershipClient.SPIN_SPEED = 0.5 -- radians per second
 DealershipClient.SPIN_RANGE = 260 -- only spin cars this close to the camera
+DealershipClient.FX_RANGE = 160 -- glow PointLight + sparkles are switched off beyond this (mobile GPU budget)
 DealershipClient.BILLBOARD_DISTANCE = 120
 DealershipClient.TIMER_INTERVAL = 0.25
 
@@ -54,6 +56,8 @@ type Tracked = {
 	timerLabel: TextLabel?,
 	glow: BasePart?,
 	glowLight: PointLight?,
+	sparkles: ParticleEmitter?,
+	fxOn: boolean, -- light + sparkles currently enabled
 	glowColor: Color3,
 	rainbowGlow: boolean,
 	trove: any,
@@ -305,6 +309,7 @@ local function buildGlow(rec: Tracked, def: Cars.CarDef)
 		sparkles.Shape = Enum.ParticleEmitterShape.Disc
 		sparkles.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
 		sparkles.Parent = ring
+		rec.sparkles = sparkles
 	end
 	ring.Parent = getFxFolder()
 	rec.glow = ring
@@ -361,6 +366,8 @@ local function track(model: Instance)
 		timerLabel = nil,
 		glow = nil,
 		glowLight = nil,
+		sparkles = nil,
+		fxOn = true,
 		glowColor = Theme.Colors.Text,
 		rainbowGlow = false,
 		trove = Trove.new(),
@@ -482,8 +489,22 @@ local function step(dt: number)
 	local camPos = if cam then cam.CFrame.Position else Vector3.zero
 	local t = os.clock()
 	local range = DealershipClient.SPIN_RANGE
+	local fxRange = DealershipClient.FX_RANGE
 	for model, rec in tracked do
-		if (rec.base.Position - camPos).Magnitude <= range then
+		local dist = (rec.base.Position - camPos).Magnitude
+		local fxOn = dist <= fxRange
+		if fxOn ~= rec.fxOn then
+			rec.fxOn = fxOn
+			local light = rec.glowLight
+			if light then
+				light.Enabled = fxOn
+			end
+			local sparkles = rec.sparkles
+			if sparkles then
+				sparkles.Enabled = fxOn
+			end
+		end
+		if dist <= range then
 			local cf = rec.base * CFrame.Angles(0, t * DealershipClient.SPIN_SPEED + rec.phase, 0)
 			if rec.useChassis then
 				rec.chassis.CFrame = cf

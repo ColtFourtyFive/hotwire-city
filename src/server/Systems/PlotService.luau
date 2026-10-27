@@ -2,6 +2,13 @@
 -- PlotService: builds the 8 player garages (Workspace.Plots.Plot<i>), assigns one to each player on join,
 -- moves characters home on spawn, and runs the timed laser lock (gate, countdown, intruder push-out).
 --
+-- Spawning: each plot gets a "PlotSpawn" SpawnLocation at OwnerSpawn and the owner's RespawnLocation points at it,
+-- so characters appear in their garage (no plaza flash); onCharacter still pivots them home as a fallback. A player
+-- busted for dying while wanted (WantedService.consumeRespawnAtHQ) respawns at Police HQ instead.
+-- Lock push-out (DECISIONS #9): a non-owner driving a car stolen FROM THIS GARAGE is ejected (the car stays inside,
+-- "dropped", for the owner to Recover) and pushed out on foot; other cars leave with their driver through
+-- VehicleService.teleport (never a raw PivotTo, which the anti-teleport watchdog would rewind).
+--
 -- Geometry comes from Config/Map.Garage + Util/MapLayout. Plot-local frame: origin = block center at curb
 -- height, local -Z points OUT of the front door. `buildGarageModel` is pure instance construction so the Lune
 -- harness (tests/harness.luau, tools/dump.luau) can build and render it headlessly.
@@ -35,7 +42,9 @@ local PlotService = {}
 PlotService.FLOOR_LIFT = 0.05 -- garage floor top sits this far above CURB_TOP (avoids z-fighting with the lot)
 PlotService.PAD_THICKNESS = 0.2
 PlotService.PAD_TOP = PlotService.FLOOR_LIFT + PlotService.PAD_THICKNESS -- display cars rest on this (plot-local y)
-PlotService.LOCK_REARM = 15 -- seconds after a lock ends before the button can be used again (anti-AFK lock)
+PlotService.LOCK_REARM = 15 -- min seconds after a lock ends before the button re-arms (see _rearmSeconds)
+PlotService.REARM_FRACTION = 0.5 -- ...or this fraction of the last button lock, whichever is longer (DECISIONS #8)
+PlotService.MAX_LOCK_SECONDS = 3600 -- stacked locks (Lockdown purchases) never reach further ahead than this
 PlotService.GO_HOME_COOLDOWN = 20
 PlotService.PUSH_INTERVAL = 0.5
 
@@ -158,7 +167,18 @@ local function neon(parent: Instance, name: string, size: Vector3, cf: CFrame, c
 	return deco(parent, name, size, cf, color, Enum.Material.Neon)
 end
 
-local function surfaceGui(parent: BasePart, name: string, face: Enum.NormalId, pixelsPerStud: number): SurfaceGui
+-- GUI budget (PERF-12): ~35 SurfaceGuis per plot. Small interior pads / signs / buttons render only up close
+-- (NEAR_GUI); banners, murals, the gate countdown and the owner sign keep the long default range.
+local FAR_GUI = 400
+local NEAR_GUI = 160
+
+local function surfaceGui(
+	parent: BasePart,
+	name: string,
+	face: Enum.NormalId,
+	pixelsPerStud: number,
+	maxDistance: number?
+): SurfaceGui
 	local sg = Instance.new("SurfaceGui")
 	sg.Name = name
 	sg.Face = face
@@ -167,7 +187,7 @@ local function surfaceGui(parent: BasePart, name: string, face: Enum.NormalId, p
 	sg.LightInfluence = 0
 	sg.Brightness = 1.6
 	sg.ClipsDescendants = true
-	sg.MaxDistance = 400
+	sg.MaxDistance = maxDistance or FAR_GUI
 	sg.ResetOnSpawn = false
 	sg.Parent = parent
 	return sg
@@ -246,6 +266,25 @@ function PlotService._lockDuration(level: number, rebirths: number): number
 	return EconomyMath.upgradeValue("lock", level) + 10 * math.max(0, rebirths)
 end
 
+-- Seconds the lock button stays disarmed after a lock of `lastDuration` ends: proportional, so an AFK owner tapping
+-- the button can't keep the garage locked ~90% of the time (DECISIONS #8).
+function PlotService._rearmSeconds(lastDuration: number): number
+	local d = if typeof(lastDuration) == "number" and lastDuration == lastDuration then lastDuration else 0
+	return math.max(PlotService.LOCK_REARM, PlotService.REARM_FRACTION * math.max(0, d))
+end
+
+-- New lock deadline when `seconds` are added at `now`: a purchase stacks on a running lock (DECISIONS #7), capped
+-- at MAX_LOCK_SECONDS ahead.
+function PlotService._stackLock(lockedUntil: number, now: number, seconds: number): number
+	return math.min(math.max(lockedUntil, now) + seconds, now + PlotService.MAX_LOCK_SECONDS)
+end
+
+-- Should the lock push-out eject this vehicle's driver instead of moving the car? Only a car stolen from this
+-- garage's owner: the thief leaves on foot and the car stays inside, "dropped", for the owner to Recover.
+function PlotService._ejectOnLock(kind: any, theftVictimUserId: any, ownerUserId: number?): boolean
+	return kind == "Stolen" and ownerUserId ~= nil and ownerUserId ~= 0 and theftVictimUserId == ownerUserId
+end
+
 -- Spread push-out spots across the driveway so several intruders don't stack.
 function PlotService._drivewayOffset(n: number): Vector3
 	local slots = { 0, -7, 7, -14, 14 }
@@ -283,11 +322,12 @@ local function buildPad(model: Model, origin: CFrame, accent: Color3, slot: numb
 	pad:SetAttribute("State", "Empty")
 	CollectionService:AddTag(pad, "GaragePad")
 
-	-- Floor paint: border + big slot number; "Lock" overlay shown by GarageClient for locked pads.
-	local gui = surfaceGui(pad, "PadGui", Enum.NormalId.Top, 24)
+	-- Floor paint: border + big slot number; "Lock" overlay shown by GarageClient for locked pads. A floor decal
+	-- seen at grazing angles: 12 px/stud is plenty (strokes are in pixels, so they scale with it).
+	local gui = surfaceGui(pad, "PadGui", Enum.NormalId.Top, 12, NEAR_GUI)
 	local root = frame(gui, "Root", C.white, 1, ZERO, FULL)
 	local border = frame(root, "Border", C.white, 1, UDim2.fromScale(0.04, 0.03), UDim2.fromScale(0.92, 0.94))
-	uiStroke(border, Color3.fromRGB(235, 238, 255), 6)
+	uiStroke(border, Color3.fromRGB(235, 238, 255), 3)
 	corner(border, 0.06)
 	textLabel(
 		root,
@@ -297,15 +337,15 @@ local function buildPad(model: Model, origin: CFrame, accent: Color3, slot: numb
 		UDim2.fromScale(0.15, 0.3),
 		UDim2.fromScale(0.7, 0.4),
 		C.dark,
-		3
+		2
 	)
 	local lock =
 		frame(root, "Lock", Color3.fromRGB(70, 18, 30), 0.15, UDim2.fromScale(0.04, 0.03), UDim2.fromScale(0.92, 0.94))
 	lock.Visible = false
 	corner(lock, 0.06)
-	uiStroke(lock, C.lock, 6)
-	textLabel(lock, "Icon", "🔒", C.white, UDim2.fromScale(0.2, 0.12), UDim2.fromScale(0.6, 0.42))
-	textLabel(lock, "Price", "", C.hazard, UDim2.fromScale(0.08, 0.58), UDim2.fromScale(0.84, 0.28))
+	uiStroke(lock, C.lock, 3)
+	textLabel(lock, "Icon", "🔒", C.white, UDim2.fromScale(0.2, 0.12), UDim2.fromScale(0.6, 0.42), nil, 2)
+	textLabel(lock, "Price", "", C.hazard, UDim2.fromScale(0.08, 0.58), UDim2.fromScale(0.84, 0.28), nil, 2)
 
 	-- Bay sign on the side wall behind the pad (vertical => text orientation is unambiguous).
 	local face = slotCf.LookVector -- toward the aisle
@@ -319,9 +359,9 @@ local function buildPad(model: Model, origin: CFrame, accent: Color3, slot: numb
 		C.dark,
 		{ collide = false, query = false, shadow = false }
 	)
-	local sgui = surfaceGui(sign, "SignGui", Enum.NormalId.Front, 30)
+	local sgui = surfaceGui(sign, "SignGui", Enum.NormalId.Front, 20, NEAR_GUI)
 	local sroot = frame(sgui, "Root", C.dark, 0, ZERO, FULL)
-	uiStroke(sroot, accent, 8)
+	uiStroke(sroot, accent, 5)
 	textLabel(
 		sroot,
 		"Number",
@@ -330,9 +370,9 @@ local function buildPad(model: Model, origin: CFrame, accent: Color3, slot: numb
 		UDim2.fromScale(0.04, 0.08),
 		UDim2.fromScale(0.36, 0.84),
 		C.dark,
-		4
+		3
 	)
-	textLabel(sroot, "Status", "", accent, UDim2.fromScale(0.42, 0.22), UDim2.fromScale(0.54, 0.56), C.dark, 3)
+	textLabel(sroot, "Status", "", accent, UDim2.fromScale(0.42, 0.22), UDim2.fromScale(0.54, 0.56), C.dark, 2)
 end
 
 -- Builds one complete garage model (no player state). Harness-compatible.
@@ -701,7 +741,7 @@ function PlotService.buildGarageModel(index: number): Model
 			)
 		end
 	end
-	local mgui = surfaceGui(mark, "DropoffGui", Enum.NormalId.Top, 12)
+	local mgui = surfaceGui(mark, "DropoffGui", Enum.NormalId.Top, 12, NEAR_GUI)
 	textLabel(mgui, "Label", "DROP-OFF", C.hazard, UDim2.fromScale(0.08, 0.04), UDim2.fromScale(0.84, 0.3), C.dark, 4)
 	-- hanging sign just inside the door, readable from the street
 	local hang = makePart(
@@ -712,7 +752,7 @@ function PlotService.buildGarageModel(index: number): Model
 		C.dark,
 		{ collide = false, query = false, shadow = false }
 	)
-	local hgui = surfaceGui(hang, "SignGui", Enum.NormalId.Front, 20)
+	local hgui = surfaceGui(hang, "SignGui", Enum.NormalId.Front, 20, 250) -- readable from the street
 	local hroot = frame(hgui, "Root", C.dark, 0, ZERO, FULL)
 	uiStroke(hroot, C.hazard, 6)
 	textLabel(
@@ -748,7 +788,7 @@ function PlotService.buildGarageModel(index: number): Model
 		C.cash,
 		{ material = Enum.Material.Neon, collide = true, query = false, shadow = false, touch = true }
 	)
-	local cgui = surfaceGui(collect, "PadGui", Enum.NormalId.Top, 16)
+	local cgui = surfaceGui(collect, "PadGui", Enum.NormalId.Top, 16, NEAR_GUI)
 	textLabel(
 		cgui,
 		"Label",
@@ -768,7 +808,7 @@ function PlotService.buildGarageModel(index: number): Model
 		C.dark,
 		{ collide = false, query = false, shadow = false }
 	)
-	local csg = surfaceGui(csign, "SignGui", Enum.NormalId.Front, 20)
+	local csg = surfaceGui(csign, "SignGui", Enum.NormalId.Front, 20, NEAR_GUI)
 	local croot = frame(csg, "Root", C.dark, 0, ZERO, FULL)
 	uiStroke(croot, C.cash, 8)
 	textLabel(croot, "Title", "💰 COLLECT", C.cash, UDim2.fromScale(0.05, 0.08), UDim2.fromScale(0.9, 0.5), C.dark, 4)
@@ -802,7 +842,7 @@ function PlotService.buildGarageModel(index: number): Model
 		C.lock,
 		{ material = Enum.Material.Neon, collide = true, query = false, shadow = false, touch = true }
 	)
-	local lgui = surfaceGui(lockBtn, "PadGui", Enum.NormalId.Top, 20)
+	local lgui = surfaceGui(lockBtn, "PadGui", Enum.NormalId.Top, 20, NEAR_GUI)
 	textLabel(lgui, "Label", "🔒", C.white, UDim2.fromScale(0.3, 0.1), UDim2.fromScale(0.4, 0.8))
 	local lpos = Vector3.new(lb.X, 6.5, FZ + T + 0.25)
 	local lsign = makePart(
@@ -813,7 +853,7 @@ function PlotService.buildGarageModel(index: number): Model
 		C.dark,
 		{ collide = false, query = false, shadow = false }
 	)
-	local lsg = surfaceGui(lsign, "SignGui", Enum.NormalId.Front, 24)
+	local lsg = surfaceGui(lsign, "SignGui", Enum.NormalId.Front, 24, NEAR_GUI)
 	local lroot = frame(lsg, "Root", C.dark, 0, ZERO, FULL)
 	uiStroke(lroot, C.lock, 8)
 	textLabel(
@@ -1068,6 +1108,8 @@ type PlotState = PlotInfo & {
 	zoneSize: Vector3,
 	lockedVisual: boolean,
 	lastShown: number,
+	lastLockDuration: number, -- seconds of the last button lock (sets the proportional re-arm)
+	spawn: SpawnLocation?, -- "PlotSpawn": the owner's RespawnLocation
 }
 
 local plots: { PlotState } = {}
@@ -1226,7 +1268,35 @@ local function updateCountdown(st: PlotState, now: number)
 	end
 end
 
--- Teleport anyone who isn't the owner out of a locked garage (with the car they drive, if any).
+-- VehicleService car for a model (nil if VehicleService isn't loaded or the model isn't one of its cars).
+local function vehicleOf(carModel: Model): (any, any)
+	local VS = sys("VehicleService")
+	if not VS or typeof(VS.fromModel) ~= "function" then
+		return nil, nil
+	end
+	local ok, car = pcall(VS.fromModel, carModel)
+	return VS, if ok and type(car) == "table" then car else nil
+end
+
+-- Is this driven car stolen from the plot's owner (TheftService replicates Kind / TheftVictimUserId)?
+local function stolenFromOwner(st: PlotState, carModel: Model, car: any): boolean
+	local owner = st.owner
+	if not owner then
+		return false
+	end
+	local victim = carModel:GetAttribute("TheftVictimUserId")
+	if victim == nil and car and type(car.data) == "table" and type(car.data.theft) == "table" then
+		victim = car.data.theft.victimUserId
+	end
+	local kind = carModel:GetAttribute("Kind")
+	if kind == nil and car then
+		kind = car.kind
+	end
+	return PlotService._ejectOnLock(kind, victim, owner.UserId)
+end
+
+-- Teleport anyone who isn't the owner out of a locked garage. A thief in a car stolen from this garage is ejected
+-- and leaves on foot (the car stays inside for the owner to Recover); any other car leaves with its driver.
 local function pushOut(st: PlotState)
 	local n = 0
 	for _, p in Players:GetPlayers() do
@@ -1241,13 +1311,43 @@ local function pushOut(st: PlotState)
 		local spot = MapLayout.plotToWorld(st.index, PlotService._drivewayOffset(n))
 		local seat = hum and hum.SeatPart
 		local carModel = seat and seat:IsA("VehicleSeat") and seat:FindFirstAncestorWhichIsA("Model")
+		local driven = false
 		if carModel and carModel ~= p.Character and CollectionService:HasTag(carModel, "Vehicle") then
+			driven = true
+		end
+		local VS: any, car: any = nil, nil
+		if driven and carModel then
+			VS, car = vehicleOf(carModel)
+			if stolenFromOwner(st, carModel, car) then
+				-- the eject fires DriverChanged -> TheftService marks the car dropped (Recover prompt for the owner)
+				if car and typeof(VS.eject) == "function" then
+					local okEject, errEject = pcall(VS.eject, car)
+					if not okEject then
+						warn("[PlotService] eject failed: " .. tostring(errEject))
+					end
+				end
+				driven = false -- push the thief out on foot below
+			end
+		end
+		if driven and carModel then
 			local ride = carModel:GetAttribute("RideHeight")
-			carModel:PivotTo(spot * CFrame.new(0, (if typeof(ride) == "number" then ride else 2) + 0.5, -2))
+			local target = spot * CFrame.new(0, (if typeof(ride) == "number" then ride else 2) + 0.5, -2)
+			-- zero velocity first: teleport re-baselines the watchdog / crash damage from the current velocity
 			local primary = carModel.PrimaryPart
 			if primary then
 				primary.AssemblyLinearVelocity = Vector3.zero
 				primary.AssemblyAngularVelocity = Vector3.zero
+			end
+			local moved = false
+			if car and typeof(VS.teleport) == "function" then
+				local okTp, errTp = pcall(VS.teleport, car, target)
+				moved = okTp
+				if not okTp then
+					warn("[PlotService] teleport failed: " .. tostring(errTp))
+				end
+			end
+			if not moved then
+				carModel:PivotTo(target) -- not a VehicleService car: nothing watches it
 			end
 		else
 			if seat then
@@ -1271,8 +1371,9 @@ local function unlock(st: PlotState, expired: boolean)
 	if st.lockedVisual then
 		applyLockVisual(st, false)
 		if expired then
-			st.lockReadyAt = os.clock() + PlotService.LOCK_REARM
-			st.model:SetAttribute("LockReadyAt", serverNow() + PlotService.LOCK_REARM)
+			local rearm = PlotService._rearmSeconds(st.lastLockDuration)
+			st.lockReadyAt = os.clock() + rearm
+			st.model:SetAttribute("LockReadyAt", serverNow() + rearm)
 			local owner = st.owner
 			if owner then
 				notify(owner, "warning", "🔓 Your laser lock is OFF — guard your cars!")
@@ -1294,19 +1395,25 @@ function PlotService.lockSecondsLeft(index: number): number
 	return math.max(0, st.lockedUntil - os.clock())
 end
 
-function PlotService.lockFor(index: number, seconds: number)
+-- Locks (or extends the lock on) a garage. Returns false when nothing was locked (bad plot / duration), so the
+-- Lockdown product never charges for nothing.
+function PlotService.lockFor(index: number, seconds: number): boolean
 	local st = plots[index]
 	if not st or typeof(seconds) ~= "number" or seconds ~= seconds or seconds <= 0 then
-		return
+		return false
 	end
 	local now = os.clock()
-	st.lockedUntil = math.max(st.lockedUntil, now + math.min(seconds, 3600))
+	st.lockedUntil = PlotService._stackLock(st.lockedUntil, now, seconds)
 	st.model:SetAttribute("LockEndsAt", serverNow() + (st.lockedUntil - now))
 	if not st.lockedVisual then
 		applyLockVisual(st, true)
 	end
 	updateCountdown(st, now)
-	pushOut(st)
+	local ok, err = pcall(pushOut, st)
+	if not ok then
+		warn("[PlotService] pushOut failed: " .. tostring(err))
+	end
+	return true
 end
 
 function PlotService.lockDurationFor(player: Player): number
@@ -1352,6 +1459,7 @@ function PlotService.tryLock(player: Player, fromTouch: boolean?): boolean
 		return false
 	end
 	local duration = PlotService.lockDurationFor(player)
+	st.lastLockDuration = duration -- only button locks set the re-arm; a Lockdown purchase (lockFor) doesn't
 	PlotService.lockFor(st.index, duration)
 	notify(player, "success", `🔒 Garage locked for {math.floor(duration)}s!`)
 	sound(player, "ClickBright")
@@ -1414,10 +1522,19 @@ local function assign(player: Player): number?
 			playerPlot[player] = st.index
 			st.lockedUntil = 0
 			st.lockReadyAt = 0
+			st.lastLockDuration = 0
 			st.model:SetAttribute("OwnerUserId", player.UserId)
 			st.model:SetAttribute("OwnerName", player.DisplayName)
 			st.model:SetAttribute("LockReadyAt", 0)
 			player:SetAttribute("PlotIndex", st.index)
+			local spawnPad = st.spawn
+			if spawnPad then
+				-- spawn straight into the garage (no plaza flash, SPAWN-FLASH); onCharacter still pivots as a fallback
+				spawnPad.Enabled = true
+				pcall(function()
+					player.RespawnLocation = spawnPad
+				end)
+			end
 			setSign(st)
 			PlotService.PlotAssigned:Fire(player, st.index)
 			return st.index
@@ -1442,6 +1559,16 @@ local function release(player: Player)
 	unlock(st, false)
 	st.owner = nil
 	st.lockReadyAt = 0
+	st.lastLockDuration = 0
+	local spawnPad = st.spawn
+	if spawnPad then
+		spawnPad.Enabled = false -- a vacant garage is never a random spawn
+		pcall(function()
+			if player.RespawnLocation == spawnPad then
+				player.RespawnLocation = nil
+			end
+		end)
+	end
 	st.model:SetAttribute("OwnerUserId", 0)
 	st.model:SetAttribute("OwnerName", "")
 	st.model:SetAttribute("LockReadyAt", 0)
@@ -1453,11 +1580,36 @@ local function release(player: Player)
 	PlotService.PlotReleased:Fire(player, index)
 end
 
+-- True once after the player was busted for dying while wanted: that spawn goes to Police HQ, so resetting is no
+-- free escape into the safe garage (WantedService owns the rule; F3).
+local function respawnAtHQ(player: Player): boolean
+	local WantedService = sys("WantedService")
+	if not WantedService or typeof(WantedService.consumeRespawnAtHQ) ~= "function" then
+		return false
+	end
+	local ok, res = pcall(WantedService.consumeRespawnAtHQ, player)
+	return ok and res == true
+end
+
 local function onCharacter(player: Player, char: Model)
 	task.defer(function()
 		local root = char:WaitForChild("HumanoidRootPart", 10)
-		if not root or char.Parent == nil or player.Character ~= char then
+		if not root or not root:IsA("BasePart") or char.Parent == nil or player.Character ~= char then
 			return
+		end
+		if respawnAtHQ(player) then
+			local jitter = Vector3.new(math.random(-40, 40) / 10, 0, math.random(-40, 40) / 10)
+			char:PivotTo(MapLayout.bustedReleaseCFrame() + jitter)
+			root.AssemblyLinearVelocity = Vector3.zero
+			return
+		end
+		-- normally the engine already spawned it on the plot's SpawnLocation; pivot only if it landed elsewhere
+		local index = playerPlot[player]
+		if index then
+			local offset = root.Position - PlotService.ownerSpawnCFrame(index).Position
+			if Vector3.new(offset.X, 0, offset.Z).Magnitude <= 8 and math.abs(offset.Y) <= 8 then
+				return
+			end
 		end
 		moveCharacterHome(player)
 	end)
@@ -1549,7 +1701,27 @@ function PlotService.init()
 			zoneSize = zoneSize,
 			lockedVisual = false,
 			lastShown = -1,
+			lastLockDuration = 0,
+			spawn = nil,
 		}
+		-- The owner's RespawnLocation (set in assign). Invisible, flush with the floor at OwnerSpawn; Neutral because
+		-- teamless players can only use neutral spawns; disabled while the garage is vacant.
+		local spawnPad = Instance.new("SpawnLocation")
+		spawnPad.Name = "PlotSpawn"
+		spawnPad.Anchored = true
+		spawnPad.Size = Vector3.new(4, 0.2, 4)
+		spawnPad.CFrame = PlotService.ownerSpawnCFrame(index) * CFrame.new(0, -0.1, 0)
+		spawnPad.Transparency = 1
+		spawnPad.CanCollide = false
+		spawnPad.CanQuery = false
+		spawnPad.CanTouch = false
+		spawnPad.CastShadow = false
+		spawnPad.Neutral = true
+		spawnPad.Duration = 0
+		spawnPad.AllowTeamChangeOnTouch = false
+		spawnPad.Enabled = false
+		spawnPad.Parent = model
+		st.spawn = spawnPad
 		plots[index] = st
 		model.Parent = folder
 

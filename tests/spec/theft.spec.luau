@@ -761,11 +761,7 @@ return function(t)
 		setup()
 		t.ok(Theft.beginTheft(thief, victim, 1))
 		local car = cars[1]
-		local need = Theft._minDeliveryTime(
-			Theft._deliveryDistance(1, 1, 2),
-			Cars.get("viper_strike").topSpeed,
-			nil
-		)
+		local need = Theft._minDeliveryTime(Theft._deliveryDistance(1, 1, 2), Cars.get("viper_strike").topSpeed, nil)
 		t.ok(need > 0.5, "plots are far enough apart for a real gate: " .. need)
 		t.ok(not Theft.complete(car), "an instant delivery is a teleport")
 		t.eq(countCars(victim, "viper_strike"), 1, "victim keeps it")

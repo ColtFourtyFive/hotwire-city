@@ -1,0 +1,755 @@
+{
+ "A1a": {
+  "results": [
+   {
+    "uid": "secperf:security:SEC-1",
+    "status": "fixed",
+    "note": "VehicleService part done. zonePass runs a non-baseline-moving watchdog check (_zoneGate) before acting on any zone. A teleport or blatant speed is rewound via violate(); any verdict, a tainted car or a revoked window blocks zones; and a travel-time gate applies (now - driveStartAt >= minTravelTime). violate() taints the car. Also added isTainted, minTravelTime, data.driveStartAt/Pos, and the watchdog now runs before zone in Heartbeat. TheftService.complete and GarageService onDelivery/onChop gates are A2's."
+   },
+   {
+    "uid": "secperf:security:DUPE-1",
+    "status": "fixed",
+    "note": "VehicleService part done. PlayerRemoving cleanup is deferred (task.defer) and destroys every Owned car with ownerUserId == leaver ('owner_left'); covered by the spec. Removing the storeCar fallback in GarageService.onDelivery is A2a's."
+   },
+   {
+    "uid": "secperf:performance:PERF-02",
+    "status": "fixed",
+    "note": "Replaced AlignPosition with a LinearVelocity. Its target is heading*speed plus a dead-banded, capped pull toward the carrot (Y included), quantized to 0.5 studs/s, and the carrot advances at the same quantized speed. It is written only on change, at most 10 Hz unless the change is urgent. AlignOrientation is written only when heading changes >1\u00b0, at most 20 Hz. A car cruising a straight lane writes nothing. Pure _moverVelocity/_quantize are tested."
+   },
+   {
+    "uid": "flows:first-60s:TUT-TARGET",
+    "status": "not-needed",
+    "note": "No server change needed. StreetSpawnService already tags the newbie car with TutorialForUserId and clears it on steal. C1's TutorialController now reads it (verified with grep)."
+   },
+   {
+    "uid": "flows:driving-physics:F2",
+    "status": "fixed",
+    "note": "Same change as SEC-1: the zone-time watchdog check, the watchdog-before-zone order and the minTravelTime gate cover DeliveryAttempt, ChopAttempt and SprayAttempt. Not added: the optional 'previous accepted sample must also be inside the zone' rule, because the travel-time gate covers it."
+   },
+   {
+    "uid": "secperf:security:SEC-2",
+    "status": "fixed",
+    "note": "VehicleService part done. addStealPrompt.Triggered now rejects stale holds older than max(required, base)*1.25 + HOLD_MAX_EXTRA (1.5s) (_holdMaxAge, _holdOk maxAge). Interrupted holds were already cleared. This covers every addStealPrompt user (street, carjack, loot, hot-drop claim). The GarageService/DealershipService handlers are A2's."
+   },
+   {
+    "uid": "secperf:performance:PERF-04",
+    "status": "fixed",
+    "note": "managePass recycles far cars: it picks a new lane, teleports the car with VehicleService.teleport, resets path, speed, timers and health, and forces a mover write (up to 6 per tick). It destroys and rebuilds only when the count shrinks, at REROLL_CHANCE 0.2, or while EventService.getLuck() > 1, so luck events still re-roll. Spawn/recycle rings are centred 250 studs ahead of players moving >40 studs/s and never placed beyond DESPAWN_DIST-50."
+   },
+   {
+    "uid": "contracts:server-core:theft-eject-before-fail-spurious-drop",
+    "status": "fixed",
+    "note": "VehicleService part done. wreck() now fires Wrecked before eject (and skips the eject if a handler already destroyed the car). The leaver cleanup is deferred so TheftService's PlayerRemoving handler ends the theft before the driver is cleared. The markDropped/RecoverPrompt guards are A2's; the WantedService order is B1's."
+   },
+   {
+    "uid": "contracts:client-server:GC-STEAL-PROMPT-INIT-ORDER",
+    "status": "not-needed",
+    "note": "Client-only fix in GarageClient.setupPlot (A2b). VehicleService writes nothing that needs to change."
+   },
+   {
+    "uid": "flows:player-theft:F1-lock-pushout-frees-thief",
+    "status": "not-needed",
+    "note": "The fix is in PlotService.pushOut (A2b). VehicleService already exposes what it needs: eject, fromModel, and teleport, which pivots, resets the watchdog, and now also re-bases the drive start of a driven car."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F8",
+    "status": "fixed",
+    "note": "onCarjack heat is now TrafficService._carjackStars(rarity) = max(Police.Heat.carjack, tier.wantedOnSteal), per DECISIONS \u00a71. Tested."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F11",
+    "status": "fixed",
+    "note": "StreetSpawnService.onStolen uses the DECISIONS \u00a71 witness roll: VehicleService._streetStars(wantedOnSteal, wantedChance, rng) = max(1, wantedOnSteal) with probability wantedChance. The free first steal still applies via addStealHeat. I also applied the same rule to Loot re-hotwires in VehicleService, for consistency."
+   },
+   {
+    "uid": "flows:driving-physics:F4",
+    "status": "fixed",
+    "note": "Added a server settling VehicleController (isServer, lazily required) for driverless physics cars. It starts on setDriver(nil), seat-failure and auth-expiry, and on public VehicleService.settle(car), which TrafficService.release calls for rammed/knocked cars. It is stepped on PreSimulation with an auto-brake input, and stopped on seat/setDriver(player) before ownership changes, on wreck, destroy, anchoring, or after SETTLE_MAX=15s. lifePass levels a tipped or hovering car onto flat ground at RideHeight (restPose) before anchoring."
+   },
+   {
+    "uid": "flows:driving-physics:F5",
+    "status": "partially",
+    "note": "Done: WATCHDOG_MAX_DT 3\u21921, an upward-displacement teleport check (_watchdogVerdict rise), a fly check (no ground or water within RideHeight+14 for 3s, raycast that ignores cars and the driver), and the SEC-6 fling check. Not done: the optional nitro-budget split of the speed cap, which needs server-side nitro tracking and is a design call."
+   },
+   {
+    "uid": "flows:driving-physics:F6",
+    "status": "fixed",
+    "note": "onOccupantChanged nudges the driver's character out with nudgeOut (raycast-safe) before setDriver(nil). It skips this when the driver is dead or already in another seat."
+   },
+   {
+    "uid": "flows:driving-physics:F9",
+    "status": "fixed",
+    "note": "LOST_Y is now WATER_LEVEL-6 with a 1.5s debounce (LOST_AFTER). Police use VOID_Y (WATER_LEVEL-28) only, because PoliceService rubber-bands its own units. Owned cars are ejected and sent home, other kinds are destroyed, and Stolen is still left to TheftService."
+   },
+   {
+    "uid": "secperf:security:SEC-6",
+    "status": "fixed",
+    "note": "watchdogPass gives a 'fling' verdict when angular speed > 40 rad/s or |vy| > 250 studs/s on two consecutive samples (_flingSample). violate() then rewinds the car, zeroes its velocities, revokes ownership and taints it."
+   },
+   {
+    "uid": "secperf:performance:PERF-05",
+    "status": "not-needed",
+    "note": "DECISIONS \u00a710 keeps StreamingEnabled off for v1. The source-level PERF fixes (PERF-02, 04, 09, 14) are done instead."
+   },
+   {
+    "uid": "secperf:performance:PERF-09",
+    "status": "fixed",
+    "note": "Added VehicleService.allInto(buffer), a non-allocating version of all(), used by scanPass, managePass and lifePass. scanPass rejects by squared flat distance before the cone test, computes each car's right vector once (new optional _aheadDistance param) and fetches player roots lazily once per scan."
+   },
+   {
+    "uid": "secperf:performance:PERF-14",
+    "status": "fixed",
+    "note": "Managed EnterPrompt/Hotwire prompts are no longer added to the car trove (createEnterPrompt, addStealPrompt opts.managed). destroy() now destroys st.enterPrompt and st.hotwirePrompt explicitly."
+   },
+   {
+    "uid": "contracts:server-core:plotservice-pushout-trips-watchdog",
+    "status": "not-needed",
+    "note": "The fix is in PlotService (A2b): use VehicleService.fromModel and VehicleService.teleport. teleport already pivots and resets the watchdog, damage grace and fling/air state."
+   },
+   {
+    "uid": "contracts:server-core:loot-hotwire-claimer-not-rejected",
+    "status": "fixed",
+    "note": "canHotwireLoot refuses the car's current claimer with 'That's already your ride: use Get in!'. The EnterPrompt stays their way back in."
+   },
+   {
+    "uid": "contracts:server-core:seat-result-misread-as-pcall-ok",
+    "status": "fixed",
+    "note": "Owned part done: seat() still never throws and returns (ok, reason). My callers now check the result: StreetSpawnService.onStolen, TrafficService.onCarjack and hotwireLoot skip heat, credit and the Stolen signal on failure (onStolen returning false suppresses Stolen). TheftService, Dealership, EventService and GarageService callers belong to the other groups."
+   },
+   {
+    "uid": "contracts:server-core:assetlibrary-unconsumed-role-mismatch",
+    "status": "deferred",
+    "note": "DECISIONS \u00a712 leaves AssetLibrary and hero-mesh consumption to the art pass."
+   },
+   {
+    "uid": "contracts:server-meta:ADMIN-FALSE-SUCCESS",
+    "status": "not-needed",
+    "note": "AdminService (B2) fix. It already reads (okSeat, seated, why). The VehicleService.seat contract is unchanged."
+   },
+   {
+    "uid": "contracts:server-meta:REBIRTH-LUCK-NOT-APPLIED",
+    "status": "not-needed",
+    "note": "DECISIONS \u00a73 removes the claim instead. My files contain no rebirth-luck claims or code."
+   },
+   {
+    "uid": "flows:first-60s:TUT-REGRESS-CLAIMED",
+    "status": "not-needed",
+    "note": "Client tutorial fix (C1). On the server, the claimer gets 'Get in' (F/ButtonY), and the Hotwire prompt is now refused to the claimer server-side too."
+   },
+   {
+    "uid": "flows:first-60s:PILLAR1-NO-HEAT",
+    "status": "fixed",
+    "note": "Same change as F11: the witness roll (Common 35% for 1 star, every other tier always at least 1) in street steals and loot re-hotwires. The first-ever steal is still free."
+   },
+   {
+    "uid": "flows:first-60s:GARAGE-HOLD-PRECHARGE",
+    "status": "not-needed",
+    "note": "The fix is in GarageService (A2a). VehicleService.addStealPrompt already clears interrupted holds and now also rejects stale holds."
+   },
+   {
+    "uid": "flows:player-theft:F9-seat-result-ignored",
+    "status": "not-needed",
+    "note": "TheftService (A2a) fix. VehicleService.seat's contract is guaranteed (it never throws and returns (false, reason))."
+   },
+   {
+    "uid": "flows:player-theft:F12-misleading-dropped-state-on-wreck-bust-leave",
+    "status": "fixed",
+    "note": "VehicleService part done: Wrecked fires before the eject, and the leaver driver-clear is deferred. TheftService markDropped/Recover guards and the WantedService order belong to A2/B1."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F7",
+    "status": "fixed",
+    "note": "TrafficService part done. HotDrop, Police and anchored non-traffic cars are 'hard' blockers: never ghosted into, and ghost mode still respects them. A car stuck behind one despawns after STATIC_GIVEUP when no player is within 150 studs, otherwise after HARD_GIVEUP=20s. Moving HotDropPoints off intersections in Map config is optional and lead-owned."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F12",
+    "status": "fixed",
+    "note": "Same hard-blocker change as F7: traffic never ghosts or shoves police cruisers."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F14",
+    "status": "fixed",
+    "note": "TrafficService part done. onCarjack checks seat(); on failure it leaves an unowned, settled Loot car with no heat, stats or credit and returns false (no Stolen signal). EventService/DealershipService parts are B2/A2b's."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F18",
+    "status": "not-needed",
+    "note": "EventService.canClaim reason codes (B2). VehicleService only shows the non-empty reasons it is given."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F21",
+    "status": "fixed",
+    "note": "Added StreetSpawnService.rerollOutOfView(fraction). It expires that share of non-newbie parked cars with no player within ROTATE_CLEAR_RADIUS, so managePass re-rolls them with current luck, and returns the count. EventService already calls it lazily on luck events. Traffic rebuilds every far car while luck > 1 (PERF-04)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F23",
+    "status": "fixed",
+    "note": "Same as F4: a bounded server settling controller after exit, plus a level rest pose before anchoring."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F24",
+    "status": "fixed",
+    "note": "VehicleService part done. ChopAttempt now fires only after the car has stayed at <=8 studs/s inside the Chop Shop for CHOP_DWELL=1.2s, once per visit. Loot cars get a '\ud83d\udd27 Stop here to chop it for cash!' hint on entry. The Owned/Stolen notifications in GarageService.onChop are A2a's."
+   },
+   {
+    "uid": "flows:economy-monetization:F12",
+    "status": "fixed",
+    "note": "VehicleService part done: canHotwireLoot rejects the claimer, so own loot can't be re-stolen for contract progress. Removing the derived 'steal'/'playerSteal' counters in RewardsService is B2's."
+   },
+   {
+    "uid": "flows:economy-monetization:F19",
+    "status": "fixed",
+    "note": "Same change as F8: carjack heat = max(Heat.carjack, wantedOnSteal)."
+   },
+   {
+    "uid": "flows:driving-physics:F7",
+    "status": "not-needed",
+    "note": "Covered by the PlotService pushOut fix (A2b): eject from Stolen cars, VehicleService.teleport for others. The VehicleService API is ready."
+   },
+   {
+    "uid": "flows:driving-physics:F10",
+    "status": "fixed",
+    "note": "spawn() pivots anchored kinds to exactly RideHeight and only unanchored kinds +SPAWN_DROP (0.3). restPose also snaps settled cars to rest height before anchoring. Spec updated. The WheelAnimator settled-flag part is A1b's."
+   },
+   {
+    "uid": "flows:driving-physics:F12",
+    "status": "fixed",
+    "note": "_crashDamage(prev, vel, elapsed?) scales the threshold by max(1, elapsed/DAMAGE_WINDOW). DAMAGE_WINDOW is 0.2s, so normal tick jitter is unchanged and hitch-time braking or nitro launches no longer cause damage. damagePass tracks st.lastVelAt."
+   }
+  ],
+  "crossGroupNotes": [
+   "Interfaces delivered per DECISIONS: seat(car, player) -> (ok, reason?) still never throws; teleport(car, cframe) also re-bases data.driveStartAt/driveStartPos when the car has a driver; resetWatchdog(car); minTravelTime(car, targetPos) = flat distance from data.driveStartPos / (topSpeed * SPEED_CAP_MULT * NITRO_SPEED_MULT * max(1, SpeedMultiplier)), 0 if never driven, math.huge for NaN; isTainted(car) is true after any watchdog violation, including ones raised by the zone-time check; Wrecked fires before the eject. Extra: settle(car), allInto(buf), _cleanupLeaver (tests only).",
+   "A2a (TheftService): a tainted Stolen car can never fire DeliveryAttempt again. Poll VehicleService.isTainted in _tick and fail the theft so it returns home, otherwise the theft only times out. Also, if your Wrecked handler destroys the car, VehicleService.wreck skips its own eject and FX.",
+   "A2a (TheftService) and A2b: VehicleService's PlayerRemoving cleanup is now task.defer'd, so your PlayerRemoving handlers run first. A leaver's Owned cars are destroyed with reason 'owner_left', after GarageService.cleanup has cleared pstates.",
+   "A2a (GarageService): ChopAttempt now fires only after a 1.2s stop inside the Chop Shop (once per visit). VehicleService shows a 'Stop here to chop' hint for Loot cars. Your Owned/Stolen notifications in onChop are still needed.",
+   "A1b (VehicleController/CarBuilder): VehicleService runs VehicleController.new(model, def, {isServer=true}) as a settling controller. Each PreSimulation it calls setInput({throttle = \u00b10.35 brake by forwardSpeed, steer=0}) and then step(dt), and it calls destroy() before the driver gets network ownership. It reads ctrl.forwardSpeed. Please keep that API; destroy() should restore the bump stops, as your header says.",
+   "Callers that return false from an addStealPrompt onStolen callback now suppress the Stolen signal; returning nothing behaves as before. EventService, DealershipService and GarageService can use this when seat() fails.",
+   "Lead (docs/SPEC.md): update \u00a76 for the TrafficService carjack heat line (max(Heat.carjack, wantedOnSteal)), the street witness rule, traffic recycling and the LinearVelocity movers, VehicleService's new extras (settle, minTravelTime, isTainted, allInto), the chop dwell, LOST_Y = WATER_LEVEL-6, and WATCHDOG_MAX_DT=1. Optional F7: move Map.HotDropPoints off exact intersection centres.",
+   "Risk to watch in playtests: any watchdog violation permanently taints the car, per DECISIONS. A legit driver with a replication stall over ~1.6-2s at nitro top speed (WATCHDOG_MAX_DT is now 1s), or a car flung by an exploiter, can no longer be delivered. The LinearVelocity traffic movers and the server settling controller could not be exercised in-engine here; tune POS_GAIN/POS_DEADBAND/MOVER_WRITE_INTERVAL and SETTLE_BRAKE in Studio."
+  ],
+  "verification": "selene on VehicleService, StreetSpawnService, TrafficService and vehicleservice.spec: 0 errors, 0 warnings. stylua --check passes on all four. rojo build -o /tmp/claude-0/fix-A1a.rbxlx built. lune run tests/run.luau: 395 passed, 0 failed across the whole suite (vehicleservice.spec: 38). The spawn rest-height test was updated for F10. New tests cover the stale-hold check, upward-teleport/fling/stall checks, the zone gate (teleport refused and rewound; travel-time gate), minTravelTime/isTainted, elapsed-scaled crash damage, the street witness roll and carjack stars, DUPE-1 leaver cleanup, settle eligibility, allInto, mover-velocity quantization/deadband, the precomputed cone right vector, and rerollOutOfView. I checked in Lune that the LinearVelocity property and enum names exist. Every diff hunk was re-read. Because there is no Roblox engine here, the LinearVelocity traffic and settling-controller behaviour are unverified in-engine. Files: /home/user/HotwireCity/src/server/Systems/VehicleService.luau, /home/user/HotwireCity/src/server/Systems/StreetSpawnService.luau, /home/user/HotwireCity/src/server/Systems/TrafficService.luau, /home/user/HotwireCity/tests/spec/vehicleservice.spec.luau.\""
+ },
+ "A1b": {
+  "results": [
+   {
+    "uid": "secperf:performance:PERF-01",
+    "status": "fixed",
+    "note": "Server controllers (police and settling cars) no longer create Suspension/Drive VectorForces. The same forces are buffered and applied as impulses (force * frame dt) after every velocity read in step(). _zeroForces and destroy() handle the missing movers, and _suppressForeignMovers is skipped on the server. Only the Upright AlignOrientation is still created, and it is written only when its value changes. vehicle.spec now checks that server controllers create no VectorForces, checks the impulse values (recorder chassis), and builds the foreign controllers as client ones."
+   },
+   {
+    "uid": "secperf:performance:PERF-07",
+    "status": "fixed",
+    "note": "WheelAnimator: phones (touch with no keyboard and no mouse) use LOW_TIER (RANGE 160, HOT 10, COLD 4, BOB_RANGE 60). Cars more than 12 studs behind the camera are skipped every frame and do not count against the hot budget. Only Vehicles and rainbow cars take a slot. Bob rays are cast every 2nd update, or every 8th for Kind=Traffic, and the last target is reused in between. Weld.C0 is not rewritten when spin, steer and offset are unchanged (within 1e-4)."
+   },
+   {
+    "uid": "secperf:performance:PERF-12",
+    "status": "not-needed",
+    "note": "My only part is the CarBuilder label() SurfaceGuis. There are a handful of small faces on taxi, ambulance, van and police cars, already MaxDistance 160, and 40 px/stud keeps their text readable up close. The GUI-memory cost the audit confirmed is PlotService (A2b) and the EffectsController pulse tags (B1)."
+   },
+   {
+    "uid": "secperf:performance:PERF-13",
+    "status": "partially",
+    "note": "My part is done: WheelAnimator.rebuildNear (every 0.25 s) enables a Diamond/Galaxy car's CarBuilder.SPARKLES_NAME emitter only within SPARKLE_RANGE = 120 studs. It finds the emitter again when repaint/applyMutation rebuilds it, and CarBuilder.SPARKLES_NAME is now exported. The street lights (MapBuilder, B1) and the DealershipClient lights and sparkles (A2b) are other groups'."
+   },
+   {
+    "uid": "flows:first-60s:EXIT-ON-E",
+    "status": "fixed",
+    "note": "Removed KeyCode.E from HC_Exit. F, ButtonA and the EXIT button still exit, and the header and comments are updated. I did not hide steal prompts while driving: DealershipClient, EffectsController and CombatClient already own prompt and ProximityPromptService Enabled toggles, and with E unbound a press only starts a hold that the server rejects."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F20",
+    "status": "not-needed",
+    "note": "CarBuilder.repaint(model, color) already stores BaseColor and re-applies the mutation (covered by carbuilder.spec 'repaint keeps mutation'), and it is server-safe (pure instance work). B1's WantedService._repaint now calls it."
+   },
+   {
+    "uid": "flows:driving-physics:F1",
+    "status": "fixed",
+    "note": "VehicleController finds the model's BumpStop BaseParts. On new() and on every 0.2 s attribute poll it sets them CanCollide=false; the poll catches a replicated server change turning them back on. destroy() sets CanCollide=true again (pcall), but only on the stops this controller turned off. Tests cover: off while a controller runs, re-disabled on poll, restored on destroy, and stops that were already off left alone. Every real CarBuilder car asserts stop bottom + RIDE_LIFT < Map.CURB_HEIGHT, and that its stops go off and on with a controller."
+   },
+   {
+    "uid": "flows:driving-physics:F4",
+    "status": "not-needed",
+    "note": "The settle controller is A1a's (VehicleService.settle/settleStep, already in the tree). My side already supports it: an isServer controller with zero input applies impulses, so it sends no replicated VectorForce traffic, and it turns the bump stops off and back on when destroyed at rest-anchor time."
+   },
+   {
+    "uid": "flows:driving-physics:F6",
+    "status": "not-needed",
+    "note": "Server-side fix: A1a's VehicleService calls nudgeOut on a voluntary exit. A client-side nudge in VehicleClient.exit would fight that server move, so I left exit() unchanged."
+   },
+   {
+    "uid": "flows:driving-physics:F10",
+    "status": "fixed",
+    "note": "My part: rebuildNear sets rig.settled = false when a car crosses from beyond BOB_RANGE to inside it (pure helper WheelAnimator.enteredBobRange, tested). An anchored car first posed from far away now gets its bob ray when you walk up. The rest-height spawn is A1a's."
+   },
+   {
+    "uid": "flows:driving-physics:F11",
+    "status": "partially",
+    "note": "Done: WheelAnimator gives other players', police and traffic cars local tire smoke plus a SoundController.playLoop('TireScreech') loop while they drift. Drift is detected from replicated chassis velocity (WheelAnimator.observedDrift, which reuses the new VMath.isDrifting). It runs only for hot cars within 150 studs, and the effects switch off when a car stops drifting or leaves the hot set. Deferred: nitro flame and horn for observers need an unreliable 'VehicleFx' remote (lead: Remotes; A1a: server validation and fireNear; B1: EffectsController rendering)."
+   },
+   {
+    "uid": "flows:driving-physics:F13",
+    "status": "fixed",
+    "note": "VMath.suspensionAccel(comp, compVel, K, C, max, staticComp, stiffScale) computes K*sc + K*(comp-sc)*s^2 + C*compVel*s, so the static load is unchanged. I deliberately deviated from the verified fix: s = SPRING_HOLD_DT/frameDt with SPRING_HOLD_DT = 1/15, not MAX_DT. The spectral-radius analysis shows the plain spring is well damped down to 15 FPS (<=0.69 per frame) and only diverges below ~8.6 FPS. Softening from 30 FPS would have changed the ride on every 15-30 FPS phone. frameDt is clamped to 0.5 s. The test shows the plain spring is unstable at 8 FPS, the scaled one settles at 8, 6 and 4 FPS, and the ride is identical at 15 FPS and above."
+   },
+   {
+    "uid": "flows:driving-physics:F16",
+    "status": "deferred",
+    "note": "DECISIONS.md #12: hero-shell consumption belongs to the art pass. I made no CarBuilder hook now."
+   },
+   {
+    "uid": "flows:client-ux:UI-SPIKE-EXIT-OVERLAP",
+    "status": "not-needed",
+    "note": "B1 moved SPIKES to (1,-144,1,-170) with AnchorPoint (1,1), which matches my touch cluster. I left the DrivingUI touch-button geometry and canvas scale (no touchMin) unchanged on purpose, and documented the footprints in VehicleClient.buildUI so both sides move together."
+   },
+   {
+    "uid": "flows:client-ux:UI-SPEEDO-UNDER-HOTBAR",
+    "status": "fixed",
+    "note": "showUI hides the CoreGui Backpack (pcall SetCoreGuiEnabled false), but only if it was enabled. hideUI, which runs on every exit, death and character removal, re-enables it only if VehicleClient hid it. Spikes use a remote with their own button and key, so nothing is lost. HUDController (C1) already re-runs layout on the Driving attribute, plus a 0.5 s delayed pass."
+   },
+   {
+    "uid": "flows:client-ux:UI-TOASTS-COVER-CONTROLS",
+    "status": "not-needed",
+    "note": "This is entirely in NotificationController (C1): the touch Dismiss button and anchor. Nothing in my files needs to change, and I kept the DrivingUI control positions stable."
+   },
+   {
+    "uid": "flows:client-ux:UI-DRIFT-COVERS-THEFT-TIMER",
+    "status": "fixed",
+    "note": "Moved the drift banner from -46 to DRIFT_BANNER_Y = -150 relative to the speedometer top. It now spans H-362..H-318, above the theft panel (H-260..H-184) and clear of the desktop tutorial card (top H-296). THEFT_BOTTOM and CARD_BOTTOM are untouched."
+   },
+   {
+    "uid": "flows:client-ux:UI-EDGE-ARROW-HIDDEN-WHILE-DRIVING",
+    "status": "not-needed",
+    "note": "The fix belongs in WaypointController (C1). It can measure DrivingUI Root/Speedometer and Root/Touch the same way HUDController.drivingClearance already does."
+   },
+   {
+    "uid": "flows:client-ux:UI-PHONE-TEXT-TOO-SMALL",
+    "status": "partially",
+    "note": "DrivingUI part: on touch screens the small labels (car name, MPH, NITRO!, +NITRO) and the touch-button captions get TextSize * textBoost. textBoost = clamp(Theme.TouchMinScale / Kit.uiScale(), 1, 1.4), i.e. 1.31 on phones; it is a pure helper, VehicleClient.textBoost, and tested. I did not pass touchMin to Kit.screen: that would separate the touch cluster from CombatHUD's buttons and grow the speedometer footprint that HUD and tutorial layouts depend on. Toasts, feeds, event pills and banners are C1's."
+   },
+   {
+    "uid": "flows:client-ux:PERF-WHEELANIMATOR-MOBILE",
+    "status": "fixed",
+    "note": "Same change as PERF-07: phone tier, per-frame behind-camera culling, bob rays every other update, unchanged C0 poses not rewritten."
+   }
+  ],
+  "crossGroupNotes": [
+   "B1 (PoliceService ~2157): the PreSimulation loop passes math.min(dt, VehicleConfig.MAX_DT) to controller:step. Server controllers now apply impulses = force * dt (PERF-01), so on a server frame longer than 33 ms the suspension and drive impulses would be cut short and the cruiser dips. Pass the raw dt: VehicleController already clamps it internally (math dt <= MAX_DT, impulse length <= 0.5 s). VehicleService.settleStep already passes the raw dt.",
+   "A1a: tests/spec/vehicleservice.spec.luau:149 ('wheels rest on the ground: expected ~1.9, got 1.6') fails against the in-progress VehicleService F10 change (anchored kinds now rest at RideHeight with no +0.3). The spec expectation needs updating. It is the only failing test in the suite.",
+   "Lead (docs): docs/integration/vehicles-world.md:14 should list HC_Exit as (F/ButtonA), since E was removed (EXIT-ON-E). It should also mention that DrivingUI hides the CoreGui Backpack while driving.",
+   "Interface assumption: VehicleClient uses C1's Kit.isTouch(), Kit.uiScale() and Theme.TouchMinScale (present in HEAD), inside a pcall that falls back to no boost. C1 should keep those names.",
+   "Interface: DrivingUI touch-cluster footprints (design canvas, AnchorPoint 1,1) are unchanged and documented in VehicleClient.buildUI. CombatHUD SPIKES depends on them. If DrivingUI ever gets a touchMin, CombatHUD must get the same value.",
+   "New exports: VehicleController.SPRING_HOLD_DT, VehicleController.BUMP_STOP_NAME, VMath.isDrifting / lowFpsScale; CarBuilder.SPARKLES_NAME; WheelAnimator.BOB_RANGE / LOW_TIER / SPARKLE_RANGE / SPARKLES_NAME plus the pure helpers isLowTier, behindCamera, enteredBobRange, observedDrift; VehicleClient.textBoost. All additions; no existing API changed.",
+   "F11 follow-up for lead, A1a and B1: observers' nitro flame and horn need a rate-limited UnreliableRemoteEvent 'VehicleFx' {boost, honk}. The server would check that the sender drives the car and re-broadcast with fireNear, and EffectsController would render it. WheelAnimator already covers drift smoke and screech without a remote.",
+   "The lead's commit 601f18c already captured my final versions of VehicleController, CarBuilder, VehicleClient, WheelAnimator and vehicle.spec. The working tree has no further changes to my files."
+  ],
+  "verification": "selene on all 4 owned files + tests/spec/vehicle.spec.luau: 0 errors / 0 warnings. stylua --check: clean. rojo build -o /tmp/claude-0/fix-A1b.rbxlx: built OK. lune run tests/run.luau: 375 passed, 1 failed. The failure is vehicleservice.spec:149 in A1a's in-progress VehicleService F10 change, not my modules; all 21 vehicle.spec tests pass, including the new ones (server no-VectorForce + impulse values, bump stops off/on/poll, low-FPS stability, isDrifting/observedDrift, WheelAnimator budget helpers, VehicleClient.textBoost). I re-read every diff hunk for runtime errors: NaN-safe pose caching, drift FX switched off for removed or culled cars, Backpack restored only by its owner, buffers reset after the server impulses."
+ },
+ "A2a": {
+  "results": [
+   {
+    "uid": "secperf:security:SEC-1",
+    "status": "fixed",
+    "note": "TheftService.complete now fails a theft whose car is tainted (car goes home), and refuses any delivery made faster than _minDeliveryTime(slot to nearest drop-off edge, topSpeed x SPEED_CAP_MULT x NITRO_SPEED_MULT); _tick also ends tainted thefts. GarageService onDelivery (Loot) and onChop refuse tainted or impossibly fast arrivals via VS.isTainted/minTravelTime. VehicleService's zone gate (A1) was already in place."
+   },
+   {
+    "uid": "secperf:security:DUPE-1",
+    "status": "fixed",
+    "note": "An Owned car parks only if ps.outCars[slot]==car and the record matches; otherwise it is destroyed as 'orphan'. The storeCar fallback is gone. onReturnedHome and onVehicleDestroyed ignore cars from other sessions, and cleanup() destroys the leaver's out cars. VS.onPlayerRemoving (A1) does the same."
+   },
+   {
+    "uid": "flows:player-theft:F2-recovery-revenge-farm",
+    "status": "fixed",
+    "note": "Applied DECISIONS \u00a75. The recovery bonus needs RECOVERY_MIN_SECONDS of theft or the car leaving the victim's garage (leftGarage, tracked in _tick and recover). Recovery and revenge (both the in-theft and the post-robbery kind) pay at most once per (victim,thief) pair per BONUS_PAIR_COOLDOWN, via the bonusPairs ledger, pruned in start(). Not adopted: basing the bonus on the stolen car's income, and moving the steal contract to delivery (DECISIONS doesn't require either)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F1",
+    "status": "not-needed",
+    "note": "The binding fix (heat and restock) is DealershipService (A2b, DECISIONS \u00a72). The optional 'hot' unsellable record in GarageService was not adopted by DECISIONS, so nothing changes in my files."
+   },
+   {
+    "uid": "flows:driving-physics:F2",
+    "status": "fixed",
+    "note": "Same as SEC-1: tainted and too-fast gates in TheftService.complete and GarageService delivery/chop, on top of A1's zoneTrusted gate."
+   },
+   {
+    "uid": "flows:driving-physics:F3",
+    "status": "not-needed",
+    "note": "TheftService already handles a mid-theft eject: DriverChanged(nil) leads to a (now deferred) markDropped, so the car stays dropped inside and the victim gets Recover. The remaining fix is PlotService.pushOut, owned by A2b: eject the Stolen-car thief and use VS.teleport for intruders' own cars. As of now PlotService has no eject call yet."
+   },
+   {
+    "uid": "secperf:security:SEC-2",
+    "status": "fixed",
+    "note": "Display StealPrompt: PromptButtonHoldEnded now clears an interrupted hold, and Triggered uses GarageService._holdOk (min required, max age base*1.25+1.5). The leaver's holds are cleared on PlayerRemoving. TheftService's fallback takeover prompt got the same HoldEnded and max-age checks. DealershipService is A2b's."
+   },
+   {
+    "uid": "secperf:security:ECON-1",
+    "status": "fixed",
+    "note": "Same as F2-recovery-revenge-farm: min duration / left-garage gate on recovery, plus the per-pair 600s cap on recovery and revenge."
+   },
+   {
+    "uid": "contracts:server-core:theft-eject-before-fail-spurious-drop",
+    "status": "fixed",
+    "note": "TheftService now listens to VS.Wrecked (failTheft 'wrecked' with skipDestroy). markDropped, recover and the RecoverPrompt ignore wrecked or destroyed cars, and _tick ends wrecked thefts. markDropped on DriverChanged(nil) is deferred and re-checked, so a bust's fail and a thief leaving win. WantedService (B1) already calls fail before eject."
+   },
+   {
+    "uid": "contracts:client-server:GC-STEAL-PROMPT-INIT-ORDER",
+    "status": "not-needed",
+    "note": "Client-only fix in GarageClient.setupPlot (A2b). No server change is needed."
+   },
+   {
+    "uid": "flows:player-theft:F3-victim-cannot-fight-back",
+    "status": "partially",
+    "note": "Implemented the minimal server part: on StealPrompt HoldBegan the owner gets a Notify '\ud83d\udea8 X is hotwiring your <car>! LOCK or BONK!' plus a Horn sound. It is throttled to once per thief per 5s and skipped if the owner is newbie-protected, the garage is locked, or the thief is out of reach. The banner countdown is C1's. Speed debuff, remote DriveCar and a wreck bonus are balance choices DECISIONS didn't adopt."
+   },
+   {
+    "uid": "flows:economy-monetization:F4",
+    "status": "not-needed",
+    "note": "The Dragster one-time-purchase rule is MonetizationService/MenuController (B2, DECISIONS \u00a77). GarageService's existing ban on selling Exclusives stays."
+   },
+   {
+    "uid": "flows:driving-physics:F8",
+    "status": "fixed",
+    "note": "driveSlot first parks the player's empty out cars (destroy plus restoreSlot), then runs a GetPartBoundsInBox clearance check (10x6x20) on the Vehicles folder at DRIVE_OUT_SPAWN and refuses with '\ud83d\udea7 Clear the exit first!'."
+   },
+   {
+    "uid": "secperf:security:DATA-1",
+    "status": "fixed",
+    "note": "complete() now saves in one task, victim (the removal) first and then thief. The autosave-ordering risk remains and is accepted, as the verify note says."
+   },
+   {
+    "uid": "secperf:security:BUG-1",
+    "status": "fixed",
+    "note": "beginTheft reads seat's real (ok, reason) result. On failure: failTheft 'error' with no victim toast, no heat, alarm or contract, and the victim cooldown is restored. takeover now seats first and keeps the drop if that fails. The DealershipService part is A2b's."
+   },
+   {
+    "uid": "secperf:security:SEC-4",
+    "status": "fixed",
+    "note": "The SellCar remote now requires the player inside their garage or within DRIVE_MAX_DISTANCE of the slot (shared atOwnGarage helper, also used by driveSlot). ShopService left as is, per the verify note."
+   },
+   {
+    "uid": "secperf:performance:PERF-05",
+    "status": "deferred",
+    "note": "DECISIONS \u00a710: streaming stays disabled for v1. Client-built display cars are a measure-first refactor."
+   },
+   {
+    "uid": "secperf:performance:PERF-08",
+    "status": "fixed",
+    "note": "tickPlayer no longer marks dirty and pushes a snapshot every 3 ticks; it does so only when income/multiplier changes. Autosave doesn't depend on that push. Display-car 'Uncollected' is written per second only while the owner is within 160 studs of their plot (only the owner sees the label), and it catches up on return."
+   },
+   {
+    "uid": "contracts:server-core:seat-result-misread-as-pcall-ok",
+    "status": "fixed",
+    "note": "TheftService beginTheft and takeover now act on seated==true. GarageService.driveSlot logs pcall errors and refusals separately; no rollback, since the owner can use the EnterPrompt. Dealership and EventService are other groups'."
+   },
+   {
+    "uid": "contracts:server-core:combat-onthiefhit-after-eject",
+    "status": "fixed",
+    "note": "The deferred markDropped lets onThiefHit record the hitter first even under the old ordering. CombatService (B1) already calls onThiefHit before eject. Test added."
+   },
+   {
+    "uid": "contracts:client-server:THEFTSTATE-DROPPED-STRIPPED",
+    "status": "not-needed",
+    "note": "The server already sends dropped and droppedEndsAt in TheftState. The fix is StateController/HUD (C1)."
+   },
+   {
+    "uid": "flows:first-60s:GARAGE-HOLD-PRECHARGE",
+    "status": "fixed",
+    "note": "Same as SEC-2: a HoldEnded clear plus a stale-hold max age on the display StealPrompt."
+   },
+   {
+    "uid": "flows:first-60s:TUT-NOT-PERSISTED",
+    "status": "not-needed",
+    "note": "TutorialController fix (C1). On the GarageService side, the full-garage message now also gives the unlock hint and a Chop Shop waypoint."
+   },
+   {
+    "uid": "flows:player-theft:F2-recovery-revenge-farm",
+    "status": "fixed",
+    "note": "(duplicate uid entry) See above."
+   },
+   {
+    "uid": "flows:player-theft:F3-victim-cannot-fight-back",
+    "status": "partially",
+    "note": "(duplicate uid entry) See above."
+   },
+   {
+    "uid": "flows:player-theft:F4-knockout-feed-never-fires",
+    "status": "fixed",
+    "note": "The deferred markDropped means the knock-out feed fires even when the eject precedes onThiefHit. B1 reordered CombatService too. Spec case added."
+   },
+   {
+    "uid": "flows:player-theft:F5-thief-hud-ignores-drop",
+    "status": "not-needed",
+    "note": "Client fix (C1). The server already sends dropped and droppedEndsAt."
+   },
+   {
+    "uid": "flows:player-theft:F6-victim-ragequit-denies-theft",
+    "status": "not-needed",
+    "note": "SPEC \u00a76 deliberately says a victim leaving makes the car vanish; DECISIONS made no change. Left as designed."
+   },
+   {
+    "uid": "flows:player-theft:F7-steal-prompt-shown-when-doomed",
+    "status": "partially",
+    "note": "The server now sets plot model attribute RobbableAt (server time the victim cooldown ends, 0 = none) in setCooldown and when a failed start restores the cooldown. GarageClient (A2b) must disable Steal while GetServerTimeNow() < RobbableAt, or while any pad has State=='BeingStolen', or the snapshot shows no free slots."
+   },
+   {
+    "uid": "flows:player-theft:F9-seat-result-ignored",
+    "status": "fixed",
+    "note": "beginTheft rolls back on a refused seat. takeover seats before any bookkeeping, restores data.theft.thief on failure and keeps the drop prompts. onStolen returns takeover's result, so VS skips its Stolen signal."
+   },
+   {
+    "uid": "flows:player-theft:F10-garage-fills-mid-theft",
+    "status": "not-needed",
+    "note": "The fix is in RewardsService/MonetizationService (B2): defer car grants while TheftService.getActiveTheft(player) is set and freeSlots<=1. My side: the full message in complete() now carries the unlock hint."
+   },
+   {
+    "uid": "flows:player-theft:F11-nonatomic-transfer-save",
+    "status": "fixed",
+    "note": "Same as DATA-1: sequential victim-then-thief saves in one task. Spec asserts the order."
+   },
+   {
+    "uid": "flows:player-theft:F12-misleading-dropped-state-on-wreck-bust-leave",
+    "status": "fixed",
+    "note": "Same as theft-eject-before-fail: Wrecked listener, wreck guards, deferred drop. Spec covers wreck, the tick fallback and bust ordering."
+   },
+   {
+    "uid": "flows:player-theft:F13-victim-waypoint-by-displayname",
+    "status": "not-needed",
+    "note": "NotificationController (C1). Cars already carry TheftActive, TheftVictimUserId and TheftThiefUserId attributes."
+   },
+   {
+    "uid": "flows:player-theft:F15-revenge-blocked-when-target-busy",
+    "status": "fixed",
+    "note": "onThiefHit returns early only when attacker==theft.victim; otherwise it falls through to the recentRobbers check (still subject to the pair cap). Spec case added."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F10",
+    "status": "fixed",
+    "note": "On a garage-full Loot delivery, GarageService fires Waypoint('chop', chop zone position, orange, 'CHOP SHOP') and clears it on the next successful delivery or chop. The Cash Rain waypoint is EventsClient (C1)."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F15",
+    "status": "not-needed",
+    "note": "EventService claim warning (B2). GarageService.fullHint(player) is available for that message."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F24",
+    "status": "fixed",
+    "note": "onChop now tells Owned cars '\ud83d\udd27 That's your own ride! Sell it from your garage instead.' and Stolen cars 'Deliver it to your garage instead!', rate-limited to every 4s. A1 added the chop dwell in VehicleService."
+   },
+   {
+    "uid": "flows:economy-monetization:F2",
+    "status": "not-needed",
+    "note": "_padInfo.passOnly keeps its meaning. GarageClient (A2b) must show \ud83d\udd12 MAX SLOTS instead of '+2 SLOTS PASS' when Monetization.Passes.slots.id == 0 (DECISIONS \u00a711)."
+   },
+   {
+    "uid": "flows:economy-monetization:F11",
+    "status": "fixed",
+    "note": "SellPrompt hold is 1s up to Rare and 2.5s for Epic+. Legendary+ sells are two-step: the first trigger arms ps.sellArm and shows a confirm toast, and a second sell within 8s completes it. This covers the prompt and the SellCar remote."
+   },
+   {
+    "uid": "flows:economy-monetization:F13",
+    "status": "fixed",
+    "note": "New public GarageService.fullHint(player) (pure _fullHint) returns ' Or unlock slot N for $X at the glowing pad!' (empty once all cash slots are bought). It is appended to the GarageService delivery-full message and to TheftService's full messages (_canSteal 'full', canTakeover, complete). DealershipService already calls it."
+   },
+   {
+    "uid": "flows:economy-monetization:F20",
+    "status": "fixed",
+    "note": "The income tick auto-collects every 2s while the owner's root (on foot or seated) is over the CollectPad (_overPad) and uncollected >= $1. The Touched path is unchanged."
+   }
+  ],
+  "crossGroupNotes": [
+   "Interfaces I coded against (A1, present in the working tree): VehicleService.seat -> (ok, reason) never throws; VS.isTainted(car); VS.minTravelTime(car, pos) from car.data.driveStartAt/driveStartPos; VS.getFolder(); VS.Wrecked fired before eject. TheftService also falls back to car.data.tainted if isTainted is missing. Its own slot-to-drop-off gate (_minDeliveryTime) mirrors VS._minTravelTime (SPEED_CAP_MULT x NITRO_SPEED_MULT x max(1, SpeedMultiplier)).",
+   "New public API: GarageService.fullHint(player) -> string. A2b's DealershipService already uses it.",
+   "New replicated attribute for A2b's GarageClient (F7): plot model attribute 'RobbableAt' = server time the victim's robbery cooldown ends (0 = none). Disable or relabel the Steal prompt while Workspace:GetServerTimeNow() < RobbableAt, while any pad has State=='BeingStolen', or while the local snapshot shows 0 free slots.",
+   "A2b PlotService (driving-physics F3 / DECISIONS \u00a79): pushOut must call VehicleService.eject on a thief in a car Stolen from this plot's owner, then push only the character, and must move intruders' own cars with VehicleService.teleport. TheftService's deferred DriverChanged -> markDropped then leaves the car dropped inside with the victim's Recover prompt. PlotService has no eject call yet.",
+   "A2b GarageClient: GC-STEAL-PROMPT-INIT-ORDER (call updatePlotPrompts(view) in setupPlot) and economy F2 (pads 11-12 show MAX SLOTS when the slots pass id is 0). Optionally, refreshUncollected can return early for non-owners (PERF-08).",
+   "Behaviour change: an Owned car delivered to the drop-off parks only if it is the car this session took out of that slot (ps.outCars). Otherwise it is destroyed with reason 'orphan' and never stored. GarageService.cleanup now also destroys the leaver's out cars ('owner_left').",
+   "Behaviour change: GarageService no longer pushes a snapshot every 3 income ticks, only when income or multiplier changes, plus the existing discrete markDirty calls. No client reads snapshot uncollected (checked with grep).",
+   "Waypoint id 'chop' is fired and cleared by GarageService. WaypointController (C1) already styles 'chop' keys.",
+   "B2 (F10): defer reward/exclusive car grants while TheftService.getActiveTheft(player) ~= nil and GarageService.freeSlots(player) <= 1.",
+   "B1: CombatService (onThiefHit before eject) and WantedService (fail before eject) were already done. TheftService now tolerates the old order too.",
+   "Test seams added: GarageService._trackOutCar/_cleanup/_onVehicleDestroyed, TheftService._onWrecked, and hooks.defer (theft.spec sets it to run immediately). The theft.spec VehicleService.seat mock now returns true or (false, 'sit failed')."
+  ],
+  "verification": "Ran on src/server/Systems/TheftService.luau, src/server/Systems/GarageService.luau, tests/spec/theft.spec.luau and tests/spec/garage.spec.luau. selene: 0 errors and 0 warnings. stylua --check: clean. rojo build -o /tmp/claude-0/fix-A2a.rbxlx: built. lune run tests/run.luau: 403 passed, 0 failed (baseline before my changes was 395 passed). New or updated specs cover: SEC-1 travel gate and tainted thefts; recovery anti-farm (min duration, left-garage, pair cooldown, different-thief pair, cooldown expiry); the revenge pair cap and F15; wreck, bust and tick never showing 'dropped'; the knock-out feed under the old Combat order; seat-failure rollback in begin and takeover; RobbableAt; victim-first save order; DUPE-1 orphan and record-gone deliveries; cleanup destroying out cars; Legendary two-step sell; Loot teleport and taint refusal; the Chop Shop full message and waypoint; owned-chop notify; and pure helpers (_holdOk/_holdMaxAge, _sellHold, _sellNeedsConfirm, _fullHint, _overPad). Note: the lead's commit ba575c3 swept up most of my in-progress source edits, so diff against 2b0e1b7 to see all of my changes."
+ },
+ "A2b": {
+  "results": [
+   {
+    "uid": "flows:chase-events-dealer:F1",
+    "status": "fixed",
+    "note": "DealershipService: new pure _stealHeat(carId) = min(5, max(Heat.dealerSteal, tier.wantedOnSteal+1)) per DECISIONS #2, used both for addHeat and the StealPrompt ObjectText. A robbed pad now stays empty until the global restock (_padRestockAt gets a 'stolen' arg); a sold pad still refills after 30s. Blocking the sale of a 'hot' record is an optional GarageService follow-up for A2a."
+   },
+   {
+    "uid": "flows:driving-physics:F3",
+    "status": "fixed",
+    "note": "PlotService.pushOut: when a non-owner is driving a car stolen from this garage (Kind=='Stolen' and TheftVictimUserId == owner; pure helper _ejectOnLock), it calls VehicleService.eject and pushes the thief out on foot. The car stays inside so TheftService can mark it dropped and offer Recover (DECISIONS #9)."
+   },
+   {
+    "uid": "flows:player-theft:F1-lock-pushout-frees-thief",
+    "status": "fixed",
+    "note": "Same pushOut fix as driving-physics F3. Every other driven car is moved with VehicleService.teleport. GarageClient needed no change for this."
+   },
+   {
+    "uid": "flows:economy-monetization:F3",
+    "status": "fixed",
+    "note": "Duplicate of chase-events-dealer F1: dealer heat now scales with rarity (Legendary 3\u2605, Mythic/Secret 4\u2605), and robbed pads wait for the global restock."
+   },
+   {
+    "uid": "secperf:security:SEC-2",
+    "status": "partially",
+    "note": "DealershipService part done. Steal and buy prompts now have PromptButtonHoldEnded handlers that drop an early release, and pure _holdOk rejects too-short holds and stale ones (older than max(required,base)*1.25+1.5s). PlayerRemoving and clearPad still clear holds. GarageService (A2a) and VehicleService (A1a) parts belong to their owners."
+   },
+   {
+    "uid": "contracts:client-server:GC-STEAL-PROMPT-INIT-ORDER",
+    "status": "fixed",
+    "note": "GarageClient.setupPlot now calls updatePlotPrompts(view) after renderPads, so display cars set up before their plot view existed get their Steal prompt re-evaluated. No server change needed."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F3",
+    "status": "fixed",
+    "note": "PlotService.onCharacter calls WantedService.consumeRespawnAtHQ (lazy, pcall). When it returns true, the character is pivoted to MapLayout.bustedReleaseCFrame()+jitter instead of home. The WantedService side was already done by B1."
+   },
+   {
+    "uid": "secperf:performance:PERF-04",
+    "status": "not-needed",
+    "note": "Nothing to change in DealershipClient. Its Vehicles.DescendantAdded handler is a single IsA check per descendant, which is negligible. The real cost is TrafficService destroy/respawn churn, which is A1a's recycling fix."
+   },
+   {
+    "uid": "secperf:security:BUG-1",
+    "status": "partially",
+    "note": "DealershipService part done. onSteal now reads seat's real result. On failure it destroys the Loot car, puts the display car back on the pad, skips heat and contract credit, and notifies the player. A failed spawn now also restores the pad. TheftService is A2a's part."
+   },
+   {
+    "uid": "contracts:server-core:seat-result-misread-as-pcall-ok",
+    "status": "partially",
+    "note": "DealershipService part done (same change as BUG-1). TheftService and GarageService belong to A2a; EventService was already done by B2."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F14",
+    "status": "partially",
+    "note": "Dealer steal part done: no heat or progress unless the thief is actually seated, and the heist is rolled back otherwise. The TrafficService carjack part belongs to A1a; EventService was done by B2."
+   },
+   {
+    "uid": "contracts:server-core:plotservice-pushout-trips-watchdog",
+    "status": "fixed",
+    "note": "pushOut resolves the car with VehicleService.fromModel, zeroes chassis velocity, then calls VehicleService.teleport (which pivots and resets the watchdog). It falls back to a raw PivotTo only for models VehicleService doesn't know."
+   },
+   {
+    "uid": "flows:driving-physics:F7",
+    "status": "fixed",
+    "note": "Covered by the pushOut change: stolen cars are no longer moved (eject instead), and every other driven car goes through VehicleService.teleport."
+   },
+   {
+    "uid": "flows:player-theft:F14-lock-uptime-afk",
+    "status": "fixed",
+    "note": "Re-arm is now max(LOCK_REARM, 0.5 * last button-lock duration) per DECISIONS #8 (pure _rearmSeconds). Only tryLock records the duration, so a Lockdown purchase doesn't lengthen the re-arm. LockReadyAt shows the real value."
+   },
+   {
+    "uid": "flows:economy-monetization:F17",
+    "status": "fixed",
+    "note": "lockFor now stacks: min(max(lockedUntil, now) + seconds, now + 3600) (pure _stackLock, DECISIONS #7). lockFor also returns true/false, so MonetizationService's `res == false` check can refuse to charge when there is no plot, and its pushOut call is pcall-guarded."
+   },
+   {
+    "uid": "secperf:performance:PERF-12",
+    "status": "fixed",
+    "note": "PlotService: surfaceGui takes a maxDistance. Pad decals drop to 12 px/stud (from 24) and bay signs to 20 (from 30), with UI strokes scaled to match. Pad, sign, dropoff, collect and lock GUIs use MaxDistance 160 (the dropoff hanging sign 250); banners, murals, the gate countdown and the owner sign keep 400. B1 already did the EffectsController part, and GarageTag billboards were already MaxDistance 80."
+   },
+   {
+    "uid": "secperf:performance:PERF-13",
+    "status": "partially",
+    "note": "DealershipClient: the Epic+ glow PointLight and Legendary+ sparkles turn off beyond FX_RANGE=160 from the camera, toggled only when the state changes. B1 already did the MapBuilder lamps. Distance-gating the CarBuilder mutation sparkles on street and garage cars belongs to A1b (WheelAnimator)."
+   },
+   {
+    "uid": "secperf:performance:PERF-08",
+    "status": "partially",
+    "note": "GarageClient part done: refreshUncollected returns early for cars the viewer doesn't own (hides the label, no Format/text work). Removing the per-tick Uncollected writes and the 3-tick snapshot belongs to GarageService (A2a)."
+   },
+   {
+    "uid": "secperf:performance:PERF-05",
+    "status": "deferred",
+    "note": "Per DECISIONS #10, streaming stays off for v1, and the verified fix says to measure before changing anything. The concrete GUI-memory reduction is done under PERF-12."
+   },
+   {
+    "uid": "flows:first-60s:SPAWN-FLASH",
+    "status": "fixed",
+    "note": "Each plot now gets an invisible, non-colliding, Neutral 'PlotSpawn' SpawnLocation at OwnerSpawn (Duration 0). It is enabled while the plot is owned, assign sets player.RespawnLocation to it, and release clears it. onCharacter still pivots home as a fallback, skipping the pivot when the character is already within 8 studs of the spawn. Still needs a Studio check that RespawnLocation is honoured."
+   },
+   {
+    "uid": "flows:player-theft:F7-steal-prompt-shown-when-doomed",
+    "status": "fixed",
+    "note": "GarageClient turns Steal off when the server would refuse anyway: a pad in that plot is in State BeingStolen, the plot's RobbableAt (A2a's TheftService attribute) is in the future, or the viewer has no free slots (pure _freeSlots on the StateController snapshot). The reason shows on the car's billboard ('\ud83d\udea8 BEING ROBBED' / '\ud83d\udee1\ufe0f PROTECTED m:ss' / '\ud83d\udce6 YOUR GARAGE IS FULL'), it re-renders every second, and it re-enables once RobbableAt passes."
+   },
+   {
+    "uid": "flows:economy-monetization:F13",
+    "status": "fixed",
+    "note": "DealershipService's full-garage messages (buy and steal) now append GarageService.fullHint(player), using A2a's helper through call(); it falls back to '' if the helper is unavailable."
+   },
+   {
+    "uid": "flows:economy-monetization:F2",
+    "status": "fixed",
+    "note": "GarageClient pass pads read '\ud83d\udd12 MAX SLOTS' (TextDim) while Passes.slots.id == 0, and '+2 SLOTS PASS' only when the pass is on sale (pure _lockedPadLabel, DECISIONS #11)."
+   },
+   {
+    "uid": "flows:client-ux:UI-PASS-PADS-DEAD-END",
+    "status": "fixed",
+    "note": "Same renderPad change as economy F2."
+   },
+   {
+    "uid": "flows:client-ux:UI-LOCK-OVER-HOME",
+    "status": "fixed",
+    "note": "The LOCK pill's bottom is now max(112, HUDController.getBottomClearance()+8), so outside the garage it sits above HOME (both screens use Kit.uiScale). Taps while locked or recharging get a pop and a Click sound."
+   },
+   {
+    "uid": "flows:client-ux:UI-STREAMER-MODE-PARTIAL",
+    "status": "partially",
+    "note": "GarageClient part done: GarageHUD.Enabled follows HUDController.isHidden()/VisibilityChanged. NotificationController, WaypointController and TutorialController belong to C1."
+   },
+   {
+    "uid": "contracts:server-meta:MAPBUILDER-DEALER-TAG-CONTRACT-UNUSED",
+    "status": "fixed",
+    "note": "Restock sign is lowered to SIGN_BOTTOM=8.5 with SIGN_SIZE height 8, so the frame tops out at floor+17.0 (about CURB_TOP+17.2). That clears the canopy underside (+18) and the LightPanel (+17.7), and the board stays above the cars. B1 already removed MapBuilder's RestockBoard."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F22",
+    "status": "fixed",
+    "note": "Duplicate of the dealer-board finding. B1 deleted the MapBuilder board; DealershipService keeps its own sign, now lowered."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F10",
+    "status": "not-needed",
+    "note": "Nothing to add in DealershipService. A2a's GarageService delivery-full path already fires the 'chop' waypoint. A dealer-side waypoint would go stale, because only GarageService's own chopWaypoint flag clears it. The dealer toast names the Chop Shop and now adds the unlock hint."
+   },
+   {
+    "uid": "contracts:server-core:loot-hotwire-claimer-not-rejected",
+    "status": "not-needed",
+    "note": "Not an A2b fix: the server-side check goes in VehicleService.canHotwireLoot (A1a). DealershipClient's audience filter is cosmetic by design."
+   },
+   {
+    "uid": "contracts:server-meta:REBIRTH-LUCK-NOT-APPLIED",
+    "status": "not-needed",
+    "note": "B2 removed every luck claim, and DECISIONS #3 says rebirth doesn't change luck. DealershipService makes no luck claim and uses EventService.getLuck as intended."
+   },
+   {
+    "uid": "flows:first-60s:TUT-TARGET",
+    "status": "not-needed",
+    "note": "The fix is entirely in TutorialController (C1). The verified fix says no PlotService change is needed."
+   },
+   {
+    "uid": "flows:first-60s:TUT-REGRESS-CLAIMED",
+    "status": "not-needed",
+    "note": "The fix is in TutorialController (C1). DealershipClient's audience filter behaves correctly."
+   }
+  ],
+  "crossGroupNotes": [
+   "A2a TheftService: after a lock push-out ejects the thief, the stolen car sits dropped inside the locked garage. If the dropped car is within prompt range of the gate, the thief can re-enter it (re-seat/takeover) from outside, and pushOut ejects them again every 0.5s: harmless, but a loop. Per the F1-lock-pushout optional fix, refuse re-entry/takeover with '\ud83d\udd12 Garage locked!' while PlotService.isLocked(victimPlot) and the car is inside that plot.",
+   "A2a: GarageClient reads the plot attribute RobbableAt (server time, 0 = none) exactly as TheftService.syncRobbableAt writes it. The client also treats any pad State == 'BeingStolen' as victimBusy, so keep that pad state accurate for the whole theft, including while dropped.",
+   "A2a: DealershipService calls GarageService.fullHint(player) through its pcall'd call() helper, which returns '' if the function is missing. GarageService.fullHint must keep returning a string that starts with a space.",
+   "A2a / PERF-08: GarageClient no longer formats the 'Uncollected' label for non-owners. If GarageService switches to Income/AccrualBase/AccrualAt attributes instead of ticking 'Uncollected', GarageClient.refreshUncollected must be updated to compute the value locally. That interface is not in DECISIONS.md, so tell the lead or A2b if it changes.",
+   "PlotService.lockFor now returns a boolean (false = no plot / bad duration). MonetizationService's existing `res == false` check therefore refuses to grant Lockdown when no plot is found. Purchases now stack (DECISIONS #7), but the success toast still says 'sealed for 10 minutes'; B2 may want to reword it.",
+   "PlotService creates a SpawnLocation named 'PlotSpawn' in each Plot<i> model and sets player.RespawnLocation in assign. map.spec's 'one SpawnLocation' test covers MapBuilder output only, so it is unaffected. Studio check needed: confirm characters spawn at the plot spawn. If RespawnLocation is ignored, the existing pivot-home fallback still runs.",
+   "Lead (docs): SPEC.md \u00a7DealershipService line 147 still says the steal adds a flat +dealerSteal wanted. It should name the rarity-scaled heat (DECISIONS #2), the robbed pad staying empty until the global restock, and the seat-failure rollback. SPEC \u00a76's 'only the character is pivoted out' now matches PlotService.pushOut for stolen cars, and other driven cars use VehicleService.teleport.",
+   "C1: TutorialController CARD_BOTTOM=186 assumes the LOCK pill is at 112. Outside the garage while locked, the pill now stacks above HOME (bottom = HUD clearance + 8), which can reach about 200 design px and touch the tutorial card. This only happens if a tutorial player locks the garage and leaves."
+  ],
+  "verification": "Every check passed. The commands were: `stylua --check` and `selene` on all six files I touched (0 errors, 0 warnings), `rojo build -o /tmp/claude-0/fix-A2b.rbxlx` (built), and `lune run tests/run.luau`: 414 passed, 0 failed, up from 402. No failures in any group's modules at the time of the run.\n\nNew specs:\n- `/home/user/HotwireCity/tests/spec/dealership.spec.luau` covers `_stealHeat`, `_holdOk` (early release, stale arm, base vs scaled hold, buy tolerance), stolen vs sold pad restock, and the sign clearing the canopy while staying above the cars.\n- `/home/user/HotwireCity/tests/spec/plot.spec.luau` covers `_rearmSeconds` (with an uptime bound), `_stackLock`, `_ejectOnLock`, the plot SurfaceGui budget, and GarageClient's `_freeSlots`, `_stealBlock` and `_lockedPadLabel`.\n\nI re-read every diff hunk in the four source files:\n- `/home/user/HotwireCity/src/server/Systems/PlotService.luau`\n- `/home/user/HotwireCity/src/server/Systems/DealershipService.luau`\n- `/home/user/HotwireCity/src/client/Controllers/GarageClient.luau`\n- `/home/user/HotwireCity/src/client/Controllers/DealershipClient.luau`\n\nIn that pass I fixed a forward declaration (`placeCar`, so onSteal can roll back), a strict-typing hazard on PlotService's driven flag, and pcall guards around VehicleService calls inside pushOut and lockFor.\n\nNot verified:\n- No Luau type checker is installed, so strict typing was only reviewed by hand.\n- Nothing ran in Studio: RespawnLocation behaviour, the eject during a live lock, the dealer prompt hold events, and the SurfaceGui legibility at 12/20 px per stud are all untested.\n- The DealershipService onSteal rollback is not covered by a flow test. The harness can't fire ProximityPrompt events, so only its pure helpers are tested."
+ }
+}

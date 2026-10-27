@@ -309,6 +309,46 @@ return function(t)
 		t.eq(empty, 0, "empty garage")
 	end)
 
+	t.test("hold validation, sell holds, full hint, collect pad", function()
+		local base = GarageService._baseStealHold("viper_strike")
+		local req = GarageService._requiredHold(base, 1)
+		t.ok(not GarageService._holdOk(nil, 10, base, 1), "never began")
+		t.ok(not GarageService._holdOk(10, 10 + req - 0.01, base, 1), "too short")
+		t.ok(GarageService._holdOk(10, 10 + req, base, 1), "long enough")
+		t.ok(GarageService._holdOk(10, 10 + GarageService._holdMaxAge(base), base, 1), "slow but legit")
+		t.ok(not GarageService._holdOk(10, 10 + GarageService._holdMaxAge(base) + 0.01, base, 1), "stale pre-charge")
+		t.ok(GarageService._holdOk(10, 10 + GarageService._requiredHold(base, 0.5), base, 0.5), "upgrade shortens")
+
+		t.eq(GarageService._sellHold("rustbucket"), GarageService.SELL_HOLD)
+		local epic, legendary
+		for _, def in H.require("src/shared/Config/Cars").List do
+			if def.rarity == "Epic" and not epic then
+				epic = def.id
+			elseif def.rarity == "Legendary" and not legendary then
+				legendary = def.id
+			end
+		end
+		t.eq(GarageService._sellHold(epic), GarageService.SELL_HOLD_EPIC)
+		t.eq(GarageService._sellNeedsConfirm(epic), false)
+		t.eq(GarageService._sellNeedsConfirm(legendary), true)
+		t.eq(GarageService._sellNeedsConfirm("rustbucket"), false)
+
+		local hint = GarageService._fullHint(Economy.START_SLOTS, Economy.START_SLOTS)
+		t.ok(hint:find("slot " .. (Economy.START_SLOTS + 1), 1, true) ~= nil, hint)
+		t.eq(GarageService._fullHint(Economy.MAX_SLOTS, Economy.MAX_SLOTS), "", "nothing left to buy")
+		t.ok(
+			GarageService._fullHint(Economy.START_SLOTS, Economy.START_SLOTS + 2):find("slot 7", 1, true) ~= nil,
+			"pass slots shift the pad number"
+		)
+
+		local pad = CFrame.new(10, 0.2, 10) * CFrame.Angles(0, math.rad(90), 0)
+		local size = G.COLLECT_SIZE
+		t.ok(GarageService._overPad(pad, size, Vector3.new(10, 3, 10)), "standing on it")
+		t.ok(GarageService._overPad(pad, size, Vector3.new(14, 5.5, 13)), "seated in a car over it")
+		t.ok(not GarageService._overPad(pad, size, Vector3.new(30, 3, 10)), "beside it")
+		t.ok(not GarageService._overPad(pad, size, Vector3.new(10, 30, 10)), "far above")
+	end)
+
 	t.test("steal hold timing", function()
 		local base = GarageService._baseStealHold("rustbucket")
 		t.ok(base > 0, "base hold")
@@ -419,7 +459,21 @@ return function(t)
 			getDriving = function()
 				return nil
 			end,
+			isTainted = function(car)
+				return car.data.tainted == true
+			end,
+			minTravelTime = function(car)
+				return car._need or 0
+			end,
 		})
+		local function lastNotify()
+			for i = #fired, 1, -1 do
+				if fired[i].name == "Notify" then
+					return tostring(fired[i].args[2])
+				end
+			end
+			return ""
+		end
 
 		local ok, err = pcall(function()
 			-- store
@@ -522,19 +576,49 @@ return function(t)
 			-- garage full -> nothing happens
 			GarageService.storeCar(player, "rustbucket", "None")
 			local car2 = { kind = "Loot", carId = "rustbucket", mutation = "None", data = {}, driver = player }
+			local waypoints = count("Waypoint")
 			GarageService._onDelivery(player, car2)
 			t.eq(destroyed[car2], nil, "full garage keeps the car")
+			t.ok(lastNotify():find("Chop Shop", 1, true) ~= nil, lastNotify())
+			t.ok(lastNotify():find("unlock slot", 1, true) ~= nil, "full message points at the next unlock")
+			t.eq(count("Waypoint"), waypoints + 1, "chop shop waypoint")
 
 			-- owned car coming home only parks after it left the garage
 			GarageService.setSlotState(player, 1, "Driving")
 			local own =
 				{ kind = "Owned", carId = "rustbucket", mutation = "None", ownerUserId = 77, data = { slot = 1 } }
+			GarageService._trackOutCar(player, 1, own) -- what driveSlot records
 			GarageService._onDelivery(player, own)
 			t.eq(destroyed[own], nil, "leaving car not parked")
 			own.data.leftGarage = true
 			GarageService._onDelivery(player, own)
 			t.eq(destroyed[own], "parked", "returning car parked")
 			t.eq(GarageService.getSlotState(player, 1), "Parked", "slot restored")
+
+			-- DUPE-1: an Owned car from an earlier session (left + rejoined) never parks or creates a record
+			local ownedBefore = GarageService.ownedCount(player)
+			local orphan = {
+				kind = "Owned",
+				carId = "rustbucket",
+				mutation = "None",
+				ownerUserId = 77,
+				data = { slot = 3, leftGarage = true },
+			}
+			GarageService._onDelivery(player, orphan)
+			t.eq(destroyed[orphan], "orphan", "untracked owned car towed")
+			t.eq(GarageService.ownedCount(player), ownedBefore, "no record from an orphan")
+			-- this session's car, but its slot's record is gone (sold / rebirth): towed, never re-stored
+			local gone = {
+				kind = "Owned",
+				carId = "grandma_sedan",
+				mutation = "None",
+				ownerUserId = 77,
+				data = { slot = 9, leftGarage = true },
+			}
+			GarageService._trackOutCar(player, 9, gone)
+			GarageService._onDelivery(player, gone)
+			t.eq(destroyed[gone], "orphan", "slot record gone -> towed")
+			t.eq(GarageService.ownedCount(player), ownedBefore, "still no new record")
 
 			-- chop: loot only
 			local chopCar = { kind = "Loot", carId = "rustbucket", mutation = "Gold", data = {}, driver = player }
@@ -545,12 +629,60 @@ return function(t)
 			local ownedChop = { kind = "Owned", carId = "rustbucket", mutation = "None", data = {}, driver = player }
 			GarageService._onChop(player, ownedChop)
 			t.eq(destroyed[ownedChop], nil, "owned cars can't be chopped")
+			t.ok(lastNotify():find("your own ride", 1, true) ~= nil, "says why: " .. lastNotify())
 
 			-- remove + income attribute
 			local rec = GarageService.removeSlot(player, 2)
 			t.eq(rec and rec.carId, "grandma_sedan", "removed record")
 			t.eq(GarageService.removeSlot(player, 2), nil, "already removed")
 			t.near(attrs.IncomePerSec, GarageService.incomePerSec(player), 1e-6, "IncomePerSec attribute")
+
+			-- F11: Legendary+ sells need a confirming second sell
+			local legendary
+			for _, def in Cars.List do
+				if def.rarity == "Legendary" then
+					legendary = def
+					break
+				end
+			end
+			local okL, lslot = GarageService.storeCar(player, legendary.id, "None")
+			t.ok(okL, "stored a legendary")
+			local count0 = GarageService.ownedCount(player)
+			t.eq(GarageService.sell(player, lslot), false, "first sell only arms")
+			t.eq(GarageService.ownedCount(player), count0, "nothing sold yet")
+			t.ok(lastNotify():find("confirm", 1, true) ~= nil, lastNotify())
+			t.eq(GarageService.sell(player, lslot), true, "second sell confirms")
+			t.eq(GarageService.ownedCount(player), count0 - 1, "sold")
+
+			-- SEC-1: loot that teleported in (too fast / tainted) is neither stored nor chopped
+			local fast = {
+				kind = "Loot",
+				carId = "rustbucket",
+				mutation = "None",
+				data = { driveStartAt = os.clock() },
+				driver = player,
+				model = H.roblox.Instance.new("Model"),
+				_need = 1000,
+			}
+			local owned0 = GarageService.ownedCount(player)
+			GarageService._onDelivery(player, fast)
+			t.eq(destroyed[fast], nil, "too-fast delivery refused")
+			t.eq(GarageService.ownedCount(player), owned0, "nothing stored")
+			fast._need = 0
+			fast.data.tainted = true
+			GarageService._onDelivery(player, fast)
+			GarageService._onChop(player, fast)
+			t.eq(destroyed[fast], nil, "tainted car: no delivery, no chop")
+			fast.data.tainted = false
+			GarageService._onDelivery(player, fast)
+			t.eq(destroyed[fast], "delivered", "a legit arrival delivers")
+
+			-- PlayerRemoving: Owned cars never outlive the session (DUPE-1)
+			local out =
+				{ kind = "Owned", carId = "rustbucket", mutation = "None", ownerUserId = 77, data = { slot = 3 } }
+			GarageService._trackOutCar(player, 3, out)
+			GarageService._cleanup(player)
+			t.eq(destroyed[out], "owner_left", "out car destroyed on leave")
 		end)
 		for _, name in
 			{ "DataService", "PlotService", "MonetizationService", "RewardsService", "EventService", "VehicleService" }

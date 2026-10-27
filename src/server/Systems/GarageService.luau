@@ -5,6 +5,10 @@
 --
 -- Runtime slot states (never persisted): "Parked" (on display, earning), "Driving" (owner took it out),
 -- "BeingStolen" (TheftService has it). Only Parked slots accrue income.
+--
+-- An Owned car only ever parks back into the slot THIS session took it from (ps.outCars) and never creates a record;
+-- it is destroyed when its owner leaves (DUPE-1). Deliveries / chops of tainted or impossibly fast cars are refused
+-- (SEC-1, on top of VehicleService's zone gate). Extra API: fullHint(player) for garage-full messages.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -41,7 +45,7 @@ GarageService.INTRUDER_WARN_EVERY = 5 -- seconds between "X is hotwiring your ca
 GarageService.SELL_HOLD = 1 -- SellPrompt hold (Common..Rare)
 GarageService.SELL_HOLD_EPIC = 2.5 -- SellPrompt hold for Epic and above
 GarageService.SELL_CONFIRM_ORDER = 5 -- Legendary and above: selling needs a second trigger...
-GarageService.SELL_CONFIRM_WINDOW = 5 -- ...within this many seconds
+GarageService.SELL_CONFIRM_WINDOW = 8 -- ...within this many seconds (room for a second 2.5s hold)
 GarageService.DISPLAY_LIVE_RADIUS = 160 -- owner this close to their plot: display "Uncollected" ticks every second
 GarageService.CHOP_NOTIFY_EVERY = 4
 GarageService.DRIVE_OUT_CLEARANCE = Vector3.new(10, 6, 20) -- free box (W x H x L) needed at DRIVE_OUT_SPAWN
