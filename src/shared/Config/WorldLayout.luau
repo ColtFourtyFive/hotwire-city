@@ -4004,7 +4004,7 @@ local POI_DEFS: { PoiDef } = {
 	},
 	{
 		id = "PoliceFoundry",
-		name = "HCPD Foundry Precinct",
+		name = "HCPD Eastside Precinct",
 		kind = "police",
 		at = { 2300, 1050 },
 		size = { 120, 34, 110 },

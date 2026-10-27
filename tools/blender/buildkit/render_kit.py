@@ -326,8 +326,8 @@ def sc_mansion(a):
     S.hill(c, -600, -120, 600, 520, hz, nx=110, ny=70, kind="drygrass")
     BK.instantiate(B, c, loc=(0, LY, base), rot_z=0)
     r = random.Random(7)
-    for k in range(260):
-        x, y = r.uniform(-560, 560), r.uniform(-5, 500)
+    for k in range(420):
+        x, y = r.uniform(-330, 330), r.uniform(-5, 420)
         if abs(x) < W / 2 + 16 and LY - D / 2 - 32 < y < LY + D / 2 + 14:
             continue
         zz = hz(x, y) - 0.4
@@ -342,7 +342,7 @@ def sc_mansion(a):
         at_z(base, S.palm, c, x, LY + D / 2 - 8, h=44, seed=int(x) + 3, kind="fan")
     S.road(c, -600, -40, 600, -10, axis="x", lanes=False, z=0.15)
     S.car(c, 30, -25, heading=0, seed=77, rgb=(0.02, 0.02, 0.025))
-    return finish("hills_mansion", (-70, 18, 24.0), (0, LY - 10, 50), 28, a.samples, a.res, haze_amt=0.45)
+    return finish("hills_mansion", (-85, 2, 40.0), (0, LY - 12, 44), 30, a.samples, a.res, haze_amt=0.45)
 
 
 def sc_block(a, night=False):

@@ -252,6 +252,10 @@ type Ui = {
 	legendToggle: TextButton,
 	hint: TextLabel,
 	reticle: Frame,
+	closeButton: TextButton,
+	zoomIn: TextButton,
+	zoomOut: TextButton,
+	recenter: TextButton,
 	blockers: { GuiObject }, -- chrome a press must not fall through to the map from (overChrome)
 }
 
@@ -284,17 +288,21 @@ local function cellOf(icon: string): { number }?
 	return MinimapController.cellOf(icon)
 end
 
+-- Real px of the map gui (1280x720 when nothing is measurable, e.g. headless).
 local function viewport(): (number, number)
-	local u = ui
-	if u then
-		local abs = u.backdrop.AbsoluteSize
-		if abs.X > 1 and abs.Y > 1 then
-			return abs.X, abs.Y
+	local ok, size = pcall(function(): Vector2
+		local u = ui
+		if u then
+			local abs = u.backdrop.AbsoluteSize
+			if abs.X > 1 and abs.Y > 1 then
+				return abs
+			end
 		end
-	end
-	local cam = Workspace.CurrentCamera
-	if cam then
-		return cam.ViewportSize.X, cam.ViewportSize.Y
+		local cam = Workspace.CurrentCamera
+		return if cam then cam.ViewportSize else Vector2.zero
+	end)
+	if ok and size.X > 1 and size.Y > 1 then
+		return size.X, size.Y
 	end
 	return 1280, 720
 end
@@ -573,9 +581,6 @@ local function build(): Ui
 	close.AnchorPoint = Vector2.new(1, 0)
 	close.Position = UDim2.new(1, -18, 0, 14)
 	close.Parent = chrome
-	close.Activated:Connect(function()
-		MapScreenController.close()
-	end)
 
 	-- GPS chip (top-center)
 	local gpsChip = Kit.panel({
@@ -758,21 +763,32 @@ local function build(): Ui
 		legendToggle = legendToggle,
 		hint = hint,
 		reticle = reticle,
+		closeButton = close,
+		zoomIn = zoomIn,
+		zoomOut = zoomOut,
+		recenter = recenter,
 		blockers = blockers,
 	}
+	return u
+end
 
+-- Button handlers (kept out of build() so the UI can be built headlessly: MapScreenController.mount).
+local function wireButtons(u: Ui)
+	u.closeButton.Activated:Connect(function()
+		MapScreenController.close()
+	end)
 	local function zoomBy(factor: number)
 		local lo, hi = limits()
 		cx, cz, scale = MapScreenController.zoomAround(cx, cz, scale, factor, vpW / 2, vpH / 2, vpW, vpH, lo, hi)
 		accum = math.huge
 	end
-	zoomIn.Activated:Connect(function()
+	u.zoomIn.Activated:Connect(function()
 		zoomBy(1.5)
 	end)
-	zoomOut.Activated:Connect(function()
+	u.zoomOut.Activated:Connect(function()
 		zoomBy(1 / 1.5)
 	end)
-	recenter.Activated:Connect(function()
+	u.recenter.Activated:Connect(function()
 		local p = rootPos()
 		if p then
 			cx, cz = MapScreenController.clampCenter(p.X, p.Z)
@@ -781,16 +797,15 @@ local function build(): Ui
 			accum = math.huge
 		end
 	end)
-	clearButton.Activated:Connect(function()
+	u.clearButton.Activated:Connect(function()
 		MinimapController.setCustomWaypoint(nil)
 		pcall(SoundController.play, "Click")
 		accum = math.huge
 	end)
-	legendToggle.Activated:Connect(function()
-		legend.Visible = not legend.Visible
-		legendToggle.Text = if legend.Visible then "HIDE" else "LEGEND"
+	u.legendToggle.Activated:Connect(function()
+		u.legend.Visible = not u.legend.Visible
+		u.legendToggle.Text = if u.legend.Visible then "HIDE" else "LEGEND"
 	end)
-	return u
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1133,15 +1148,18 @@ local function overChrome(raw: Vector2): boolean
 	if not (u and u.chrome.Enabled) then
 		return false
 	end
-	for _, g in u.blockers do
-		if g.Visible then
-			local p, size = g.AbsolutePosition, g.AbsoluteSize
-			if raw.X >= p.X and raw.X <= p.X + size.X and raw.Y >= p.Y and raw.Y <= p.Y + size.Y then
-				return true
+	local ok, hit = pcall(function(): boolean
+		for _, g in u.blockers do
+			if g.Visible then
+				local p, size = g.AbsolutePosition, g.AbsoluteSize
+				if raw.X >= p.X and raw.X <= p.X + size.X and raw.Y >= p.Y and raw.Y <= p.Y + size.Y then
+					return true
+				end
 			end
 		end
-	end
-	return false
+		return false
+	end)
+	return ok and hit
 end
 
 local function onTap(at: Vector2)
@@ -1307,10 +1325,13 @@ end
 
 -- Design canvas of the chrome ScreenGui (inset-relative; touch scale floor Theme.TouchMinScale).
 local function chromeCanvas(u: Ui): (number, number)
-	local s = Kit.uiScale(Theme.TouchMinScale)
-	local abs = u.chrome.AbsoluteSize
-	if s > 0 and abs.X >= 1 and abs.Y >= 1 then
+	local ok, w, h = pcall(function(): (number, number)
+		local s = Kit.uiScale(Theme.TouchMinScale)
+		local abs = u.chrome.AbsoluteSize
 		return abs.X / s, abs.Y / s
+	end)
+	if ok and w >= 1 and h >= 1 and w < math.huge and h < math.huge then
+		return w, h
 	end
 	return 1280, 720
 end
@@ -1460,9 +1481,29 @@ end
 
 function MapScreenController.init() end
 
+-- Build the map UI without wiring any engine events (start() calls this first; headless tests call it alone).
+function MapScreenController.mount()
+	if not ui then
+		ui = build()
+	end
+end
+
+-- Advance one frame by hand / tap at a screen point (map gui px) (headless tests; the live game uses RenderStepped
+-- and real input).
+function MapScreenController.step(dt: number)
+	step(dt)
+end
+
+function MapScreenController.tap(at: Vector2)
+	if isOpen then
+		onTap(at)
+	end
+end
+
 function MapScreenController.start()
-	local u = build()
-	ui = u
+	MapScreenController.mount()
+	local u = ui :: Ui
+	wireButtons(u)
 	bindInput(u)
 	MinimapController.RouteChanged:Connect(function()
 		if isOpen then

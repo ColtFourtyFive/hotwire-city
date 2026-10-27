@@ -53,14 +53,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      9.5746,
-      10.2638,
-      13.1377
+      9.6971,
+      10.3265,
+      13.3674
     ],
     "dims_m": [
-      13.138,
-      9.575,
-      10.264
+      13.367,
+      9.697,
+      10.327
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -81,6 +81,6 @@
     "object_names": [
       "m67_low__0"
     ],
-    "render_s": 48.0
+    "render_s": 12.0
   }
 }

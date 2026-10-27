@@ -51,6 +51,7 @@ def main():
     ap.add_argument("--glbdir", default=os.path.join(HERE, "out"))
     ap.add_argument("--shots", default=",".join(ALL))
     ap.add_argument("--samples", type=int, default=48)
+    ap.add_argument("--res", default="960x540")
     a = ap.parse_args()
     reg = json.load(open(os.path.join(HERE, "models.json")))
     if os.path.exists(os.path.join(HERE, "models_local.json")):
@@ -67,7 +68,7 @@ def main():
     tgt = (0, 0, H * 0.42)
     for shot in shots:
         util.reset_scene()
-        R.setup_cycles(samples=a.samples)
+        R.setup_cycles(samples=a.samples, res=tuple(int(x) for x in a.res.split("x")))
         p = os.path.join(a.outdir, f"{a.model}_{shot}.png")
         if shot == "before_studio":
             load_before(src, cfg)
@@ -84,8 +85,8 @@ def main():
                 R.camera(tgt, L, az_deg=35, el_deg=9)
         elif shot == "street_day":
             lane = L * 0.42
-            tgt_s = (lane * 0.5, -L * 0.35, H * 0.5)
-            cam = dict(az_deg=32, el_deg=8, lens=35, dist_mul=1.05)
+            tgt_s = (lane * 0.3, -L * 0.25, H * 0.45)
+            cam = dict(az_deg=30, el_deg=7, lens=35, dist_mul=1.75)
             cp = R.camera_pos(tgt_s, L, **cam)
             R.street(L, night=False, keep_clear=(cp.x, cp.y))
             # three paint variants: hero in the near lane, one behind it, one oncoming
@@ -95,8 +96,8 @@ def main():
             R.camera(tgt_s, L, **cam)
         elif shot == "street_night":
             lane = L * 0.42
-            tgt_s = (lane * 0.5, -L * 0.3, H * 0.5)
-            cam = dict(az_deg=26, el_deg=6, lens=35, dist_mul=1.0)
+            tgt_s = (lane * 0.3, -L * 0.2, H * 0.45)
+            cam = dict(az_deg=24, el_deg=6, lens=35, dist_mul=1.6)
             cp = R.camera_pos(tgt_s, L, **cam)
             R.street(L, night=True, keep_clear=(cp.x, cp.y))
             R.load_glb(glb, offset=(lane * 0.5, 0, 0), paint=PAINTS[1], lights_on=True)

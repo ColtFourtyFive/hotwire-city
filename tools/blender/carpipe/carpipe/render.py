@@ -161,7 +161,7 @@ def _tex_mat(name, key, scale, rough_mul=1.0, tint=(1, 1, 1), wet=0.0):
     nt.links.new(nm.outputs["Normal"], b.inputs["Normal"])
     if wet > 0:
         b.inputs["Coat Weight"].default_value = wet
-        b.inputs["Coat Roughness"].default_value = 0.03
+        b.inputs["Coat Roughness"].default_value = 0.12
     return m
 
 
@@ -230,7 +230,7 @@ def street(L=17.0, night=False, keep_clear=None):
     """Golden-hour (or wet night) street: 4-lane asphalt, markings, curb + sidewalk, lamp posts.
     keep_clear: (x, y) camera position; lamp posts between it and the origin are skipped."""
     if night:
-        world_hdri(os.path.join(CACHE, "hdri", "street_night.hdr"), strength=0.6, rot_deg=110, bg_strength=0.5)
+        world_hdri(os.path.join(CACHE, "hdri", "street_night.hdr"), strength=0.35, rot_deg=200, bg_strength=0.45)
     else:
         path = os.path.join(CACHE, "hdri", "street_sunset.hdr")
         az, el = hdri_sun(path)
@@ -247,8 +247,8 @@ def street(L=17.0, night=False, keep_clear=None):
         sun.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
     lane = L * 0.42  # lane width ~ 3.6 m at car-length 4.8 m
     road_w = lane * 4
-    asphalt = _tex_mat("asphalt", "asphalt", 0.12 * 17 / L, rough_mul=0.55 if night else 1.0,
-                       tint=(0.85, 0.85, 0.85), wet=0.85 if night else 0.0)
+    asphalt = _tex_mat("asphalt", "asphalt", 0.12 * 17 / L, rough_mul=0.8 if night else 1.0,
+                       tint=(0.6, 0.6, 0.62) if night else (0.85, 0.85, 0.85), wet=0.35 if night else 0.0)
     _plane("Road", road_w, L * 30, loc=(0, 0, 0), mat=asphalt)
     paint = _mat("marking", (0.85, 0.85, 0.8), rough=0.6)
     yellow = _mat("yellow", (0.85, 0.65, 0.1), rough=0.6)
