@@ -3,6 +3,7 @@ and unwrap a fresh atlas UV for baking."""
 from __future__ import annotations
 
 import math
+import time
 
 import bmesh
 import bpy
@@ -175,12 +176,14 @@ def atlas_uv(objs, margin=0.004, angle=60.0):
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin, area_weight=0.0,
                              correct_aspect=True, scale_to_bounds=False)
+    t0 = time.time()
     try:
         bpy.ops.uv.pack_islands(udim_source="CLOSEST_UDIM", rotate=True, margin_method="FRACTION", margin=margin,
-                                shape_method="CONCAVE")
+                                shape_method="AABB")
     except TypeError:
         bpy.ops.uv.pack_islands(rotate=True, margin=margin)
     bpy.ops.object.mode_set(mode="OBJECT")
+    log(f"atlas uv {[o.name for o in objs]} packed in {time.time() - t0:.1f}s")
 
 
 def keep_only_uv(ob, name="atlas"):

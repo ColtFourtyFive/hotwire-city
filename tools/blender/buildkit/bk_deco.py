@@ -96,7 +96,7 @@ def deco(seed=0, **kw):
     F = Fs["front"]
     u0, u1 = (W - tw) / 2, (W + tw) / 2
     zt = top + tower_rise
-    F.box(wa, u0, u1, 0.0, 1.5, gf - 1.0, zt, skip=("back",))
+    F.box(ac, u0, u1, 0.0, 1.5, gf - 1.0, zt, skip=("back",))
     for k, inset in enumerate((0.0, 2.0, 4.0)):
         zz = zt + k * 2.2
         F.box(tr, u0 + inset - 0.3, u1 - inset + 0.3, -1.0, 1.9, zz, zz + 2.2 if k < 2 else zz + 1.2)
@@ -104,7 +104,7 @@ def deco(seed=0, **kw):
     nfin = 3
     for k in range(nfin):
         u = u0 + tw * (k + 1) / (nfin + 1)
-        F.box(ac, u - 0.35, u + 0.35, 1.5, 3.0, gf + 3.0, zt - 1.0, skip=("back",))
+        F.box(tr, u - 0.35, u + 0.35, 1.5, 3.0, gf + 3.0, zt - 1.0, skip=("back",))
         F.box(B.b("Neon"), u - 0.12, u + 0.12, 3.0, 3.15, gf + 3.0, zt - 1.0, skip=("back",))
     for fi in range(floors):
         zc = gf + fi * fh + 6.0
@@ -131,7 +131,7 @@ def deco(seed=0, **kw):
     F.quad(B.b("Brand"), W / 2 - bwid / 2, W / 2 + bwid / 2, zb, zb + bh, 3.12, uv=(bu0, bv0, bu1, bv1))
     # tower roof + flagpole
     # tower behind the facade plane (rises above the roof)
-    G.box(wa, u0 - W / 2, -D / 2 + 1.5, top, u1 - W / 2, -D / 2 + 8.0, zt, skip=("bottom", "-y"))
+    G.box(ac, u0 - W / 2, -D / 2 + 1.5, top, u1 - W / 2, -D / 2 + 8.0, zt, skip=("bottom", "-y"))
     G.cylinder(B.b("Details"), 0.0, -D / 2 + 4.5, zt + 6.0, zt + 18.0, 0.15, seg=6)
     # ---- raised cafe terrace with low wall, steps and umbrellas
     td = 12.0
@@ -167,6 +167,9 @@ def deco(seed=0, **kw):
             aw.add([pa, pb, (ux, uy, 9.9)], [(0, 1, 2)], [[(uu, av0), (uu + 0.06, av0), (uu + 0.03, av1)]])
             aw.add([pb, pa, (ux, uy, 9.9)], [(0, 1, 2)], [[(uu + 0.06, av0), (uu, av0), (uu + 0.03, av1)]])  # underside
         G.cylinder(B.b("Details"), ux, uy, 2.0, 4.8, 1.6, seg=10, caps=(False, True), r1=1.6)
+    # lot = building + terrace; re-centre so the origin is the lot's bottom-centre again
+    B.translate(0.0, td / 2, 0.0)
+    B.footprint = (W, D + td)
     B.tags = {"district": "beach", "floors": floors, "accent": accent_name}
     return B
 

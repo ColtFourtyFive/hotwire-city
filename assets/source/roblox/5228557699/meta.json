@@ -1,12 +1,12 @@
 {
  "id": 5228557699,
- "fetched_at": "2026-10-27T16:00:25Z",
- "status": 200,
+ "fetched_at": "2026-10-27T16:00:55Z",
+ "status": 403,
  "assetTypeId": 0,
  "assetType": "0",
- "requestId": "639287136258513930",
+ "requestId": "639287136563444352",
  "isArchived": false,
  "isRecordable": false,
  "ok": false,
- "error": "no location in response: assetTypeId,errors,isArchived,isRecordable,requestId"
+ "error": "403: Asset is not approved for the requester"
 }

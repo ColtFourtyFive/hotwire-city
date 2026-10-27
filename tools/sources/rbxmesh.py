@@ -515,7 +515,8 @@ def main(argv):
         print(json.dumps(info(load(argv[1])), indent=1))
     elif cmd == "model":
         jobs = int(argv[argv.index("-j") + 1]) if "-j" in argv else 8
-        for mid in [a for a in argv[1:] if a.isdigit() and a != str(jobs)]:
+        ids = [a for i, a in enumerate(argv[1:], 1) if a.isdigit() and argv[i - 1] != "-j"]
+        for mid in ids:
             process_model(int(mid), jobs=jobs)
     else:
         print(__doc__)

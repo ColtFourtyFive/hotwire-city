@@ -1,0 +1,553 @@
+{
+  "name": "musclecar",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Muscle Car 3D Model",
+    "url": "https://opengameart.org/content/muscle-car-3d-model",
+    "download": "https://opengameart.org/sites/default/files/MuscleCar.zip",
+    "license": "CC-BY 3.0",
+    "attribution": "Muscle Car 3D Model by brightretro (OpenGameArt.org), CC-BY 3.0"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "musclecar.glb",
+  "dimensions": {
+    "length": 6.593,
+    "width": 17.5,
+    "height": 5.31,
+    "wheelbase": 10.178,
+    "track_front": 5.703,
+    "track_rear": 5.703,
+    "bbox_min": [
+      -3.2964,
+      -0.0,
+      -8.6959
+    ],
+    "bbox_max": [
+      3.2964,
+      5.3102,
+      8.8041
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.8513,
+        1.2272,
+        -5.0891
+      ],
+      "radius": 1.2272,
+      "width": 0.8901,
+      "part_center": [
+        -2.8513,
+        1.2272,
+        -5.0891
+      ],
+      "attachment_offset": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 297
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.8513,
+        1.2272,
+        -5.0891
+      ],
+      "radius": 1.2272,
+      "width": 0.8901,
+      "part_center": [
+        2.8513,
+        1.2272,
+        -5.0891
+      ],
+      "attachment_offset": [
+        -0.0,
+        -0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 297
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.8513,
+        1.2272,
+        5.0891
+      ],
+      "radius": 1.2272,
+      "width": 0.8901,
+      "part_center": [
+        -2.8513,
+        1.2272,
+        5.0891
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 297
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.8513,
+        1.2272,
+        5.0891
+      ],
+      "radius": 1.2272,
+      "width": 0.8901,
+      "part_center": [
+        2.8513,
+        1.2272,
+        5.0891
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 297
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.3715,
+        2.2384,
+        -0.4187
+      ],
+      "estimated": false
+    },
+    "passenger": {
+      "position": [
+        3.325,
+        1.9117,
+        0.8143
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -1.7413,
+          2.1291,
+          -8.1981
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.7413,
+          2.1291,
+          -8.1981
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -1.9074,
+          3.104,
+          8.5485
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.9074,
+          3.104,
+          8.5485
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -1.4673,
+        1.6374,
+        8.7024
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        1.4673,
+        1.6374,
+        8.7024
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        -1.4673,
+        1.6147,
+        8.7024
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        1.4673,
+        1.6147,
+        8.7024
+      ],
+      "estimated": false
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.6993,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "Body",
+      "color_srgb": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "textured": true,
+      "metallic": 0.0,
+      "roughness": 1.0,
+      "mask_coverage": 0.892
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 1715,
+      "bbox_min": [
+        -3.2625,
+        1.3206,
+        -8.61
+      ],
+      "bbox_max": [
+        3.2625,
+        5.3102,
+        8.6837
+      ],
+      "textures": {
+        "rough": "textures/musclecar_Body_rough.png",
+        "normal": "textures/musclecar_Body_normal.png",
+        "metal": "textures/musclecar_Body_metal.png",
+        "base": "textures/musclecar_Body_base.png",
+        "tintmask": "textures/musclecar_Body_tintmask.png",
+        "overlay": "textures/musclecar_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 52,
+      "bbox_min": [
+        -2.6059,
+        3.731,
+        -2.036
+      ],
+      "bbox_max": [
+        2.6059,
+        5.1309,
+        6.1438
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 52,
+      "bbox_min": [
+        -2.8027,
+        1.4326,
+        -8.1981
+      ],
+      "bbox_max": [
+        2.8027,
+        3.0276,
+        -7.5159
+      ],
+      "textures": {
+        "normal": "textures/musclecar_Lights_normal.png",
+        "emit": "textures/musclecar_Lights_emit.png",
+        "base": "textures/musclecar_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 8,
+      "bbox_min": [
+        -2.4563,
+        2.912,
+        8.5003
+      ],
+      "bbox_max": [
+        2.4563,
+        3.2119,
+        8.5485
+      ],
+      "textures": {
+        "normal": "textures/musclecar_Lights_normal.png",
+        "emit": "textures/musclecar_Lights_emit.png",
+        "base": "textures/musclecar_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 1272,
+      "bbox_min": [
+        -3.2687,
+        1.2216,
+        -8.6959
+      ],
+      "bbox_max": [
+        3.2687,
+        5.1778,
+        8.8041
+      ],
+      "textures": {
+        "rough": "textures/musclecar_Trim_rough.png",
+        "normal": "textures/musclecar_Trim_normal.png",
+        "metal": "textures/musclecar_Trim_metal.png",
+        "base": "textures/musclecar_Trim_base.png",
+        "ao": "textures/musclecar_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 768,
+      "bbox_min": [
+        -2.6059,
+        1.4648,
+        -2.987
+      ],
+      "bbox_max": [
+        2.6059,
+        5.238,
+        6.2243
+      ],
+      "textures": {
+        "rough": "textures/musclecar_Interior_rough.png",
+        "normal": "textures/musclecar_Interior_normal.png",
+        "metal": "textures/musclecar_Interior_metal.png",
+        "base": "textures/musclecar_Interior_base.png",
+        "ao": "textures/musclecar_Interior_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 297,
+      "bbox_min": [
+        -3.2964,
+        -0.0,
+        -6.3163
+      ],
+      "bbox_max": [
+        -2.4063,
+        2.4545,
+        -3.8619
+      ],
+      "textures": {
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "base": "textures/musclecar_Wheel_base.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "ao": "textures/musclecar_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 297,
+      "bbox_min": [
+        2.4063,
+        -0.0,
+        -6.3163
+      ],
+      "bbox_max": [
+        3.2964,
+        2.4545,
+        -3.8619
+      ],
+      "textures": {
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "base": "textures/musclecar_Wheel_base.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "ao": "textures/musclecar_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 297,
+      "bbox_min": [
+        -3.2964,
+        0.0,
+        3.8619
+      ],
+      "bbox_max": [
+        -2.4063,
+        2.4545,
+        6.3163
+      ],
+      "textures": {
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "base": "textures/musclecar_Wheel_base.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "ao": "textures/musclecar_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 297,
+      "bbox_min": [
+        2.4063,
+        0.0,
+        3.8619
+      ],
+      "bbox_max": [
+        3.2964,
+        2.4545,
+        6.3163
+      ],
+      "textures": {
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "base": "textures/musclecar_Wheel_base.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "ao": "textures/musclecar_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 5119,
+    "total": 5055,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "Y",
+    "votes": {
+      "names": 2.653,
+      "red_lights": 0.349,
+      "white_lights": 0.0,
+      "deck_height": 0.53,
+      "cabin": 0.573,
+      "mirrors": 0.88
+    },
+    "confidence": 4.985
+  },
+  "scale": {
+    "source_length": 4.848599910736084,
+    "factor": 3.6092893458275173,
+    "target_length": 17.5
+  },
+  "classes": {
+    "Body": {
+      "islands": 9,
+      "faces": 928,
+      "area": 157.261
+    },
+    "Glass": {
+      "islands": 8,
+      "faces": 30,
+      "area": 26.352
+    },
+    "LightsFront": {
+      "islands": 6,
+      "faces": 50,
+      "area": 1.082
+    },
+    "LightsRear": {
+      "islands": 2,
+      "faces": 4,
+      "area": 0.884
+    },
+    "Trim": {
+      "islands": 69,
+      "faces": 801,
+      "area": 164.527
+    },
+    "Interior": {
+      "islands": 47,
+      "faces": 448,
+      "area": 130.008
+    },
+    "Discard": {
+      "islands": 13,
+      "faces": 21,
+      "area": 48.099
+    },
+    "WheelFL": {
+      "islands": 3,
+      "faces": 156,
+      "area": 20.47
+    },
+    "WheelFR": {
+      "islands": 3,
+      "faces": 156,
+      "area": 20.47
+    },
+    "WheelRL": {
+      "islands": 3,
+      "faces": 156,
+      "area": 20.47
+    },
+    "WheelRR": {
+      "islands": 3,
+      "faces": 156,
+      "area": 20.47
+    }
+  },
+  "warnings": []
+}

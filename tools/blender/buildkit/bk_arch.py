@@ -351,6 +351,11 @@ class Building:
     def bollard(self, x, y, h=3.2, role="Accent"):
         G.cylinder(self.b(role), x, y, 0, h, 0.45, seg=8, caps=(False, True))
 
+    def translate(self, dx=0.0, dy=0.0, dz=0.0):
+        """Shift everything (e.g. to re-centre a lot after building a terrace or yard in front)."""
+        for b in self.bufs.values():
+            b.v = [(p[0] + dx, p[1] + dy, p[2] + dz) for p in b.v]
+
     def slab(self, role, x0, y0, x1, y1, z, t=0.3, skip=("bottom",)):
         G.box(self.b(role), x0, y0, z - t, x1, y1, z, skip=skip)
 

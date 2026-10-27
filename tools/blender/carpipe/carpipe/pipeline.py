@@ -168,6 +168,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
         if o.name not in lows:
             bpy.data.objects.remove(o, do_unlink=True)
 
+    for o in lows.values():
+        o.data.validate(clean_customdata=False)
     glb = os.path.join(out_dir, f"{name}.glb")
     export_glb(glb)
 
