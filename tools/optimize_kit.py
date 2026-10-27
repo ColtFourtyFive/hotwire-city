@@ -3,6 +3,8 @@
 Originals are kept in <dir>/_hi/. Usage: python3 tools/optimize_kit.py [--dry]"""
 import json, os, shutil, subprocess, sys
 DRY = "--dry" in sys.argv
+ONLY = sys.argv[sys.argv.index("--only") + 1] if "--only" in sys.argv else None  # restrict to one manifest path
+SKIP = set(sys.argv[sys.argv.index("--skip") + 1].split(",")) if "--skip" in sys.argv else set()
 # (triangles, max texture px) per key; defaults by category below
 BUDGET = {
     # frequently repeated street props / nature
@@ -44,6 +46,8 @@ for key, v in json.load(open("assets/hero/manifest.json")).items():
     jobs.append(("assets/hero/manifest.json", key, v, *HERO_DEFAULT))
 
 for man, key, v, tris, tex in jobs:
+    if (ONLY and man != ONLY) or key in SKIP:
+        continue
     path = v["file"]
     hi = os.path.join(os.path.dirname(path), "_hi", os.path.basename(path))
     os.makedirs(os.path.dirname(hi), exist_ok=True)

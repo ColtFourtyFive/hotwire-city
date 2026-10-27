@@ -1,6 +1,6 @@
 {
   "tool_chest": {
-    "assetId": 105309913792626,
+    "assetId": 129867667198603,
     "file": "assets/kit/props/tool_chest.glb",
     "name": "HC Tool Chest",
     "yaw": 180.0,
@@ -10,7 +10,7 @@
     "moderation": "Approved"
   },
   "oil_barrels": {
-    "assetId": 81254448700067,
+    "assetId": 114597334687915,
     "file": "assets/kit/props/oil_barrels.glb",
     "name": "HC Oil Barrels",
     "yaw": 0.0,
@@ -20,7 +20,7 @@
     "moderation": "Approved"
   },
   "workbench": {
-    "assetId": 125966881297568,
+    "assetId": 133542583948108,
     "file": "assets/kit/props/workbench.glb",
     "name": "HC Workbench",
     "yaw": 180.0,
@@ -30,7 +30,7 @@
     "moderation": "Approved"
   },
   "tire_stack": {
-    "assetId": 139831985857820,
+    "assetId": 121096661264094,
     "file": "assets/kit/props/tire_stack.glb",
     "name": "HC Tire Stack",
     "yaw": 0.0,
@@ -40,7 +40,7 @@
     "moderation": "Approved"
   },
   "money_pile": {
-    "assetId": 74698303672028,
+    "assetId": 97172474500018,
     "file": "assets/kit/props/money_pile.glb",
     "name": "HC Money Pile",
     "yaw": 0.0,
@@ -50,7 +50,7 @@
     "moderation": "Approved"
   },
   "gold_bars": {
-    "assetId": 76649900213811,
+    "assetId": 81860260998949,
     "file": "assets/kit/props/gold_bars.glb",
     "name": "HC Gold Bars",
     "yaw": 0.0,
@@ -60,7 +60,7 @@
     "moderation": "Approved"
   },
   "safe_vault": {
-    "assetId": 113630258962677,
+    "assetId": 103043388370318,
     "file": "assets/kit/props/safe_vault.glb",
     "name": "HC Safe Vault",
     "yaw": 180.0,
@@ -70,7 +70,7 @@
     "moderation": "Approved"
   },
   "trophy": {
-    "assetId": 80714653751593,
+    "assetId": 123190223907695,
     "file": "assets/kit/props/trophy.glb",
     "name": "HC Giant Trophy",
     "yaw": 0.0,
@@ -80,7 +80,7 @@
     "moderation": "Approved"
   },
   "money_bag": {
-    "assetId": 88043872881262,
+    "assetId": 81919593127161,
     "file": "assets/kit/props/money_bag.glb",
     "name": "HC Money Bag",
     "yaw": 180.0,
@@ -90,7 +90,7 @@
     "moderation": "Approved"
   },
   "garage_shelf": {
-    "assetId": 136193075921721,
+    "assetId": 131360118393285,
     "file": "assets/kit/props/garage_shelf.glb",
     "name": "HC Garage Shelf",
     "yaw": 0.0,
@@ -100,7 +100,7 @@
     "moderation": "Approved"
   },
   "beach_umbrella": {
-    "assetId": 110527191112633,
+    "assetId": 112139196789358,
     "file": "assets/kit/props/beach_umbrella.glb",
     "name": "HC Beach Umbrella",
     "yaw": 0.0,
@@ -110,7 +110,7 @@
     "moderation": "Approved"
   },
   "beach_chair": {
-    "assetId": 79867193758251,
+    "assetId": 87897753885346,
     "file": "assets/kit/props/beach_chair.glb",
     "name": "HC Beach Chair",
     "yaw": 180.0,
@@ -120,7 +120,7 @@
     "moderation": "Approved"
   },
   "car_lift": {
-    "assetId": 99878746716178,
+    "assetId": 128031363827163,
     "file": "assets/kit/props/car_lift.glb",
     "name": "HC Car Lift",
     "yaw": 0.0,
@@ -130,7 +130,7 @@
     "moderation": "Approved"
   },
   "police_barricade": {
-    "assetId": 113988738671570,
+    "assetId": 140418308957466,
     "file": "assets/kit/props/police_barricade.glb",
     "name": "HC Police Barricade",
     "yaw": 180.0,
@@ -140,7 +140,7 @@
     "moderation": "Approved"
   },
   "lifeguard_tower": {
-    "assetId": 122228610473538,
+    "assetId": 139088484130419,
     "file": "assets/kit/props/lifeguard_tower.glb",
     "name": "HC Lifeguard Tower",
     "yaw": 180.0,
@@ -150,7 +150,7 @@
     "moderation": "Approved"
   },
   "surfboard_rack": {
-    "assetId": 72757355013338,
+    "assetId": 134656763679614,
     "file": "assets/kit/props/surfboard_rack.glb",
     "name": "HC Surfboard Rack",
     "yaw": 180.0,
@@ -160,7 +160,7 @@
     "moderation": "Approved"
   },
   "shipping_container": {
-    "assetId": 74494248506045,
+    "assetId": 107122804301246,
     "file": "assets/kit/props/shipping_container.glb",
     "name": "HC Shipping Container",
     "yaw": 90.0,
@@ -170,7 +170,7 @@
     "moderation": "Approved"
   },
   "crate_stack": {
-    "assetId": 90116511780933,
+    "assetId": 114225863313067,
     "file": "assets/kit/props/crate_stack.glb",
     "name": "HC Crate Stack",
     "yaw": 90.0,
@@ -180,7 +180,7 @@
     "moderation": "Approved"
   },
   "dumpster": {
-    "assetId": 94934016712072,
+    "assetId": 74042690518547,
     "file": "assets/kit/props/dumpster.glb",
     "name": "HC Dumpster",
     "yaw": 180.0,
@@ -190,7 +190,7 @@
     "moderation": "Approved"
   },
   "car_crusher": {
-    "assetId": 137671148503320,
+    "assetId": 71188168948039,
     "file": "assets/kit/props/car_crusher.glb",
     "name": "HC Car Crusher",
     "yaw": 0.0,

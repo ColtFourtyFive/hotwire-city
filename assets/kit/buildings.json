@@ -1,6 +1,6 @@
 {
   "office_block": {
-    "assetId": 137281558360232,
+    "assetId": 102502786471185,
     "file": "assets/kit/buildings/office_block.glb",
     "name": "HC Office Block",
     "yaw": 180.0,
@@ -10,7 +10,7 @@
     "moderation": "Approved"
   },
   "skyscraper_neon": {
-    "assetId": 133283744578331,
+    "assetId": 132265407670837,
     "file": "assets/kit/buildings/skyscraper_neon.glb",
     "name": "HC Neon Skyscraper",
     "yaw": 0.0,
@@ -20,7 +20,7 @@
     "moderation": "Approved"
   },
   "skyscraper_deco": {
-    "assetId": 85109070426469,
+    "assetId": 89642095826066,
     "file": "assets/kit/buildings/skyscraper_deco.glb",
     "name": "HC Deco Skyscraper",
     "yaw": 0.0,
@@ -30,7 +30,7 @@
     "moderation": "Approved"
   },
   "skyscraper_twist": {
-    "assetId": 109885448834475,
+    "assetId": 136251077265578,
     "file": "assets/kit/buildings/skyscraper_twist.glb",
     "name": "HC Twist Skyscraper",
     "yaw": 0.0,
@@ -40,7 +40,7 @@
     "moderation": "Approved"
   },
   "apartment_balcony": {
-    "assetId": 135882957318853,
+    "assetId": 135640370407303,
     "file": "assets/kit/buildings/apartment_balcony.glb",
     "name": "HC Balcony Apartments",
     "yaw": 0.0,
@@ -50,7 +50,7 @@
     "moderation": "Approved"
   },
   "brick_loft": {
-    "assetId": 81064844944613,
+    "assetId": 99360508467413,
     "file": "assets/kit/buildings/brick_loft.glb",
     "name": "HC Brick Loft",
     "yaw": 0.0,
@@ -60,7 +60,7 @@
     "moderation": "Approved"
   },
   "convenience_store": {
-    "assetId": 100494932403416,
+    "assetId": 125652161141598,
     "file": "assets/kit/buildings/convenience_store.glb",
     "name": "HC Corner Store",
     "yaw": 180.0,
@@ -70,7 +70,7 @@
     "moderation": "Approved"
   },
   "beach_villa": {
-    "assetId": 128939028758957,
+    "assetId": 105622461115029,
     "file": "assets/kit/buildings/beach_villa.glb",
     "name": "HC Beach Villa",
     "yaw": 0.0,
@@ -80,7 +80,7 @@
     "moderation": "Approved"
   },
   "suburban_house": {
-    "assetId": 79095679639420,
+    "assetId": 103343058626206,
     "file": "assets/kit/buildings/suburban_house.glb",
     "name": "HC Suburban House",
     "yaw": 180.0,
@@ -90,7 +90,7 @@
     "moderation": "Approved"
   },
   "police_hq": {
-    "assetId": 97738719879167,
+    "assetId": 97092665150641,
     "file": "assets/kit/buildings/police_hq.glb",
     "name": "HC Police HQ",
     "yaw": 180.0,
@@ -100,7 +100,7 @@
     "moderation": "Approved"
   },
   "car_showroom": {
-    "assetId": 83974576505747,
+    "assetId": 90854308003439,
     "file": "assets/kit/buildings/car_showroom.glb",
     "name": "HC Car Showroom",
     "yaw": 180.0,
@@ -110,7 +110,7 @@
     "moderation": "Approved"
   },
   "pizza_shop": {
-    "assetId": 94207549419234,
+    "assetId": 86133919619221,
     "file": "assets/kit/buildings/pizza_shop.glb",
     "name": "HC Pizza Shop",
     "yaw": 180.0,
@@ -120,7 +120,7 @@
     "moderation": "Approved"
   },
   "lighthouse": {
-    "assetId": 95904687488361,
+    "assetId": 120444344026342,
     "file": "assets/kit/buildings/lighthouse.glb",
     "name": "HC Lighthouse",
     "yaw": 180.0,
@@ -130,7 +130,7 @@
     "moderation": "Approved"
   },
   "spray_booth": {
-    "assetId": 122378982559801,
+    "assetId": 94876848594661,
     "file": "assets/kit/buildings/spray_booth.glb",
     "name": "HC Spray Booth",
     "yaw": 180.0,
@@ -140,7 +140,7 @@
     "moderation": "Approved"
   },
   "gear_shop": {
-    "assetId": 109821139919069,
+    "assetId": 89963954819843,
     "file": "assets/kit/buildings/gear_shop.glb",
     "name": "HC Gear Shop",
     "yaw": 180.0,
@@ -150,7 +150,7 @@
     "moderation": "Approved"
   },
   "warehouse": {
-    "assetId": 125047818646373,
+    "assetId": 139551179882492,
     "file": "assets/kit/buildings/warehouse.glb",
     "name": "HC Warehouse",
     "yaw": 0.0,
@@ -160,7 +160,7 @@
     "moderation": "Approved"
   },
   "diner": {
-    "assetId": 128048405858739,
+    "assetId": 138878061721163,
     "file": "assets/kit/buildings/diner.glb",
     "name": "HC Diner",
     "yaw": 0.0,
@@ -170,7 +170,7 @@
     "moderation": "Approved"
   },
   "hotel_beach": {
-    "assetId": 123312818892511,
+    "assetId": 126168524790795,
     "file": "assets/kit/buildings/hotel_beach.glb",
     "name": "HC Beach Hotel",
     "yaw": 180.0,
@@ -180,7 +180,7 @@
     "moderation": "Approved"
   },
   "gas_station": {
-    "assetId": 84236317094177,
+    "assetId": 115309925238713,
     "file": "assets/kit/buildings/gas_station.glb",
     "name": "HC Gas Station",
     "yaw": 0.0,
@@ -190,7 +190,7 @@
     "moderation": "Approved"
   },
   "donut_shop": {
-    "assetId": 110799039766838,
+    "assetId": 135896859307925,
     "file": "assets/kit/buildings/donut_shop.glb",
     "name": "HC Donut Shop",
     "yaw": 180.0,
@@ -200,7 +200,7 @@
     "moderation": "Approved"
   },
   "surf_shack": {
-    "assetId": 120191646577657,
+    "assetId": 114193388991289,
     "file": "assets/kit/buildings/surf_shack.glb",
     "name": "HC Surf Shack",
     "yaw": 90.0,
@@ -210,7 +210,7 @@
     "moderation": "Approved"
   },
   "chop_shop": {
-    "assetId": 134559325763106,
+    "assetId": 81692127863598,
     "file": "assets/kit/buildings/chop_shop.glb",
     "name": "HC Chop Shop",
     "yaw": 0.0,

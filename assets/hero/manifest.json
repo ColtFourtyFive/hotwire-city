@@ -1,130 +1,162 @@
 {
   "police_unit": {
-    "assetId": 95225149784237,
+    "assetId": 127449515013006,
     "file": "assets/hero/police_cruiser.glb",
     "name": "HC Police Cruiser",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "police_unit",
     "moderation": "Approved"
   },
   "rubber_ducky": {
-    "assetId": 117804012770338,
+    "assetId": 98264051340541,
     "file": "assets/hero/rubber_ducky.glb",
     "name": "HC Rubber Ducky",
     "yaw": 180.0,
     "length": 13.0,
+    "fit": "length",
+    "role": "rubber_ducky",
     "moderation": "Approved"
   },
   "toilet_turbo": {
-    "assetId": 94938152703221,
+    "assetId": 104566147194318,
     "file": "assets/hero/toilet_turbo.glb",
     "name": "HC Toilet Turbo",
     "yaw": -90.0,
     "length": 13.0,
+    "fit": "length",
+    "role": "toilet_turbo",
     "moderation": "Approved"
   },
   "hotdog_wagon": {
-    "assetId": 82630626019307,
+    "assetId": 127487523986734,
     "file": "assets/hero/hotdog_wagon.glb",
     "name": "HC Hotdog Wagon",
     "yaw": -90.0,
     "length": 14.0,
+    "fit": "length",
+    "role": "hotdog_wagon",
     "moderation": "Approved"
   },
   "couch_cruiser": {
-    "assetId": 132127509054900,
+    "assetId": 114270204621865,
     "file": "assets/hero/couch_cruiser.glb",
     "name": "HC Couch Cruiser",
     "yaw": 180.0,
     "length": 13.0,
+    "fit": "length",
+    "role": "couch_cruiser",
     "moderation": "Approved"
   },
   "night_raven": {
-    "assetId": 122146500133041,
+    "assetId": 81269142465843,
     "file": "assets/hero/night_raven.glb",
     "name": "HC Night Raven",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "night_raven",
     "moderation": "Approved"
   },
   "hyperion_x": {
-    "assetId": 126778418660689,
+    "assetId": 123266095634098,
     "file": "assets/hero/hyperion_x.glb",
     "name": "HC Hyperion X",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "hyperion_x",
     "moderation": "Approved"
   },
   "hover_car": {
-    "assetId": 102948112413795,
+    "assetId": 110828081176528,
     "file": "assets/hero/hover_car.glb",
     "name": "HC Hover Car",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "hover_car",
     "moderation": "Approved"
   },
   "midnight_phantom": {
-    "assetId": 95059911094876,
+    "assetId": 77227004108463,
     "file": "assets/hero/midnight_phantom.glb",
     "name": "HC Midnight Phantom",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "midnight_phantom",
     "moderation": "Approved"
   },
   "rocket_car": {
-    "assetId": 103823546408643,
+    "assetId": 82364754748656,
     "file": "assets/hero/rocket_car.glb",
     "name": "HC Rocket Car",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "rocket_car",
     "moderation": "Approved"
   },
   "mini_tank": {
-    "assetId": 104831005648097,
+    "assetId": 120597533311748,
     "file": "assets/hero/mini_tank.glb",
     "name": "HC Mini Tank",
     "yaw": -90.0,
     "length": 14.0,
+    "fit": "length",
+    "role": "mini_tank",
     "moderation": "Approved"
   },
   "ice_cream": {
-    "assetId": 81492067822740,
+    "assetId": 112852039520018,
     "file": "assets/hero/ice_cream.glb",
     "name": "HC Ice Cream Truck",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "ice_cream",
     "moderation": "Approved"
   },
   "crusher": {
-    "assetId": 87623790663196,
+    "assetId": 99568173403009,
     "file": "assets/hero/crusher.glb",
     "name": "HC Crusher",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "crusher",
     "moderation": "Approved"
   },
   "bank_truck": {
-    "assetId": 89554244940119,
+    "assetId": 116305714652232,
     "file": "assets/hero/bank_truck.glb",
     "name": "HC Bank Truck",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "bank_truck",
     "moderation": "Approved"
   },
   "gold_rush": {
-    "assetId": 125880089051178,
+    "assetId": 134176655076422,
     "file": "assets/hero/gold_rush.glb",
     "name": "HC Gold Rush",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "gold_rush",
     "moderation": "Approved"
   },
   "diamond_dragster": {
-    "assetId": 135210735126816,
+    "assetId": 82729586890252,
     "file": "assets/hero/diamond_dragster.glb",
     "name": "HC Diamond Dragster",
     "yaw": -90.0,
     "length": 15.0,
+    "fit": "length",
+    "role": "diamond_dragster",
     "moderation": "Approved"
   }
 }
