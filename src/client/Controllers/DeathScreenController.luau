@@ -5,6 +5,7 @@
 --    opaque; lowercase Kanit title (`wasted` WastedRed #B3212F, `busted` Blue #5DB6E5) laid out at 720p and scaled to
 --    ~14% of the screen height; Montserrat subtitle ("Hospital bill -$X", "Bail -$X · <Car> impounded"). We call it
 --    with grade and sound off (this controller owns the grade, the sounds and the timing) and hide it in finish().
+--    C4b (job 0006): the band is always drawn (UI/Shard), WASTED always has a subtitle, money in red rich text.
 --    No cartoon stamps, no police lights, no emoji.
 --  * HC_DeathFx (DisplayOrder Shard - 1): the edge vignette and the BUSTED world fade, under the band.
 --  * Grade (local, under workspace.CurrentCamera): ColorCorrection saturation 0 -> -1, contrast +0.3, brightness -0.05
@@ -51,6 +52,7 @@ DeathScreenController.BUSTED_BLACK_AT = 4.4 -- the release teleport happens at W
 DeathScreenController.BUSTED_REVEAL_AT = 5.3
 DeathScreenController.BUSTED_OUT_AT = 6.0
 DeathScreenController.SAFETY = 9 -- clean up even if no respawn arrives
+DeathScreenController.VIGNETTE_EDGE = 0.45 -- edge transparency of the grade vignette (v1: 0.15, it buried the band)
 
 local player = Players.LocalPlayer
 
@@ -60,25 +62,34 @@ local function money(n: number): string
 	return "$" .. Format.commas(math.max(0, math.floor(n)))
 end
 
--- Subtitle under "wasted".
+-- Subtitle under "wasted" (GTA rich text for UI/Shard: dynamic parts escaped, the bill in red). Never empty: with
+-- nobody to blame and nothing billed it says where you are being taken (job 0006: WASTED had no subtitle).
 function DeathScreenController._wastedSubtitle(info: { [string]: any }): string
 	local parts = {}
 	local by = info.by
 	if typeof(by) == "string" and by ~= "" then
-		table.insert(parts, "Downed by " .. by)
+		table.insert(parts, "Downed by " .. RichText.escape(by))
 	end
 	local bill = info.bill
 	if typeof(bill) == "number" and bill > 0 then
-		table.insert(parts, "Hospital bill  -" .. money(bill))
+		table.insert(parts, "Hospital bill  <r>-" .. money(bill) .. "</r>")
+	end
+	if #parts == 0 then
+		local where = info.hospital
+		table.insert(
+			parts,
+			"Taken to "
+				.. (if typeof(where) == "string" and where ~= "" then RichText.escape(where) else "the hospital")
+		)
 	end
 	return table.concat(parts, "   ·   ")
 end
 
--- Subtitle under "busted".
+-- Subtitle under "busted" (rich text): the bail in red like every -cash line, the impounded car named.
 function DeathScreenController._bustedSubtitle(lost: number, carLabel: string?): string
-	local s = if lost > 0 then "Bail  -" .. money(lost) else "Released without bail"
+	local s = if lost > 0 then "Bail  <r>-" .. money(lost) .. "</r>" else "Released without bail"
 	if carLabel and carLabel ~= "" then
-		s ..= "   ·   " .. carLabel .. " impounded"
+		s ..= "   ·   " .. RichText.escape(carLabel) .. " impounded"
 	end
 	return s
 end
@@ -178,7 +189,7 @@ local function edge(parent: Instance, size: UDim2, pos: UDim2, anchor: Vector2, 
 	Kit.new("UIGradient", {
 		Rotation = rotation,
 		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0.15),
+			NumberSequenceKeypoint.new(0, DeathScreenController.VIGNETTE_EDGE),
 			NumberSequenceKeypoint.new(1, 1),
 		}),
 		Parent = f,
@@ -221,10 +232,12 @@ local function build(): View
 		Visible = false,
 		Parent = gui,
 	}) :: Frame
-	edge(vignette, UDim2.fromScale(1, 0.28), UDim2.fromScale(0, 0), Vector2.zero, 90)
-	edge(vignette, UDim2.fromScale(1, 0.28), UDim2.fromScale(0, 1), Vector2.new(0, 1), -90)
-	edge(vignette, UDim2.fromScale(0.22, 1), UDim2.fromScale(0, 0), Vector2.zero, 0)
-	edge(vignette, UDim2.fromScale(0.22, 1), UDim2.fromScale(1, 0), Vector2.new(1, 0), 180)
+	-- softer and shallower than v1's 85% / 28% edges: they darkened the screen around the band until the band itself
+	-- no longer read (GTA's grade is grey, not black)
+	edge(vignette, UDim2.fromScale(1, 0.2), UDim2.fromScale(0, 0), Vector2.zero, 90)
+	edge(vignette, UDim2.fromScale(1, 0.2), UDim2.fromScale(0, 1), Vector2.new(0, 1), -90)
+	edge(vignette, UDim2.fromScale(0.16, 1), UDim2.fromScale(0, 0), Vector2.zero, 0)
+	edge(vignette, UDim2.fromScale(0.16, 1), UDim2.fromScale(1, 0), Vector2.new(1, 0), 180)
 	return {
 		gui = gui,
 		worldFade = worldFade,
@@ -401,7 +414,8 @@ end
 local function shardIn(kind: string, subtitle: string)
 	local v = getView()
 	v.gui.Enabled = true
-	local ok, tok = pcall(Shard.show, kind, nil, RichText.escape(subtitle), {
+	-- the subtitle builders escape their dynamic parts and add the GTA colour tags themselves
+	local ok, tok = pcall(Shard.show, kind, nil, subtitle, {
 		grade = false,
 		sound = false,
 		hold = DeathScreenController.SAFETY,

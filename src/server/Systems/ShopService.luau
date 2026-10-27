@@ -138,13 +138,13 @@ function ShopService.buyUpgrade(player: Player, upgradeId: any): (boolean, strin
 	end
 	local price = priceOrReason :: number
 	if not DataService.spendCash(player, price) then
-		notify(player, "error", `Not enough cash! {def.name} costs {Format.cash(price)}`)
+		notify(player, "error", `Not enough cash. {def.name} costs {Format.cash(price)}.`)
 		return false, "cash"
 	end
 	data.upgrades[upgradeId] = level + 1
 	DataService.markDirty(player)
 	local maxed = level + 1 >= def.maxLevel
-	notify(player, "success", `⬆️ {def.name} upgraded to Lv.{level + 1}{if maxed then " (MAX)" else ""}!`)
+	notify(player, "success", `{def.name} upgraded to level {level + 1}{if maxed then " (max)" else ""}.`)
 	Net.fireClient("Sound", player, "Purchase")
 	return true, nil
 end
@@ -161,7 +161,7 @@ function ShopService.buyTool(player: Player, toolId: any): (boolean, string?)
 	local def = Economy.Tools[toolId]
 	local owned = data.tools[toolId] == true or (toolId == "taser" and hasPass(player, "taser"))
 	if owned then
-		notify(player, "error", `You already own the {def.name}!`)
+		notify(player, "error", `You already own the {def.name}.`)
 		return false, "owned"
 	end
 	local ok, priceOrReason = ShopService._toolQuote(toolId, data.tools)
@@ -170,7 +170,7 @@ function ShopService.buyTool(player: Player, toolId: any): (boolean, string?)
 	end
 	local price = priceOrReason :: number
 	if price > 0 and not DataService.spendCash(player, price) then
-		notify(player, "error", `Not enough cash! The {def.name} costs {Format.cash(price)}`)
+		notify(player, "error", `Not enough cash. The {def.name} costs {Format.cash(price)}.`)
 		return false, "cash"
 	end
 	data.tools[toolId] = true
@@ -433,6 +433,8 @@ local function count(kind: CounterKind): number
 	return n
 end
 
+local destroyFallback: (BasePart) -> ()
+
 local function addPrompt(part: Instance, kind: CounterKind)
 	if not part:IsA("BasePart") or prompted[part] then
 		return
@@ -468,7 +470,7 @@ local function addPrompt(part: Instance, kind: CounterKind)
 		for _, fb in list do
 			prompted[fb] = nil
 			promptedKind[fb] = nil
-			fb:Destroy()
+			destroyFallback(fb)
 		end
 		table.clear(list)
 	end
@@ -484,28 +486,112 @@ local function effectsFolder(): Instance
 	return folder :: Instance
 end
 
--- Neutral counter block (dark laminate), never a pink placeholder.
-local function makeCounter(name: string, cf: CFrame): Part
-	local part = Instance.new("Part")
-	part.Name = name
-	part.Size = Vector3.new(10, 3.6, 2.4)
-	part.CFrame = cf * CFrame.new(0, 1.8 - 3, 0)
-	part.Anchored = true
-	part.CanCollide = true
-	part.Material = Enum.Material.SmoothPlastic
-	part.Color = Color3.fromRGB(46, 47, 50)
-	part.Parent = effectsFolder()
-	return part
+-- Fallback store counter (only when the map tagged none; job 0006: it was a bare black block by the road). A model that
+-- reads as a shop counter from the street: walnut counter with a dark stone top and a glass display front, a plaster
+-- back wall with a steel rack, a plain lit sign (no neon) and a cloth awning. The prompt sits on the "Counter" part.
+-- `cf` is the counter's front-centre 3 studs above the sidewalk, LookVector toward the street (MapLayout spots).
+ShopService.FALLBACK_SIGN = { guns = "FREEDOM ARMS", gear = "AUTO PARTS AND TOOLS" }
+
+-- (name, size, offset from the ground point, colour, material, transparency, canCollide) of every fallback piece
+-- (pure, tested). Local axes: +Z is behind the counter (away from the street), +Y up.
+function ShopService._counterPieces(): { { any } }
+	local function rgb(r: number, g: number, b: number): Color3
+		return Color3.fromRGB(r, g, b)
+	end
+	local M = Enum.Material
+	return {
+		{ "Counter", Vector3.new(10, 3.4, 2.4), Vector3.new(0, 1.7, 0), rgb(92, 68, 50), M.Wood, 0, true },
+		{ "Top", Vector3.new(10.4, 0.25, 2.8), Vector3.new(0, 3.525, 0), rgb(40, 40, 42), M.Slate, 0, false },
+		{
+			"Display",
+			Vector3.new(9.4, 1.6, 0.15),
+			Vector3.new(0, 2.35, -1.22),
+			rgb(176, 196, 206),
+			M.Glass,
+			0.55,
+			false,
+		},
+		{ "Kick", Vector3.new(10, 0.5, 0.1), Vector3.new(0, 0.25, -1.24), rgb(30, 30, 32), M.Metal, 0, false },
+		{ "Wall", Vector3.new(14, 9, 0.6), Vector3.new(0, 4.5, 4.4), rgb(190, 182, 166), M.Plaster, 0, true },
+		{ "Rack", Vector3.new(9, 3, 0.2), Vector3.new(0, 5.4, 3.98), rgb(62, 64, 68), M.DiamondPlate, 0, false },
+		{ "Sign", Vector3.new(8, 1.5, 0.3), Vector3.new(0, 7.9, 3.95), rgb(26, 26, 28), M.SmoothPlastic, 0, false },
+		{ "Awning", Vector3.new(14, 0.25, 4.2), Vector3.new(0, 9.1, 2.3), rgb(112, 30, 30), M.Fabric, 0, false },
+	}
+end
+
+local function makeCounter(name: string, cf: CFrame, signText: string): Part
+	local model = Instance.new("Model")
+	model.Name = name
+	model:SetAttribute("HC_FallbackCounter", true)
+	local ground = cf * CFrame.new(0, -3, 0)
+	local counter: Part? = nil
+	local sign: Part? = nil
+	for _, piece in ShopService._counterPieces() do
+		local part = Instance.new("Part")
+		part.Name = piece[1]
+		part.Size = piece[2]
+		part.CFrame = ground * CFrame.new(piece[3])
+		part.Color = piece[4]
+		part.Material = piece[5]
+		part.Transparency = piece[6]
+		part.CanCollide = piece[7]
+		part.Anchored = true
+		part.TopSurface = Enum.SurfaceType.Smooth
+		part.BottomSurface = Enum.SurfaceType.Smooth
+		part.Parent = model
+		if piece[1] == "Counter" then
+			counter = part
+		elseif piece[1] == "Sign" then
+			sign = part
+		end
+	end
+	if sign then
+		-- printed sign, lit by the world (LightInfluence 1): it never glows like the v1 neon boards
+		local gui = Instance.new("SurfaceGui")
+		gui.Name = "SignGui"
+		gui.Face = Enum.NormalId.Front
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 40
+		gui.LightInfluence = 1
+		local text = Instance.new("TextLabel")
+		text.BackgroundTransparency = 1
+		text.Size = UDim2.fromScale(0.92, 0.8)
+		text.Position = UDim2.fromScale(0.04, 0.1)
+		text.Text = signText
+		text.TextScaled = true
+		text.TextColor3 = Color3.fromRGB(236, 232, 224)
+		text.FontFace = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.SemiBold)
+		text.Parent = gui
+		gui.Parent = sign
+	end
+	local main = counter :: Part
+	model.PrimaryPart = main
+	model.Parent = effectsFolder()
+	return main
+end
+
+-- A fallback counter part goes away with its whole model.
+function destroyFallback(part: BasePart)
+	local model = part.Parent
+	if model and model:IsA("Model") and model:GetAttribute("HC_FallbackCounter") == true then
+		model:Destroy()
+	else
+		part:Destroy()
+	end
 end
 
 local function makeFallbacks(kind: CounterKind)
 	if kind == GEAR then
-		local part = makeCounter("GearShopCounterFallback", MapLayout.gearShopCounter() * CFrame.new(0, 3, 0))
+		local part = makeCounter(
+			"GearShopCounterFallback",
+			MapLayout.gearShopCounter() * CFrame.new(0, 3, 0),
+			ShopService.FALLBACK_SIGN.gear
+		)
 		table.insert(fallbacks[GEAR], part)
 		addPrompt(part, GEAR)
 	else
 		for _, store in MapLayout.gunStores() do
-			local part = makeCounter(store.name .. "CounterFallback", store.cframe)
+			local part = makeCounter(store.name .. "CounterFallback", store.cframe, ShopService.FALLBACK_SIGN.guns)
 			table.insert(fallbacks[GUNS], part)
 			addPrompt(part, GUNS)
 		end

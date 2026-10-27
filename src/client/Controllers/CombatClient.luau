@@ -28,6 +28,7 @@ local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local Style = require(UI:WaitForChild("CombatStyle"))
+local UIFocus = require(UI:WaitForChild("UIFocus"))
 local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
 local CombatClient = {}
@@ -344,7 +345,8 @@ local function activate(toolId: string, tool: Tool?)
 	if not Economy.Tools[toolId] or toolId == "bat" then
 		return
 	end
-	if isStunned() then
+	-- a click that misses an open menu (phone, pause, a shop list...) must not zap anyone (job 0006 bug 4)
+	if isStunned() or UIFocus.blocksFire() then
 		return
 	end
 	local now = os.clock()

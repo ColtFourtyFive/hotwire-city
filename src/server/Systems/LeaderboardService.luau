@@ -7,7 +7,8 @@
 --   totalEarned is stored log-encoded (idle economies blow past the 2^53 int range); decoded for display.
 -- * Top 10 of each read every 120s (budget-aware), cached, merged with the live values of players in this
 --   server so the boards feel alive, and rendered onto every Part tagged "LeaderboardBoard" (attribute
---   Stat = "totalEarned" | "steals") as a styled SurfaceGui.
+--   Stat = "totalEarned" | "steals") as a styled SurfaceGui: a matte black street billboard in the HUD's GTA tokens
+--   ("RICH LIST" / "MOST WANTED"; C4b de-Robloxify, no neon / emoji / gradients).
 -- * GetLeaderboard(stat) remote returns the cached merged list.
 -- * Studio without API access / any read failure: falls back to this server's players only.
 
@@ -49,33 +50,33 @@ local MIRROR_INTERVAL = 1
 local ORDERED_WRITE_RESERVE = 3 -- keep some ordered-write budget for leave writes
 local LOG_SCALE = 1e12
 
+-- C4b de-Robloxify: the v1 boards were navy / hot-pink / cyan neon cards with FredokaOne, emoji medals and gradients.
+-- They are matte black street billboards now, in the HUD's GTA tokens (gta_ui_language §3 / §4): a thin Ignition
+-- Orange rule, Oswald titles, Montserrat names, no emoji, no gradients, no rounded corners, lit by the world.
 local COLORS = {
-	Background = Color3.fromRGB(18, 20, 38),
-	Panel = Color3.fromRGB(28, 31, 58),
-	PanelLight = Color3.fromRGB(42, 46, 84),
-	Stroke = Color3.fromRGB(10, 11, 22),
-	Text = Color3.fromRGB(255, 255, 255),
-	TextDim = Color3.fromRGB(170, 176, 214),
-	Primary = Color3.fromRGB(255, 52, 140),
-	Secondary = Color3.fromRGB(0, 214, 255),
-	Cash = Color3.fromRGB(70, 235, 110),
-	Gold = Color3.fromRGB(255, 205, 50),
-	Silver = Color3.fromRGB(205, 215, 235),
-	Bronze = Color3.fromRGB(230, 140, 70),
+	Board = Color3.fromRGB(16, 16, 18),
+	Row = Color3.fromRGB(0, 0, 0),
+	Text = Color3.fromHex("#F0F0F0"),
+	TextDim = Color3.fromHex("#9B9B9B"),
+	Accent = Color3.fromHex("#FF8A3D"),
+	Green = Color3.fromHex("#72CC72"),
+	Gold = Color3.fromHex("#D6B563"),
+	Silver = Color3.fromHex("#9699A1"),
+	Bronze = Color3.fromHex("#B48261"),
 }
 
-local FONT_DISPLAY = Font.fromEnum(Enum.Font.FredokaOne)
-local FONT_BODY = Font.fromEnum(Enum.Font.GothamBold)
+local FONT_DISPLAY = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.SemiBold)
+local FONT_BODY = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Medium)
 
 local STATS: { [string]: StatDef } = {
 	totalEarned = {
 		id = "totalEarned",
 		storeName = "LB_totalEarned_v1",
-		title = "TOP EARNERS",
-		subtitle = "ALL-TIME CASH EARNED",
-		icon = "💰",
-		accent = COLORS.Gold,
-		valueColor = COLORS.Cash,
+		title = "RICH LIST",
+		subtitle = "Cash earned, all time",
+		icon = "",
+		accent = COLORS.Accent,
+		valueColor = COLORS.Green,
 		encoded = true,
 		read = function(data: any): number
 			return data.totalEarned or 0
@@ -85,11 +86,11 @@ local STATS: { [string]: StatDef } = {
 	steals = {
 		id = "steals",
 		storeName = "LB_steals_v1",
-		title = "TOP THIEVES",
-		subtitle = "ALL-TIME CARS STOLEN",
-		icon = "🚗",
-		accent = COLORS.Primary,
-		valueColor = COLORS.Secondary,
+		title = "MOST WANTED",
+		subtitle = "Cars stolen, all time",
+		icon = "",
+		accent = COLORS.Accent,
+		valueColor = COLORS.Text,
 		encoded = false,
 		read = function(data: any): number
 			return (data.stats and data.stats.steals) or 0
@@ -369,30 +370,6 @@ type BoardUi = { stat: string, guis: { SurfaceGui }, rows: { { RowUi } }, footer
 
 local boards: { [BasePart]: BoardUi } = {}
 
-local function corner(parent: Instance, radius: number)
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(radius, 0)
-	c.Parent = parent
-end
-
-local function stroke(parent: Instance, color: Color3, thickness: number, transparency: number?)
-	local s = Instance.new("UIStroke")
-	s.Color = color
-	s.Thickness = thickness
-	s.Transparency = transparency or 0
-	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	s.Parent = parent
-	return s
-end
-
-local function textStroke(parent: Instance, thickness: number)
-	local s = Instance.new("UIStroke")
-	s.Color = COLORS.Stroke
-	s.Thickness = thickness
-	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
-	s.Parent = parent
-end
-
 local function label(parent: Instance, name: string, font: Font, color: Color3): TextLabel
 	local l = Instance.new("TextLabel")
 	l.Name = name
@@ -405,7 +382,15 @@ local function label(parent: Instance, name: string, font: Font, color: Color3):
 	return l
 end
 
-local RANK_LABELS = { "🥇", "🥈", "🥉" }
+-- Rank text (pure, tested): plain numbers, no medals or emoji ("01", "02", ...).
+function LeaderboardService._rankText(rank: number): string
+	return ("%02d"):format(math.max(0, math.floor(rank)))
+end
+
+-- Footer line (pure, tested): sentence case.
+function LeaderboardService._footerText(global: boolean): string
+	return if global then "Global  ·  updated every 2 minutes" else "This server  ·  live"
+end
 
 local function rankColor(rank: number): Color3
 	if rank == 1 then
@@ -424,66 +409,62 @@ local function buildGui(part: BasePart, def: StatDef, face: Enum.NormalId): (Sur
 	gui.Face = face
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	gui.PixelsPerStud = 40
-	gui.LightInfluence = 0
-	gui.Brightness = 1.4
+	-- a printed / backlit billboard, not a glowing screen: the world's light and shadow fall on it
+	gui.LightInfluence = 0.6
+	gui.Brightness = 1
 	gui.ZOffset = 1
 
 	local bg = Instance.new("Frame")
 	bg.Name = "Board"
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color3.new(1, 1, 1) -- UIGradient multiplies this; white = exact gradient colors
+	bg.BackgroundColor3 = COLORS.Board
 	bg.BorderSizePixel = 0
 	bg.Parent = gui
-	corner(bg, 0.04)
-	stroke(bg, def.accent, 10)
-	local grad = Instance.new("UIGradient")
-	grad.Color = ColorSequence.new(COLORS.PanelLight, COLORS.Background)
-	grad.Rotation = 90
-	grad.Parent = bg
 
 	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0.03, 0)
+	pad.PaddingTop = UDim.new(0.04, 0)
 	pad.PaddingBottom = UDim.new(0.03, 0)
-	pad.PaddingLeft = UDim.new(0.03, 0)
-	pad.PaddingRight = UDim.new(0.03, 0)
+	pad.PaddingLeft = UDim.new(0.045, 0)
+	pad.PaddingRight = UDim.new(0.045, 0)
 	pad.Parent = bg
 
-	-- header
+	-- header: accent rule, title, grey subtitle
+	local rule = Instance.new("Frame")
+	rule.Name = "Rule"
+	rule.Size = UDim2.fromScale(0.16, 0.012)
+	rule.BackgroundColor3 = def.accent
+	rule.BorderSizePixel = 0
+	rule.Parent = bg
+
 	local header = Instance.new("Frame")
 	header.Name = "Header"
-	header.Size = UDim2.fromScale(1, 0.17)
-	header.BackgroundColor3 = Color3.new(1, 1, 1)
-	header.BorderSizePixel = 0
+	header.Size = UDim2.fromScale(1, 0.13)
+	header.Position = UDim2.fromScale(0, 0.025)
+	header.BackgroundTransparency = 1
 	header.Parent = bg
-	corner(header, 0.25)
-	stroke(header, COLORS.Stroke, 6)
-	local hgrad = Instance.new("UIGradient")
-	hgrad.Color = ColorSequence.new(def.accent, def.accent:Lerp(COLORS.Primary, 0.35))
-	hgrad.Rotation = 0
-	hgrad.Parent = header
 
 	local title = label(header, "Title", FONT_DISPLAY, COLORS.Text)
-	title.Size = UDim2.fromScale(0.94, 0.86)
-	title.Position = UDim2.fromScale(0.03, 0.07)
-	title.Text = def.icon .. "  " .. def.title .. "  " .. def.icon
-	textStroke(title, 5)
+	title.Size = UDim2.fromScale(1, 1)
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Text = def.title
 
 	local subtitle = label(bg, "Subtitle", FONT_BODY, COLORS.TextDim)
-	subtitle.Size = UDim2.fromScale(1, 0.06)
-	subtitle.Position = UDim2.fromScale(0, 0.185)
+	subtitle.Size = UDim2.fromScale(1, 0.05)
+	subtitle.Position = UDim2.fromScale(0, 0.165)
+	subtitle.TextXAlignment = Enum.TextXAlignment.Left
 	subtitle.Text = def.subtitle
 
 	-- rows
 	local list = Instance.new("Frame")
 	list.Name = "Rows"
 	list.BackgroundTransparency = 1
-	list.Size = UDim2.fromScale(1, 0.66)
-	list.Position = UDim2.fromScale(0, 0.26)
+	list.Size = UDim2.fromScale(1, 0.68)
+	list.Position = UDim2.fromScale(0, 0.245)
 	list.Parent = bg
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Vertical
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Padding = UDim.new(0.008, 0)
+	layout.Padding = UDim.new(0.006, 0)
 	layout.Parent = list
 
 	local rows: { RowUi } = {}
@@ -491,43 +472,39 @@ local function buildGui(part: BasePart, def: StatDef, face: Enum.NormalId): (Sur
 		local row = Instance.new("Frame")
 		row.Name = "Row" .. i
 		row.LayoutOrder = i
-		row.Size = UDim2.fromScale(1, 0.092)
-		local base = if i % 2 == 1 then COLORS.PanelLight else COLORS.Panel
-		row.BackgroundColor3 = if i <= 3 then base:Lerp(rankColor(i), 0.22) else base
+		row.Size = UDim2.fromScale(1, 0.094)
+		row.BackgroundColor3 = COLORS.Row
+		row.BackgroundTransparency = if i % 2 == 1 then 0.55 else 0.75
 		row.BorderSizePixel = 0
 		row.Parent = list
-		corner(row, 0.3)
-		if i <= 3 then
-			stroke(row, rankColor(i), 3, 0.2)
-		end
 
 		local rank = label(row, "Rank", FONT_DISPLAY, rankColor(i))
-		rank.Size = UDim2.fromScale(0.12, 0.8)
-		rank.Position = UDim2.fromScale(0.015, 0.1)
-		rank.Text = RANK_LABELS[i] or ("#" .. i)
-		textStroke(rank, 2)
+		rank.Size = UDim2.fromScale(0.1, 0.7)
+		rank.Position = UDim2.fromScale(0.02, 0.15)
+		rank.TextXAlignment = Enum.TextXAlignment.Left
+		rank.Text = LeaderboardService._rankText(i)
 
 		local name = label(row, "PlayerName", FONT_BODY, COLORS.Text)
-		name.Size = UDim2.fromScale(0.52, 0.66)
-		name.Position = UDim2.fromScale(0.15, 0.17)
+		name.Size = UDim2.fromScale(0.54, 0.6)
+		name.Position = UDim2.fromScale(0.13, 0.2)
 		name.TextXAlignment = Enum.TextXAlignment.Left
 		name.TextTruncate = Enum.TextTruncate.AtEnd
-		name.Text = "---"
+		name.Text = "-"
 
 		local value = label(row, "Value", FONT_DISPLAY, def.valueColor)
-		value.Size = UDim2.fromScale(0.3, 0.72)
-		value.Position = UDim2.fromScale(0.68, 0.14)
+		value.Size = UDim2.fromScale(0.3, 0.66)
+		value.Position = UDim2.fromScale(0.68, 0.17)
 		value.TextXAlignment = Enum.TextXAlignment.Right
 		value.Text = ""
-		textStroke(value, 2)
 
 		table.insert(rows, { frame = row, rank = rank, name = name, value = value })
 	end
 
 	local footer = label(bg, "Footer", FONT_BODY, COLORS.TextDim)
-	footer.Size = UDim2.fromScale(1, 0.05)
-	footer.Position = UDim2.fromScale(0, 0.945)
-	footer.Text = "GLOBAL  -  updates every 2 min"
+	footer.Size = UDim2.fromScale(1, 0.04)
+	footer.Position = UDim2.fromScale(0, 0.95)
+	footer.TextXAlignment = Enum.TextXAlignment.Left
+	footer.Text = LeaderboardService._footerText(true)
 
 	gui.Parent = part
 	return gui, rows, footer
@@ -555,15 +532,13 @@ local function renderBoard(board: BoardUi)
 			if e then
 				row.name.Text = e.name
 				row.value.Text = def.format(e.value)
-				row.frame.BackgroundTransparency = 0
 			else
-				row.name.Text = "---"
+				row.name.Text = "-"
 				row.value.Text = ""
-				row.frame.BackgroundTransparency = 0.45
 			end
 		end
 	end
-	local footerText = if globalAvailable then "GLOBAL  -  updates every 2 min" else "THIS SERVER  -  live"
+	local footerText = LeaderboardService._footerText(globalAvailable)
 	for _, footer in board.footers do
 		footer.Text = footerText
 	end

@@ -14,6 +14,9 @@
 --  * Every purchase is a request; the server (ShopService) checks the zone, ownership, caps and cash.
 --  * Input while open (ContextActionService, high priority): W/S, arrows, D-pad, mouse wheel move; Enter / A
 --    select; Backspace / B back. Movement keys are sunk so the player stays at the counter.
+--  * Mouse (job 0006 bug 3): rows are explicit Active buttons over the panel (ZIndex 3). While open the shop holds
+--    UI/UIFocus "gunshop": the Roblox chat window (left-middle, a CoreGui that swallowed clicks on the rows under it)
+--    steps aside via UI/CoreGuiSetup, and a click that misses the menu never fires the gun.
 -- Public: isOpen(), open(), close(); pure helpers _menu(menuId, ctx) and _ammoQuote(def, reserve, full).
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -33,6 +36,7 @@ local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local Style = require(UI:WaitForChild("CombatStyle"))
 local WeaponPreview = require(UI:WaitForChild("WeaponPreview"))
+local UIFocus = require(UI:WaitForChild("UIFocus"))
 
 local WeaponClient = require(script.Parent:WaitForChild("WeaponClient"))
 
@@ -496,6 +500,9 @@ local function build(): View
 			BackgroundTransparency = Style.Transparency.Row,
 			BorderSizePixel = 0,
 			AutoButtonColor = false,
+			Active = true,
+			Selectable = true,
+			ZIndex = 3,
 			Text = "",
 			LayoutOrder = i,
 			Visible = false,
@@ -507,6 +514,7 @@ local function build(): View
 			Size = UDim2.new(0.62, -10, 1, 0),
 			FontFace = Style.font("Body"),
 			TextSize = 14,
+			ZIndex = 4,
 			Text = "",
 		})
 		local val = label(b, {
@@ -516,6 +524,7 @@ local function build(): View
 			Size = UDim2.fromScale(0.38, 1),
 			FontFace = Style.font("Numeric"),
 			TextSize = 15,
+			ZIndex = 4,
 			TextXAlignment = Enum.TextXAlignment.Right,
 			Text = "",
 		})
@@ -977,6 +986,7 @@ function GunShopUI.open()
 	layout(vv)
 	table.clear(stack)
 	isOpenFlag = true
+	UIFocus.set("gunshop", true)
 	vv.gui.Enabled = true
 	suspendShoulderCamera(true)
 	openMenu("root")
@@ -1001,6 +1011,7 @@ function GunShopUI.close()
 		return
 	end
 	isOpenFlag = false
+	UIFocus.set("gunshop", false)
 	bind(false)
 	suspendShoulderCamera(false)
 	if turntable then

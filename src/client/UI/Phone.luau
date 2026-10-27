@@ -10,6 +10,8 @@
 --   phone:setClock(text)                          status-row clock ("Tue 18:42")
 --   phone.AppOpened: Signal(appId), phone.Closed: Signal(), phone.BackPressed: Signal()
 --   Phone.row(parent, label, value?, opts?) -> TextButton   a list row inside an app page
+--   The app page's ScrollingFrame is phone.pageFrame (never phone.page: that name is the method).
+--   While open the phone holds UI/UIFocus "phone": the gun can't fire from a click that misses the handset.
 --
 -- Look: our own handset shell (Config/UIAssets phone_shell, 9-slice) bottom-right, sliding up from below; a status
 -- row (signal, clock, battery); an Ignition Orange title bar with black Oswald text; a 3 x 3 grid of glossy app icons
@@ -27,6 +29,7 @@ local TweenService = game:GetService("TweenService")
 local Theme = require(script.Parent.Theme)
 local Kit = require(script.Parent.Kit)
 local HudLayout = require(script.Parent.HudLayout)
+local UIFocus = require(script.Parent.UIFocus)
 local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"):WaitForChild("Signal"))
 
 local Phone = {}
@@ -307,7 +310,9 @@ function Phone:_build()
 		Parent = screen,
 	})
 	Kit.list(Enum.FillDirection.Vertical, 1, Enum.HorizontalAlignment.Center).Parent = page
-	self.page = page
+	-- NOT self.page: that field would shadow the Phone:page() method below, and every phone:page(...) call in
+	-- PhoneController would try to call a ScrollingFrame (job 0006: Contacts / Jobs / Daily / Gifts / Codes never opened)
+	self.pageFrame = page
 	-- soft keys
 	local keys = Kit.new("Frame", {
 		Name = "SoftKeys",
@@ -453,7 +458,7 @@ end
 function Phone:home()
 	self:_build()
 	self.inPage = false
-	self.page.Visible = false
+	self.pageFrame.Visible = false
 	self.grid.Visible = true
 	self.titleLabel.Text = "Fone"
 	self:_select(self.index)
@@ -465,15 +470,16 @@ function Phone:page(title: string, build: (ScrollingFrame) -> ())
 	self.inPage = true
 	self.grid.Visible = false
 	self.highlight.Visible = false
-	for _, c in self.page:GetChildren() do
+	local frame: ScrollingFrame = self.pageFrame
+	for _, c in frame:GetChildren() do
 		if c:IsA("GuiObject") then
 			c:Destroy()
 		end
 	end
-	self.page.CanvasPosition = Vector2.zero
+	frame.CanvasPosition = Vector2.zero
 	self.titleLabel.Text = Kit.sanitize(title)
-	self.page.Visible = true
-	build(self.page)
+	frame.Visible = true
+	build(frame)
 end
 
 function Phone:activate()
@@ -545,6 +551,7 @@ function Phone:open()
 		return
 	end
 	self.opened = true
+	UIFocus.set("phone", true) -- a click that misses the handset must not fire the gun (job 0006 bug 4)
 	self.gui.Enabled = true
 	self:home()
 	self:_bind()
@@ -560,6 +567,7 @@ function Phone:close()
 		return
 	end
 	self.opened = false
+	UIFocus.set("phone", false)
 	ContextActionService:UnbindAction(ACTION)
 	local rest = self.restPosition
 	local t = TweenService:Create(self.holder, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {

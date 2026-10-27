@@ -87,6 +87,7 @@ local RichText = require(UI:WaitForChild("RichText"))
 local Shard = require(UI:WaitForChild("Shard"))
 local ListMenu = require(UI:WaitForChild("ListMenu"))
 local UISound = require(UI:WaitForChild("UISound"))
+local CoreGuiSetup = require(UI:WaitForChild("CoreGuiSetup"))
 
 -- Earlier in the client ORDER: safe to require at the top.
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -1892,48 +1893,13 @@ function HUDController.setMinimapReserve(_touchLeft: number, _desktopBottom: num
 -- CoreGui + chat (§8)
 -------------------------------------------------------------------------------------------------------------------------
 
-local function setCore(kind: Enum.CoreGuiType, on: boolean)
-	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, kind, on)
-end
-
 local function configureCoreGui()
-	setCore(Enum.CoreGuiType.PlayerList, false) -- our stars and cash own the top-right; players: Pause > STATS
-	setCore(Enum.CoreGuiType.Health, false) -- our health bar
-	setCore(Enum.CoreGuiType.EmotesMenu, false)
-	pcall(function()
-		setCore((Enum.CoreGuiType :: any).SelfView, false)
-	end)
-	-- the weapon wheel replaces the hotbar; until the combat package ships one the v1 tools still need it
+	-- C4b: the CoreGui / chat / bubble setup lives in UI/CoreGuiSetup (it also moves the chat window out of the way of
+	-- the left-side menus, job 0006 bug 3). The weapon wheel replaces the hotbar once a wheel controller exists.
 	local controllers = script.Parent
-	for _, name in { "WeaponWheelController", "WeaponWheel" } do
-		if controllers:FindFirstChild(name) then
-			setCore(Enum.CoreGuiType.Backpack, false)
-			break
-		end
-	end
-	-- the chat configurations can replicate after the client starts: wait for them (off the start thread)
-	task.spawn(function()
-		pcall(function()
-			local cfg = TextChatService:WaitForChild("ChatWindowConfiguration", 10)
-			if cfg and cfg:IsA("ChatWindowConfiguration") then
-				cfg.HorizontalAlignment = Enum.HorizontalAlignment.Left
-				cfg.VerticalAlignment = Enum.VerticalAlignment.Center
-				cfg.FontFace = Theme.Fonts.Body
-				cfg.TextSize = 15
-				cfg.BackgroundColor3 = C.Black
-				cfg.BackgroundTransparency = 0.45
-				cfg.TextStrokeTransparency = 0.6
-			end
-		end)
-		pcall(function()
-			local bar = TextChatService:WaitForChild("ChatInputBarConfiguration", 10)
-			if bar and bar:IsA("ChatInputBarConfiguration") then
-				bar.FontFace = Theme.Fonts.Body
-				bar.BackgroundColor3 = C.Black
-				bar.BackgroundTransparency = 0.35
-			end
-		end)
-	end)
+	local wheel = controllers:FindFirstChild("WeaponWheelController") ~= nil
+		or controllers:FindFirstChild("WeaponWheel") ~= nil
+	CoreGuiSetup.apply({ wheel = wheel })
 end
 
 -- [VIP] chat prefix for VIP pass holders (each client tags incoming messages from senders whose VIP attribute is set).
