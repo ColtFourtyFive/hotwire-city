@@ -1,6 +1,6 @@
 # Job 0004 report: realistic car deep-dive
 
-> **Status: PARTIAL.** 24 cars are done: the 14 shortlist cars, plus 10 new cars covering muscle, supercar, hatchback and coupe. 12 classes and the yiypoo1024 cars follow. `DONE` comes last.
+> **Status: PARTIAL.** 31 cars are done: the 14 shortlist cars plus 17 new ones (muscle, supercar, hatchback, coupe, convertible, luxury sedan). 10 classes and the yiypoo1024 cars follow. `DONE` comes last.
 
 ## Method
 
@@ -48,3 +48,16 @@
 #### coupe
 - **15039920309 2010 Edy Sport Coupe (ki7rill) — 4/5.** The Roblox "Good Ol' car" made realistic: generic, **unbranded** sporty coupe (Infiniti-ish), mesh grille, visible interior seats, twin exhausts, 16 textures. Dark matte two-tone paint. 8.7×5.5×17.1 studs (correct). 14 wheel candidates, 4 seats, 21 scripts removed. **No real brand badges** — a big plus. Orientation correct.
 - **86338034228651 Mercedes W215 CL (Mirosyaplayer) — 3/5 looks, 1/5 for our rig.** Recognisable CL500 coupe with baked photo texture (PS2-era game-rip look; texture stretches on bumpers). **Single MeshPart** (1 part, 0 scripts) — wheels are baked into the body, can't spin; no seats. 19×5.6×6.7 studs (narrow). **Mercedes star badges.** Prop only. Orientation correct.
+- **448250824 2004 Lexus SC430 (9ive) — 2/5.** Recognisable SC430 silhouette but built from **759 faceted wedge parts** (0 MeshParts) — visibly polygonal surfaces, opaque black glass, no interior. Heavy part count for the look. 16.5×5.2×8.9 studs (correct). 4 clean wheel candidates, 4 seats, 17 scripts removed. Lexus badges. Orientation flipped. Not GTA-grade.
+
+#### convertible
+- **136245297270332 "monza sp1" (roblox679576) — 3/5 (shape 5/5, unusable as-is).** A very detailed **Ferrari Monza SP1** mesh (389 MeshParts, full cockpit) — but **untextured grey (clay) and ~25× oversized: 218.9×116.1×465.4 studs**, sitting on its own flat base plate. Would need rescale + full material pass. 29 wheel candidates, 8 seat-named parts, 0 scripts. The far camera (from the huge bounds) sits in the haze; shots are as returned by ANALYZE. Prancing-horse badge.
+- **14966756602 Volattolo Stradagna [Convertible] (HectorBrantts) — 5/5 looks.** A **fictional brand** grand-tourer convertible (Maserati/Ferrari-ish) — exactly GTA's approach: full tan leather interior with steering wheel, chrome wheels, quad exhausts, diffuser, CA-style plates. 21×5.9×9.3 studs (correct). 34 wheel candidates, 4 seats, **91 scripts removed**, **532 textures** (heavy). **No real brand badges.** Orientation correct. Best convertible — top pick for unbranded realism.
+- **182994215 Honda S2000 (autorun) — 2/5.** 2010-era part-built S2000 (579 wedge parts, 0 MeshParts): blocky, faceted, red sport seats, twin exhausts, blank plates. Bounds 14.9×5×16.1 — nearly square because extra wheel/chassis parts widen X, so ANALYZE's cameras land almost **dead-rear / dead-front** rather than 3/4. 44 wheel candidates, 1 seat, 1 script. Not GTA-grade.
+
+#### luxury sedan
+- **14115238067 "TD2 Mercedes-Benz S-Klasse" (terran4629) — 4/5 cars, but it's a scene.** Not one car: a **dressing pack** with 2+ sedans side by side (one marked "( Drivable)"), a pine-tree clump and a ground slab, 107.7×69.1×467.9 studs overall. The sedans themselves are good **fictional-looking** luxury saloons (Lincoln/Maybach-ish grille, generic badge), visible tan interiors, clean white paint, ~18 studs long. ANALYZE's cameras for 468-stud bounds sit in the haze, so **both shots were framed by hand** on the front pair: front (29935,9,30250)→(29956,2.5,30222), rear (29978,9,30195)→same. 36 wheel candidates (multiple cars), 6 seats, 33 scripts removed, 147 textures. Extract one sedan before use.
+- **11229830669 "1999 Mazda 626 decor" (Ernest_Olegovych) — 2/5.** Actually reads as a Lexus GS-style black sedan; **single low-poly MeshPart with a blurry baked photo texture** (game-rip look, smeared windows). 6×5×16 studs (a little narrow). No separable wheels, no seats, 0 scripts — background prop at best.
+- **108455212286316 2016 Buick Enclave (deleted account) — 3/5.** (Search returned it for "luxury sedan"; it's a crossover.) Good shape, sunroof, waterfall grille, black alloys, but the white paint has a **dirty/weathered baked texture** (grey smudges everywhere) — reads as a beater. 22.4×8.9×11 studs (correct). 4 clean wheel candidates, 4 seats, 32 scripts removed, 13 textures. Buick tri-shield badges. Orientation flipped.
+
+*(Luxury-sedan class verdict: no clean GTA-grade luxury saloon on the free store; best usable sedan bodies are inside the S-Klasse pack 14115238067.)*
