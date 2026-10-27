@@ -7,3 +7,7 @@ build/
 *.rbxlx
 *.rbxl
 __pycache__/
+
+# Blender pipeline download caches (re-fetchable)
+tools/blender/**/_cache/
+*.blend1
