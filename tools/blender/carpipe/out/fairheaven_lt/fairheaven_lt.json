@@ -294,8 +294,8 @@
       ],
       "textures": {
         "emit": "textures/fairheaven_lt_Lights_emit.png",
-        "normal": "textures/fairheaven_lt_Lights_normal.png",
-        "base": "textures/fairheaven_lt_Lights_base.png"
+        "base": "textures/fairheaven_lt_Lights_base.png",
+        "normal": "textures/fairheaven_lt_Lights_normal.png"
       }
     },
     "LightsRear": {
@@ -312,8 +312,8 @@
       ],
       "textures": {
         "emit": "textures/fairheaven_lt_Lights_emit.png",
-        "normal": "textures/fairheaven_lt_Lights_normal.png",
-        "base": "textures/fairheaven_lt_Lights_base.png"
+        "base": "textures/fairheaven_lt_Lights_base.png",
+        "normal": "textures/fairheaven_lt_Lights_normal.png"
       }
     },
     "Trim": {
@@ -329,30 +329,30 @@
         8.8723
       ],
       "textures": {
-        "normal": "textures/fairheaven_lt_Trim_normal.png",
-        "rough": "textures/fairheaven_lt_Trim_rough.png",
         "metal": "textures/fairheaven_lt_Trim_metal.png",
         "base": "textures/fairheaven_lt_Trim_base.png",
+        "normal": "textures/fairheaven_lt_Trim_normal.png",
+        "rough": "textures/fairheaven_lt_Trim_rough.png",
         "ao": "textures/fairheaven_lt_Trim_ao.png"
       }
     },
     "Interior": {
-      "tris": 1499,
+      "tris": 1500,
       "bbox_min": [
-        -2.6166,
-        0.8568,
-        -7.6392
+        -2.496,
+        1.0358,
+        -2.8291
       ],
       "bbox_max": [
-        2.6087,
+        2.4877,
         4.4594,
-        8.4656
+        5.2885
       ],
       "textures": {
-        "normal": "textures/fairheaven_lt_Interior_normal.png",
-        "rough": "textures/fairheaven_lt_Interior_rough.png",
         "metal": "textures/fairheaven_lt_Interior_metal.png",
         "base": "textures/fairheaven_lt_Interior_base.png",
+        "normal": "textures/fairheaven_lt_Interior_normal.png",
+        "rough": "textures/fairheaven_lt_Interior_rough.png",
         "ao": "textures/fairheaven_lt_Interior_ao.png"
       }
     },
@@ -369,10 +369,10 @@
         -3.4663
       ],
       "textures": {
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "base": "textures/fairheaven_lt_Wheel_base.png",
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
         "ao": "textures/fairheaven_lt_Wheel_ao.png"
       }
     },
@@ -389,10 +389,10 @@
         -3.4662
       ],
       "textures": {
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "base": "textures/fairheaven_lt_Wheel_base.png",
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
         "ao": "textures/fairheaven_lt_Wheel_ao.png"
       }
     },
@@ -409,10 +409,10 @@
         5.5382
       ],
       "textures": {
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "base": "textures/fairheaven_lt_Wheel_base.png",
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
         "ao": "textures/fairheaven_lt_Wheel_ao.png"
       }
     },
@@ -429,17 +429,17 @@
         5.5382
       ],
       "textures": {
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "base": "textures/fairheaven_lt_Wheel_base.png",
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
         "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
         "ao": "textures/fairheaven_lt_Wheel_ao.png"
       }
     }
   },
   "triangles": {
     "source": 19703,
-    "total": 13657,
+    "total": 13658,
     "limits": {
       "car": 18000,
       "body": 7000,
@@ -485,14 +485,14 @@
       "area": 1.091
     },
     "Trim": {
-      "islands": 88,
-      "faces": 5032,
-      "area": 204.909
+      "islands": 98,
+      "faces": 6038,
+      "area": 218.15
     },
     "Interior": {
-      "islands": 43,
-      "faces": 4381,
-      "area": 210.725
+      "islands": 33,
+      "faces": 3375,
+      "area": 197.485
     },
     "Discard": {
       "islands": 19,
