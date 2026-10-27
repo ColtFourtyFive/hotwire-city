@@ -11,7 +11,13 @@
 -- Dropped cars: when the driver seat empties mid-theft the car sits "dropped" (DROPPED_CAR_TIMEOUT if the thief was
 -- knocked out, THEFT_ABANDON_LIMIT if they just hopped out). The victim gets an instant RecoverPrompt (0.3s hold,
 -- shown only to them via the OnlyUserId attribute); everybody else gets a Hotwire takeover prompt (VehicleService
--- addStealPrompt, ~1.5s hold, hidden for the victim via HideForUserId) and becomes the new thief.
+-- addStealPrompt, ~1.5s hold, hidden for the victim via HideForUserId) and becomes the new thief. A wreck is never a
+-- drop: VehicleService.Wrecked (fired before the eject) ends the theft as "wrecked" (DECISIONS §cross-group).
+--
+-- Anti-farm (DECISIONS §5): the recovery bonus pays only if the theft lasted RECOVERY_MIN_SECONDS or the car left the
+-- victim's garage interior; recovery and revenge each pay at most once per (victim, thief) pair per
+-- BONUS_PAIR_COOLDOWN. Anti-teleport (SEC-1): complete() refuses a delivery faster than the fastest legal drive from
+-- the slot to the thief's drop-off, and ends thefts in cars the VehicleService watchdog tainted.
 --
 -- Public API: beginTheft, complete, fail, recover, isBeingStolen, getActiveTheft, getTheftForCar, onThiefHit,
 -- signals TheftStarted(theft) / TheftEnded(theft, outcome). Pure helpers prefixed with _ are exposed for tests.
@@ -33,6 +39,7 @@ local PoliceConfig = require(Shared.Config.Police)
 local Rarity = require(Shared.Config.Rarity)
 local Signal = require(Shared.Util.Signal)
 local Trove = require(Shared.Util.Trove)
+local VehicleConfig = require(Shared.Config.Vehicle)
 
 local G = MapConfig.Garage
 
@@ -67,10 +74,12 @@ export type Theft = {
 	thief: Player,
 	thiefUserId: number,
 	slot: number,
+	victimPlot: number?, -- the victim's plot when the theft began (the slot's garage)
 	carId: string,
 	mutation: string,
 	label: string,
 	startedAt: number, -- hooks.clock() time
+	leftGarage: boolean, -- the car has been outside the victim's garage interior (recovery bonus rule)
 	endsAt: number, -- hooks.clock() deadline (THEFT_TIME_LIMIT)
 	graceUntil: number,
 	dropped: boolean,
@@ -142,6 +151,9 @@ local hooks = {
 	end,
 	spawnTask = function(fn: (...any) -> (), ...: any)
 		task.spawn(fn, ...)
+	end,
+	defer = function(fn: (...any) -> (), ...: any)
+		task.defer(fn, ...)
 	end,
 }
 
@@ -270,6 +282,21 @@ local function progress(player: Player, stat: string, amount: number)
 	call("RewardsService", "progress", player, stat, amount)
 end
 
+-- " Or unlock slot N for $X..." appended to garage-full messages (GarageService.fullHint; "" when n/a).
+local function fullHint(player: Player): string
+	local _, hint = call("GarageService", "fullHint", player)
+	return if typeof(hint) == "string" then hint else ""
+end
+
+-- The VehicleService watchdog tainted this car (a rewound teleport / speed hack): it may never be delivered.
+local function isTainted(car: any): boolean
+	local ok, res = call("VehicleService", "isTainted", car)
+	if ok then
+		return res == true
+	end
+	return type(car) == "table" and type(car.data) == "table" and car.data.tainted == true
+end
+
 local function toServerTime(clockTime: number): number
 	return hooks.serverNow() + (clockTime - hooks.clock())
 end
@@ -368,6 +395,39 @@ function TheftService._takeoverDeadline(endsAt: number, now: number): number
 	return math.max(endsAt, now + TheftService.TAKEOVER_MIN_TIME)
 end
 
+-- Flat distance from the victim's slot to the NEAREST edge of the thief's drop-off box (a lower bound on the drive).
+function TheftService._deliveryDistance(victimPlot: number, slot: number, thiefPlot: number): number
+	local from = MapLayout.slotWorld(victimPlot, slot).Position
+	local cf, size = MapLayout.plotDropoffZone(thiefPlot)
+	local to = cf.Position
+	local d = Vector3.new(to.X - from.X, 0, to.Z - from.Z).Magnitude
+	return math.max(0, d - Vector3.new(size.X / 2, 0, size.Z / 2).Magnitude)
+end
+
+-- Fastest legal time to cover `distance`: the watchdog's speed band incl. nitro (mirrors
+-- VehicleService._minTravelTime, no lag grace). A delivery quicker than this was a teleport (SEC-1).
+function TheftService._minDeliveryTime(distance: number, topSpeed: number, speedMultiplier: number?): number
+	if distance ~= distance or distance <= 0 then
+		return 0
+	end
+	local top = if topSpeed == topSpeed and topSpeed > 0 then topSpeed else 100
+	local mult = if typeof(speedMultiplier) == "number" and speedMultiplier == speedMultiplier
+		then math.max(1, speedMultiplier)
+		else 1
+	return distance / (top * VehicleConfig.SPEED_CAP_MULT * VehicleConfig.NITRO_SPEED_MULT * mult)
+end
+
+-- DECISIONS §5: the recovery bonus needs a real chase: the theft lasted RECOVERY_MIN_SECONDS or the car left the
+-- victim's garage interior (an alt hopping straight back out pays nothing).
+function TheftService._recoveryEligible(lasted: number, leftGarage: boolean): boolean
+	return leftGarage == true or (lasted == lasted and lasted >= Economy.RECOVERY_MIN_SECONDS)
+end
+
+-- Ledger key for the per-(victim, thief) bonus cooldown. kind = "recovery" | "revenge".
+function TheftService._pairKey(kind: string, victimUserId: number, thiefUserId: number): string
+	return `{kind}:{victimUserId}:{thiefUserId}`
+end
+
 -- Friendly lines for each fail reason: (victimText, thiefText).
 function TheftService._failText(reason: string, carName: string, victimName: string): (string, string)
 	if reason == "timeout" then
@@ -386,6 +446,11 @@ function TheftService._failText(reason: string, carName: string, victimName: str
 		return `🌊 Your {carName} took a swim... and got towed home.`, "🌊 Splash! The car got towed home."
 	elseif reason == "victim_left" then
 		return "", `😶 {victimName} left. The {carName} vanished!`
+	elseif reason == "tainted" then
+		return `🚚 Your {carName} got towed back home.`,
+			`🚫 That getaway didn't add up. The {carName} went back home.`
+	elseif reason == "error" then
+		return "", "" -- the caller explains (e.g. "The car wouldn't start!")
 	end
 	return `🏠 Your {carName} is back home.`, `The {carName} went back home.`
 end
@@ -399,7 +464,17 @@ local byThief: { [any]: Theft } = {}
 local byVictim: { [any]: { [number]: Theft } } = {}
 local cooldownUntil: { [number]: number } = {} -- victim userId -> clock deadline
 local recentRobbers: { [number]: { [number]: number } } = {} -- victimUserId -> thiefUserId -> expires
+local bonusPairs: { [string]: number } = {} -- _pairKey -> clock time this bonus may pay again
 local nextId = 0
+
+local function pairReady(kind: string, victimUserId: number, thiefUserId: number, now: number): boolean
+	local untilT = bonusPairs[TheftService._pairKey(kind, victimUserId, thiefUserId)]
+	return untilT == nil or untilT <= now
+end
+
+local function markPair(kind: string, victimUserId: number, thiefUserId: number, now: number)
+	bonusPairs[TheftService._pairKey(kind, victimUserId, thiefUserId)] = now + Economy.BONUS_PAIR_COOLDOWN
+end
 
 local function victimThefts(victim: any): { [number]: Theft }
 	local map = byVictim[victim]
@@ -426,9 +501,29 @@ local function unregister(theft: Theft)
 	end
 end
 
-local function setCooldown(victimUserId: number, now: number)
+-- Replicates the victim's robbery protection to their plot model (attribute RobbableAt = server time it ends, 0 =
+-- none) so GarageClient can hide the Steal prompt instead of letting a thief hold for a certain refusal (F7).
+local function syncRobbableAt(victim: any)
+	if not isPlayer(victim) then
+		return
+	end
+	local idx = plotIndexOf(victim)
+	if not idx then
+		return
+	end
+	local _, model = call("PlotService", "getPlotModel", idx)
+	if typeof(model) ~= "Instance" then
+		return
+	end
+	local untilT = cooldownUntil[victim.UserId]
+	local value = if untilT and untilT > hooks.clock() then toServerTime(untilT) else 0
+	pcall(model.SetAttribute, model, "RobbableAt", value)
+end
+
+local function setCooldown(victim: any, victimUserId: number, now: number)
 	local untilT = now + Economy.THEFT_VICTIM_COOLDOWN
 	cooldownUntil[victimUserId] = math.max(cooldownUntil[victimUserId] or 0, untilT)
+	syncRobbableAt(victim)
 end
 
 local function carModel(car: any): Model?
@@ -630,7 +725,7 @@ local function finish(theft: Theft, outcome: string): boolean
 	unregister(theft)
 	clearThiefUI(theft.thief)
 	clearVictimUI(theft, nameOf(theft.thief))
-	setCooldown(theft.victimUserId, hooks.clock())
+	setCooldown(theft.victim, theft.victimUserId, hooks.clock())
 	setModelAttr(theft.car, "TheftActive", false)
 	TheftService.TheftEnded:Fire(theft, outcome)
 	return true
@@ -698,7 +793,7 @@ local function canTakeover(theft: Theft, player: Player): (boolean, string?)
 	if player ~= theft.thief then
 		local _, free = call("GarageService", "freeSlots", player)
 		if typeof(free) ~= "number" or free <= 0 then
-			return false, "📦 Your garage is full! Sell a car first."
+			return false, "📦 Your garage is full! Sell a car first." .. fullHint(player)
 		end
 	end
 	return true, nil
@@ -764,6 +859,9 @@ local function addDropPrompts(theft: Theft)
 			if p ~= theft.victim or theft.finished or not theft.dropped then
 				return
 			end
+			if car.wrecked == true or car.destroyed == true then
+				return -- a burning wreck goes home as "wrecked", not as a recovery
+			end
 			if not began or hooks.clock() - began < TheftService.RECOVER_HOLD * 0.5 then
 				return
 			end
@@ -796,8 +894,8 @@ local function addDropPrompts(theft: Theft)
 				canSteal = function(p: Player): (boolean, string?)
 					return canTakeover(theft, p)
 				end,
-				onStolen = function(p: Player)
-					takeover(theft, p)
+				onStolen = function(p: Player): boolean
+					return takeover(theft, p) -- false = nothing taken (VehicleService skips its Stolen signal)
 				end,
 			})
 			if ok then
@@ -823,12 +921,22 @@ local function addDropPrompts(theft: Theft)
 			trove:Connect(pp.PromptButtonHoldBegan, function(p: Player)
 				holds[p] = hooks.clock()
 			end)
+			trove:Connect(pp.PromptButtonHoldEnded, function(p: Player)
+				-- an interrupted hold starts over (no pre-charged holds, SEC-2)
+				local began = holds[p]
+				if began and hooks.clock() - began < TheftService.TAKEOVER_HOLD * holdMultiplier(p) * 0.9 then
+					holds[p] = nil
+				end
+			end)
 			trove:Connect(pp.Triggered, function(p: Player)
 				local began = holds[p]
 				holds[p] = nil
 				local required = TheftService.TAKEOVER_HOLD * holdMultiplier(p) * 0.9
 				if not began or hooks.clock() - began < required then
 					return
+				end
+				if hooks.clock() - began > TheftService.TAKEOVER_HOLD * 1.25 + 1.5 then
+					return -- stale: tapped earlier, triggered later with a locally zeroed HoldDuration
 				end
 				if not withinReach(p, car, TheftService.PROMPT_DISTANCE + 8) then
 					return
@@ -865,9 +973,23 @@ clearDropped = function(theft: Theft)
 	end
 end
 
+-- Records that the stolen car has been outside the victim's garage interior (recovery bonus rule, DECISIONS §5).
+local function noteLeftGarage(theft: Theft, pos: Vector3?)
+	if theft.leftGarage or not pos or not theft.victimPlot then
+		return
+	end
+	if MapLayout.plotAt(pos) ~= theft.victimPlot then
+		theft.leftGarage = true
+	end
+end
+
 local function markDropped(theft: Theft, now: number)
 	if theft.finished or theft.dropped then
 		return
+	end
+	local car = theft.car
+	if type(car) == "table" and (car.wrecked == true or car.destroyed == true) then
+		return -- a wreck is not a drop: no Recover / Hotwire on a burning car; it ends as "wrecked"
 	end
 	local thief = theft.thief
 	local knocked = not online(thief)
@@ -928,6 +1050,31 @@ takeover = function(theft: Theft, player: Player): boolean
 	end
 	local now = hooks.clock()
 	local old = theft.thief
+	local car = theft.car
+	-- If VehicleService converted the car on steal, put it back: it is still a player-theft.
+	if car and car.kind ~= "Stolen" then
+		car.kind = "Stolen"
+		setModelAttr(car, "Kind", "Stolen")
+	end
+	-- Seat BEFORE touching the theft (F9): seat() never throws and returns (ok, reason). A hijack that can't put the
+	-- player in the car changes nothing and the drop prompts stay up. VehicleService only seats a Stolen car's thief
+	-- or victim, so name the hijacker on the car first and undo that if seating fails.
+	if driverOf(car) ~= player then
+		local data = car and car.data
+		local record = if type(data) == "table" and type(data.theft) == "table" then data.theft else nil
+		local prevThief = record and record.thief
+		if record then
+			record.thief = player
+		end
+		local okCall, seated = call("VehicleService", "seat", car, player)
+		if not okCall or seated ~= true then
+			if record then
+				record.thief = prevThief
+			end
+			notify(player, "error", "Couldn't get in. Try again!")
+			return false
+		end
+	end
 	if player ~= old then
 		if byThief[old] == theft then
 			byThief[old] = nil
@@ -943,11 +1090,11 @@ takeover = function(theft: Theft, player: Player): boolean
 		theft.warned30 = false
 		theft.warned10 = false
 		theft.revengePaid = false
-		local data = theft.car and theft.car.data
+		local data = car and car.data
 		if type(data) == "table" and type(data.theft) == "table" then
 			data.theft.thief = player
 		end
-		setModelAttr(theft.car, "TheftThiefUserId", player.UserId)
+		setModelAttr(car, "TheftThiefUserId", player.UserId)
 		call("WantedService", "addHeat", player, PoliceConfig.Heat.playerTheft, "theft")
 		if online(theft.victim) then
 			fireClient("CarStolenAlert", theft.victim, nameOf(player), theft.carId, theft.mutation, true)
@@ -960,19 +1107,8 @@ takeover = function(theft: Theft, player: Player): boolean
 			)} from <b>{richEscape(nameOf(old))}</b>!`
 		)
 	end
-	-- If VehicleService converted the car on steal, put it back: it is still a player-theft.
-	if theft.car and theft.car.kind ~= "Stolen" then
-		theft.car.kind = "Stolen"
-		setModelAttr(theft.car, "Kind", "Stolen")
-	end
 	clearDropped(theft)
 	theft.graceUntil = now + TheftService.SEAT_GRACE
-	if driverOf(theft.car) ~= player then
-		local seatOk, err = call("VehicleService", "seat", theft.car, player)
-		if not seatOk and err ~= nil then
-			warn("[TheftService] seat on takeover failed: " .. tostring(err))
-		end
-	end
 	notify(player, "success", "🏁 GO GO GO! Get it to your garage!")
 	sendThiefState(theft)
 	updateWaypoints(theft, now, true)
@@ -1095,7 +1231,7 @@ function TheftService.beginTheft(thief: Player, victim: Player, slot: number): b
 	local ok, code, message = TheftService._canSteal(state)
 	if not ok then
 		if code ~= "dead" and message ~= "" then
-			notify(thief, "error", message)
+			notify(thief, "error", if code == "full" then message .. fullHint(thief) else message)
 		end
 		return false
 	end
@@ -1139,10 +1275,12 @@ function TheftService.beginTheft(thief: Player, victim: Player, slot: number): b
 		thief = thief,
 		thiefUserId = thief.UserId,
 		slot = slot,
+		victimPlot = victimPlot,
 		carId = carId,
 		mutation = mutation,
 		label = label,
 		startedAt = now,
+		leftGarage = false,
 		endsAt = now + Economy.THEFT_TIME_LIMIT,
 		graceUntil = now + TheftService.SEAT_GRACE,
 		dropped = false,
@@ -1185,12 +1323,16 @@ function TheftService.beginTheft(thief: Player, victim: Player, slot: number): b
 	byCar[car] = theft
 	byThief[thief] = theft
 	victimThefts(victim)[slot] = theft
-	setCooldown(victim.UserId, now)
+	local prevCooldown = cooldownUntil[victim.UserId]
+	setCooldown(victim, victim.UserId, now)
 
-	local seatOk = call("VehicleService", "seat", car, thief)
-	if not seatOk then
-		-- could not put the thief in: hand everything back
+	-- seat() never throws: it returns (ok, reason). Read the real result, not pcall's flag (BUG-1 / F9).
+	local okCall, seated = call("VehicleService", "seat", car, thief)
+	if not okCall or seated ~= true then
+		-- could not put the thief in: hand everything back (no heat, no alarm, no contract progress)
 		failTheft(theft, "error")
+		cooldownUntil[victim.UserId] = prevCooldown -- a car that never started is not a robbery
+		syncRobbableAt(victim)
 		notify(thief, "error", "The car wouldn't start! Try again.")
 		return false
 	end
@@ -1237,6 +1379,31 @@ function TheftService.complete(car: any): boolean
 		failTheft(theft, "victim_left")
 		return false
 	end
+	if isTainted(car) then
+		-- the watchdog caught this car teleporting / speed hacking: it never gets delivered, it goes home
+		failTheft(theft, "tainted")
+		return false
+	end
+	local now = hooks.clock()
+	local thiefPlot = plotIndexOf(thief)
+	if theft.victimPlot and thiefPlot then
+		local okDist, distance = pcall(TheftService._deliveryDistance, theft.victimPlot, theft.slot, thiefPlot)
+		local def = Cars.get(theft.carId)
+		local model = carModel(car)
+		local speedMult = if model then model:GetAttribute("SpeedMultiplier") else nil
+		local need = if okDist and def then TheftService._minDeliveryTime(distance, def.topSpeed, speedMult) else 0
+		if now - theft.startedAt < need then
+			-- faster than any legal drive from the slot (SEC-1): a client teleport. The theft stays active.
+			warn(
+				("[TheftService] delivery by %s after %.1fs < %.1fs minimum: refused"):format(
+					nameOf(thief),
+					now - theft.startedAt,
+					need
+				)
+			)
+			return false
+		end
+	end
 	local GS = sys("GarageService")
 	local DS = sys("DataService")
 	local tData = getData(thief)
@@ -1244,12 +1411,11 @@ function TheftService.complete(car: any): boolean
 	if not GS or not DS or not tData or not vData or not tData.garage or not vData.garage then
 		return false
 	end
-	local now = hooks.clock()
 	local _, free = call("GarageService", "freeSlots", thief)
 	if typeof(free) ~= "number" or free <= 0 then
 		if now - theft.lastFullNotifyAt > 3 then
 			theft.lastFullNotifyAt = now
-			notify(thief, "error", "📦 Garage full! Sell a car to park this one. Hurry!")
+			notify(thief, "error", "📦 Garage full! Sell a car to park this one. Hurry!" .. fullHint(thief))
 		end
 		return false
 	end
@@ -1327,16 +1493,14 @@ function TheftService.complete(car: any): boolean
 	call("DataService", "markDirty", thief)
 	call("DataService", "markDirty", victim)
 	if typeof(DS.saveNow) == "function" then
-		hooks.spawnTask(function()
-			pcall(DS.saveNow, thief)
-		end)
+		-- One task, victim first (DATA-1): a crash between the two writes can lose the car, never duplicate it.
 		hooks.spawnTask(function()
 			pcall(DS.saveNow, victim)
+			pcall(DS.saveNow, thief)
 		end)
 	end
 
 	-- Juice -----------------------------------------------------------------------------------------------------------
-	local thiefPlot = plotIndexOf(thief)
 	local fxPos = carPosition(car)
 	if thiefPlot and typeof(slotOrReason) == "number" then
 		local okSlot, cf = pcall(MapLayout.slotWorld, thiefPlot, slotOrReason)
@@ -1406,11 +1570,16 @@ function TheftService.recover(car: any, player: Player?): boolean
 	if player ~= nil and player ~= theft.victim then
 		return false
 	end
+	if type(car) == "table" and (car.wrecked == true or car.destroyed == true) then
+		return false -- a wreck goes home as "wrecked" (no bonus) when VehicleService removes it
+	end
 	local victim = theft.victim
 	if not online(victim) then
 		return false
 	end
 	local pos = carPosition(car)
+	noteLeftGarage(theft, pos)
+	local now = hooks.clock()
 	if not finish(theft, "recovered") then
 		return false
 	end
@@ -1422,11 +1591,22 @@ function TheftService.recover(car: any, player: Player?): boolean
 		notify(victim, "info", `🏠 Your {theft.label} is back home.`)
 		return true
 	end
-	local bonus = TheftService._bonus(incomeOf(victim), Economy.RECOVERY_BONUS_SECONDS)
-	call("DataService", "addCash", victim, bonus, "recovery")
-	fireClient("CashPopup", victim, bonus, pos)
-	fireClient("Sound", victim, "CashBig", pos)
-	notify(victim, "money", `🛡️ RECOVERED! Your {theft.label} is home. +{Format.cash(bonus)} bonus!`)
+	-- Anti-farm (DECISIONS §5): only a real chase pays, and at most once per (victim, thief) pair per cooldown.
+	local thiefId = theft.thiefUserId
+	if
+		TheftService._recoveryEligible(now - theft.startedAt, theft.leftGarage)
+		and pairReady("recovery", theft.victimUserId, thiefId, now)
+	then
+		markPair("recovery", theft.victimUserId, thiefId, now)
+		local bonus = TheftService._bonus(incomeOf(victim), Economy.RECOVERY_BONUS_SECONDS)
+		call("DataService", "addCash", victim, bonus, "recovery")
+		fireClient("CashPopup", victim, bonus, pos)
+		fireClient("Sound", victim, "CashBig", pos)
+		notify(victim, "money", `🛡️ RECOVERED! Your {theft.label} is home. +{Format.cash(bonus)} bonus!`)
+	else
+		fireClient("Sound", victim, "Pickup", pos)
+		notify(victim, "success", `🛡️ RECOVERED! Your {theft.label} is back home.`)
+	end
 	if pos then
 		fireNear("Effect", pos, 200, "Confetti", { position = pos })
 	end
@@ -1455,8 +1635,10 @@ local function payRevenge(attacker: Player, thief: Player)
 	)
 end
 
--- CombatService: `attacker` landed a hit (bat/zapper) on `target`. Revenge bonus when the attacker is the victim of
--- target's active theft (once per theft) or target robbed them within REVENGE_WINDOW (once per robbery).
+-- CombatService: `attacker` landed a hit (bat/zapper) on `target`. Call it BEFORE ejecting the target (DECISIONS):
+-- the hit is recorded for the knock-out feed line. Revenge bonus when the attacker is the victim of target's active
+-- theft (once per theft) or target robbed them within REVENGE_WINDOW (once per robbery); either way at most once per
+-- (victim, thief) pair per BONUS_PAIR_COOLDOWN (DECISIONS §5).
 function TheftService.onThiefHit(attacker: Player, target: Player)
 	if not isPlayer(attacker) or not isPlayer(target) or attacker == target then
 		return
@@ -1466,17 +1648,24 @@ function TheftService.onThiefHit(attacker: Player, target: Player)
 	if theft and not theft.finished then
 		theft.lastHitAt = now
 		theft.lastHitBy = attacker
-		if attacker == theft.victim and not theft.revengePaid then
-			theft.revengePaid = true
-			payRevenge(attacker, target)
+		if attacker == theft.victim then
+			if not theft.revengePaid and pairReady("revenge", attacker.UserId, target.UserId, now) then
+				theft.revengePaid = true
+				markPair("revenge", attacker.UserId, target.UserId, now)
+				payRevenge(attacker, target)
+			end
+			return
 		end
-		return
+		-- someone else's theft: the attacker may still be owed revenge for an earlier robbery (F15)
 	end
 	local robbers = recentRobbers[attacker.UserId]
 	local expires = robbers and robbers[target.UserId]
 	if robbers and expires then
-		robbers[target.UserId] = nil
-		if expires > now then
+		if expires <= now then
+			robbers[target.UserId] = nil
+		elseif pairReady("revenge", attacker.UserId, target.UserId, now) then
+			robbers[target.UserId] = nil
+			markPair("revenge", attacker.UserId, target.UserId, now)
 			payRevenge(attacker, target)
 		end
 	end
@@ -1493,7 +1682,15 @@ local function onDriverChanged(car: any, newDriver: Player?, _oldDriver: Player?
 	end
 	local now = hooks.clock()
 	if newDriver == nil then
-		markDropped(theft, now)
+		-- Deferred: whatever emptied the seat may end the theft in the same step (a bust's TheftService.fail, the
+		-- thief leaving: PlayerRemoving) or record the hit that knocked the thief out (onThiefHit). Those land first,
+		-- so a doomed theft never flashes "dropped" and a knock-out gets its feed line.
+		hooks.defer(function()
+			if theft.finished or byCar[car] ~= theft or driverOf(car) ~= nil then
+				return
+			end
+			markDropped(theft, hooks.clock())
+		end)
 	elseif newDriver == theft.thief or newDriver == theft.victim then
 		resume(theft, now)
 	end
@@ -1508,6 +1705,16 @@ local function onDestroyed(car: any, reason: any)
 	failTheft(theft, why, true)
 end
 
+-- VehicleService.Wrecked fires before the eject: end the theft as "wrecked" right away (no "dropped" alarm, no
+-- Recover on the burning car). skipDestroy keeps the wreck FX; VehicleService destroys the car shortly after.
+local function onWrecked(car: any)
+	local theft = byCar[car]
+	if not theft or theft.finished then
+		return
+	end
+	failTheft(theft, "wrecked", true)
+end
+
 -- One heartbeat pass over every active theft. Exposed for tests.
 function TheftService._tick(now: number?)
 	local t = now or hooks.clock()
@@ -1520,7 +1727,7 @@ function TheftService._tick(now: number?)
 			continue
 		end
 		local car = theft.car
-		if not carAlive(car) then
+		if not carAlive(car) or (type(car) == "table" and car.wrecked == true) then
 			failTheft(theft, "wrecked", true)
 			continue
 		end
@@ -1530,6 +1737,11 @@ function TheftService._tick(now: number?)
 		end
 		if not online(theft.thief) then
 			failTheft(theft, "thief_left")
+			continue
+		end
+		if isTainted(car) then
+			-- the watchdog rewound a teleport / speed hack: the car can never be delivered, so it goes home now
+			failTheft(theft, "tainted")
 			continue
 		end
 		if t >= theft.endsAt then
@@ -1545,6 +1757,7 @@ function TheftService._tick(now: number?)
 			failTheft(theft, "lost")
 			continue
 		end
+		noteLeftGarage(theft, pos)
 		if car.kind ~= "Stolen" then
 			-- a steal-prompt path may have converted it; a player theft stays a player theft until it ends
 			car.kind = "Stolen"
@@ -1589,6 +1802,7 @@ end
 TheftService._onPlayerRemoving = onPlayerRemoving
 TheftService._onDriverChanged = onDriverChanged
 TheftService._onDestroyed = onDestroyed
+TheftService._onWrecked = onWrecked
 TheftService._takeover = function(theft: Theft, player: Player): boolean
 	return takeover(theft, player)
 end
@@ -1601,6 +1815,7 @@ function TheftService._reset()
 	table.clear(byVictim)
 	table.clear(cooldownUntil)
 	table.clear(recentRobbers)
+	table.clear(bonusPairs)
 end
 
 function TheftService.init()
@@ -1611,6 +1826,9 @@ function TheftService.init()
 		end
 		if VS.Destroyed then
 			VS.Destroyed:Connect(onDestroyed)
+		end
+		if VS.Wrecked then
+			VS.Wrecked:Connect(onWrecked)
 		end
 	else
 		warn("[TheftService] VehicleService missing: thefts disabled")
@@ -1635,6 +1853,11 @@ function TheftService.start()
 			end
 			if next(robbers) == nil then
 				recentRobbers[victimId] = nil
+			end
+		end
+		for key, untilT in bonusPairs do
+			if untilT <= now then
+				bonusPairs[key] = nil
 			end
 		end
 	end

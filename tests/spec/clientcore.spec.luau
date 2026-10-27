@@ -333,6 +333,65 @@ return function(t)
 		t.eq(WaypointController.isNearAny(Vector3.new(10, 0, 10), others, 30), true)
 		t.eq(WaypointController.isNearAny(Vector3.new(50, 0, 0), others, 30), false)
 		t.eq(WaypointController.isNearAny(Vector3.new(50, 0, 0), {}, 30), false)
+		t.eq(WaypointController.iconFor("spray", "SPRAY $750"), "🎨")
+		t.eq(WaypointController.iconFor("cashrain", "💰 CASH RAIN"), "💰")
+	end)
+
+	t.test("WaypointController spray waypoint: price matches WantedService, nearest booth wins", function()
+		local Economy = H.require("src/shared/Config/Economy")
+		local per = Economy.SPRAY_COST_PER_STAR
+		t.eq(WaypointController.sprayCost(2, 0), 2 * per, "flat minimum per star")
+		t.eq(WaypointController.sprayCost(3, nil), 3 * per)
+		local rich = (per / Economy.SPRAY_INCOME_SECONDS) * 4 -- income where 15s of it is 4x the minimum
+		t.eq(WaypointController.sprayCost(2, rich), math.floor(2 * rich * Economy.SPRAY_INCOME_SECONDS))
+		t.eq(WaypointController.sprayCost(0, rich), 0)
+		t.eq(WaypointController.sprayCost(1, 0 / 0), per, "NaN income")
+		local booths = { Vector3.new(500, 0, 0), Vector3.new(-40, 0, 10) }
+		t.eq(WaypointController.nearestIndex(booths, Vector3.new(0, 0, 0)), 2)
+		t.eq(WaypointController.nearestIndex(booths, Vector3.new(400, 0, 0)), 1)
+		t.eq(WaypointController.nearestIndex({}, Vector3.new(0, 0, 0)), nil)
+	end)
+
+	t.test("NotificationController toast anchor: below the PC player list; touch clears the button column", function()
+		local desk = NotificationController.toastAnchor(false, 1, 1)
+		t.ok(desk.Y.Scale >= 0.3, "desktop toasts start below the top-right player list")
+		t.eq(desk.X.Scale, 1)
+		local phone = NotificationController.toastAnchor(true, 0.55, 0.72)
+		t.eq(phone.Y.Scale, 0, "touch: top-right corner")
+		-- the right edge (real px) clears a 140-design-px column on the 0.55-scale combat/driving screens
+		t.ok(-phone.X.Offset * 0.72 >= 140 * 0.55, "left of the action/driving buttons")
+		local tablet = NotificationController.toastAnchor(true, 0.8, 0.8)
+		t.ok(-tablet.X.Offset * 0.8 >= 140 * 0.8)
+	end)
+
+	t.test("NotificationController.pickStolenCar follows the victim's car, not the thief's name", function()
+		local me = 77
+		local cars = {
+			{ victimUserId = 5, active = true, carId = "phantom", mutation = "None" },
+			{ victimUserId = me, active = false, carId = "phantom", mutation = "None" },
+			{ victimUserId = me, active = true, carId = "rocket", mutation = "Gold" },
+			{ victimUserId = me, active = true, carId = "phantom", mutation = "None" },
+		}
+		t.eq(NotificationController.pickStolenCar(cars, me, "phantom", "None"), 4, "matches the alert's car")
+		t.eq(NotificationController.pickStolenCar(cars, me, "rocket", "Gold"), 3)
+		t.eq(NotificationController.pickStolenCar(cars, me, "unknown", nil), 3, "any of ours as a fallback")
+		t.eq(NotificationController.pickStolenCar(cars, me, nil, nil), 3)
+		t.eq(NotificationController.pickStolenCar(cars, 999, "phantom", "None"), nil, "not ours")
+		t.eq(NotificationController.pickStolenCar({}, me, nil, nil), nil)
+	end)
+
+	t.test("EventsClient.stackTop sits under the HUD stack / theft alert banner", function()
+		local EventsClient = H.require("src/client/Controllers/EventsClient")
+		t.eq(EventsClient.stackTop(nil, nil, 0.72), 78, "classic spot under the cash pill")
+		t.eq(EventsClient.stackTop(0, nil, 1), 78)
+		t.eq(EventsClient.stackTop(76, nil, 1), 82, "just under the cash pill")
+		t.eq(EventsClient.stackTop(134, 260, 1), 266, "below the alert banner when it reaches lower")
+		t.eq(EventsClient.stackTop(110, nil, 0.5), 226, "real px are converted to this screen's scale")
+		t.eq(EventsClient.stackTop(10, nil, 1), 78, "never above the default")
+		t.eq(EventsClient.fitScale(100, 168, 600), 1, "room to spare")
+		t.near(EventsClient.fitScale(268, 168, 388), 120 / 168, 1e-9, "shrinks to end above the bottom HUD")
+		t.eq(EventsClient.fitScale(268, 168, 200), 0.6, "never below the readability floor")
+		t.eq(EventsClient.fitScale(100, 0, 50), 1)
 	end)
 
 	H.setMode("server")

@@ -2,18 +2,26 @@
 -- TrafficService (docs/SPEC.md §6): ambient AI traffic that makes the city feel alive and gives players cars to jack.
 --
 --  * ~BASE_COUNT cars (x EventService.getTrafficMultiplier(), e.g. Rush Hour) spawned on lanes 150-450 studs from a
---    random player and despawned once they are far from everyone, so density follows the players.
---  * Movement: VehicleService kind "Traffic" cars, chassis unanchored + server-owned, pulled along a virtual
---    "carrot" by an AlignPosition + AlignOrientation (OneAttachment). The carrot follows a pure lane state machine:
---    right-hand lanes on the 160-stud grid, and at every intersection a random straight / left / right (never a
---    U-turn, never off the grid) driven as a smooth quarter-circle arc from box edge to box edge.
+--    random player (ahead of fast drivers) so density follows the players. A car that ends up far from everyone is
+--    recycled: teleported onto a fresh lane near a player (only its CFrame replicates) instead of destroyed and
+--    rebuilt; a share (all of them during luck events) is rebuilt anyway so the rolls keep changing (PERF-04).
+--  * Movement: VehicleService kind "Traffic" cars, chassis unanchored + server-owned, driven by a LinearVelocity
+--    (heading * speed + a dead-banded pull toward a virtual "carrot") and an AlignOrientation (OneAttachment). Both
+--    targets are quantized and written only when they change (at most every MOVER_WRITE_INTERVAL /
+--    HEADING_WRITE_INTERVAL), so a car cruising a straight lane replicates no mover writes at all (PERF-02).
+--    The carrot follows a pure lane state machine: right-hand lanes on the 160-stud grid, and at every
+--    intersection a random straight / left / right (never a U-turn, never off the grid) driven as a smooth
+--    quarter-circle arc from box edge to box edge.
 --  * Spacing: cars brake for anything in a narrow cone ahead (cars, players' cars, people on foot), crawl past
 --    pedestrians, honk at players blocking them, and break intersection deadlocks with a short "patience" ghost.
+--    Police cars, hot drops and anchored cars are "hard" blockers: never ghosted into; a car stuck behind one
+--    vanishes out of view after STATIC_GIVEUP (in view after HARD_GIVEUP).
 --  * NPC driver: a little block-figure dummy (no Humanoid) welded in the driver seat.
 --  * "Carjack" prompt (hold = rarity hotwireTime x 0.9; the car brakes as soon as someone starts holding): the NPC
---    gets yeeted out of the car (comic tumble, removed after 3s), kind -> Loot, the player is seated, heat carjack.
+--    gets yeeted out of the car (comic tumble, removed after 3s), kind -> Loot, the player is seated (no heat or
+--    credit if seat() refuses), heat max(Heat.carjack, rarity.wantedOnSteal) (DECISIONS §1).
 --  * A player-driven car hitting a traffic car at > RAM_SPEED relative speed releases it to physics: NPC bails,
---    kind -> unowned Loot, VehicleService's abandon rules clean it up.
+--    kind -> unowned Loot (VehicleService settles it on its suspension), VehicleService's abandon rules clean it up.
 --
 -- Public API: none required by the spec. Extras: getCount(): number, release(car, reason?), buildDriver(seatCFrame, scale,
 --   rng): Model (harness-compatible), driverScale(model, seat): number. Pure path helpers prefixed with _ are
@@ -55,6 +63,10 @@ TrafficService.ACCEL = 18
 TrafficService.BRAKE = 45
 TrafficService.TURN_DECEL = 28
 TrafficService.SPAWN_RING = { 150, 450 }
+TrafficService.SPAWN_LEAD = 250 -- spawn ring centered this far ahead of a player moving faster than...
+TrafficService.SPAWN_LEAD_MIN_SPEED = 40 -- ...this (so fast drivers don't strand new cars behind them)
+TrafficService.RECYCLES_PER_TICK = 6
+TrafficService.REROLL_CHANCE = 0.2 -- share of far cars rebuilt (new roll) instead of recycled (always during luck)
 TrafficService.MIN_SPAWN_PLAYER_DIST = 130
 TrafficService.SPAWN_CLEARANCE = 20
 TrafficService.DESPAWN_DIST = 650
@@ -73,6 +85,7 @@ TrafficService.LEFT_LEAD = 14
 TrafficService.PATIENCE = { 2.5, 4.5 } -- stuck behind traffic this long -> ghost through for GHOST_TIME
 TrafficService.GHOST_TIME = 2.5
 TrafficService.STATIC_GIVEUP = 8 -- stuck behind a non-moving non-player obstacle: despawn (out of view) or ghost
+TrafficService.HARD_GIVEUP = 20 -- stuck behind a hard blocker (police / hot drop / anchored) this long: despawn
 TrafficService.HONK_AFTER = 1.5
 TrafficService.HONK_COOLDOWN = 5
 TrafficService.RAM_SPEED = 35
@@ -81,7 +94,17 @@ TrafficService.CARJACK_HOLD_MULT = 0.9
 TrafficService.NPC_DEBRIS_TIME = 3
 TrafficService.SCAN_TICK = 0.1
 TrafficService.MANAGE_TICK = 1
-TrafficService.ALIGN_RESPONSIVENESS = 25
+TrafficService.ALIGN_RESPONSIVENESS = 25 -- AlignOrientation
+-- LinearVelocity mover: velocity = heading * speed + POS_GAIN * (error beyond POS_DEADBAND), capped at
+-- MAX_CORRECTION, quantized to VEL_QUANTUM (speeds too, so the carrot and the car move at the same exact speed).
+TrafficService.POS_GAIN = 2.5
+TrafficService.POS_DEADBAND = 0.5
+TrafficService.MAX_CORRECTION = 12
+TrafficService.VEL_QUANTUM = 0.5
+TrafficService.MOVER_WRITE_INTERVAL = 0.1 -- seconds between velocity writes while it changes (turns, braking)...
+TrafficService.VEL_URGENT = 6 -- ...unless it changed by at least this much (studs/s)
+TrafficService.HEADING_WRITE_INTERVAL = 0.05
+TrafficService.HEADING_EPS_DOT = math.cos(math.rad(1)) -- heading changes under ~1 degree are not written
 
 local TURN_WEIGHTS = { straight = 0.5, right = 0.25, left = 0.25 }
 
@@ -121,8 +144,12 @@ type Entry = {
 	cruise: number,
 	obstacleLimit: number,
 	yOffset: number,
-	ap: AlignPosition?,
+	lv: LinearVelocity?,
 	ao: AlignOrientation?,
+	lastVel: Vector3, -- last value written to lv.VectorVelocity
+	lastVelWrite: number,
+	lastHeading: Vector3, -- last heading written to ao.CFrame
+	lastHeadingWrite: number,
 	npc: Model?,
 	prompt: ProximityPrompt?,
 	trove: Trove.Trove,
@@ -136,7 +163,7 @@ type Entry = {
 	nearPed: boolean,
 }
 
-type Obstacle = { pos: Vector3, car: any, isPed: boolean, isPlayerCar: boolean, isTraffic: boolean }
+type Obstacle = { pos: Vector3, car: any, isPed: boolean, isPlayerCar: boolean, isTraffic: boolean, isHard: boolean }
 
 local entries: { [Car]: Entry } = {}
 local rng = Random.new()
@@ -480,15 +507,22 @@ function TrafficService._snapToRoad(p: Vector3): (Axis?, number, number)
 	return axis, line, s
 end
 
--- Distance ahead (center to center) if `other` sits in the cone in front of pos/fwd, else nil.
-function TrafficService._aheadDistance(pos: Vector3, fwd: Vector3, other: Vector3, coneBase: number?): number?
+-- Distance ahead (center to center) if `other` sits in the cone in front of pos/fwd, else nil. right (optional) =
+-- fwd x up, precomputed once per car by the scan.
+function TrafficService._aheadDistance(
+	pos: Vector3,
+	fwd: Vector3,
+	other: Vector3,
+	coneBase: number?,
+	right: Vector3?
+): number?
 	local rel = flat(other - pos)
 	local ahead = rel:Dot(fwd)
 	if ahead <= 0 or ahead > TrafficService.SLOW_DIST then
 		return nil
 	end
-	local right = fwd:Cross(Vector3.yAxis)
-	local lateral = math.abs(rel:Dot(right))
+	local r = right or fwd:Cross(Vector3.yAxis)
+	local lateral = math.abs(rel:Dot(r))
 	if lateral > (coneBase or TrafficService.CONE_BASE) + ahead * TrafficService.CONE_SLOPE then
 		return nil
 	end
@@ -513,6 +547,37 @@ function TrafficService._limitFromGap(ahead: number, stopDist: number, slowDist:
 		return math.huge
 	end
 	return cruise * (ahead - stopDist) / (slowDist - stopDist)
+end
+
+-- Stars for carjacking a car of this rarity: rarer cars are hotter wherever they're taken from (DECISIONS §1).
+function TrafficService._carjackStars(rarity: string?): number
+	local tier = Rarity.Tiers[rarity :: any] or Rarity.Tiers.Common
+	return math.max(PoliceConfig.Heat.carjack, tier.wantedOnSteal)
+end
+
+function TrafficService._quantize(x: number, step: number?): number
+	local q = step or TrafficService.VEL_QUANTUM
+	return math.round(x / q) * q
+end
+
+-- LinearVelocity target: travel at `speed` along `heading`, plus a pull toward the carrot `target` (ride height
+-- included) once the error leaves the dead band. Quantized: identical inputs on a straight lane give an identical
+-- vector, so nothing is re-written (and nothing replicates) while cruising.
+function TrafficService._moverVelocity(pos: Vector3, target: Vector3, heading: Vector3, speed: number): Vector3
+	local err = target - pos
+	local m = err.Magnitude
+	local vel = heading * speed
+	if m > TrafficService.POS_DEADBAND and m == m then
+		local pull =
+			math.min(TrafficService.POS_GAIN * (m - TrafficService.POS_DEADBAND), TrafficService.MAX_CORRECTION)
+		vel += err * (pull / m)
+	end
+	local q = TrafficService.VEL_QUANTUM
+	return Vector3.new(
+		TrafficService._quantize(vel.X, q),
+		TrafficService._quantize(vel.Y, q),
+		TrafficService._quantize(vel.Z, q)
+	)
 end
 
 -- NPC DRIVER -----------------------------------------------------------------------------------------------------------
@@ -694,7 +759,7 @@ local function release(e: Entry, reason: string?, away: Vector3?)
 	if reason ~= "despawn" then
 		ejectNPC(e, away) -- before the trove clean, which would take the dummy down with the car
 	end
-	e.ap = nil
+	e.lv = nil
 	e.ao = nil
 	e.prompt = nil
 	e.trove:Clean()
@@ -708,6 +773,7 @@ local function release(e: Entry, reason: string?, away: Vector3?)
 		car.data.source = "traffic"
 		car.lastDriverAt = os.clock()
 		VehicleService.setKind(car, "Loot")
+		VehicleService.settle(car) -- rest on its suspension, not on the bump stops (F4)
 	end
 end
 
@@ -737,7 +803,8 @@ local function canCarjack(e: Entry, player: Player): (boolean, string?)
 	return true, nil
 end
 
-local function onCarjack(e: Entry, player: Player)
+-- Returns false when the player never got in (seat() refused): no heat, credit or announcement then.
+local function onCarjack(e: Entry, player: Player): boolean
 	local car = e.car
 	local npcTorso = e.npc and e.npc.PrimaryPart
 	local fxPos = if npcTorso then npcTorso.CFrame.Position + Vector3.new(0, 2, 0) else car.chassis.CFrame.Position
@@ -745,18 +812,29 @@ local function onCarjack(e: Entry, player: Player)
 	local root = char and char:FindFirstChild("HumanoidRootPart")
 	local away = if root and root:IsA("BasePart") then car.chassis.CFrame.Position - root.Position else nil
 	release(e, "carjack", away)
-	VehicleService.seat(car, player)
+	car.data.source = "traffic"
+	local seated, why = VehicleService.seat(car, player)
+	if not seated then
+		-- the NPC is already out: leave an empty, unowned Loot car (abandon rules clean it up)
+		warn(("[TrafficService] carjack: could not seat %s: %s"):format(player.Name, tostring(why)))
+		car.ownerUserId = nil
+		setAttr(car.model, "OwnerUserId", 0)
+		car.lastDriverAt = os.clock()
+		VehicleService.setKind(car, "Loot")
+		VehicleService.settle(car)
+		return false
+	end
 	VehicleService.setKind(car, "Loot")
 	car.ownerUserId = player.UserId
 	setAttr(car.model, "OwnerUserId", player.UserId)
-	car.data.source = "traffic"
-	local heat = VehicleService.addStealHeat(player, PoliceConfig.Heat.carjack, "carjack")
+	local heat = VehicleService.addStealHeat(player, TrafficService._carjackStars(car.rarity), "carjack")
 	VehicleService.contractProgress(player, "steal", 1)
 	VehicleService.announceSteal(player, car, "carjacked")
 	pcall(Net.fireNear, "Effect", fxPos, 220, "Bonk", { position = fxPos, sound = "Bonk" })
 	if heat > 0 then
 		pcall(Net.fireClient, "Notify", player, "warning", `🚨 Carjacking! +{heat}★`, 2.5)
 	end
+	return true
 end
 
 local function onTouched(e: Entry, hit: BasePart)
@@ -790,6 +868,45 @@ local function pick(options: { Turn }): Turn
 	return TrafficService._chooseTurn(options, rng:NextNumber())
 end
 
+-- Writes the movers' targets for this frame: only when the (quantized) value changed, and at most every
+-- MOVER_WRITE_INTERVAL / HEADING_WRITE_INTERVAL unless `force` (every write is a replicated property change).
+local function driveMovers(
+	e: Entry,
+	pos: Vector3,
+	target: Vector3,
+	heading: Vector3,
+	speed: number,
+	now: number,
+	force: boolean
+)
+	local lv = e.lv
+	if lv then
+		local vel = TrafficService._moverVelocity(pos, target, heading, speed)
+		if
+			vel ~= e.lastVel
+			and (
+				force
+				or now - e.lastVelWrite >= TrafficService.MOVER_WRITE_INTERVAL
+				or (vel - e.lastVel).Magnitude >= TrafficService.VEL_URGENT
+			)
+		then
+			lv.VectorVelocity = vel
+			e.lastVel = vel
+			e.lastVelWrite = now
+		end
+	end
+	local ao = e.ao
+	if
+		ao
+		and heading:Dot(e.lastHeading) < TrafficService.HEADING_EPS_DOT
+		and (force or now - e.lastHeadingWrite >= TrafficService.HEADING_WRITE_INTERVAL)
+	then
+		ao.CFrame = CFrame.lookAt(Vector3.zero, heading)
+		e.lastHeading = heading
+		e.lastHeadingWrite = now
+	end
+end
+
 local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): Entry?
 	local path = TrafficService._newPath(axis, line, dir, s, pick)
 	local pos, heading = TrafficService._pose(path)
@@ -804,7 +921,9 @@ local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): E
 	local model, chassis = car.model, car.chassis
 	car.data.source = "traffic"
 	local trove = Trove.new()
-	local cruise = rng:NextNumber(TrafficService.CRUISE[1], TrafficService.CRUISE[2])
+	-- quantized like the mover velocity, so a car at cruise holds one exact speed
+	local cruise = TrafficService._quantize(rng:NextNumber(TrafficService.CRUISE[1], TrafficService.CRUISE[2]))
+	local now = os.clock()
 	local e: Entry = {
 		car = car,
 		model = model,
@@ -814,8 +933,12 @@ local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): E
 		cruise = cruise,
 		obstacleLimit = math.huge,
 		yOffset = chassis.CFrame.Position.Y - ROAD_Y,
-		ap = nil,
+		lv = nil,
 		ao = nil,
+		lastVel = Vector3.zero,
+		lastVelWrite = now,
+		lastHeading = heading,
+		lastHeadingWrite = now,
 		npc = nil,
 		prompt = nil,
 		trove = trove,
@@ -835,18 +958,17 @@ local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): E
 	att.Name = "TrafficAttachment"
 	att.Parent = chassis
 	trove:Add(att)
-	local ap = Instance.new("AlignPosition")
-	ap.Name = "TrafficAlignPosition"
-	ap.Mode = Enum.PositionAlignmentMode.OneAttachment
-	ap.Attachment0 = att
-	ap.ApplyAtCenterOfMass = true
-	ap.RigidityEnabled = false
-	ap.MaxForce = mass * Workspace.Gravity * 10
-	ap.MaxVelocity = 120
-	ap.Responsiveness = TrafficService.ALIGN_RESPONSIVENESS
-	ap.Position = chassis.CFrame.Position
-	ap.Parent = chassis
-	trove:Add(ap)
+	local vel0 = TrafficService._moverVelocity(Vector3.zero, Vector3.zero, heading, TrafficService._quantize(e.v))
+	local lv = Instance.new("LinearVelocity")
+	lv.Name = "TrafficLinearVelocity"
+	lv.Attachment0 = att
+	lv.RelativeTo = Enum.ActuatorRelativeTo.World
+	lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
+	lv.MaxForce = mass * Workspace.Gravity * 10
+	lv.VectorVelocity = vel0
+	lv.Parent = chassis
+	trove:Add(lv)
+	e.lastVel = vel0
 	local ao = Instance.new("AlignOrientation")
 	ao.Name = "TrafficAlignOrientation"
 	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
@@ -858,10 +980,10 @@ local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): E
 	ao.CFrame = CFrame.lookAt(Vector3.zero, heading)
 	ao.Parent = chassis
 	trove:Add(ao)
-	e.ap = ap
+	e.lv = lv
 	e.ao = ao
 	pcall(function()
-		chassis.AssemblyLinearVelocity = heading * e.v
+		chassis.AssemblyLinearVelocity = vel0
 	end)
 
 	-- driver dummy
@@ -894,8 +1016,8 @@ local function spawnTraffic(axis: Axis, line: number, dir: number, s: number): E
 		canSteal = function(player: Player): (boolean, string?)
 			return canCarjack(e, player)
 		end,
-		onStolen = function(player: Player)
-			onCarjack(e, player)
+		onStolen = function(player: Player): boolean
+			return onCarjack(e, player)
 		end,
 		onHoldBegan = function()
 			e.holdStopUntil = os.clock() + hold * 1.3 + 1.5 -- the driver notices and brakes
@@ -917,6 +1039,11 @@ end
 
 local obstacles: { Obstacle } = {}
 local obstacleCount = 0
+local scanCars: { Car } = {}
+local manageCars: { Car } = {}
+local farBuf: { Entry } = {}
+local rootsBuf: { Vector3 } = {}
+local velsBuf: { Vector3 } = {}
 
 local function playerRoots(): { Vector3 }
 	local out = {}
@@ -930,6 +1057,21 @@ local function playerRoots(): { Vector3 }
 	return out
 end
 
+-- Fills rootsBuf / velsBuf (positions and velocities of every player's root; seated = their car's). Returns the count.
+local function collectPlayers(): number
+	table.clear(rootsBuf)
+	table.clear(velsBuf)
+	for _, p in Players:GetPlayers() do
+		local char = p.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if root and root:IsA("BasePart") then
+			table.insert(rootsBuf, root.Position)
+			table.insert(velsBuf, root.AssemblyLinearVelocity)
+		end
+	end
+	return #rootsBuf
+end
+
 local function minDist(pos: Vector3, points: { Vector3 }): number
 	local best = math.huge
 	for _, p in points do
@@ -941,14 +1083,27 @@ local function minDist(pos: Vector3, points: { Vector3 }): number
 	return best
 end
 
-local function pushObstacle(pos: Vector3, car: any, isPed: boolean, isPlayerCar: boolean, isTraffic: boolean)
+local function pushObstacle(
+	pos: Vector3,
+	car: any,
+	isPed: boolean,
+	isPlayerCar: boolean,
+	isTraffic: boolean,
+	isHard: boolean
+)
 	obstacleCount += 1
 	local o = obstacles[obstacleCount]
 	if o then
-		o.pos, o.car, o.isPed, o.isPlayerCar, o.isTraffic = pos, car, isPed, isPlayerCar, isTraffic
+		o.pos, o.car, o.isPed, o.isPlayerCar, o.isTraffic, o.isHard = pos, car, isPed, isPlayerCar, isTraffic, isHard
 	else
-		obstacles[obstacleCount] =
-			{ pos = pos, car = car, isPed = isPed, isPlayerCar = isPlayerCar, isTraffic = isTraffic }
+		obstacles[obstacleCount] = {
+			pos = pos,
+			car = car,
+			isPed = isPed,
+			isPlayerCar = isPlayerCar,
+			isTraffic = isTraffic,
+			isHard = isHard,
+		}
 	end
 end
 
@@ -963,24 +1118,36 @@ end
 
 local function scanPass(now: number)
 	obstacleCount = 0
-	for _, car in VehicleService.all() do
+	for _, car in VehicleService.allInto(scanCars) do
 		if car.destroyed or car.kind == "Parked" or car.kind == "Dealership" then
 			continue
 		end
 		local chassis = car.chassis
 		if chassis.Parent then
-			pushObstacle(chassis.CFrame.Position, car, false, car.driver ~= nil, entries[car] ~= nil)
+			local isTraffic = entries[car] ~= nil
+			local isPlayerCar = car.driver ~= nil
+			-- police, hot drops and anchored cars are never shoved aside by a patience ghost (F7 / F12)
+			local isHard = not isTraffic
+				and not isPlayerCar
+				and (car.kind == "Police" or car.kind == "HotDrop" or chassis.Anchored)
+			pushObstacle(chassis.CFrame.Position, car, false, isPlayerCar, isTraffic, isHard)
 		end
 	end
+	table.clear(scanCars)
 	for _, p in Players:GetPlayers() do
 		local char = p.Character
 		local root = char and char:FindFirstChild("HumanoidRootPart")
 		local humanoid = char and char:FindFirstChildOfClass("Humanoid")
 		if root and root:IsA("BasePart") and humanoid and humanoid.Health > 0 and humanoid.SeatPart == nil then
-			pushObstacle(root.Position, nil, true, false, false)
+			pushObstacle(root.Position, nil, true, false, false, false)
 		end
 	end
 
+	-- nothing farther than this can be in a cone (SLOW_DIST ahead, cone half-width ~8) or within the ped radius
+	local reach = TrafficService.SLOW_DIST + TrafficService.CONE_BASE + 10
+	local reachSq = reach * reach
+	local cautionSq = TrafficService.PED_CAUTION_RADIUS * TrafficService.PED_CAUTION_RADIUS
+	local roots: { Vector3 }? = nil -- players' positions, fetched only if a car gives up
 	for car, e in entries do
 		if e.released then
 			continue
@@ -989,6 +1156,7 @@ local function scanPass(now: number)
 		local pos = cf.Position
 		local fwd = flat(cf.LookVector)
 		fwd = if fwd.Magnitude > 0.1 then fwd.Unit else Vector3.new(0, 0, -1)
+		local right = fwd:Cross(Vector3.yAxis)
 		local ghost = now < e.ghostUntil
 		local limit = math.huge
 		local blocker: string? = nil
@@ -999,11 +1167,17 @@ local function scanPass(now: number)
 			if o.car == car then
 				continue
 			end
+			local op = o.pos
+			local dx, dz = op.X - pos.X, op.Z - pos.Z
+			local d2 = dx * dx + dz * dz
+			if d2 > reachSq then
+				continue
+			end
 			if o.isPed then
-				if flatDist(pos, o.pos) <= TrafficService.PED_CAUTION_RADIUS then
+				if d2 <= cautionSq then
 					nearPed = true
 				end
-				local ahead = TrafficService._aheadDistance(pos, fwd, o.pos, 2.5)
+				local ahead = TrafficService._aheadDistance(pos, fwd, op, 2.5, right)
 				if ahead then
 					local l = TrafficService._limitFromGap(
 						ahead,
@@ -1015,8 +1189,8 @@ local function scanPass(now: number)
 						limit, blocker = l, "ped"
 					end
 				end
-			elseif not (ghost and not o.isPlayerCar) then
-				local ahead = TrafficService._aheadDistance(pos, fwd, o.pos)
+			elseif not (ghost and not o.isPlayerCar and not o.isHard) then
+				local ahead = TrafficService._aheadDistance(pos, fwd, op, nil, right)
 				if ahead then
 					local l = TrafficService._limitFromGap(
 						ahead,
@@ -1026,7 +1200,11 @@ local function scanPass(now: number)
 					)
 					if l < limit then
 						limit = l
-						blocker = if o.isPlayerCar then "player" elseif o.isTraffic then "traffic" else "static"
+						blocker = if o.isPlayerCar
+							then "player"
+							elseif o.isTraffic then "traffic"
+							elseif o.isHard then "hard"
+							else "static"
 						blockerCar = o.car
 					end
 				end
@@ -1049,11 +1227,23 @@ local function scanPass(now: number)
 				end
 			elseif blocker == "static" and waited > TrafficService.STATIC_GIVEUP then
 				e.blockedSince = nil
-				if minDist(pos, playerRoots()) > 150 then
+				if roots == nil then
+					roots = playerRoots()
+				end
+				if minDist(pos, roots :: { Vector3 }) > 150 then
 					release(e, "despawn")
 					VehicleService.destroy(car, "stuck")
 				else
 					e.ghostUntil = now + TrafficService.GHOST_TIME
+				end
+			elseif blocker == "hard" and waited > TrafficService.STATIC_GIVEUP then
+				-- never ghost into a cop / hot drop / anchored car: vanish out of view, or after HARD_GIVEUP anyway
+				if roots == nil then
+					roots = playerRoots()
+				end
+				if waited > TrafficService.HARD_GIVEUP or minDist(pos, roots :: { Vector3 }) > 150 then
+					release(e, "despawn")
+					VehicleService.destroy(car, "stuck")
 				end
 			elseif (blocker == "player" or blocker == "ped") and waited > TrafficService.HONK_AFTER then
 				honk(e, now)
@@ -1096,20 +1286,19 @@ local function step(dt: number)
 		else
 			e.v = math.max(desired, e.v - TrafficService.BRAKE * dt)
 		end
-		if e.v > 0 then
-			TrafficService._advance(path, e.v * dt, pick)
+		-- the carrot moves at the same quantized speed the mover drives, so they never drift apart on a straight
+		local speed = TrafficService._quantize(e.v)
+		if speed > 0 then
+			TrafficService._advance(path, speed * dt, pick)
 		end
 		local pos, heading = TrafficService._pose(path)
 		local target = Vector3.new(pos.X, ROAD_Y + e.yOffset, pos.Z)
-		if (chassis.Position - target).Magnitude > TrafficService.KNOCKED_OFF_DIST then
+		local here = chassis.Position
+		if (here - target).Magnitude > TrafficService.KNOCKED_OFF_DIST then
 			release(e, "knocked")
 			continue
 		end
-		local ap, ao = e.ap, e.ao
-		if ap and ao then
-			ap.Position = target
-			ao.CFrame = CFrame.lookAt(Vector3.zero, heading)
-		end
+		driveMovers(e, here, target, heading, speed, now, false)
 	end
 end
 
@@ -1133,34 +1322,96 @@ local function targetCount(playerCount: number): number
 	return math.min(TrafficService.MAX_COUNT, math.floor(TrafficService.BASE_COUNT * mult + 0.5))
 end
 
-local function trySpawnNear(roots: { Vector3 }, occupied: { Vector3 }): boolean
+-- A free lane spot 150-450 studs from a random player (ring centered SPAWN_LEAD ahead of a fast one), not too close
+-- to any player, not beyond the despawn range, clear of other cars. Returns (axis?, line, dir, s, lanePos).
+local function findLane(
+	roots: { Vector3 },
+	vels: { Vector3 },
+	occupied: { Vector3 }
+): (Axis?, number, number, number, Vector3)
 	if #roots == 0 then
-		return false
+		return nil, 0, 0, 0, Vector3.zero
 	end
-	local anchor = roots[rng:NextInteger(1, #roots)]
+	local i = rng:NextInteger(1, #roots)
+	local center = roots[i]
+	local v = flat(vels[i] or Vector3.zero)
+	if v.Magnitude > TrafficService.SPAWN_LEAD_MIN_SPEED then
+		center += v.Unit * TrafficService.SPAWN_LEAD
+	end
 	for _ = 1, 8 do
 		local angle = rng:NextNumber(0, math.pi * 2)
 		local r = rng:NextNumber(TrafficService.SPAWN_RING[1], TrafficService.SPAWN_RING[2])
 		local axis, line, s =
-			TrafficService._snapToRoad(anchor + Vector3.new(math.cos(angle) * r, 0, math.sin(angle) * r))
+			TrafficService._snapToRoad(center + Vector3.new(math.cos(angle) * r, 0, math.sin(angle) * r))
 		if not axis then
 			continue
 		end
 		local dir = if rng:NextNumber() < 0.5 then 1 else -1
 		local pos = TrafficService._lanePoint(axis, line, dir, s)
-		if minDist(pos, roots) < TrafficService.MIN_SPAWN_PLAYER_DIST then
+		local d = minDist(pos, roots)
+		if d < TrafficService.MIN_SPAWN_PLAYER_DIST or d > TrafficService.DESPAWN_DIST - 50 then
 			continue
 		end
 		if minDist(pos, occupied) < TrafficService.SPAWN_CLEARANCE then
 			continue
 		end
-		local e = spawnTraffic(axis, line, dir, s)
-		if e then
-			table.insert(occupied, pos)
-			return true
-		end
+		return axis, line, dir, s, pos
+	end
+	return nil, 0, 0, 0, Vector3.zero
+end
+
+local function trySpawnNear(roots: { Vector3 }, vels: { Vector3 }, occupied: { Vector3 }): boolean
+	local axis, line, dir, s, pos = findLane(roots, vels, occupied)
+	if not axis then
+		return false
+	end
+	local e = spawnTraffic(axis, line, dir, s)
+	if e then
+		table.insert(occupied, pos)
+		return true
 	end
 	return false
+end
+
+-- PERF-04: move a far-away car onto a fresh lane near a player instead of destroying it and building a new one
+-- (a new car is a full CarBuilder model + NPC replicated to everyone; a teleport is one CFrame).
+local function relocate(e: Entry, roots: { Vector3 }, vels: { Vector3 }, occupied: { Vector3 }): boolean
+	local car = e.car
+	if e.released or car.destroyed or car.wrecked or car.kind ~= "Traffic" or car.driver ~= nil then
+		return false
+	end
+	local axis, line, dir, s, lanePos = findLane(roots, vels, occupied)
+	if not axis then
+		return false
+	end
+	local path = TrafficService._newPath(axis, line, dir, s, pick)
+	local pos, heading = TrafficService._pose(path)
+	local chassis = e.chassis
+	pcall(function()
+		chassis.AssemblyLinearVelocity = Vector3.zero
+		chassis.AssemblyAngularVelocity = Vector3.zero
+	end)
+	VehicleService.teleport(car, CFrame.lookAt(pos, pos + heading) * CFrame.new(0, e.yOffset, 0))
+	e.path = path
+	e.v = e.cruise * 0.6
+	e.obstacleLimit = math.huge
+	e.blockedSince = nil
+	e.blockerKind = nil
+	e.ghostUntil = 0
+	e.holdStopUntil = 0
+	e.nearPed = false
+	e.patience = rng:NextNumber(TrafficService.PATIENCE[1], TrafficService.PATIENCE[2])
+	local target = Vector3.new(pos.X, ROAD_Y + e.yOffset, pos.Z)
+	local speed = TrafficService._quantize(e.v)
+	driveMovers(e, target, target, heading, speed, os.clock(), true)
+	pcall(function()
+		chassis.AssemblyLinearVelocity = heading * speed
+	end)
+	if car.health < car.maxHealth then
+		car.health = car.maxHealth -- VehicleService's life pass syncs the Health attribute
+	end
+	table.insert(occupied, lanePos)
+	return true
 end
 
 local function managePass()
@@ -1170,20 +1421,58 @@ local function managePass()
 		end
 	end
 	local players = Players:GetPlayers()
-	local roots = playerRoots()
+	local nRoots = collectPlayers()
+	local roots, vels = rootsBuf, velsBuf
 	local target = targetCount(#players)
 
-	-- despawn far-away traffic (or everything when nobody is around)
+	local occupied: { Vector3 }? = nil
+	local function getOccupied(): { Vector3 }
+		local o = occupied
+		if o == nil then
+			o = {}
+			for _, car in VehicleService.allInto(manageCars) do
+				if not car.destroyed and car.kind ~= "Parked" then
+					table.insert(o, car.chassis.CFrame.Position)
+				end
+			end
+			table.clear(manageCars)
+			occupied = o
+		end
+		return o
+	end
+
+	-- far-away traffic (or everything when nobody is around): recycled near a player while we still want the cars,
+	-- destroyed otherwise. A share is rebuilt anyway (all of it during a luck event) so the rolls keep changing.
 	local count = 0
-	for car, e in entries do
-		local pos = e.chassis.CFrame.Position
-		if #roots == 0 or minDist(pos, roots) > TrafficService.DESPAWN_DIST then
-			release(e, "despawn")
-			VehicleService.destroy(car, "despawn")
+	table.clear(farBuf)
+	for _, e in entries do
+		if nRoots == 0 or minDist(e.chassis.CFrame.Position, roots) > TrafficService.DESPAWN_DIST then
+			table.insert(farBuf, e)
 		else
 			count += 1
 		end
 	end
+	local boosted = callNumber("EventService", "getLuck", 1) > 1
+	local recycled = 0
+	for _, e in farBuf do
+		local moved = false
+		if
+			count < target
+			and recycled < TrafficService.RECYCLES_PER_TICK
+			and not boosted
+			and rng:NextNumber() >= TrafficService.REROLL_CHANCE
+		then
+			moved = relocate(e, roots, vels, getOccupied())
+		end
+		if moved then
+			recycled += 1
+			count += 1
+		else
+			release(e, "despawn")
+			VehicleService.destroy(e.car, "despawn")
+		end
+	end
+	table.clear(farBuf)
 	-- rush hour over: trim the farthest extra car (out of view only)
 	if count > target + 2 then
 		local farCar: Car? = nil
@@ -1201,17 +1490,12 @@ local function managePass()
 		end
 	end
 
-	if count >= target or #roots == 0 then
+	if count >= target or nRoots == 0 then
 		return
 	end
-	local occupied = {}
-	for _, car in VehicleService.all() do
-		if not car.destroyed and car.kind ~= "Parked" then
-			table.insert(occupied, car.chassis.CFrame.Position)
-		end
-	end
+	local occ = getOccupied()
 	for _ = 1, math.min(TrafficService.SPAWNS_PER_TICK, target - count) do
-		trySpawnNear(roots, occupied)
+		trySpawnNear(roots, vels, occ)
 	end
 end
 

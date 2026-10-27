@@ -499,6 +499,30 @@ function VehicleService._crashDamage(prevVel: Vector3, vel: Vector3, elapsed: nu
 	return (dv - threshold) * VehicleConfig.CRASH_DAMAGE_SCALE
 end
 
+-- Zone gate for one driven-car sample (pure): (allowed, violation?). The watchdog check against the last accepted
+-- sample (a teleport / blatant speed is a violation worth a rewind; one merely fast sample just blocks this tick),
+-- then the travel-time gate: sinceStart seconds of driving must cover at least minTime.
+function VehicleService._zoneGate(
+	hSpeed: number,
+	displacement: number,
+	rise: number,
+	dt: number,
+	cap: number,
+	sinceStart: number,
+	minTime: number
+): (boolean, string?)
+	local verdict = VehicleService._watchdogVerdict(hSpeed, displacement, dt, cap, rise)
+	if verdict == "teleport" or (verdict == "speed" and hSpeed >= cap * VehicleService.WATCHDOG_BLATANT) then
+		return false, verdict
+	elseif verdict ~= nil then
+		return false, nil
+	end
+	if sinceStart < minTime then
+		return false, nil
+	end
+	return true, nil
+end
+
 -- Fastest any car of this top speed can cover `distance` studs (watchdog speed band incl. nitro, no lag grace).
 function VehicleService._minTravelTime(distance: number, topSpeed: number, speedMultiplier: number?): number
 	if distance ~= distance then
@@ -705,7 +729,11 @@ function VehicleService.minTravelTime(car: Car, targetPos: Vector3): number
 		return 0
 	end
 	local top = if car.def then num(car.def.topSpeed, 100) else 100
-	return VehicleService._minTravelTime(flat(targetPos - start).Magnitude, top, car.model:GetAttribute("SpeedMultiplier"))
+	return VehicleService._minTravelTime(
+		flat(targetPos - start).Magnitude,
+		top,
+		car.model:GetAttribute("SpeedMultiplier")
+	)
 end
 
 -- SPAWN --------------------------------------------------------------------------------------------------------------
@@ -922,6 +950,9 @@ end
 local function groundBelow(car: Car, depth: number, extra: Instance?): (boolean, any)
 	local params = groundParams
 	if not params then
+		if (RaycastParams :: any) == nil then
+			return false, nil -- headless test harness
+		end
 		params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
 		params.IgnoreWater = false
@@ -1110,16 +1141,28 @@ setDriver = function(car: Car, player: Player?)
 		if st then
 			st.authorized = nil
 			st.restSince = nil
+			st.sunkSince = nil
 			st.lastVel = flat(chassis.AssemblyLinearVelocity)
+			st.lastVelAt = now
 			st.damageGraceUntil = now + VehicleService.DAMAGE_GRACE
 			st.wdCFrame = chassis.CFrame
 			st.wdAt = now
 			st.wdRevokedUntil = 0
 			st.wdSpeedStrikes = 0
+			st.wdFlingStrikes = 0
+			st.airSince = nil
 			st.inDropoff = false
 			st.inChop = false
+			st.chopEntered = false
+			st.chopSince = nil
 			st.inSpray = nil
 		end
+		-- drive-start tracking (minTravelTime): where and when this driver's drive began
+		if type(car.data) == "table" then
+			car.data.driveStartAt = now
+			car.data.driveStartPos = chassis.CFrame.Position
+		end
+		stopSettling(car) -- the driver's own controller takes over
 		if not car.destroyed then
 			chassis.Anchored = false
 			pcall(chassis.SetNetworkOwner, chassis, player)
@@ -1131,10 +1174,13 @@ setDriver = function(car: Car, player: Player?)
 			st.restSince = nil
 			st.inDropoff = false
 			st.inChop = false
+			st.chopEntered = false
+			st.chopSince = nil
 			st.inSpray = nil
 		end
 		if not car.destroyed and chassis.Parent and not chassis.Anchored then
 			pcall(chassis.SetNetworkOwner, chassis, nil)
+			VehicleService.settle(car)
 		end
 	end
 	refreshManagedPrompts(car)
@@ -1149,7 +1195,14 @@ onOccupantChanged = function(car: Car)
 	local humanoid = seat.Occupant
 	if humanoid == nil then
 		seat.Disabled = true
-		if car.driver then
+		local driver = car.driver
+		if driver then
+			-- voluntary exit (jump): put the character beside the car instead of on top of the hidden collision box
+			-- inside the body (F6). Not when they just sat in another seat, or died.
+			local char, hum = characterOf(driver)
+			if char and hum and hum.SeatPart == nil and hum.Health > 0 then
+				nudgeOut(car, char)
+			end
 			setDriver(car, nil)
 		end
 		return
@@ -1228,6 +1281,7 @@ function VehicleService.seat(car: Car, player: Player): (boolean, string?)
 	st.restSince = nil
 	refreshManagedPrompts(car)
 	local chassis = car.chassis
+	stopSettling(car) -- before the driver owns the chassis (their client runs its own controller)
 	chassis.Anchored = false
 	seat.Disabled = false
 	pcall(chassis.SetNetworkOwner, chassis, player)
@@ -1238,6 +1292,7 @@ function VehicleService.seat(car: Car, player: Player): (boolean, string?)
 		seat.Disabled = true
 		pcall(chassis.SetNetworkOwner, chassis, nil)
 		refreshManagedPrompts(car)
+		VehicleService.settle(car)
 		return false, "sit failed"
 	end
 	if seat.Occupant == humanoid then
@@ -1254,6 +1309,7 @@ function VehicleService.seat(car: Car, player: Player): (boolean, string?)
 			seat.Disabled = true
 			if chassis.Parent and not chassis.Anchored then
 				pcall(chassis.SetNetworkOwner, chassis, nil)
+				VehicleService.settle(car)
 			end
 			refreshManagedPrompts(car)
 		end
@@ -1272,12 +1328,18 @@ function VehicleService.eject(car: Car)
 	end
 end
 
--- Moves a car on purpose (server teleports) without tripping the watchdog or crash damage.
+-- Moves a car on purpose (server teleports) without tripping the watchdog or crash damage. Every server move of a
+-- car someone may be driving must come through here (never a raw PivotTo). A driven car's drive start is re-based
+-- to the new spot, so minTravelTime measures from where the server put it.
 function VehicleService.teleport(car: Car, cframe: CFrame)
-	if type(car) ~= "table" or car.destroyed then
+	if type(car) ~= "table" or car.destroyed or typeof(cframe) ~= "CFrame" then
 		return
 	end
 	car.model:PivotTo(cframe)
+	if car.driver ~= nil and type(car.data) == "table" then
+		car.data.driveStartAt = os.clock()
+		car.data.driveStartPos = car.chassis.CFrame.Position
+	end
 	VehicleService.resetWatchdog(car)
 end
 
@@ -1290,7 +1352,10 @@ function VehicleService.resetWatchdog(car: Car)
 	st.wdCFrame = car.chassis.CFrame
 	st.wdAt = now
 	st.wdSpeedStrikes = 0
+	st.wdFlingStrikes = 0
+	st.airSince = nil
 	st.lastVel = flat(car.chassis.AssemblyLinearVelocity)
+	st.lastVelAt = now
 	st.damageGraceUntil = math.max(st.damageGraceUntil, now + VehicleService.DAMAGE_GRACE)
 end
 
@@ -1360,8 +1425,10 @@ function VehicleService.addStealPrompt(car: Car, opts: StealPromptOpts): Proximi
 			if typeof(player) ~= "Instance" or player.Parent ~= Players or not isAlive(player) then
 				return
 			end
-			if not VehicleService._holdOk(began, os.clock(), required(player)) then
-				return -- hold too short (spoofed / lagged trigger)
+			local need = required(player)
+			local maxAge = VehicleService._holdMaxAge(need, num(prompt:GetAttribute("BaseHoldDuration"), base))
+			if not VehicleService._holdOk(began, os.clock(), need, nil, maxAge) then
+				return -- hold too short (spoofed / lagged trigger) or a stale, pre-charged one
 			end
 			if
 				not withinReach(
@@ -1390,26 +1457,31 @@ function VehicleService.addStealPrompt(car: Car, opts: StealPromptOpts): Proximi
 			if st then
 				st.stealing = true
 			end
-			local okS, err = pcall(opts.onStolen, player)
+			local okS, res = pcall(opts.onStolen, player)
 			if st then
 				st.stealing = false
 			end
 			if not okS then
-				warn("[VehicleService] onStolen errored: " .. tostring(err))
+				warn("[VehicleService] onStolen errored: " .. tostring(res))
 				return
+			end
+			if res == false then
+				return -- nothing was taken (e.g. seat() refused the thief)
 			end
 			VehicleService.Stolen:Fire(player, car, previousKind)
 		end)
 	end)
 
 	prompt.Parent = car.chassis
-	if st then
+	if st and opts.managed ~= true then
 		st.trove:Add(prompt)
 	end
 	return prompt
 end
 
 -- MANAGED PROMPTS (get back into unoccupied Owned / Loot cars) -----------------------------------------------------
+-- They are re-created on every enter / exit, so they live in st.enterPrompt / st.hotwirePrompt only (destroyed by
+-- refreshManagedPrompts or destroy()), never in the car's trove (which would keep every dead prompt, PERF-14).
 
 local function playerByUserId(userId: number?): Player?
 	if not userId or userId == 0 then
@@ -1457,6 +1529,11 @@ local function canHotwireLoot(car: Car, player: Player): (boolean, string?)
 	if car.destroyed or car.wrecked or car.kind ~= "Loot" or car.driver ~= nil then
 		return false, nil
 	end
+	if car.ownerUserId == player.UserId then
+		-- the claimer gets back in with the EnterPrompt; re-"stealing" your own car is no steal (no heat, no credit).
+		-- HideForUserId only hides this prompt on the client.
+		return false, "That's already your ride: use Get in!"
+	end
 	if player:GetAttribute("Stunned") == true then
 		return false, nil
 	end
@@ -1466,10 +1543,13 @@ local function canHotwireLoot(car: Car, player: Player): (boolean, string?)
 	return true, nil
 end
 
-local function hotwireLoot(car: Car, player: Player)
+local function hotwireLoot(car: Car, player: Player): boolean
 	local prevClaimer = car.ownerUserId
 	local tier = rarityDef(car)
-	VehicleService.seat(car, player)
+	local seated = VehicleService.seat(car, player)
+	if not seated then
+		return false -- nobody got in: no claim, heat or credit
+	end
 	car.ownerUserId = player.UserId
 	setAttr(car.model, "OwnerUserId", player.UserId)
 	refreshManagedPrompts(car)
@@ -1481,12 +1561,15 @@ local function hotwireLoot(car: Car, player: Player)
 		end
 		verb = "snatched"
 	end
-	VehicleService.addStealHeat(player, tier.wantedOnSteal, "lootSteal")
+	-- same witness rule as a street hotwire (DECISIONS §1)
+	local stars = VehicleService._streetStars(tier.wantedOnSteal, tier.wantedChance, heatRng:NextNumber())
+	VehicleService.addStealHeat(player, stars, "lootSteal")
 	VehicleService.contractProgress(player, "steal", 1)
 	VehicleService.announceSteal(player, car, verb)
+	return true
 end
 
-local function createEnterPrompt(car: Car, st: CarState): ProximityPrompt
+local function createEnterPrompt(car: Car): ProximityPrompt
 	local pp = Instance.new("ProximityPrompt")
 	pp.Name = "EnterPrompt"
 	pp.ActionText = "Drive"
@@ -1503,7 +1586,6 @@ local function createEnterPrompt(car: Car, st: CarState): ProximityPrompt
 		end)
 	end)
 	pp.Parent = car.chassis
-	st.trove:Add(pp)
 	return pp
 end
 
@@ -1524,7 +1606,7 @@ refreshManagedPrompts = function(car: Car)
 	if wantEnter then
 		local pp = st.enterPrompt
 		if not pp or not pp.Parent then
-			pp = createEnterPrompt(car, st)
+			pp = createEnterPrompt(car)
 			st.enterPrompt = pp
 		end
 		local prompt = pp :: ProximityPrompt
@@ -1549,9 +1631,10 @@ refreshManagedPrompts = function(car: Car)
 				canSteal = function(player: Player): (boolean, string?)
 					return canHotwireLoot(car, player)
 				end,
-				onStolen = function(player: Player)
-					hotwireLoot(car, player)
+				onStolen = function(player: Player): boolean
+					return hotwireLoot(car, player)
 				end,
+				managed = true,
 			})
 			st.hotwirePrompt = pp
 		end
@@ -1608,6 +1691,12 @@ function VehicleService.wreck(car: Car)
 		end
 	end
 	refreshManagedPrompts(car)
+	stopSettling(car)
+	-- before the eject: listeners (TheftService) end a theft as "wrecked" instead of reading the eject as a drop
+	VehicleService.Wrecked:Fire(car)
+	if car.destroyed then
+		return -- a Wrecked handler already removed it
+	end
 	VehicleService.eject(car)
 	if driver then
 		notify(driver, "error", "💥 WRECKED! That ride is toast.", 3)
@@ -1637,7 +1726,6 @@ function VehicleService.wreck(car: Car)
 			chassis:ApplyAngularImpulse(Vector3.new(0, 0, mass * (if math.random() < 0.5 then -6 else 6)))
 		end
 	end)
-	VehicleService.Wrecked:Fire(car)
 	task.delay(VehicleService.WRECK_DESTROY_AFTER, function()
 		VehicleService.destroy(car, "wrecked")
 	end)
@@ -1650,6 +1738,7 @@ function VehicleService.destroy(car: Car, reason: string?)
 	car.destroyed = true
 	local why = if type(reason) == "string" then reason else "destroyed"
 	local st = states[car]
+	stopSettling(car)
 	if car.seat and (car.seat.Occupant ~= nil or car.driver ~= nil) then
 		kickOccupant(car, true)
 	end
@@ -1665,8 +1754,15 @@ function VehicleService.destroy(car: Car, reason: string?)
 	end
 	states[car] = nil
 	if st then
+		local enter, hotwire = st.enterPrompt, st.hotwirePrompt
 		st.enterPrompt = nil
 		st.hotwirePrompt = nil
+		if enter then
+			pcall(enter.Destroy, enter)
+		end
+		if hotwire then
+			pcall(hotwire.Destroy, hotwire)
+		end
 		st.trove:Clean()
 	end
 	pcall(function()
@@ -1735,54 +1831,17 @@ local function damagePass(now: number)
 			continue
 		end
 		local vel = flat(chassis.AssemblyLinearVelocity)
-		local dmg = VehicleService._crashDamage(st.lastVel, vel)
+		local dmg = VehicleService._crashDamage(st.lastVel, vel, now - st.lastVelAt)
 		st.lastVel = vel
+		st.lastVelAt = now
 		if dmg > 0 and now >= st.damageGraceUntil then
 			VehicleService.damage(car, dmg, nil)
 		end
 	end
 end
 
-local function zonePass(now: number)
-	for i = 1, snapshotDriving() do
-		local player, car = scratchPlayers[i], scratchCars[i]
-		if drivingByPlayer[player] ~= car then
-			continue
-		end
-		local st = states[car]
-		if not st or car.destroyed or car.wrecked then
-			continue
-		end
-		local pos = car.chassis.CFrame.Position
-		local attr = player:GetAttribute("PlotIndex")
-		local plot: number? = if typeof(attr) == "number" then attr else nil
-		if car.kind == "Owned" and car.data.leftGarage ~= true then
-			if plot == nil or MapLayout.plotAt(pos) ~= plot then
-				car.data.leftGarage = true
-			end
-		end
-		local inDrop, inChop, spray = VehicleService._zoneFlags(pos, plot)
-		if inDrop then
-			local eligible = car.kind ~= "Owned" or car.data.leftGarage == true
-			if eligible and (not st.inDropoff or now - st.dropoffFiredAt >= VehicleService.DELIVERY_RETRY) then
-				fireDelivery(player, car, st, now)
-			end
-		end
-		st.inDropoff = inDrop
-		if car.destroyed or car.driver ~= player then
-			continue -- delivered / parked by a handler
-		end
-		if inChop and not st.inChop then
-			VehicleService.ChopAttempt:Fire(player, car)
-		end
-		st.inChop = inChop
-		if spray ~= nil and st.inSpray ~= spray then
-			VehicleService.SprayAttempt:Fire(player, car)
-		end
-		st.inSpray = spray
-	end
-end
-
+-- Watchdog violation: take ownership back, rewind to the last accepted pose, hold it WATCHDOG_REVOKE_SECONDS and
+-- taint the car (no zone event, delivery or chop for it ever again: VehicleService.isTainted).
 local function violate(
 	car: Car,
 	player: Player,
@@ -1796,7 +1855,12 @@ local function violate(
 	local revoke = VehicleConfig.WATCHDOG_REVOKE_SECONDS
 	st.wdRevokedUntil = now + revoke
 	st.wdSpeedStrikes = 0
+	st.wdFlingStrikes = 0
+	st.airSince = nil
 	st.damageGraceUntil = now + revoke + VehicleService.DAMAGE_GRACE
+	if type(car.data) == "table" then
+		car.data.tainted = true
+	end
 	warn(
 		("[VehicleService] watchdog %s: %s in car %d speed %.0f disp %.0f cap %.0f -> rewind"):format(
 			verdict,
@@ -1821,10 +1885,111 @@ local function violate(
 		if not chassis.Anchored then
 			pcall(chassis.SetNetworkOwner, chassis, player)
 		end
+		local t = os.clock()
 		st.wdCFrame = chassis.CFrame
-		st.wdAt = os.clock()
+		st.wdAt = t
 		st.lastVel = flat(chassis.AssemblyLinearVelocity)
+		st.lastVelAt = t
 	end)
+end
+
+-- May a zone act on this driven car's position right now? Runs the watchdog's displacement / speed check against
+-- the last accepted sample WITHOUT moving that baseline (watchdogPass keeps its 0.5 s cadence): a client teleport
+-- into a drop-off, the Chop Shop or a spray booth is rewound instead of acted on (SEC-1 / F2). Then the travel-time
+-- gate: nothing reaches a zone faster than the fastest legal drive from where this drive began.
+local function zoneTrusted(player: Player, car: Car, st: CarState, now: number): boolean
+	if now < st.wdRevokedUntil or VehicleService.isTainted(car) then
+		return false
+	end
+	local chassis = car.chassis
+	local cf = chassis.CFrame
+	local delta = if chassis.Anchored then Vector3.zero else cf.Position - st.wdCFrame.Position
+	local disp = flat(delta).Magnitude
+	local hSpeed = if chassis.Anchored then 0 else flat(chassis.AssemblyLinearVelocity).Magnitude
+	local cap = VehicleService.getSpeedCap(car)
+	local dt = math.min(now - st.wdAt, VehicleService.WATCHDOG_MAX_DT)
+	local startedAt = if type(car.data) == "table" then car.data.driveStartAt else nil
+	local sinceStart = if typeof(startedAt) == "number" then now - startedAt else math.huge
+	local minTime = if sinceStart < math.huge then VehicleService.minTravelTime(car, cf.Position) else 0
+	local ok, violation = VehicleService._zoneGate(hSpeed, disp, delta.Y, dt, cap, sinceStart, minTime)
+	if violation then
+		violate(car, player, st, violation, hSpeed, disp, cap)
+	end
+	return ok
+end
+
+local function zonePass(now: number)
+	for i = 1, snapshotDriving() do
+		local player, car = scratchPlayers[i], scratchCars[i]
+		if drivingByPlayer[player] ~= car then
+			continue
+		end
+		local st = states[car]
+		if not st or car.destroyed or car.wrecked then
+			continue
+		end
+		if not zoneTrusted(player, car, st, now) then
+			continue -- zone state untouched: a trusted sample inside a zone later still counts as entering it
+		end
+		local pos = car.chassis.CFrame.Position
+		local attr = player:GetAttribute("PlotIndex")
+		local plot: number? = if typeof(attr) == "number" then attr else nil
+		if car.kind == "Owned" and car.data.leftGarage ~= true then
+			if plot == nil or MapLayout.plotAt(pos) ~= plot then
+				car.data.leftGarage = true
+			end
+		end
+		local inDrop, inChop, spray = VehicleService._zoneFlags(pos, plot)
+		if inDrop then
+			local eligible = car.kind ~= "Owned" or car.data.leftGarage == true
+			if eligible and (not st.inDropoff or now - st.dropoffFiredAt >= VehicleService.DELIVERY_RETRY) then
+				fireDelivery(player, car, st, now)
+			end
+		end
+		st.inDropoff = inDrop
+		if car.destroyed or car.driver ~= player then
+			continue -- delivered / parked by a handler
+		end
+		-- Chop Shop: only after the car has stopped inside for CHOP_DWELL (no drive-through chops, F24)
+		if inChop then
+			if not st.chopEntered then
+				st.chopEntered = true
+				if car.kind == "Loot" then
+					notify(player, "info", "🔧 Stop here to chop it for cash!", 2)
+				end
+			end
+			if not st.inChop then
+				if flat(car.chassis.AssemblyLinearVelocity).Magnitude <= VehicleService.CHOP_MAX_SPEED then
+					local since = st.chopSince or now
+					st.chopSince = since
+					if now - since >= VehicleService.CHOP_DWELL then
+						st.inChop = true
+						VehicleService.ChopAttempt:Fire(player, car)
+					end
+				else
+					st.chopSince = nil
+				end
+			end
+		else
+			st.inChop = false
+			st.chopEntered = false
+			st.chopSince = nil
+		end
+		if car.destroyed or car.driver ~= player then
+			continue -- chopped by a handler
+		end
+		if spray ~= nil and st.inSpray ~= spray then
+			VehicleService.SprayAttempt:Fire(player, car)
+		end
+		st.inSpray = spray
+	end
+end
+
+-- Is there ground (or water) within WATCHDOG_AIR_CLEARANCE under the car? Unknown (cast failed) counts as yes.
+local function hasGroundBelow(car: Car, driver: Player): boolean
+	local ride = num(car.model:GetAttribute("RideHeight"), 2)
+	local ok, hit = groundBelow(car, ride + VehicleService.WATCHDOG_AIR_CLEARANCE, driver.Character)
+	return not ok or hit ~= nil
 end
 
 local function watchdogPass(now: number)
@@ -1842,13 +2007,16 @@ local function watchdogPass(now: number)
 		if chassis.Anchored then
 			st.wdCFrame = cf
 			st.wdAt = now
+			st.airSince = nil
 			continue
 		end
-		local disp = flat(cf.Position - st.wdCFrame.Position).Magnitude
-		local hSpeed = flat(chassis.AssemblyLinearVelocity).Magnitude
+		local delta = cf.Position - st.wdCFrame.Position
+		local disp = flat(delta).Magnitude
+		local vel = chassis.AssemblyLinearVelocity
+		local hSpeed = flat(vel).Magnitude
 		local cap = VehicleService.getSpeedCap(car)
 		local dt = math.min(now - st.wdAt, VehicleService.WATCHDOG_MAX_DT)
-		local verdict = VehicleService._watchdogVerdict(hSpeed, disp, dt, cap)
+		local verdict = VehicleService._watchdogVerdict(hSpeed, disp, dt, cap, delta.Y)
 		if verdict == "speed" then
 			st.wdSpeedStrikes += 1
 			if st.wdSpeedStrikes < 2 and hSpeed < cap * VehicleService.WATCHDOG_BLATANT then
@@ -1857,18 +2025,40 @@ local function watchdogPass(now: number)
 		elseif verdict == nil then
 			st.wdSpeedStrikes = 0
 		end
+		-- fling (SEC-6): extreme spin or vertical speed on two consecutive samples
+		if VehicleService._flingSample(chassis.AssemblyAngularVelocity.Magnitude, vel.Y) then
+			st.wdFlingStrikes += 1
+			if verdict == nil and st.wdFlingStrikes >= 2 then
+				verdict = "fling"
+			end
+		else
+			st.wdFlingStrikes = 0
+		end
+		-- flying (F5): no ground under the car for WATCHDOG_AIR_SECONDS in a row (ramp jumps last about a second)
+		if verdict == nil then
+			if hasGroundBelow(car, player) then
+				st.airSince = nil
+			else
+				local since = st.airSince or now
+				st.airSince = since
+				if now - since >= VehicleService.WATCHDOG_AIR_SECONDS then
+					verdict = "fly"
+				end
+			end
+		end
 		if verdict then
 			violate(car, player, st, verdict, hSpeed, disp, cap)
-		elseif disp > 0.01 or now - st.wdAt > VehicleService.WATCHDOG_MAX_DT then
-			-- a frozen position (replication stall) keeps accruing allowance instead of resetting it
+		elseif disp > 0.01 or math.abs(delta.Y) > 0.01 or now - st.wdAt > VehicleService.WATCHDOG_MAX_DT then
+			-- a frozen position (replication stall) keeps accruing allowance (up to WATCHDOG_MAX_DT)
 			st.wdCFrame = cf
 			st.wdAt = now
 		end
 	end
 end
 
+local lifeScratch: { Car } = {}
 local function lifePass(now: number)
-	for _, car in VehicleService.all() do -- snapshot: handlers may spawn / destroy cars
+	for _, car in VehicleService.allInto(lifeScratch) do -- snapshot: handlers may spawn / destroy cars
 		local st = states[car]
 		if not st or car.destroyed then
 			continue
@@ -1892,14 +2082,23 @@ local function lifePass(now: number)
 			continue
 		end
 		local pos = chassis.CFrame.Position
-		if pos.Y < VehicleService.LOST_Y then
-			if car.kind == "Owned" then
-				VehicleService.eject(car)
-				returnHome(car, st)
-			elseif car.kind ~= "Stolen" then -- TheftService fails sunk thefts itself
-				VehicleService.destroy(car, "lost")
+		-- sunk (F9): under water for LOST_AFTER seconds, or out of the world. Police: PoliceService rubber-bands its
+		-- units at the waterline itself, so only the void counts for them.
+		local lostY = if car.kind == "Police" then VehicleService.VOID_Y else VehicleService.LOST_Y
+		if pos.Y < lostY then
+			local since = st.sunkSince or now
+			st.sunkSince = since
+			if now - since >= VehicleService.LOST_AFTER or pos.Y < VehicleService.VOID_Y then
+				if car.kind == "Owned" then
+					VehicleService.eject(car)
+					returnHome(car, st)
+				elseif car.kind ~= "Stolen" then -- TheftService fails sunk thefts itself
+					VehicleService.destroy(car, "lost")
+				end
+				continue
 			end
-			continue
+		else
+			st.sunkSince = nil
 		end
 
 		local driver = car.driver
@@ -1922,6 +2121,8 @@ local function lifePass(now: number)
 				local since = st.restSince or now
 				st.restSince = since
 				if now - since >= VehicleConfig.PARK_ANCHOR_AFTER then
+					stopSettling(car)
+					restPose(car)
 					chassis.Anchored = true
 					st.restSince = nil
 				end
@@ -1967,7 +2168,7 @@ local function runPass(name: string, fn: (number) -> (), now: number)
 	end
 end
 
-local function onPlayerRemoving(player: Player)
+local function cleanupLeaver(player: Player)
 	local car = drivingByPlayer[player]
 	if car then
 		setDriver(car, nil)
@@ -1979,6 +2180,22 @@ local function onPlayerRemoving(player: Player)
 			st.authorized = nil
 		end
 	end
+	-- DUPE-1: an Owned car never outlives its owner's session. Left in the world, a quick rejoin could drive it
+	-- "home" onto a garage whose slot was sold / rebirthed meanwhile. GarageService has already dropped this
+	-- player's state (deferred, see below), so destroying it touches no garage record.
+	for _, c in VehicleService.all() do
+		if c.kind == "Owned" and c.ownerUserId == player.UserId and not c.destroyed then
+			VehicleService.destroy(c, "owner_left")
+		end
+	end
+end
+
+VehicleService._cleanupLeaver = cleanupLeaver -- tests
+
+local function onPlayerRemoving(player: Player)
+	-- Deferred: the other systems' PlayerRemoving handlers run first (TheftService ends a leaving thief's theft,
+	-- GarageService drops the garage state), so clearing the driver here never reads as a "dropped" stolen car.
+	task.defer(cleanupLeaver, player)
 end
 
 function VehicleService.init()
@@ -2022,13 +2239,14 @@ function VehicleService.start()
 			accDamage = 0
 			runPass("damage", damagePass, now)
 		end
-		if accZone >= ZONE_TICK then
-			accZone = 0
-			runPass("zone", zonePass, now)
-		end
+		-- watchdog before zones: a sample it rewinds never reaches a zone check
 		if accWatch >= WATCHDOG_TICK then
 			accWatch = 0
 			runPass("watchdog", watchdogPass, now)
+		end
+		if accZone >= ZONE_TICK then
+			accZone = 0
+			runPass("zone", zonePass, now)
 		end
 		if accLife >= LIFE_TICK then
 			accLife = 0
@@ -2039,6 +2257,12 @@ function VehicleService.start()
 			runPass("hold", function()
 				holdPass()
 			end, now)
+		end
+	end)
+	-- settling controllers step with the physics, like the police AI's
+	RunService.PreSimulation:Connect(function(dt: number)
+		if next(settling) ~= nil then
+			settleStep(dt)
 		end
 	end)
 end

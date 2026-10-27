@@ -1,0 +1,191 @@
+{
+ "C1": {
+  "results": [
+   {
+    "uid": "secperf:performance:PERF-12",
+    "status": "partially",
+    "note": "C1 part done: WaypointController's two looping tweens (marker bob, arrow pulse) now run only while the marker or arrow is on screen. The PlotService SurfaceGui budget belongs to A2 and the Legendary tag pulse to B1."
+   },
+   {
+    "uid": "contracts:client-server:THEFTSTATE-DROPPED-STRIPPED",
+    "status": "fixed",
+    "note": "StateController keeps dropped, droppedEndsAt and mutation (done before the restart). HUD.theftMode/applyTheft now switch to a red '\ud83d\udea8 GET BACK IN! 0:12' timer whose bar counts down the tow deadline."
+   },
+   {
+    "uid": "contracts:client-server:POLICE-SIREN-ATTR-IGNORED",
+    "status": "fixed",
+    "note": "SoundController skips Police models with Siren == false (nil counts as on). B1 already did the EffectsController part."
+   },
+   {
+    "uid": "flows:first-60s:TUT-TARGET",
+    "status": "fixed",
+    "note": "Checked the pre-restart work. retarget() prefers the car tagged TutorialForUserId, then street-side cars (same test as _inFrontOfDoor) within 220 studs, then any car. While inside the garage the arrow points at the door ('GO OUT')."
+   },
+   {
+    "uid": "flows:first-60s:TUT-DEALER",
+    "status": "fixed",
+    "note": "The dealer step is no longer timed. It ends on arrival (within 70 flat studs of the Dealership) or after 90s, and the waypoint stays until then. hud.spec updated."
+   },
+   {
+    "uid": "flows:first-60s:TUT-DAILY-TOAST",
+    "status": "not-needed",
+    "note": "Server-side fix, already made by B2: RewardsService skips the daily nag while tutorialDone ~= true and the text now says 'Tap \ud83c\udf81'. Nothing needed in C1 files."
+   },
+   {
+    "uid": "flows:first-60s:TUT-REGRESS-CLAIMED",
+    "status": "fixed",
+    "note": "Step 2 now points first at our own idle Loot car within 150 studs ('GET BACK IN!'). The keycap switches to F / Y / \ud83d\udc46 with no HOLD caption."
+   },
+   {
+    "uid": "flows:first-60s:EXIT-ON-E",
+    "status": "not-needed",
+    "note": "Owned by A1, who removed E from HC_Exit in VehicleClient. The tutorial keyFor stays 'E' because that is the Hotwire prompt key."
+   },
+   {
+    "uid": "flows:first-60s:TUT-NOT-PERSISTED",
+    "status": "fixed",
+    "note": "start(): a profile with tutorialDone false and steals > 0 (alreadyDelivered) fires TutorialDone and skips the replay. Tested."
+   },
+   {
+    "uid": "flows:first-60s:OFFLINE-PAYOFF",
+    "status": "fixed",
+    "note": "Client only. NotificationController calls HUD.holdCash(amount) when the modal opens and releaseCash() on COLLECT (synced with the coin burst) or on auto-close. HUD shows cash minus the held amount, so it counts up on COLLECT; a 40s safety release is built in. Added isOfflineOpen()."
+   },
+   {
+    "uid": "flows:first-60s:KEYCAP-PULSE",
+    "status": "fixed",
+    "note": "The infinite pulse UIScale moved to keyTop, so Kit.pop(c.key) no longer cancels it."
+   },
+   {
+    "uid": "flows:player-theft:F5-thief-hud-ignores-drop",
+    "status": "fixed",
+    "note": "Same fix as THEFTSTATE-DROPPED-STRIPPED. Covered by the hud.spec theftMode tests and the clientcore sanitizeTheft tests."
+   },
+   {
+    "uid": "flows:player-theft:F13-victim-waypoint-by-displayname",
+    "status": "fixed",
+    "note": "thiefPosition now follows the car whose TheftActive is true and TheftVictimUserId is the local user, preferring a CarId and Mutation match. It is cached with a 0.5s rescan, and the name lookup is only a fallback. pickStolenCar is unit-tested."
+   },
+   {
+    "uid": "flows:player-theft:F17-alert-banner-overlaps-event-hud",
+    "status": "fixed",
+    "note": "New top-center stacking: the alert banner sits below HUD.getTopStackBottom(); the EventsHUD Top frame sits below max(HUD stack, NotificationController.getAlertBottom()). Each tick EventsClient.fitScale shrinks the pills and hot drop banner so they end above HUD.getBottomClearance()."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F2",
+    "status": "fixed",
+    "note": "WaypointController adds an automatic 'spray' waypoint to the nearest MapLayout.sprayZones() booth while Wanted > 0, labelled 'SPRAY $<cost>'. The cost uses the WantedService/DECISIONS formula (sprayCost, tested); the \ud83c\udfa8 icon was already in iconFor."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F6",
+    "status": "fixed",
+    "note": "HUD reads WantedSeen and WantedDecayAt. While a cop sees you: red/blue stroke and siren wiggle. While hidden: stars blink, lights go off, and a cyan escape bar fills toward the next star loss."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F10",
+    "status": "partially",
+    "note": "EventsClient sets a '\ud83d\udcb0 CASH RAIN' waypoint at poiCenter('SpawnPlaza') while eventState.cashRain is active and clears it afterwards. The chop-shop waypoint on a full-garage delivery belongs to A2 (GarageService); id 'chop' already gets \ud83d\udd27."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F13",
+    "status": "fixed",
+    "note": "Duplicate of POLICE-SIREN-ATTR-IGNORED: SoundController part done here, EffectsController part done by B1."
+   },
+   {
+    "uid": "flows:chase-events-dealer:F19",
+    "status": "fixed",
+    "note": "Busted listener and showBusted(lostCash, carLabel?) show a popped '\ud83d\ude97 <CAR> IMPOUNDED' line under the cash loss. The sub line now reads '\ud83d\ude94 Released at Police HQ'."
+   },
+   {
+    "uid": "flows:economy-monetization:F15",
+    "status": "fixed",
+    "note": "HUDController installs TextChatService.OnIncomingMessage, which adds a gold [\ud83d\udc51 VIP] prefix for senders whose VIP attribute is true, so the promised tag is visible to everyone. vipChatPrefix is tested."
+   },
+   {
+    "uid": "flows:client-ux:UI-SPIKE-EXIT-OVERLAP",
+    "status": "not-needed",
+    "note": "The fix lives entirely in CombatClient (B1), and B1 already anchored SPIKES bottom-right at (1,-144,1,-170)."
+   },
+   {
+    "uid": "flows:client-ux:UI-PLAYERLIST-COVERS-WANTED",
+    "status": "fixed",
+    "note": "Wanted stars and the bust bar moved to a top-center status stack under the cash pill (touch scale 1.2, shown only while wanted or being busted, lingers 1.6s). Desktop toasts now start at 36% of screen height, below the player list."
+   },
+   {
+    "uid": "flows:client-ux:UI-SPEEDO-UNDER-HOTBAR",
+    "status": "fixed",
+    "note": "C1 part: HUD re-runs layout() on Driving changes (and again 0.5s later). The theft timer measures DrivingUI's Speedometer and stays above it and HOME. A1 hides the backpack while driving."
+   },
+   {
+    "uid": "flows:client-ux:UI-TOASTS-COVER-CONTROLS",
+    "status": "fixed",
+    "note": "On touch there is no full-size Dismiss button, so taps fall through. Toasts are anchored top-right, left of the 140-design-px button column (toastAnchor, tested), max 3."
+   },
+   {
+    "uid": "flows:client-ux:UI-DRIFT-COVERS-THEFT-TIMER",
+    "status": "not-needed",
+    "note": "Owned by A1, who moved the drift banner to speedometer -150. THEFT_BOTTOM is unchanged. Verified that the touch-scaled timer (top at H-283) clears it."
+   },
+   {
+    "uid": "flows:client-ux:UI-STREAMER-MODE-PARTIAL",
+    "status": "partially",
+    "note": "Streamer mode now hides the toasts, feed (new lines dropped), banners and alert vignette in NotificationController, the markers, pillars and edge arrows in WaypointController, and the tutorial card. EventsClient now uses HUD.isHidden(). GarageClient's GarageHUD still needs hiding (A2)."
+   },
+   {
+    "uid": "flows:client-ux:UI-CHAT-COVERS-LEFT-HUD",
+    "status": "fixed",
+    "note": "On desktop the TopRow, menu column and \ud83d\udc41\ufe0f toggle start below the chat window, measured from ChatWindowConfiguration and the input bar's AbsoluteSize (fallback 250 design px), and re-layout when the chat resizes. The feed follows the menu via HUD.getFeedAnchor()."
+   },
+   {
+    "uid": "flows:client-ux:UI-PHONE-MENU-GRID-THUMBSTICK",
+    "status": "fixed",
+    "note": "Touch menu is a strip above the dynamic thumbstick zone (canvas/3) and left of the top-center stack (touchMenuGrid: 76 px cells, else 62). It hides while driving; the feed is placed under the strip."
+   },
+   {
+    "uid": "flows:client-ux:UI-EDGE-ARROW-HIDDEN-WHILE-DRIVING",
+    "status": "fixed",
+    "note": "Arrow gui moved to DisplayOrder Theme.Layers.HUDTop (12). While driving, the bottom inset uses HUD.getBottomClearance() (speedometer and theft timer); on touch the right inset clears the 150-design-px button column."
+   },
+   {
+    "uid": "flows:client-ux:UI-PIXEL-BILLBOARDS-PHONE",
+    "status": "partially",
+    "note": "Waypoint marker children now sit in a Root frame with a UIScale, and the billboard is sized by Kit.uiScale(TouchMinScale), updated on resize. CashPopup billboards are scaled too. The EffectsController part belongs to B1, which uses Kit.uiScale."
+   },
+   {
+    "uid": "flows:client-ux:UI-PHONE-TEXT-TOO-SMALL",
+    "status": "fixed",
+    "note": "Kit.screen gains opts.touchMin (Theme.TouchMinScale 0.72) plus Kit.isTouch and Kit.uiScale. Applied to HC_Notifications, HC_Banners and EventsHUD. Touch toast and feed text is 20 design px; HUD theft timer and status stack get touch scales. A1 did DrivingUI via textBoost."
+   },
+   {
+    "uid": "flows:client-ux:UI-LOCK-OVER-HOME",
+    "status": "deferred",
+    "note": "Lives in GarageClient (A2). HUD.getBottomClearance() is available to stack the lock pill above HOME, and now also covers the speedometer and theft timer."
+   },
+   {
+    "uid": "flows:client-ux:UI-ANNOUNCE-CENTER-WHILE-DRIVING",
+    "status": "fixed",
+    "note": "While driving, announce banners shrink to 0.6 scale, sit under the top-center stack (HUD, alert banner, EventsClient.getBottom), and only the newest 2 stay queued."
+   },
+   {
+    "uid": "flows:client-ux:UI-THEFT-DROPPED-NOT-SHOWN",
+    "status": "fixed",
+    "note": "Duplicate of THEFTSTATE-DROPPED-STRIPPED, same fix."
+   },
+   {
+    "uid": "flows:client-ux:UI-GEAR-BADGE-ZAPPER-PASS",
+    "status": "fixed",
+    "note": "gearAffordable treats taser as owned when snapshot.passes.taser is true (same rule as MenuController.toolRows). Tested."
+   }
+  ],
+  "crossGroupNotes": [
+   "A2 (GarageClient): two items left. (1) Streamer mode: connect HUDController.VisibilityChanged and apply HUDController.isHidden() at start to set GarageHUD.Enabled. (2) UI-LOCK-OVER-HOME: show the lock pill only inside the garage, or place it at UDim2.new(0.5,0,1,-(HUDController.getBottomClearance()+8)). getBottomClearance() is in design px of a default Kit.screen and now includes HOME + hotbar, the measured speedometer and the theft timer.",
+   "A2 (GarageService): F10 still needs the chop waypoint on a full-garage delivery. Use Net.fireClient('Waypoint', player, 'chop', pos, color, 'CHOP SHOP'); WaypointController already shows \ud83d\udd27 for the id 'chop'.",
+   "A2 (PlotService) and B1 (EffectsController): PERF-12 parts remain \u2014 SurfaceGui PixelsPerStud and MaxDistance for A2, the Legendary pulse range for B1. B1 already scales billboards with Kit.uiScale(Theme.TouchMinScale).",
+   "New cross-module getters other code can use (all pcall-safe and lazily required): HUDController.getTopStackBottom(), getFeedAnchor(), getMenuBottom() and getBottomClearance(); NotificationController.getAlertBottom() and isOfflineOpen(); EventsClient.getBottom(); HUDController.holdCash/releaseCash. Theme.Layers.HUDTop = 12 is new; Kit.screen(name, order, {touchMin=...}), Kit.isTouch() and Kit.uiScale(touchMin?) are new.",
+   "HUDController now owns TextChatService.OnIncomingMessage (the VIP chat tag). Nobody else may assign that callback; another assignment would overwrite it.",
+   "Lead (docs): docs/previews/hud_*.png are stale. The new layout previews are in /tmp/claude-0/-home-user/eee557c6-e616-59f3-9670-c1bf8e316e0b/scratchpad/c1prev/ (desktop, desktop_chase, desktop_victim, phone, phone_chase, phone_chase_dropped, phone_victim, busted, streamer, tutorial, phone_tutorial .png). The generator is dump.luau + render_gui.py in the same folder; it renders per-gui UIScale and draws ghost boxes for the CoreGui PlayerList, chat, hotbar and thumbstick zone. gameplay-client.md should drop the 'dropped state not shown' deviation and the waypoint streamer-mode deviation.",
+   "Partial work from the interrupted run (in StateController, SoundController, TutorialController, Kit and Theme) was kept: those files were already committed in 2b0e1b7 and I re-checked them. Commit 601f18c also captured part of my in-progress HUDController; the working tree holds the final version."
+  ],
+  "verification": "selene: 0 errors, 0 warnings on all 9 C1 source files and both specs. stylua --check passes. `rojo build -o /tmp/claude-0/fix-C1.rbxlx` succeeds. `lune run tests/run.luau`: 401 passed, 1 failed. The failure is garage.spec ('GarageService.luau:1159 attempt to call a nil value'), in A2's GarageService while they are mid-edit, not a C1 module. hud.spec and clientcore.spec pass in full, including new tests for theftMode, gearAffordable with the Zapper pass, touchMenuGrid, vipChatPrefix, sprayCost, nearestIndex, toastAnchor, pickStolenCar, stackTop, fitScale and the new iconFor entries. Layout previews were regenerated with the original PIL renderer. I patched it to apply each ScreenGui's own UIScale, gave it ghost boxes for the CoreGui PlayerList, chat, hotbar and thumbstick zone, and extended the dump to run NotificationController and EventsClient. I checked 11 scenarios, desktop and phone (idle, thief chase, dropped car, victim alarm, busted, streamer, tutorial). That pass led to more fixes: the alert banner sits below the phone menu strip, is 540 wide and scaled 0.8 on touch; the feed moves below the alert banner on touch; the events stack shrinks to fit when it is too tall; pop pivots for the status, theft and alert panels were corrected. On a re-read of all diff hunks I replaced TweenInfo.Time, which the harness does not provide, with a constant.\"]"
+ }
+}

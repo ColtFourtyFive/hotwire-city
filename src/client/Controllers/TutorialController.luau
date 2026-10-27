@@ -1266,7 +1266,16 @@ local function tick()
 	if c then
 		local theft = StateController.getTheft()
 		local bottom = if theft and theft.active then CARD_BOTTOM_THEFT else CARD_BOTTOM
-		if bottom ~= cardBottom then
+		-- stay above whatever the HUD has at bottom-center right now (HOME + hotbar, the measured speedometer, the
+		-- theft timer); same Kit.screen scale, so its design px are ours
+		local hud = lazy("HUDController")
+		if hud and typeof(hud.getBottomClearance) == "function" then
+			local ok, clearance = pcall(hud.getBottomClearance)
+			if ok and typeof(clearance) == "number" then
+				bottom = math.max(bottom, math.ceil(clearance) + 8)
+			end
+		end
+		if math.abs(bottom - cardBottom) >= 4 then
 			cardBottom = bottom
 			tween(c.holder, Theme.TweenMedium, { Position = UDim2.new(0.5, 0, 1, -bottom) })
 		end

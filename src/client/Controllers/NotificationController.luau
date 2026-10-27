@@ -1,24 +1,37 @@
 --!strict
 -- NotificationController (SPEC §7): every transient message the player sees.
 --
---  * toast(kind, text, duration?)     top-right stack (max 4), slides in, kind color + emoji icon, timer bar, tap to
---                                     dismiss, identical toasts merge into one with a "×N" counter. `Notify` remote.
+--  * toast(kind, text, duration?)     right-side stack, slides in, kind color + emoji icon, timer bar, identical toasts
+--                                     merge into one with a "×N" counter. `Notify` remote. Desktop: from ~36% height
+--                                     down (the PC player list owns the top-right), click to dismiss. Touch: top-right,
+--                                     left of the action/driving button column, max 3, sized to fit the text at a
+--                                     readable size, and never takes taps (they fall through to the controls).
 --  * announce(title, subtitle?, color?, sound?)   huge center banner: scale-pop + wiggle, glossy title, shine sweep
 --                                     across a neon ribbon. Queued, ~3s each (shorter while a backlog exists).
---                                     `Announce` remote.
---  * feed(richText)                   left-side kill-feed lines (newest on top, max 5) fading after 8s. `EventFeed`.
---  * cashPopup(amount, worldPos?)     floating "+$1.2K": world position -> pooled BillboardGui that pops, rises and
---                                     fades; nil -> rises into the HUD cash counter (top-center). `CashPopup` remote.
+--                                     While driving: a compact banner under the top-center HUD instead of over the
+--                                     road, and only the newest couple are kept. `Announce` remote.
+--  * feed(richText)                   kill-feed lines (newest on top, max 5) fading after 8s, placed beside the HUD
+--                                     menu (HUDController.getFeedAnchor; under the chat on PC). `EventFeed`.
+--  * cashPopup(amount, worldPos?)     floating "+$1.2K": world position -> pooled BillboardGui (sized with the UI
+--                                     scale) that pops, rises and fades; nil -> rises into the HUD cash counter.
+--                                     `CashPopup` remote.
 --  * offlineEarnings(amount, seconds) "WHILE YOU WERE AWAY" modal with a count-up, god rays and a COLLECT button that
---                                     bursts coins into the cash counter. `OfflineEarnings` remote.
+--                                     bursts coins into the cash counter. The HUD holds the (already credited) amount
+--                                     back until COLLECT so the counter counts up with the coins. `OfflineEarnings`.
 --  * carStolenAlert(thief, carId, mutation, active)  pulsing red screen-edge vignette (4 gradient frames), alarm siren
---                                     loop, "🚨 THIEF IS STEALING YOUR CAR!" banner, and a live waypoint that follows
---                                     the thief (WaypointController.track). Stops when active=false. `CarStolenAlert`.
+--                                     loop, "🚨 THIEF IS STEALING YOUR CAR!" banner (under the top-center HUD stack),
+--                                     and a live waypoint that follows the car itself (TheftVictimUserId / TheftActive
+--                                     model attributes; the thief's name is only a fallback). `CarStolenAlert`.
+--  Streamer mode (HUDController.VisibilityChanged): toasts, feed, banners and the alert vignette are hidden.
 --  Busted is HUDController's job, not here.
+--  Public: isAlertActive(), getAlertBottom(): number? (real px), isOfflineOpen().
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -41,25 +54,43 @@ local NotificationController = {}
 local player = Players.LocalPlayer
 local rng = Random.new()
 
--- Layout (1280x720 design canvas; Kit.screen scales it). Keep clear of: cash counter (top-center), wanted stars
--- (top-right), side menu (left column), thumbstick (bottom-left), drive/action buttons (bottom-right).
-local TOAST_ANCHOR = UDim2.new(1, -14, 0, 92)
+-- Layout (1280x720 design canvas; Kit.screen scales it, with a touch floor so text stays readable on phones). Keep
+-- clear of: cash counter + wanted stars (top-center), PC player list (top-right) and chat (top-left), side menu,
+-- thumbstick (bottom-left), drive/action buttons (right side on touch).
+local TOAST_ANCHOR_DESKTOP = UDim2.new(1, -14, 0.36, 0) -- below the CoreGui player list
+local TOAST_TOP_TOUCH = 8 -- touch: the top-right corner is free (no open player list / chat on mobile)
+local TOUCH_CONTROLS_WIDTH = 140 -- design px (combat/driving screens) of the right-hand touch button column
 local TOAST_WIDTH = 320
+local TOAST_WIDTH_TOUCH = 330
 local TOAST_HEIGHT = 60
-local TOAST_MAX = 4
+local TOAST_TEXT_TOUCH = 20 -- design px; x Theme.TouchMinScale keeps it >= ~14 real px
+local TOAST_MAX_DESKTOP = 4
+local TOAST_MAX_TOUCH = 3
 local TOAST_DEFAULT_DURATION = 3.5
-local FEED_ANCHOR = UDim2.fromOffset(92, 74)
+local FEED_ANCHOR = UDim2.fromOffset(92, 74) -- fallback when the HUD can't say where its menu is
 local FEED_WIDTH = 400
 local FEED_LINE_HEIGHT = 28
+local FEED_LINE_HEIGHT_TOUCH = 30
+local FEED_TEXT = 17
+local FEED_TEXT_TOUCH = 20
 local FEED_MAX = 5
 local FEED_LIFETIME = 8
 local BANNER_POSITION = UDim2.fromScale(0.5, 0.45) -- below the feed/toast band, above the car
+local BANNER_SIZE = Vector2.new(740, 150)
+local BANNER_DRIVING_SCALE = 0.6 -- compact banner while driving: the road stays visible
+local BANNER_DRIVING_KEEP = 2 -- while driving only the newest announcements are worth showing
 local BANNER_TOTAL_SECONDS = 3
-local ALERT_BANNER_POSITION = UDim2.new(0.5, 0, 0, 84) -- just under the HUD cash counter
+local ALERT_BANNER_POSITION = UDim2.new(0.5, 0, 0, 84) -- just under the HUD cash counter (fallback)
+local ALERT_BANNER_SIZE = Vector2.new(540, 92) -- fits between the PC chat window and player list at 720p
+local ALERT_TOUCH_SCALE = 0.8 -- phones: on top of the screen's touch floor; keeps the 28 px title ~16 real px
+local STACK_GAP = 6 -- design px between stacked top-center elements
 local HUD_CASH_POSITION = UDim2.new(0.5, 0, 0, 80)
 local HUD_CASH_TARGET = UDim2.fromScale(0.5, 0.05)
 local WORLD_POPUP_POOL = 8
+local WORLD_POPUP_SIZE = Vector2.new(260, 80)
+local WORLD_POPUP_SIZE_BIG = Vector2.new(320, 96)
 local ALERT_SAFETY_SECONDS = (Economy.THEFT_TIME_LIMIT or 150) + (Economy.DROPPED_CAR_TIMEOUT or 20) + 20
+local ALERT_CAR_RESCAN = 0.5 -- seconds between scans for the stolen car model (the waypoint getter runs per frame)
 local OFFLINE_AUTO_CLOSE = 30
 
 export type ToastKind = "info" | "success" | "error" | "money" | "warning"
@@ -135,6 +166,38 @@ function NotificationController.bannerHold(queued: number): number
 	return BANNER_TOTAL_SECONDS - 0.75 -- 0.45 pop in + 0.3 out
 end
 
+-- Toast stack anchor. Touch: top-right, shifted left past the right-hand touch button column, which lives on screens
+-- at `controlsScale` while the toasts render at `toastScale` (both UIScale values).
+function NotificationController.toastAnchor(touch: boolean, controlsScale: number, toastScale: number): UDim2
+	if not touch then
+		return TOAST_ANCHOR_DESKTOP
+	end
+	local s = if toastScale > 0 then toastScale else 1
+	return UDim2.new(1, -math.ceil((TOUCH_CONTROLS_WIDTH * controlsScale + 8) / s), 0, TOAST_TOP_TOUCH)
+end
+
+export type CarInfo = { victimUserId: any, active: any, carId: any, mutation: any }
+
+-- Which car (index) is the local victim's stolen car: TheftActive + TheftVictimUserId == me, preferring the one that
+-- matches the alert's car id + mutation. nil when none.
+function NotificationController.pickStolenCar(
+	cars: { CarInfo },
+	myUserId: number,
+	carId: string?,
+	mutation: string?
+): number?
+	local fallback: number? = nil
+	for i, c in cars do
+		if c.active == true and c.victimUserId == myUserId then
+			if carId == nil or (c.carId == carId and (c.mutation or "None") == (mutation or "None")) then
+				return i
+			end
+			fallback = fallback or i
+		end
+	end
+	return fallback
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Small UI utilities
 -------------------------------------------------------------------------------------------------------------------------
@@ -205,6 +268,33 @@ type Screens = {
 	modal: ScreenGui,
 }
 local screens: Screens? = nil
+local hudHidden = false -- streamer mode (HUDController.VisibilityChanged)
+
+local function isTouch(): boolean
+	return Kit.isTouch()
+end
+
+local function toastWidth(): number
+	return if isTouch() then TOAST_WIDTH_TOUCH else TOAST_WIDTH
+end
+
+local function toastMax(): number
+	return if isTouch() then TOAST_MAX_TOUCH else TOAST_MAX_DESKTOP
+end
+
+-- UIScale value of one of our Kit.screen guis.
+local function screenScale(gui: ScreenGui): number
+	local scale = gui:FindFirstChildOfClass("UIScale")
+	local s = if scale then scale.Scale else 1
+	return if s > 0 then s else 1
+end
+
+local function layoutToasts(s: Screens)
+	local touch = isTouch()
+	-- the right-hand touch buttons live on default-scale screens (CombatHUD / DrivingUI); ours has the touch floor
+	s.toastStack.Position = NotificationController.toastAnchor(touch, Kit.uiScale(), Kit.uiScale(Theme.TouchMinScale))
+	s.toastStack.Size = UDim2.fromOffset(toastWidth() + 20, 4 * 110)
+end
 
 local function getScreens(): Screens
 	local existing = screens
@@ -212,20 +302,20 @@ local function getScreens(): Screens
 		return existing
 	end
 
-	local main = Kit.screen("HC_Notifications", Theme.Layers.Toasts)
+	local main = Kit.screen("HC_Notifications", Theme.Layers.Toasts, { touchMin = Theme.TouchMinScale })
 	local toastStack = Kit.new("Frame", {
 		Name = "Toasts",
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(1, 0),
-		Position = TOAST_ANCHOR,
-		Size = UDim2.fromOffset(TOAST_WIDTH + 20, (TOAST_HEIGHT + 8) * TOAST_MAX),
+		Position = TOAST_ANCHOR_DESKTOP,
+		Size = UDim2.fromOffset(TOAST_WIDTH + 20, 4 * 110),
 		Parent = main,
 	}, { Kit.list(Enum.FillDirection.Vertical, 8, Enum.HorizontalAlignment.Right) })
 	local feedStack = Kit.new("Frame", {
 		Name = "EventFeed",
 		BackgroundTransparency = 1,
 		Position = FEED_ANCHOR,
-		Size = UDim2.fromOffset(FEED_WIDTH, (FEED_LINE_HEIGHT + 4) * FEED_MAX),
+		Size = UDim2.fromOffset(FEED_WIDTH, (FEED_LINE_HEIGHT_TOUCH + 4) * FEED_MAX),
 		Parent = main,
 	}, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Left) })
 	local hudFx = Kit.new("Frame", {
@@ -235,11 +325,14 @@ local function getScreens(): Screens
 		Parent = main,
 	})
 
-	local banners = Kit.screen("HC_Banners", Theme.Layers.Banners)
+	local banners = Kit.screen("HC_Banners", Theme.Layers.Banners, { touchMin = Theme.TouchMinScale })
 	local alert = Kit.screen("HC_TheftAlert", Theme.Layers.Banners - 1)
 	alert.IgnoreGuiInset = true
 	local modal = Kit.screen("HC_Modal", Theme.Layers.Overlay - 1)
 	modal.IgnoreGuiInset = true
+	for _, gui in { main, banners, alert } do
+		gui.Enabled = not hudHidden
+	end
 
 	local built: Screens = {
 		main = main,
@@ -251,6 +344,19 @@ local function getScreens(): Screens
 		modal = modal,
 	}
 	screens = built
+	layoutToasts(built)
+	local function relayout()
+		if screens == built then
+			layoutToasts(built)
+		end
+	end
+	pcall(function()
+		UserInputService.LastInputTypeChanged:Connect(relayout)
+	end)
+	local cam = Workspace.CurrentCamera
+	if cam then
+		cam:GetPropertyChangedSignal("ViewportSize"):Connect(relayout)
+	end
 	return built
 end
 
@@ -299,10 +405,21 @@ type ToastRec = {
 	duration: number,
 	token: number,
 	closing: boolean,
+	width: number,
 }
 
 local toasts: { ToastRec } = {}
 local toastOrder = 0
+
+-- Touch toasts use a fixed readable text size and grow to fit it (TextScaled would shrink long messages to ~7 px on
+-- a phone). Returns the toast height in design px.
+local function touchToastHeight(text: string, textWidth: number): number
+	local ok, bounds = pcall(function()
+		return TextService:GetTextSize(text, TOAST_TEXT_TOUCH, Enum.Font.FredokaOne, Vector2.new(textWidth, 1e4))
+	end)
+	local textHeight = if ok and typeof(bounds) == "Vector2" then bounds.Y else TOAST_TEXT_TOUCH * 2
+	return math.clamp(math.ceil(textHeight) + 22, TOAST_HEIGHT, TOAST_HEIGHT + 3 * TOAST_TEXT_TOUCH)
+end
 
 local function closeToast(rec: ToastRec, fast: boolean?)
 	if rec.closing then
@@ -314,10 +431,10 @@ local function closeToast(rec: ToastRec, fast: boolean?)
 		table.remove(toasts, idx)
 	end
 	local slideInfo = TweenInfo.new(if fast then 0.12 else 0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-	tween(rec.inner, slideInfo, { Position = UDim2.fromOffset(TOAST_WIDTH + 40, 0) })
+	tween(rec.inner, slideInfo, { Position = UDim2.fromOffset(rec.width + 40, 0) })
 	task.delay(slideInfo.Time, function()
 		if rec.holder.Parent then
-			local collapse = tween(rec.holder, Theme.TweenFast, { Size = UDim2.fromOffset(TOAST_WIDTH, 0) })
+			local collapse = tween(rec.holder, Theme.TweenFast, { Size = UDim2.fromOffset(rec.width, 0) })
 			collapse.Completed:Once(function()
 				rec.holder:Destroy()
 			end)
@@ -363,18 +480,21 @@ function NotificationController.toast(kind: string, text: string, duration: numb
 
 	local s = getScreens()
 	toastOrder += 1
+	local touch = isTouch()
+	local width = toastWidth()
+	local height = if touch then touchToastHeight(text, width - 84) else TOAST_HEIGHT
 
 	local holder = Kit.new("Frame", {
 		Name = "Toast",
 		BackgroundTransparency = 1,
-		Size = UDim2.fromOffset(TOAST_WIDTH, 0),
+		Size = UDim2.fromOffset(width, 0),
 		LayoutOrder = toastOrder,
 		Parent = s.toastStack,
 	})
 	local inner = Kit.panel({
 		Name = "Inner",
-		Size = UDim2.fromOffset(TOAST_WIDTH, TOAST_HEIGHT),
-		Position = UDim2.fromOffset(TOAST_WIDTH + 40, 0),
+		Size = UDim2.fromOffset(width, height),
+		Position = UDim2.fromOffset(width + 40, 0),
 		BackgroundColor3 = Theme.Colors.Panel,
 		Parent = holder,
 	})
@@ -410,15 +530,17 @@ function NotificationController.toast(kind: string, text: string, duration: numb
 		TextColor3 = WHITE,
 		Parent = badge,
 	})
-	local label = Kit.label(text, 20, {
+	local label = Kit.label(text, if touch then TOAST_TEXT_TOUCH else 20, {
 		Name = "Text",
 		Position = UDim2.fromOffset(72, 6),
 		Size = UDim2.new(1, -84, 1, -14),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Center,
-		TextScaled = true,
+		TextScaled = not touch,
 	})
-	sizeConstraint(20, 11).Parent = label
+	if not touch then
+		sizeConstraint(20, 11).Parent = label
+	end
 	label.Parent = inner
 	local countLabel = Kit.label("×1", 16, {
 		Name = "Count",
@@ -446,15 +568,6 @@ function NotificationController.toast(kind: string, text: string, duration: numb
 		Size = UDim2.fromScale(1, 1),
 		Parent = timerBg,
 	}, { Kit.corner(UDim.new(1, 0)) })
-	local hit = Kit.new("TextButton", {
-		Name = "Dismiss",
-		BackgroundTransparency = 1,
-		Text = "",
-		Size = UDim2.fromScale(1, 1),
-		ZIndex = 5,
-		Parent = inner,
-	})
-
 	local rec: ToastRec = {
 		key = key,
 		holder = holder,
@@ -466,17 +579,30 @@ function NotificationController.toast(kind: string, text: string, duration: numb
 		duration = seconds,
 		token = 0,
 		closing = false,
+		width = width,
 	}
-	hit.Activated:Connect(function()
-		closeToast(rec, true)
-	end)
+	-- click-to-dismiss on desktop only: on touch the toast sits near the action / driving buttons, and a full-size
+	-- button would eat the taps meant for them (plain frames and labels let touches through)
+	if not touch then
+		local hit = Kit.new("TextButton", {
+			Name = "Dismiss",
+			BackgroundTransparency = 1,
+			Text = "",
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 5,
+			Parent = inner,
+		})
+		hit.Activated:Connect(function()
+			closeToast(rec, true)
+		end)
+	end
 
 	table.insert(toasts, rec)
-	for _, old in NotificationController.trimOldest(toasts, TOAST_MAX) do
+	for _, old in NotificationController.trimOldest(toasts, toastMax()) do
 		closeToast(old, true)
 	end
 
-	tween(holder, Theme.TweenFast, { Size = UDim2.fromOffset(TOAST_WIDTH, TOAST_HEIGHT) })
+	tween(holder, Theme.TweenFast, { Size = UDim2.fromOffset(width, height) })
 	tween(inner, Theme.TweenPop, { Position = UDim2.fromOffset(0, 0) })
 	armToastTimer(rec)
 	playSound(style.sound)
@@ -498,7 +624,7 @@ local function buildBanner(parent: Instance, item: BannerItem): (Frame, UIScale,
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = BANNER_POSITION,
-		Size = UDim2.fromOffset(740, 150),
+		Size = UDim2.fromOffset(BANNER_SIZE.X, BANNER_SIZE.Y),
 		Rotation = -4,
 		Parent = parent,
 	})
@@ -617,13 +743,55 @@ local function buildBanner(parent: Instance, item: BannerItem): (Frame, UIScale,
 	return root, scale, shine
 end
 
+local function isDriving(): boolean
+	return player:GetAttribute("Driving") == true
+end
+
+-- Real px (inset-relative) where the top-center HUD stack ends: cash pill + wanted status (HUDController), the theft
+-- alert banner, the event pills / hot drop banner (EventsClient). Each part is optional.
+local function topStackBottom(includeAlert: boolean, includeEvents: boolean): number
+	local bottom = 0
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.getTopStackBottom) == "function" then
+		local ok, v = pcall(hud.getTopStackBottom)
+		if ok and typeof(v) == "number" then
+			bottom = math.max(bottom, v)
+		end
+	end
+	if includeAlert then
+		local a = NotificationController.getAlertBottom()
+		if a then
+			bottom = math.max(bottom, a)
+		end
+	end
+	if includeEvents then
+		local ev = lazyController("EventsClient")
+		if ev and typeof(ev.getBottom) == "function" then
+			local ok, v = pcall(ev.getBottom)
+			if ok and typeof(v) == "number" then
+				bottom = math.max(bottom, v)
+			end
+		end
+	end
+	return bottom
+end
+
 local function showBanner(item: BannerItem)
 	local s = getScreens()
 	local root, scale, shine = buildBanner(s.banners, item)
 	playSound(item.sound or "Whoosh", 0.2)
 
+	-- driving: a compact banner tucked under the top-center HUD, so it never sits over the road ahead
+	local targetScale = 1
+	if isDriving() then
+		targetScale = BANNER_DRIVING_SCALE
+		local top = topStackBottom(true, true) / screenScale(s.banners) + STACK_GAP
+		root.Position = UDim2.new(0.5, 0, 0, math.ceil(top + BANNER_SIZE.Y * targetScale / 2))
+		scale.Scale = 0.25 * targetScale
+	end
+
 	local popInfo = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-	tween(scale, popInfo, { Scale = 1 })
+	tween(scale, popInfo, { Scale = targetScale })
 	tween(root, popInfo, { Rotation = 0 })
 	for _, sparkle in root:GetChildren() do
 		if sparkle.Name == "Sparkle" and sparkle:IsA("TextLabel") then
@@ -641,7 +809,7 @@ local function showBanner(item: BannerItem)
 		})
 	end
 	task.wait(NotificationController.bannerHold(#bannerQueue))
-	tween(scale, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 1.12 })
+	tween(scale, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 1.12 * targetScale })
 	fadeOut(root, 0.3)
 	task.wait(0.32)
 	root:Destroy()
@@ -649,6 +817,12 @@ end
 
 local function runBanners()
 	while #bannerQueue > 0 do
+		if isDriving() then
+			-- mid-getaway a backlog of banners is noise: keep only the newest few
+			while #bannerQueue > BANNER_DRIVING_KEEP do
+				table.remove(bannerQueue, 1)
+			end
+		end
 		local item = table.remove(bannerQueue, 1) :: BannerItem
 		local ok, err = pcall(showBanner, item)
 		if not ok then
@@ -704,16 +878,44 @@ local function closeFeed(rec: FeedRec, seconds: number)
 	end)
 end
 
+-- Beside the HUD menu (desktop: right of the column, under the chat window; touch: under the strip).
+local function positionFeed(s: Screens)
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.getFeedAnchor) == "function" then
+		local ok, anchor = pcall(hud.getFeedAnchor)
+		if ok and typeof(anchor) == "Vector2" then
+			local y = anchor.Y
+			if isTouch() then
+				-- phones: the theft alarm banner sits under the menu strip too; keep the feed below it
+				local alertBottom = NotificationController.getAlertBottom()
+				if alertBottom then
+					y = math.max(y, alertBottom + STACK_GAP * screenScale(s.main))
+				end
+			end
+			local scale = screenScale(s.main)
+			s.feedStack.Position = UDim2.fromOffset(math.floor(anchor.X / scale), math.floor(y / scale))
+			return
+		end
+	end
+	s.feedStack.Position = FEED_ANCHOR
+end
+
 function NotificationController.feed(richText: string)
 	if typeof(richText) ~= "string" or richText == "" then
 		return
 	end
+	if hudHidden then
+		return -- streamer mode: feed lines name other players
+	end
 	local s = getScreens()
+	positionFeed(s)
+	local touch = isTouch()
+	local lineHeight = if touch then FEED_LINE_HEIGHT_TOUCH else FEED_LINE_HEIGHT
 	feedOrder -= 1 -- newest on top
 	local holder = Kit.new("Frame", {
 		Name = "FeedLine",
 		BackgroundTransparency = 1,
-		Size = UDim2.fromOffset(FEED_WIDTH, FEED_LINE_HEIGHT),
+		Size = UDim2.fromOffset(FEED_WIDTH, lineHeight),
 		LayoutOrder = feedOrder,
 		Parent = s.feedStack,
 	})
@@ -743,7 +945,7 @@ function NotificationController.feed(richText: string)
 		Position = UDim2.fromOffset(4, 4),
 		Parent = inner,
 	}, { Kit.corner(UDim.new(1, 0)) })
-	local label = Kit.label(richText, 17, {
+	local label = Kit.label(richText, if touch then FEED_TEXT_TOUCH else FEED_TEXT, {
 		Name = "Text",
 		Position = UDim2.fromOffset(14, 0),
 		Size = UDim2.new(1, -18, 1, 0),
@@ -820,7 +1022,7 @@ local function acquireWorldPopup(): WorldPopup
 		att.Parent = anchor
 		local gui = Kit.new("BillboardGui", {
 			Name = "CashPopup",
-			Size = UDim2.fromOffset(260, 80),
+			Size = UDim2.fromOffset(WORLD_POPUP_SIZE.X, WORLD_POPUP_SIZE.Y),
 			AlwaysOnTop = true,
 			LightInfluence = 0,
 			MaxDistance = 260,
@@ -875,7 +1077,14 @@ local function worldCashPopup(amount: number, position: Vector3)
 	end
 	local jitter = Vector3.new(rng:NextNumber(-1.5, 1.5), 0, rng:NextNumber(-1.5, 1.5))
 	p.gui.StudsOffsetWorldSpace = Vector3.new(0, 3, 0) + jitter
-	p.gui.Size = if big then UDim2.fromOffset(320, 96) else UDim2.fromOffset(260, 80)
+	-- billboards are raw pixels: follow the screen UI scale (with the touch floor) so a phone isn't half covered
+	local uiScale = Kit.uiScale(Theme.TouchMinScale)
+	local size = if big then WORLD_POPUP_SIZE_BIG else WORLD_POPUP_SIZE
+	p.gui.Size = UDim2.fromOffset(math.floor(size.X * uiScale), math.floor(size.Y * uiScale))
+	local constraint = p.label:FindFirstChildOfClass("UITextSizeConstraint")
+	if constraint then
+		constraint.MaxTextSize = math.max(constraint.MinTextSize, math.floor(48 * uiScale))
+	end
 	p.gui.Enabled = true
 	Kit.pop(p.label, 1.7)
 	tween(p.gui, TweenInfo.new(1.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -984,6 +1193,15 @@ local function coinBurst(fromObj: GuiObject, container: Frame)
 	end
 end
 
+-- The server credits offline earnings before the modal shows; the HUD counter holds that amount back until COLLECT.
+local function hudCash(method: string, amount: number?)
+	local hud = lazyController("HUDController")
+	local fn = hud and hud[method]
+	if typeof(fn) == "function" then
+		pcall(fn, amount)
+	end
+end
+
 local function closeOffline(withBurst: boolean)
 	local m = offline
 	if not m or m.collecting then
@@ -998,6 +1216,10 @@ local function closeOffline(withBurst: boolean)
 		end
 		playSound("CashBig")
 		playSound("CountingMoney")
+		-- count the HUD up as the first coins land in it
+		task.delay(0.6, hudCash, "releaseCash")
+	else
+		hudCash("releaseCash")
 	end
 	local cardScale = m.card:FindFirstChildOfClass("UIScale")
 	if cardScale then
@@ -1020,6 +1242,12 @@ local function amountText(n: number): string
 	return NotificationController.formatCashDelta(n)
 end
 
+-- True while the "WHILE YOU WERE AWAY" modal is up (before COLLECT / auto-close).
+function NotificationController.isOfflineOpen(): boolean
+	local m = offline
+	return m ~= nil and not m.collecting
+end
+
 function NotificationController.offlineEarnings(amount: number, seconds: number?)
 	if typeof(amount) ~= "number" or amount ~= amount or amount <= 0 then
 		return
@@ -1029,10 +1257,12 @@ function NotificationController.offlineEarnings(amount: number, seconds: number?
 	local existing = offline
 	if existing and not existing.collecting then
 		existing.total += amount
+		hudCash("holdCash", amount)
 		Kit.tweenNumber(existing.amountLabel, existing.total, amountText, 1)
 		Kit.pop(existing.amountLabel, 1.15)
 		return
 	end
+	hudCash("holdCash", amount)
 
 	local s = getScreens()
 	local root = Kit.new("Frame", {
@@ -1189,7 +1419,15 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 type AlertRec = { thief: string, carId: string, mutation: string, token: number }
-type AlertUI = { root: Frame, edges: { Frame }, banner: Frame, title: TextLabel, tweens: { Tween } }
+type AlertUI = {
+	root: Frame,
+	edges: { Frame },
+	holder: Frame, -- positioned + device-scaled wrapper (Kit.pop owns the banner's own UIScale)
+	holderScale: UIScale,
+	banner: Frame,
+	title: TextLabel,
+	tweens: { Tween },
+}
 
 local alerts: { AlertRec } = {}
 local alertUI: AlertUI? = nil
@@ -1212,11 +1450,66 @@ local function findPlayerByName(name: string): Player?
 	return nil
 end
 
--- Position of the thief's getaway car (or the dropped car, or the thief) for the live waypoint.
+-- The stolen car itself (TheftService marks it TheftActive + TheftVictimUserId), cached between rescans because the
+-- waypoint getter runs every frame. Following the car also covers dropped cars and hijacks by a second thief.
+local alertCar: Model? = nil
+local alertCarScanAt = -math.huge
+
+local function resetAlertCar()
+	alertLastCar = nil
+	alertCar = nil
+	alertCarScanAt = -math.huge
+end
+
+local function isOurStolenCar(model: Model?): boolean
+	return model ~= nil
+		and model.Parent ~= nil
+		and model:GetAttribute("TheftActive") == true
+		and model:GetAttribute("TheftVictimUserId") == player.UserId
+end
+
+local function findStolenCar(rec: AlertRec): Model?
+	local cached = alertCar
+	if isOurStolenCar(cached) then
+		return cached
+	end
+	local now = os.clock()
+	if now - alertCarScanAt < ALERT_CAR_RESCAN then
+		return nil
+	end
+	alertCarScanAt = now
+	local models: { Model } = {}
+	local infos: { CarInfo } = {}
+	for _, inst in CollectionService:GetTagged("Vehicle") do
+		if inst:IsA("Model") and inst:GetAttribute("TheftActive") == true then
+			table.insert(models, inst)
+			table.insert(infos, {
+				victimUserId = inst:GetAttribute("TheftVictimUserId"),
+				active = true,
+				carId = inst:GetAttribute("CarId"),
+				mutation = inst:GetAttribute("Mutation"),
+			})
+		end
+	end
+	local idx = NotificationController.pickStolenCar(
+		infos,
+		player.UserId,
+		if rec.carId ~= "" then rec.carId else nil,
+		rec.mutation
+	)
+	alertCar = if idx then models[idx] else nil
+	return alertCar
+end
+
+-- Position of the stolen car for the live waypoint; falls back to the thief found by (display) name.
 local function thiefPosition(): Vector3?
 	local rec = alerts[#alerts]
 	if not rec then
 		return nil
+	end
+	local car = findStolenCar(rec)
+	if car then
+		return car:GetPivot().Position
 	end
 	local thief = findPlayerByName(rec.thief)
 	local char = thief and thief.Character
@@ -1303,13 +1596,22 @@ local function buildAlertUI(): AlertUI
 
 	-- the banner lives in the inset-aware banners gui so it sits below the topbar + cash counter on every device;
 	-- the vignette gui ignores the inset so the red glow reaches the very top of the screen
-	local banner = Kit.panel({
+	local holder = Kit.new("Frame", {
 		Name = "AlertBanner",
+		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = ALERT_BANNER_POSITION,
-		Size = UDim2.fromOffset(660, 92),
-		BackgroundColor3 = red,
+		Size = UDim2.fromOffset(ALERT_BANNER_SIZE.X, ALERT_BANNER_SIZE.Y),
 		Parent = s.banners,
+	})
+	local holderScale = Kit.new("UIScale", { Name = "DeviceScale", Parent = holder })
+	local banner = Kit.panel({
+		Name = "Banner",
+		AnchorPoint = Vector2.new(0.5, 0), -- the pop / sway pivot at the top-center, like the holder
+		Position = UDim2.fromScale(0.5, 0),
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = red,
+		Parent = holder,
 	})
 	Kit.new("UIScale", { Scale = 0.3, Parent = banner })
 	local title = Kit.label("", 28, {
@@ -1320,16 +1622,24 @@ local function buildAlertUI(): AlertUI
 	})
 	sizeConstraint(28, 12).Parent = title
 	title.Parent = banner
-	local sub = Kit.label("Chase them down and BONK 🏏 them to get it back!", 18, {
+	local sub = Kit.label("Chase them down and BONK 🏏 them to get it back!", 20, {
 		Name = "Subtitle",
 		Position = UDim2.new(0, 14, 1, -36),
 		Size = UDim2.new(1, -28, 0, 26),
 		TextColor3 = Color3.fromRGB(255, 230, 230),
 		TextScaled = true,
 	})
-	sizeConstraint(18, 10).Parent = sub
+	sizeConstraint(20, 12).Parent = sub
 	sub.Parent = banner
-	return { root = root, edges = edges, banner = banner, title = title, tweens = {} }
+	return {
+		root = root,
+		edges = edges,
+		holder = holder,
+		holderScale = holderScale,
+		banner = banner,
+		title = title,
+		tweens = {},
+	}
 end
 
 local function stopAlertTweens(ui: AlertUI)
@@ -1337,6 +1647,49 @@ local function stopAlertTweens(ui: AlertUI)
 		t:Cancel()
 	end
 	table.clear(ui.tweens)
+end
+
+-- Design px (HC_Banners) of the alert banner's top: right under the HUD's cash pill / wanted stars.
+local alertBannerTop = ALERT_BANNER_POSITION.Y.Offset
+
+local alertBannerScale = 1
+
+local function placeAlertBanner(ui: AlertUI)
+	local s = getScreens()
+	local bottom = topStackBottom(false, false)
+	local touch = isTouch()
+	if touch then
+		-- phones: the banner is wider than the gap between the menu strip and the toasts; go below the strip
+		local hud = lazyController("HUDController")
+		if hud and typeof(hud.getMenuBottom) == "function" then
+			local ok, v = pcall(hud.getMenuBottom)
+			if ok and typeof(v) == "number" then
+				bottom = math.max(bottom, v)
+			end
+		end
+	end
+	local top = if bottom > 0
+		then math.ceil(bottom / screenScale(s.banners)) + STACK_GAP
+		else ALERT_BANNER_POSITION.Y.Offset
+	local scale = if touch then ALERT_TOUCH_SCALE else 1
+	if top ~= alertBannerTop or ui.holder.Position.Y.Offset ~= top then
+		alertBannerTop = top
+		ui.holder.Position = UDim2.new(0.5, 0, 0, top)
+	end
+	if scale ~= alertBannerScale or ui.holderScale.Scale ~= scale then
+		alertBannerScale = scale
+		ui.holderScale.Scale = scale
+	end
+end
+
+-- Real px (inset-relative) of the alert banner's bottom while the alarm is up (EventsClient stacks below it).
+function NotificationController.getAlertBottom(): number?
+	local ui = alertUI
+	local s = screens
+	if not ui or not s or #alerts == 0 or hudHidden then
+		return nil
+	end
+	return (alertBannerTop + ALERT_BANNER_SIZE.Y * alertBannerScale) * screenScale(s.banners)
 end
 
 local function showAlertUI()
@@ -1350,10 +1703,21 @@ local function showAlertUI()
 	if rec then
 		current.title.Text = NotificationController.stolenAlertText(rec.thief, rec.carId, rec.mutation)
 	end
+	placeAlertBanner(current)
 	if #current.tweens > 0 then
 		Kit.pop(current.banner, 1.12) -- already showing: just punch the banner
 		return
 	end
+	-- follow the HUD stack (the wanted stars can appear / disappear while the alarm is up)
+	task.spawn(function()
+		while alertUI == current do
+			task.wait(0.3)
+			if alertUI == current then
+				placeAlertBanner(current)
+				positionFeed(getScreens())
+			end
+		end
+	end)
 	current.root.Visible = true
 	local pulseInfo = TweenInfo.new(0.42, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 	for _, edge in current.edges do
@@ -1389,12 +1753,13 @@ local function hideAlertUI()
 	end
 	alertUI = nil
 	stopAlertTweens(ui)
+	positionFeed(getScreens())
 	ui.banner.Rotation = 0
 	fadeOut(ui.root, 0.4)
-	fadeOut(ui.banner, 0.4)
+	fadeOut(ui.holder, 0.4)
 	task.delay(0.45, function()
 		ui.root:Destroy()
-		ui.banner:Destroy()
+		ui.holder:Destroy()
 	end)
 end
 
@@ -1433,7 +1798,7 @@ local function refreshAlert()
 			pcall(SoundController.stopLoop, alertSiren)
 			alertSiren = nil
 		end
-		alertLastCar = nil
+		resetAlertCar()
 		setAlertWaypoint(false)
 	end
 end
@@ -1453,7 +1818,7 @@ function NotificationController.carStolenAlert(thiefName: string, carId: string,
 		alertToken += 1
 		local rec: AlertRec = { thief = thief, carId = car, mutation = mut, token = alertToken }
 		table.insert(alerts, rec)
-		alertLastCar = nil
+		resetAlertCar()
 		task.delay(ALERT_SAFETY_SECONDS, function()
 			local idx = table.find(alerts, rec)
 			if idx then
@@ -1498,6 +1863,24 @@ function NotificationController.init() end
 function NotificationController.start()
 	getScreens()
 
+	-- streamer mode: hide everything that can carry other players' names (toasts, feed, banners) and the alarm
+	-- vignette; the offline modal stays (it is an interaction, not an overlay)
+	local hud = lazyController("HUDController")
+	if hud and hud.VisibilityChanged and typeof(hud.isHidden) == "function" then
+		local function applyHidden(value: boolean)
+			hudHidden = value == true
+			local s = screens
+			if s then
+				for _, gui in { s.main, s.banners, s.alert } do
+					gui.Enabled = not hudHidden
+				end
+			end
+		end
+		hud.VisibilityChanged:Connect(applyHidden)
+		local ok, value = pcall(hud.isHidden)
+		applyHidden(ok and value == true)
+	end
+
 	safeListen("Notify", function(kind: any, text: any, duration: any)
 		if typeof(text) ~= "string" then
 			return
@@ -1541,7 +1924,7 @@ function NotificationController.start()
 	-- respawn safety: the screens survive respawn (ResetOnSpawn=false); nothing else to rebuild
 	if player then
 		player.CharacterAdded:Connect(function()
-			alertLastCar = nil
+			resetAlertCar()
 		end)
 	end
 end

@@ -7,13 +7,17 @@
 --  * Parked cars rotate: after LIFETIME seconds a car nobody is near is replaced by a fresh roll, so the city keeps
 --    changing and rare cars keep showing up for players who roam.
 --  * "Hotwire" prompt (hold = rarity hotwireTime, server-validated by VehicleService.addStealPrompt). On steal:
---    kind -> Loot, the thief is seated, wanted + rarity.wantedOnSteal (none on a player's first-ever steal),
---    EventFeed + BigSteal for Legendary+, contract progress "steal".
+--    the thief is seated (nothing else happens if seat() refuses: the car is left as unowned Loot), kind -> Loot,
+--    wanted: a witness sees it with probability rarity.wantedChance and adds max(1, rarity.wantedOnSteal) stars
+--    (DECISIONS §1; none on a player's first-ever steal), EventFeed + BigSteal for Legendary+, contract "steal".
+--  * Luck events re-roll a share of the parked cars nobody can see (rerollOutOfView), so boosted luck shows up on
+--    the street and not only in brand-new spawns.
 --  * Newbie guarantee: while a player's tutorial is not done (first join), a Common parked car always sits within
 --    NEWBIE_RADIUS of their garage door (tagged with attribute TutorialForUserId for the tutorial arrow).
 --
 -- Public API: none required by the spec. Extras: getParked(): {Car}, ensureNewbieCar(player): Car?,
---   spawnAt(groundCFrame, carId?, mutation?): Car?. Pure helpers prefixed with _ for tests.
+--   spawnAt(groundCFrame, carId?, mutation?): Car?, rerollOutOfView(fraction): number (called by EventService when
+--   Rush Hour / Server Luck starts). Pure helpers prefixed with _ for tests.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -212,7 +216,7 @@ end
 
 -- ROLLING / SPAWNING ---------------------------------------------------------------------------------------------------
 
-local onStolen: (entry: Entry, player: Player) -> ()
+local onStolen: (entry: Entry, player: Player) -> boolean
 
 local function canSteal(entry: Entry, player: Player): (boolean, string?)
 	local car = entry.car
@@ -233,7 +237,7 @@ local function canSteal(entry: Entry, player: Player): (boolean, string?)
 	return true, nil
 end
 
-onStolen = function(entry: Entry, player: Player)
+onStolen = function(entry: Entry, player: Player): boolean
 	local car = entry.car
 	entries[car] = nil
 	if entry.prompt then
@@ -243,15 +247,19 @@ onStolen = function(entry: Entry, player: Player)
 	local tier = Rarity.Tiers[car.rarity] or Rarity.Tiers.Common
 	car.data.source = "street"
 	-- seat first so the managed Loot prompts never flash up between the two calls
-	local seated = VehicleService.seat(car, player)
+	local seated, why = VehicleService.seat(car, player)
 	VehicleService.setKind(car, "Loot")
-	car.ownerUserId = player.UserId
-	pcall(car.model.SetAttribute, car.model, "OwnerUserId", player.UserId)
 	pcall(car.model.SetAttribute, car.model, "TutorialForUserId", nil)
 	if not seated then
-		warn("[StreetSpawnService] could not seat " .. player.Name)
+		-- nobody got in: leave an unowned Loot car (anyone may hotwire it; abandon rules clean it up), and no
+		-- heat, contract credit or announcement for a steal that did not happen
+		warn(("[StreetSpawnService] could not seat %s: %s"):format(player.Name, tostring(why)))
+		return false
 	end
-	local heat = VehicleService.addStealHeat(player, tier.wantedOnSteal, "streetSteal")
+	car.ownerUserId = player.UserId
+	pcall(car.model.SetAttribute, car.model, "OwnerUserId", player.UserId)
+	local stars = VehicleService._streetStars(tier.wantedOnSteal, tier.wantedChance, rng:NextNumber())
+	local heat = VehicleService.addStealHeat(player, stars, "streetSteal")
 	VehicleService.contractProgress(player, "steal", 1)
 	VehicleService.announceSteal(player, car, "hotwired")
 	local pos = car.chassis.CFrame.Position
@@ -259,6 +267,7 @@ onStolen = function(entry: Entry, player: Player)
 	if heat > 0 then
 		pcall(Net.fireClient, "Notify", player, "warning", `🚨 Somebody saw that! +{heat}★`, 2.5)
 	end
+	return true
 end
 
 local function attachPrompt(entry: Entry)
@@ -271,8 +280,8 @@ local function attachPrompt(entry: Entry)
 		canSteal = function(player: Player): (boolean, string?)
 			return canSteal(entry, player)
 		end,
-		onStolen = function(player: Player)
-			onStolen(entry, player)
+		onStolen = function(player: Player): boolean
+			return onStolen(entry, player)
 		end,
 	})
 end
@@ -300,6 +309,28 @@ function StreetSpawnService.spawnAt(groundCFrame: CFrame, carId: string?, mutati
 	entries[car] = entry
 	attachPrompt(entry)
 	return car
+end
+
+-- Luck events (Rush Hour, Server Luck) only change NEW rolls: expire about `fraction` of the parked cars no player is
+-- near (never a newbie car), so the next manage ticks re-roll them with the boosted luck. Returns how many.
+function StreetSpawnService.rerollOutOfView(fraction: number?): number
+	local f = if typeof(fraction) == "number" and fraction == fraction then math.clamp(fraction, 0, 1) else 0.5
+	if f <= 0 then
+		return 0
+	end
+	local roots = playerRoots()
+	local n = 0
+	for car, entry in entries do
+		if entry.newbieFor ~= nil or car.destroyed or entry.expiresAt <= 0 then
+			continue
+		end
+		local dist = StreetSpawnService._minDist(car.chassis.CFrame.Position, roots)
+		if dist >= StreetSpawnService.ROTATE_CLEAR_RADIUS and rng:NextNumber() < f then
+			entry.expiresAt = 0
+			n += 1
+		end
+	end
+	return n
 end
 
 function StreetSpawnService.getParked(): { Car }

@@ -4,8 +4,11 @@
 -- Each waypoint renders:
 --   * a glowing world Beam from the local character to an invisible anchored target part (+ a scrolling sparkle beam),
 --   * a light pillar rising from the target so it reads from across the city,
---   * a big floating marker (BillboardGui: pin with icon, label, live distance "245m" — 3 studs = 1 meter),
---   * an on-screen edge arrow (rotating pointer + icon + distance) whenever the target is off-screen.
+--   * a floating marker (BillboardGui: pin with icon, label, live distance "245m" — 3 studs = 1 meter), sized with
+--     the screen UI scale (touch floor included) so it doesn't cover a third of a phone screen,
+--   * an on-screen edge arrow (rotating pointer + icon + distance) whenever the target is off-screen. Arrows draw
+--     above the driving/combat HUD and keep clear of the speedometer (bottom) and the touch buttons (right).
+-- Streamer mode (HUDController.VisibilityChanged) hides markers, pillars and arrows; the guide beam stays.
 --
 -- Public API:
 --   set(id, position: Vector3?, color: Color3?, label: string?)   nil position clears. `Waypoint` remote does the same.
@@ -15,6 +18,7 @@
 --   "home"    own plot drop-off (MapLayout.plotDropoffZone(PlotIndex)) while the local player drives a car whose model
 --             Kind is "Loot" or "Stolen"; cleared when not driving (only if this controller created it).
 --   "hotdrop" Hot Drop location while StateController's HotDropState is active.
+--   "spray"   nearest 🎨 Spray Shop (MapLayout.sprayZones) with its price while the player is wanted (Wanted > 0).
 -- Auto waypoints hide themselves when a server/other waypoint already marks (almost) the same spot.
 
 local GuiService = game:GetService("GuiService")
@@ -28,7 +32,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
 local Config = Shared:WaitForChild("Config")
 local Cars = require(Config:WaitForChild("Cars"))
-local MapLayout = require(Shared:WaitForChild("Util"):WaitForChild("MapLayout"))
+local Economy = require(Config:WaitForChild("Economy"))
+local Util = Shared:WaitForChild("Util")
+local Format = require(Util:WaitForChild("Format"))
+local MapLayout = require(Util:WaitForChild("MapLayout"))
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
@@ -45,6 +52,8 @@ WaypointController.STUDS_PER_METER = 3
 
 local HOME_ID = "home"
 local HOTDROP_ID = "hotdrop"
+local SPRAY_ID = "spray"
+local SPRAY_COLOR = Color3.fromRGB(255, 120, 200)
 local DELIVERABLE_KINDS: { [string]: boolean } = { Loot = true, Stolen = true }
 local DUPLICATE_RADIUS = 30 -- an auto waypoint hides if another waypoint is this close to it
 local NEAR_HIDE_BEAM = 18 -- hide the guide beam when this close (studs)
@@ -53,9 +62,12 @@ local MARKER_HEIGHT = 9
 local MARKER_WIDTH = 230 -- billboard pixels (room for "HOT DROP: <CAR NAME>")
 local AUTO_TICK = 0.25
 local DIST_TICK = 0.1
+local MARKER_TALL = 134
 local ARROW_SIZE = 76
 local ARROW_MARGIN = 54 -- design pixels from the screen edge (scaled with the UI)
 local ARROW_MARGIN_LEFT = 116 -- wider on the left so arrows clear the HUD side-menu column
+local ARROW_TOUCH_RIGHT = 150 -- touch: design px (driving/combat screens) of the right-hand button column
+local ARROW_SPEEDO_GAP = 16 -- design px kept above the driving speedometer for bottom arrows
 local SPARKLE_TEXTURE = "rbxasset://textures/particles/sparkles_main.dds"
 
 type Getter = () -> Vector3?
@@ -76,6 +88,7 @@ type Waypoint = {
 	glow: Beam,
 	pillar: Beam,
 	billboard: BillboardGui,
+	markerScale: UIScale,
 	pin: Frame,
 	tip: Frame,
 	pinIcon: TextLabel,
@@ -90,6 +103,8 @@ type Waypoint = {
 	arrowScale: UIScale,
 	lastDistText: string,
 	tweens: { Tween },
+	bob: Tween,
+	pulse: Tween,
 	shown: boolean?,
 	beamOn: boolean?,
 	arrowOn: boolean?,
@@ -128,6 +143,8 @@ function WaypointController.iconFor(id: string, label: string?): string
 		return "🎨"
 	elseif key:find("shop", 1, true) or key:find("gear", 1, true) then
 		return "🛒"
+	elseif key:find("cash", 1, true) then
+		return "💰"
 	elseif key:find("tutorial", 1, true) or key:find("car", 1, true) then
 		return "🚗"
 	end
@@ -237,6 +254,30 @@ function WaypointController.isNearAny(pos: Vector3, others: { Vector3 }, radius:
 	return false
 end
 
+-- Spray Shop price for `stars` (same rule as WantedService: per star, the larger of the flat minimum and
+-- SPRAY_INCOME_SECONDS of income).
+function WaypointController.sprayCost(stars: number, incomePerSec: number?): number
+	local income = if typeof(incomePerSec) == "number"
+			and incomePerSec == incomePerSec
+			and incomePerSec > 0
+		then incomePerSec
+		else 0
+	local perStar = math.max(Economy.SPRAY_COST_PER_STAR, income * (Economy.SPRAY_INCOME_SECONDS or 0))
+	return math.floor(math.floor(math.max(0, stars)) * perStar)
+end
+
+-- Index of the position in `targets` closest to `from` (nil for an empty list).
+function WaypointController.nearestIndex(targets: { Vector3 }, from: Vector3): number?
+	local best, bestDist = nil, math.huge
+	for i, p in targets do
+		local d = (p - from).Magnitude
+		if d < bestDist then
+			best, bestDist = i, d
+		end
+	end
+	return best
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- State + containers
 -------------------------------------------------------------------------------------------------------------------------
@@ -246,6 +287,7 @@ local worldFolder: Folder? = nil
 local arrowGui: ScreenGui? = nil
 local startAttachment: Attachment? = nil
 local uiScale = 1
+local hudHidden = false -- streamer mode
 
 local function getWorldFolder(): Folder
 	local f = worldFolder
@@ -264,17 +306,14 @@ local function getWorldFolder(): Folder
 	return folder
 end
 
+-- Kit.screen's scale with the touch floor: markers and arrows stay readable on phones without dwarfing the screen.
 local function computeUiScale(): number
-	local cam = Workspace.CurrentCamera
-	if not cam then
-		return 1
-	end
-	local vp = cam.ViewportSize
-	return math.clamp(math.min(vp.X / 1280, vp.Y / 720), 0.55, 1.6)
+	return Kit.uiScale(Theme.TouchMinScale)
 end
 
 -- Edge arrows live in a raw, full-screen ScreenGui (no UIScale, IgnoreGuiInset) so WorldToViewportPoint pixels map
--- 1:1 onto it; each arrow carries its own UIScale matching Kit.screen's scale.
+-- 1:1 onto it; each arrow carries its own UIScale matching Kit.screen's scale. Drawn above the driving / combat HUD
+-- (arrows are non-interactive, so they never take taps).
 local function getArrowGui(): ScreenGui
 	local g = arrowGui
 	if g and g.Parent then
@@ -285,7 +324,8 @@ local function getArrowGui(): ScreenGui
 		ResetOnSpawn = false,
 		IgnoreGuiInset = true,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-		DisplayOrder = Theme.Layers.HUD - 1,
+		DisplayOrder = Theme.Layers.HUDTop,
+		Enabled = not hudHidden,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
 	arrowGui = gui
@@ -441,29 +481,38 @@ local function buildWaypoint(id: string, color: Color3, label: string): Waypoint
 		Parent = part,
 	})
 
+	-- billboard pixels are raw screen pixels: the design-size root is scaled to the screen UI scale (update())
 	local billboard = Kit.new("BillboardGui", {
 		Name = "Marker",
-		Size = UDim2.fromOffset(MARKER_WIDTH, 134),
+		Size = UDim2.fromOffset(math.floor(MARKER_WIDTH * uiScale), math.floor(MARKER_TALL * uiScale)),
 		StudsOffsetWorldSpace = Vector3.new(0, MARKER_HEIGHT, 0),
 		AlwaysOnTop = true,
 		LightInfluence = 0,
 		ResetOnSpawn = false,
 		ClipsDescendants = false,
+		Enabled = not hudHidden,
 		Parent = part,
 	})
+	local markerRoot = Kit.new("Frame", {
+		Name = "Root",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(MARKER_WIDTH, MARKER_TALL),
+		Parent = billboard,
+	})
+	local markerScale = Kit.new("UIScale", { Scale = uiScale, Parent = markerRoot })
 	local tip = diamond(color, 24, {
 		Name = "Tip",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromOffset(MARKER_WIDTH / 2, 58),
 		ZIndex = 1,
-		Parent = billboard,
+		Parent = markerRoot,
 	})
 	local pin = circle(color, 64, {
 		Name = "Pin",
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.fromOffset(MARKER_WIDTH / 2, 0),
 		ZIndex = 2,
-		Parent = billboard,
+		Parent = markerRoot,
 	})
 	local pinIcon = emojiLabel(icon, { ZIndex = 3, Parent = pin })
 	local nameLabel = Kit.label(label, 20, {
@@ -475,14 +524,14 @@ local function buildWaypoint(id: string, color: Color3, label: string): Waypoint
 		ZIndex = 3,
 	})
 	Kit.new("UITextSizeConstraint", { MaxTextSize = 21, MinTextSize = 11, Parent = nameLabel })
-	nameLabel.Parent = billboard
+	nameLabel.Parent = markerRoot
 	local distLabel = Kit.label("", 18, {
 		Name = "Distance",
 		Position = UDim2.fromOffset(0, 106),
 		Size = UDim2.new(1, 0, 0, 22),
 		ZIndex = 3,
 	})
-	distLabel.Parent = billboard
+	distLabel.Parent = markerRoot
 
 	part.Parent = getWorldFolder()
 
@@ -518,29 +567,28 @@ local function buildWaypoint(id: string, color: Color3, label: string): Waypoint
 	})
 	local badgePulse = Kit.new("UIScale", { Parent = badge })
 	local arrowIcon = emojiLabel(icon, { ZIndex = 3, Parent = badge })
-	local arrowDist = Kit.label("", 16, {
+	local arrowDist = Kit.label("", 18, {
 		Name = "Distance",
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Size = UDim2.fromOffset(90, 20),
+		Size = UDim2.fromOffset(90, 22),
 		Position = UDim2.new(0.5, 0, 1, 6),
 		ZIndex = 4,
 	})
 	arrowDist.Parent = arrow
 
+	-- the two looping tweens only run while their element is on screen (setVisible / setArrow pause them)
 	local tweens: { Tween } = {}
 	local bob = TweenService:Create(
 		billboard,
 		TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
 		{ StudsOffsetWorldSpace = Vector3.new(0, MARKER_HEIGHT + 2, 0) }
 	)
-	bob:Play()
 	table.insert(tweens, bob)
 	local pulse = TweenService:Create(
 		badgePulse,
 		TweenInfo.new(0.55, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
 		{ Scale = 1.12 }
 	)
-	pulse:Play()
 	table.insert(tweens, pulse)
 
 	-- pop the marker in
@@ -563,6 +611,7 @@ local function buildWaypoint(id: string, color: Color3, label: string): Waypoint
 		glow = glow,
 		pillar = pillar,
 		billboard = billboard,
+		markerScale = markerScale,
 		pin = pin,
 		tip = tip,
 		pinIcon = pinIcon,
@@ -577,6 +626,8 @@ local function buildWaypoint(id: string, color: Color3, label: string): Waypoint
 		arrowScale = arrowScale,
 		lastDistText = "",
 		tweens = tweens,
+		bob = bob,
+		pulse = pulse,
 	}
 end
 
@@ -797,6 +848,38 @@ local function updateAutoHome()
 	end
 end
 
+-- While wanted: point at the nearest Spray Shop with its price (the "hit a 🎨 Spray Shop" hint is useless if nobody
+-- can find one).
+local sprayTargets: { Vector3 }? = nil
+local function updateAutoSpray()
+	local stars = player:GetAttribute("Wanted")
+	local root = startAttachment
+	if typeof(stars) ~= "number" or stars < 1 or not (root and root.Parent) then
+		clearAuto(SPRAY_ID)
+		return
+	end
+	local targets = sprayTargets
+	if not targets then
+		local list: { Vector3 } = {}
+		local ok, zones = pcall(MapLayout.sprayZones)
+		if ok and typeof(zones) == "table" then
+			for _, zone in zones do
+				-- the zone box floats size.Y/2 above the street; aim at the floor
+				table.insert(list, zone.cframe.Position - Vector3.new(0, zone.size.Y / 2, 0))
+			end
+		end
+		sprayTargets = list
+		targets = list
+	end
+	local idx = WaypointController.nearestIndex(targets :: { Vector3 }, root.WorldPosition)
+	if not idx then
+		clearAuto(SPRAY_ID)
+		return
+	end
+	local cost = WaypointController.sprayCost(stars, player:GetAttribute("IncomePerSec"))
+	setAuto(SPRAY_ID, (targets :: { Vector3 })[idx], SPRAY_COLOR, "SPRAY " .. Format.cash(cost))
+end
+
 local function onHotDrop(state: any)
 	if WaypointController.hotDropVisible(state, Workspace:GetServerTimeNow()) then
 		local def = if typeof(state.carId) == "string" then Cars.get(state.carId) else nil
@@ -856,6 +939,17 @@ local distAccum = 0
 local autoAccum = math.huge -- run the slow tick on the first frame
 local insets: Insets = { left = 0, top = 0, right = 0, bottom = 0 } -- reused every frame
 local topInset = 0
+local bottomClearance = 0 -- real px kept clear at the bottom (driving HUD), refreshed on the slow tick
+local rightClearance = 0 -- real px kept clear on the right (touch buttons)
+
+local function lazyHud(): any
+	local mod = script.Parent:FindFirstChild("HUDController")
+	if not mod or not mod:IsA("ModuleScript") then
+		return nil
+	end
+	local ok, result = pcall(require, mod :: any)
+	return if ok and typeof(result) == "table" then result else nil
+end
 
 local function setBeam(wp: Waypoint, on: boolean)
 	if wp.beamOn ~= on then
@@ -869,14 +963,26 @@ local function setArrow(wp: Waypoint, on: boolean)
 	if wp.arrowOn ~= on then
 		wp.arrowOn = on
 		wp.arrow.Visible = on
+		if on then
+			wp.pulse:Play()
+		else
+			wp.pulse:Pause()
+		end
 	end
 end
 
+-- Marker + pillar on/off (streamer mode keeps them off; the guide beam is handled by setBeam).
 local function setVisible(wp: Waypoint, visible: boolean)
-	if wp.shown ~= visible then
-		wp.shown = visible
-		wp.billboard.Enabled = visible
-		wp.pillar.Enabled = visible
+	local decor = visible and not hudHidden
+	if wp.shown ~= decor then
+		wp.shown = decor
+		wp.billboard.Enabled = decor
+		wp.pillar.Enabled = decor
+		if decor then
+			wp.bob:Play()
+		else
+			wp.bob:Pause()
+		end
 	end
 	if not visible then
 		setBeam(wp, false)
@@ -894,6 +1000,7 @@ local function update(dt: number)
 	if autoAccum >= AUTO_TICK then
 		autoAccum = 0
 		updateAutoHome()
+		updateAutoSpray()
 		onHotDrop(StateController.getHotDrop()) -- also expires stale drops without a new push
 		updateSuppression()
 		local inset = GuiService:GetGuiInset()
@@ -903,8 +1010,22 @@ local function update(dt: number)
 			uiScale = s
 			for _, wp in waypoints do
 				wp.arrowScale.Scale = s
+				wp.markerScale.Scale = s
+				wp.billboard.Size = UDim2.fromOffset(math.floor(MARKER_WIDTH * s), math.floor(MARKER_TALL * s))
 			end
 		end
+		-- the bottom-center driving HUD (speedometer / theft timer) and, on touch, the right-hand button column
+		local baseScale = Kit.uiScale()
+		local clearance = 0
+		local hud = lazyHud()
+		if hud and player:GetAttribute("Driving") == true and typeof(hud.getBottomClearance) == "function" then
+			local ok, v = pcall(hud.getBottomClearance)
+			if ok and typeof(v) == "number" then
+				clearance = (v + ARROW_SPEEDO_GAP) * baseScale + ARROW_SIZE * 0.5 * uiScale
+			end
+		end
+		bottomClearance = clearance
+		rightClearance = if Kit.isTouch() then ARROW_TOUCH_RIGHT * baseScale + ARROW_SIZE * 0.5 * uiScale else 0
 	end
 
 	distAccum += dt
@@ -916,9 +1037,10 @@ local function update(dt: number)
 	local vp = cam.ViewportSize
 	local margin = ARROW_MARGIN * uiScale
 	insets.left = ARROW_MARGIN_LEFT * uiScale
-	insets.right = margin
+	insets.right = math.max(margin, rightClearance)
 	insets.top = margin + topInset
-	insets.bottom = margin
+	-- the arrow gui ignores the inset but HUD clearances are measured from the (shared) screen bottom
+	insets.bottom = math.max(margin, bottomClearance)
 	local att = startAttachment
 	local origin = if att and att.Parent then att.WorldPosition else cam.Focus.Position
 
@@ -1001,6 +1123,21 @@ function WaypointController.start()
 
 	StateController.HotDropChanged:Connect(onHotDrop)
 	onHotDrop(StateController.getHotDrop())
+
+	-- streamer mode: markers, pillars and edge arrows go (update() re-applies setVisible every frame)
+	local hud = lazyHud()
+	if hud and hud.VisibilityChanged and typeof(hud.isHidden) == "function" then
+		local function applyHidden(value: boolean)
+			hudHidden = value == true
+			local g = arrowGui
+			if g then
+				g.Enabled = not hudHidden
+			end
+		end
+		hud.VisibilityChanged:Connect(applyHidden)
+		local okHidden, value = pcall(hud.isHidden)
+		applyHidden(okHidden and value == true)
+	end
 
 	player.CharacterAdded:Connect(bindCharacter)
 	if player.Character then

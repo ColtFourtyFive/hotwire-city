@@ -40,6 +40,7 @@ Remotes.ClientToServer = {
 	"SetSetting", -- (key: string, value: boolean)
 	"TutorialDone", -- ()
 	"LockGarage", -- () owner presses lock from UI (also a physical button)
+	"RerollContract", -- (contractId: string) free daily swap of one contract
 	"AdminCommand", -- (text: string) only works for admins
 }
 

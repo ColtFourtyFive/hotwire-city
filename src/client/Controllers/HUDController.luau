@@ -33,6 +33,7 @@
 --                                         speedometer, the theft timer — whichever reaches highest)
 --   getTopStackBottom(): number           real px (inset-relative) where the top-center HUD stack ends
 --   getFeedAnchor(): Vector2?             real px top-left for NotificationController's event feed (beside the menu)
+--   getMenuBottom(): number               real px bottom of the top-left buttons (wide overlays go below on phones)
 --   holdCash(amount) / releaseCash()      offline modal: show cash without `amount` until COLLECT, then count up
 --   VisibilityChanged: Signal(hidden: boolean)
 -- Pure helpers (tests): clampStars, starStates, cashTrend, theftView, theftMode, playtimeClaimable, rebirthReady,
@@ -876,6 +877,8 @@ local function buildWanted(root: Frame)
 	local holderScale = Kit.new("UIScale", { Name = "DeviceScale", Parent = holder })
 	local panel = Kit.panel({
 		Name = "Wanted",
+		AnchorPoint = Vector2.new(0.5, 0), -- pops grow from the top-center
+		Position = UDim2.fromScale(0.5, 0),
 		Size = UDim2.new(1, 0, 0, STATUS_PANEL_HEIGHT),
 		BackgroundColor3 = Theme.Colors.Background,
 		BackgroundTransparency = 0.05,
@@ -934,7 +937,8 @@ local function buildWanted(root: Frame)
 	local bust = Kit.new("Frame", {
 		Name = "Bust",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(0, STATUS_PANEL_HEIGHT + 6),
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, STATUS_PANEL_HEIGHT + 6),
 		Size = UDim2.new(1, 0, 0, STATUS_BUST_HEIGHT),
 		Visible = false,
 		Parent = holder,
@@ -1012,6 +1016,8 @@ local function buildTheft(root: Frame)
 	local holderScale = Kit.new("UIScale", { Name = "DeviceScale", Parent = holder })
 	local panel = Kit.panel({
 		Name = "TheftTimer",
+		AnchorPoint = Vector2.new(0.5, 1), -- pops grow from the bottom-center, like the holder
+		Position = UDim2.fromScale(0.5, 1),
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = Theme.Colors.Background,
 		Parent = holder,
@@ -1050,14 +1056,7 @@ local function buildTheft(root: Frame)
 		Parent = panel,
 	})
 	local fill = bar:FindFirstChild("Fill")
-	return holder,
-		holderScale,
-		panel,
-		stroke,
-		title,
-		timer,
-		if fill and fill:IsA("Frame") then fill else nil,
-		setBar
+	return holder, holderScale, panel, stroke, title, timer, if fill and fill:IsA("Frame") then fill else nil, setBar
 end
 
 local function buildToggle(): (ScreenGui, TextButton)
@@ -1189,6 +1188,21 @@ function HUDController.getFeedAnchor(): Vector2?
 		return Vector2.new(m.x * s, below * s)
 	end
 	return Vector2.new((m.x + m.width + 12) * s, m.top * s)
+end
+
+-- Real px bottom of the top-left buttons (the touch menu strip when shown, else the CODES / SETTINGS row); wide
+-- top-center overlays (the theft alarm banner on phones) go below it. 0 while hidden.
+function HUDController.getMenuBottom(): number
+	local u = ui
+	if not u or hidden then
+		return 0
+	end
+	local s = uiScaleValue()
+	local m = menuLayout
+	if u.menu.Visible then
+		return (m.top + m.height) * s
+	end
+	return if u.topRow.Visible then (m.top - 14) * s else 0
 end
 
 local applyFocus: (boolean, boolean?) -> ()
@@ -1629,7 +1643,7 @@ local function applyTheft(state: any)
 			u.theftHolder.Visible = not hidden
 			u.theftHolder.Position = UDim2.new(0.5, 0, 1, -theftBottom + 60)
 			tween(u.theftHolder, Theme.TweenPop, { Position = UDim2.new(0.5, 0, 1, -theftBottom) })
-			theftSlideUntil = os.clock() + Theme.TweenPop.Time + 0.05
+			theftSlideUntil = os.clock() + 0.4 -- TweenPop is 0.35s
 			Kit.pop(u.theft, 0.6)
 		else
 			u.theftHolder.Visible = false
@@ -2164,10 +2178,8 @@ local function installVipChatTag()
 				return nil
 			end
 			local sender = Players:GetPlayerByUserId(source.UserId)
-			local prefix = HUDController.vipChatPrefix(
-				sender ~= nil and sender:GetAttribute("VIP") == true,
-				message.PrefixText
-			)
+			local prefix =
+				HUDController.vipChatPrefix(sender ~= nil and sender:GetAttribute("VIP") == true, message.PrefixText)
 			if not prefix then
 				return nil
 			end

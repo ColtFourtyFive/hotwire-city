@@ -9,6 +9,7 @@
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
 local Cars = require(Shared.Config.Cars)
@@ -30,10 +31,21 @@ local G = MapConfig.Garage
 
 local GarageService = {}
 
-GarageService.SNAPSHOT_EVERY = 3 -- income ticks between snapshot pushes caused only by income
 GarageService.COLLECT_DEBOUNCE = 0.75
+GarageService.AUTO_COLLECT_EVERY = 2 -- standing / parked on the Collect pad collects this often
+GarageService.COLLECT_PAD_HEIGHT = 10 -- studs above the pad that count as "on it" (a seated driver included)
 GarageService.PROMPT_DISTANCE = 12
-GarageService.DRIVE_MAX_DISTANCE = 40 -- DriveCar remote: player must be inside their garage or this close to the slot
+GarageService.DRIVE_MAX_DISTANCE = 40 -- DriveCar/SellCar remotes: inside your garage or this close to the slot
+GarageService.HOLD_MAX_EXTRA = 1.5 -- seconds of latency slack before a completed steal hold counts as stale
+GarageService.INTRUDER_WARN_EVERY = 5 -- seconds between "X is hotwiring your car!" warnings per thief
+GarageService.SELL_HOLD = 1 -- SellPrompt hold (Common..Rare)
+GarageService.SELL_HOLD_EPIC = 2.5 -- SellPrompt hold for Epic and above
+GarageService.SELL_CONFIRM_ORDER = 5 -- Legendary and above: selling needs a second trigger...
+GarageService.SELL_CONFIRM_WINDOW = 5 -- ...within this many seconds
+GarageService.DISPLAY_LIVE_RADIUS = 160 -- owner this close to their plot: display "Uncollected" ticks every second
+GarageService.CHOP_NOTIFY_EVERY = 4
+GarageService.DRIVE_OUT_CLEARANCE = Vector3.new(10, 6, 20) -- free box (W x H x L) needed at DRIVE_OUT_SPAWN
+local CHOP_COLOR = Color3.fromRGB(255, 140, 40)
 
 -- Lazy system access (no require cycles; tolerant of a missing/broken system) -------------------------------------
 local systemCache: { [string]: any } = {}
@@ -168,6 +180,58 @@ function GarageService._baseStealHold(carId: string): number
 	return (if tier then tier.hotwireTime else 1) * Economy.THEFT_HOLD_MULTIPLIER
 end
 
+-- Longest a legit hold can take from HoldBegan to Triggered: the client shows at most the unscaled base duration
+-- (possibly with a stale HoldMultiplier), plus latency. Older = a pre-charged hold (SEC-2).
+function GarageService._holdMaxAge(baseHold: number): number
+	return baseHold * 1.25 + GarageService.HOLD_MAX_EXTRA
+end
+
+-- Server-side steal hold check: held long enough, and not a stale tap re-triggered later with HoldDuration = 0.
+function GarageService._holdOk(began: number?, now: number, baseHold: number, holdMultiplier: number): boolean
+	if began == nil then
+		return false
+	end
+	local held = now - began
+	return held >= GarageService._requiredHold(baseHold, holdMultiplier) and held <= GarageService._holdMaxAge(baseHold)
+end
+
+local function rarityOrder(carId: string): number
+	local def = Cars.get(carId)
+	local tier = def and Rarity.Tiers[def.rarity]
+	return if tier then tier.order else 1
+end
+
+-- SellPrompt hold: longer for valuable cars so a stray hold can't sell them (F11).
+function GarageService._sellHold(carId: string): number
+	return if rarityOrder(carId) >= 4 then GarageService.SELL_HOLD_EPIC else GarageService.SELL_HOLD
+end
+
+-- Legendary and above need a confirming second sell inside SELL_CONFIRM_WINDOW (F11).
+function GarageService._sellNeedsConfirm(carId: string): boolean
+	return rarityOrder(carId) >= GarageService.SELL_CONFIRM_ORDER
+end
+
+-- " Or unlock slot N for $X..." for garage-full messages, "" when every cash slot is bought (F13).
+function GarageService._fullHint(slotsUnlocked: number, capacity: number): string
+	if slotsUnlocked >= Economy.MAX_SLOTS then
+		return ""
+	end
+	local price = EconomyMath.slotPrice(slotsUnlocked + 1)
+	if not price then
+		return ""
+	end
+	return ` Or unlock slot {capacity + 1} for {Format.cash(price)} at the glowing pad!`
+end
+
+-- Is `pos` (a HumanoidRootPart) standing on, or parked over, the Collect pad?
+function GarageService._overPad(padCFrame: CFrame, padSize: Vector3, pos: Vector3): boolean
+	local p = padCFrame:PointToObjectSpace(pos)
+	return math.abs(p.X) <= padSize.X / 2 + 1
+		and math.abs(p.Z) <= padSize.Z / 2 + 1
+		and p.Y >= -1
+		and p.Y <= GarageService.COLLECT_PAD_HEIGHT
+end
+
 -- Per-player runtime state ----------------------------------------------------------------------------------------
 
 type Display = {
@@ -187,10 +251,13 @@ type PState = {
 	indexBonus: number,
 	indexAt: number,
 	income: number,
-	ticks: number,
 	collectAt: number,
 	fullNotifyAt: number,
+	chopNotifyAt: number,
+	chopWaypoint: boolean, -- the "CHOP SHOP" waypoint is showing (garage-full delivery)
 	padsKey: string,
+	intruderWarnAt: { [Player]: number }, -- thief -> os.clock() of their last "hotwiring your car" warning
+	sellArm: { slot: number, carId: string, untilT: number }?, -- pending Legendary+ sale awaiting confirmation
 }
 
 local pstates: { [Player]: PState } = {}
@@ -221,10 +288,13 @@ local function getPS(player: Player): PState
 			indexBonus = 0,
 			indexAt = -math.huge,
 			income = 0,
-			ticks = 0,
 			collectAt = 0,
 			fullNotifyAt = 0,
+			chopNotifyAt = 0,
+			chopWaypoint = false,
 			padsKey = "",
+			intruderWarnAt = {},
+			sellArm = nil,
 		}
 		pstates[player] = ps
 	end
@@ -319,6 +389,15 @@ function GarageService.freeSlots(player: Player): number
 		end
 	end
 	return n
+end
+
+-- Appended to every garage-full message (here, TheftService, DealershipService): points at the next slot unlock.
+function GarageService.fullHint(player: Player): string
+	local data = getData(player)
+	if not data then
+		return ""
+	end
+	return GarageService._fullHint(data.slotsUnlocked or Economy.START_SLOTS, GarageService.capacity(player))
 end
 
 function GarageService.getSlotState(player: Player, slot: number): SlotState?
@@ -463,6 +542,39 @@ end
 local driveSlot: (Player, number) -> boolean
 local sellSlot: (Player, number) -> boolean
 
+-- Tells the owner the moment someone starts hotwiring one of their display cars (F3): the hold (1.1-8.4s) is their
+-- window to LOCK or BONK. Throttled per thief; skipped when the steal could not happen anyway.
+local function warnOwner(owner: Player, ps: PState, thief: Player, display: Display, label: string)
+	if thief == owner or owner.Parent ~= Players or thief.Parent ~= Players then
+		return
+	end
+	local now = os.clock()
+	local last = ps.intruderWarnAt[thief]
+	if last and now - last < GarageService.INTRUDER_WARN_EVERY then
+		return
+	end
+	if GarageService.ownedCount(owner) < Economy.NEWBIE_PROTECTION_CARS then
+		return
+	end
+	local PlotService = sys("PlotService")
+	local index = plotIndexOf(owner)
+	if PlotService and index and try(PlotService.isLocked, false, index) == true then
+		return
+	end
+	local char = thief.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if
+		not root
+		or not root:IsA("BasePart")
+		or (root.Position - display.chassis.Position).Magnitude > GarageService.PROMPT_DISTANCE + 8
+	then
+		return
+	end
+	ps.intruderWarnAt[thief] = now
+	notify(owner, "warning", `🚨 {thief.DisplayName} is hotwiring your {label}! LOCK or BONK!`)
+	Net.fireClient("Sound", owner, "Horn")
+end
+
 local function buildDisplay(player: Player, ps: PState, slot: number, rec: SlotRecord)
 	removeDisplay(ps, slot)
 	local PlotService = sys("PlotService")
@@ -536,7 +648,7 @@ local function buildDisplay(player: Player, ps: PState, slot: number, rec: SlotR
 		label,
 		Enum.KeyCode.F,
 		Enum.KeyCode.ButtonY,
-		1,
+		GarageService._sellHold(rec.carId),
 		Vector2.new(0, 84)
 	)
 	sell.Triggered:Connect(function(p: Player)
@@ -551,6 +663,14 @@ local function buildDisplay(player: Player, ps: PState, slot: number, rec: SlotR
 		steal:SetAttribute("BaseHold", base)
 		steal.PromptButtonHoldBegan:Connect(function(p: Player)
 			display.holds[p] = os.clock()
+			warnOwner(player, ps, p, display, label)
+		end)
+		steal.PromptButtonHoldEnded:Connect(function(p: Player)
+			-- an interrupted hold starts over: no pre-charged holds (SEC-2); a completed one is kept for Triggered
+			local began = display.holds[p]
+			if began and os.clock() - began < GarageService._requiredHold(base, holdMultiplier(p)) then
+				display.holds[p] = nil
+			end
 		end)
 		steal.Triggered:Connect(function(thief: Player)
 			if thief == player or thief.Parent == nil or player.Parent == nil then
@@ -558,8 +678,8 @@ local function buildDisplay(player: Player, ps: PState, slot: number, rec: SlotR
 			end
 			local began = display.holds[thief]
 			display.holds[thief] = nil
-			if not began or os.clock() - began < GarageService._requiredHold(base, holdMultiplier(thief)) then
-				return
+			if not GarageService._holdOk(began, os.clock(), base, holdMultiplier(thief)) then
+				return -- too short (spoofed) or stale (tapped earlier, re-triggered with a zeroed HoldDuration)
 			end
 			if ps.states[slot] ~= nil and ps.states[slot] ~= "Parked" then
 				return
@@ -843,6 +963,83 @@ local function onCollectTouched(index: number, hit: BasePart)
 	GarageService.collect(player)
 end
 
+-- Car helpers ------------------------------------------------------------------------------------------------------------
+
+local function destroyCar(car: any, reason: string)
+	local VS = sys("VehicleService")
+	if not VS then
+		return
+	end
+	if typeof(VS.eject) == "function" then
+		pcall(VS.eject, car)
+	end
+	if typeof(VS.destroy) == "function" then
+		local ok, err = pcall(VS.destroy, car, reason)
+		if not ok then
+			warn("[GarageService] VehicleService.destroy failed: " .. tostring(err))
+		end
+	end
+end
+
+local function carPosition(car: any): Vector3?
+	local chassis = car.chassis
+	if typeof(chassis) == "Instance" and chassis:IsA("BasePart") then
+		return chassis.CFrame.Position
+	end
+	local model = car.model
+	if typeof(model) == "Instance" and model:IsA("Model") then
+		return model:GetPivot().Position
+	end
+	return nil
+end
+
+-- SEC-1 defense in depth (VehicleService already gates its zone events): a tainted car (watchdog rewound a teleport)
+-- or one that reached `pos` faster than the fastest legal drive since its drive began never delivers or chops.
+local function untrustedArrival(car: any, pos: Vector3?): boolean
+	local VS = sys("VehicleService")
+	if not VS then
+		return false
+	end
+	if try(VS.isTainted, false, car) == true then
+		return true
+	end
+	local startedAt = if type(car.data) == "table" then car.data.driveStartAt else nil
+	if typeof(startedAt) ~= "number" or not pos then
+		return false
+	end
+	local need = try(VS.minTravelTime, 0, car, pos)
+	return typeof(need) == "number" and os.clock() - startedAt < need
+end
+
+-- The player is inside their own garage, or within DRIVE_MAX_DISTANCE of the slot pad (remote presence check).
+local function atOwnGarage(player: Player, index: number, slot: number): boolean
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return false
+	end
+	if MapLayout.plotAt(root.Position) == index then
+		return true
+	end
+	return (root.Position - MapLayout.slotWorld(index, slot).Position).Magnitude <= GarageService.DRIVE_MAX_DISTANCE
+end
+
+-- Is anything (a car or a piece of one) in the drive-out spawn box?
+local function exitBlocked(ground: CFrame): boolean
+	local VS = sys("VehicleService")
+	local folder = VS and try(VS.getFolder, nil)
+	if typeof(folder) ~= "Instance" then
+		return false
+	end
+	local params = OverlapParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { folder }
+	local size = GarageService.DRIVE_OUT_CLEARANCE
+	local ok, parts =
+		pcall(Workspace.GetPartBoundsInBox, Workspace, ground * CFrame.new(0, size.Y / 2, 0), size, params)
+	return ok and type(parts) == "table" and #parts > 0
+end
+
 -- Sell / drive / unlock --------------------------------------------------------------------------------------------------
 
 sellSlot = function(player: Player, slot: number): boolean
@@ -864,6 +1061,23 @@ sellSlot = function(player: Player, slot: number): boolean
 	if GarageService.ownedCount(player) <= 1 then
 		notify(player, "error", "You can't sell your last car!")
 		return false
+	end
+	if GarageService._sellNeedsConfirm(rec.carId) then
+		-- Legendary+: the first sell only arms; a second one inside SELL_CONFIRM_WINDOW sells (F11)
+		local ps = getPS(player)
+		local now = os.clock()
+		local arm = ps.sellArm
+		if not (arm and arm.slot == slot and arm.carId == rec.carId and now <= arm.untilT) then
+			ps.sellArm = { slot = slot, carId = rec.carId, untilT = now + GarageService.SELL_CONFIRM_WINDOW }
+			local worth = EconomyMath.sellValue(rec.carId, rec.mutation) + math.floor(rec.uncollected or 0)
+			notify(
+				player,
+				"warning",
+				`⚠️ Sell your {carLabel(rec.carId, rec.mutation)} for {Format.cash(worth)}? Hold SELL again to confirm!`
+			)
+			return false
+		end
+		ps.sellArm = nil
 	end
 	local removed = GarageService.removeSlot(player, slot)
 	if not removed then
@@ -905,15 +1119,31 @@ driveSlot = function(player: Player, slot: number): boolean
 	if player:GetAttribute("Stunned") == true then
 		return false
 	end
-	local near = (root.Position - MapLayout.slotWorld(index, slot).Position).Magnitude
-		<= GarageService.DRIVE_MAX_DISTANCE
-	if MapLayout.plotAt(root.Position) ~= index and not near then
+	if not atOwnGarage(player, index, slot) then
 		notify(player, "error", "Go to your garage to take a car out.")
+		return false
+	end
+	-- One car at the exit (F8): park this player's empty cars that are out first, then make sure the spawn box is
+	-- clear, so the new car never spawns inside another one (depenetration would fling both).
+	for s, other in ps.outCars do
+		if type(other) == "table" and not other.destroyed and other.driver == nil then
+			if type(other.data) == "table" then
+				other.data.delivered = true
+			end
+			destroyCar(other, "parked")
+			ps.outCars[s] = nil
+			if GarageService.getSlotState(player, s) == "Driving" then
+				GarageService.restoreSlot(player, s)
+			end
+		end
+	end
+	local ground = MapLayout.plotToWorld(index, G.DRIVE_OUT_SPAWN + Vector3.new(0, padTop() - 0.2, 0))
+	if exitBlocked(ground) then
+		notify(player, "error", "🚧 Clear the exit first!")
 		return false
 	end
 	ps.states[slot] = "Driving"
 	removeDisplay(ps, slot)
-	local ground = MapLayout.plotToWorld(index, G.DRIVE_OUT_SPAWN + Vector3.new(0, padTop() - 0.2, 0))
 	local ok, car = pcall(VS.spawn, rec.carId, rec.mutation, ground, "Owned", {
 		ownerUserId = player.UserId,
 		owner = player,
@@ -935,9 +1165,12 @@ driveSlot = function(player: Player, slot: number): boolean
 		car.model:SetAttribute("Slot", slot)
 	end)
 	ps.outCars[slot] = car
-	local seatOk, err = pcall(VS.seat, car, player)
-	if not seatOk then
-		warn("[GarageService] VehicleService.seat failed: " .. tostring(err))
+	-- seat() never throws: it returns (ok, reason). On a refusal the car waits with its EnterPrompt (owner presses F).
+	local okCall, seated, why = pcall(VS.seat, car, player)
+	if not okCall then
+		warn("[GarageService] VehicleService.seat errored: " .. tostring(seated))
+	elseif seated ~= true then
+		warn("[GarageService] VehicleService.seat refused: " .. tostring(why))
 	end
 	ps.income = GarageService.incomePerSec(player)
 	player:SetAttribute("IncomePerSec", ps.income)
@@ -990,34 +1223,6 @@ local function sameUser(a: any, player: Player): boolean
 	return a == player.UserId
 end
 
-local function destroyCar(car: any, reason: string)
-	local VS = sys("VehicleService")
-	if not VS then
-		return
-	end
-	if typeof(VS.eject) == "function" then
-		pcall(VS.eject, car)
-	end
-	if typeof(VS.destroy) == "function" then
-		local ok, err = pcall(VS.destroy, car, reason)
-		if not ok then
-			warn("[GarageService] VehicleService.destroy failed: " .. tostring(err))
-		end
-	end
-end
-
-local function carPosition(car: any): Vector3?
-	local chassis = car.chassis
-	if typeof(chassis) == "Instance" and chassis:IsA("BasePart") then
-		return chassis.CFrame.Position
-	end
-	local model = car.model
-	if typeof(model) == "Instance" and model:IsA("Model") then
-		return model:GetPivot().Position
-	end
-	return nil
-end
-
 local function onDelivery(player: Player, car: any)
 	if type(car) ~= "table" or car.data == nil or car.data.delivered then
 		return
@@ -1033,23 +1238,27 @@ local function onDelivery(player: Player, car: any)
 			return -- still on the way out of the garage
 		end
 		local slot = car.data.slot
-		local rec = slot and data.garage[tostring(slot)]
-		car.data.delivered = true
-		destroyCar(car, "parked")
 		local ps = getPS(player)
-		if slot then
-			ps.outCars[slot] = nil
-		end
-		if rec and rec.carId == car.carId then
-			GarageService.restoreSlot(player, slot)
-			Net.fireClient("Sound", player, "CarDoor", pos)
-		else
-			-- the slot vanished meanwhile (rebirth...): try to keep the car anyway
-			local ok = GarageService.storeCar(player, car.carId, car.mutation)
-			if not ok then
-				notify(player, "warning", "No free slot for that car!")
+		-- Only THIS session's car for THIS slot parks (DUPE-1): an orphan from an earlier session (left, rejoined) or a
+		-- car whose slot changed meanwhile (sold, rebirth) is towed away. An Owned car never creates a record.
+		local mine = typeof(slot) == "number" and ps.outCars[slot] == car
+		local rec = if mine then data.garage[tostring(slot)] else nil
+		car.data.delivered = true
+		if not mine or not rec or rec.carId ~= car.carId then
+			if mine then
+				ps.outCars[slot] = nil
+				if GarageService.getSlotState(player, slot) == "Driving" then
+					GarageService.restoreSlot(player, slot) -- a different car holds that slot now: it isn't out
+				end
 			end
+			destroyCar(car, "orphan")
+			notify(player, "warning", "🚚 That car isn't in your garage anymore, so it got towed.")
+			return
 		end
+		destroyCar(car, "parked")
+		ps.outCars[slot] = nil
+		GarageService.restoreSlot(player, slot)
+		Net.fireClient("Sound", player, "CarDoor", pos)
 		return
 	elseif kind == "Stolen" then
 		local theft = car.data.theft
@@ -1096,6 +1305,9 @@ local function onDelivery(player: Player, car: any)
 	if not def then
 		return
 	end
+	if untrustedArrival(car, pos) then
+		return -- SEC-1: teleported in (VehicleService retries a legit car while it stays in the drop-off)
+	end
 	local ps = getPS(player)
 	local okStore, slotOrReason = GarageService.storeCar(player, car.carId, car.mutation)
 	if not okStore then
@@ -1103,13 +1315,25 @@ local function onDelivery(player: Player, car: any)
 			local now = os.clock()
 			if now > ps.fullNotifyAt then
 				ps.fullNotifyAt = now + 4
-				notify(player, "error", "Garage full! Sell a car or chop it at the Chop Shop")
+				notify(
+					player,
+					"error",
+					"📦 Garage full! Sell a car or chop it at the Chop Shop." .. GarageService.fullHint(player)
+				)
+				-- point at the Chop Shop (F10); cleared by the next delivery or chop
+				local cf = MapLayout.chopZone()
+				Net.fireClient("Waypoint", player, "chop", cf.Position - Vector3.new(0, 7, 0), CHOP_COLOR, "CHOP SHOP")
+				ps.chopWaypoint = true
 			end
 		end
 		return
 	end
 	car.data.delivered = true
 	destroyCar(car, "delivered")
+	if ps.chopWaypoint then
+		ps.chopWaypoint = false
+		Net.fireClient("Waypoint", player, "chop", nil)
+	end
 	local isNew = GarageService.discover(player, car.carId)
 	local stats = data.stats
 	if stats then
@@ -1146,20 +1370,42 @@ local function onDelivery(player: Player, car: any)
 end
 
 local function onChop(player: Player, car: any)
-	if type(car) ~= "table" or car.kind ~= "Loot" or car.data == nil or car.data.chopped then
+	if type(car) ~= "table" or car.data == nil or car.data.chopped then
 		return
 	end
 	if car.driver ~= nil and car.driver ~= player then
+		return
+	end
+	if car.kind ~= "Loot" then
+		-- only loot is chopped; say why instead of silently ignoring the car (F24)
+		local hint = if car.kind == "Owned"
+			then "🔧 That's your own ride! Sell it from your garage instead."
+			elseif car.kind == "Stolen" then "🔧 Hot car! Deliver it to your garage instead."
+			else nil
+		local ps = pstates[player]
+		local now = os.clock()
+		if hint and ps and now >= ps.chopNotifyAt then
+			ps.chopNotifyAt = now + GarageService.CHOP_NOTIFY_EVERY
+			notify(player, "info", hint)
+		end
 		return
 	end
 	local DataService = sys("DataService")
 	if not DataService or not Cars.get(car.carId) then
 		return
 	end
-	car.data.chopped = true
 	local pos = carPosition(car)
+	if untrustedArrival(car, pos) then
+		return -- SEC-1: teleported into the Chop Shop
+	end
+	car.data.chopped = true
 	local value = EconomyMath.chopValue(car.carId, car.mutation)
 	destroyCar(car, "chopped")
+	local ps = pstates[player]
+	if ps and ps.chopWaypoint then
+		ps.chopWaypoint = false
+		Net.fireClient("Waypoint", player, "chop", nil)
+	end
 	try(DataService.addCash, nil, player, value, "chop")
 	Net.fireClient("CashPopup", player, value, pos)
 	Net.fireClient("Sound", player, "CashDrop", pos)
@@ -1193,10 +1439,12 @@ local function onReturnedHome(car: any)
 	if not player or typeof(slot) ~= "number" then
 		return
 	end
+	-- only this session's car frees its slot (an orphan from an earlier session must not touch the new state)
 	local ps = pstates[player]
-	if ps then
-		ps.outCars[slot] = nil
+	if not ps or ps.outCars[slot] ~= car then
+		return
 	end
+	ps.outCars[slot] = nil
 	if GarageService.getSlotState(player, slot) == "Driving" then
 		GarageService.restoreSlot(player, slot)
 		notify(player, "info", `🚚 Your {carLabel(car.carId, car.mutation)} was towed back home.`)
@@ -1213,9 +1461,10 @@ local function onVehicleDestroyed(car: any, _reason: any)
 		return
 	end
 	local ps = pstates[player]
-	if ps and ps.outCars[slot] == car then
-		ps.outCars[slot] = nil
+	if not ps or ps.outCars[slot] ~= car then
+		return -- not this session's car for that slot (DUPE-1 orphan): leave the slot alone
 	end
+	ps.outCars[slot] = nil
 	if GarageService.getSlotState(player, slot) == "Driving" then
 		GarageService.restoreSlot(player, slot)
 	end
@@ -1224,6 +1473,13 @@ end
 -- Lifecycle ------------------------------------------------------------------------------------------------------------
 
 local function cleanup(player: Player)
+	-- the leaver's half-done steal holds / warning throttles on everybody else's displays (strong-keyed tables)
+	for _, other in pstates do
+		other.intruderWarnAt[player] = nil
+		for _, d in other.displays do
+			d.holds[player] = nil
+		end
+	end
 	local ps = pstates[player]
 	pstates[player] = nil
 	if not ps then
@@ -1231,6 +1487,17 @@ local function cleanup(player: Player)
 	end
 	for slot in ps.displays do
 		removeDisplay(ps, slot)
+	end
+	-- Owned cars never outlive the session (DUPE-1): a rejoin must not find its old car still out. pstates is
+	-- already cleared, so onVehicleDestroyed leaves the (saved) slot alone.
+	for slot, car in ps.outCars do
+		ps.outCars[slot] = nil
+		if type(car) == "table" and not car.destroyed then
+			if type(car.data) == "table" then
+				car.data.delivered = true
+			end
+			destroyCar(car, "owner_left")
+		end
 	end
 end
 
@@ -1241,15 +1508,26 @@ local function tickPlayer(player: Player, ps: PState, dt: number)
 	end
 	ps.mult = computeMultiplier(player, data)
 	local income = GarageService._accrue(data.garage, ps.states, ps.mult, dt)
-	if income ~= ps.income or player:GetAttribute("IncomePerSec") ~= income then
+	local incomeChanged = math.abs(income - ps.income) > 1e-6
+	if incomeChanged or player:GetAttribute("IncomePerSec") ~= income then
 		ps.income = income
 		player:SetAttribute("IncomePerSec", income)
 	end
+	-- PERF-08: a display car's "Uncollected" line is only ever shown to its owner (BillboardGui MaxDistance 80), so
+	-- the per-second writes only run while the owner is near their garage; they catch up as soon as they return.
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	local rootPart: BasePart? = if root and root:IsA("BasePart") then root else nil
+	local index = plotIndexOf(player)
+	local near = rootPart ~= nil
+		and index ~= nil
+		and (rootPart.Position - MapLayout.plotOrigin(index).Position).Magnitude
+			<= GarageService.DISPLAY_LIVE_RADIUS
 	for slot, d in ps.displays do
 		local rec = data.garage[tostring(slot)]
 		if rec then
 			local whole = math.floor(rec.uncollected or 0)
-			if whole ~= d.shownUncollected then
+			if near and whole ~= d.shownUncollected then
 				d.shownUncollected = whole
 				d.model:SetAttribute("Uncollected", whole)
 			end
@@ -1261,9 +1539,33 @@ local function tickPlayer(player: Player, ps: PState, dt: number)
 		end
 	end
 	updatePlotTotals(player, data, ps)
-	ps.ticks += 1
-	if ps.ticks % GarageService.SNAPSHOT_EVERY == 0 then
+	-- Snapshots go out on discrete changes (park, collect, buy, unlock...), which mark dirty themselves; income
+	-- ticking alone no longer rebuilds + pushes the whole profile every few seconds (PERF-08). A multiplier change
+	-- (event, friends, index bonus) is discrete too.
+	if incomeChanged then
 		markDirty(player)
+	end
+	-- F20: standing (or parked) on the Collect pad keeps collecting, not only on a fresh Touched.
+	if near and rootPart and os.clock() - ps.collectAt >= GarageService.AUTO_COLLECT_EVERY then
+		local model = plotModelOf(player)
+		local pad = model and model:FindFirstChild("CollectPad")
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if
+			pad
+			and pad:IsA("BasePart")
+			and hum
+			and hum.Health > 0
+			and GarageService._overPad(pad.CFrame, pad.Size, rootPart.Position)
+		then
+			local total = 0
+			for _, r in data.garage do
+				total += r.uncollected or 0
+			end
+			if total >= 1 then
+				ps.collectAt = os.clock()
+				GarageService.collect(player)
+			end
+		end
 	end
 end
 
@@ -1295,6 +1597,12 @@ function GarageService.init()
 	end, 2)
 	Net.on("SellCar", function(player: Player, slot: any)
 		if not Net.isInt(slot, 1, MapLayout.maxPhysicalSlots()) then
+			return
+		end
+		-- same presence rule as the in-world SellPrompt / DriveCar: no cashing out from across the map (SEC-4)
+		local index = plotIndexOf(player)
+		if not index or not atOwnGarage(player, index, slot) then
+			notify(player, "error", "Go to your garage to sell a car.")
 			return
 		end
 		sellSlot(player, slot)
@@ -1412,6 +1720,12 @@ GarageService.unlockNextSlot = unlockSlot
 GarageService._onDelivery = onDelivery
 GarageService._onChop = onChop
 GarageService._onReturnedHome = onReturnedHome
+GarageService._onVehicleDestroyed = onVehicleDestroyed
+GarageService._cleanup = cleanup
+-- Tests only: register `car` as the player's car out driving from `slot` (what driveSlot records).
+function GarageService._trackOutCar(player: Player, slot: number, car: any)
+	getPS(player).outCars[slot] = car
+end
 GarageService.sell = function(player: Player, slot: number): boolean
 	return sellSlot(player, slot)
 end

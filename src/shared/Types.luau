@@ -39,6 +39,7 @@ export type PlayerData = {
 	exclusives: { [string]: boolean }, -- exclusive cars granted by Robux (re-grantable)
 	contracts: ContractState,
 	referralRewarded: boolean,
+	referralsPaid: { day: number, count: number }?, -- inviter-side referral payouts per UTC day (anti-farm)
 	playtime: { day: number, seconds: number, claimed: { [string]: boolean } }, -- per-UTC-day playtime gifts
 }
 
@@ -46,6 +47,7 @@ export type PlayerData = {
 export type ContractState = {
 	day: number,
 	list: { { id: string, progress: number, claimed: boolean } },
+	rerolled: boolean?, -- used today's free swap
 }
 
 -- What the client receives (DataSnapshot remote). Superset of what UI needs; never trust it server-side.

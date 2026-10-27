@@ -78,6 +78,29 @@ return function(t)
 		t.eq(text, "--:--")
 	end)
 
+	t.test("theftMode: delivery deadline vs dropped-car tow timer", function()
+		local dropped, endsAt, total = HUD.theftMode({ active = true, endsAt = 500, dropped = false })
+		t.eq(dropped, false)
+		t.eq(endsAt, 500)
+		t.eq(total, Economy.THEFT_TIME_LIMIT)
+		dropped, endsAt, total = HUD.theftMode({ active = true, endsAt = 500, dropped = true, droppedEndsAt = 320 })
+		t.eq(dropped, true, "knocked out of the car")
+		t.eq(endsAt, 320, "the tow timer is the real deadline")
+		t.eq(total, Economy.DROPPED_CAR_TIMEOUT)
+		dropped, endsAt = HUD.theftMode({ active = true, endsAt = 500, dropped = true })
+		t.eq(dropped, false, "dropped without a deadline falls back to the delivery timer")
+		t.eq(endsAt, 500)
+		dropped, endsAt = HUD.theftMode({ active = false, dropped = true, droppedEndsAt = 320 })
+		t.eq(dropped, false, "inactive")
+		t.eq(endsAt, nil)
+		t.eq((HUD.theftMode(nil)), false)
+		local _, nanEnds = HUD.theftMode({ active = true, endsAt = 0 / 0 })
+		t.eq(nanEnds, nil, "NaN deadline")
+		-- the dropped timer is always inside the urgent (red, pulsing) window
+		local _, _, urgent = HUD.theftView(1000 + 12, 1000, Economy.DROPPED_CAR_TIMEOUT)
+		t.ok(urgent)
+	end)
+
 	-- Badges ------------------------------------------------------------------------------------------------------
 	t.test("playtimeClaimable", function()
 		local first = Economy.PLAYTIME_REWARDS[1].minutes * 60
@@ -114,6 +137,47 @@ return function(t)
 			maxed.tools[id] = true
 		end
 		t.ok(not HUD.gearAffordable(maxed, 1e15))
+		-- the Zapper Pass owns the taser without writing tools.taser (MenuController.toolRows' rule)
+		local passTaser = { upgrades = maxed.upgrades, tools = {}, passes = { taser = true } }
+		for id in Economy.Tools do
+			if id ~= "taser" then
+				passTaser.tools[id] = true
+			end
+		end
+		t.ok(not HUD.gearAffordable(passTaser, 1e15), "no badge for a pass-owned Zapper")
+		passTaser.passes = {}
+		t.ok(HUD.gearAffordable(passTaser, 1e15), "without the pass the Zapper is still for sale")
+	end)
+
+	t.test("touchMenuGrid: one strip of big cells when it fits, else wrap / smaller cells", function()
+		-- 844x390 phone (canvas ~1535 x 603): a single row of 76 px cells fits left of the cash pill
+		local cols, rows, cell = HUD.touchMenuGrid(7, 1535 / 2 - 168 - 12, 603 / 3 - 82, { 76, 62 }, 6)
+		t.eq(cols, 7)
+		t.eq(rows, 1)
+		t.eq(cell, 76)
+		-- 16:9 phone (canvas ~1213 wide): 76 px cells need 2 rows -> try 62 px; still 2 rows, smallest wins
+		cols, rows, cell = HUD.touchMenuGrid(7, 1213 / 2 - 168 - 12, 576 / 3 - 82, { 76, 62 }, 6)
+		t.eq(cell, 62)
+		t.eq(rows, 2)
+		t.eq(cols, 6)
+		-- roomy tablet: big cells, one row
+		cols, rows, cell = HUD.touchMenuGrid(7, 2000, 400, { 76, 62 }, 6)
+		t.eq(cols, 7)
+		t.eq(rows, 1)
+		t.eq(cell, 76)
+		-- degenerate width still yields a column
+		cols, rows = HUD.touchMenuGrid(7, 10, 1000, { 76 }, 6)
+		t.eq(cols, 1)
+		t.eq(rows, 7)
+		t.eq((HUD.touchMenuGrid(0, 100, 100, { 76 }, 6)), 0)
+	end)
+
+	t.test("vipChatPrefix tags VIP senders only", function()
+		t.eq(HUD.vipChatPrefix(false, "Alex:"), nil)
+		local p = HUD.vipChatPrefix(true, "Alex:")
+		t.ok(p ~= nil and p:find("VIP", 1, true) ~= nil and p:sub(-5) == "Alex:", "prefix keeps the name")
+		t.ok(HUD.vipChatPrefix(true, "") ~= nil)
+		t.ok(HUD.vipChatPrefix(true, nil) ~= nil)
 	end)
 
 	t.test("countGarage / countDiscovered", function()

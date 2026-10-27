@@ -284,7 +284,11 @@ return function(t)
 				return car
 			end,
 			seat = function(car, p)
+				if car._seatFails then
+					return false, "sit failed"
+				end
 				car.driver = p
+				return true
 			end,
 			eject = function(car)
 				car.driver = nil
@@ -340,6 +344,9 @@ return function(t)
 			table.insert(fired, { name = name, near = true, args = { ... } })
 		end,
 		spawnTask = function(fn, ...)
+			fn(...)
+		end,
+		defer = function(fn, ...)
 			fn(...)
 		end,
 	})
@@ -463,6 +470,7 @@ return function(t)
 		setup()
 		t.ok(Theft.beginTheft(thief, victim, 1))
 		local car = cars[1]
+		clock += 30 -- a legal drive home takes time (SEC-1 travel gate)
 		t.ok(Theft.complete(car), "complete should succeed")
 		t.eq(countCars(victim, "viper_strike"), 0, "victim lost it")
 		t.eq(countCars(thief, "viper_strike", "Gold"), 1, "thief has it (with mutation)")
@@ -475,6 +483,14 @@ return function(t)
 		local alerts = firedTo("CarStolenAlert", victim)
 		t.eq(alerts[#alerts].args[4], false, "alarm off")
 		t.eq(countLog("saveNow"), 2, "both saved")
+		local saves = {}
+		for _, e in log do
+			if e[1] == "saveNow" then
+				table.insert(saves, e[2])
+			end
+		end
+		t.eq(saves[1], victim, "victim (removal) saved first")
+		t.eq(saves[2], thief, "then the thief (addition)")
 		local playerSteal = 0
 		for _, e in log do
 			if e[1] == "progress" and e[3] == "playerSteal" then
@@ -493,6 +509,7 @@ return function(t)
 		setup()
 		t.ok(Theft.beginTheft(thief, victim, 1))
 		capacity[thief] = 1 -- filled meanwhile
+		clock += 30
 		t.ok(not Theft.complete(cars[1]))
 		t.eq(countCars(victim, "viper_strike"), 1, "victim still owns it")
 		t.ok(Theft.getActiveTheft(thief) ~= nil, "theft still running")
@@ -565,6 +582,7 @@ return function(t)
 		setup()
 		t.ok(Theft.beginTheft(thief, victim, 1))
 		local car = cars[1]
+		clock += Economy.RECOVERY_MIN_SECONDS -- a real chase (DECISIONS §5)
 		car.driver = nil
 		Theft._onDriverChanged(car, nil, thief)
 		local theft = Theft.getActiveTheft(thief)
@@ -622,36 +640,304 @@ return function(t)
 		t.eq(car.data.theft.thief, other)
 		t.eq(car.driver, other)
 		t.ok(not theft.dropped)
+		clock += 30
 		t.ok(Theft.complete(car))
 		t.eq(countCars(other, "viper_strike"), 1)
 		t.eq(countCars(thief, "viper_strike"), 0)
 		t.eq(countCars(victim, "viper_strike"), 0)
 	end)
 
+	local function countRevenge(player)
+		local n = 0
+		for _, e in log do
+			if e[1] == "addCash" and e[4] == "revenge" and (player == nil or e[2] == player) then
+				n += 1
+			end
+		end
+		return n
+	end
+
 	t.test("revenge pays once per theft and once per robbery", function()
 		setup()
 		t.ok(Theft.beginTheft(thief, victim, 1))
 		Theft.onThiefHit(victim, thief)
 		Theft.onThiefHit(victim, thief)
-		local revenge = 0
-		for _, e in log do
-			if e[1] == "addCash" and e[4] == "revenge" then
-				revenge += 1
-			end
-		end
-		t.eq(revenge, 1, "once per theft")
+		t.eq(countRevenge(), 1, "once per theft")
+		clock += 30
 		t.ok(Theft.complete(cars[1]))
-		Theft.onThiefHit(victim, thief) -- bonk the robber after the fact
-		Theft.onThiefHit(victim, thief)
-		revenge = 0
-		for _, e in log do
-			if e[1] == "addCash" and e[4] == "revenge" then
-				revenge += 1
-			end
-		end
-		t.eq(revenge, 2, "one more for the completed robbery")
+		Theft.onThiefHit(victim, thief) -- bonk the robber after the fact...
+		t.eq(countRevenge(), 1, "...but the pair was paid within BONUS_PAIR_COOLDOWN")
 		Theft.onThiefHit(other, thief)
 		t.eq(datas[other].cash, 0, "bystanders get nothing")
+
+		-- no revenge during the theft: the completed robbery pays exactly once
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		clock += 30
+		t.ok(Theft.complete(cars[1]))
+		Theft.onThiefHit(victim, thief)
+		Theft.onThiefHit(victim, thief)
+		t.eq(countRevenge(victim), 1, "one revenge for the robbery")
+	end)
+
+	t.test("revenge for an old robbery while the robber is busy robbing someone else (F15)", function()
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		clock += 30
+		t.ok(Theft.complete(cars[1]))
+		-- the robber now steals from `other`
+		datas[other].garage["2"] = { carId = "yellow_cab", mutation = "None", uncollected = 0 }
+		datas[other].garage["3"] = { carId = "rustbucket", mutation = "None", uncollected = 0 }
+		roots[thief] = { Position = MapLayout.slotWorld(3, 1).Position + R.Vector3.new(0, 3, 0) }
+		t.ok(Theft.beginTheft(thief, other, 1), "second heist: " .. lastNotify(thief))
+		Theft.onThiefHit(victim, thief)
+		t.eq(countRevenge(victim), 1, "the earlier victim still gets revenge")
+		Theft.onThiefHit(victim, thief)
+		t.eq(countRevenge(victim), 1, "once")
+		local theft = Theft.getActiveTheft(thief)
+		t.eq(theft.lastHitBy, victim, "the hit is still recorded on the active theft")
+	end)
+
+	t.test("recovery bonus anti-farm (DECISIONS §5)", function()
+		-- instant hop-out inside the garage: home, but no bonus
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		local car = cars[1]
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		t.ok(Theft.recover(car, victim))
+		t.eq(countLog("restoreSlot"), 1, "car home")
+		t.eq(datas[victim].cash, 0, "no bonus for a 0s theft that never left the garage")
+		t.ok(lastNotify(victim):find("RECOVERED", 1, true) ~= nil, lastNotify(victim))
+
+		-- the car left the garage: bonus even if quick
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		car = cars[1]
+		car.model.Parent = R.Instance.new("Folder")
+		car.model:PivotTo(MapLayout.plotToWorld(1, R.Vector3.new(0, 3, -80))) -- out on the driveway
+		Theft._tick(clock + 1)
+		t.ok(Theft.getActiveTheft(thief).leftGarage, "left the garage")
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		t.ok(Theft.recover(car, victim))
+		local bonus = Theft._bonus(10, Economy.RECOVERY_BONUS_SECONDS)
+		t.eq(datas[victim].cash, bonus, "bonus once the car left the garage")
+
+		-- same pair again within BONUS_PAIR_COOLDOWN: no second bonus
+		clock += Economy.THEFT_VICTIM_COOLDOWN + 1
+		t.ok(Theft.beginTheft(thief, victim, 1), lastNotify(thief))
+		car = cars[#cars]
+		clock += Economy.RECOVERY_MIN_SECONDS + 1
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		t.ok(Theft.recover(car, victim))
+		t.eq(datas[victim].cash, bonus, "pair cooldown: no second recovery bonus")
+		-- ...but a different thief pays
+		clock += Economy.THEFT_VICTIM_COOLDOWN + 1
+		t.ok(Theft.beginTheft(other, victim, 1), lastNotify(other))
+		car = cars[#cars]
+		clock += Economy.RECOVERY_MIN_SECONDS + 1
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, other)
+		t.ok(Theft.recover(car, victim))
+		t.eq(datas[victim].cash, bonus * 2, "another thief is another pair")
+		-- and the first pair pays again after the cooldown
+		clock += Economy.BONUS_PAIR_COOLDOWN
+		t.ok(Theft.beginTheft(thief, victim, 1), lastNotify(thief))
+		car = cars[#cars]
+		clock += Economy.RECOVERY_MIN_SECONDS + 1
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		t.ok(Theft.recover(car, victim))
+		t.eq(datas[victim].cash, bonus * 3, "pair cooldown expired")
+		t.eq(Theft._recoveryEligible(Economy.RECOVERY_MIN_SECONDS - 1, false), false)
+		t.eq(Theft._recoveryEligible(Economy.RECOVERY_MIN_SECONDS, false), true)
+		t.eq(Theft._recoveryEligible(0, true), true)
+		t.eq(Theft._recoveryEligible(0 / 0, false), false, "NaN")
+	end)
+
+	t.test("delivery travel gate + tainted cars (SEC-1)", function()
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		local car = cars[1]
+		local need = Theft._minDeliveryTime(
+			Theft._deliveryDistance(1, 1, 2),
+			Cars.get("viper_strike").topSpeed,
+			nil
+		)
+		t.ok(need > 0.5, "plots are far enough apart for a real gate: " .. need)
+		t.ok(not Theft.complete(car), "an instant delivery is a teleport")
+		t.eq(countCars(victim, "viper_strike"), 1, "victim keeps it")
+		t.ok(Theft.getActiveTheft(thief) ~= nil, "the theft stays active")
+		clock += need + 0.1
+		t.ok(Theft.complete(car), "a legal-speed delivery works")
+
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		car = cars[1]
+		car.data.tainted = true -- VehicleService watchdog rewound a teleport
+		Theft._tick(clock + 1)
+		t.eq(Theft.getActiveTheft(thief), nil, "a tainted theft ends")
+		t.eq(countLog("restoreSlot"), 1, "car home")
+		t.eq(car._alive, false)
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		car = cars[1]
+		car.data.tainted = true
+		clock += 60
+		t.ok(not Theft.complete(car), "tainted cars are never delivered")
+		t.eq(countCars(thief, "viper_strike"), 0)
+		t.eq(countCars(victim, "viper_strike"), 1)
+
+		-- pure helpers
+		t.eq(Theft._minDeliveryTime(0, 100), 0)
+		t.eq(Theft._minDeliveryTime(0 / 0, 100), 0)
+		local base = Theft._minDeliveryTime(1000, 100)
+		t.ok(base > 0)
+		t.near(Theft._minDeliveryTime(1000, 100, 2), base / 2, 1e-9, "speed boost shortens it")
+		t.near(Theft._minDeliveryTime(1000, 100, 0.5), base, 1e-9, "a slow-down never lengthens it")
+		t.ok(Theft._deliveryDistance(1, 1, 1) >= 0)
+	end)
+
+	t.test("wreck / bust / leave never flash a dropped car", function()
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		local car = cars[1]
+		car.wrecked = true
+		Theft._onWrecked(car) -- VehicleService.Wrecked fires before the eject
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		t.eq(Theft.getActiveTheft(thief), nil, "wreck ended the theft")
+		t.eq(countLog("restoreSlot"), 1)
+		t.eq(countLog("destroy"), 0, "the wreck keeps burning (VehicleService destroys it)")
+		local dropped = 0
+		for _, f in firedTo("Notify", victim) do
+			if tostring(f.args[2]):find("dropped", 1, true) then
+				dropped += 1
+			end
+		end
+		t.eq(dropped, 0, "no 'dropped' alarm for a wreck")
+		t.ok(not Theft.recover(car, victim), "no recovery on a wreck")
+
+		-- markDropped ignores a wrecked car even if Wrecked was missed (tick fallback)
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		car = cars[1]
+		car.wrecked = true
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		t.ok(not Theft.getActiveTheft(thief).dropped, "no drop prompts on a wreck")
+		Theft._tick(clock + 3)
+		t.eq(Theft.getActiveTheft(thief), nil, "tick ends a wrecked theft")
+
+		-- deferred drop: a bust that ejects first still never shows 'dropped'
+		setup()
+		local queued = {}
+		Theft._setHooks({
+			defer = function(fn, ...)
+				table.insert(queued, { fn = fn, args = { ... } })
+			end,
+		})
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		car = cars[1]
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief) -- the cop's eject...
+		t.ok(Theft.fail(car, "busted")) -- ...then WantedService ends the theft in the same step
+		for _, q in queued do
+			q.fn(table.unpack(q.args))
+		end
+		Theft._setHooks({
+			defer = function(fn, ...)
+				fn(...)
+			end,
+		})
+		t.eq(#queued, 1)
+		for _, f in firedTo("Notify", victim) do
+			t.ok(not tostring(f.args[2]):find("dropped", 1, true), "no dropped toast on a bust")
+		end
+	end)
+
+	t.test("knock-out feed when the hit lands before the drop", function()
+		setup()
+		local queued = {}
+		Theft._setHooks({
+			defer = function(fn, ...)
+				table.insert(queued, { fn = fn, args = { ... } })
+			end,
+		})
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		local car = cars[1]
+		thief:SetAttribute("Stunned", true)
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief) -- old CombatService order: eject first...
+		Theft.onThiefHit(victim, thief) -- ...then the hit
+		for _, q in queued do
+			q.fn(table.unpack(q.args))
+		end
+		Theft._setHooks({
+			defer = function(fn, ...)
+				fn(...)
+			end,
+		})
+		thief:SetAttribute("Stunned", nil)
+		local feed = 0
+		for _, f in fired do
+			if f.name == "EventFeed" and tostring(f.args[1]):find("knocked", 1, true) then
+				feed += 1
+			end
+		end
+		t.eq(feed, 1, "the knock-out made the feed")
+		t.eq(Theft.getActiveTheft(thief).droppedUntil, clock + Economy.DROPPED_CAR_TIMEOUT, "knocked-out window")
+	end)
+
+	t.test("seat failures roll back cleanly (BUG-1 / F9)", function()
+		setup()
+		local spawn = mocks.VehicleService.spawn
+		mocks.VehicleService.spawn = function(...)
+			local car = spawn(...)
+			car._seatFails = true
+			return car
+		end
+		t.ok(not Theft.beginTheft(thief, victim, 1), "no theft without a seated thief")
+		mocks.VehicleService.spawn = spawn
+		t.eq(Theft.getActiveTheft(thief), nil)
+		t.ok(not Theft.isBeingStolen(victim, 1))
+		t.eq(states[victim][1], "Parked", "slot handed back")
+		t.eq(cars[1]._alive, false, "car removed")
+		t.eq(countLog("heat"), 0, "no heat")
+		t.eq(#firedTo("CarStolenAlert", victim) > 0 and firedTo("CarStolenAlert", victim)[1].args[4], false, "no alarm")
+		t.eq(Theft.cooldownLeft(victim), 0, "no robbery cooldown")
+		t.ok(lastNotify(thief):find("wouldn't start", 1, true) ~= nil, lastNotify(thief))
+		t.eq(lastNotify(victim), "", "victim is not told about a theft that never happened")
+
+		-- takeover: a hijacker who can't be seated changes nothing
+		setup()
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		local car = cars[1]
+		car.driver = nil
+		Theft._onDriverChanged(car, nil, thief)
+		local theft = Theft.getActiveTheft(thief)
+		car._seatFails = true
+		t.ok(not Theft._takeover(theft, other), "seat failed")
+		t.eq(Theft.getActiveTheft(thief), theft, "still the original thief's")
+		t.eq(Theft.getActiveTheft(other), nil)
+		t.eq(car.data.theft.thief, thief, "car record unchanged")
+		t.ok(theft.dropped, "still dropped (prompts stay up)")
+		car._seatFails = false
+		t.ok(Theft._takeover(theft, other), "works once seating works")
+		t.eq(car.driver, other)
+	end)
+
+	t.test("RobbableAt replicates the victim cooldown (F7)", function()
+		setup()
+		local plotModel = R.Instance.new("Model")
+		mocks.PlotService.getPlotModel = function(i)
+			return if i == 1 then plotModel else nil
+		end
+		t.ok(Theft.beginTheft(thief, victim, 1))
+		t.eq(plotModel:GetAttribute("RobbableAt"), clock + 5000 + Economy.THEFT_VICTIM_COOLDOWN, "server time")
+		mocks.PlotService.getPlotModel = nil
 	end)
 
 	t.test("spawn failure hands the slot back", function()

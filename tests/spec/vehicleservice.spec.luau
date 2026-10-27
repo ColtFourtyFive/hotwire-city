@@ -145,7 +145,8 @@ return function(t)
 		t.eq(car.seat.Disabled, true, "seat disabled")
 		t.eq(car.seat.Name, "DriverSeat")
 		local ride = model:GetAttribute("RideHeight")
-		local expectY = (ground * CFrame.new(0, ride + 0.3, 0)).Position.Y
+		-- anchored kinds never drop: exactly at rest height, no hover (F10)
+		local expectY = (ground * CFrame.new(0, ride, 0)).Position.Y
 		t.near(car.chassis.CFrame.Position.Y, expectY, 1e-3, "wheels rest on the ground")
 		t.near(flatDist(car.chassis.CFrame.Position, ground.Position), 0, 1e-3, "centered on the ground CFrame")
 		t.ok(car.chassis.CFrame.LookVector:Dot(ground.LookVector) > 0.999, "faces the ground CFrame")
@@ -207,6 +208,8 @@ return function(t)
 		local owned =
 			VS.spawn("rustbucket", "None", CFrame.new(0, 0, 330), "Owned", { owner = nil, ownerUserId = 77, slot = 3 })
 		t.eq(owned.chassis.Anchored, false, "owned unanchored")
+		local ride = owned.model:GetAttribute("RideHeight")
+		t.near(owned.chassis.CFrame.Position.Y, ride + VS.SPAWN_DROP, 1e-3, "physics cars drop the last few tenths")
 		t.eq(owned.ownerUserId, 77)
 		t.eq(owned.data.slot, 3, "opts.slot -> data.slot")
 		t.eq(owned.model:GetAttribute("OwnerUserId"), 77)
@@ -262,6 +265,156 @@ return function(t)
 		t.eq(car.model:GetAttribute("Wrecked"), true)
 		t.eq(car.chassis:FindFirstChild("Hotwire"), nil, "wrecks can't be stolen")
 		VS.destroy(car, "test")
+	end)
+
+	-- VEHICLESERVICE: audit fixes ------------------------------------------------------------------------------------
+
+	t.test("hold check: a stale (pre-charged) hold is refused (SEC-2)", function()
+		local maxAge = VS._holdMaxAge(1.8, 1.8)
+		t.ok(maxAge >= 1.8 + 1, "room for latency")
+		t.eq(VS._holdOk(10 - 1.8, 10, 1.8, nil, maxAge), true, "fresh full hold")
+		t.eq(VS._holdOk(10 - 30, 10, 1.8, nil, maxAge), false, "tapped 30s ago, triggered now")
+		t.eq(VS._holdOk(10 - 30, 10, 1.8), true, "no maxAge = old behaviour")
+		-- a client with a stale (unscaled) HoldMultiplier holds the base duration: still accepted
+		local need = 4.5 * 0.5
+		t.eq(VS._holdOk(10 - 4.5, 10, need, nil, VS._holdMaxAge(need, 4.5)), true, "stale client multiplier")
+		t.eq(VS._holdOk(nil, 10, 0, nil, 1), true, "instant prompts never need a hold")
+	end)
+
+	t.test("watchdog: upward teleports, fling samples, shorter stall allowance (F5 / SEC-6)", function()
+		local cap = VS._speedCap(70, nil)
+		local allowance = cap * 0.5 + VehicleConfig.WATCHDOG_TELEPORT_SLACK
+		t.eq(VS._watchdogVerdict(30, 5, 0.5, cap, allowance + 1), "teleport", "straight up")
+		t.eq(VS._watchdogVerdict(30, 5, 0.5, cap, -200), nil, "falling is not a teleport")
+		t.eq(VS._watchdogVerdict(30, 5, 0.5, cap, 0 / 0), "teleport", "NaN rise")
+		t.eq(VS._watchdogVerdict(30, 5, 0.5, cap), nil, "rise optional")
+		t.ok(VS.WATCHDOG_MAX_DT <= 1, "a parked car can't bank seconds of hop allowance")
+		-- the biggest legal hop after holding still: the cap for WATCHDOG_MAX_DT, not 3 s worth
+		local hop = cap * 2.9 + VehicleConfig.WATCHDOG_TELEPORT_SLACK - 1
+		t.eq(VS._watchdogVerdict(0, hop, math.min(2.9, VS.WATCHDOG_MAX_DT), cap), "teleport", "2.9 s stall hop")
+		t.eq(VS._flingSample(2.4, 0), false, "steering yaw")
+		t.eq(VS._flingSample(6, -120), false, "upright recovery + a big landing")
+		t.eq(VS._flingSample(VS.WATCHDOG_FLING_SPIN + 1, 0), true, "spin fling")
+		t.eq(VS._flingSample(0, VS.WATCHDOG_FLING_VERTICAL + 1), true, "launch fling")
+		t.eq(VS._flingSample(0 / 0, 0), true, "NaN")
+	end)
+
+	t.test("zone gate: teleports into a zone are refused and rewound, travel time enforced (SEC-1 / F2)", function()
+		local cap = VS._speedCap(100, nil)
+		-- legit: drove there at speed, long enough after the drive began
+		t.eq((VS._zoneGate(90, 40, 0, 0.4, cap, 30, 10)), true, "legit arrival")
+		-- client teleport 600 studs into its drop-off within one zone tick
+		local ok, violation = VS._zoneGate(0, 600, 0, 0.2, cap, 30, 10)
+		t.eq(ok, false, "teleport never reaches a zone")
+		t.eq(violation, "teleport", "...and is rewound")
+		-- a hop the stall allowance would let through, but faster than any legal drive from the drive start
+		local ok2, v2 = VS._zoneGate(0, cap * 0.9, 0, VS.WATCHDOG_MAX_DT, cap, 1.2, 4)
+		t.eq(ok2, false, "too soon after the drive began")
+		t.eq(v2, nil, "no rewind for that alone")
+		-- one fast (non-blatant) sample: no zone this tick, no rewind
+		local ok3, v3 = VS._zoneGate(cap * 1.1, 10, 0, 0.5, cap, 30, 0)
+		t.eq(ok3, false)
+		t.eq(v3, nil)
+		t.eq(select(2, VS._zoneGate(cap * 2, 10, 0, 0.5, cap, 30, 0)), "speed", "blatant speed is rewound")
+	end)
+
+	t.test("minTravelTime / isTainted / drive start contract", function()
+		local d = 1000
+		local fastest = 120 * VehicleConfig.SPEED_CAP_MULT * VehicleConfig.NITRO_SPEED_MULT
+		t.near(VS._minTravelTime(d, 120, nil), d / fastest, 1e-9, "watchdog band incl. nitro, no lag grace")
+		t.near(VS._minTravelTime(d, 120, 2), d / (fastest * 2), 1e-9, "SpeedMultiplier")
+		t.eq(VS._minTravelTime(0 / 0, 120, nil), math.huge, "NaN distance never passes")
+		t.eq(VS._minTravelTime(-5, 120, nil), 0)
+		local car = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 600), "Loot")
+		t.eq(VS.minTravelTime(car, Vector3.new(500, 0, 600)), 0, "never driven: no constraint")
+		car.data.driveStartAt = os.clock()
+		car.data.driveStartPos = Vector3.new(0, 3, 600)
+		t.near(
+			VS.minTravelTime(car, Vector3.new(500, 50, 600)),
+			VS._minTravelTime(500, car.def.topSpeed, nil),
+			1e-9,
+			"flat distance from the drive start"
+		)
+		t.eq(VS.isTainted(car), false)
+		car.data.tainted = true
+		t.eq(VS.isTainted(car), true)
+		t.eq(VS.isTainted(nil), false)
+		VS.destroy(car, "test")
+	end)
+
+	t.test("crash damage scales with the real time between samples (F12)", function()
+		local base = VS._crashDamage(Vector3.new(90, 0, 0), Vector3.zero)
+		t.near(VS._crashDamage(Vector3.new(90, 0, 0), Vector3.zero, 0.1), base, 1e-9, "normal tick unchanged")
+		t.near(VS._crashDamage(Vector3.new(90, 0, 0), Vector3.zero, 0.15), base, 1e-9, "frame jitter unchanged")
+		-- 0.6 s replication gap while braking hard from 120 (~104 studs/s^2): no phantom crash
+		t.eq(VS._crashDamage(Vector3.new(120, 0, 0), Vector3.new(58, 0, 0), 0.6), 0, "hitch during braking")
+		-- hypercar nitro launch (180 studs/s^2) over a 0.31 s gap
+		t.eq(VS._crashDamage(Vector3.zero, Vector3.new(56, 0, 0), 0.31), 0, "hitch during a nitro launch")
+		t.ok(VS._crashDamage(Vector3.new(150, 0, 0), Vector3.zero, 0.3) > 0, "a real wall hit still hurts")
+	end)
+
+	t.test("street heat: witness roll (DECISIONS §1)", function()
+		local Rarity = H.require("src/shared/Config/Rarity")
+		local common, uncommon, mythic = Rarity.Tiers.Common, Rarity.Tiers.Uncommon, Rarity.Tiers.Mythic
+		t.eq(VS._streetStars(common.wantedOnSteal, common.wantedChance, 0.2), 1, "common, seen: 1 star")
+		t.eq(VS._streetStars(common.wantedOnSteal, common.wantedChance, 0.5), 0, "common, unseen")
+		t.eq(VS._streetStars(uncommon.wantedOnSteal, uncommon.wantedChance, 0.999), 1, "uncommon always")
+		t.eq(VS._streetStars(mythic.wantedOnSteal, mythic.wantedChance, 0.999), mythic.wantedOnSteal, "mythic")
+		t.eq(VS._streetStars(2, nil, 0.999), 2, "missing chance = always")
+		local Police = H.require("src/shared/Config/Police")
+		t.eq(Traffic._carjackStars("Common"), Police.Heat.carjack, "carjack floor")
+		t.eq(Traffic._carjackStars("Mythic"), math.max(Police.Heat.carjack, mythic.wantedOnSteal), "rarer is hotter")
+		t.eq(Traffic._carjackStars(nil), Police.Heat.carjack, "unknown rarity")
+	end)
+
+	t.test("a leaving player's Owned cars are destroyed with them (DUPE-1)", function()
+		local leaver = { UserId = 9001, Name = "Leaver" }
+		local mine = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 640), "Owned", { ownerUserId = 9001, slot = 2 })
+		local theirs = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 670), "Owned", { ownerUserId = 9002 })
+		local loot = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 700), "Loot", { ownerUserId = 9001 })
+		local reason = nil
+		local conn = VS.Destroyed:Connect(function(c, why)
+			if c == mine then
+				reason = why
+			end
+		end)
+		VS._cleanupLeaver(leaver)
+		conn:Disconnect()
+		t.eq(mine.destroyed, true, "own car gone")
+		t.eq(reason, "owner_left")
+		t.eq(theirs.destroyed, false, "someone else's car stays")
+		t.eq(loot.destroyed, false, "claimed loot stays (abandon rules)")
+		VS.destroy(theirs, "test")
+		VS.destroy(loot, "test")
+	end)
+
+	t.test("settling: driverless physics cars get a server controller, anchored kinds don't (F4)", function()
+		local parked = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 730), "Parked")
+		t.eq(VS.settle(parked), false, "anchored cars don't settle")
+		local loot = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 760), "Loot")
+		t.eq(VS.settle(loot), true, "loose loot car settles")
+		t.eq(VS.settle(loot), true, "idempotent (extends)")
+		VS.destroy(loot, "test") -- stops the controller with the car
+		t.eq(VS.settle(loot), false, "destroyed")
+		local traffic = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 790), "Traffic")
+		t.eq(VS.settle(traffic), false, "traffic drives itself")
+		VS.destroy(traffic, "test")
+		VS.destroy(parked, "test")
+	end)
+
+	t.test("allInto refills a caller buffer", function()
+		local buf = { "junk", "junk", "junk", "junk", "junk", "junk", "junk", "junk" }
+		local a = VS.spawn("rustbucket", "None", CFrame.new(0, 0, 820), "Loot")
+		local out = VS.allInto(buf)
+		t.ok(out == buf, "same table")
+		local found = false
+		for _, c in out do
+			t.ok(type(c) == "table", "no stale entries")
+			found = found or c == a
+		end
+		t.ok(found, "has the car")
+		t.eq(#out, #VS.all(), "same as all()")
+		VS.destroy(a, "test")
 	end)
 
 	-- TRAFFIC: lane state machine ----------------------------------------------------------------------------------------
@@ -564,6 +717,57 @@ return function(t)
 				local lateral = math.min(lx, lz)
 				t.ok(lateral >= Traffic.LANE_OFFSET + 7.3, "clear of traffic lanes")
 			end
+		end
+	end)
+
+	t.test("traffic mover: quantized, dead-banded, stable while cruising (PERF-02)", function()
+		t.eq(Traffic._quantize(37.3), 37.5)
+		t.eq(Traffic._quantize(37.2), 37)
+		local heading = Traffic._forward("X", 1)
+		local target = Vector3.new(100, 2.5, 8)
+		-- cruising on the carrot (inside the dead band): exactly heading * speed, every frame
+		local a = Traffic._moverVelocity(target + Vector3.new(0.2, -0.1, 0.1), target, heading, 37.5)
+		local b = Traffic._moverVelocity(target - Vector3.new(0.3, 0, 0.2), target, heading, 37.5)
+		t.ok(a == heading * 37.5 and a == b, "no change -> nothing to write")
+		-- knocked 3 studs to the side: pulled back toward the lane, capped
+		local c = Traffic._moverVelocity(target + Vector3.new(0, 0, 3), target, heading, 37.5)
+		t.ok(c.Z < 0, "pulls back toward the carrot")
+		local far = Traffic._moverVelocity(target + Vector3.new(0, 0, 20), target, heading, 0)
+		t.ok(far.Magnitude <= Traffic.MAX_CORRECTION + Traffic.VEL_QUANTUM, "correction capped")
+		for _, v in { c, far } do
+			for _, comp in { v.X, v.Y, v.Z } do
+				t.near(comp / Traffic.VEL_QUANTUM, math.round(comp / Traffic.VEL_QUANTUM), 1e-9, "quantized")
+			end
+		end
+		-- sagging under the ride height: pushed back up
+		t.ok(Traffic._moverVelocity(target - Vector3.new(0, 2, 0), target, heading, 30).Y > 0, "holds ride height")
+	end)
+
+	t.test("spacing cone: precomputed right vector gives the same answer (PERF-09)", function()
+		local pos = Traffic._lanePoint("Z", 1, -1, 100)
+		local fwd = Traffic._forward("Z", -1)
+		local right = fwd:Cross(Vector3.yAxis)
+		local rng = H.Random.new(11)
+		for _ = 1, 200 do
+			local other = pos + Vector3.new(rng:NextNumber(-40, 40), 0, rng:NextNumber(-40, 40))
+			t.eq(Traffic._aheadDistance(pos, fwd, other, nil, right), Traffic._aheadDistance(pos, fwd, other))
+		end
+	end)
+
+	t.test("street: rerollOutOfView expires out-of-view parked cars for a luck event (F21)", function()
+		local cars = {}
+		for i = 1, 3 do
+			local car = Street.spawnAt(CFrame.new(400 + i * 30, 0, -400))
+			t.ok(car ~= nil, "spawned")
+			table.insert(cars, car)
+		end
+		t.eq(Street.rerollOutOfView(0), 0, "fraction 0")
+		local n = Street.rerollOutOfView(1)
+		t.ok(n >= #cars, "nobody around: every parked car can re-roll")
+		t.eq(Street.rerollOutOfView(1), 0, "already expired ones aren't counted twice")
+		t.eq(Street.rerollOutOfView(0 / 0), 0, "NaN fraction -> default, nothing left to expire")
+		for _, car in cars do
+			VS.destroy(car, "test")
 		end
 	end)
 
