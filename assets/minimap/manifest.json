@@ -1,0 +1,16 @@
+{
+  "tile_0_0": {
+    "assetId": 125342931892275,
+    "sha256": "337b2a4db559dd7ed7120016f000b1a6802a3482c7cc6781e21251fbc0f4c481",
+    "file": "assets/minimap/tile_0_0.png",
+    "moderation": "Approved",
+    "uploaded": "2026-10-27T15:43:35Z"
+  },
+  "tile_0_1": {
+    "assetId": 105556853474800,
+    "sha256": "4e4c9b3a1f959763300dafaa02894b4624beda078f063df82ea5b8b49f56dbec",
+    "file": "assets/minimap/tile_0_1.png",
+    "moderation": "Approved",
+    "uploaded": "2026-10-27T15:43:39Z"
+  }
+}
