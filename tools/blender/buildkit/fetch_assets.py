@@ -31,6 +31,18 @@ TEXTURES = {
     "sidewalk": "large_grey_tiles",
     "terrazzo": "terrazzo_tiles",
     "curb": "concrete_floor_01",
+    # added for the full archetype set
+    "corrugated": "corrugated_iron_02",        # raw galvanised siding / roofs
+    "metal_siding": "box_profile_metal_sheet", # painted warehouse cladding: tintable
+    "roof_clay": "clay_roof_tiles_02",         # Spanish / mission tile (LA suburbs, deco)
+    "roof_shingle": "grey_roof_01",            # asphalt shingles (ranch houses)
+    "cmu": "concrete_block_wall",              # block walls, warehouse bases, garden walls
+    "wood_fence": "brown_planks_05",           # horizontal plank fences / modern cladding
+    "wood_slats": "synthetic_wood",            # vertical slat cladding (hills mansion)
+    "marble": "marble_01",                     # tower podiums, lobbies, mansion plinths
+    "pavers": "concrete_pavement_03",          # forecourts, plazas, pool decks
+    "precast": "concrete_panels",              # tilt-up / precast panels
+    "grass": "leafy_grass",                    # lawns (scene + optional Lawn role)
 }
 MAPS = {"diff": "Diffuse", "nor": "nor_gl", "rough": "Rough", "metal": "Metal"}
 HDRIS = {"sky_late_afternoon": ("qwantani_late_afternoon_puresky", "4k"),

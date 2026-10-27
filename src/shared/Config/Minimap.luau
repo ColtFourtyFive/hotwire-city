@@ -14,13 +14,41 @@ Minimap.WORLD_SIZE = 2048
 Minimap.TILE_COUNT = 2
 Minimap.TILE_PIXELS = 1024
 Minimap.TILES = {
-	{ "", "" },
-	{ "", "" },
+		{ "rbxassetid://125342931892275", "rbxassetid://105556853474800" },
+		{ "rbxassetid://120529464584703", "rbxassetid://109037026982585" },
 }
 -- Blip atlas (tools/minimap/icons.py): name -> { x, y, w, h } in atlas pixels.
-Minimap.ATLAS = ""
+Minimap.ATLAS = "rbxassetid://123534770759333"
 Minimap.ATLAS_CELLS = {
 	garage = { 0, 0, 64, 64 },
+	car = { 64, 0, 64, 64 },
+	wrench = { 128, 0, 64, 64 },
+	spray = { 192, 0, 64, 64 },
+	saw = { 256, 0, 64, 64 },
+	flame = { 320, 0, 64, 64 },
+	pin = { 384, 0, 64, 64 },
+	badge = { 448, 0, 64, 64 },
+	dot = { 0, 64, 64, 64 },
+	heli = { 64, 64, 64, 64 },
+	star = { 128, 64, 64, 64 },
+	flag = { 192, 64, 64, 64 },
+	tree = { 256, 64, 64, 64 },
+	wheel = { 320, 64, 64, 64 },
+	cash = { 384, 64, 64, 64 },
+	alert = { 448, 64, 64, 64 },
+	target = { 0, 128, 64, 64 },
+	home = { 64, 128, 64, 64 },
+	square = { 128, 128, 64, 64 },
+	person = { 192, 128, 64, 64 },
+	trophy = { 256, 128, 64, 64 },
+	bolt = { 320, 128, 64, 64 },
+	chevron = { 384, 128, 64, 64 },
+	diamond = { 448, 128, 64, 64 },
+	_vignette = { 0, 256, 256, 256 },
+	_glow = { 256, 256, 128, 128 },
+	_ring = { 384, 256, 128, 128 },
+	_arrow = { 256, 384, 128, 128 },
+	_disc = { 384, 384, 128, 128 },
 }
 -- END GENERATED
 
