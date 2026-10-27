@@ -160,6 +160,7 @@ local function buildFar(ctx: Kit.Ctx, geos: { [number]: Roads.JunctionGeo }, tri
 	Places.buildPaths(ctx)
 	Places.buildHelipads(ctx)
 	Places.buildStuntJumps(ctx)
+	Places.buildBeach(ctx)
 	Places.buildLevelCrossings(ctx)
 	Places.buildRails(ctx)
 	Bridges.build(ctx)
@@ -206,10 +207,21 @@ function MapBuilder.ensureClouds(terrain: Terrain): Clouds
 	return clouds :: Clouds
 end
 
--- The island's Terrain (synchronous; World/Terrain) + the Clouds. Returns the chunk count.
+-- Baked terrain: a Terrain stamped with the current world hash was written in Studio and saved with the place
+-- (Studio command bar: require(game.ServerScriptService.Server.Systems.MapBuilder).buildTerrain(workspace.Terrain)),
+-- so start() skips the ~40 s runtime pass. Any WorldLayout change changes the hash and runtime terrain comes back.
+MapBuilder.TERRAIN_HASH_ATTR = "WorldTerrainHash"
+
+function MapBuilder.terrainBaked(terrain: Terrain): boolean
+	return terrain:GetAttribute(MapBuilder.TERRAIN_HASH_ATTR) == WorldLayout.HASH
+end
+
+-- The island's Terrain (synchronous; World/Terrain) + the Clouds, stamped as baked. Returns the chunk count.
 function MapBuilder.buildTerrain(terrain: Terrain, yieldFn: (() -> ())?): number
 	MapBuilder.ensureClouds(terrain)
-	return TerrainBuilder.build(terrain, WorldLayout.Spawns.default.Position, yieldFn)
+	local chunks = TerrainBuilder.build(terrain, WorldLayout.Spawns.default.Position, yieldFn)
+	terrain:SetAttribute(MapBuilder.TERRAIN_HASH_ATTR, WorldLayout.HASH)
+	return chunks
 end
 
 function MapBuilder.getMapFolder(): Folder
@@ -279,7 +291,10 @@ function MapBuilder.start()
 	local terrain = Workspace:FindFirstChildOfClass("Terrain")
 	local chunks = 0
 	local t1 = os.clock()
-	if terrain then
+	if terrain and MapBuilder.terrainBaked(terrain) then
+		MapBuilder.ensureClouds(terrain)
+		print("[MapBuilder] terrain baked for this world hash; runtime terrain skipped")
+	elseif terrain then
 		MapBuilder.ensureClouds(terrain)
 		local okT, errT = pcall(function()
 			-- spawn areas first: the plaza, then each garage's surroundings come with the radial order

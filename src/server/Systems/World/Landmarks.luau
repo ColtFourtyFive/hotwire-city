@@ -77,7 +77,8 @@ local function sunwood(ctx: Ctx, l: Landmark)
 				-- N diagonal from the top-left to the bottom-right
 				local a = at(base, -lw / 2 + lw * 0.12, H * 0.92, 0).Position
 				local b = at(base, lw / 2 - lw * 0.12, H * 0.08, 0).Position
-				local p = Kit.beam(ctx, "Letter", a, b, lw * 0.2, depth, white, { parent = m })
+				-- (Kit.beam: w lies across the beam horizontally = the letter's depth here; h stays in the letter plane)
+				local p = Kit.beam(ctx, "Letter", a, b, depth, lw * 0.22, white, { parent = m })
 				Kit.nightGlow(p, Color3.fromRGB(255, 250, 235))
 				continue
 			end

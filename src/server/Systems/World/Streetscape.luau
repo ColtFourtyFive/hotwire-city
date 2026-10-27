@@ -5,7 +5,7 @@
 --                 LIGHT_SHARE of them carry a downward SpotLight (mobile light budget: ~40 % of ~1.7k lamps, never
 --                 two lit neighbours in a row on one side)
 --   freeway_lamp  tall median pole with a cross arm and two heads (4 parts); only the data's `light` ones are lit
---   palm          Washingtonia: trunk + dead-frond skirt + round head + two crossed fronds (5 parts; SpecialMesh spheres)
+--   palm          Washingtonia: trunk + compact head + four drooping fronds (6 parts; SpecialMesh spheres)
 --   tree          trunk + canopy ellipsoid (2 parts)
 --   pole          wooden utility pole + cross arm, a wire to the next pole of the same run (3 parts)
 --   billboard     monopole + 52 x 15 bulletin panel tagged "Billboard" (MapDresser puts the ad decal on)
@@ -141,23 +141,27 @@ local function palm(ctx: Ctx, p: Place, index: number)
 	)
 	trunk:SetAttribute("Prop", "palm")
 	local top = trunk.CFrame * Vector3.new(h / 2, 0, 0)
-	-- dead fronds (the brown "skirt") under a round head of fan leaves, two long fronds breaking the silhouette
-	ellipsoid(ctx, "PalmSkirt", Vector3.new(6, 9, 6), CFrame.new(top - Vector3.new(0, 4.5, 0)), Kit.style("bark"))
+	-- a compact head of fan leaves with four fronds drooping out of it, so the silhouette reads as a palm from the
+	-- street and from the air (a flat pair of crossed fronds read as a mushroom with ears)
 	local yaw = math.rad(p.yaw)
 	ellipsoid(
 		ctx,
 		"PalmCrown",
-		Vector3.new(11, 8, 11),
-		CFrame.new(top + Vector3.new(0, 1, 0)) * CFrame.Angles(0, yaw, 0),
+		Vector3.new(9, 7, 9),
+		CFrame.new(top + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, yaw, 0),
 		Kit.style("foliage_palm")
 	)
-	for k = 0, 1 do
+	local len = 17
+	for k = 0, 3 do
+		local a = yaw + k * math.pi / 2 + 0.35
+		local droop = math.rad(24 + 10 * Kit.hash(index, 5 + k, 811))
+		local out = Vector3.new(math.cos(a), 0, -math.sin(a))
+		local centre = top + out * (len / 2 * math.cos(droop)) - Vector3.new(0, len / 2 * math.sin(droop) - 1, 0)
 		ellipsoid(
 			ctx,
 			"PalmFrond",
-			Vector3.new(22, 1.6, 5),
-			CFrame.new(top + Vector3.new(0, 0.5, 0))
-				* CFrame.Angles(0, yaw + k * math.pi / 2 + 0.4, math.rad(if k == 0 then 8 else -8)),
+			Vector3.new(len, 1.2, 5.5),
+			CFrame.new(centre) * CFrame.Angles(0, a, 0) * CFrame.Angles(0, 0, -droop),
 			Kit.style("foliage_palm")
 		)
 	end

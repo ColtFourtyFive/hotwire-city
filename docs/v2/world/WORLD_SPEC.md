@@ -10,6 +10,8 @@ The whole world is **data**. Three modules hold it:
 - `src/shared/Util/WorldQuery.luau` answers runtime questions about it.
 - `src/shared/Util/WorldGen.luau` holds the geometry and graph algorithms.
 
+`src/server/Systems/MapBuilder.luau` (helpers in `src/server/Systems/World/`) renders it at boot; `Util/MapLayout.luau` is the v1-compatible shim over it.
+
 Every number in this document is produced by that code. `lune run tools/world/stats.luau` prints them, and `tests/spec/worldlayout.spec.luau` guards them. To migrate the v1 systems, see `MIGRATION.md`.
 
 | Plan | Image |
@@ -469,24 +471,37 @@ The crew splits across the exits, which is the betrayal moment from the brief.
 
 ## 9. Build budget and streaming
 
-The world is generated server-side at boot from data and streamed to clients (StreamingEnabled ON). The estimated part counts below come from the same data, using per-use part costs for procedural facades and before meshes. See `tools/world/stats.luau`.
+MapBuilder v2 renders the world layer at boot; the counts below are measured on it (`lune run
+tools/world/map_counts.luau`, guarded by `tests/spec/map.spec.luau`). A3's buildings fill `Map/Buildings` on top.
 
-| Layer | Estimate | Notes |
+| Layer | Parts | What |
 |---|---|---|
-| Roads | ~25.5k | 7,180 polyline segments. Ground segment: asphalt, 2 curbs, 2 sidewalks. Deck: deck, 2 barriers, a pier every 90 studs. Markings are textures or decals, never parts. |
-| Junctions | ~2.5k | Box + crosswalk decals. Signal heads are meshes. |
-| Lots → buildings | ~19.7k | Towers 34, midrises 16–18, houses 9, warehouses 8, open lots 3–6. Kit / Blender meshes replace boxes over time and don't count. |
-| POIs | ~2.6k | ~40 each. |
-| Street props built from parts | ~4.4k | Lamps, hydrants, benches. Prefer meshes. |
-| **Total** | **~55k** | Under the 60k budget. |
+| Roads | 13,124 | 3,005 asphalt runs, 2,941 sidewalk slabs (the slab is the curb) + 2,629 corner fillers, 1,545 junction cores, 1,122 crosswalks, 1,068 stop bars, 631 medians, 175 parking lots. Lane lines are one Texture per cross-section (23 uploaded marking textures), never parts. |
+| Freeways | 6,070 | 1,445 deck slabs (the slab is its own girder), 2,361 barriers with gore cuts, 623 piers + caps, 368 freeway lamps, 63 sign gantries, trench walls and parapets. |
+| Signals and signs | 4,178 | 867 signal heads (one moving lens each, driven from `WorldQuery.signalState`), mast arms, 409 stop signs. |
+| Streetscape | 13,561 | 1,706 street lights (SpotLight on 40 %, mobile budget), 811 palms (trunk, head, four drooping fronds), 1,250 trees, 570 utility poles + wires, 174 bus stops, 319 hydrants, 310 bins, 46 billboards, pylons. Procedural until PropsV2 meshes replace them. |
+| Collision skeleton | 856 | Invisible, `Persistent`: under every deck, bridge span, the pier and the channel floor. |
+| Places, landmarks, bridges, plots | 1,868 | POI placeholder structures on their real footprints (counters / pads tagged for their systems), 8 plot pads with their aprons and driveways out to the sidewalk, the cable-stayed port bridge, arch / truss / lift bridges, SUNWOOD, lighthouse, cranes, wind farm, dam, speedway. |
+| **World layer total** | **39,657** | `MapBuilder.PART_BUDGET` 42,000. With A3's buildings the place stays inside the ~55k plan. |
+
+**Boot.** `MapBuilder.init()` builds the folders, the skeleton, every POI, the plot pads and everything within 900
+studs of a plot or Hotwire Plaza synchronously; `start()` builds the rest in yielding slices, then the terrain. The
+whole parts pass takes about 3.3 s in Lune.
+
+**Terrain.** Runtime, from `Util/WorldTerrain`, in 64 × 64-stud chunks, spawn area first, 10 ms slices: 34,362 chunks
+(21,637 open-sea chunks are a single FillBlock), 3.26 M columns on a 32-stud lattice with exact sampling only in the
+carved strips; 36–41 s of compute in Lune. Roads are graded into it; ocean and reservoir water are written, the
+trench and the dry channel stay dry. **Bake option:** run `MapBuilder.buildTerrain(workspace.Terrain)` once in
+Studio and save the place; it stamps `Terrain.WorldTerrainHash`, and boot skips runtime terrain while the hash
+matches `WorldLayout.HASH` (`MIGRATION.md` §7).
 
 **Streaming rules**
-- `StreamingTargetRadius` 1,024, minimum 256. The H1 deck must be in the persistent set near the player while driving, so never stream out the road the player is on.
-- Buildings are `Model.ModelStreamingMode = Atomic`.
-- Towers and landmarks use `LevelOfDetail = StreamingMesh`, so the **skyline and the SUNWOOD sign stay visible beyond the radius**. This fixes v1's "the city is invisible from the sky".
-- Terrain, generated from `heightAt`, is not parts.
-
-**Boot cost.** Generation takes about 3 s in Lune, and is deterministic. Ship a **baked** data module, generated from the same code, so servers and clients load it instantly (`MIGRATION.md` §4).
+- The map is chunked into 512-stud cell Models (`Map/Cells/c_x_z`); landmarks and the collision skeleton are
+  `Persistent`; `World/Streaming` requests the area 2.5 s ahead of every player faster than 120 studs/s.
+- `StreamingEnabled` stays **off** in `default.project.json` until the vehicle package signs off on client car
+  ownership with streaming. When it is turned on: `StreamingTargetRadius` 1,024, minimum 256; buildings
+  `ModelStreamingMode = Atomic`; towers and SUNWOOD `LevelOfDetail = StreamingMesh` so the skyline stays visible.
+- Terrain is not parts.
 
 ## 10. Editing the world
 
@@ -513,6 +528,84 @@ The world is generated server-side at boot from data and streamed to clients (St
 ## 11. Open items for later waves
 
 - **A lane-level graph.** Turn connectors per approach (which lane may go where) are computed at runtime from approach headings today. If traffic needs it, bake them as data.
-- **Bake step.** Add `tools/world/bake.luau`, which writes `Config/WorldLayoutBaked.luau`, plus a hash check at boot.
+- **Bake step.** Done: `tools/world/bake.luau` writes `Config/WorldData` (shared) and the server-only `WorldDataLots` with a content hash; `--check` fails when they are stale. Terrain has its own optional Studio bake (§9).
 - **Interiors.** Bank vault, jewelry store and garage interiors are owned by their systems' footprints.
+- **Texture orientation check in the engine.** Marking textures sit on the asphalt's Top face with U across the run
+  from its −X edge and V along +Z. The Blender preview uses the same convention, but it has not been checked in a live
+  Roblox client; an asymmetric cross-section (freeway edge lines) could come out mirrored.
+- **Grid-locked systems.** Police, Traffic and NPC road logic still run on `Util/GridLayout` (the v1 grid); they move
+  to WorldQuery lanes in their own packages, then `GridLayout` and the shim go.
+- **Armored runs C and D.** C passes 127 studs from a garage door and D 102 from a police entrance (rules ask 600 /
+  250); left to the event package, which can drop or re-route them.
+- **Props as meshes.** Lamps, palms, trees, signals and shelters are procedural parts; PropsV2 meshes replace them
+  (and cut the streetscape's 13.6k parts).
 - **Seasonal or live-event variants.** Parade closures on Crown Boulevard and a Speedway event mode can be expressed as data flags on edges and zones.
+
+---
+
+## Critique log
+
+`CRITIQUES.md` holds three reviews (gameplay, GTA look, tech) of the first world draft. Each item is accepted, partly
+accepted or rejected below, with what changed and the number measured on the current baked world (probe scripts over
+`Config/WorldData` through the Lune harness; the guards live in `tests/spec/worldlayout.spec.luau`,
+`tests/spec/map.spec.luau` and `tests/spec/maplayout.spec.luau`).
+
+### critic:gameplay
+
+| # | Critique | Verdict | What changed / why | Measured now |
+|---|---|---|---|---|
+| 1 | Rust Flats Garage across the street from a police station | Accepted | `PoliceFoundry` moved east onto Smelter Rd; test: every plot ≥ 1,000 road studs from a police entrance | plot 5: 1,494 road (1,172 straight) to HCPD Eastside; closest of all plots: plot 7, 1,216 road |
+| 2 | Route cost is distance, so the GPS never uses the freeway | Accepted | Arc cost = length / class speed + the expected wait at the arrival junction (signal 6 s, stop / all-way 3 s, yield 1 s); admissible heuristic; a `shortest` option kept | Palmera → Rust Flats 8,429 studs, 79 % on freeway / ramps; Midtown → Pinnacle 8,492, 79 % |
+| 3 | 9 of 12 stunt jumps misplaced | Accepted | Every jump re-authored on real geometry (channel drop, rail-yard kicker, construction deck stub, parking-deck roof, hills, mesa track, cove drop, pier splash); the hangar jump dropped. Kicker ramps are built (World/Places) | 11 jumps; the spec checks run-up, the landing on road / open lot and the arc's clearance |
+| 4 | Jump distances ignore gravity 196.2 | Accepted | `Scale.GRAVITY` = 196.2 (tested against `default.project.json`); landing, apex and airtime ballistic; drop jumps preferred | `sj_construction` 59-stud drop, 0.87 s airtime; `sj_hills` 0.96 s |
+| 5 | 8 players lost on a huge map | Accepted | `ActiveCore` polygon holding all garages, ≥ 2/3 of the normal Hot Drop pool, armored ends, bank, dealerships, ≥ 3 gun shops; baked ETA fields per Hot Drop / armored stop; EventService picks by ETA spread (`HotDropRules`) | garages in core 8/8; normal drops 9/9 in core; `minPlayersWithin` 3 at 45 s |
+| 6 | Hot Drops uncontested | Accepted | Normal / long-haul pools (long haul: 60 s warning, weight 0.25); in-zone drops carry an explicit `heat`; respawns 600–900 studs from the drop | each normal zone within 60 s of 5–8 garages |
+| 7 | Car speeds don't fit the scale | Partly | AI cruise speeds set (freeway 90, highway 85, …). Car top speeds belong to the vehicle package (A4); the critique's table is handed over | — |
+| 8 | Some plots badly served | Accepted | Canyon Auto Salvage, Runway Salvage, Lock & Load Sunwood, Second Gear Motors (east used cars) added; Fresh Coat Sunwood and HCPD Southgate moved | worst garage → chop 4,612 (was 9,347); worst → gun shop 1,425 (was 5,005) |
+| 9 | Armored runs favour one plot and pass police | Partly | `ArmoredRules` in data (spawn ≥ 1,000 from players, stops ≥ 400 / route ≥ 250 from police, every garage ≤ 1,500 from a run, no run within 600 of a door); run E from Coinstack Sunwood; runs on the time-weighted graph | A, B, E meet the clearances; C passes 127 studs from a garage door, D 102 from a police entrance near the bank end — left to the event package (the generator reports both) |
+| 10 | No roadblocks, the channel is a trap | Accepted | 4 channel ramps alternating banks; 162 roadblock anchors (8 `trap`, the port bridges); the Harbor lift bridge on a clock (25 s every 240 s) built as moving bascule leaves (World/Bridges) | ramps every ~1.1–1.5k |
+| 11 | The heist has nowhere to end | Accepted | 3 `HeistDropoffs`, 4 `CarSwaps`; HCPD HQ 12 spawn lanes | 64 police spawns |
+| 12 | The first 5 minutes is the best case | Accepted | Plot onboarding metrics (`onboardingOk`, score) + `OnboardingOrder`; an east used-car lot; the first drop at 210 s near the newest player | 7 of 8 plots onboarding-ok (Sunwood is not) |
+| 13 | Parking tiers top-heavy | Accepted | Tier rules per frontage; off-street driveway / hangar spots | 6,439 curb spots: beater 28 %, sedan 30 %, muscle 22 %, sports 18 %, super 2 %; off-street 92 super + 64 hyper |
+| 14 | Restricted zones overlap activities | Accepted | `exempt = { "race_airport" }` on HCI Airside; explicit `heat` on in-zone drops / jumps | — |
+| 15 | Gameplay rules untested | Accepted | worldlayout.spec checks police distance, service radii, ballistic jumps, Hot Drop reach, armored clearances, channel dead ends, restricted flags, route cost in seconds | 32 world tests |
+
+### critic:gta
+
+| # | Critique | Verdict | What changed / why | Measured now |
+|---|---|---|---|---|
+| 1 | Skyline: a flat carpet with one spike | Accepted | Tower plan: Pinnacle 760 + tiers within 650 of the core on merged footprints ≥ 160², podiums with setbacks, a `crown` per tower; Palmera North and Gilded Mile clusters | parcels ≥ 560: 3; 380–559: 9; 220–379: 46; 41 planned towers |
+| 2 | Flat island, no backdrop mountain | Accepted | Summit ridge (+300), Mount Talon 960 at (4300, −3030) with rock above 400; reservoir, wind farm and quarry re-sited. World/Terrain writes it at runtime | — |
+| 3 | SUNWOOD sign hidden and facing away | Accepted | On the ridge on Liberty Avenue's axis, base 476, LookVector toward the city; 9-point visibility test. World/Landmarks lays the letters out so they read left to right from the city (an early build mirrored them; caught in the hillside render) | ≥ 5/9 from every listed vista, Liberty at Crown 9/9 |
+| 4 | No streetscape data | Accepted | `Streetscape` placements, built by World/Streetscape | 1,706 lamps, 811 palms, 1,231 trees, 570 poles with wires, 46 billboards, 174 bus stops, 319 hydrants, 310 bins, 184 freeway lamps |
+| 5 | Freeways go nowhere | Accepted | H3 Palmera spur, H6 Desert Freeway (east viaduct), H7 Airport Freeway; H2 Port Expressway over the cable-stayed bridge; H9 canyon | corridors: H1 32.0k, H2 3.6k, H6 3.4k, H9 2.6k, H7 1.8k, H3 0.9k studs |
+| 6 | Monotonous H1 | Accepted | North leg in a 26-deep trench with streets bridging over (retaining walls built), unequal corners, wider south / east legs, a stack interchange with two flyover levels | — |
+| 7 | Uniform downtown checkerboard | Accepted | Irregular street lines, 360 × 430–700 blocks, the `alley` class (18 wide, no traffic) | alleys in the core, Midtown, the Foundry |
+| 8 | One style, hard seam at Midtown | Accepted | Sub-zones (Financial Core, Old Town, Civic Center, warehouse edge) with blend bands; City Hall pyramid tower; Liberty Square | — |
+| 9 | No garage door frames the skyline | Accepted | Frontages chosen so doors face the core; test ≤ 40° for plots 2–8 | 5°–34°; Palmera faces the ocean |
+| 10 | Lots pierce decks | Accepted | Lot rejection on deck footprints (+8) | 0 (tested) |
+| 11 | Straight west coast, empty airport | Accepted | Crescent bay, headland, breakwater, angled pier, marina with 4 jetties, second runway, 900 × 250 terminal | — |
+| 12 | The Coast Highway never touches the coast | Accepted | North stretch along the cliffs, beach-level segments, Driftwood hamlet, cape cut | median 205 studs from the shore, 57 % within 250 (was 348 / 3 %) |
+| 13 | Red Mesa is blobs | Accepted | Oriented buttes with caprock / talus, the cuesta, oil field, trailer park, substation + pylons, state prison | built (World/Landmarks) |
+| 14 | Sunwood Hills sparse | Accepted | Stilt lots on the south face, the Strip, Starlight Theater, Vantage Museum, country club | 205 hills parcels (was 74) |
+| 15 | Ruler-straight Rust River | Accepted | Bent channel, wider south reach, low-flow trough; Crown arch viaduct and Mission truss built (World/Bridges) | — |
+
+### critic:tech
+
+| # | Critique | Verdict | What changed / why | Measured now |
+|---|---|---|---|---|
+| 1 | Diamond ramp terminals uncontrolled | Accepted | Ground-ness from node height / non-ramp approaches; ramp terminals are 3-phase signals; test | 0 ramp terminals without a signal |
+| 2 | Shortest-distance routing | Accepted | See gameplay 2 | 79 % freeway on the cross-town test routes |
+| 3 | Route polylines cut through buildings | Accepted | Virtual start / goal nodes on the projected edges (`astarMulti`), one-ways and heading respected, the edge's own vertices emitted; reverse-Dijkstra ETA fields | polyline-on-road test; RoadGraph.fromWorld GPS routes stay on the roads (roadgraph.spec) |
+| 4 | Ramps cut into the deck | Accepted | Ramps land on an auxiliary lane (`aux`), hold deck height until clear, `Gores` exported; World/Freeways cuts the barriers where they cross another deck's pavement | 45 gores |
+| 5 | Ramp gaps too short | Accepted | Continuous auxiliary lanes join close merge / diverge pairs (`Weaves`) | 13 weaves |
+| 6 | Overlapping junctions, a doubled-back edge | Accepted | Node merge in the graph compile, turn-angle cap, test | 0 controlled edges shorter than ra + rb + 25.5 |
+| 7 | Terrain at boot would take minutes | Partly | Runtime terrain kept (PLAN locks it) but cheap: a 32-stud lattice, exact sampling only in the carved strips, FillBlock fast paths for open sea and flat ground (21.6k of 34.4k chunks), WriteVoxels for the rest, spawn areas first, 10 ms slices. Bake option: `MapBuilder.buildTerrain` run once in Studio stamps `Terrain.WorldTerrainHash`; a saved place carrying the current hash skips the runtime pass (MIGRATION §7) | 34,362 chunks / 3.26 M columns: 36–41 s of Lune compute for the whole island (about a minute of background wall time); 0 s when baked |
+| 8 | Clients must not run the generator; a boot hash check is impossible | Accepted | Generator in `tools/world/gen`; baked `Config/WorldData` (shared) + server-only `WorldDataLots`; the hash is written by the bake and checked by `bake.luau --check` in Lune, nothing at boot | — |
+| 9 | Streaming relies on things that don't exist at runtime | Partly | Map in 512-stud cell Models; a Persistent collision skeleton under every deck, bridge span, the pier and the channel floor (World/Skeleton); landmarks Persistent; RequestStreamAroundAsync ahead of fast drivers (World/Streaming). `StreamingEnabled` stays off in `default.project.json` until the vehicle package signs off on client car ownership with streaming | skeleton 856 parts |
+| 10 | The part budget ignores phone limits | Accepted | 3 parts per road run (asphalt, sidewalk slab = curb), merged straight runs, markings as one texture per cross-section (23 uploaded textures), the deck slab is its own girder; per-category counts reported | world layer 39,657 parts (budget 42k); A3's buildings on top |
+| 11 | Freeway builder conflicts | Accepted | Piers slide up to ±40 studs along the deck until the base clears every road below; footprint cuts in the generator; tested (no pier column on a road) | 623 piers |
+| 12 | Lane geometry not ready for kinematic traffic | Partly | Freeway lane offsets include the uneven shoulders; mitred lane polylines and lane connectors are left to the traffic package | — |
+| 13 | Sunwood Garage on a slope; v1 mismatches | Accepted | Level pads under plots / POIs on slopes (baked `pads`); plot Y = street + curb; MapBuilder lays a 6-deep plot pad | relief ≤ 2 in every plot / POI footprint (tested) |
+| 14 | The MapLayout shim hides broken callers | Rejected as proposed | Making grid functions throw would break Police / Traffic / NPC, which other packages migrate. Instead the shim answers every v1 call from v2 data (grid points snap to real lanes, zones are the real bays) and the grid-locked internals use an explicit `Util/GridLayout`, so nothing silently mixes the two | shim contract test: every `MapLayout.<name>` used in src exists and answers from v2 (maplayout.spec) |
+| 15 | Spawn tiers starve progression; ring mislabelled | Accepted | Off-street super / hyper spots; freeway edges tagged with their corridor district; HQ 12 lanes | ≥ 100 super (155 + 92), ≥ 60 hyper (64) |

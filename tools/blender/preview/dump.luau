@@ -232,8 +232,10 @@ do
 	local a, b = e.points[1], e.points[#e.points]
 	local dir = (b - a).Unit
 	local side = Vector3.new(-dir.Z, 0, dir.X)
-	local pos = a - dir * 140 + side * 260 + Vector3.new(0, 26, 0)
-	view("palmera_beach", pos, a + dir * 700 + Vector3.new(0, 30, 0), 60, "Palmera Beach and the pier")
+	-- the beach is ~700 studs of sand before the water line, so the camera stands well up the sand and above it
+	-- (from boardwalk height the ocean is a sliver at the horizon)
+	local pos = a + dir * 380 + side * 330 + Vector3.new(0, 70, 0)
+	view("palmera_beach", pos, a + dir * 1050 + Vector3.new(0, -25, 0), 60, "Palmera Beach and the pier")
 end
 -- 5 a garage plot: Palmera Garage from across the street
 do

@@ -228,9 +228,9 @@ def img(path, non_color=False):
     return im
 
 
-def pbr_material(name, variant, tint=None, roughness_scale=1.0, uv=None):
+def pbr_material(name, variant, tint=None, roughness_scale=1.0, uv=None, normal_strength=0.6):
     """Look MaterialVariant: box-projected maps x vertex colour (Part.Color)."""
-    key = (name, variant, tint)
+    key = (name, variant, tint, normal_strength)
     if key in _mats:
         return _mats[key]
     d = MATDEF[variant]
@@ -276,7 +276,7 @@ def pbr_material(name, variant, tint=None, roughness_scale=1.0, uv=None):
     nrm = tex("normal", True)
     if nrm:
         nm = nt.nodes.new("ShaderNodeNormalMap")
-        nm.inputs["Strength"].default_value = 0.6
+        nm.inputs["Strength"].default_value = normal_strength
         nt.links.new(nrm.outputs["Color"], nm.inputs["Color"])
         nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
     met = tex("metalness", True)
@@ -572,7 +572,8 @@ def add_standins(standins, focus, radius):
         acc.add(verts, f, (0.85 + 0.25 * h,) * 3)
     for key, acc in groups.items():
         var = STANDIN_VARIANT[key]
-        mat = pbr_material("standin_" + key, var, tint=None)
+        # massing boxes are whole facades: a tile-scale glass normal map reads as rippled water at that size
+        mat = pbr_material("standin_" + key, var, tint=None, normal_strength=0.05 if key == "glass" else 0.6)
         build_mesh("standin_" + key, acc, mat)
         # tint through the vertex colour: scale by the stand-in tint
         ob = bpy.data.objects["standin_" + key]
@@ -637,6 +638,13 @@ def add_terrain(dump, center, fine_r, coarse=4, fine=1):
     H = raw[: nx * nz * 4].view(np.float32).reshape(nz, nx)
     W = raw[nx * nz * 4: nx * nz * 8].view(np.float32).reshape(nz, nx)
     M = raw[nx * nz * 8: nx * nz * 9].reshape(nz, nx)
+    # water quads stop on the column grid, which draws the shore as a staircase; carry each water level one column
+    # under the neighbouring dry ground so the visible water line is where the ground surface meets the water plane
+    # (as Roblox's voxel water does)
+    Wd = W.copy()
+    for dz, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        Wd = np.maximum(Wd, np.roll(np.roll(W, dz, 0), dx, 1))
+    W = Wd
     names = meta["materials"]
     colors = meta.get("colors") or {}
     colors.setdefault("Sandstone", [196, 150, 112])

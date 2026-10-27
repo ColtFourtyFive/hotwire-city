@@ -24,6 +24,8 @@ local WorldLayout = require(Shared.Config.WorldLayout)
 local WorldGen = require(Shared.Util.WorldGen)
 local Assets = require(Shared.Config.Assets)
 local MapLayout = require(Shared.Util.MapLayout)
+local WorldQuery = require(Shared.Util.WorldQuery)
+local WorldTerrain = require(Shared.Util.WorldTerrain)
 local Kit = require(script.Parent.Kit)
 local Roads = require(script.Parent.Roads)
 
@@ -767,6 +769,19 @@ end
 -- Plots
 -------------------------------------------------------------------------------------------------------------------------
 
+-- Studs between the plot's front edge and the back of the sidewalk of the road it faces (0 when none is in front).
+function Places.frontGap(plot: WorldLayout.Plot): number
+	local F = plot.cframe
+	local front = F * Vector3.new(0, 0, -plot.size.Z / 2)
+	local p, ei = WorldQuery.nearestRoadPoint(front, { maxDistance = 120 })
+	if not p or not ei then
+		return 0
+	end
+	local e = WorldLayout.Edges[ei]
+	local along = F.LookVector:Dot(p - front)
+	return math.clamp(along - e.width / 2 - (e.sidewalk or 0), 0, 40)
+end
+
 -- The garage pad (level at the plot frame) + driveway apron down to the sidewalk.
 function Places.buildPlot(ctx: Ctx, plot: WorldLayout.Plot): Model
 	local F = plot.cframe
@@ -776,8 +791,15 @@ function Places.buildPlot(ctx: Ctx, plot: WorldLayout.Plot): Model
 	local W, D = plot.size.X, plot.size.Z
 	-- pad top at the plot frame's Y (curb height); deep enough to cover sloped terrain
 	box(ctx, m, "PlotPad", F, 0, -3, 0, W, 6, D, Kit.style("concrete_modern"))
-	-- driveway: asphalt in front of the door (local -Z) to the lot edge
-	box(ctx, m, "Driveway", F, 0, 0.02 - 0.5, -D / 2 + 16, 44, 1, 32, Kit.style("asphalt"), { tag = "Road" })
+	-- the lot's setback between the pad and the back of the sidewalk (13-14 studs on every plot): a concrete apron at
+	-- the same height, so the door does not open onto bare ground
+	local gap = Places.frontGap(plot)
+	if gap > 1 then
+		box(ctx, m, "PlotApron", F, 0, -3, -D / 2 - (gap - 0.5) / 2, W, 6, gap - 0.5, Kit.style("concrete_modern"))
+	end
+	-- driveway: asphalt in front of the door (local -Z) out to the sidewalk
+	local dl = 32 + math.max(gap - 0.5, 0)
+	box(ctx, m, "Driveway", F, 0, 0.02 - 0.5, -D / 2 + 32 - dl / 2, 44, 1, dl, Kit.style("asphalt"), { tag = "Road" })
 	-- low hedges along the sides
 	for _, sx in { -1, 1 } do
 		box(ctx, m, "Hedge", F, sx * (W / 2 - 2), 2, 0, 3, 4, D - 8, Kit.style("foliage"))
@@ -934,6 +956,84 @@ function Places.buildStuntJumps(ctx: Ctx)
 end
 
 -- Arc length along edge ei of the point nearest p (XZ).
+-- Lifeguard towers on Palmera Beach (the Vespucci look): along the shore either side of the pier, every TOWER_GAP
+-- studs, TOWER_SETBACK up the sand from the water line, facing the sea. 5 parts each.
+local TOWER_GAP, TOWER_SETBACK = 380, 110
+local TOWER_BLUE = Color3.fromRGB(122, 188, 214)
+
+function Places.lifeguardSpots(): { CFrame }
+	local pier: WorldLayout.Edge? = nil
+	for _, e in WorldLayout.Edges do
+		if e.class == "pier" and (pier == nil or e.length > pier.length) then
+			pier = e
+		end
+	end
+	if not pier then
+		return {}
+	end
+	local a, b = pier.points[1], pier.points[#pier.points]
+	if WorldTerrain.heightAt(a.X, a.Z) < WorldTerrain.heightAt(b.X, b.Z) then
+		a, b = b, a -- from the land end
+	end
+	local dir = Vector3.new(b.X - a.X, 0, b.Z - a.Z).Unit
+	local side = Vector3.new(-dir.Z, 0, dir.X)
+	local out = {}
+	for k = -4, 4 do
+		if k == 0 then
+			continue -- the pier
+		end
+		local base = a + side * (k * TOWER_GAP)
+		local shore: Vector3? = nil
+		for s = 0, 2000, 8 do
+			local p = base + dir * s
+			if WorldTerrain.heightAt(p.X, p.Z) < 2.5 then
+				shore = p
+				break
+			end
+		end
+		if not shore then
+			continue
+		end
+		local at = shore - dir * TOWER_SETBACK
+		if WorldLayout.districtAt(at.X, at.Z) ~= "beach" or WorldQuery.isOnRoad(at, 30) then
+			continue
+		end
+		local g = WorldTerrain.heightAt(at.X, at.Z)
+		if g < 3 then
+			continue
+		end
+		local foot = Vector3.new(at.X, g, at.Z)
+		table.insert(out, CFrame.lookAt(foot, foot + dir))
+	end
+	return out
+end
+
+function Places.buildBeach(ctx: Ctx)
+	for _, F in Places.lifeguardSpots() do
+		Kit.part(ctx, "LifeguardBase", Vector3.new(7, 8, 7), F * CFrame.new(0, 3, 0), Kit.style("paint_white"))
+		Kit.part(ctx, "LifeguardDeck", Vector3.new(13, 0.8, 13), F * CFrame.new(0, 7.4, 0), Kit.style("wood"))
+		local cabin =
+			Kit.part(ctx, "LifeguardCabin", Vector3.new(9, 7, 8), F * CFrame.new(0, 11.3, 1), Kit.style("stucco_white"))
+		cabin.Color = TOWER_BLUE
+		Kit.part(
+			ctx,
+			"LifeguardRoof",
+			Vector3.new(10.5, 0.8, 9.5),
+			F * CFrame.new(0, 15.2, 1),
+			Kit.style("paint_white"),
+			{ shadow = true }
+		)
+		-- the ramp up to the deck from the sand behind (landward, local +Z); the wedge's tall face meets the deck
+		Kit.wedge(
+			ctx,
+			"LifeguardRamp",
+			Vector3.new(4, 7.8, 14),
+			F * CFrame.new(0, 3.9, 6.5 + 7) * CFrame.Angles(0, math.pi, 0),
+			Kit.style("wood")
+		)
+	end
+end
+
 function Places.arcOf(ei: number, p: Vector3): number
 	local pts = WorldLayout.Edges[ei].points
 	local cum = Roads.cumOf(ei)

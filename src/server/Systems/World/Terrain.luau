@@ -203,7 +203,17 @@ local M = Enum.Material
 local URBAN: { [string]: boolean } =
 	{ downtown = true, midtown = true, foundry = true, rust = true, port = true, airport = true, cactus = true }
 
-local function materialFor(district: string, h: number, slope: number, carve: boolean, road: boolean): Enum.Material
+-- n: low-frequency noise in [-1, 1] per column, so slope / height boundaries break into patches instead of running
+-- as contour stripes along a hillside
+local function materialFor(
+	district: string,
+	h: number,
+	slope: number,
+	carve: boolean,
+	road: boolean,
+	n: number
+): Enum.Material
+	slope += n * 0.3
 	if carve then
 		return M.Concrete
 	end
@@ -222,10 +232,10 @@ local function materialFor(district: string, h: number, slope: number, carve: bo
 		return M.Sand
 	end
 	if slope > 1.0 then
-		return if h > 380 then M.Slate else M.Rock
+		return if h + n * 20 > 380 then M.Slate else M.Rock
 	end
 	if district == "hills" or h > 40 then
-		if h > 520 then
+		if h + n * 40 > 520 then
 			return M.Rock
 		elseif slope > 0.55 then
 			return M.LeafyGrass
@@ -330,7 +340,7 @@ function Terrain.chunk(cx: number, cz: number): Chunk
 		end
 		if ok then
 			uniform = flatY - Terrain.SINK
-			uniformMat = materialFor(WorldLayout.districtAt(midX, midZ), flatY, 0, false, false)
+			uniformMat = materialFor(WorldLayout.districtAt(midX, midZ), flatY, 0, false, false, 0)
 		end
 	end
 	if uniform ~= nil then
@@ -451,12 +461,13 @@ function Terrain.chunk(cx: number, cz: number): Chunk
 	for ix = 0, N - 1 do
 		for iz = 0, N - 1 do
 			local i = ix * N + iz + 1
-			local hx0 = h[math.max(ix - 1, 0) * N + iz + 1]
-			local hx1 = h[math.min(ix + 1, N - 1) * N + iz + 1]
-			local hz0 = h[ix * N + math.max(iz - 1, 0) + 1]
-			local hz1 = h[ix * N + math.min(iz + 1, N - 1) + 1]
-			local slope = math.max(math.abs(hx1 - hx0), math.abs(hz1 - hz0)) / (2 * Terrain.RES)
-			mat[i] = materialFor(district, h[i], slope, carveFlag[i], roadFlag[i])
+			local ax, bx = math.max(ix - 1, 0), math.min(ix + 1, N - 1)
+			local az, bz = math.max(iz - 1, 0), math.min(iz + 1, N - 1)
+			local sx = math.abs(h[bx * N + iz + 1] - h[ax * N + iz + 1]) / ((bx - ax) * Terrain.RES)
+			local sz = math.abs(h[ix * N + bz + 1] - h[ix * N + az + 1]) / ((bz - az) * Terrain.RES)
+			local wx, wz = x0 + ix * Terrain.RES, z0 + iz * Terrain.RES
+			local n = math.clamp(math.noise(wx / 37.3, wz / 37.3, 0.37) * 2, -1, 1)
+			mat[i] = materialFor(district, h[i], math.max(sx, sz), carveFlag[i], roadFlag[i], n)
 		end
 	end
 	Terrain.stats.columns += N * N
