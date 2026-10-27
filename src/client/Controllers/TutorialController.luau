@@ -1,30 +1,31 @@
 --!strict
--- TutorialController (SPEC §2 + §7, RESEARCH "First 60 seconds"): icon-first onboarding for brand-new players
--- (snapshot.tutorialDone == false). Never blocks input: the objective card is a passive GTA-style "mission line" at
--- bottom-center (only its small SKIP button takes touches), guidance is world waypoints + a highlighted target car.
+-- TutorialController (SPEC §2 + §7; v2: gta_ui_language §2.6/§5.5): first-session onboarding for brand-new players
+-- (snapshot.tutorialDone == false), told the way GTA teaches: a top-left HELP TEXT box (HUDController.help, with key
+-- caps for the current input) plus a bottom-centre OBJECTIVE line with coloured keywords (HUDController.objective),
+-- world guidance through WaypointController and a pulsing blue outline on the target car. Nothing blocks input and
+-- nothing sits in the middle of the screen; finishing plays the "job complete" shard. Skip lives in the pause menu
+-- (SETTINGS > Skip tutorial -> TutorialController.skip()).
 --
---   1 💰 YOUR CAR MAKES MONEY!     waypoint -> own CollectPad, auto-advances after 4s
---   2 🚗 STEAL A CAR!              waypoint + pulsing outline on the street car StreetSpawnService reserved for us
---                                  (TutorialForUserId), else the nearest Parked car on the street side of our garage
---                                  door (re-picked every 2s). If we already hotwired a car and hopped out, it points
---                                  back at that car instead ("GET BACK IN!", the F / Y / tap enter prompt).
---                                  Advances when the local player is driving a non-owned car
---   3 🏠 DRIVE IT HOME!            WaypointController's automatic "home" waypoint guides; advances when the garage
---                                  gains a car (garage count or steals stat rises); back to 2 if you leave the car
---   4 💵 COLLECT YOUR CASH!        waypoint -> CollectPad; advances when Cash jumps while near the pad, or after 20s
---   5 🏎️ BETTER CARS AT THE DEALERSHIP!   waypoint -> Dealership until you arrive (or 90s), then
---                                  Net.fire("TutorialDone") + confetti
--- During steps 1-3 the HUD is in focus mode (menus/HOME hidden); they pop back in at step 4.
+--   1 money    "Your cars earn cash..."          waypoint -> own cash pad (green), auto-advances after 4s
+--   2 steal    "Steal a car."                    waypoint + blue outline on the street car StreetSpawnService
+--              reserved for us (TutorialForUserId), else the nearest Parked car on the street side of our garage door
+--              (re-picked every 2s). If we already hotwired a car and hopped out, it points back at that car instead
+--              ("Get back in the car.", F / Y / tap). Advances when the local player drives a non-owned car
+--   3 deliver  "Take the car to your garage."    WaypointController's automatic yellow "home" route guides; advances
+--              when the garage gains a car (garage count or steals stat rises); back to 2 if you leave the car
+--   4 collect  "Collect your cash..."            waypoint -> cash pad; advances when Cash jumps near the pad, or 20s
+--   5 dealer   "Go to the dealership."           yellow waypoint until you arrive (or 90s), then
+--              Net.fire("TutorialDone") + "job complete" shard
+-- During steps 1-3 the HUD is in focus mode (phone/menu hints hidden); they come back at step 4.
 -- Returning players who already delivered a car (stats.steals > 0) never replay it: TutorialDone is sent instead.
--- Streamer mode (HUDController.VisibilityChanged) hides the card. The card stays above whatever sits at bottom-center:
--- HUDController.getBottomClearance() (HOME, hotbar, speedometer, theft timer) and GarageClient.getLockTop().
 --
 -- Step 1 starts only once the ReplicatedFirst loading overlay ("HC_Loading") is gone (bounded wait).
 -- Public API: isActive(): boolean, getStep(): (number, string?), skip(), loadingScreenUp(): boolean,
 --   StepChanged: Signal(index, id), Finished: Signal(skipped: boolean)
 -- Pure helpers (tests): STEPS, DONE, transition(step, ctx), pickNearest(candidates, origin, maxDistance?), keyFor,
---   enterKeyFor, shouldRun(snapshot), alreadyDelivered(snapshot), hintFor(stepDef, inputKind), garageCount(snapshot),
---   stealCount(snapshot), inFrontOfDoor(pos, door, face), cardBottomAbove(bottom, lockTop?)
+--   enterKeyFor, shouldRun(snapshot), alreadyDelivered(snapshot), hintFor(stepDef, inputKind), helpText(stepDef, input,
+--   reenter?), objectiveText(stepDef, reenter?), garageCount(snapshot), stealCount(snapshot), inFrontOfDoor(pos, door,
+--   face), cardBottomAbove(bottom, lockTop?) (v1 layout helper, kept for the leftovers spec)
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -43,6 +44,7 @@ local Signal = require(Util:WaitForChild("Signal"))
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
+local RichText = require(UI:WaitForChild("RichText"))
 local Theme = require(UI:WaitForChild("Theme"))
 
 -- Earlier in the client ORDER: safe to require at the top.
@@ -54,59 +56,60 @@ TutorialController.StepChanged = Signal.new() -- (index: number, id: string)
 TutorialController.Finished = Signal.new() -- (skipped: boolean)
 
 local player = Players.LocalPlayer
+local C = Theme.Colors
 
 export type StepDef = {
 	id: string,
-	icon: string,
-	title: string,
-	hint: string,
+	icon: string, -- UIAssets glyph ("hud.cash", ...) for anything that wants a pictogram (pause menu, phone)
+	title: string, -- objective line (RichText tags)
+	hint: string, -- help text; "{key}" becomes the key cap for the current input
 	hintTouch: string?,
 	hintPad: string?,
-	color: Color3,
-	timed: number?, -- seconds shown as a draining bar
-	key: boolean?, -- show the "hold this key" keycap (E / 👆 / X)
+	color: Color3, -- waypoint / blip colour (GTA: blue = target, yellow = destination, green = pickup)
+	timed: number?, -- seconds before the step moves on by itself
+	key: boolean?, -- the help text carries the "hold this key" cap (E / X / TAP)
 }
 
 TutorialController.STEPS = {
 	{
 		id = "money",
-		icon = "💰",
-		title = "YOUR CAR MAKES MONEY!",
-		hint = "Cash stacks up on your green pad",
-		color = Theme.Colors.Cash,
+		icon = "hud.cash",
+		title = "Your cars earn <g>cash</g> while you play.",
+		hint = "Cars stored in your garage earn cash every second. It stacks up on the <g>cash pad</g>.",
+		color = C.Green,
 		timed = 4,
 	},
 	{
 		id = "steal",
-		icon = "🚗",
-		title = "STEAL A CAR!",
-		hint = "Run to the glowing car & HOLD",
-		hintTouch = "Run to the glowing car!",
-		hintPad = "Run to the glowing car & HOLD",
-		color = Theme.Colors.Secondary,
+		icon = "hud.car",
+		title = "Steal a <blue>car</blue>.",
+		hint = "Walk up to the <blue>car</blue> and hold {key} to hotwire it.",
+		hintTouch = "Walk up to the <blue>car</blue> and hold the on-screen prompt to hotwire it.",
+		hintPad = "Walk up to the <blue>car</blue> and hold {key} to hotwire it.",
+		color = C.Blue,
 		key = true,
 	},
 	{
 		id = "deliver",
-		icon = "🏠",
-		title = "DRIVE IT HOME!",
-		hint = "Follow the arrow into your garage",
-		color = Theme.Colors.Primary,
+		icon = "hud.pin",
+		title = "Take the car to your <y>garage</y>.",
+		hint = "Follow the <y>yellow route</y> on the radar and drive into your garage to store the car.",
+		color = C.Yellow,
 	},
 	{
 		id = "collect",
-		icon = "💵",
-		title = "COLLECT YOUR CASH!",
-		hint = "Step on the green pad",
-		color = Theme.Colors.Cash,
+		icon = "hud.cash",
+		title = "Collect your cash from the <g>cash pad</g>.",
+		hint = "Step on the <g>cash pad</g> in your garage to collect what your cars earned.",
+		color = C.Green,
 	},
 	{
 		id = "dealer",
-		icon = "🏎️",
-		title = "BETTER CARS AT THE DEALERSHIP!",
-		hint = "Follow the arrow • rarer cars = way more $/s",
-		hintTouch = "Rarer cars = way more $/s",
-		color = Theme.Colors.Gold,
+		icon = "hud.car",
+		title = "Go to the <y>dealership</y>.",
+		hint = "Rarer cars earn more cash. Buy them at the <y>dealership</y> or find them on the street.",
+		hintTouch = "Rarer cars earn more cash. Buy them at the <y>dealership</y>.",
+		color = C.Yellow,
 	},
 } :: { StepDef }
 
@@ -127,19 +130,18 @@ local RETARGET_EVERY = 2
 local RETARGET_HYSTERESIS = 25 -- a new car must be this many studs closer to replace the current target
 local START_DELAY = 1.5
 -- ReplicatedFirst's loading overlay (src/first/LoadingScreen.client.luau, DisplayOrder 1000) keeps this ScreenGui in
--- PlayerGui until it has faded out; step 1 waits for it (bounded like its HARD_TIMEOUT) so the card's pop-in, sound
--- and first waypoint aren't spent behind it on a fresh server.
+-- PlayerGui until it has faded out; step 1 waits for it (bounded like its HARD_TIMEOUT) so the first help text and
+-- waypoint aren't spent behind it on a fresh server.
 local LOADING_GUI = "HC_Loading"
 TutorialController.LOADING_GUI = LOADING_GUI
 local LOADING_WAIT = 25
 local NEAR_PAD = 16
 local TICK = 0.2
-local CARD_BOTTOM = 186 -- clears the LOCK pill inside the garage (bottom 112) and the driving speedometer
-local CARD_BOTTOM_THEFT = 276 -- also clears HUDController's theft timer when one is showing
-local TOUCH_CARD_SCALE = 1.25 -- phones run at the 0.55 UI scale floor; keep the objective readable
-local FOCUS_MAX_SECONDS = 150 -- HUD focus mode (menus hidden) never lasts longer than this
+local FOCUS_MAX_SECONDS = 150 -- HUD focus mode never lasts longer than this
 local WAYPOINT_ID = "tutorial"
+local HELP_ID = "tutorial"
 local STREET_AHEAD = 70 -- studs in front of the garage door used as a "go to the street" waypoint
+local OBJECTIVE_REPEAT = 25 -- the objective line fades like GTA's; it comes back this often while a step is open
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests)
@@ -228,24 +230,53 @@ function TutorialController.hintFor(step: StepDef, input: InputKind): string
 	return step.hint
 end
 
--- Keycap glyph for the steal prompt's hold input (ProximityPrompt defaults: E / ButtonX / on-screen button).
+-- Key name for the steal prompt's hold input (ProximityPrompt defaults: E / ButtonX / the on-screen button).
 function TutorialController.keyFor(input: InputKind): string
 	if input == "touch" then
-		return "👆"
+		return "TAP"
 	elseif input == "gamepad" then
 		return "X"
 	end
 	return "E"
 end
 
--- Keycap glyph for VehicleService's "Get in" EnterPrompt (F / ButtonY / on-screen button) on our own hotwired car.
+-- Key name for VehicleService's "Get in" EnterPrompt (F / ButtonY / on-screen button) on our own hotwired car.
 function TutorialController.enterKeyFor(input: InputKind): string
 	if input == "touch" then
-		return "👆"
+		return "TAP"
 	elseif input == "gamepad" then
 		return "Y"
 	end
 	return "F"
+end
+
+local REENTER_TITLE = "Get back in the <blue>car</blue>."
+local REENTER_HINT = "Press {key} next to the <blue>car</blue> to get back in."
+local REENTER_HINT_TOUCH = "Tap the prompt next to the <blue>car</blue> to get back in."
+
+-- Objective line for a step (rich text tags; HUDController formats them).
+function TutorialController.objectiveText(step: StepDef, reenter: boolean?): string
+	if reenter and step.id == "steal" then
+		return REENTER_TITLE
+	end
+	return step.title
+end
+
+-- Help text for a step on this input, with "{key}" replaced by a RichText key cap (touch gets the button name).
+function TutorialController.helpText(step: StepDef, input: InputKind, reenter: boolean?): string
+	local raw: string
+	local keyName: string
+	if reenter and step.id == "steal" then
+		raw = if input == "touch" then REENTER_HINT_TOUCH else REENTER_HINT
+		keyName = TutorialController.enterKeyFor(input)
+	else
+		raw = TutorialController.hintFor(step, input)
+		keyName = TutorialController.keyFor(input)
+	end
+	local cap = if input == "touch" then RichText.bold(keyName) else RichText.key(keyName)
+	return (string.gsub(raw, "{key}", function()
+		return cap
+	end))
 end
 
 function TutorialController.garageCount(snapshot: any): number
@@ -273,8 +304,8 @@ function TutorialController.alreadyDelivered(snapshot: any): boolean
 	return TutorialController.shouldRun(snapshot) and TutorialController.stealCount(snapshot) > 0
 end
 
--- Card bottom (design px from the screen bottom) that also clears the garage LOCK pill whose top edge is `lockTop`
--- (nil = pill hidden). Outside a locked garage the pill stacks above HOME and can reach past CARD_BOTTOM.
+-- v1 layout helper (the bottom-centre card is gone; the leftovers spec still pins its maths): a bottom offset that
+-- also clears GarageClient's LOCK pill whose top edge is `lockTop` (nil = pill hidden).
 function TutorialController.cardBottomAbove(bottom: number, lockTop: number?): number
 	if typeof(lockTop) == "number" and lockTop == lockTop then
 		return math.max(bottom, math.ceil(lockTop) + 8)
@@ -293,18 +324,6 @@ local function lazy(name: string): any
 	end
 	local ok, result = pcall(require, mod :: any)
 	return if ok and typeof(result) == "table" then result else nil
-end
-
--- Top edge (design px) of GarageClient's LOCK pill while it shows, else nil.
-local function lockTop(): number?
-	local garage = lazy("GarageClient")
-	if garage and typeof(garage.getLockTop) == "function" then
-		local ok, top = pcall(garage.getLockTop)
-		if ok and typeof(top) == "number" then
-			return top
-		end
-	end
-	return nil
 end
 
 local function playSound(key: string)
@@ -485,7 +504,7 @@ local function inputKind(): InputKind
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Guidance: waypoint (WaypointController, lazy) + fallback marker + target highlight
+-- Guidance: waypoint (WaypointController, lazy) + fallback chevron marker + target outline
 -------------------------------------------------------------------------------------------------------------------------
 
 local currentWaypointKey: any = nil
@@ -505,6 +524,7 @@ local function clearFallback()
 	end
 end
 
+-- Only used when WaypointController is missing: a GTA-style chevron over the target with a small condensed label.
 local function showFallback(target: Instance | Vector3, color: Color3, label: string)
 	clearFallback()
 	local adornee: Instance? = nil
@@ -528,28 +548,30 @@ local function showFallback(target: Instance | Vector3, color: Color3, label: st
 		Adornee = adornee,
 		AlwaysOnTop = true,
 		LightInfluence = 0,
-		Size = UDim2.fromOffset(160, 130),
-		StudsOffsetWorldSpace = Vector3.new(0, 9, 0),
+		Size = UDim2.fromOffset(120, 84),
+		StudsOffsetWorldSpace = Vector3.new(0, 8, 0),
 		ResetOnSpawn = false,
 		Parent = player:FindFirstChildOfClass("PlayerGui"),
 	}) :: BillboardGui
-	local arrow = Kit.label("⬇️", 64, {
-		Name = "Arrow",
+	local chevron = Kit.image("hud.chevron", {
+		Name = "Chevron",
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 30),
-		Size = UDim2.fromOffset(90, 80),
+		Position = UDim2.new(0.5, 0, 0, 26),
+		Size = UDim2.fromOffset(40, 40),
+		ImageColor3 = color,
 		Parent = gui,
 	})
 	tween(
-		arrow,
-		TweenInfo.new(0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-		{ Position = UDim2.new(0.5, 0, 0, 46) }
+		chevron,
+		TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+		{ Position = UDim2.new(0.5, 0, 0, 36) }
 	)
-	Kit.label(label, 24, {
+	Kit.text(label, "condensed", 18, {
 		Name = "Label",
-		Size = UDim2.new(1, 0, 0, 30),
-		TextColor3 = color,
-		TextWrapped = false,
+		Size = UDim2.new(1, 0, 0, 22),
+		TextColor3 = C.Text,
+		TextStrokeColor3 = C.Black,
+		TextStrokeTransparency = 0.4,
 		Parent = gui,
 	})
 	fallbackGui = gui
@@ -591,7 +613,7 @@ local function setWaypoint(target: (Instance | Vector3)?, color: Color3?, label:
 		clearFallback()
 		return
 	end
-	local c = color or Theme.Colors.Secondary
+	local c = color or C.Yellow
 	local text = label or ""
 	if wp then
 		if typeof(target) == "Instance" and typeof(wp.track) == "function" then
@@ -620,6 +642,7 @@ local function clearHighlight()
 	end
 end
 
+-- GTA marks the vehicle you are meant to take in blue: a soft breathing fill with a white outline.
 local function highlightCar(model: Model)
 	if highlight and highlight.Parent == model then
 		return
@@ -629,375 +652,45 @@ local function highlightCar(model: Model)
 	h.Name = "TutorialHighlight"
 	h.Adornee = model
 	h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	h.FillColor = Theme.Colors.Secondary
-	h.OutlineColor = Color3.new(1, 1, 1)
-	h.FillTransparency = 0.8
-	h.OutlineTransparency = 0
+	h.FillColor = C.Blue
+	h.OutlineColor = C.Text
+	h.FillTransparency = 0.85
+	h.OutlineTransparency = 0.1
 	h.Parent = model -- client-local child; vanishes with the car
 	highlight = h
 	highlightTween = tween(
 		h,
-		TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-		{ FillTransparency = 0.4 }
+		TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+		{ FillTransparency = 0.6 }
 	)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Card UI
+-- Help text + objective (HUDController)
 -------------------------------------------------------------------------------------------------------------------------
 
-type CardUI = {
-	gui: ScreenGui,
-	holder: Frame, -- positioned + device-scaled wrapper (Kit.pop owns the card's own UIScale)
-	card: Frame,
-	cardStroke: UIStroke?,
-	badge: Frame,
-	icon: TextLabel,
-	check: TextLabel,
-	title: TextLabel,
-	hint: TextLabel,
-	dots: { Frame },
-	timerFill: Frame,
-	skip: TextButton,
-	key: Frame,
-	keyLabel: TextLabel,
-	keyHold: TextLabel,
-}
-
-local card: CardUI? = nil
-local renderToken = 0
-local cardBottom = CARD_BOTTOM
-local reenterMode = false -- step 2 is pointing back at our own hotwired car ("GET BACK IN!")
-
-local function buildCard(onSkip: () -> ()): CardUI
-	local gui = Kit.screen("HC_Tutorial", Theme.Layers.HUD + 2)
-	local holder = Kit.new("Frame", {
-		Name = "Holder",
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -CARD_BOTTOM),
-		Size = UDim2.fromOffset(500, 110),
-		Parent = gui,
-	})
-	Kit.new("UIScale", {
-		Name = "DeviceScale",
-		Scale = if inputKind() == "touch" then TOUCH_CARD_SCALE else 1,
-		Parent = holder,
-	})
-	local frame = Kit.panel({
-		Name = "Card",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Theme.Colors.Background,
-		Parent = holder,
-	})
-	Kit.new("UIScale", { Parent = frame })
-	local stroke = frame:FindFirstChildOfClass("UIStroke")
-	if stroke then
-		stroke.Thickness = 4
-	end
-
-	local badge = Kit.new("Frame", {
-		Name = "Badge",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0, 56, 0.5, 0),
-		Size = UDim2.fromOffset(92, 92),
-		BackgroundColor3 = Theme.Colors.Cash,
-		BorderSizePixel = 0,
-		ZIndex = 2,
-		Parent = frame,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = badge
-	Kit.stroke(Theme.Colors.Stroke, 4).Parent = badge
-	Kit.gradient(Color3.new(1, 1, 1), Color3.fromRGB(150, 150, 170)).Parent = badge
-	local badgeScale = Kit.new("UIScale", { Parent = badge })
-	tween(
-		badgeScale,
-		TweenInfo.new(0.55, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-		{ Scale = 1.08 }
-	)
-	local icon = Kit.new("TextLabel", {
-		Name = "Icon",
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.52),
-		Size = UDim2.fromScale(0.74, 0.74),
-		Text = "💰",
-		TextScaled = true,
-		FontFace = Theme.Fonts.Display,
-		Rotation = -8,
-		ZIndex = 3,
-		Parent = badge,
-	})
-	Kit.new("UIScale", { Parent = icon })
-	tween(icon, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Rotation = 8 })
-	local check = Kit.label("✅", 64, {
-		Name = "Check",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(80, 80),
-		Visible = false,
-		ZIndex = 4,
-		Parent = badge,
-	})
-	Kit.new("UIScale", { Parent = check })
-
-	local title = Kit.label("", 30, {
-		Name = "Title",
-		Position = UDim2.fromOffset(114, 12),
-		Size = UDim2.new(1, -130, 0, 38),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false,
-		TextScaled = true,
-		Parent = frame,
-	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 30, MinTextSize = 14, Parent = title })
-	Kit.new("UIScale", { Parent = title })
-	local hint = Kit.label("", 19, {
-		Name = "Hint",
-		Position = UDim2.fromOffset(114, 52),
-		Size = UDim2.new(1, -130, 0, 26),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = Theme.Colors.TextDim,
-		TextWrapped = false,
-		TextScaled = true,
-		Parent = frame,
-	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 19, MinTextSize = 11, Parent = hint })
-
-	local dotRow = Kit.new("Frame", {
-		Name = "Dots",
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(114, 84),
-		Size = UDim2.fromOffset(200, 14),
-		Parent = frame,
-	})
-	Kit.list(Enum.FillDirection.Horizontal, 7, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center).Parent =
-		dotRow
-	local dots: { Frame } = {}
-	for i = 1, #TutorialController.STEPS do
-		local d = Kit.new("Frame", {
-			Name = "Dot" .. i,
-			Size = UDim2.fromOffset(28, 10),
-			BackgroundColor3 = Theme.Colors.PanelLight,
-			BorderSizePixel = 0,
-			LayoutOrder = i,
-			Parent = dotRow,
-		})
-		Kit.corner(UDim.new(1, 0)).Parent = d
-		Kit.stroke(Theme.Colors.Stroke, 2).Parent = d
-		dots[i] = d
-	end
-
-	local timerTrack = Kit.new("Frame", {
-		Name = "TimerTrack",
-		BackgroundTransparency = 1,
-		ClipsDescendants = true,
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 20, 1, -5),
-		Size = UDim2.new(1, -40, 0, 5),
-		Parent = frame,
-	})
-	local timerFill = Kit.new("Frame", {
-		Name = "Fill",
-		BackgroundColor3 = Theme.Colors.Cash,
-		BorderSizePixel = 0,
-		Size = UDim2.fromScale(0, 1),
-		Parent = timerTrack,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = timerFill
-
-	-- keycap ("hold E"): chunky key with a darker base so it reads as a physical button
-	local key = Kit.new("Frame", {
-		Name = "Key",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -20, 0.5, 2),
-		Size = UDim2.fromOffset(64, 64),
-		BackgroundColor3 = Theme.Colors.Stroke,
-		BorderSizePixel = 0,
-		Visible = false,
-		ZIndex = 3,
-		Parent = frame,
-	})
-	Kit.corner(UDim.new(0, 14)).Parent = key
-	local keyTop = Kit.new("Frame", {
-		Name = "Top",
-		Size = UDim2.new(1, 0, 1, -7),
-		BackgroundColor3 = Color3.fromRGB(245, 246, 255),
-		BorderSizePixel = 0,
-		ZIndex = 4,
-		Parent = key,
-	})
-	-- the "press" pulse lives on the key top: Kit.pop(key) owns the key's own UIScale, and a pop tween on the same
-	-- UIScale would cancel this infinite one
-	local keyScale = Kit.new("UIScale", { Parent = keyTop })
-	tween(keyScale, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true), { Scale = 0.9 })
-	Kit.corner(UDim.new(0, 14)).Parent = keyTop
-	Kit.stroke(Theme.Colors.Stroke, 3).Parent = keyTop
-	Kit.gradient(Color3.new(1, 1, 1), Color3.fromRGB(200, 205, 225)).Parent = keyTop
-	local keyLabel = Kit.label("E", 34, {
-		Name = "Glyph",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.9, 0.9),
-		TextColor3 = Theme.Colors.Primary,
-		TextWrapped = false,
-		ZIndex = 5,
-		Parent = keyTop,
-	})
-	local keyHold = Kit.label("HOLD", 13, {
-		Name = "Hold",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 1, 2),
-		Size = UDim2.fromOffset(64, 16),
-		TextWrapped = false,
-		ZIndex = 5,
-		Parent = key,
-	})
-
-	local skip = Kit.button("SKIP ⏭", Theme.Colors.PanelLight, {
-		Name = "Skip",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, 6, 0, -2),
-		Size = UDim2.fromOffset(104, 36),
-		TextSize = 17,
-		ZIndex = 6,
-		Parent = frame,
-	})
-	skip.Activated:Connect(onSkip)
-
-	return {
-		gui = gui,
-		holder = holder,
-		card = frame,
-		cardStroke = stroke,
-		badge = badge,
-		icon = icon,
-		check = check,
-		title = title,
-		hint = hint,
-		dots = dots,
-		timerFill = timerFill,
-		skip = skip,
-		key = key,
-		keyLabel = keyLabel,
-		keyHold = keyHold,
-	}
+local function hud(): any
+	return lazy("HUDController")
 end
 
-local function renderDots(c: CardUI, current: number)
-	for i, d in c.dots do
-		local color = if i < current
-			then Theme.Colors.Cash
-			elseif i == current then Theme.Colors.Primary
-			else Theme.Colors.PanelLight
-		d.BackgroundColor3 = color
-		d.Size = if i == current then UDim2.fromOffset(40, 12) else UDim2.fromOffset(28, 10)
-	end
-end
-
-local function renderStep(index: number, forward: boolean)
-	local c = card
-	local def = TutorialController.STEPS[index]
-	if not c or not def then
+local function showHelp(text: string?)
+	local h = hud()
+	if not h then
 		return
 	end
-	renderToken += 1
-	local token = renderToken
-	local function apply()
-		if token ~= renderToken or not c.gui.Parent then
-			return
+	if text then
+		if typeof(h.help) == "function" then
+			pcall(h.help, text, { id = HELP_ID, duration = math.huge })
 		end
-		local input = inputKind()
-		local reenter = index == STEP_STEAL and reenterMode
-		c.icon.Text = def.icon
-		c.title.Text = if reenter then "GET BACK IN!" else def.title
-		c.hint.Text = if reenter then "Hop back in your glowing car" else TutorialController.hintFor(def, input)
-		local showKey = def.key == true
-		c.key.Visible = showKey
-		c.keyLabel.Text = if reenter then TutorialController.enterKeyFor(input) else TutorialController.keyFor(input)
-		c.keyHold.Visible = not reenter -- the enter prompt is a tap/press, not a hold
-		local textWidth = if showKey then UDim.new(1, -210) else UDim.new(1, -130)
-		c.title.Size = UDim2.new(textWidth, UDim.new(0, 38))
-		c.hint.Size = UDim2.new(textWidth, UDim.new(0, 26))
-		if showKey then
-			Kit.pop(c.key, 1.4)
-		end
-		c.badge.BackgroundColor3 = def.color
-		if c.cardStroke then
-			c.cardStroke.Color = def.color
-		end
-		renderDots(c, index)
-		Kit.pop(c.title, 1.25)
-		Kit.pop(c.icon, 1.5)
-		c.timerFill.BackgroundColor3 = def.color
-		if def.timed then
-			c.timerFill.Size = UDim2.fromScale(1, 1)
-			tween(c.timerFill, TweenInfo.new(def.timed, Enum.EasingStyle.Linear), { Size = UDim2.fromScale(0, 1) })
-		else
-			c.timerFill.Size = UDim2.fromScale(0, 1)
-		end
-	end
-	if forward and index > 1 then
-		-- check-mark payoff for the step just finished, then swap in the next objective
-		c.check.Visible = true
-		Kit.pop(c.check, 2)
-		Kit.pop(c.card, 1.06)
-		playSound("Pickup")
-		task.delay(0.55, function()
-			if token ~= renderToken then
-				return
-			end
-			c.check.Visible = false
-			apply()
-			playSound("Whoosh")
-		end)
-	else
-		apply()
+	elseif typeof(h.clearHelp) == "function" then
+		pcall(h.clearHelp, HELP_ID)
 	end
 end
 
-local function cardIn()
-	local c = card
-	if not c then
-		return
-	end
-	c.holder.Position = UDim2.new(0.5, 0, 1, -CARD_BOTTOM + 160)
-	tween(c.holder, Theme.TweenPop, { Position = UDim2.new(0.5, 0, 1, -CARD_BOTTOM) })
-	Kit.pop(c.card, 0.6)
-end
-
-local function confetti(parent: GuiObject)
-	local icons = { "🎉", "💵", "🚗", "⭐", "💰", "🏎️" }
-	local rng = Random.new()
-	for i = 1, 18 do
-		local lbl = Kit.new("TextLabel", {
-			Name = "Confetti",
-			BackgroundTransparency = 1,
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.fromOffset(40, 40),
-			Text = icons[(i % #icons) + 1],
-			TextScaled = true,
-			FontFace = Theme.Fonts.Display,
-			Rotation = rng:NextNumber(-30, 30),
-			ZIndex = 10,
-			Parent = parent,
-		})
-		local angle = rng:NextNumber(math.pi * 1.05, math.pi * 1.95) -- mostly upward
-		local dist = rng:NextNumber(140, 300)
-		local target = UDim2.new(0.5, math.cos(angle) * dist, 0.5, math.sin(angle) * dist)
-		tween(lbl, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Position = target,
-			Rotation = rng:NextNumber(-200, 200),
-		})
-		task.delay(0.55, function()
-			if lbl.Parent then
-				tween(lbl, TweenInfo.new(0.35), { TextTransparency = 1 })
-			end
-		end)
-		task.delay(1, function()
-			lbl:Destroy()
-		end)
+local function showObjective(text: string?)
+	local h = hud()
+	if h and typeof(h.objective) == "function" then
+		pcall(h.objective, text)
 	end
 end
 
@@ -1019,6 +712,10 @@ local lastCash: number? = nil
 local connections: { any } = {} -- RBXScriptConnections + Shared/Util/Signal connections
 local startedAt = 0
 local focusReleased = false
+local reenterMode = false -- step 2 is pointing back at our own hotwired car ("Get back in the car.")
+local renderedInput: InputKind? = nil
+local renderedReenter = false
+local lastObjectiveAt = 0
 
 local function disconnectAll()
 	for _, c in connections do
@@ -1067,10 +764,7 @@ local function setReenter(on: boolean)
 	if on == reenterMode then
 		return
 	end
-	reenterMode = on
-	if stepIndex == STEP_STEAL and card then
-		renderStep(STEP_STEAL, false)
-	end
+	reenterMode = on -- tick() re-renders the objective + help text
 end
 
 -- Step 2 target, in order: our own abandoned hotwired car; the newbie car StreetSpawnService tagged for us
@@ -1089,7 +783,7 @@ local function retarget()
 		setReenter(true)
 		targetCar = own
 		highlightCar(own)
-		setWaypoint(own, Theme.Colors.Secondary, "GET IN")
+		setWaypoint(own, C.Blue, "CAR")
 		return
 	end
 	setReenter(false)
@@ -1143,25 +837,39 @@ local function retarget()
 		targetCar = best
 		highlightCar(best)
 		if door and face and insideOwnGarage() then
-			setWaypoint(door + face * 6, Theme.Colors.Secondary, "GO OUT")
+			setWaypoint(door + face * 6, C.Blue, "EXIT")
 		else
-			setWaypoint(best, Theme.Colors.Secondary, "STEAL!")
+			setWaypoint(best, C.Blue, "CAR")
 		end
 	else
 		targetCar = nil
 		clearHighlight()
 		local street = streetPosition()
 		if street then
-			setWaypoint(street, Theme.Colors.Secondary, "STREET")
+			setWaypoint(street, C.Blue, "STREET")
 		end
 	end
+end
+
+local function render(index: number)
+	local def = TutorialController.STEPS[index]
+	if not def then
+		return
+	end
+	local input = inputKind()
+	local reenter = index == STEP_STEAL and reenterMode
+	renderedInput = input
+	renderedReenter = reenter
+	lastObjectiveAt = os.clock()
+	showObjective(TutorialController.objectiveText(def, reenter))
+	showHelp(TutorialController.helpText(def, input, reenter))
 end
 
 local function enterStep(index: number)
 	if index == STEP_MONEY then
 		setHudFocus(not focusReleased)
 		local pad = findCollectPad()
-		setWaypoint(pad or collectPadPosition(), Theme.Colors.Cash, "CASH PAD")
+		setWaypoint(pad or collectPadPosition(), C.Green, "CASH PAD")
 	elseif index == STEP_STEAL then
 		setHudFocus(not focusReleased)
 		targetCar = nil
@@ -1174,17 +882,17 @@ local function enterStep(index: number)
 		if lazy("WaypointController") then
 			setWaypoint(nil)
 		else
-			setWaypoint(dropoffPosition(), Theme.Colors.Primary, "HOME")
+			setWaypoint(dropoffPosition(), C.Yellow, "GARAGE")
 		end
 	elseif index == STEP_COLLECT then
 		clearHighlight()
 		setHudFocus(false)
 		local pad = findCollectPad()
-		setWaypoint(pad or collectPadPosition(), Theme.Colors.Cash, "COLLECT $")
+		setWaypoint(pad or collectPadPosition(), C.Green, "CASH PAD")
 	elseif index == STEP_DEALER then
 		setHudFocus(false)
 		local ok, pos = pcall(MapLayout.poiCenter, "Dealership")
-		setWaypoint(if ok then pos else nil, Theme.Colors.Gold, "DEALERSHIP")
+		setWaypoint(if ok then pos else nil, C.Yellow, "DEALERSHIP")
 	end
 end
 
@@ -1195,6 +903,8 @@ local function teardown()
 	clearHighlight()
 	clearFallback()
 	setHudFocus(false)
+	showHelp(nil)
+	showObjective(nil)
 end
 
 local function finish(skipped: boolean, notifyServer: boolean)
@@ -1207,47 +917,30 @@ local function finish(skipped: boolean, notifyServer: boolean)
 		pcall(Net.fire, "TutorialDone")
 	end
 	TutorialController.Finished:Fire(skipped)
-	local c = card
-	card = nil
-	if not c then
-		return
-	end
-	local function slideOut(delay: number)
-		task.delay(delay, function()
-			if not c.gui.Parent then
-				return
-			end
-			local t = tween(
-				c.holder,
-				TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-				{ Position = UDim2.new(0.5, 0, 1, -CARD_BOTTOM + 200) }
-			)
-			t.Completed:Once(function()
-				c.gui:Destroy()
-			end)
-		end)
-	end
 	if skipped or not notifyServer then
-		slideOut(0)
 		return
 	end
-	-- celebration
-	c.skip.Visible = false
-	c.key.Visible = false
-	c.icon.Text = "🎉"
-	c.title.Text = "YOU'RE A CAR THIEF NOW!"
-	c.hint.Text = "Steal rarer cars • stack cash • rebirth"
-	c.badge.BackgroundColor3 = Theme.Colors.Gold
-	if c.cardStroke then
-		c.cardStroke.Color = Theme.Colors.Gold
+	-- GTA payoff: the yellow "job complete" shard, then one help line pointing at what to do next
+	local h = hud()
+	if h and typeof(h.shard) == "function" then
+		pcall(h.shard, "job", nil, "You are a car thief now.")
 	end
-	renderDots(c, #TutorialController.STEPS + 1)
-	c.timerFill.Size = UDim2.fromScale(0, 1)
-	Kit.pop(c.card, 1.15)
-	Kit.pop(c.icon, 1.8)
-	confetti(c.card)
-	playSound("CashBig")
-	slideOut(3)
+	task.delay(4, function()
+		local hh = hud()
+		if hh and typeof(hh.help) == "function" then
+			local input = inputKind()
+			local phone = if input == "touch"
+				then "Tap the <b>phone</b> button"
+				else "Press " .. RichText.keyFor(input, "B", "D-Pad Up")
+			pcall(
+				hh.help,
+				"Steal rarer cars, stack cash and <y>Prestige</y>. "
+					.. phone
+					.. " for jobs, contracts and daily rewards.",
+				{ id = "tutorial_done", duration = 10 }
+			)
+		end
+	end)
 end
 
 local function goTo(index: number)
@@ -1260,7 +953,10 @@ local function goTo(index: number)
 		return
 	end
 	enterStep(index)
-	renderStep(index, index > prev)
+	if index > prev and prev >= 1 then
+		playSound("Pickup") -- soft "objective done" tick before the next line
+	end
+	render(index)
 	TutorialController.StepChanged:Fire(index, TutorialController.STEPS[index].id)
 end
 
@@ -1291,24 +987,14 @@ local function tick()
 	if stepIndex == STEP_STEAL and (since >= RETARGET_EVERY or (since >= 0.5 and not validTarget(targetCar))) then
 		retarget()
 	end
-	local c = card
-	if c then
-		local theft = StateController.getTheft()
-		local bottom = if theft and theft.active then CARD_BOTTOM_THEFT else CARD_BOTTOM
-		-- stay above whatever the HUD has at bottom-center right now (HOME + hotbar, the measured speedometer, the
-		-- theft timer); same Kit.screen scale, so its design px are ours
-		local hud = lazy("HUDController")
-		if hud and typeof(hud.getBottomClearance) == "function" then
-			local ok, clearance = pcall(hud.getBottomClearance)
-			if ok and typeof(clearance) == "number" then
-				bottom = math.max(bottom, math.ceil(clearance) + 8)
-			end
-		end
-		-- ...and above GarageClient's LOCK pill, which stacks on top of HOME outside a locked garage
-		bottom = TutorialController.cardBottomAbove(bottom, lockTop())
-		if math.abs(bottom - cardBottom) >= 4 then
-			cardBottom = bottom
-			tween(c.holder, Theme.TweenMedium, { Position = UDim2.new(0.5, 0, 1, -bottom) })
+	-- the input device changed (pad picked up, touch) or the objective faded long ago: re-issue the lines
+	if inputKind() ~= renderedInput or (stepIndex == STEP_STEAL and reenterMode ~= renderedReenter) then
+		render(stepIndex)
+	elseif now - lastObjectiveAt >= OBJECTIVE_REPEAT then
+		lastObjectiveAt = now
+		local h = hud()
+		if h and typeof(h.repeatObjective) == "function" then
+			pcall(h.repeatObjective)
 		end
 	end
 	if not focusReleased and stepIndex <= STEP_DELIVER and now - startedAt > FOCUS_MAX_SECONDS then
@@ -1324,7 +1010,6 @@ local function begin()
 	active = true
 	startedAt = os.clock()
 	focusReleased = false
-	cardBottom = CARD_BOTTOM
 	local snap = StateController.get()
 	baseGarage = TutorialController.garageCount(snap)
 	baseSteals = TutorialController.stealCount(snap)
@@ -1352,29 +1037,11 @@ local function begin()
 		connections,
 		StateController.Changed:Connect(function(s: any)
 			if active and typeof(s) == "table" and s.tutorialDone == true then
-				finish(false, false) -- finished elsewhere (server / another session)
+				finish(false, false) -- finished elsewhere (server / another session / Settings > Skip)
 			end
 		end)
 	)
 
-	card = buildCard(function()
-		playSound("Click")
-		finish(true, true)
-	end)
-	-- streamer mode hides the card with the rest of the HUD
-	local hud = lazy("HUDController")
-	if hud and hud.VisibilityChanged and typeof(hud.isHidden) == "function" then
-		local function applyHidden(hidden: boolean)
-			local c = card
-			if c then
-				c.gui.Enabled = not hidden
-			end
-		end
-		table.insert(connections, hud.VisibilityChanged:Connect(applyHidden))
-		local ok, hidden = pcall(hud.isHidden)
-		applyHidden(ok and hidden == true)
-	end
-	cardIn()
 	stepIndex = 0
 	goTo(STEP_MONEY)
 
