@@ -1007,7 +1007,11 @@ local function backfire(s: Session, big: boolean)
 	end
 	s.fxBackfireAt = os.clock()
 	local cf = exhaust.WorldCFrame
-	VFXLibrary.burst("Backfire", cf.Position, { direction = -s.chassis.CFrame.LookVector, count = if big then 3 else 2 })
+	VFXLibrary.burst(
+		"Backfire",
+		cf.Position,
+		{ direction = -s.chassis.CFrame.LookVector, count = if big then 3 else 2 }
+	)
 	local light = s.fx.light
 	if light and not light.Enabled then
 		light.Color = Color3.fromRGB(255, 160, 60)
@@ -1402,7 +1406,13 @@ local function renderStep(s: Session, dt: number)
 	-- backfire pops on upshifts under throttle (not while boosting: the flame covers it)
 	local gear, up = VFXLibrary.nextGear(s.fxGear, frac)
 	s.fxGear = gear
-	if up and not boosting and s.input.throttle > 0.5 and grounded and os.clock() - s.fxBackfireAt > BACKFIRE_COOLDOWN then
+	if
+		up
+		and not boosting
+		and s.input.throttle > 0.5
+		and grounded
+		and os.clock() - s.fxBackfireAt > BACKFIRE_COOLDOWN
+	then
 		backfire(s, false)
 	end
 	-- speed lines around the camera while boosting (lighter near top speed); followSpeedLines moves their host

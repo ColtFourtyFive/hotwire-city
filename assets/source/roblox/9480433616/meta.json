@@ -1,0 +1,17 @@
+{
+ "id": 9480433616,
+ "fetched_at": "2026-10-27T16:00:05Z",
+ "status": 200,
+ "assetTypeId": 4,
+ "assetType": "Mesh",
+ "requestId": "639287136056750826",
+ "isArchived": false,
+ "isRecordable": true,
+ "mesh_version": "2.00",
+ "ok": true,
+ "kind": "mesh",
+ "ext": "mesh",
+ "file": "asset.mesh",
+ "bytes": 209,
+ "sha256": "1845d48019a1f1438f4f7db9d6b35cea7b21acf73188540b8443065bfd45a9a7"
+}

@@ -810,8 +810,8 @@ handlers.Confetti = function(data, pos)
 	if not pos then
 		return
 	end
-	local big = typeof(data.rarity) == "string" and (data.rarity == "Legendary" or data.rarity == "Mythic"
-		or data.rarity == "Secret")
+	local big = typeof(data.rarity) == "string"
+		and (data.rarity == "Legendary" or data.rarity == "Mythic" or data.rarity == "Secret")
 	confettiBurst(pos + UP * 1.5, if big then 14 else 10)
 	fx("Sparkle", pos + UP * 2, { color = Theme.Colors.Gold })
 	fx("Shockwave", pos + UP * 0.3, { scale = if big then 0.9 else 0.6, color = Theme.Colors.Gold })

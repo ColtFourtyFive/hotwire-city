@@ -3,7 +3,9 @@
 --  * Tool.Activated (any Tool with a ToolId attribute) -> Net.fire("ToolAction", toolId, aim)
 --    aim: mouse hit (PC), last tap / screen center (touch), camera look (gamepad) + gentle aim assist.
 --  * Local juice: real swing/lunge animation through the default Animate script's "toolanim" StringValue (replicates
---    to everyone because it plays on our own Animator), bat swing trail, Zapper coil flash.
+--    to everyone because it plays on our own Animator), bat swing trail + glints off the barrel, Zapper coil flash +
+--    muzzle sparks / glow at the tip (VFXLibrary presets). Impacts (BONK star, ZAP sparks) are EffectsController's,
+--    from the server's Effect broadcast, so nobody sees them twice.
 --  * Big round touch button with a cooldown ring for the equipped tool (also from a car seat, next to DrivingUI's
 --    cluster), and a SPIKES button while driving (also key G / gamepad L1); both bottom-anchored like DrivingUI.
 --  * Knockback remote -> AssemblyLinearVelocity on our HumanoidRootPart + PlatformStand ragdoll-lite, camera shake.
@@ -27,6 +29,7 @@ local Trove = require(Shared:WaitForChild("Util"):WaitForChild("Trove"))
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
+local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
 local CombatClient = {}
 
@@ -340,6 +343,15 @@ local function swingFeedback(toolId: string, tool: Tool?)
 					end
 				end)
 			end
+			local cap = tool:FindFirstChild("Cap")
+			if cap and cap:IsA("BasePart") then
+				pcall(
+					VFXLibrary.burst,
+					"Sparkle",
+					cap.Position,
+					{ count = 5, scale = 0.6, color = Theme.Colors.Primary }
+				)
+			end
 		end
 	elseif toolId == "taser" then
 		if tool then
@@ -351,6 +363,17 @@ local function swingFeedback(toolId: string, tool: Tool?)
 				TweenService:Create(glow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 					Brightness = 1.2,
 				}):Play()
+			end
+			if tip and tip:IsA("BasePart") then
+				local handle = tool:FindFirstChild("Handle")
+				local forward = if handle and handle:IsA("BasePart") then handle.CFrame.LookVector else nil
+				pcall(VFXLibrary.burst, "Sparks", tip.Position, {
+					count = 10,
+					scale = 0.5,
+					color = Color3.fromRGB(170, 255, 150),
+					direction = forward,
+				})
+				pcall(VFXLibrary.burst, "Flash", tip.Position, { scale = 0.3, color = Color3.fromRGB(150, 255, 140) })
 			end
 			for _, child in tool:GetChildren() do
 				if child:IsA("BasePart") and child.Name:sub(1, 4) == "Coil" then

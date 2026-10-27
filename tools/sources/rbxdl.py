@@ -210,7 +210,13 @@ def fetch(asset_id, force=False, version=None, quiet=True):
                 meta[k] = j[k]
         loc = j.get("location")
         if not loc:
-            meta.update(ok=False, error="no location in response: " + ",".join(sorted(j.keys())))
+            errs = j.get("errors") or []
+            if errs and isinstance(errs, list) and isinstance(errs[0], dict):
+                # e.g. 403 "Asset is not approved for the requester" = moderated / pending asset
+                meta["status"] = errs[0].get("code", st)
+                meta.update(ok=False, error=f"{errs[0].get('code')}: {errs[0].get('message', '')}"[:300])
+            else:
+                meta.update(ok=False, error="no location in response: " + ",".join(sorted(j.keys())))
             json.dump(meta, open(os.path.join(d, "meta.json"), "w"), indent=1)
             return meta
         raw = _cdn_get(loc)

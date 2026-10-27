@@ -207,7 +207,9 @@ VFXLibrary.budget = budget
 
 local function isPhone(): boolean
 	local ok, phone = pcall(function()
-		return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled and not UserInputService.MouseEnabled
+		return UserInputService.TouchEnabled
+			and not UserInputService.KeyboardEnabled
+			and not UserInputService.MouseEnabled
 	end)
 	return ok and phone == true
 end
