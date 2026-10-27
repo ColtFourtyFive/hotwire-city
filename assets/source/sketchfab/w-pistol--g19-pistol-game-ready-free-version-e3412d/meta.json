@@ -77,6 +77,7 @@
       "Display1_mm1_0",
       "Display1_Glock_Mat4_0"
     ],
-    "render_s": 16.9
+    "hidden_helpers": [],
+    "render_s": 28.1
   }
 }

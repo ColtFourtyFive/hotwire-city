@@ -72,7 +72,7 @@
 - **Roblox Material** maps to roughness and metalness. Glass, Transparency → alpha; Neon → emission; Reflectance → clear coat.
 
 **Known approximations.**
-- **Unions** (`UnionOperation`) are drawn as their bounding box, because CSG geometry is not decoded. None of the 11 shortlisted cars has a visible union. The GMC extra has 64.
+- **Unions** (`UnionOperation`) are drawn as their bounding box, because CSG geometry is not decoded. None of the 11 shortlisted cars has a visible union. The GMC extra has 64 (62 of them visible).
 - **Top and Bottom decal "up" direction** is inferred: hood text reads correctly from the front. It is not verified in Studio.
 - **Moderated images** (403 "not approved") are skipped: 2 on the Prius and 1 on the interceptor. They would not render in-game either.
 
@@ -132,11 +132,14 @@ The map JSON gives the shell the structure it needs.
 
 - Paths are relative to the asset's root Model.
 - `#k` means the k-th child with that name, counting in file order. The JSON lists the full explicit paths too.
-- `/**` means every visible descendant.
+- `X/**` means X itself (if it is a visible part) plus every visible descendant.
 - `{a, b}` means alternatives.
+- `{…, +N more}` is a doc summary only: the omitted names are in `groups.*.paths`. 32 of the 258 selectors are cut this way.
+
+**Instance names can contain `/` and `#`.** Imported MeshParts are often named `Meshes/<obj name>`: `Meshes/sorento_Plane.016` (Kia) and `Meshes/Paint (4)` (Jaguar) are each ONE instance, and the police hatch has parts named `#SA` and `#SB`. 276 part, Model or Folder names across the 17 cars contain `/`. Do not split a path on `/` and walk `FindFirstChild`. Match from the parent: a child matches when the remaining path equals its name (plus `#k` when the name repeats among siblings) or starts with that name followed by `/`. Recurse and backtrack. Checked 2026-10-27: with this rule all 258 selectors and all 1,449 `paths` entries in the 17 maps resolve to exactly the listed parts, with no ambiguous match.
 
 Runtime resolution:
-1. Resolve the selectors on the sanitised clone.
+1. Resolve `groups.*.paths` (strip the root name), not the selectors, on the sanitised clone, using the matching rule above.
 2. Check that the resolved count equals `groups.*.count`.
 3. If a count differs, because the asset was updated or sibling order changed, fall back to the rule table above on the live instances.
 
@@ -507,22 +510,22 @@ The JSON maps are in `roblox_car_maps/`. Previews are in `assets/source/roblox/<
 
 | Asset | What it really is | L × W × H studs (scale) | Parts / ~tris | Verdict |
 |---|---|---|---|---|
-| `16390639371` "T488" | **The Ford Police Interceptor Utility (2020+ Explorer)** in the scout's police shot. It is the right-most car there; the scout report swapped its ID with `113053967699143`. City of Clifton livery, Whelen/Feniex/Setina lightbar and push bar, full interior with radio and dashcam. | 19.03 × 8.27 × 6.46 (×0.95) | 202 / 305k | **The real police-SUV candidate.** Wheels are separate (A-Chassis); livery baked (`Body/Paint/**` is textured); 69 Neon lightbar parts (`Body/Lightbar/**`), plus `Body/Brakes/**` and a plate model. No backdoor pattern, but 95 scripts (ELS). Too heavy for many units: about 300k tris. Strip the Ford ovals (`4462098086`, `3909259034` atlas), the Whelen/Setina/Feniex wordmarks and the "Clifton" name. |
+| `16390639371` "T488" | **The Ford Police Interceptor Utility (2020+ Explorer)** in the scout's police shot. It is the right-most car there; the scout report swapped its ID with `113053967699143`. City of Clifton livery, Whelen/Feniex/Setina lightbar and push bar, full interior with radio and dashcam. | 19.03 × 8.27 × 6.46 (×0.95) | 202 / 305k | **The real police-SUV candidate.** Wheels are separate (A-Chassis); livery baked (`Body/Paint/**` is textured); 69 Neon lightbar parts (`Body/Lightbar/**`), plus `Body/Brakes/**` and a plate model. No backdoor pattern, but 114 scripts (ELS). Too heavy for many units: about 300k tris. Strip the Ford ovals (`4462098086`, `3909259034` atlas), the Whelen/Setina/Feniex wordmarks and the "Clifton" name. |
 | `951086064` Maxima | 2009 Nissan Maxima, blue | 18.02 × 7.49 × 5.54 (×0.96) | 45 / 104k | Good-looking, untextured mid-size sedan. Its paint is named, so it is recolourable. **Suspicious** `ThrottlePatcher` reparents itself to ServerScriptService. |
 | `3204824887` ME412 | Chrysler ME Four-Twelve concept | 19.35 × 9.89 × 5.19 (×0.84) | 18 / 23k | Clean supercar silhouette, flat materials; the Chrysler wing badge is modelled. A "super"-class candidate. |
 | `10141791793` "2020 GMC 2500 AT4" | Actually a **2020 Chevrolet Silverado WT PPV** (`Body/2020 Silverado WT/PPV package`), unmarked black, with Whelen Talon and lightbar | 23.49 × 9.57 × 8.43 (×0.97) | 281 / 367k (62 unions shown as boxes) | Heavy. Unmarked-police flavour. 300 parts exceeds `AssetLibrary.MAX_STORE_PARTS` = 250, so it would be rejected as is. |
 | `71284840505836` Panel van | Low-poly 1980s panel van, light blue-grey, untextured | 19.08 × 6.41 × 7.71 (×0.92) | 15 / 5k | Plain and toy-like up close: background traffic or a parked van only. No textures, no scripts, no backdoor. Front comes from lamp names (no seat). Wheel grouping is uneven (3/2/1/2 parts), so check it by hand. |
-| `94301391128632` Taxi | Crown Victoria-style yellow cab, weathered PS3-era texture, "TAXI" lettering and roof sign | 18.99 × 7.52 × 5.71 (×1.01) | 2 / 3k | It reads well at street distance, and its scale is already right. But the wheels are baked into the body mesh, like the box truck. **Backdoor:** 5 nested TextureConfiguration copies. Per the scout, `112789212430129` is the same mesh (not downloaded). |
+| `94301391128632` Taxi | Crown Victoria-style yellow cab, weathered PS3-era texture, "TAXI" lettering and roof sign | 18.99 × 7.52 × 5.71 (×1.01) | 2 / 3k | It reads well at street distance, and its scale is already right. But the wheels are baked into the body mesh, like the box truck. **Backdoor:** 5 nested TextureConfiguration copies. `112789212430129`, the scout's second taxi, was run through the whole chain on 2026-10-27 as a pipeline check. It has the identical meshes (`1124532428`, `493763466`) and textures, and it is **also infected**: a root `Package` TextureConfiguration loader, payload `115188487528112`. Its map is in `assets/source/roblox/112789212430129/car_map.json`, not in `roblox_car_maps/`. |
 
 ## 7. Problems, assumptions and open items
 
 1. **Unions are not decoded.**
    - `UnionOperation` geometry lives in a separate `AssetId`. Lune's rbx-dom drops that property because the file stores it as a String and the database expects Content. The CSG mesh format is not parsed either.
-   - Unions are drawn as boxes. That does not matter for the shortlist (only the F-150's four invisible `Heat` glow unions), but it affects the GMC extra (64 unions).
+   - Unions are drawn as boxes. That does not matter for the shortlist (only the F-150's four invisible `Heat` glow unions), but it affects the GMC extra (64 unions, 62 visible).
 2. **Decal orientation on Top and Bottom faces is inferred.** We tilt the Front frame onto the face, so the image top points to Back. That makes hood text read correctly from the car's front. Side, front and back decals are certain. Top and bottom are not verified in Studio.
 3. **MeshPart `TextureID` alpha is treated as cut-out**, and `Color` is ignored when a TextureID is set. SurfaceAppearance AlphaMode follows the docs. For all 11 cars, the colours and silhouettes in the previews match the scout's Studio shots (`scout_0003_cars_sheet.jpg`, which is low resolution).
 4. **Mesh versions 5.00, 6.00 and 7.00 are only tested synthetically.** Asset delivery served the stored version: 1.00 to 4.01 for every mesh of these 17 cars. Asking for `contentRepresentationPriorityList` with major version 5–7 returned the same v3 file.
-5. **Moderated images.** Eight of 213 referenced textures answer `403 Asset is not approved for the requester`: 3 on the shortlist (Prius 2, interceptor 1) and 5 on the T488. They will not render in-game either.
+5. **Moderated or archived images.** Eight of 213 referenced textures (209 unique) answer 403. Seven say `Asset is not approved for the requester` (moderated): 3 on the shortlist (Prius 2, interceptor 1) and 4 on the T488. The eighth, `432747975` on the T488, says `Requested asset is archived`. Re-checked 2026-10-27. They will not render in-game either.
 6. **Selectors depend on file order.** `#k` relies on the order in which instances were serialised. That order should survive `LoadAssetAsync`, but this is not verified. The runtime should check the per-group counts and fall back to the rules (§3.1) if they differ.
 7. **The heuristics need a human pass per car before shipping.**
    - Paint versus black trim on the Patrol.

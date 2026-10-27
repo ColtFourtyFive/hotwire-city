@@ -1,0 +1,12 @@
+{
+ "id": 1539341292,
+ "fetched_at": "2026-10-27T17:12:29Z",
+ "status": 403,
+ "assetTypeId": 0,
+ "assetType": "0",
+ "requestId": "639287179496078151",
+ "isArchived": false,
+ "isRecordable": false,
+ "ok": false,
+ "error": "403: Asset is not approved for the requester"
+}

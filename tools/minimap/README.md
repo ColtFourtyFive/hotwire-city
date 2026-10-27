@@ -11,7 +11,11 @@ python3 -I tools/minimap/build.py             # export -> render -> icons -> upl
 python3 -I tools/minimap/build.py --no-upload # render only; keeps the ids already in Config/Minimap.luau
 python3 -I tools/minimap/build.py --force     # re-upload everything
 python3 -I tools/minimap/build.py --ss 2      # quicker draft render (default supersampling is 3)
+python3 -I tools/minimap/build.py --geometry build/minimap/geometry.json   # restyle only: reuse the last export
 ```
+
+`--geometry` skips the export and re-renders an existing `geometry.json`. Use it to change the map's look without
+picking up a city layout that is still being changed elsewhere.
 
 Run it whenever the city changes, for example after editing `Config/Map`, `MapLayout` or `MapBuilder`. A full
 build renders in about 30 s, plus the uploads.
@@ -27,9 +31,11 @@ build renders in about 30 s, plus the uploads.
    - the terrain fills;
    - the POI centers.
 2. **Render.** `render_map.py` draws a GTA-V-style dark map at 3x supersampling, then downsamples it with LANCZOS:
-   - deep navy land, with lots tinted per district;
-   - roads as bright lines over a darker asphalt casing, ranked highway (the ring), then avenue (line 0 and the
-     Midtown boundary), then street;
+   - deep navy land, with lots and roofs tinted per district (violet Downtown, blue Midtown, plum Market Row,
+     green suburbs, teal beachfront, warm grey docks), so districts read at a glance;
+   - roads over a darker asphalt casing, ranked by width and brightness: the ring highway is a glowing white
+     carriageway with an amber median, avenues (line 0 and the Midtown boundary) are bright with a thin centre line,
+     and plain streets are dim and narrow;
    - building footprints lit by height, with a rim light, a roof inset and a crisp south-east shadow;
    - green parks with tree canopies, and pools;
    - a soft, rounded beach with wet sand, foam and a shallow-water glow, over a gradient ocean with depth contours.

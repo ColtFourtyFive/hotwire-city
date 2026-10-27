@@ -690,7 +690,7 @@ def scene_map(routes, out, W, H, phone):
     for i, (name, col, lab) in enumerate(rows):
         r_, c_ = i // cols, i % cols
         y = top + (12 + 30 + r_ * (rowh + 2)) * cs
-        if y + rowh * cs > H - (bottom + 12) * cs:
+        if y + rowh * cs > H - (bottom + 12) * cs + 1:
             break  # scrolled out of view
         x = (30 + c_ * (colw + 8)) * cs
         paste_center(img, icon(name, 22 * cs, col), x + 12 * cs, y + 13 * cs)
