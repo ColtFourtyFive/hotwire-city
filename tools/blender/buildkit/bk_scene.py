@@ -566,7 +566,9 @@ def car(col, x, y, heading=0.0, seed=0, kind=None, rgb=None):
             G.hcylinder(wheels, (ax, cy - 0.6, rr), (ax, cy + 0.6, rr), rr, seg=16)
             G.hcylinder(rims, (ax, cy + sy * 0.58, rr), (ax, cy + sy * 0.66, rr), rr * 0.62, seg=12)
             # fake wheel well: dark disc just proud of the body side, behind the tyre
-            G.hcylinder(wheels, (ax, sy * (Wd / 2 - 0.05), rr + 0.05), (ax, sy * (Wd / 2 + 0.02), rr + 0.05), rr + 0.3, seg=16)
+            ring = [(ax + (rr + 0.3) * math.cos(2 * math.pi * k / 16), sy * (Wd / 2 + 0.03),
+                     rr + 0.05 + (rr + 0.3) * math.sin(2 * math.pi * k / 16)) for k in range(16)]
+            G.poly(wheels, ring if sy < 0 else ring[::-1])
     fx = P["body"][2][0]
     rx = P["body"][6][0]
     zf = P["body"][2][1]

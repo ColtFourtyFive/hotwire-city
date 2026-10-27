@@ -320,8 +320,8 @@
         -7.6109
       ],
       "textures": {
-        "normal": "textures/carconcept_Lights_normal.png",
         "base": "textures/carconcept_Lights_base.png",
+        "normal": "textures/carconcept_Lights_normal.png",
         "emit": "textures/carconcept_Lights_emit.png"
       }
     },
@@ -338,8 +338,8 @@
         6.6569
       ],
       "textures": {
-        "normal": "textures/carconcept_Lights_normal.png",
         "base": "textures/carconcept_Lights_base.png",
+        "normal": "textures/carconcept_Lights_normal.png",
         "emit": "textures/carconcept_Lights_emit.png"
       }
     },
@@ -356,10 +356,10 @@
         7.3298
       ],
       "textures": {
-        "normal": "textures/carconcept_Trim_normal.png",
         "rough": "textures/carconcept_Trim_rough.png",
-        "base": "textures/carconcept_Trim_base.png",
         "metal": "textures/carconcept_Trim_metal.png",
+        "normal": "textures/carconcept_Trim_normal.png",
+        "base": "textures/carconcept_Trim_base.png",
         "ao": "textures/carconcept_Trim_ao.png"
       }
     },
@@ -376,10 +376,10 @@
         7.3824
       ],
       "textures": {
-        "normal": "textures/carconcept_Interior_normal.png",
         "rough": "textures/carconcept_Interior_rough.png",
-        "base": "textures/carconcept_Interior_base.png",
         "metal": "textures/carconcept_Interior_metal.png",
+        "normal": "textures/carconcept_Interior_normal.png",
+        "base": "textures/carconcept_Interior_base.png",
         "ao": "textures/carconcept_Interior_ao.png"
       }
     },
@@ -396,10 +396,10 @@
         -3.8178
       ],
       "textures": {
-        "normal": "textures/carconcept_Wheel_normal.png",
-        "rough": "textures/carconcept_Wheel_rough.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
@@ -416,10 +416,10 @@
         -3.8317
       ],
       "textures": {
-        "normal": "textures/carconcept_Wheel_normal.png",
-        "rough": "textures/carconcept_Wheel_rough.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
@@ -436,10 +436,10 @@
         6.7685
       ],
       "textures": {
-        "normal": "textures/carconcept_Wheel_normal.png",
-        "rough": "textures/carconcept_Wheel_rough.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
@@ -456,10 +456,10 @@
         6.7597
       ],
       "textures": {
-        "normal": "textures/carconcept_Wheel_normal.png",
-        "rough": "textures/carconcept_Wheel_rough.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     }
