@@ -143,16 +143,16 @@
     "driver": {
       "position": [
         -1.292,
-        2.5215,
-        0.8278
+        2.8139,
+        1.3564
       ],
       "estimated": false
     },
     "passenger": {
       "position": [
         1.292,
-        2.5215,
-        0.8897
+        2.8139,
+        1.4019
       ],
       "estimated": false
     },
@@ -317,9 +317,9 @@
         -7.08
       ],
       "textures": {
+        "normal": "textures/musclecar_Lights_normal.png",
         "emit": "textures/musclecar_Lights_emit.png",
-        "base": "textures/musclecar_Lights_base.png",
-        "normal": "textures/musclecar_Lights_normal.png"
+        "base": "textures/musclecar_Lights_base.png"
       }
     },
     "LightsRear": {
@@ -335,9 +335,9 @@
         8.0527
       ],
       "textures": {
+        "normal": "textures/musclecar_Lights_normal.png",
         "emit": "textures/musclecar_Lights_emit.png",
-        "base": "textures/musclecar_Lights_base.png",
-        "normal": "textures/musclecar_Lights_normal.png"
+        "base": "textures/musclecar_Lights_base.png"
       }
     },
     "Trim": {
@@ -353,10 +353,10 @@
         8.2935
       ],
       "textures": {
-        "normal": "textures/musclecar_Trim_normal.png",
+        "metal": "textures/musclecar_Trim_metal.png",
         "rough": "textures/musclecar_Trim_rough.png",
         "base": "textures/musclecar_Trim_base.png",
-        "metal": "textures/musclecar_Trim_metal.png",
+        "normal": "textures/musclecar_Trim_normal.png",
         "ao": "textures/musclecar_Trim_ao.png"
       }
     },
@@ -373,10 +373,10 @@
         5.8633
       ],
       "textures": {
-        "normal": "textures/musclecar_Interior_normal.png",
+        "metal": "textures/musclecar_Interior_metal.png",
         "rough": "textures/musclecar_Interior_rough.png",
         "base": "textures/musclecar_Interior_base.png",
-        "metal": "textures/musclecar_Interior_metal.png",
+        "normal": "textures/musclecar_Interior_normal.png",
         "ao": "textures/musclecar_Interior_ao.png"
       }
     },
@@ -393,10 +393,10 @@
         -3.6379
       ],
       "textures": {
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
         "base": "textures/musclecar_Wheel_base.png",
         "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
@@ -413,10 +413,10 @@
         -3.6379
       ],
       "textures": {
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
         "base": "textures/musclecar_Wheel_base.png",
         "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
@@ -433,10 +433,10 @@
         5.9499
       ],
       "textures": {
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
         "base": "textures/musclecar_Wheel_base.png",
         "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
@@ -453,10 +453,10 @@
         5.9499
       ],
       "textures": {
+        "rough": "textures/musclecar_Wheel_rough.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
         "base": "textures/musclecar_Wheel_base.png",
         "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     }
