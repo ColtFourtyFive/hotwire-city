@@ -77,14 +77,10 @@
   }
  },
  "paint": {
-  "color_rgb255": [
-   163,
-   162,
-   165
-  ],
-  "method": "named paint/body parts",
-  "parts": 7,
-  "sameColourButTextured": 55
+  "color_rgb255": null,
+  "method": "named body part is textured (livery baked; Color does not repaint it)",
+  "parts": 0,
+  "sameColourButTextured": 0
  },
  "security": {
   "flaggedScripts": [],
@@ -137,6 +133,8 @@
     "T488/Body/CarShell/MeshPart#26",
     "T488/Body/CarShell/MeshPart#27",
     "T488/Body/CarShell/MeshPart#28",
+    "T488/Body/CarShell/MeshPart#3",
+    "T488/Body/CarShell/MeshPart#4",
     "T488/Body/CarShell/MeshPart#5",
     "T488/Body/CarShell/MeshPart#6",
     "T488/Body/CarShell/MeshPart#7",
@@ -145,6 +143,8 @@
     "T488/Body/CarShell/TS",
     "T488/Body/Feniex#1",
     "T488/Body/Feniex#2",
+    "T488/Body/Interceptor Badge/MeshPart",
+    "T488/Body/Interior oufit/Cage/MeshPart#1",
     "T488/Body/Interior oufit/Cage/MeshPart#2",
     "T488/Body/Interior oufit/Motorola XTL 5000/Mic",
     "T488/Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#1",
@@ -176,6 +176,7 @@
     "T488/Body/Model#1/MeshPart#2",
     "T488/Body/Model#1/MeshPart#21",
     "T488/Body/Model#1/MeshPart#22",
+    "T488/Body/Model#1/MeshPart#23",
     "T488/Body/Model#1/MeshPart#24",
     "T488/Body/Model#1/MeshPart#25",
     "T488/Body/Model#1/MeshPart#3",
@@ -183,6 +184,7 @@
     "T488/Body/Model#1/MeshPart#5",
     "T488/Body/Model#1/MeshPart#6",
     "T488/Body/Model#1/MeshPart#7",
+    "T488/Body/Model#1/MeshPart#8",
     "T488/Body/Model#1/MeshPart#9",
     "T488/Body/Model#1/Meshes/1",
     "T488/Body/Model#2/Part#1",
@@ -190,19 +192,29 @@
     "T488/Body/Model#2/Part#3",
     "T488/Body/Municipal Gov. License Plates (New Format)/FrontPlate/Plate",
     "T488/Body/Municipal Gov. License Plates (New Format)/RearPlate/Plate",
-    "T488/Body/Paint/Armor#1",
-    "T488/Body/Paint/Armor#2",
-    "T488/Body/Paint/Armor#3",
-    "T488/Body/Paint/Armor#4",
-    "T488/Body/Paint/Armor#5",
-    "T488/Body/Paint/Armor#6",
-    "T488/Body/Paint/Armor#7",
     "T488/Body/radio1/MeshPart",
     "T488/Body/radio1/Radio1/MeshPart",
     "T488/Body/radio1/Radio1/PalmMic",
+    "T488/Misc/Wheel/Parts/MeshPart#1",
     "T488/Misc/Wheel/Parts/MeshPart#2",
     "T488/Misc/Wheel/Parts/MeshPart#3",
     "T488/Misc/Wheel/Parts/MeshPart#4"
+   ],
+   "selectors": [
+    "Body/CarShell/{MeshPart#1, MeshPart#11, MeshPart#12, MeshPart#13, MeshPart#14, MeshPart#15, +20 more}",
+    "Body/Interceptor Badge/**",
+    "Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#1",
+    "Body/Interior oufit/Motorola XTL 5000/Mic/Body/Interior oufit/Motorola XTL 5000/Mic",
+    "Body/Interior oufit/Motorola XTL 5000/Radio",
+    "Body/Interior oufit/Printer/**",
+    "Body/Interior oufit/PolicePad/**",
+    "Body/Interior oufit/Cage/**",
+    "Body/Municipal Gov. License Plates (New Format)/**",
+    "Body/Model#1/{Feniex#1, Feniex#2, Feniex#3, Feniex#4, Feniex#5, Feniex#6, +24 more}",
+    "Body/Model#2/**",
+    "Body/radio1/**",
+    "Body/{Feniex#1, Feniex#2}",
+    "Misc/**"
    ]
   },
   "Glass": {
@@ -219,6 +231,11 @@
     "T488/Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#2",
     "T488/Body/Model#1/MeshPart#18",
     "T488/Body/Model#1/MeshPart#20"
+   ],
+   "selectors": [
+    "Body/CarShell/{Armor#1, Armor#2, MeshPart#18}",
+    "Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#2",
+    "Body/Model#1/{MeshPart#18, MeshPart#20}"
    ]
   },
   "Interior": {
@@ -237,6 +254,10 @@
     "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#6",
     "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#7",
     "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#8"
+   ],
+   "selectors": [
+    "Body/Interior oufit/Panasonic Dashcam Front/**",
+    "Body/Interior oufit/{MeshPart, Meshes/Cargo}"
    ]
   },
   "Lights_Brake": {
@@ -249,6 +270,9 @@
     "T488/Body/Brakes/G1/B2",
     "T488/Body/Brakes/G1/B3",
     "T488/Body/Brakes/G1/B4"
+   ],
+   "selectors": [
+    "Body/Brakes/**"
    ]
   },
   "Lights_Emergency": {
@@ -326,6 +350,9 @@
     "T488/Body/Lightbar/TK2",
     "T488/Body/Lightbar/WL1",
     "T488/Body/Lightbar/WL2"
+   ],
+   "selectors": [
+    "Body/Lightbar/**"
    ]
   },
   "Lights_Head": {
@@ -335,6 +362,9 @@
    },
    "paths": [
     "T488/Body/Fog Lights/Glass/MeshPart"
+   ],
+   "selectors": [
+    "Body/Fog Lights/**"
    ]
   },
   "Lights_Indicator_L": {
@@ -351,6 +381,10 @@
     "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/MeshPart#1",
     "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/MeshPart#2",
     "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/MeshPart#3"
+   ],
+   "selectors": [
+    "Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/**",
+    "Body/MeshPart"
    ]
   },
   "Lights_Tail": {
@@ -361,21 +395,27 @@
    "paths": [
     "T488/Body/CarShell/MeshPart#10",
     "T488/Body/CarShell/MeshPart#2"
+   ],
+   "selectors": [
+    "Body/CarShell/{MeshPart#10, MeshPart#2}"
    ]
   },
-  "Paint": {
+  "PaintBaked": {
    "count": 7,
    "rules": {
-    "Color == rgb(163, 162, 165)": 7
+    "named body part with texture/SurfaceAppearance": 7
    },
    "paths": [
-    "T488/Body/CarShell/MeshPart#3",
-    "T488/Body/CarShell/MeshPart#4",
-    "T488/Body/Interceptor Badge/MeshPart",
-    "T488/Body/Interior oufit/Cage/MeshPart#1",
-    "T488/Body/Model#1/MeshPart#23",
-    "T488/Body/Model#1/MeshPart#8",
-    "T488/Misc/Wheel/Parts/MeshPart#1"
+    "T488/Body/Paint/Armor#1",
+    "T488/Body/Paint/Armor#2",
+    "T488/Body/Paint/Armor#3",
+    "T488/Body/Paint/Armor#4",
+    "T488/Body/Paint/Armor#5",
+    "T488/Body/Paint/Armor#6",
+    "T488/Body/Paint/Armor#7"
+   ],
+   "selectors": [
+    "Body/Paint/**"
    ]
   },
   "Wheel_FL": {
@@ -387,6 +427,9 @@
     "T488/Wheels/FL/Parts/MeshPart#1",
     "T488/Wheels/FL/Parts/MeshPart#2",
     "T488/Wheels/FL/Parts/MeshPart#3"
+   ],
+   "selectors": [
+    "Wheels/FL/**"
    ]
   },
   "Wheel_FR": {
@@ -398,6 +441,9 @@
     "T488/Wheels/FR/Parts/MeshPart#1",
     "T488/Wheels/FR/Parts/MeshPart#2",
     "T488/Wheels/FR/Parts/MeshPart#3"
+   ],
+   "selectors": [
+    "Wheels/FR/**"
    ]
   },
   "Wheel_RL": {
@@ -409,6 +455,9 @@
     "T488/Wheels/RL/Parts/MeshPart#1",
     "T488/Wheels/RL/Parts/MeshPart#2",
     "T488/Wheels/RL/Parts/MeshPart#3"
+   ],
+   "selectors": [
+    "Wheels/RL/**"
    ]
   },
   "Wheel_RR": {
@@ -420,6 +469,9 @@
     "T488/Wheels/RR/Parts/MeshPart#1",
     "T488/Wheels/RR/Parts/MeshPart#2",
     "T488/Wheels/RR/Parts/MeshPart#3"
+   ],
+   "selectors": [
+    "Wheels/RR/**"
    ]
   }
  },

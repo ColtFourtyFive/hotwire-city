@@ -181,6 +181,7 @@ local PER_CLASS = {
 	ImageLabel = { "Image", "ImageColor3", "ImageTransparency", "Size" },
 	TextLabel = { "Text", "TextColor3" },
 	Sound = { "SoundId", "Volume", "Looped", "Playing" },
+	Camera = { "CFrame", "FieldOfView" }, -- ThumbnailCamera: usually frames the front 3/4
 }
 -- content-valued props: list of {canonical name, alternatives...}
 local CONTENT = {
@@ -292,6 +293,15 @@ local function visit(inst, parentId, depth, parentPath)
 			for id in string.gmatch(src, "require%s*%(%s*(%d+)%s*%)") do
 				table.insert(scan.requireIds, id)
 			end
+			-- long numeric literals (asset-id sized) are recorded for blocklisting
+			local lits, seen = {}, {}
+			for lit in string.gmatch(src, "%f[%d](%d%d%d%d%d%d%d%d%d+)%f[%D]") do
+				if not seen[lit] and #lits < 8 then
+					seen[lit] = true
+					table.insert(lits, lit)
+				end
+			end
+			scan.numericLiterals = lits
 			local checks = {
 				{ "getfenv", "getfenv" }, { "setfenv", "setfenv" }, { "loadstring", "loadstring" },
 				{ "HttpService", "HttpService" }, { "HttpGet", "HttpGet" }, { "InsertService", "InsertService" },

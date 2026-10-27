@@ -45,5 +45,60 @@
   "sha256": "e3097230954f2006ea51273a552d59aa93fbeb582bc505fd4d866d6d47fccbb1",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:11:43+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      1.0015,
+      1.3054,
+      1.0124
+    ],
+    "dims_m": [
+      1.305,
+      1.001,
+      1.012
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 22,
+    "triangles": 18756,
+    "materials": 3,
+    "material_names": [
+      "Bullets__Shells",
+      "Revolver",
+      "SpeedLoader"
+    ],
+    "textures": 9,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 1,
+    "object_names": [
+      "Object_15",
+      "Object_17",
+      "Object_19",
+      "Object_21",
+      "Object_23",
+      "Object_25",
+      "Object_27",
+      "Object_64",
+      "Object_66",
+      "Object_68",
+      "Object_70",
+      "Object_72",
+      "Object_74",
+      "Object_76",
+      "Object_78",
+      "Object_80",
+      "Object_82",
+      "Object_84",
+      "Object_86",
+      "Object_114",
+      "Icosphere",
+      "Icosphere.001"
+    ],
+    "render_s": 32.1
+  }
 }

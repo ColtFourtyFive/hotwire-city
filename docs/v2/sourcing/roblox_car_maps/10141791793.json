@@ -14,7 +14,7 @@
  "dims_studs": {
   "length": 23.49,
   "width": 9.57,
-  "height": 9.81
+  "height": 8.43
  },
  "real_length_m": 6.35,
  "suggested_uniform_scale": 0.965,
@@ -78,13 +78,13 @@
  },
  "paint": {
   "color_rgb255": [
-   163,
-   162,
-   165
+   17,
+   17,
+   17
   ],
   "method": "named paint/body parts",
-  "parts": 12,
-  "sameColourButTextured": 71
+  "parts": 49,
+  "sameColourButTextured": 2
  },
  "security": {
   "flaggedScripts": [],
@@ -112,19 +112,16 @@
  },
  "groups": {
   "Body": {
-   "count": 141,
+   "count": 104,
    "rules": {
-    "default": 141
+    "default": 104
    },
    "paths": [
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/underbody",
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/underbody2",
-    "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/paint2",
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/plate",
     "2020 GMC 2500 AT4/Body/AS1234#1",
     "2020 GMC 2500 AT4/Body/AS1234#2",
-    "2020 GMC 2500 AT4/Body/Base#1",
-    "2020 GMC 2500 AT4/Body/Base#2",
     "2020 GMC 2500 AT4/Body/Feniex#1",
     "2020 GMC 2500 AT4/Body/Feniex#10",
     "2020 GMC 2500 AT4/Body/Feniex#11",
@@ -151,7 +148,6 @@
     "2020 GMC 2500 AT4/Body/Feniex#7",
     "2020 GMC 2500 AT4/Body/Feniex#8",
     "2020 GMC 2500 AT4/Body/Feniex#9",
-    "2020 GMC 2500 AT4/Body/HG2 Side Runners 4 Set/Part",
     "2020 GMC 2500 AT4/Body/HG2 Side Runners 4 Set/Union#1",
     "2020 GMC 2500 AT4/Body/HG2 Side Runners 4 Set/Union#2",
     "2020 GMC 2500 AT4/Body/Hook/Meshes/F-150Accessory10",
@@ -168,8 +164,6 @@
     "2020 GMC 2500 AT4/Body/Hook/Meshes/F-150accessory21",
     "2020 GMC 2500 AT4/Body/MeshPart#1",
     "2020 GMC 2500 AT4/Body/MeshPart#2",
-    "2020 GMC 2500 AT4/Body/MeshPart#3",
-    "2020 GMC 2500 AT4/Body/MeshPart#4",
     "2020 GMC 2500 AT4/Body/MeshPart#5",
     "2020 GMC 2500 AT4/Body/Meshes/F-150accessory3",
     "2020 GMC 2500 AT4/Body/Meshes/F-150accessory4",
@@ -177,7 +171,6 @@
     "2020 GMC 2500 AT4/Body/Meshes/F-150accessory6",
     "2020 GMC 2500 AT4/Body/Meshes/F-150accessory8",
     "2020 GMC 2500 AT4/Body/Meshes/tahoe_setina_450L",
-    "2020 GMC 2500 AT4/Body/Part",
     "2020 GMC 2500 AT4/Body/Rappel/Meshes/F-150Accessory26",
     "2020 GMC 2500 AT4/Body/Rappel/Meshes/F-150Accessory27",
     "2020 GMC 2500 AT4/Body/Rappel/Meshes/F-150Accessory28",
@@ -190,60 +183,29 @@
     "2020 GMC 2500 AT4/Body/Rappel/Meshes/F-150Accessory37#1",
     "2020 GMC 2500 AT4/Body/Rappel/Meshes/F-150Accessory37#2",
     "2020 GMC 2500 AT4/Body/Rappel/Meshes/F-150Accessory38",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#2",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#3",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#4",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#7",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#1",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#2",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#3",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#5",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#2",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#3",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#4",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#7",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#1",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#2",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#3",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#5",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#2",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#3",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#4",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#7",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#1",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#2",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#3",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#5",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#10",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#11",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#12",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#13",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#14",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#2",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#3",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#4",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#6",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#7",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#8",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#9",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#1",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#2",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#3",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#4",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#5",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#6",
     "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#7",
     "2020 GMC 2500 AT4/Body/Toolbox/Metal#1",
     "2020 GMC 2500 AT4/Body/Toolbox/Metal#2",
@@ -253,11 +215,28 @@
     "2020 GMC 2500 AT4/Body/Whelen Talon#2/FlashPlate",
     "2020 GMC 2500 AT4/Body/Whelen Talon#2/Holder",
     "2020 GMC 2500 AT4/Body/Whelen Talon#2/Module",
-    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#2",
-    "2020 GMC 2500 AT4/Body/ptx/paint#1",
-    "2020 GMC 2500 AT4/Body/ptx/paint#3",
+    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#1",
+    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#3",
+    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#4",
+    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#5",
     "2020 GMC 2500 AT4/Misc/Antenna#1",
     "2020 GMC 2500 AT4/Misc/Antenna#2"
+   ],
+   "selectors": [
+    "Misc/**",
+    "Body/2020 Silverado WT/PPV package/{Meshes/underbody, Meshes/underbody2, plate}",
+    "Body/HG2 Side Runners 4 Set/{Union#1, Union#2}",
+    "Body/Hook/**",
+    "Body/Rappel/**",
+    "Body/Toolbox/**",
+    "Body/Whelen Talon#1/**",
+    "Body/Whelen Talon#2/**",
+    "Body/XLP LINZ6/{MeshPart#1, MeshPart#3, MeshPart#4, MeshPart#5}",
+    "Body/Rough Country Shock Absorber#1/{Part#1, Part#2, Part#3, Part#4, Part#5, Part#6}",
+    "Body/Rough Country Shock Absorber#2/{Part#1, Part#2, Part#3, Part#4, Part#5, Part#6}",
+    "Body/Rough Country Shock Absorber#3/{Part#1, Part#2, Part#3, Part#4, Part#5, Part#6}",
+    "Body/Rough Country Shock Absorber#4/{Part#2, Part#3, Part#4, Part#5, Part#6, Part#7}",
+    "Body/{AS1234#1, AS1234#2, Feniex#1, Feniex#10, Feniex#11, Feniex#12, +31 more}"
    ]
   },
   "Glass": {
@@ -271,6 +250,9 @@
     "2020 GMC 2500 AT4/Body/ptx/MeshPart#1",
     "2020 GMC 2500 AT4/Body/ptx/MeshPart#2",
     "2020 GMC 2500 AT4/Body/ptx/paint#2"
+   ],
+   "selectors": [
+    "Body/ptx/{MeshPart#1, MeshPart#2, paint#2}"
    ]
   },
   "Interior": {
@@ -282,6 +264,9 @@
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/untitled_KIT00_INTERIOR_A.004_KIT00_INTERIOR_A.009",
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/untitled_KIT00_INTERIOR_A.005_KIT00_INTERIOR_A.010",
     "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/Meshes/untitled_KIT00_INTERIOR_A.006_KIT00_INTERIOR_A.011"
+   ],
+   "selectors": [
+    "Body/2020 Silverado WT/PPV package/{Meshes/untitled_KIT00_INTERIOR_A.004_KIT00_INTERIOR_A.009, Meshes/untitled_KIT00_INTERIOR_A.005_KIT00_INTERIOR_A.010, Meshes/untitled_KIT00_INTERIOR_A.006_KIT00_INTERIOR_A.011}"
    ]
   },
   "Lights_Brake": {
@@ -294,6 +279,10 @@
     "2020 GMC 2500 AT4/Body/Brakes/G1/LightB",
     "2020 GMC 2500 AT4/Body/Brakes/G1/LightR",
     "2020 GMC 2500 AT4/Body/Headlight/G1/Brakes"
+   ],
+   "selectors": [
+    "Body/Brakes/**",
+    "Body/Headlight/G1/Brakes"
    ]
   },
   "Lights_Emergency": {
@@ -392,6 +381,9 @@
     "2020 GMC 2500 AT4/Body/Lightbar/TS6",
     "2020 GMC 2500 AT4/Body/Lightbar/TS7",
     "2020 GMC 2500 AT4/Body/Lightbar/TS8"
+   ],
+   "selectors": [
+    "Body/Lightbar/**"
    ]
   },
   "Lights_Head": {
@@ -404,6 +396,10 @@
     "2020 GMC 2500 AT4/Body/Headlight/G1/HL1",
     "2020 GMC 2500 AT4/Body/Highlight/G1/HL",
     "2020 GMC 2500 AT4/Body/Highlight/G1/HL1"
+   ],
+   "selectors": [
+    "Body/Headlight/G1/{HL, HL1}",
+    "Body/Highlight/**"
    ]
   },
   "Lights_Indicator_L": {
@@ -414,6 +410,9 @@
    "paths": [
     "2020 GMC 2500 AT4/Body/Left/G1/B1",
     "2020 GMC 2500 AT4/Body/Left/G1/B2"
+   ],
+   "selectors": [
+    "Body/Left/G1/{B1, B2}"
    ]
   },
   "Lights_Tail": {
@@ -424,26 +423,78 @@
    "paths": [
     "2020 GMC 2500 AT4/Body/Left/G1/Part",
     "2020 GMC 2500 AT4/Body/Right/G1/Part"
+   ],
+   "selectors": [
+    "Body/Left/G1/Part",
+    "Body/Right/**"
    ]
   },
   "Paint": {
-   "count": 12,
+   "count": 49,
    "rules": {
-    "Color == rgb(163, 162, 165)": 12
+    "Color == rgb(17, 17, 17)": 49
    },
    "paths": [
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/Part#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/Part#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#1",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/Part#5",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#2",
-    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#6",
-    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#1",
-    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#3",
-    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#4",
-    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#5"
+    "2020 GMC 2500 AT4/Body/2020 Silverado WT/PPV package/paint2",
+    "2020 GMC 2500 AT4/Body/Base#1",
+    "2020 GMC 2500 AT4/Body/Base#2",
+    "2020 GMC 2500 AT4/Body/HG2 Side Runners 4 Set/Part",
+    "2020 GMC 2500 AT4/Body/MeshPart#3",
+    "2020 GMC 2500 AT4/Body/MeshPart#4",
+    "2020 GMC 2500 AT4/Body/Part",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#1",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#2",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#3",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#5",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#6",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#7",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#1/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#1",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#2",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#3",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#5",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#6",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#7",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#2/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#1",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#2",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#3",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#5",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#6",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#7",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#3/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#1",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#10",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#11",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#12",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#13",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#14",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#2",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#3",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#4",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#5",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#6",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#7",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#8",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/PAINT#9",
+    "2020 GMC 2500 AT4/Body/Rough Country Shock Absorber#4/Part#1",
+    "2020 GMC 2500 AT4/Body/XLP LINZ6/MeshPart#2",
+    "2020 GMC 2500 AT4/Body/ptx/paint#1",
+    "2020 GMC 2500 AT4/Body/ptx/paint#3"
+   ],
+   "selectors": [
+    "Body/2020 Silverado WT/PPV package/paint2",
+    "Body/HG2 Side Runners 4 Set/Part",
+    "Body/XLP LINZ6/MeshPart#2",
+    "Body/ptx/{paint#1, paint#3}",
+    "Body/Rough Country Shock Absorber#1/{PAINT#1, PAINT#2, PAINT#3, PAINT#4, PAINT#5, PAINT#6, +2 more}",
+    "Body/Rough Country Shock Absorber#2/{PAINT#1, PAINT#2, PAINT#3, PAINT#4, PAINT#5, PAINT#6, +2 more}",
+    "Body/Rough Country Shock Absorber#3/{PAINT#1, PAINT#2, PAINT#3, PAINT#4, PAINT#5, PAINT#6, +2 more}",
+    "Body/Rough Country Shock Absorber#4/{PAINT#1, PAINT#10, PAINT#11, PAINT#12, PAINT#13, PAINT#14, +9 more}",
+    "Body/{Base#1, Base#2, MeshPart#3, MeshPart#4, Part}"
    ]
   },
   "Wheel_FL": {
@@ -457,6 +508,9 @@
     "2020 GMC 2500 AT4/Wheels/FL/Parts/tire#1",
     "2020 GMC 2500 AT4/Wheels/FL/Parts/tire#2",
     "2020 GMC 2500 AT4/Wheels/FL/Parts/tire#3"
+   ],
+   "selectors": [
+    "Wheels/FL/**"
    ]
   },
   "Wheel_FR": {
@@ -470,6 +524,9 @@
     "2020 GMC 2500 AT4/Wheels/FR/Parts/tire#1",
     "2020 GMC 2500 AT4/Wheels/FR/Parts/tire#2",
     "2020 GMC 2500 AT4/Wheels/FR/Parts/tire#3"
+   ],
+   "selectors": [
+    "Wheels/FR/**"
    ]
   },
   "Wheel_RL": {
@@ -483,6 +540,9 @@
     "2020 GMC 2500 AT4/Wheels/RL/Parts/tire#1",
     "2020 GMC 2500 AT4/Wheels/RL/Parts/tire#2",
     "2020 GMC 2500 AT4/Wheels/RL/Parts/tire#3"
+   ],
+   "selectors": [
+    "Wheels/RL/**"
    ]
   },
   "Wheel_RR": {
@@ -496,6 +556,9 @@
     "2020 GMC 2500 AT4/Wheels/RR/Parts/tire#1",
     "2020 GMC 2500 AT4/Wheels/RR/Parts/tire#2",
     "2020 GMC 2500 AT4/Wheels/RR/Parts/tire#3"
+   ],
+   "selectors": [
+    "Wheels/RR/**"
    ]
   }
  },

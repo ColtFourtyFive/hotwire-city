@@ -153,6 +153,9 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
             textures[gname] = merged
 
     # ---------------------------------------------------------------- final materials
+    for img in list(bpy.data.images):  # bake targets are stale in memory (AO/tint were applied on disk)
+        if img.filepath_raw and os.path.abspath(bpy.path.abspath(img.filepath_raw)).startswith(os.path.abspath(tex_dir)):
+            bpy.data.images.remove(img)
     for nm, lo in lows.items():
         optimize.keep_only_uv(lo, "atlas")
         gname = "Wheel" if nm in wheel_names else ("Lights" if nm in ("LightsFront", "LightsRear") else nm)

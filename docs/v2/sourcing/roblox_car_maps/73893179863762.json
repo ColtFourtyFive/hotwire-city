@@ -153,7 +153,7 @@
     "2005 Nissan Murano/Body/Lights/Taillights/Brakelight"
    ],
    "selectors": [
-    "Body/Lights/Taillights/Brakelight/**"
+    "Body/Lights/Taillights/Brakelight"
    ]
   },
   "Lights_Head": {
@@ -228,7 +228,7 @@
     "2005 Nissan Murano/Wheels/FL"
    ],
    "selectors": [
-    "Wheels/FL/**"
+    "Wheels/FL"
    ]
   },
   "Wheel_FR": {
@@ -240,7 +240,7 @@
     "2005 Nissan Murano/Wheels/FR"
    ],
    "selectors": [
-    "Wheels/FR/**"
+    "Wheels/FR"
    ]
   },
   "Wheel_RL": {
@@ -252,7 +252,7 @@
     "2005 Nissan Murano/Wheels/RL"
    ],
    "selectors": [
-    "Wheels/RL/**"
+    "Wheels/RL"
    ]
   },
   "Wheel_RR": {
@@ -264,7 +264,7 @@
     "2005 Nissan Murano/Wheels/RR"
    ],
    "selectors": [
-    "Wheels/RR/**"
+    "Wheels/RR"
    ]
   }
  },

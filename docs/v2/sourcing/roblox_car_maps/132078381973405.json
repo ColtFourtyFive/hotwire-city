@@ -96,7 +96,9 @@
      "backdoor-family:TextureConfiguration"
     ],
     "requireIds": [],
-    "payloadIds": []
+    "payloadIds": [
+     130049213376589
+    ]
    },
    {
     "path": "2010 Toyota Prius/Wheels/Wheel#4/Decal/Package",
@@ -106,7 +108,9 @@
      "odd-parent:Decal"
     ],
     "requireIds": [],
-    "payloadIds": []
+    "payloadIds": [
+     115188487528112
+    ]
    },
    {
     "path": "2010 Toyota Prius/Wheels/Wheel#4/Decal/Package/TextureConfiguration",

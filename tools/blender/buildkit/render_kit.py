@@ -104,7 +104,7 @@ def sc_downtown(a, night=False):
         S.night()
     else:
         S.world("sky_late_afternoon", sun_az=-150.0)
-    avenue(-420, 420, night=night, lamps=70, palms=(38, 50), palm_kind="date", seed=3, far_w=0)
+    avenue(-460, 420, night=night, lamps=70, palms=(38, 50), palm_kind="date", seed=3, far_w=0, no_cars=(-460, -330))
     specs = [("tower", 3, -330), ("tower", 7, -230), ("tower", 1, -120), ("tower", 12, -10), ("tower", 5, 100), ("tower", 9, 210)]
     for (arch, sd, x) in specs:
         B = BK.build(arch, sd)
@@ -113,7 +113,7 @@ def sc_downtown(a, night=False):
         B = BK.build(arch, sd)
         BK.instantiate(B, col(), loc=(x, -north_lot_y(B.footprint[1]), 0), rot_z=180, night=night)
     S.ground(col(), -600, -600, 600, 600, "sidewalk", z=0.0)
-    return finish("downtown_night" if night else "downtown_street", (-330, -24, 6.5), (0, 20, 95), 18, a.samples, a.res,
+    return finish("downtown_night" if night else "downtown_street", (-392, -7, 6.0), (0, 14, 92), 18, a.samples, a.res,
                   night=night, haze_amt=0.6)
 
 

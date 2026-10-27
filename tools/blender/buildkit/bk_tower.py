@@ -122,7 +122,7 @@ def tower(seed=0, **kw):
               "Glass": ("glass", {"tint": gtint, "dim": 0.5, "rough": 0.03, "metallic": 0.7}),
               "Roof": ("tex", "roof_gravel", (0.95, 0.95, 0.95)), "Details": ("tex", "metal", (0.62, 0.64, 0.66)),
               "Brand": ("atlas", "brands.png", 0.4, 0.2), "Sign": ("atlas", "signs.png"), "Grime": ("grime",),
-              "Neon": ("neon", (1.0, 0.15, 0.1)), "WindowsLit": ("lit",), "Site": ("tex", "pavers", (0.95, 0.95, 0.95))}
+              "Neon": ("neon", (1.0, 0.9, 0.78)), "WindowsLit": ("lit",), "Site": ("tex", "pavers", (0.95, 0.95, 0.95))}
     B.lit_ratio = 0.45
     # ---- podium (stone + glass lobby)
     pod_floors = r.choice([2, 2, 3])

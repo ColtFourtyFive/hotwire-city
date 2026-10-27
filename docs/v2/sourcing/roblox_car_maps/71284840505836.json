@@ -100,6 +100,9 @@
    "paths": [
     "Panal Van (Model made by Gutzow)/extras/backdoor handles",
     "Panal Van (Model made by Gutzow)/extras/spine"
+   ],
+   "selectors": [
+    "extras/{backdoor handles, spine}"
    ]
   },
   "Glass": {
@@ -109,6 +112,9 @@
    },
    "paths": [
     "Panal Van (Model made by Gutzow)/windows/windows"
+   ],
+   "selectors": [
+    "windows/**"
    ]
   },
   "Lights_Head": {
@@ -118,6 +124,9 @@
    },
    "paths": [
     "Panal Van (Model made by Gutzow)/lights/headlights"
+   ],
+   "selectors": [
+    "lights/headlights"
    ]
   },
   "Lights_Indicator_L": {
@@ -127,6 +136,9 @@
    },
    "paths": [
     "Panal Van (Model made by Gutzow)/lights/blinker"
+   ],
+   "selectors": [
+    "lights/blinker"
    ]
   },
   "Lights_Tail": {
@@ -136,6 +148,9 @@
    },
    "paths": [
     "Panal Van (Model made by Gutzow)/lights/backlights"
+   ],
+   "selectors": [
+    "lights/backlights"
    ]
   },
   "Paint": {
@@ -145,6 +160,9 @@
    },
    "paths": [
     "Panal Van (Model made by Gutzow)/base (CHANGE COLOR HERE)/base"
+   ],
+   "selectors": [
+    "base (CHANGE COLOR HERE)/**"
    ]
   },
   "Wheel_FL": {
@@ -158,6 +176,11 @@
     "Panal Van (Model made by Gutzow)/extras/rotor",
     "Panal Van (Model made by Gutzow)/lights/rim of headlights",
     "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.005"
+   ],
+   "selectors": [
+    "lights/rim of headlights",
+    "tires/Meshes/panal van_Cylinder.005",
+    "extras/rotor"
    ]
   },
   "Wheel_FR": {
@@ -169,6 +192,10 @@
    "paths": [
     "Panal Van (Model made by Gutzow)/rim/Meshes/panal van_Cylinder.006",
     "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.009"
+   ],
+   "selectors": [
+    "tires/Meshes/panal van_Cylinder.009",
+    "rim/Meshes/panal van_Cylinder.006"
    ]
   },
   "Wheel_RL": {
@@ -178,6 +205,9 @@
    },
    "paths": [
     "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.007"
+   ],
+   "selectors": [
+    "tires/Meshes/panal van_Cylinder.007"
    ]
   },
   "Wheel_RR": {
@@ -189,6 +219,10 @@
    "paths": [
     "Panal Van (Model made by Gutzow)/rim/Meshes/panal van_Cylinder.012",
     "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.011"
+   ],
+   "selectors": [
+    "tires/Meshes/panal van_Cylinder.011",
+    "rim/Meshes/panal van_Cylinder.012"
    ]
   }
  },

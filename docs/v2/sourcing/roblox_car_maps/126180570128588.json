@@ -96,7 +96,9 @@
      "backdoor-family:TextureConfiguration"
     ],
     "requireIds": [],
-    "payloadIds": []
+    "payloadIds": [
+     95925098868592
+    ]
    }
   ],
   "verdict": "BACKDOOR - strip all scripts before parenting"
@@ -173,13 +175,7 @@
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#2"
    ],
    "selectors": [
-    "Body/Vehicle_Lights/Left#1/**",
-    "Body/Vehicle_Lights/Light#1/**",
-    "Body/Vehicle_Lights/Light#2/**",
-    "Body/Vehicle_Lights/Light#3/**",
-    "Body/Vehicle_Lights/Right#1/**",
-    "Body/Vehicle_Lights/Left#3/**",
-    "Body/Vehicle_Lights/Right#2/**"
+    "Body/Vehicle_Lights/{Left#1, Left#3, Light#1, Light#2, Light#3, Right#1, +1 more}"
    ]
   },
   "Lights_Indicator_L": {
@@ -191,7 +187,7 @@
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#8"
    ],
    "selectors": [
-    "Body/Vehicle_Lights/Light#8/**"
+    "Body/Vehicle_Lights/Light#8"
    ]
   },
   "Lights_Tail": {
@@ -208,12 +204,7 @@
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#3"
    ],
    "selectors": [
-    "Body/Vehicle_Lights/Left#2/**",
-    "Body/Vehicle_Lights/Light#4/**",
-    "Body/Vehicle_Lights/Light#5/**",
-    "Body/Vehicle_Lights/Light#6/**",
-    "Body/Vehicle_Lights/Light#10/**",
-    "Body/Vehicle_Lights/Right#3/**"
+    "Body/Vehicle_Lights/{Left#2, Light#10, Light#4, Light#5, Light#6, Right#3}"
    ]
   },
   "Paint": {
@@ -226,8 +217,7 @@
     "2022 Vellfire Prairie/Body/COLOR#2"
    ],
    "selectors": [
-    "Body/COLOR#1/**",
-    "Body/COLOR#2/**"
+    "Body/{COLOR#1, COLOR#2}"
    ]
   },
   "Wheel_FL": {

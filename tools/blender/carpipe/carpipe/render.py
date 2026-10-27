@@ -189,7 +189,7 @@ def _box(name, size, loc, mat=None):
 
 # ------------------------------------------------------------------------------------------ scenes
 def studio(L=17.0):
-    world_hdri(os.path.join(CACHE, "hdri", "studio.hdr"), strength=0.9, rot_deg=40)
+    world_hdri(os.path.join(CACHE, "hdri", "studio.hdr"), strength=0.55, rot_deg=40)
     # cyclorama: floor + curved wall
     bpy.ops.mesh.primitive_plane_add(size=1)
     o = bpy.context.active_object
@@ -214,8 +214,8 @@ def studio(L=17.0):
         p.use_smooth = True
     o.data.materials.append(_mat("cyc", (0.42, 0.43, 0.45), rough=0.55))
     # soft key + rim area lights
-    for nm, loc, energy, size in (("Key", (-L * 0.8, -L * 0.9, L * 0.9), 26000, L * 0.6),
-                                   ("Rim", (L * 0.9, L * 0.7, L * 0.6), 15000, L * 0.5)):
+    for nm, loc, energy, size in (("Key", (-L * 0.8, -L * 0.9, L * 0.9), 11000 * (L / 17) ** 2, L * 0.6),
+                                   ("Rim", (L * 0.9, L * 0.7, L * 0.6), 5000 * (L / 17) ** 2, L * 0.5)):
         bpy.ops.object.light_add(type="AREA", location=loc)
         lt = bpy.context.active_object
         lt.name = nm

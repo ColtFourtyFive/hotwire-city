@@ -163,6 +163,11 @@ def find_forward(nodes):
             if elong >= 1.3:  # snap to the long axis
                 v = long_axis * np.sign(v @ long_axis or 1)
             return v, "light-names" + ("+long-axis" if elong >= 1.3 else "")
+    cam = next((n for n in nodes if n["class"] == "Camera" and n["props"].get("CFrame")), None)
+    if cam is not None and elong >= 1.3:
+        v = np.array(cam["props"]["CFrame"][:3], float) - ctr
+        if abs(v @ long_axis) > 1e-3:  # thumbnails are framed from the front 3/4 by convention
+            return long_axis * np.sign(v @ long_axis), "thumbnail-camera+long-axis"
     return -long_axis, "long-axis(-)"
 
 
@@ -476,20 +481,24 @@ def analyze(model_id):
             req = s["requireIds"] if isinstance(s["requireIds"], list) else []
             bad = [f for f in fl if f.split(":")[0].split("(")[0] in BACKDOOR_FLAGS]
             if bad or req:
-                payload = []
-                for c in kids[n["id"]]:
-                    k = byid[c]
+                payload = set()
+                stack = list(kids[n["id"]])
+                while stack:  # ids hidden in attributes / values anywhere under the script
+                    k = byid[stack.pop()]
+                    stack += kids[k["id"]]
                     at = k["props"].get("Attributes") or {}
-                    for v in (at.values() if isinstance(at, dict) else []):
+                    vals = list(at.values()) if isinstance(at, dict) else []
+                    if k["class"].endswith("Value"):
+                        vals.append(k["props"].get("Value"))
+                    for v in vals:
                         if isinstance(v, (int, float)) and v > 1e6:
-                            payload.append(int(v))
-                    for cc in kids[c]:
-                        kk = byid[cc]
-                        v = kk["props"].get("Value")
-                        if kk["class"].endswith("Value") and isinstance(v, (int, float)) and v > 1e6:
-                            payload.append(int(v))
+                            payload.add(int(v))
+                        elif isinstance(v, str) and re.fullmatch(r"\d{8,17}", v.strip()):
+                            payload.add(int(v))
+                lits = s.get("numericLiterals") if isinstance(s.get("numericLiterals"), list) else []
+                payload |= {int(x) for x in lits if len(x) >= 10}
                 flagged.append({"path": upath[n["id"]], "class": n["class"], "flags": bad, "requireIds": req,
-                                "payloadIds": sorted(set(payload))})
+                                "payloadIds": sorted(payload)})
     hidden = [n for n in parts if not visible(n)]
 
     # --- stats -----------------------------------------------------------------------------------

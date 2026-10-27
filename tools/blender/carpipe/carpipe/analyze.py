@@ -553,15 +553,41 @@ class Car:
         return s
 
     # ------------------------------------------------------------------------------------- visibility
-    def visibility(self, glass_mask_faces):
+    def _drop_overlay_shells(self, role, why):
+        """Two big islands with (almost) the same bounding box and area but different materials: the one whose
+        material is black/transparent & glossy is a clear-coat or reflection overlay -> discard."""
+        big = np.where(self.ia > 0.01 * self.ia.sum())[0]
+        for a in big:
+            for b in big:
+                if a >= b or self.imat[a] == self.imat[b] or role[a] == DISCARD or role[b] == DISCARD:
+                    continue
+                if not (0.75 < self.ia[a] / self.ia[b] < 1.33):
+                    continue
+                ea = self.imax[a] - self.imin[a]
+                diff = np.abs(self.imax[a] - self.imax[b]) + np.abs(self.imin[a] - self.imin[b])
+                if diff.max() > 0.03 * ea.max():
+                    continue
+                for k in (a, b):
+                    m = self.mats[self.imat[k]]
+                    lum = sum(m["base"]) / 3
+                    if (m["alpha"] < 0.9 or m["transmission"] > 0.3 or (lum < 0.06 and m["roughness"] < 0.12)
+                            or kw_match(m["name"], [r"clear_?coat", r"reflect", r"overlay", r"_shell_?fx"])):
+                        role[k] = DISCARD
+                        why[k] = "overlay-shell"
+                        log(f"overlay shell dropped: {self.island_name(k)}")
+                        break
+
+    def visibility(self, glass_mask_faces, gone_mask_faces=None):
         """Per island: 2 = visible from outside, 1 = only visible through glass, 0 = hidden."""
         lo, hi = self.bbox()
         diag = float(np.linalg.norm(hi - lo))
         verts = [tuple(v) for v in self.co.tolist()]
         polys_all = np.split(self.lv, self.ls[1:])
         polys_all = [p.tolist() for p in polys_all]
-        bvh_all = BVHTree.FromPolygons(verts, polys_all, all_triangles=False, epsilon=0.0)
-        keep = np.where(~glass_mask_faces)[0]
+        gone = np.zeros(len(polys_all), bool) if gone_mask_faces is None else gone_mask_faces
+        bvh_all = BVHTree.FromPolygons(verts, [polys_all[i] for i in np.where(~gone)[0]], all_triangles=False,
+                                       epsilon=0.0)
+        keep = np.where(~glass_mask_faces & ~gone)[0]
         bvh_ng = BVHTree.FromPolygons(verts, [polys_all[i] for i in keep], all_triangles=False, epsilon=0.0)
         dirs = _fib_dirs(40)
         rng = np.random.default_rng(7)
@@ -648,9 +674,12 @@ class Car:
             m = self.mats[self.imat[i]]
             if role[i] == GLASS and m["emission"] > 1.0:
                 role[i] = LIGHT_F
-        # visibility pass
+        # overlay shells (clear-coat / reflection duplicates of the body) would hide the real paint
+        self._drop_overlay_shells(role, why)
+        # visibility pass (named discards are not occluders)
         glass_faces = np.isin(self.fi, np.where(role == GLASS)[0])
-        vis = self.visibility(glass_faces)
+        gone = np.isin(self.fi, np.where(role == DISCARD)[0])
+        vis = self.visibility(glass_faces, gone)
         self.vis = vis
         for i in range(n):
             if role[i] >= WHEEL0:

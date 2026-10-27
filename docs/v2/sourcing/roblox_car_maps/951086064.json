@@ -78,9 +78,9 @@
  },
  "paint": {
   "color_rgb255": [
-   17,
-   17,
-   17
+   0,
+   32,
+   96
   ],
   "method": "named paint/body parts",
   "parts": 8,
@@ -123,25 +123,28 @@
     "Maxima/Body/HLL",
     "Maxima/Body/Li",
     "Maxima/Body/MeshPart#1",
+    "Maxima/Body/MeshPart#10",
     "Maxima/Body/MeshPart#11",
+    "Maxima/Body/MeshPart#12",
+    "Maxima/Body/MeshPart#13",
     "Maxima/Body/MeshPart#14",
     "Maxima/Body/MeshPart#15",
     "Maxima/Body/MeshPart#16",
+    "Maxima/Body/MeshPart#18",
+    "Maxima/Body/MeshPart#2",
     "Maxima/Body/MeshPart#3",
     "Maxima/Body/MeshPart#4",
     "Maxima/Body/MeshPart#5",
+    "Maxima/Body/MeshPart#6",
+    "Maxima/Body/MeshPart#7",
+    "Maxima/Body/MeshPart#8",
     "Maxima/Body/MeshPart#9",
-    "Maxima/Body/Paint/Paint#1",
-    "Maxima/Body/Paint/Paint#2",
-    "Maxima/Body/Paint/Paint#3",
-    "Maxima/Body/Paint/Paint#4",
-    "Maxima/Body/Paint/Paint#5",
-    "Maxima/Body/Paint/Paint#6",
-    "Maxima/Body/Paint/Paint#7",
-    "Maxima/Body/Paint/Paint#8",
     "Maxima/Body/RRL",
     "Maxima/Body/RevL",
     "Maxima/Body/Ri"
+   ],
+   "selectors": [
+    "Body/{BL, HLH, HLL, Li, MeshPart#1, MeshPart#10, +18 more}"
    ]
   },
   "Glass": {
@@ -151,22 +154,28 @@
    },
    "paths": [
     "Maxima/Body/MeshPart#17"
+   ],
+   "selectors": [
+    "Body/MeshPart#17"
    ]
   },
   "Paint": {
    "count": 8,
    "rules": {
-    "Color == rgb(17, 17, 17)": 8
+    "Color == rgb(0, 32, 96)": 8
    },
    "paths": [
-    "Maxima/Body/MeshPart#10",
-    "Maxima/Body/MeshPart#12",
-    "Maxima/Body/MeshPart#13",
-    "Maxima/Body/MeshPart#18",
-    "Maxima/Body/MeshPart#2",
-    "Maxima/Body/MeshPart#6",
-    "Maxima/Body/MeshPart#7",
-    "Maxima/Body/MeshPart#8"
+    "Maxima/Body/Paint/Paint#1",
+    "Maxima/Body/Paint/Paint#2",
+    "Maxima/Body/Paint/Paint#3",
+    "Maxima/Body/Paint/Paint#4",
+    "Maxima/Body/Paint/Paint#5",
+    "Maxima/Body/Paint/Paint#6",
+    "Maxima/Body/Paint/Paint#7",
+    "Maxima/Body/Paint/Paint#8"
+   ],
+   "selectors": [
+    "Body/Paint/**"
    ]
   },
   "WheelStatic_FL": {
@@ -176,6 +185,9 @@
    },
    "paths": [
     "Maxima/FL/brakedisc"
+   ],
+   "selectors": [
+    "FL/brakedisc"
    ]
   },
   "WheelStatic_FR": {
@@ -185,6 +197,9 @@
    },
    "paths": [
     "Maxima/FR/brakedisc"
+   ],
+   "selectors": [
+    "FR/brakedisc"
    ]
   },
   "WheelStatic_RL": {
@@ -194,6 +209,9 @@
    },
    "paths": [
     "Maxima/RL/brakedisc"
+   ],
+   "selectors": [
+    "RL/brakedisc"
    ]
   },
   "WheelStatic_RR": {
@@ -203,6 +221,9 @@
    },
    "paths": [
     "Maxima/RR/brakedisc"
+   ],
+   "selectors": [
+    "RR/brakedisc"
    ]
   },
   "Wheel_FL": {
@@ -214,6 +235,9 @@
    "paths": [
     "Maxima/FL/rim",
     "Maxima/FL/tire"
+   ],
+   "selectors": [
+    "FL/{rim, tire}"
    ]
   },
   "Wheel_FR": {
@@ -225,6 +249,9 @@
    "paths": [
     "Maxima/FR/rim",
     "Maxima/FR/tire"
+   ],
+   "selectors": [
+    "FR/{rim, tire}"
    ]
   },
   "Wheel_RL": {
@@ -236,6 +263,9 @@
    "paths": [
     "Maxima/RL/rim",
     "Maxima/RL/tire"
+   ],
+   "selectors": [
+    "RL/{rim, tire}"
    ]
   },
   "Wheel_RR": {
@@ -247,6 +277,9 @@
    "paths": [
     "Maxima/RR/rim",
     "Maxima/RR/tire"
+   ],
+   "selectors": [
+    "RR/{rim, tire}"
    ]
   }
  },

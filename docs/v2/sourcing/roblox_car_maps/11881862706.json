@@ -211,8 +211,8 @@
     "XKR-S GT/Misc/Tach/Parts/Part"
    ],
    "selectors": [
-    "Misc/Speedo/Parts/Part/**",
-    "Misc/Tach/Parts/Part/**",
+    "Misc/Speedo/Parts/Part",
+    "Misc/Tach/Parts/Part",
     "Misc/FL/Door/Model/{Meshes/Black.011 (1), Meshes/Mirror.001 (1), Meshes/Silver (1), Meshes/Tex TR.024, Meshes/Tex TR.025, Meshes/Tex TR.026, +12 more}",
     "Misc/HK/Model/{Meshes/Black_Transparency.006_bonnet_ok.002, Meshes/Stripes_Transparency.006_bonnet_ok.004}",
     "Misc/FR/Door/Model/{Meshes/Black.012, Meshes/Mirror.002 (1), Meshes/Silver.001 (1), Meshes/Tex TR.028, Meshes/Tex TR.029, Meshes/Tex TR.030, +11 more}",
@@ -279,8 +279,8 @@
     "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.007"
    ],
    "selectors": [
-    "Misc/Speedo/Parts/Needle/**",
-    "Misc/Tach/Parts/Needle/**",
+    "Misc/Speedo/Parts/Needle",
+    "Misc/Tach/Parts/Needle",
     "Misc/Wheel/**",
     "Body/Model/{Meshes/XK_Interior, Meshes/XK_Interior.001, Meshes/XK_Interior.002, Meshes/XK_Interior.003, Meshes/XK_Interior.004, Meshes/XK_Interior.005, +12 more}"
    ]

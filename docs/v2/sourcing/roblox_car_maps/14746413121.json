@@ -237,9 +237,7 @@
     "2005 Nissan Patrol/Body/indicator_lr"
    ],
    "selectors": [
-    "Body/arrow#1/**",
-    "Body/arrow#2/**",
-    "Body/{indicator_lf_SUB0, indicator_lf_SUB1, indicator_lf_SUB2, indicator_lf_SUB3, indicator_lr}"
+    "Body/{arrow#1, arrow#2, indicator_lf_SUB0, indicator_lf_SUB1, indicator_lf_SUB2, indicator_lf_SUB3, +1 more}"
    ]
   },
   "Lights_Indicator_R": {
@@ -334,7 +332,7 @@
     "2005 Nissan Patrol/Wheels/FL"
    ],
    "selectors": [
-    "Wheels/FL/**"
+    "Wheels/FL"
    ]
   },
   "Wheel_FR": {
@@ -346,7 +344,7 @@
     "2005 Nissan Patrol/Wheels/FR"
    ],
    "selectors": [
-    "Wheels/FR/**"
+    "Wheels/FR"
    ]
   },
   "Wheel_RL": {
@@ -358,7 +356,7 @@
     "2005 Nissan Patrol/Wheels/RL"
    ],
    "selectors": [
-    "Wheels/RL/**"
+    "Wheels/RL"
    ]
   },
   "Wheel_RR": {
@@ -370,7 +368,7 @@
     "2005 Nissan Patrol/Wheels/RR"
    ],
    "selectors": [
-    "Wheels/RR/**"
+    "Wheels/RR"
    ]
   }
  },

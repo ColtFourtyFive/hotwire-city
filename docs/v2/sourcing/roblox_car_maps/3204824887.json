@@ -104,6 +104,13 @@
     "Chrysler ME412/RL/Parts/Parts/MeshPart#2",
     "Chrysler ME412/RR/Parts/Parts/MeshPart#1",
     "Chrysler ME412/RR/Parts/Parts/MeshPart#2"
+   ],
+   "selectors": [
+    "FL/Parts/**",
+    "FR/Parts/**",
+    "RL/**",
+    "RR/**",
+    "Body/{MeshPart#1, MeshPart#2, MeshPart#4}"
    ]
   },
   "Glass": {
@@ -113,6 +120,9 @@
    },
    "paths": [
     "Chrysler ME412/Body/MeshPart#3"
+   ],
+   "selectors": [
+    "Body/MeshPart#3"
    ]
   },
   "Paint": {
@@ -125,6 +135,9 @@
     "Chrysler ME412/Body/Paint/Paint#2",
     "Chrysler ME412/Body/Paint/Paint#3",
     "Chrysler ME412/Body/Paint/Paint#4"
+   ],
+   "selectors": [
+    "Body/Paint/**"
    ]
   },
   "Wheel_FL": {
@@ -134,6 +147,9 @@
    },
    "paths": [
     "Chrysler ME412/FL/Wheel"
+   ],
+   "selectors": [
+    "FL/Wheel"
    ]
   },
   "Wheel_FR": {
@@ -143,6 +159,9 @@
    },
    "paths": [
     "Chrysler ME412/FR/Wheel"
+   ],
+   "selectors": [
+    "FR/Wheel"
    ]
   }
  },
