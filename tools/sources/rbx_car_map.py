@@ -171,6 +171,17 @@ def find_forward(nodes):
     return -long_axis, "long-axis(-)"
 
 
+def _yaw_deg(fwd):
+    """Degrees about +Y (CFrame.Angles(0, yaw, 0)) that turn the car's front to -Z, as Config/Assets `yaw`."""
+    a = math.degrees(math.atan2(-fwd[0], -fwd[2]))
+    y = -a
+    for snap in (-180, -90, 0, 90, 180):
+        if abs(y - snap) < 2.0:
+            y = snap
+    y = ((y + 180) % 360) - 180
+    return round(y, 1)
+
+
 def analyze(model_id):
     d = rbxdl.asset_dir(model_id)
     tree = json.load(open(os.path.join(d, "tree.json")))
@@ -612,6 +623,7 @@ def analyze(model_id):
         "name": nodes[0]["name"] if nodes else "",
         "depicts": real[1] if real else None,
         "forward": {"method": fmethod, "lookVector": [round(float(x), 4) for x in fwd]},
+        "assetsYaw": _yaw_deg(fwd),
         "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
         "dims_studs": dims,
         "real_length_m": real[0] if real else None,

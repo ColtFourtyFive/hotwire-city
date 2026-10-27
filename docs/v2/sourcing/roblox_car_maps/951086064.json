@@ -10,6 +10,7 @@
    0.0001
   ]
  },
+ "assetsYaw": -90,
  "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
  "dims_studs": {
   "length": 18.02,
