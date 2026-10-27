@@ -234,7 +234,7 @@ def _m(key):
          "curb": lambda: M.textured("Curb", "curb", tint=(1.05, 1.05, 1.05)),
          "grass": lambda: M.textured("Grass", "grass", tint=(0.62, 0.95, 0.42)),
          "dirt": lambda: M.textured("Dirt", "roof_gravel", tint=(0.75, 0.62, 0.48)),
-         "drygrass": lambda: M.textured("DryGrass", "grass", tint=(1.05, 0.88, 0.5)),
+         "drygrass": lambda: M.textured("DryGrass", "grass", tint=(0.95, 0.85, 0.55)),
          "sand": lambda: M.textured("Sand", "sand", tint=(1.05, 1.0, 0.92)),
          "sea": lambda: M.water("Sea", (0.04, 0.22, 0.30)),
          "white": lambda: M.paint("PaintWhite", (0.85, 0.85, 0.82), 0.7),
@@ -306,7 +306,7 @@ def street_strip(col, x0, x1, y_front, side_w=12.0, road_w=44.0, far_side=True, 
 
 def ground(col, x0, y0, x1, y1, kind="grass", z=0.0, tile=None):
     b = G.MeshBuf("Ground_" + kind, tile=tile or {"grass": 20.0, "asphalt": 24.0, "sidewalk": 12.0, "sand": 30.0,
-                                                    "dirt": 20.0, "sea": 60.0, "curb": 8.0}.get(kind, 20))
+                                                    "dirt": 20.0, "sea": 60.0, "curb": 8.0, "drygrass": 30.0}.get(kind, 20))
     G.quad(b, (x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z))
     return G.to_object(b, _m(kind), col, weighted=False)
 

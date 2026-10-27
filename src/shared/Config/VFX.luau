@@ -8,7 +8,8 @@
 --
 -- Preset fields (all optional unless noted). Sizes are studs, speeds studs/s, times seconds, angles degrees:
 --   texture (required)  key into VFX.Textures
---   kind (required)     "burst" (pooled, Emit(count) at a position) | "stream" (an emitter on an attachment, Rate)
+--   kind (required)     "burst" (Emit(count): pooled at a position, or VFXLibrary.attach on a caller's attachment)
+--                       | "stream" (an emitter on an attachment, Rate)
 --   count / rate        particles per burst / per second at "high" quality (Quality tiers scale them down)
 --   lifetime, speed, rotation, rotSpeed, spread      { min, max } (spread = { x, y })
 --   size, transparency, squash                      NumberSequence keys: K(time, value, envelope?)

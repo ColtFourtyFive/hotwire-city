@@ -260,13 +260,10 @@ for _, s in W.Spawns.police do
 end
 for i, s in W.Spawns.parking do
 	if i % 3 == 0 then
-		table.insert(
-			data.parkingSample,
-			{
-				pos = v3(s.cframe.Position),
-				look = { r1(s.cframe.LookVector.X * 100) / 100, r1(s.cframe.LookVector.Z * 100) / 100 },
-			}
-		)
+		table.insert(data.parkingSample, {
+			pos = v3(s.cframe.Position),
+			look = { r1(s.cframe.LookVector.X * 100) / 100, r1(s.cframe.LookVector.Z * 100) / 100 },
+		})
 	end
 end
 

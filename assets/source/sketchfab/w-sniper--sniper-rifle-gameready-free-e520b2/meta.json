@@ -44,14 +44,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      2.1688,
-      32.3249,
-      7.6996
+      2.5161,
+      32.4686,
+      7.9022
     ],
     "dims_m": [
-      32.325,
-      2.169,
-      7.7
+      32.469,
+      2.516,
+      7.902
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -113,6 +113,6 @@
       "LPadjustmenrsButt2_LowPoly_05_lambert1_0",
       "LPButtMiddle_LowPoly_05_lambert1_0"
     ],
-    "render_s": 39.4
+    "render_s": 28.0
   }
 }

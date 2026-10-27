@@ -80,7 +80,16 @@ print("POIs: " .. table.concat(ks, ", "))
 -- plots
 print("plots:")
 for _, p in W.Plots do
-	print(("  %d %-22s %-10s (%5d, %5d)  on-ramp %4d"):format(p.index, p.name, p.district, p.cframe.Position.X, p.cframe.Position.Z, p.nearestOnRamp))
+	print(
+		("  %d %-22s %-10s (%5d, %5d)  on-ramp %4d"):format(
+			p.index,
+			p.name,
+			p.district,
+			p.cframe.Position.X,
+			p.cframe.Position.Z,
+			p.nearestOnRamp
+		)
+	)
 end
 local minD, maxD = math.huge, 0
 for i, a in W.Plots do
@@ -103,7 +112,11 @@ print("travel (road distance; avg speed incl. turns/traffic):")
 rt(V.new(-4480, 12, -950), V.new(5620, 30, -680), "Palmera Pier -> east coast (W-E crossing)")
 rt(V.new(-150, 12, -2140), V.new(-150, 12, 2900), "Sunwood Blvd -> Southgate shore (N-S core)")
 rt(V.new(1560, 80, -4560), V.new(700, 12, 4380), "Northpoint -> Iron Bay port (N-S island)")
-rt(W.POIs[1].entrance, Q.poi("HCI Terminal") and Q.poi("Terminal").entrance or V.new(-4100, 12, 2330), "Hotwire Plaza -> airport terminal")
+rt(
+	W.POIs[1].entrance,
+	Q.poi("HCI Terminal") and Q.poi("Terminal").entrance or V.new(-4100, 12, 2330),
+	"Hotwire Plaza -> airport terminal"
+)
 local ring = 0
 for _, e in W.Edges do
 	if e.corridor == "H1 Ring Freeway" and e.class == "freeway" and e.name:find("counter") == nil then
@@ -125,11 +138,40 @@ print(("mainland extents X %d..%d (%d), Z %d..%d (%d)"):format(minX, maxX, maxX 
 
 -- part budget estimate (before meshes): see WORLD_SPEC section 9
 local PER_USE = {
-	office_tower = 34, residential_tower = 30, hotel = 26, beach_hotel = 22, apartment = 16, office_midrise = 18,
-	retail = 9, restaurant = 9, nightclub = 10, parking_garage = 14, parking_lot = 3, plaza = 6, park = 4,
-	house = 9, duplex = 10, corner_store = 8, retail_strip = 10, church = 10, mansion = 16, villa = 12, loft = 12,
-	warehouse = 8, brewery = 10, gallery = 9, factory = 14, yard = 4, shed = 5, container_yard = 6, hangar = 8,
-	farmhouse = 9, barn = 7, shop = 8, diner = 9, motel = 12,
+	office_tower = 34,
+	residential_tower = 30,
+	hotel = 26,
+	beach_hotel = 22,
+	apartment = 16,
+	office_midrise = 18,
+	retail = 9,
+	restaurant = 9,
+	nightclub = 10,
+	parking_garage = 14,
+	parking_lot = 3,
+	plaza = 6,
+	park = 4,
+	house = 9,
+	duplex = 10,
+	corner_store = 8,
+	retail_strip = 10,
+	church = 10,
+	mansion = 16,
+	villa = 12,
+	loft = 12,
+	warehouse = 8,
+	brewery = 10,
+	gallery = 9,
+	factory = 14,
+	yard = 4,
+	shed = 5,
+	container_yard = 6,
+	hangar = 8,
+	farmhouse = 9,
+	barn = 7,
+	shop = 8,
+	diner = 9,
+	motel = 12,
 }
 local lots = 0
 for _, p in W.Parcels do
@@ -149,4 +191,13 @@ end
 local junctions = #W.Intersections * 5
 local pois = #W.POIs * 40
 local props = math.floor((byClass.street or 0) / 60 + (byClass.avenue or 0) / 45 + (byClass.boulevard or 0) / 45)
-print(("part estimate: roads %d, junctions %d, lots %d, POIs %d, street props (lamps/signals/hydrants, part-built) %d  => %d"):format(roads, junctions, lots, pois, props, roads + junctions + lots + pois + props))
+print(
+	("part estimate: roads %d, junctions %d, lots %d, POIs %d, street props (lamps/signals/hydrants, part-built) %d  => %d"):format(
+		roads,
+		junctions,
+		lots,
+		pois,
+		props,
+		roads + junctions + lots + pois + props
+	)
+)

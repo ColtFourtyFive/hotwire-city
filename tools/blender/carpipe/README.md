@@ -22,7 +22,9 @@ Requirements: Blender 5.2 as a Python module (`import bpy`), numpy, Pillow and p
 
 Output goes to `tools/blender/carpipe/out/<name>/`, which contains `<name>.glb`, `<name>.json`, `textures/*.png` and `islands_debug.txt`.
 
-**Coordinates.** The GLB is +Y up and the car's front faces **−Z**, which is the Roblox `LookVector` and the "built pose" in `CarBuilder.luau`. The origin sits on the ground plane, centred between the wheel contact patches. 1 unit = 1 stud. The default length is 17 studs; set it with `--length` or a per-model `length`.
+**Coordinates.** The GLB is +Y up and the car's front faces **−Z**, which is the Roblox `LookVector` and the "built pose" in `CarBuilder.luau`. The origin sits on the ground plane, centred between the wheel contact patches. 1 unit = 1 stud.
+
+**Scale.** By default the length is `auto`: when the file is plausibly in metres (a 2.8–16 m car with 0.22–0.75 m wheels), carpipe uses real length × **3.4 studs/m**. A 5.0 m sedan becomes 17 studs, next to the ~5.5-stud character, and different cars keep their real proportions. Otherwise the length is 17 studs. You can force a length with `--length` or with a per-model `length`.
 
 **Objects.** The Open Cloud importer turns one object into one MeshPart, so the GLB holds exactly one object, and one material, per role:
 
@@ -148,7 +150,8 @@ With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged.
 
 | Key | What it does |
 |---|---|
-| `length` | Target length in studs. |
+| `length` | Target length in studs, or `"auto"` (default; see Scale). |
+| `studs_per_meter` | Scale factor used by `"auto"` (default 3.4). |
 | `front` / `up` | Override the axes, in the file's Blender axes after import. |
 | `textures` | `{material: image}`. Add `"_no_fuzzy": true` to turn off name matching. |
 | `roles` | `{regex: Role}`, where Role is Body, Body2, Glass, LightsFront, Trim, Interior or Discard. |

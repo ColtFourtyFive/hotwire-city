@@ -1131,7 +1131,8 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 	local J = branchCenter[1]
 	local o = main.offset
 	-- main direction at J
-	local _, _, mtx, mtz = WorldGen.polyAt(main.center, select(2, WorldGen.polyProject(main.center, J.x, J.z)))
+	local _, sJ = WorldGen.polyProject(main.center, J.x, J.z)
+	local _, _, mtx, mtz = WorldGen.polyAt(main.center, sJ)
 	-- branch outward direction
 	local bx, bz = branchCenter[2].x - J.x, branchCenter[2].z - J.z
 	local bl = math.sqrt(bx * bx + bz * bz)
@@ -5025,7 +5026,7 @@ for _, p in POIs do
 		local pts = edgePts[p.edge].pts
 		local _, s = WorldGen.polyProject(pts, p.entrance.X, p.entrance.Z)
 		for _, ds in { -70, 70, -140, 140 } do
-			local ss = math.clamp(s + ds, 10, e.length - 10)
+			local ss = math.clamp(s + ds, math.min(10, e.length / 2), math.max(10, e.length - 10))
 			for _, dir in (if e.oneWay then { 1 } else { 1, -1 }) :: { number } do
 				local px, py, pz, tx, tz = edgeAt(p.edge, ss)
 				local fx, fz = tx * dir, tz * dir

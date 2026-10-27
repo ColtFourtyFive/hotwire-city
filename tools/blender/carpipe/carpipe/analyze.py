@@ -125,6 +125,15 @@ class Car:
             f"{self.n_isl} islands")
 
     def _drop_backdrops(self, objs):
+        """Remove floors, light cards, shadow planes and backdrops (by name, or by being much bigger than the rest).
+        Repeats until stable: a huge floor can hide a merely big light card on the first pass."""
+        while True:
+            n0 = len(objs)
+            objs = self._drop_backdrops_once(objs)
+            if len(objs) == n0:
+                return objs
+
+    def _drop_backdrops_once(self, objs):
         keep = []
         boxes = []
         for o in objs:

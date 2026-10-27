@@ -44,13 +44,13 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      10.5408,
-      167.6009,
+      11.2043,
+      167.8915,
       32.243
     ],
     "dims_m": [
-      167.601,
-      10.541,
+      167.892,
+      11.204,
       32.243
     ],
     "front_evidence": "upright_band",
@@ -79,6 +79,6 @@
       "mag_sniper_0",
       "bullet_sniper_0"
     ],
-    "render_s": 46.0
+    "render_s": 18.4
   }
 }

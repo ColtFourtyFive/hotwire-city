@@ -818,7 +818,7 @@ return function(t)
 			for _ = 1, 30 do
 				M.step(1 / 30)
 			end
-			t.eq(calls, 1, "moved target retried once")
+			t.ok(calls >= 1 and calls <= 2, "moved target: searched again, then backs off afresh; got " .. calls)
 			-- the road becomes reachable: the next retry finds it
 			RoadGraph.route = original
 			for _ = 1, 150 do

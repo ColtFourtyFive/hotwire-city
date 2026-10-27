@@ -363,8 +363,8 @@ def sc_block(a, night=False):
     c = col()
     BW = 260.0          # block size (between street centrelines 260 + 48)
     P = BW + ROAD_W
-    xs = [-2, -1, 0, 1, 2]
-    ys = [-1, 0, 1, 2]
+    xs = [-3, -2, -1, 0, 1, 2, 3]
+    ys = [-1, 0, 1, 2, 3]
     for i in range(len(xs) + 1):
         x = (xs[0] - 0.5 + i) * P
         S.road(c, x - ROAD_W / 2, (ys[0] - 0.5) * P - ROAD_W / 2, x + ROAD_W / 2, (ys[-1] + 0.5) * P + ROAD_W / 2, axis="y", lanes=True)
@@ -422,7 +422,10 @@ def sc_block(a, night=False):
     layout = {(-2, 2): towers, (-1, 2): towers, (0, 2): towers, (1, 2): towers, (2, 2): midtown,
               (-2, 1): midtown, (-1, 1): towers, (0, 1): midtown, (1, 1): midtown, (2, 1): industrial,
               (-2, 0): retail, (-1, 0): midtown, (0, 0): retail, (1, 0): suburbs, (2, 0): industrial,
-              (-2, -1): deco, (-1, -1): deco, (0, -1): suburbs, (1, -1): suburbs, (2, -1): suburbs}
+              (-2, -1): deco, (-1, -1): deco, (0, -1): suburbs, (1, -1): suburbs, (2, -1): suburbs,
+              (-3, -1): deco, (-3, 0): midtown, (-3, 1): midtown, (-3, 2): towers, (-3, 3): midtown,
+              (-2, 3): midtown, (-1, 3): towers, (0, 3): midtown, (1, 3): industrial, (2, 3): industrial,
+              (3, -1): suburbs, (3, 0): suburbs, (3, 1): industrial, (3, 2): industrial, (3, 3): suburbs}
     for (ix, iy), f in layout.items():
         block(ix, iy, f)
     # avenue palms + lamps
@@ -436,18 +439,18 @@ def sc_block(a, night=False):
         S.car(c, r.choice([(xs[0] - 0.5 + i) * P for i in range(len(xs) + 1)]) + r.choice([-9, 9]),
               r.uniform((ys[0] - 0.5) * P, (ys[-1] + 0.5) * P), heading=r.choice([90, 270]), seed=k)
     ybeach = (ys[0] - 0.5) * P - ROAD_W / 2
-    S.ground(c, -30000, ybeach - 40, 30000, 30000, "sidewalk", z=-0.05)
+    S.ground(c, -30000, ybeach - 40, 30000, 30000, "drygrass", z=-0.05, tile=40.0)
     S.ground(c, -30000, ybeach - 200, 30000, ybeach - 40, "sand", z=-0.05)
     S.ground(c, -30000, -30000, 30000, ybeach - 200, "sea", z=-0.1)
     for x in range(int((xs[0] - 0.5) * P), int((xs[-1] + 0.5) * P), 46):
         S.palm(c, x + r.uniform(-6, 6), ybeach - 22 + r.uniform(-6, 6), h=r.uniform(40, 56), seed=r.randint(0, 999))
     # mountains behind downtown (the Vinewood-hills backdrop) so the horizon is land, not a table edge
-    S.hill(c, -9000, 2400, 9000, 9000, lambda x, y: max(0.0, (y - 2400) * 0.16 + 260 * math.sin(x * 0.0011 + 0.7)
-                                                          * min(1.0, (y - 2400) / 1500) + 140 * math.sin(x * 0.0031 + y * 0.002)),
-           nx=90, ny=30, kind="drygrass")
-    bpy.context.scene.world.mist_settings.depth = 5200.0
-    return finish("block_night" if night else "block_wide", (-860, -720, 170), (60, 420, 70), 30, a.samples, a.res,
-                  night=night, haze_amt=0.55)
+    S.hill(c, -12000, 3200, 12000, 12000, lambda x, y: max(0.0, min(1.0, (y - 3200) / 2500) * (
+        420 + 160 * math.sin(x * 0.0009 + 0.7) + 90 * math.sin(x * 0.0027 + y * 0.0013) + 40 * math.sin(x * 0.011))),
+           nx=120, ny=30, kind="drygrass")
+    bpy.context.scene.world.mist_settings.depth = 4200.0
+    return finish("block_night" if night else "block_wide", (-900, -760, 175), (40, 420, 70), 30, a.samples, a.res,
+                  night=night, haze_amt=0.6)
 
 
 VARIANTS = {  # arch: (seeds, extra kw, camera height factor)

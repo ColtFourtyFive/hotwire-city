@@ -1707,7 +1707,7 @@ v1 never reached players (first real-engine run in Studio on 2026-10-27; every p
 | **WantedService** | Evade model (gta_combat), wantedMult, `raiseTo(p, n, reason)` + `HeatFloor`, BUSTED economy (§4.4), evade bonus with the hourly soft cap, 5★ Most Wanted trigger and survival payout, hot-ride heat, Lawyer, scripted tutorial chase. |
 | **PoliceService** | District factors, response delay, tutorial units (can't bust or shoot). Combat goes in PoliceCombatService (gta_combat). |
 | **CombatService** | Taser and spikes gadgets only (gta_combat §13.2) |
-| **ShopService** | The gun store (gta_combat) + Rep gates + Hacking Device, Duffel and Hotwire Kit (`BuySkill`) |
+| **ShopService** | The gun store (gta_combat) + Rep gates + Hacking Device and Duffel |
 | **RewardsService** | Rewards go to the bank; V2 playtime table on **active seconds**; reward-origin cars minted through CarService with a 14-day trade lock and `noInsurance`; referral inviter cap 1; weekly and crew contracts; new stats; streak pause; season XP hooks |
 | **RebirthService** | Prestige rules (§6.3): G-scaled cost, keep 3 chosen cars + bound |
 | **MonetizationService** | §8 catalog, `giftedPasses`, bound-car grants into `owedCars`, refusal rules (lockdown during theft, lose_cops limits, Double It eligibility) |
@@ -1730,7 +1730,7 @@ v1 never reached players (first real-engine run in Studio on 2026-10-27; every p
 | **RepService** | RP, levels, unlock checks, starter-protection latch | `addRP(p, n, reason)`, `has(p, unlockId)` |
 | **DistrictService** | Point → district; mults | `at(pos)`, `payoutMult(pos)`, `luck(pos)` |
 | **StreetIncomeService** | Runs `StreetGate` per driver: S×, quiet wallet ticks, car XP, mileage, stunt events, hot-ride heat and blip, daily street seconds, LOADED refresh | `getMult(p)`, signal `CarLevelUp(p, uid, level)` |
-| **ModShopService** | Upgrades, security, paint (vouchers), plates | remotes in §9.6 |
+| **ModShopService** | Per-car upgrades, garage security, the Hotwire Kit (`BuySkill`), paint (vouchers), plates | remotes in §9.6 |
 | **BankingService** | ATMs, garage auto-deposit, LOADED marker, cash bags (drops and pickups), leave-time banking and the LOADED leave fee | `deposit(p, viaAtm)`, `dropBag(pos, amount, priorityUserId?)` |
 | **RobberyService** | Stores, ATM hack, jewelry store, NPC and player mugging, `CrimeState` | prompts and MiniGame sessions |
 | **ChopShopService** | Chop (from GarageService), order board, player-car chop rules | `orders()`, ChopAttempt handler |
