@@ -1614,7 +1614,7 @@ local H7 = stackT(
 	H7center,
 	2,
 	{ "(southbound)", "(northbound)" },
-	{ Lb = 620, Ln = 380, Lm = 260, A2 = 600, A3 = 780, turn = 230 }
+	{ Lb = 620, Ln = 380, Lm = 420, A2 = 600, A3 = 780, turn = 230 }
 )
 H7.setProfile(function(sc: number): number
 	return eased(DECK_Y, GRADE, (sc - 470) / 420) -- sc = 0 where the branch carriageways start (after the stack)
@@ -2240,7 +2240,18 @@ do
 		return P(px, pz)
 	end
 	-- side +1 = east bank. dirAlong +1: the ramp climbs toward increasing channel arc length (south).
-	local function channelRamp(name: string, zFloor: number, side: number, dirAlong: number, bank: Way)
+	local function channelRamp(
+		name: string,
+		zFloor: number,
+		side: number,
+		dirAlong: number,
+		bank: Way,
+		lens: { number }?
+	)
+		local L1, L2, L3 = 70, 250, 380
+		if lens then
+			L1, L2, L3 = lens[1], lens[2], lens[3]
+		end
 		local _, sF = WorldGen.polyProject(pts, 1990, zFloor)
 		local fx, fz = WorldGen.polyAt(pts, sF)
 		local function lateral(s: number, d: number): P2
@@ -2250,9 +2261,9 @@ do
 		end
 		local _, cz = WorldGen.polyAt(pts, sF)
 		local half = WorldTerrain.channelFloorHalf(cz)
-		local p1 = lateral(sF + dirAlong * 70, half - 14)
-		local p2 = lateral(sF + dirAlong * 250, half + CH.wallRun + 4)
-		local bx, bz = WorldGen.polyAt(pts, sF + dirAlong * 380)
+		local p1 = lateral(sF + dirAlong * L1, half - 14)
+		local p2 = lateral(sF + dirAlong * L2, half + CH.wallRun + 4)
+		local bx, bz = WorldGen.polyAt(pts, sF + dirAlong * L3)
 		local p3 = onBank(bank, bx + side * 200, bz)
 		local ramp = { P(fx, fz), p1, p2, p3 }
 		addWay(name, "service", WorldGen.densify(ramp, 40), {
@@ -2270,7 +2281,9 @@ do
 	channelRamp("Channel Ramp North", -1480, 1, -1, riverside)
 	channelRamp("Channel Ramp Crown", -120, 1, -1, riverside)
 	channelRamp("Channel Ramp Rail Yard", 1940, 1, -1, riverside)
-	channelRamp("Channel Ramp South", 2560, -1, -1, westBank)
+	-- the south ramp climbs north from the floor below the flood gate and lands on West Bank Road short of the
+	-- Southgate Avenue bridge (it used to pass under the bridge deck with 3 studs to spare)
+	channelRamp("Channel Ramp South", 2660, -1, -1, westBank, { 50, 215, 270 })
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -3892,7 +3905,8 @@ export type Edge = {
 	elevated: boolean, -- on a deck: needs supports
 	sunken: boolean, -- below the natural grade in a walled cut (the H1 trench, the channel)
 	fill: number, -- max height above the natural grade
-	bridge: boolean, -- spans water or the Rust River
+	bridge: boolean, -- spans water, the Rust River channel or a canyon (see spans)
+	spans: { { number } }, -- bridge spans: arc-length ranges { s0, s1 } with no ground under the road
 	tunnel: boolean, -- runs under terrain (the north-east cape)
 	corridor: string?, -- freeway carriageways sharing one deck
 	district: string,
@@ -3960,13 +3974,54 @@ local function edgeDistrict(pts: { P3 }): string
 	return best
 end
 
+-- Bridge spans along an edge (arc-length ranges): over the sea, the Rust River channel, or a ground road flying more
+-- than BRIDGE_FILL above the carved terrain (smaller fills are terrain embankments) (Skyline Drive over Sunwood Canyon). Sampled every 8 studs so short
+-- crossings (a 2-point street edge over the 160-wide channel) are never missed.
+local BRIDGE_FILL = 30
+local function bridgeSpansOf(w: Way, pts3: { P3 }): { { number } }
+	local spans: { { number } } = {}
+	if w.layer < 0 or w.class == "pier" or w.class == "channel" then
+		return spans
+	end
+	local elevatedWay = w.layer >= 1 or w.yMode ~= "ground"
+	local acc = 0
+	local open: number? = nil
+	local lastS = 0
+	for k = 1, #pts3 - 1 do
+		local a, b = pts3[k], pts3[k + 1]
+		local L = WorldGen.dist(a.x, a.z, b.x, b.z)
+		local n = math.max(1, math.ceil(L / 8))
+		for j = (if k == 1 then 0 else 1), n do
+			local t = j / n
+			local x, z = a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t
+			local y = a.y + (b.y - a.y) * t
+			local s = acc + L * t
+			local h = heightAt(x, z)
+			local over = overWaterOrChannel(x, z)
+				or (not elevatedWay and y - h > BRIDGE_FILL)
+				or (h < WorldTerrain.SEA_LEVEL and y > h + 8) -- the creek bed, the H1 trench: any carve below sea level
+			if over and open == nil then
+				open = math.max(0, s - 8)
+			elseif not over and open ~= nil then
+				table.insert(spans, { open :: number, s })
+				open = nil
+			end
+			lastS = s
+		end
+		acc += L
+	end
+	if open ~= nil then
+		table.insert(spans, { open :: number, lastS })
+	end
+	return spans
+end
+
 for i, e in gedges do
 	local w = ways[e.way]
 	local pts: { Vector3 } = {}
 	local maxAbove, maxBelow = 0, 0
-	local bridge = false
 	local tunnel = false
-	for k, p in e.pts do
+	for _, p in e.pts do
 		table.insert(pts, Vector3.new(p.x, p.y, p.z))
 		local g = gradeAt(p.x, p.z)
 		maxAbove = math.max(maxAbove, p.y - g)
@@ -3974,18 +4029,9 @@ for i, e in gedges do
 		if g - p.y > 18 and w.layer >= 0 and w.class ~= "channel" and not (w.corridor == "H1 Ring Freeway") then
 			tunnel = true
 		end
-		if w.layer >= 0 and w.class ~= "pier" then
-			if overWaterOrChannel(p.x, p.z) then
-				bridge = true
-			end
-			if k > 1 then
-				local q = e.pts[k - 1]
-				if overWaterOrChannel((p.x + q.x) / 2, (p.z + q.z) / 2) then
-					bridge = true
-				end
-			end
-		end
 	end
+	local spans = bridgeSpansOf(w, e.pts)
+	local bridge = #spans > 0
 	local oneWay = w.oneWay and not forcedTwoWay[e]
 	local tags: { string } = {}
 	for t in w.tags or {} do
@@ -4017,6 +4063,7 @@ for i, e in gedges do
 		sunken = maxBelow > 6 and (w.layer ~= 0 or w.class == "channel") and not tunnel,
 		fill = math.max(0, maxAbove),
 		bridge = bridge,
+		spans = spans,
 		tunnel = tunnel,
 		corridor = w.corridor,
 		district = w.district or edgeDistrict(e.pts),
@@ -4458,6 +4505,7 @@ WorldLayout._ctx = {
 	ringOffset = H1.offsetAt,
 	ringLanes = H1.lanesAt,
 	trench = { sTd0, sTr1 },
+	bridgeSpansOf = bridgeSpansOf,
 	stubWay = stubWay,
 	channelWay = channelWay,
 	corridors = { H1 = H1, H2 = H2, H3 = H3, H6 = H6, H7 = H7, H9 = H9 },

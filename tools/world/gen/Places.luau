@@ -60,6 +60,19 @@ return function(WorldLayout: any)
 		installEdits()
 	end
 
+	-- Bridge spans again, now that the trench is cut: every street over the H1 north leg crosses it on a bridge.
+	do
+		local ways = ctx.ways
+		for _, e in Edges do
+			local pts3: { P3 } = {}
+			for _, p in e.points do
+				table.insert(pts3, { x = p.X, y = p.Y, z = p.Z })
+			end
+			e.spans = ctx.bridgeSpansOf(ways[e.way], pts3)
+			e.bridge = #e.spans > 0
+		end
+	end
+
 	---------------------------------------------------------------------------------------------------------------------
 	-- 11. Spatial helpers (edge index, road / deck footprints, frontage geometry)
 	---------------------------------------------------------------------------------------------------------------------
@@ -129,6 +142,16 @@ return function(WorldLayout: any)
 			end
 		end)
 		return low, lowEdge
+	end
+
+	-- Is arc length s (+- margin) on edge ei inside one of its bridge spans (no ground under the road)?
+	local function onBridge(ei: number, s: number, margin: number): boolean
+		for _, sp in Edges[ei].spans do
+			if s + margin >= sp[1] and s - margin <= sp[2] then
+				return true
+			end
+		end
+		return false
 	end
 
 	-- Point / height / tangent at arc length s along edge ei.
@@ -370,7 +393,6 @@ return function(WorldLayout: any)
 				seen[ei]
 				or classes[e.class] ~= true
 				or e.layer ~= 0
-				or e.bridge
 				or e.elevated
 				or (opts.road ~= nil and e.name ~= opts.road)
 			then
@@ -489,6 +511,12 @@ return function(WorldLayout: any)
 					local py = a.y + (b.y - a.y) * st
 					local segEdge = chain.seg[math.min(si, #chain.seg)]
 					local se = Edges[segEdge]
+					if se.bridge then
+						local _, es = WorldGen.polyProject(edgePts[segEdge].pts, px, pz)
+						if onBridge(segEdge, es, w / 2 + 10) then
+							continue
+						end
+					end
 					local rx, rz = WorldGen.right(tx, tz)
 					local nx, nz = rx * side, rz * side
 					local curb = se.width / 2
@@ -591,7 +619,7 @@ return function(WorldLayout: any)
 	local PLOT_DEFS: { PlotDef } = {
 		{ name = "Palmera Garage", at = { -3960, -120 }, road = "Breaker Street", face = { -6000, -120 }, maxAngle = 30 },
 		{ name = "Sunwood Garage", at = { -420, -2280 }, road = "Sunwood Boulevard", face = PINNACLE, maxAngle = 30 },
-		{ name = "Pinnacle Garage", at = { 1300, -680 }, face = PINNACLE, maxAngle = 25 },
+		{ name = "Pinnacle Garage", at = { 1320, 20 }, road = "Flower Street", face = PINNACLE, maxAngle = 30 },
 		{ name = "Foundry Garage", at = { 2150, -760 }, road = "Riverside Drive", face = PINNACLE, maxAngle = 30 },
 		{ name = "Rust Flats Garage", at = { 2420, 860 }, road = "Riverside Drive", face = PINNACLE, maxAngle = 38 },
 		{ name = "Southgate East Garage", at = { 300, 1840 }, face = PINNACLE, maxAngle = 20 },
@@ -1542,7 +1570,7 @@ return function(WorldLayout: any)
 			center = { -4100, -1580 },
 			radius = 520,
 			box = { -4350, -2000, -3850, -1150 },
-			heights = spread(6, 220, 360, 4),
+			heights = spread(5, 220, 360, 4),
 			uses = { "residential_tower" },
 			minW = 160,
 		},
@@ -1578,7 +1606,6 @@ return function(WorldLayout: any)
 				if
 					e.layer ~= 0
 					or e.elevated
-					or e.bridge
 					or not (e.class == "boulevard" or e.class == "avenue" or e.class == "street")
 				then
 					continue
@@ -1797,7 +1824,7 @@ return function(WorldLayout: any)
 		local seq = #Parcels
 		local order: { number } = {}
 		for ei, e in Edges do
-			if LOT_CLASSES[e.class] and e.layer == 0 and not e.bridge and not e.elevated then
+			if LOT_CLASSES[e.class] and e.layer == 0 and not e.elevated then
 				table.insert(order, ei)
 			end
 		end
@@ -1824,6 +1851,9 @@ return function(WorldLayout: any)
 			szId: string?
 		): boolean
 			local e = Edges[ei]
+			if e.bridge and onBridge(ei, cs, width / 2 + 10) then
+				return false
+			end
 			local px, py, pz, tx, tz = edgeAt(ei, cs)
 			local rx, rz = WorldGen.right(tx, tz)
 			local nx, nz = rx * side, rz * side
@@ -2089,31 +2119,48 @@ return function(WorldLayout: any)
 			table.insert(PlacementErrors, "landmark " .. id .. ": no bridge edge on " .. road)
 			return nil
 		end
-		local x, y, z, tx, tz = midOf(ei)
+		local e = Edges[ei]
+		local best = { 0, e.length }
+		for _, sp in e.spans do
+			if sp[2] - sp[1] > best[2] - best[1] or best[1] == 0 and best[2] == e.length then
+				best = sp
+			end
+		end
+		local x, y, z, tx, tz = edgeAt(ei, (best[1] + best[2]) / 2)
 		local yaw = math.deg(math.atan2(-tx, -tz))
-		return lm(id, name, kind, x, z, yaw, { size[1], size[2], Edges[ei].length }, note, y)
+		local l = lm(id, name, kind, x, z, yaw, { size[1], size[2], best[2] - best[1] }, note, y)
+		l.edge = ei
+		l.span = { best[1], best[2] }
+		return l
 	end
 
 	-- SUNWOOD sign: on the summit ridge on Liberty Avenue's axis above the observatory, base >= 450, facing the city
 	-- (LookVector ~ (0.09, 0, 0.996): gta critique 3). The 9 sample points across the letters feed the vista test.
-	local SIGN_W, SIGN_H = 720, 110
+	local SIGN_W, SIGN_H = 720, 125
 	local signCf: CFrame
 	do
+		-- the highest seat on the ridge along Liberty's axis: every letter footing at least 520 if the ridge allows,
+		-- else the line where the lowest footing is highest (the sign is visible over the downtown towers from the
+		-- freeway decks and Liberty Avenue)
 		local sx = -150
 		local best: number? = nil
+		local bestLo, bestZ = -math.huge, -3560
 		local z = -3440
-		while z >= -3620 do
+		while z >= -3820 do
 			local lo = math.huge
 			for k = -4, 4 do
 				lo = math.min(lo, gradeAt(sx + k * SIGN_W / 8 * 0.996, z - k * SIGN_W / 8 * 0.09))
 			end
-			if lo >= 452 then
+			if lo >= 520 then
 				best = z
 				break
 			end
+			if lo > bestLo then
+				bestLo, bestZ = lo, z
+			end
 			z -= 10
 		end
-		local bz = best or -3560
+		local bz = best or bestZ
 		local base = gradeAt(sx, bz)
 		local pos = Vector3.new(sx, base, bz)
 		signCf = CFrame.lookAt(pos, pos + Vector3.new(0.09, 0, 0.996))
@@ -2282,6 +2329,41 @@ return function(WorldLayout: any)
 	end
 	WorldLayout.PropClusters = PropClusters
 
+	-- Protected view (gta critique 3): the SUNWOOD sign seen up Liberty Avenue from Crown. Lots under the sight lines
+	-- (from Liberty at Crown to each letter) are capped 10 studs under the line, like a real city's view corridor;
+	-- planned towers never stand there.
+	do
+		local eye = Vector3.new(-150, GRADE + 6, -250)
+		local capped = 0
+		for _, p in Parcels do
+			if p.size.Y <= 0 or p.tower then
+				continue
+			end
+			local c = p.cframe.Position
+			local r = math.sqrt(p.size.X * p.size.X + p.size.Z * p.size.Z) / 2
+			local cap = math.huge
+			for _, sp in signSamples do
+				-- closest approach of the sight line (XZ) to the lot centre
+				local ax, az = eye.X, eye.Z
+				local bx, bz = sp.X, sp.Z
+				local t, _, _, d = WorldGen.projectSeg(c.X, c.Z, ax, az, bx, bz)
+				if d <= r and t > 0.02 and t < 0.98 then
+					-- the lowest line height over the lot (toward the eye side)
+					local tLow = math.max(0, t - r / math.max(1, (sp - eye).Magnitude))
+					local y = eye.Y + (sp.Y - eye.Y) * tLow
+					cap = math.min(cap, y - 10 - c.Y)
+				end
+			end
+			if cap < p.size.Y then
+				local h = math.max(math.floor(cap), 24)
+				p.size = Vector3.new(p.size.X, h, p.size.Z)
+				p.floors = math.max(1, math.floor(h / S.STOREY))
+				capped += 1
+			end
+		end
+		WorldLayout.ViewCorridorCapped = capped
+	end
+
 	-- Line-of-sight occluders: lots, POIs, plots (boxes) and the terrain.
 	type Box = { obb: OBB, base: number, top: number, what: string }
 	local boxes: { Box } = {}
@@ -2328,7 +2410,7 @@ return function(WorldLayout: any)
 		end
 		return nil
 	end
-	local function deckAt(x: number, y: number, z: number): string?
+	local function deckAt(x: number, y: number, z: number, ignore: string?): string?
 		local hit: string? = nil
 		WorldGen.segQuery(elevSegs, x, z, 0, function(id: number)
 			if hit then
@@ -2336,6 +2418,9 @@ return function(WorldLayout: any)
 			end
 			local ei = elevSegs.owner[id]
 			local e = Edges[ei]
+			if e.name == ignore then
+				return
+			end
 			local t, _, _, d =
 				WorldGen.projectSeg(x, z, elevSegs.ax[id], elevSegs.az[id], elevSegs.bx[id], elevSegs.bz[id])
 			if d <= e.width / 2 + 2 then
@@ -2462,7 +2547,7 @@ return function(WorldLayout: any)
 	drop("hd_underring", "Under the Ring", 760, 1460, { 200, 40, 120 }, "normal")
 	drop("hd_foundry", "Brewery lot", 2800, -400, { 140, 40, 140 }, "normal")
 	drop("hd_railyard", "Rail Yard", 2900, 1350, { 200, 40, 160 }, "normal")
-	drop("hd_pier", "Palmera Pier lot", -4620, -950, { 140, 40, 140 }, "normal")
+	drop("hd_pier", "Palmera Pier lot", -4620, -950, { 140, 40, 140 }, "longhaul")
 	drop("hd_strip", "Sunwood Strip", -1650, -2150, { 160, 40, 140 }, "normal")
 	drop("hd_port", "Container Yard", 1200, 4000, { 200, 40, 200 }, "longhaul", 1)
 	drop("hd_airport", "Hangar Apron", -2900, 3150, { 220, 40, 180 }, "longhaul")
@@ -2502,7 +2587,14 @@ return function(WorldLayout: any)
 	}
 	local G = S.GRAVITY
 	-- Flight from lip along (dx, dz): returns landing point, airtime, apex, what blocked it (nil = clean landing).
-	local function fly(lip: Vector3, dx: number, dz: number, angle: number, v: number): (Vector3, number, number, string?)
+	local function fly(
+		lip: Vector3,
+		dx: number,
+		dz: number,
+		angle: number,
+		v: number,
+		ignoreDeck: string?
+	): (Vector3, number, number, string?)
 		local a = math.rad(angle)
 		local vh, vy = v * math.cos(a), v * math.sin(a)
 		local dt = 1 / 120
@@ -2523,7 +2615,7 @@ return function(WorldLayout: any)
 				return Vector3.new(x, ground, z), t, apex, nil
 			end
 			if t > 0.05 then
-				local what = boxAt(x, y, z, 1) or deckAt(x, y, z)
+				local what = boxAt(x, y, z, 1) or deckAt(x, y, z, ignoreDeck)
 				if what then
 					return Vector3.new(x, y, z), t, apex, what
 				end
@@ -2572,11 +2664,12 @@ return function(WorldLayout: any)
 		minSpeed: number,
 		size: { number },
 		runup: number?,
-		note: string?
+		note: string?,
+		ignoreDeck: string?
 	): Jump?
 		local l = math.sqrt(dx * dx + dz * dz)
 		dx, dz = dx / l, dz / l
-		local landing, airtime, apex, blocked = fly(lip, dx, dz, angle, minSpeed)
+		local landing, airtime, apex, blocked = fly(lip, dx, dz, angle, minSpeed, ignoreDeck)
 		if blocked then
 			table.insert(PlacementErrors, ("jump %s: %s"):format(id, blocked))
 		end
@@ -2639,7 +2732,20 @@ return function(WorldLayout: any)
 				far, near = e.points[1], e.points[2]
 			end
 			local d = (far - near) * Vector3.new(1, 0, 1)
-			local j = jump("sj_pier", "Pier Plunge", "splash", far + Vector3.new(0, 4, 0), d.X, d.Z, 12, 90, { 16, 4, 24 })
+			local j = jump(
+				"sj_pier",
+				"Pier Plunge",
+				"splash",
+				far + Vector3.new(0, 4, 0),
+				d.X,
+				d.Z,
+				12,
+				90,
+				{ 16, 4, 24 },
+				nil,
+				"off the end of the pier into the bay (the car is returned)",
+				"Palmera Pier"
+			)
 			if j then
 				j.runup = e.length
 			end
@@ -2743,7 +2849,60 @@ return function(WorldLayout: any)
 				"outside of a hairpin, down the fall line onto the leg below"
 			)
 		else
-			table.insert(PlacementErrors, "jump sj_hills: no hairpin with a clean landing")
+			-- no hairpin falls away steeply enough: use a crest kicker on the steepest downhill hill road instead (lands
+			-- back on the road further down; the run-up is the straight approach to the crest)
+			local crest: { any }? = nil
+			for ei, e in Edges do
+				if e.district ~= "hills" or not (e.class == "rural" or e.class == "street") or e.length < 260 then
+					continue
+				end
+				local pts = edgePts[ei].pts
+				local cum = edgeCum[ei]
+				local L = cum[#cum]
+				local s = 200
+				while s < L - 40 do
+					local px, py, pz, tx, tz = edgeAt(ei, s)
+					local _, py2 = edgeAt(ei, s + 40)
+					for _, sgn in { 1, -1 } do
+						local fall = (py - py2) * sgn
+						if fall > 3 then
+							local dx, dz = tx * sgn, tz * sgn
+							local lip = Vector3.new(px, py + 5, pz)
+							local landing, airtime, _, blocked = fly(lip, dx, dz, 14, 100)
+							local nearRoad = WorldGen.nearestEdge(edgeIndex, landing.X, landing.Z, 40)
+							if not blocked and airtime > 0.55 and nearRoad ~= nil then
+								local run = runupOnRoads(px, pz, dx, dz)
+								if run >= 160 then
+									local score = airtime + run / 1000
+									if crest == nil or score > (crest :: { any })[1] then
+										crest = { score, lip, dx, dz, run }
+									end
+								end
+							end
+						end
+					end
+					s += 10
+				end
+				local _ = pts
+			end
+			if crest then
+				local c = crest :: { any }
+				jump(
+					"sj_hills",
+					"Skyline Drop",
+					"kicker",
+					c[2],
+					c[3],
+					c[4],
+					14,
+					100,
+					{ 16, 5, 26 },
+					c[5],
+					"crest kicker on the steepest downhill run in Sunwood Hills; lands on the road below"
+				)
+			else
+				table.insert(PlacementErrors, "jump sj_hills: no hairpin or crest with a clean landing")
+			end
 		end
 	end
 	-- Unfinished Ramp: off the end of the dead-end flyover stub (layer 2) toward the Rust River.
@@ -2771,16 +2930,19 @@ return function(WorldLayout: any)
 					110,
 					{ 16, 2, 20 },
 					e.length,
-					"dead-end flyover stub off the H1 east leg; lands in the channel"
+					"dead-end flyover stub off the H1 east leg; lands in the channel",
+					stubName
 				)
 				local _ = j
 				break
 			end
 		end
 	end
-	-- Mesa Launch: off the butte rim at the top of Mesa Track.
+	-- Mesa Launch: off the butte rim at the top of Mesa Track (the dead end, not the Cactus Junction end).
 	do
-		local ei = edgeNamed("Mesa Track")
+		local ei = edgeNamed("Mesa Track", function(e: any): boolean
+			return #Nodes[e.a].edges == 1 or #Nodes[e.b].edges == 1
+		end)
 		if ei then
 			local e = Edges[ei]
 			local endNode = if #Nodes[e.b].edges == 1 then e.b else e.a
@@ -2909,5 +3071,37 @@ return function(WorldLayout: any)
 	end
 	WorldLayout.SafeZones = SafeZones
 
-	--@@PART4@@
+	-- Hand-off to phase 3 (gen/Routes.luau: spawns, routing, routes, roadblocks, streetscape, stats). Stripped before
+	-- the bake like _ctx.
+	WorldLayout._ctx2 = {
+		edgePts = edgePts,
+		edgeCum = edgeCum,
+		roadSegs = roadSegs,
+		elevSegs = elevSegs,
+		edgeIndex = edgeIndex,
+		roadClearance = roadClearance,
+		deckOver = deckOver,
+		edgeAt = edgeAt,
+		onBridge = onBridge,
+		endClear = endClear,
+		nodeRadius = nodeRadius,
+		relief = relief,
+		addPad = addPad,
+		installEdits = installEdits,
+		pads = pads,
+		cuts = cuts,
+		roadHit = roadHit,
+		roadChain = roadChain,
+		inReservedArea = inReservedArea,
+		poiById = poiById,
+		inNoLot = inNoLot,
+		overlapsAny = overlapsAny,
+		inRestricted = inRestricted,
+		edgeNamed = edgeNamed,
+		visible = visible,
+		boxAt = boxAt,
+		onRampTerminals = onRampTerminals,
+		PINNACLE = PINNACLE,
+		OPEN_USES = OPEN_USES,
+	}
 end

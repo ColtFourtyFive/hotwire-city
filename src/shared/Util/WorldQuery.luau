@@ -8,10 +8,15 @@
 -- Roads       nearestRoadPoint(pos, opts?), isOnRoad(pos, margin?), edgePoint(edge, s), laneCFrame(edge, lane, dir, s),
 --             laneCount(edge, dir), laneOffset(edge, lane, dir), parkingCFrame(edge, side, s), sidewalkCFrame(edge, side, s),
 --             nearestLane(pos, heading?),
---             outgoing(node), otherEnd(edge, node), route(from, to, opts?), routeLength(points)
+--             outgoing(node), otherEnd(edge, node), route(from, to, opts?), routeLength(points), arcs(traffic?)
 -- Junctions   intersectionAt(pos, slack?), signalState(intersection, approach, time)
--- Places      parcelAt(pos), poi(id), poisOfKind(kind), nearestPOI(pos, kind), plot(i), plotAt(pos), plotCount(),
---             landmark(id)
+-- Places      parcelAt(pos) (server), poi(id), poisOfKind(kind), nearestPOI(pos, kind), plot(i), plotAt(pos),
+--             plotCount(), landmark(id), eta(fieldId, pos) (server)
+--
+-- Routing is time-weighted (travel seconds at the AI cruise speed + the expected wait at the junction you arrive at),
+-- so the GPS, police and armored trucks take the freeway the way drivers do; the start and goal are virtual nodes on
+-- the projected edges (one-ways and the unit's heading respected), so a route never starts with a chord through a
+-- block (tech critiques 2, 3).
 
 local WorldLayout = require(script.Parent.Parent.Config.WorldLayout)
 local WorldGen = require(script.Parent.WorldGen)
@@ -260,13 +265,16 @@ function WorldQuery.laneCount(ei: number, dir: number): number
 end
 
 -- Lateral offset of lane `lane` (1 = innermost, next to the centerline / median; one-way: 1 = leftmost) to the
--- RIGHT of the travel direction, measured from the edge centerline.
+-- RIGHT of the travel direction, measured from the edge centerline. One-way carriageways with uneven shoulders (the
+-- freeways: 4 inside, 8 outside) put the lanes where they are painted (tech critique 12).
 function WorldQuery.laneOffset(ei: number, lane: number, dir: number): number
 	local e = Edges[ei]
 	local W = e.laneWidth
 	if e.oneWay then
 		local n = e.lanesF
-		return (lane - (n + 1) / 2) * W
+		local margin = e.width - n * W
+		local left = if e.class == "freeway" then e.shoulderIn else margin / 2
+		return -e.width / 2 + left + (lane - 0.5) * W
 	end
 	local _ = dir
 	return e.median / 2 + (lane - 0.5) * W
@@ -354,7 +362,7 @@ function WorldQuery.outgoing(nodeId: number): { Exit }
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Routing (A* on the directed graph; GPS, police, armored trucks)
+-- Routing (time-weighted A* on the directed graph; GPS, police, armored trucks)
 -------------------------------------------------------------------------------------------------------------------------
 
 local function nodePos(i: number): (number, number)
@@ -362,58 +370,198 @@ local function nodePos(i: number): (number, number)
 	return p.X, p.Z
 end
 
-local function nearestNodeOn(pos: Vector3, q: RoadQuery?): (number?, Vector3?)
-	local p, ei = WorldQuery.nearestRoadPoint(pos, q)
-	if p == nil or ei == nil then
-		return nil, nil
+-- Seconds lost arriving at `node` along edge ei (signals always; stop / all-way / yield on the approaches that stop).
+local function arrivalDelay(ei: number, node: number): number
+	local n = Nodes[node]
+	local id = n.intersection
+	if id == nil then
+		return 0
 	end
-	local e = Edges[ei]
-	local pa, pb = Nodes[e.a].pos, Nodes[e.b].pos
-	local da = (pa - p).Magnitude
-	local db = (pb - p).Magnitude
-	-- one-way: prefer the node we can drive to
-	if e.oneWay then
-		return e.b, p
+	local it = WorldLayout.Intersections[id]
+	if it.control == "signal" then
+		return WorldLayout.JunctionDelay.signal
+	elseif it.control == "merge" or it.control == "none" then
+		return 0
 	end
-	return (if da <= db then e.a else e.b), p
+	for _, k in it.stopApproaches do
+		if it.approaches[k].edge == ei then
+			return WorldLayout.JunctionDelay[it.control] or 0
+		end
+	end
+	return 0
 end
 
-export type RouteOpts = { traffic: boolean? }
+local function timeCost(i: number, forward: boolean): number
+	local e = Edges[i]
+	return e.length / math.max(e.speed, 5) + arrivalDelay(i, if forward then e.b else e.a)
+end
 
--- Drivable polyline from (the road nearest) fromPos to (the road nearest) toPos. Returns (points, length, signed
--- edge ids) or nil when unreachable. traffic = true keeps to roads AI traffic uses (no pier, channel, runway).
-function WorldQuery.route(fromPos: Vector3, toPos: Vector3, opts: RouteOpts?): ({ Vector3 }?, number, { number })
-	local traffic = opts ~= nil and opts.traffic == true
-	local q: RoadQuery? = if traffic then { traffic = true, maxDistance = 3000 } else { maxDistance = 3000 }
-	local a, pa = nearestNodeOn(fromPos, q)
-	local b, pb = nearestNodeOn(toPos, q)
-	if a == nil or b == nil or pa == nil or pb == nil then
-		return nil, 0, {}
+local arcCache: { [string]: { { WorldGen.Arc } } } = {}
+-- Directed arcs (cached): traffic = only roads AI traffic uses; shortest = cost in studs instead of seconds.
+function WorldQuery.arcs(traffic: boolean?, shortest: boolean?): { { WorldGen.Arc } }
+	local key = (if traffic then "t" else "a") .. (if shortest then "d" else "s")
+	local cached = arcCache[key]
+	if cached then
+		return cached
 	end
-	local arcs = if traffic then WorldLayout._trafficArcs else WorldLayout._arcs
-	local path, cost = WorldGen.astar(#Nodes, arcs, nodePos, a, b)
-	if path == nil then
-		return nil, 0, {}
-	end
-	local pts: { Vector3 } = { pa :: Vector3 }
-	for _, signed in path do
-		local e = Edges[math.abs(signed)]
-		local list = e.points
-		if signed > 0 then
-			for k = 2, #list do
-				table.insert(pts, list[k])
+	local built = WorldGen.arcs(
+		#Nodes,
+		Edges,
+		function(i: number): boolean
+			return Edges[i].oneWay
+		end,
+		if traffic
+			then function(i: number): boolean
+				return Edges[i].traffic
 			end
-		else
-			for k = #list - 1, 1, -1 do
-				table.insert(pts, list[k])
+			else nil,
+		if shortest then nil else timeCost
+	)
+	arcCache[key] = built
+	return built
+end
+
+export type RouteOpts = {
+	traffic: boolean?, -- keep to roads AI traffic uses (no pier, channel, runway, alleys)
+	shortest: boolean?, -- minimise studs instead of seconds
+	heading: Vector3?, -- the unit's facing: starting against it on a two-way road costs a U-turn
+	maxSnap: number?, -- how far from a road the endpoints may be (default 3000)
+}
+
+local UTURN_SECONDS = 12
+
+-- Start / goal seeds for a point snapped onto edge ei at arc s ({ node = cost }), respecting one-ways.
+local function seedsFor(
+	ei: number,
+	s: number,
+	asStart: boolean,
+	shortest: boolean,
+	heading: Vector3?
+): { [number]: number }
+	local e = Edges[ei]
+	local k = if shortest then 1 else 1 / math.max(e.speed, 5)
+	local L = e.length
+	local out: { [number]: number } = {}
+	if asStart then
+		local fwdPenalty, backPenalty = 0, 0
+		if heading and not e.oneWay then
+			local _, tan = WorldQuery.edgePoint(ei, s)
+			local pen = if shortest then UTURN_SECONDS * 20 else UTURN_SECONDS
+			if heading:Dot(tan) >= 0 then
+				backPenalty = pen
+			else
+				fwdPenalty = pen
+			end
+		end
+		out[e.b] = (L - s) * k + fwdPenalty
+		if not e.oneWay then
+			out[e.a] = s * k + backPenalty
+		end
+	else
+		out[e.a] = s * k
+		if not e.oneWay then
+			out[e.b] = (L - s) * k
+		end
+	end
+	return out
+end
+
+-- Points of edge ei from arc s0 to s1 (either direction), endpoints included.
+local function slice(ei: number, s0: number, s1: number, out: { Vector3 })
+	local pts = Edges[ei].points
+	local cum = cumOf(ei)
+	local function push(p: Vector3)
+		local last = out[#out]
+		if last == nil or (last - p).Magnitude > 0.05 then
+			table.insert(out, p)
+		end
+	end
+	push((WorldQuery.edgePoint(ei, s0)))
+	if s0 <= s1 then
+		for k = 1, #pts do
+			if cum[k] > s0 + 0.01 and cum[k] < s1 - 0.01 then
+				push(pts[k])
+			end
+		end
+	else
+		for k = #pts, 1, -1 do
+			if cum[k] < s0 - 0.01 and cum[k] > s1 + 0.01 then
+				push(pts[k])
 			end
 		end
 	end
-	if #path == 0 then
-		table.insert(pts, Nodes[a].pos)
+	push((WorldQuery.edgePoint(ei, s1)))
+end
+
+-- Drivable polyline from (the road nearest) fromPos to (the road nearest) toPos. Returns (points, length in studs,
+-- signed edge ids, cost) or nil when unreachable. The first and last pieces run along the snapped edges.
+function WorldQuery.route(
+	fromPos: Vector3,
+	toPos: Vector3,
+	opts: RouteOpts?
+): ({ Vector3 }?, number, { number }, number)
+	local traffic = opts ~= nil and opts.traffic == true
+	local shortest = opts ~= nil and opts.shortest == true
+	local maxSnap = if opts and opts.maxSnap then opts.maxSnap else 3000
+	local q: RoadQuery = { traffic = traffic, maxDistance = maxSnap }
+	local pa, ea, sa = WorldQuery.nearestRoadPoint(fromPos, q)
+	local pb, eb, sb = WorldQuery.nearestRoadPoint(toPos, q)
+	if pa == nil or pb == nil or ea == nil or eb == nil then
+		return nil, 0, {}, math.huge
 	end
-	table.insert(pts, pb :: Vector3)
-	return pts, cost, path
+	local arcs = WorldQuery.arcs(traffic, shortest)
+	local starts = seedsFor(ea, sa, true, shortest, opts and opts.heading)
+	local goals = seedsFor(eb, sb, false, shortest, nil)
+	local hScale = if shortest then 1 else 1 / math.max(WorldLayout.MaxSpeed, 1)
+	-- same edge and drivable directly
+	local direct: number? = nil
+	if ea == eb and (sb >= sa or not Edges[ea].oneWay) then
+		local e = Edges[ea]
+		direct = math.abs(sb - sa) * (if shortest then 1 else 1 / math.max(e.speed, 5))
+	end
+	local path, startNode, goalNode, cost = WorldGen.astarMulti(arcs, nodePos, starts, goals, pb.X, pb.Z, hScale)
+	local pts: { Vector3 } = {}
+	if direct ~= nil and (path == nil or (direct :: number) <= cost) then
+		slice(ea, sa, sb, pts)
+		return pts, math.abs(sb - sa), { if sb >= sa then ea else -ea }, direct :: number
+	end
+	if path == nil then
+		return nil, 0, {}, math.huge
+	end
+	local edges: { number } = {}
+	local length = 0
+	local eA = Edges[ea]
+	if startNode == eA.b then
+		slice(ea, sa, eA.length, pts)
+		table.insert(edges, ea)
+		length += eA.length - sa
+	else
+		slice(ea, sa, 0, pts)
+		table.insert(edges, -ea)
+		length += sa
+	end
+	for _, signed in path do
+		local ei = math.abs(signed)
+		local e = Edges[ei]
+		if signed > 0 then
+			slice(ei, 0, e.length, pts)
+		else
+			slice(ei, e.length, 0, pts)
+		end
+		table.insert(edges, signed)
+		length += e.length
+	end
+	local eB = Edges[eb]
+	if goalNode == eB.a then
+		slice(eb, 0, sb, pts)
+		table.insert(edges, eb)
+		length += sb
+	else
+		slice(eb, eB.length, sb, pts)
+		table.insert(edges, -eb)
+		length += eB.length - sb
+	end
+	return pts, length, edges, cost
 end
 
 function WorldQuery.routeLength(points: { Vector3 }?): number
@@ -513,8 +661,11 @@ local function parcelIndex(): { [number]: { number } }
 	return built
 end
 
--- The lot containing pos (top-down), or nil.
+-- The lot containing pos (top-down), or nil. Server only (lots are server data): nil on clients.
 function WorldQuery.parcelAt(pos: Vector3): Parcel?
+	if not WorldLayout.hasServerData() then
+		return nil
+	end
 	local list = parcelIndex()[WorldGen.cellKey(math.floor(pos.X / PARCEL_CELL), math.floor(pos.Z / PARCEL_CELL))]
 	if not list then
 		return nil
@@ -582,6 +733,29 @@ function WorldQuery.plotAt(pos: Vector3): number?
 		end
 	end
 	return nil
+end
+
+-- Seconds from pos to an ETA field's target (Hot Drop zone id, or "<armored route id>_<stop>"), or nil. Server only.
+function WorldQuery.eta(fieldId: string, pos: Vector3): number?
+	if not WorldLayout.hasServerData() then
+		return nil
+	end
+	local field = WorldLayout.EtaFields[fieldId]
+	if not field then
+		return nil
+	end
+	local p, ei, s = WorldQuery.nearestRoadPoint(pos, { maxDistance = 3000 })
+	if p == nil or ei == nil then
+		return nil
+	end
+	local best = math.huge
+	for node, c in seedsFor(ei, s, true, false, nil) do
+		local f = field[node]
+		if f and f >= 0 then
+			best = math.min(best, c + f)
+		end
+	end
+	return if best < math.huge then best else nil
 end
 
 function WorldQuery.landmark(id: string): WorldLayout.Landmark?
