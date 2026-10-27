@@ -12,9 +12,11 @@
 -- line of sight; it matches 90% of a fast car's top speed, so nitro and buildings break its view). The server keeps
 -- the heli's logical state and publishes HeliCFrame / SpotPos model attributes at ~10 Hz; EffectsController renders.
 -- Cruisers' top speed scales with stars AND with the suspect's car (a Legendary can't just outrun a 5-star chase).
--- Officers (docs/ART_PASS.md AP3): every cruiser gets a seated NPCService officer (police outfit; TrafficService's
--- block dummy in police blue until NPCService is ready / over budget, upgraded on NPCService.Ready). A wrecked
--- cruiser's officer is yeeted out (NPCService.ejectComic). On WantedService.Busted an officer steps out beside the
+-- Officers (docs/ART_PASS.md AP3): every cruiser gets a seated officer: an NPCService humanoid (police outfit) where
+-- it can be seen (NPCService.driverVisible: not inside the closed police_unit shell), else TrafficService's block
+-- dummy in police blue (also until NPCService is ready / over budget; visible dummies are upgraded by the manage pass,
+-- OFFICER_UPGRADES_PER_PASS, out of view). A wrecked cruiser's officer is yeeted out (NPCService.ejectComic; a dummy
+-- hands its seat to a humanoid for that). On WantedService.Busted an officer steps out beside the
 -- busted player (nearest cruiser's side) for BUST_OFFICER_TIME seconds: purely visual.
 --
 -- Public API (docs/SPEC.md §6):
@@ -113,6 +115,8 @@ local POLICE_NITRO_SECONDS = 3
 local BUST_OFFICER_TIME = 4 -- the BUSTED officer stands beside the player this long (visual only)
 local BUST_OFFICER_OFFSET = 4.5 -- studs from the player toward the nearest cruiser
 local BUST_OFFICER_UNIT_RANGE = 80 -- a cruiser farther than this: the officer stands at the player's right
+local OFFICER_UPGRADES_PER_PASS = 1 -- block-dummy officers swapped for humanoids per manage pass...
+local OFFICER_UPGRADE_HIDDEN_DIST = 120 -- ...only in cruisers at least this far from every player
 
 -- Stars -> top speed multiplier: 1-star cops are beatable, 5-star cops are relentless.
 local SPEED_MULT_BY_STARS = { 0.82, 0.9, 0.97, 1.03, 1.08 }
@@ -649,7 +653,8 @@ local function refreshLosFilter()
 		return
 	end
 	local list: { Instance } = {}
-	for _, name in { "Vehicles", "Effects", "Dealership" } do
+	-- NPCs: pedestrians (a knocked-down one lying in the road) never block a cop's view
+	for _, name in { "Vehicles", "Effects", "Dealership", "NPCs" } do
 		local f = Workspace:FindFirstChild(name)
 		if f then
 			table.insert(list, f)
@@ -824,10 +829,22 @@ local function markWrecked(unit: Unit, now: number)
 	if st then
 		st.nextSpawnAt = math.max(st.nextSpawnAt, now + WRECK_RESPAWN_DELAY)
 	end
-	-- the officer gets yeeted out of the wreck (comic ragdoll; the block dummy just stays in its seat)
+	-- the officer gets yeeted out of the wreck (comic ragdoll). A block dummy (closed shell) hands its seat to a
+	-- real humanoid just for the gag; without one the dummy stays in its seat.
 	local npc = unit.npc
+	local NPCService = sys("NPCService")
+	if npc and npc.Parent and not hasHumanoid(npc) and NPCService and typeof(NPCService.spawnDriver) == "function" then
+		local seat = unit.car.seat
+		if typeof(seat) == "Instance" and seat:IsA("BasePart") and seat.Parent then
+			local ok, human = pcall(NPCService.spawnDriver, seat, "police")
+			if ok and typeof(human) == "Instance" and human:IsA("Model") then
+				npc:Destroy()
+				npc = human
+				unit.npc = human
+			end
+		end
+	end
 	if npc and npc.Parent and hasHumanoid(npc) then
-		local NPCService = sys("NPCService")
 		if NPCService and typeof(NPCService.ejectComic) == "function" then
 			unit.npc = nil
 			local fling = unit.chassis.AssemblyLinearVelocity * 0.5 + unit.chassis.CFrame.RightVector * 30
@@ -1044,8 +1061,17 @@ end
 
 local onUnitTouched: (Unit, BasePart) -> ()
 
--- Seats an officer in a cruiser: NPCService's police humanoid, else (allowDummy) TrafficService's block dummy in
--- police blue. nil when neither is available.
+-- Would a seated officer in this cruiser be seen? (NPCService.driverVisible: not in the closed police_unit shell)
+local function driverVisible(NPCService: any, model: Model): boolean
+	if typeof(NPCService.driverVisible) ~= "function" then
+		return true
+	end
+	local ok, visible = pcall(NPCService.driverVisible, model)
+	return not ok or visible == true
+end
+
+-- Seats an officer in a cruiser: NPCService's police humanoid where it can be seen, else (allowDummy)
+-- TrafficService's block dummy in police blue. nil when neither is available.
 local function attachOfficer(car: any, model: Model, chassis: BasePart, allowDummy: boolean): Model?
 	local seat = car.seat
 	if typeof(seat) ~= "Instance" or not seat:IsA("BasePart") then
@@ -1055,7 +1081,7 @@ local function attachOfficer(car: any, model: Model, chassis: BasePart, allowDum
 		return nil
 	end
 	local NPCService = sys("NPCService")
-	if NPCService and typeof(NPCService.spawnDriver) == "function" then
+	if NPCService and typeof(NPCService.spawnDriver) == "function" and driverVisible(NPCService, model) then
 		local ok, npc = pcall(NPCService.spawnDriver, seat, "police")
 		if ok and typeof(npc) == "Instance" and npc:IsA("Model") then
 			return npc
@@ -1074,11 +1100,26 @@ local function attachOfficer(car: any, model: Model, chassis: BasePart, allowDum
 	return nil
 end
 
--- Swap block-dummy officers (or empty seats) for NPCService humanoids once it is ready.
-local function upgradeOfficers()
+-- Swap block-dummy officers (or empty seats) for NPCService humanoids: at most `limit` per call, only in cruisers
+-- whose officer can be seen (not a closed shell) and that are out of every player's close view (no pop-in).
+local function upgradeOfficers(limit: number)
+	local NPCService = sys("NPCService")
+	if not NPCService or typeof(NPCService.isReady) ~= "function" or not NPCService.isReady() then
+		return
+	end
+	local n = 0
 	for _, unit in units do
+		if n >= limit then
+			break
+		end
 		local old = unit.npc
 		if not unit.alive or unit.mode == "wrecked" or hasHumanoid(old) or not unit.model.Parent then
+			continue
+		end
+		if not driverVisible(NPCService, unit.model) then
+			continue
+		end
+		if anyPlayerNear(unit.chassis.Position, OFFICER_UPGRADE_HIDDEN_DIST) then
 			continue
 		end
 		local human = attachOfficer(unit.car, unit.model, unit.chassis, false)
@@ -1089,6 +1130,7 @@ local function upgradeOfficers()
 		if old then
 			old:Destroy()
 		end
+		n += 1
 	end
 end
 
@@ -2073,6 +2115,7 @@ end
 
 local function managePass(now: number)
 	refreshLosFilter()
+	upgradeOfficers(OFFICER_UPGRADES_PER_PASS)
 
 	-- per-unit upkeep
 	for player, st in suspects do
@@ -2293,15 +2336,8 @@ function PoliceService.init()
 end
 
 function PoliceService.start()
-	local NPCService = sys("NPCService")
-	if NPCService and NPCService.Ready then
-		NPCService.Ready:Connect(function()
-			local ok, err = pcall(upgradeOfficers)
-			if not ok then
-				warn("[PoliceService] officer upgrade failed: " .. tostring(err))
-			end
-		end)
-	end
+	-- dummy officers get their humanoids from the manage pass (upgradeOfficers: gated, out of view), not in a burst
+	-- when NPCService becomes ready
 	local function onPlayerAdded(player: Player)
 		local st = getSuspect(player)
 		setBustProgress(st, 0)

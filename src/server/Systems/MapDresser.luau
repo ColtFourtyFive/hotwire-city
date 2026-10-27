@@ -2,18 +2,22 @@
 -- MapDresser: swaps procedural placeholders for the art kit (docs/ART_PASS.md, AP2).
 --
 -- start() puts the billboard ads up right away (images don't depend on mesh loading), then waits for
--- AssetLibrary.waitAll(25) and dresses every AssetSlot in Workspace (Workspace.Map first, then any other system's
--- slots), and keeps dressing slots tagged later (rebuilt garages, ...) plus slots whose template loads late:
+-- AssetLibrary.waitAll(25), hooks late slots (tagged later: rebuilt garages, ...) and late templates (AssetLibrary.Ready)
+-- BEFORE the first pass (a template landing while the pass yields is never missed), then dresses every AssetSlot in
+-- Workspace (Workspace.Map first, then any other system's slots) and marks Workspace.Map Dressed = true:
 --   * resolves the slot's Role to a Config/Assets key (variant groups such as "palm_tree" pick a variant from the
 --     slot position, so every server shows the same city),
 --   * clones the template onto the slot's ground CFrame (slot pivot, plus the optional Yaw attribute),
 --   * rescales when the slot's Fit differs from the AssetDef size (Model:ScaleTo about the bottom-center root),
---   * Buildings collide + can be queried (AssetLibrary leaves templates non-colliding); props never collide and small
---     props cast no shadow,
+--   * Buildings collide + can be queried (AssetLibrary leaves templates non-colliding). Prop meshes never collide:
+--     a prop keeps its placeholder's colliders instead (invisible, under the clone's "Colliders" folder), so the
+--     city collides exactly the same whether or not a template loaded (MeshPart collision fidelity isn't scriptable),
+--   * shadows: buildings yes; props only when big (SMALL_PROP) and not thin street furniture (NO_SHADOW),
+--   * the clone's AssetRoot is dropped (its CFrame becomes the clone's WorldPivot): one part less per slot,
 --   * removes the placeholder only after the clone is parented in its place.
 -- Slots whose template is missing keep their procedural placeholder. A slot with attribute NoDress = true (a system
--- that dresses its own slots) or Dressed = true is left alone. Work is spread over frames (YIELD_EVERY clones per
--- frame) so boot doesn't hitch.
+-- that dresses its own slots) or Dressed = true is left alone. Work is spread over frames (at most SLICE_BUDGET seconds
+-- and YIELD_EVERY clones per frame) so boot doesn't hitch.
 --
 -- Billboards: every BasePart tagged "Billboard" gets a Decal on its Front (and Back when AdBack = true) with an
 -- Assets.billboardAds() image picked from the board position; a board that already carries a Decal is skipped, and a
@@ -34,9 +38,20 @@ local MapDresser = {}
 MapDresser.TAG_SLOT = "AssetSlot"
 MapDresser.TAG_BILLBOARD = "Billboard"
 MapDresser.WAIT_TIMEOUT = 25
-MapDresser.YIELD_EVERY = 40
+MapDresser.YIELD_EVERY = 40 -- at most this many clones per frame...
+MapDresser.SLICE_BUDGET = 0.002 -- ...and at most this much server time (seconds) per frame
 -- Props whose dressed size stays under this (studs, along their fit dimension) cast no shadow.
 MapDresser.SMALL_PROP = 12
+-- Thin street furniture never casts shadows, whatever its size: ~5-6k-tri poles / frames add shadow-pass geometry for
+-- almost no visible shadow (mobile budget). Concrete Config/Assets keys.
+MapDresser.NO_SHADOW = {
+	street_lamp = true,
+	traffic_light = true,
+	billboard = true,
+	bus_stop = true,
+	road_barrier = true,
+} :: { [string]: boolean }
+MapDresser.COLLIDERS = "Colliders" -- folder (in a dressed prop) holding its placeholder's invisible colliders
 
 MapDresser.Done = Signal.new() -- (dressedCount: number)
 
@@ -139,6 +154,45 @@ local function scaleModel(model: Model, factor: number)
 	end
 end
 
+-- Moves a prop placeholder's collidable parts into its dressed clone as invisible colliders: the solid parts of a
+-- placeholder are sized to the kit asset, so the world's collision layout is the same with or without the mesh (prop
+-- meshes themselves never collide). Children (decals, guis, lights) and tags (NightGlow, ...) are stripped.
+local function keepColliders(slot: Model, clone: Model): number
+	local solid: { BasePart } = {}
+	for _, d in slot:GetDescendants() do
+		if d:IsA("BasePart") and d.CanCollide then
+			table.insert(solid, d)
+		end
+	end
+	if #solid == 0 then
+		return 0
+	end
+	local holder = Instance.new("Folder")
+	holder.Name = MapDresser.COLLIDERS
+	holder.Parent = clone
+	for _, p in solid do
+		p.Parent = holder
+	end
+	for _, p in solid do
+		for _, c in p:GetChildren() do
+			if not c:IsA("BasePart") then
+				c:Destroy()
+			end
+		end
+		for _, tagName in p:GetTags() do
+			p:RemoveTag(tagName)
+		end
+		p.Name = "Collider"
+		p.Anchored = true
+		p.Transparency = 1
+		p.CastShadow = false
+		p.CanTouch = false
+		p.CanCollide = true
+		p.CanQuery = true
+	end
+	return #solid
+end
+
 -- Dresses one slot. Returns the placed clone, or nil when the slot keeps its placeholder.
 function MapDresser.dressSlot(slot: Model): Model?
 	if not slot.Parent or slot:GetAttribute("Dressed") == true or slot:GetAttribute("NoDress") == true then
@@ -166,20 +220,26 @@ function MapDresser.dressSlot(slot: Model): Model?
 	local ground = slot:GetPivot() * CFrame.Angles(0, math.rad(if type(yaw) == "number" then yaw else 0), 0)
 	clone:PivotTo(ground)
 
+	-- the root only marks the pivot (the slot's ground CFrame): keep it as the clone's WorldPivot, drop the part
+	local root = clone:FindFirstChild("AssetRoot")
+	if root and root:IsA("BasePart") then
+		local pivot = root.CFrame
+		pcall(function()
+			clone.PrimaryPart = nil
+		end)
+		root:Destroy()
+		clone.WorldPivot = pivot
+	end
+
 	local isBuilding = category == "Buildings"
-	local shadow = isBuilding or def.size * factor >= MapDresser.SMALL_PROP
+	local shadow = isBuilding or (MapDresser.NO_SHADOW[key] ~= true and def.size * factor >= MapDresser.SMALL_PROP)
 	for _, d in clone:GetDescendants() do
 		if d:IsA("BasePart") then
 			d.Anchored = true
 			d.CanTouch = false
-			if d.Name == "AssetRoot" then
-				d.CanCollide = false
-				d.CanQuery = false
-			else
-				d.CanCollide = isBuilding
-				d.CanQuery = isBuilding
-				d.CastShadow = shadow
-			end
+			d.CanCollide = isBuilding
+			d.CanQuery = isBuilding
+			d.CastShadow = shadow
 		end
 	end
 	clone.Name = slot.Name
@@ -193,6 +253,9 @@ function MapDresser.dressSlot(slot: Model): Model?
 		return nil
 	end
 	clone.Parent = parent
+	if not isBuilding then
+		keepColliders(slot, clone)
+	end
 	slot:SetAttribute("Dressed", true)
 	slot:Destroy()
 	dressedCount += 1
@@ -239,25 +302,45 @@ function MapDresser.applyBillboards(root: Instance): number
 	return count
 end
 
--- Dresses every slot under root, yielding every `yieldEvery` clones (0 = never). Returns the number dressed.
-function MapDresser.dressAll(root: Instance, yieldEvery: number?): number
+-- Every AssetSlot model under root: the tag index for live trees (no full Workspace walk), a walk for detached ones.
+local function slotsUnder(root: Instance): { Model }
 	local slots = {}
-	for _, d in root:GetDescendants() do
-		if d:IsA("Model") and d:HasTag(MapDresser.TAG_SLOT) then
-			table.insert(slots, d)
+	if root == Workspace or root:IsDescendantOf(Workspace) then
+		for _, d in CollectionService:GetTagged(MapDresser.TAG_SLOT) do
+			if d:IsA("Model") and d:IsDescendantOf(root) then
+				table.insert(slots, d)
+			end
+		end
+	else
+		for _, d in root:GetDescendants() do
+			if d:IsA("Model") and d:HasTag(MapDresser.TAG_SLOT) then
+				table.insert(slots, d)
+			end
 		end
 	end
+	return slots
+end
+
+-- Dresses every slot under root, yielding a frame after every `yieldEvery` clones or SLICE_BUDGET seconds of work
+-- (yieldEvery 0 = never yield). Returns the number dressed.
+function MapDresser.dressAll(root: Instance, yieldEvery: number?): number
+	local slots = slotsUnder(root)
 	local n = 0
 	local every = yieldEvery or MapDresser.YIELD_EVERY
+	local sliceStart = os.clock()
 	for _, slot in slots do
 		local ok, result = pcall(MapDresser.dressSlot, slot)
 		if not ok then
 			warn(("[MapDresser] %s failed: %s"):format(slot:GetFullName(), tostring(result)))
 		elseif result then
 			n += 1
-			if every > 0 and n % every == 0 then
-				task.wait()
-			end
+		end
+		if
+			every > 0
+			and ((ok and result ~= nil and n % every == 0) or os.clock() - sliceStart >= MapDresser.SLICE_BUDGET)
+		then
+			task.wait()
+			sliceStart = os.clock()
 		end
 	end
 	return n
@@ -284,15 +367,10 @@ function MapDresser.start()
 
 	local AssetLibrary = require(script.Parent.AssetLibrary) :: any
 	AssetLibrary.waitAll(MapDresser.WAIT_TIMEOUT)
-	local n = 0
-	local map = Workspace:FindFirstChild("Map")
-	if map then
-		n += MapDresser.dressAll(map)
-	end
-	n += MapDresser.dressAll(Workspace)
-	done = true
-	MapDresser.Done:Fire(n)
 
+	-- Late hooks go in before the first pass: a template that lands (or a slot tagged) while the pass yields is
+	-- handled by them. dressSlot never yields and skips slots that are gone / already dressed, so the handlers and the
+	-- pass can interleave safely.
 	-- slots tagged later (e.g. rebuilt garages): deferred, so their builder finishes parenting first
 	CollectionService:GetInstanceAddedSignal(MapDresser.TAG_SLOT):Connect(function(inst: Instance)
 		task.defer(function()
@@ -324,6 +402,19 @@ function MapDresser.start()
 			end
 		end)
 	end)
+
+	local n = 0
+	local map = Workspace:FindFirstChild("Map")
+	if map then
+		n += MapDresser.dressAll(map)
+	end
+	n += MapDresser.dressAll(Workspace)
+	done = true
+	-- clients (LoadingScreen) can wait for the swap instead of fading out over the placeholder city
+	if map then
+		map:SetAttribute("Dressed", true)
+	end
+	MapDresser.Done:Fire(n)
 end
 
 return MapDresser

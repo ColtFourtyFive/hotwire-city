@@ -35,7 +35,9 @@
 --     raised onto the shell roof (other cars hide theirs: the mesh has its own lightbar). Open-top shells
 --     (SHELL_SEAT_DROP) lower the DriverSeat into the mesh's seat. Model attributes HeroMesh = true and ShellHeight
 --     (shell roof above the ground). No template (Lune harness, failed or not-yet-loaded asset) = no-op: the
---     procedural car is the fallback. removeShell(model) undoes it.
+--     procedural car is the fallback. removeShell(model) undoes it. opts.noShell = true skips the shell (procedural
+--     look only, Model attribute CarBuilder.NO_SHELL_ATTR "NoShell" = true so AssetClient leaves it bare too): for
+--     previews built many at a time (the Index card grid: ~30 ViewportFrames x a 9k-tri hero mesh each).
 --
 -- BUILT POSE: the ground plane is y = 0, the car is centered on x/z and faces -Z (pivot LookVector).
 -- Wheels rest on the ground; the chassis center sits RideHeight above it. Spawn with
@@ -51,7 +53,7 @@ local Rarity = require(Shared.Config.Rarity)
 type CarDef = Cars.CarDef
 type MutationId = Rarity.MutationId
 
-export type BuildOpts = { forDisplay: boolean? }
+export type BuildOpts = { forDisplay: boolean?, noShell: boolean? }
 export type StyleDims = { length: number, width: number, height: number, wheelRadius: number }
 
 type Look = {
@@ -182,6 +184,8 @@ local SHELL_NAME = "HeroShell"
 CarBuilder.SHELL_NAME = SHELL_NAME
 local CLIENT_TAG = "ClientCar"
 CarBuilder.CLIENT_TAG = CLIENT_TAG
+local NO_SHELL_ATTR = "NoShell" -- built with opts.noShell: stays procedural (no late re-skin either)
+CarBuilder.NO_SHELL_ATTR = NO_SHELL_ATTR
 local SHELL_WIDTH_SLACK = 1.15 -- a shell may be this much wider than the procedural body before it is scaled down
 local SIREN_GAP = 0.05 -- police sirens sit this far above the shell roof
 local HIDDEN_ATTR = "ShellHidden" -- procedural part / decal hidden by applyShell: its old Transparency (guis: true)
@@ -1961,6 +1965,10 @@ function CarBuilder.buildDef(def: CarDef, mutation: MutationId?, opts: BuildOpts
 	CarBuilder.applyMutation(model, mutation or "None")
 	if isClient() then
 		model:AddTag(CLIENT_TAG)
+	end
+	if opts ~= nil and opts.noShell == true then
+		model:SetAttribute(NO_SHELL_ATTR, true)
+		return model
 	end
 	-- art is optional: a broken template must never break a build (the procedural car stays)
 	local ok, err = pcall(CarBuilder.applyShell, model)

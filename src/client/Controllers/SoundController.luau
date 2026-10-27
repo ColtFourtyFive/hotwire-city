@@ -15,7 +15,9 @@
 --  * Car radio: Config/Sounds Radio_* tracks grouped into stations by their `station` field. 2D music on the music
 --    channel, only while the local player drives (VehicleClient: setRadioOn / stepRadio) and the music setting is on.
 --    Two decks crossfade on station changes; a finished track queues the station's next one; a track that never loads
---    is skipped. RadioChanged(station?, title?) drives the DrivingUI label.
+--    is skipped. A station change retunes the label at once but starts its track only after RADIO_TUNE_DELAY without
+--    another press (each start streams a 2-3 min track: mashing the buttons must not download one per press).
+--    RadioChanged(station?, title?) drives the DrivingUI label.
 --  * Settings: snapshot settings.sfx / settings.music drive two SoundGroups (HC_SFX, HC_Music); ambience counts as
 --    "music". setEnabled / setVolume let other controllers (e.g. Settings menu previews) override locally.
 --  * start(): ContentProvider:PreloadAsync of every Config/Sounds id except the radio tracks (pcall, background; the
@@ -60,6 +62,8 @@ local DEFAULT_TOP_SPEED = 100
 local RADIO_PREFIX = "Radio_"
 local RADIO_FADE = 0.8 -- seconds per crossfade half
 local RADIO_LOAD_TIMEOUT = 12 -- a track still not loaded after this is skipped
+local RADIO_TUNE_DELAY = 0.4 -- seconds after the last station press before that station's track starts
+SoundController.RADIO_TUNE_DELAY = RADIO_TUNE_DELAY
 
 -- Kinds whose cars sit still (anchored displays / unclaimed) and never get an engine loop.
 local SILENT_KINDS: { [string]: boolean } = { Parked = true, Dealership = true, HotDrop = true }
@@ -423,6 +427,7 @@ local radioTweens: { [number]: Tween } = {}
 local radioDeck = 1
 local radioToken = 0 -- bumped per track start / stop: stale delayed checks bail
 local radioSkips = 0 -- consecutive tracks skipped for not loading (bounded: never spin on a dead station)
+local radioTuneToken = 0 -- bumped per station press and per track start: only the latest pending tune plays
 local playNextTrack: () -> ()
 
 local function notifyRadio()
@@ -485,6 +490,7 @@ playNextTrack = function()
 	if not (radioPlaying and station and #station.tracks > 0) then
 		return
 	end
+	radioTuneToken += 1 -- this start supersedes any pending station press
 	local count = #station.tracks
 	local index = radioNextTrack[radioStation]
 	if not index or index < 1 or index > count then
@@ -561,7 +567,8 @@ function SoundController.setRadioOn(on: boolean)
 	end
 end
 
--- Next (+1) / previous (-1) station. Crossfades when playing; otherwise just retunes (music off: label only).
+-- Next (+1) / previous (-1) station. The label retunes at once; when playing, the station's track crossfades in
+-- RADIO_TUNE_DELAY after the last press (a burst of presses streams one track, not one per press).
 function SoundController.stepRadio(dir: number)
 	if #stations == 0 then
 		return
@@ -569,12 +576,18 @@ function SoundController.stepRadio(dir: number)
 	local step = if typeof(dir) == "number" and dir < 0 then -1 else 1
 	radioStation = SoundController.stepIndex(radioStation, step, #stations)
 	radioSkips = 0
-	if radioPlaying then
-		playNextTrack()
-	else
-		radioTitle = nil
-		notifyRadio()
+	radioTitle = nil
+	notifyRadio()
+	if not radioPlaying then
+		return
 	end
+	radioTuneToken += 1
+	local tune = radioTuneToken
+	task.delay(RADIO_TUNE_DELAY, function()
+		if tune == radioTuneToken and radioPlaying then
+			playNextTrack()
+		end
+	end)
 end
 
 -- (station name?, track title? (nil while silent), playing)

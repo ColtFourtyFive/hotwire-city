@@ -1,17 +1,22 @@
 --!strict
--- Loads optional runtime art (Config/Assets) at boot, sanitizes and normalizes it, and publishes templates to
--- ReplicatedStorage.AssetLibrary.<Category>.<key> so both server and client builders can clone them.
+-- Loads optional runtime art (Config/Assets) at boot, sanitizes and normalizes it, and publishes the templates:
+-- Hero shells to ReplicatedStorage.AssetLibrary.Hero.<key> (client-built Index cars clone them too), city dressing
+-- (Props / Buildings: only ever cloned on the server, by MapDresser / PlotService) to ServerStorage.AssetLibrary.<cat>,
+-- so joining clients don't download templates they never render.
 --
 -- Normalized template contract:
 --   Model named <key>, PrimaryPart "AssetRoot" (invisible, anchored, 1x1x1) at the asset's bottom-center,
 --   identity rotation; the asset's front faces -Z; scaled per its AssetDef; every BasePart Anchored=true,
 --   CanCollide = def.collide or false, CanTouch=false, CanQuery = def.collide or false. No scripts/sounds/prompts.
+--   Creator Store (source = "store") assets are held to an allowlist (parts, meshes, SurfaceAppearance, containers:
+--   no decals / guis / lights / emitters) and at most MAX_STORE_PARTS parts: a creator's update can't push content
+--   or a perf bomb into every server.
 -- Consumers: model:PivotTo(groundCFrame) places it standing on that point.
 --
--- Load order: Hero vehicle shells first (police_unit, then the catalog from Common up: the cars that spawn most), so
--- most cars are built already skinned; then Props and Buildings. The root folder gets attribute HeroReady=true once
--- every Hero entry finished and AllReady=true at the end. Templates stay in ReplicatedStorage: client-built cars
--- (Index viewports) clone them too.
+-- Load order (loadQueue): the police cruiser and the Common / Uncommon Hero shells (the cars that spawn most), then
+-- Buildings (the skyline; they collide), then the Props that something places, then the remaining Hero shells. Props
+-- in SKIP (no slot or system uses them) or flagged `lazy` are never loaded. The ReplicatedStorage folder gets attribute
+-- HeroReady=true once every Hero entry finished and AllReady=true at the end.
 -- Late arrival (docs/ART_PASS.md AP1): when a Hero template becomes ready, every car already built with that CarId in
 -- Workspace.Vehicles, Workspace.Dealership and Workspace.Plots.*.Display gets CarBuilder.applyShell (clients re-skin
 -- their own client-built models: Client/Controllers/AssetClient).
@@ -19,6 +24,7 @@
 local AssetService = game:GetService("AssetService")
 local InsertService = game:GetService("InsertService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
@@ -32,7 +38,33 @@ local AssetLibrary = {}
 AssetLibrary.Ready = Signal.new() -- (category: string, key: string, template: Model)
 AssetLibrary.AllReady = Signal.new() -- ()
 
+-- Props nothing places (no MapBuilder / PlotService / DealershipService slot role, no direct get): never loaded. Most
+-- are Creator Store models; loading them only delayed the Buildings and shipped dead templates.
+-- (tests/spec/assets_shell.spec.luau checks this list against the source.)
+AssetLibrary.SKIP = {
+	Props = {
+		cash_stack = true,
+		construction_barrier = true,
+		donut_giant = true,
+		garage_door_rollup = true,
+		neon_sign_open = true,
+		parking_meter = true,
+		phone_booth = true,
+		police_barricade = true,
+		police_helicopter = true,
+		scrap_car = true,
+		spray_can = true,
+		street_lamp_classic = true,
+	},
+} :: { [string]: { [string]: boolean } }
+-- Hero tiers loaded ahead of the Buildings (with the police cruiser): the cars traffic / street spawns use most.
+AssetLibrary.EARLY_HERO_TIERS = { Common = true, Uncommon = true } :: { [string]: boolean }
+-- Categories whose templates stay on the server (ServerStorage.AssetLibrary): clients never clone them.
+AssetLibrary.SERVER_ONLY = { Props = true, Buildings = true } :: { [string]: boolean }
+AssetLibrary.MAX_STORE_PARTS = 250 -- a Creator Store model with more parts than this is rejected (fallback stays)
+
 local root: Folder
+local serverRoot: Folder? = nil
 local templates: { [string]: { [string]: Model } } = {}
 local pending = 0
 local allDone = false
@@ -60,15 +92,27 @@ local REMOVE_CLASSES = {
 	"Script",
 }
 
-local function sanitize(model: Instance)
-	for _, d in model:GetDescendants() do
-		local remove = false
-		for _, cls in REMOVE_CLASSES do
-			if d:IsA(cls) then
-				remove = true
-				break
-			end
+-- Creator Store models keep only these (and lose everything else, Decals / SurfaceGuis / lights / emitters included).
+local STORE_KEEP = {
+	"BasePart",
+	"DataModelMesh",
+	"SurfaceAppearance",
+	"Model",
+	"Folder",
+}
+
+local function isAny(inst: Instance, classes: { string }): boolean
+	for _, cls in classes do
+		if inst:IsA(cls) then
+			return true
 		end
+	end
+	return false
+end
+
+local function sanitize(model: Instance, store: boolean?)
+	for _, d in model:GetDescendants() do
+		local remove = if store then not isAny(d, STORE_KEEP) else isAny(d, REMOVE_CLASSES)
 		if remove then
 			pcall(function()
 				d:Destroy()
@@ -118,7 +162,27 @@ end
 
 -- Turns a raw loaded container into a normalized template Model (or nil if it has no visible parts).
 function AssetLibrary._normalize(raw: Instance, key: string, def: Assets.AssetDef): Model?
-	sanitize(raw)
+	local store = def.source == "store"
+	sanitize(raw, store)
+	if store then
+		local count = 0
+		for _, d in raw:GetDescendants() do
+			if d:IsA("BasePart") then
+				count += 1
+			end
+		end
+		if count > AssetLibrary.MAX_STORE_PARTS then
+			warn(
+				("[AssetLibrary] %s: store model has %d parts (> %d); rejected"):format(
+					key,
+					count,
+					AssetLibrary.MAX_STORE_PARTS
+				)
+			)
+			raw:Destroy()
+			return nil
+		end
+	end
 	local model = Instance.new("Model")
 	model.Name = key
 	for _, child in raw:GetChildren() do
@@ -196,12 +260,32 @@ function AssetLibrary._normalize(raw: Instance, key: string, def: Assets.AssetDe
 	return model
 end
 
+-- ServerStorage.AssetLibrary (server-only templates).
+local function serverFolder(): Folder
+	local existing = serverRoot
+	if existing and existing.Parent then
+		return existing
+	end
+	local found = ServerStorage:FindFirstChild("AssetLibrary")
+	local f: Folder
+	if found and found:IsA("Folder") then
+		f = found
+	else
+		f = Instance.new("Folder")
+		f.Name = "AssetLibrary"
+		f.Parent = ServerStorage
+	end
+	serverRoot = f
+	return f
+end
+
 local function category(name: string): Folder
-	local f = root:FindFirstChild(name)
+	local parent: Instance = if AssetLibrary.SERVER_ONLY[name] then serverFolder() else root
+	local f = parent:FindFirstChild(name)
 	if not f then
 		f = Instance.new("Folder")
 		f.Name = name
-		f.Parent = root
+		f.Parent = parent
 	end
 	return f :: Folder
 end
@@ -249,12 +333,32 @@ end
 
 export type QueueItem = { cat: string, key: string, def: Assets.AssetDef }
 
--- Load queue: every Hero entry (by heroPriority) before Props and Buildings (alphabetical: deterministic).
+-- Is this entry loaded at all? (SKIP list, or a def flagged lazy = true)
+function AssetLibrary.wanted(cat: string, key: string, def: Assets.AssetDef): boolean
+	local skip = AssetLibrary.SKIP[cat]
+	if skip and skip[key] then
+		return false
+	end
+	return (def :: any).lazy ~= true
+end
+
+local function isEarlyHero(key: string): boolean
+	if key == Cars.Police.id then
+		return true
+	end
+	local def = Cars.get(key)
+	return def ~= nil and AssetLibrary.EARLY_HERO_TIERS[def.rarity] == true
+end
+
+-- Load queue (deterministic): the police cruiser + Common / Uncommon Hero shells (by heroPriority), then Buildings,
+-- then the wanted Props (each alphabetical), then the remaining Hero shells (by heroPriority).
 function AssetLibrary.loadQueue(): { QueueItem }
 	local queue: { QueueItem } = {}
 	local heroes: { QueueItem } = {}
 	for key, def in Assets.Hero do
-		table.insert(heroes, { cat = "Hero", key = key, def = def })
+		if AssetLibrary.wanted("Hero", key, def) then
+			table.insert(heroes, { cat = "Hero", key = key, def = def })
+		end
 	end
 	table.sort(heroes, function(a, b)
 		local pa, pb = AssetLibrary.heroPriority(a.key), AssetLibrary.heroPriority(b.key)
@@ -263,19 +367,51 @@ function AssetLibrary.loadQueue(): { QueueItem }
 		end
 		return a.key < b.key
 	end)
-	table.move(heroes, 1, #heroes, 1, queue)
-	for _, cat in { "Props", "Buildings" } do
+	for _, item in heroes do
+		if isEarlyHero(item.key) then
+			table.insert(queue, item)
+		end
+	end
+	for _, cat in { "Buildings", "Props" } do
 		local defs: { [string]: Assets.AssetDef } = (Assets :: any)[cat]
 		local keys = {}
-		for key in defs do
-			table.insert(keys, key)
+		for key, def in defs do
+			if AssetLibrary.wanted(cat, key, def) then
+				table.insert(keys, key)
+			end
 		end
 		table.sort(keys)
 		for _, key in keys do
 			table.insert(queue, { cat = cat, key = key, def = defs[key] })
 		end
 	end
+	for _, item in heroes do
+		if not isEarlyHero(item.key) then
+			table.insert(queue, item)
+		end
+	end
 	return queue
+end
+
+-- Display cars (garage pads, dealership, built with forDisplay: no DriverSeat) wear their shell without shadows: a
+-- ~9k-tri shell per pad, mostly under a roof, only adds shadow-pass cost. Drivable cars keep theirs. Returns the
+-- number of shell parts changed.
+function AssetLibrary.unshadowDisplay(model: Model): number
+	if model:FindFirstChild("DriverSeat") then
+		return 0
+	end
+	local shell = model:FindFirstChild(CarBuilder.SHELL_NAME)
+	if not shell then
+		return 0
+	end
+	local n = 0
+	for _, d in shell:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CastShadow = false
+			n += 1
+		end
+	end
+	return n
 end
 
 -- Re-skin every already-built car wearing CarId `key` (police: "police_unit") with its new Hero template.
@@ -298,6 +434,7 @@ function AssetLibrary.reskin(key: string): number
 						warn(("[AssetLibrary] re-skin %s (%s) failed: %s"):format(child.Name, key, tostring(applied)))
 					elseif applied then
 						count += 1
+						AssetLibrary.unshadowDisplay(child)
 					end
 				end
 			elseif depth > 0 and (child:IsA("Folder") or child:IsA("Model")) then

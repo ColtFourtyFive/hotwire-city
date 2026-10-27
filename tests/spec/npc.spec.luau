@@ -644,6 +644,82 @@ return function(t)
 		cleanup()
 	end)
 
+	-- PERF / COLLISION (findings NPC-PERF-10/14, npc-peds-collide-with-client-cars) ----------------------------------
+
+	t.test("humans only where they show: closed hero shells keep the dummy, open tops / bare bodies get one", function()
+		local function car(id, shelled)
+			local m = CarBuilder.build(id, "None")
+			m:SetAttribute("CarId", id)
+			if shelled then
+				m:SetAttribute("HeroMesh", true)
+			end
+			return m
+		end
+		t.eq(NPC.driverVisible(car("grandma_sedan", false)), true, "procedural body: glass shows the driver")
+		t.eq(NPC.driverVisible(car("grandma_sedan", true)), false, "closed shell hides the driver")
+		t.eq(NPC.driverVisible(car("toilet_turbo", true)), true, "open-top shell shows the rider")
+		local cop = CarBuilder.buildDef(Cars.Police, "None")
+		cop:SetAttribute("CarId", "police")
+		cop:SetAttribute("HeroMesh", true)
+		t.eq(NPC.driverVisible(cop), false, "police_unit shell is closed")
+		t.eq(NPC.driverVisible(nil), true, "no car: nothing hides it")
+		for key in NPC.OPEN_TOP_SHELLS do
+			t.ok(Cars.get(key) ~= nil, "open-top key is a car: " .. key)
+		end
+		-- no all-at-once upgrade bursts on NPCService.Ready (Traffic + Police upgrade gradually, out of view)
+		local traffic = fs.readFile("src/server/Systems/TrafficService.luau")
+		local police = fs.readFile("src/server/Systems/PoliceService.luau")
+		t.ok(not traffic:find("upgradeDrivers, math.huge", 1, true), "no traffic driver burst")
+		t.ok(not police:find("NPCService.Ready:Connect", 1, true), "no officer burst")
+		t.ok(police:find('"Dealership", "NPCs"', 1, true) ~= nil, "pedestrians never block police line of sight")
+	end)
+
+	t.test("NPC parts are in the NPC collision group (cars pass through them); spawn skins from a small set", function()
+		cleanup()
+		NPC._buildTemplates(false)
+		local VehicleService = H.require("src/server/Systems/VehicleService")
+		t.eq(VehicleService.NPC_GROUP, "NPC")
+		t.eq(VehicleService.CAR_GROUP, "Car")
+		t.eq(VehicleService.ensureCollisionGroups(), true, "groups registered (idempotent)")
+		local car = CarBuilder.build("rustbucket", "None")
+		car.Parent = H.workspace
+		local npc = NPC.spawnDriver(car:FindFirstChild("DriverSeat"), "civilian")
+		local parts = 0
+		for _, d in npc:GetDescendants() do
+			if d:IsA("BasePart") then
+				parts += 1
+				t.eq(d.CollisionGroup, "NPC", "driver part " .. d.Name)
+			end
+		end
+		t.ok(parts > 10, "R15 parts")
+		NPC.ejectComic(npc, Vector3.new(30, 0, 0))
+		for _, d in npc:GetDescendants() do
+			if d:IsA("BasePart") then
+				t.eq(d.CollisionGroup, "NPC", "ragdoll part " .. d.Name)
+			end
+		end
+		local allowed = {}
+		for _, i in NPC.SPAWN_SKINS do
+			t.ok(Outfits.SKIN_TONES[i] ~= nil, "skin index " .. i)
+			allowed[Outfits.SKIN_TONES[i]] = true
+		end
+		t.ok(#NPC.SPAWN_SKINS <= 4, "a few tones (shared clothing composites)")
+		local r = H.Random.new(11)
+		local seen = 0
+		local got = {}
+		for _ = 1, 60 do
+			local c = NPC._spawnSkin(r)
+			t.ok(allowed[c], "tone from the set")
+			if not got[c] then
+				got[c] = true
+				seen += 1
+			end
+		end
+		t.eq(seen, #NPC.SPAWN_SKINS, "every tone used")
+		car:Destroy()
+		cleanup()
+	end)
+
 	-- TRAFFIC / POLICE HOOKS --------------------------------------------------------------------------------------------
 
 	t.test("traffic dummy fallback: palette override and weld for police cruisers", function()

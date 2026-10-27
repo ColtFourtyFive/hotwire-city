@@ -510,7 +510,10 @@ function LightingService.init()
 	local terrain = Workspace:FindFirstChildOfClass("Terrain")
 	if terrain then
 		local ok = pcall(function()
-			local clouds = getOrCreate(terrain, "Clouds", "HotwireClouds") :: Clouds
+			-- one Clouds only: adopt the one MapBuilder.buildTerrain made (Terrain honours a single Clouds instance)
+			local clouds = (
+				terrain:FindFirstChildOfClass("Clouds") or getOrCreate(terrain, "Clouds", "HotwireClouds")
+			) :: Clouds
 			clouds.Cover = 0.45
 			clouds.Density = 0.65
 			clouds.Color = rgb(255, 255, 255)

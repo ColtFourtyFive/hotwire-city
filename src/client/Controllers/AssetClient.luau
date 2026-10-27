@@ -2,9 +2,10 @@
 -- AssetClient: the client half of the hero-shell late arrival (docs/ART_PASS.md AP1).
 --   * Server-built cars are skinned on the server (CarBuilder.applyShell at build time, AssetLibrary.reskin when a
 --     template loads later) and replicate as they are, so nothing here touches Workspace cars.
---   * Models built on this client (the Index ViewportFrame previews; CarBuilder tags them CarBuilder.CLIENT_TAG
+--   * Models built on this client (the Index detail-view preview; CarBuilder tags them CarBuilder.CLIENT_TAG
 --     "ClientCar") are built before ReplicatedStorage.AssetLibrary.Hero.<key> may exist: when a Hero template
---     replicates in, every tagged model with that CarId that still has no shell gets CarBuilder.applyShell.
+--     replicates in, every tagged model with that CarId that still has no shell gets CarBuilder.applyShell. Models
+--     built with opts.noShell (attribute CarBuilder.NO_SHELL_ATTR: the Index card grid) stay procedural.
 --   * Deferred signals: the template may still be mid-replication when ChildAdded runs, so a model that could not be
 --     dressed yet is retried a few times.
 
@@ -31,6 +32,7 @@ function AssetClient.reskin(key: string): (number, number)
 			inst:IsA("Model")
 			and inst.Parent ~= nil
 			and inst:GetAttribute("HeroMesh") ~= true
+			and inst:GetAttribute(CarBuilder.NO_SHELL_ATTR) ~= true
 			and CarBuilder.shellKey(inst) == key
 		then
 			local ok, applied = pcall(CarBuilder.applyShell, inst)

@@ -545,4 +545,46 @@ return function(t)
 			t.ok(shellOf(m) == nil, "no leftover shell")
 		end)
 	end)
+
+	t.test("opts.noShell (Index cards): procedural even with a template, and AssetClient leaves it bare", function()
+		H.setMode("client")
+		local ok, err = pcall(function()
+			local ClientBuilder = H.require("src/shared/Vehicle/CarBuilder")
+			local AssetClient = H.require("src/client/Controllers/AssetClient")
+			local views = Instance.new("Folder")
+			views.Name = "IndexViews"
+			views.Parent = H.workspace
+			local okInner, errInner = pcall(function()
+				withTemplates({ makeTemplate("grandma_sedan", SEDAN) }, function()
+					local card = ClientBuilder.build("grandma_sedan", "None", { forDisplay = true, noShell = true })
+					card.Parent = views
+					t.ok(shellOf(card) == nil, "card: no hero shell")
+					t.ok(card:GetAttribute("HeroMesh") == nil, "card: no HeroMesh")
+					t.eq(card:GetAttribute(ClientBuilder.NO_SHELL_ATTR), true, "card marked NoShell")
+					local detail = ClientBuilder.build("grandma_sedan", "None", { forDisplay = true })
+					t.ok(shellOf(detail) ~= nil, "detail view (default opts) still wears the shell")
+					t.ok(detail:GetAttribute(ClientBuilder.NO_SHELL_ATTR) == nil, "default build not marked")
+					local dressed, bare = AssetClient.reskin("grandma_sedan")
+					t.eq(dressed + bare, 0, "late re-skin skips NoShell cards")
+					t.ok(shellOf(card) == nil, "card still procedural")
+					local visible = 0
+					for _, c in card:GetChildren() do
+						if c:IsA("BasePart") and c.Transparency < 1 then
+							visible += 1
+						end
+					end
+					t.ok(visible > 10, "procedural parts visible on the card")
+					detail:Destroy()
+				end)
+			end)
+			views:Destroy()
+			if not okInner then
+				error(errInner, 0)
+			end
+		end)
+		H.setMode("server")
+		if not ok then
+			error(err, 0)
+		end
+	end)
 end

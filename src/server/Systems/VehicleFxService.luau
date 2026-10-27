@@ -3,9 +3,13 @@
 --
 -- * VehicleFx(boost: boolean, honk: boolean) from VehicleClient: sent on nitro start / stop and on horn presses only.
 --   Validated: both args booleans, the sender is the current driver of a live car (VehicleService.getDriving, lazy),
---   Net rate limit RATE/s, horns at most one per HONK_COOLDOWN, unchanged boost without a honk is dropped.
--- * Broadcast: Net.fireNear("VehicleFxState", carPosition, RANGE, vehicleId, boost, honk). EffectsController draws the
---   flames on the model whose VehicleId matches and plays the horn there (the sender's own client skips its own car).
+--   Net rate limit RATE/s, horns at most one per HONK_COOLDOWN (the client's own horn cooldown), unchanged boost
+--   without a honk is dropped, a boost start sooner than MIN_BOOST_EDGE after the previous one is dropped (toggle
+--   spam), and a boost is cut after MAX_BOOST seconds (longer than the biggest legal tank) unless the driver owns the
+--   Infinite Nitro pass; a cut boost stays off until the client reports it stopped.
+-- * Broadcast: "VehicleFxState"(vehicleId, boost, honk) to every player within RANGE of the car except the sender
+--   (its client draws its own car). EffectsController draws the flames on the model whose VehicleId matches and plays
+--   the horn there.
 -- * Keep-alive: every KEEPALIVE seconds an ongoing boost is re-sent (cars racing into range see it, clients drop flames
 --   whose keep-alive stopped). A driver who left the car / switched cars / left the game gets a final boost=false.
 -- Purely cosmetic: nothing here touches physics, speed or nitro amounts (VehicleController owns those).
@@ -19,66 +23,109 @@ local VehicleFxService = {}
 
 VehicleFxService.RANGE = 300
 VehicleFxService.RATE = 6 -- VehicleFx calls per second per player (client sends >= 0.2 s apart)
-VehicleFxService.HONK_COOLDOWN = 0.3
+VehicleFxService.HONK_COOLDOWN = 0.35 -- = VehicleClient's HORN_COOLDOWN: honest mashing passes, faster is spam
+VehicleFxService.MIN_BOOST_EDGE = 0.5 -- boost starts closer together than this are dropped
+VehicleFxService.MAX_BOOST = 10 -- s of continuous boost (biggest tank: 8 s) before the flames are cut
 VehicleFxService.KEEPALIVE = 1.5 -- clients expire flames after 3.5 s without a refresh
 
 type FxState = {
+	player: Player,
 	vehicleId: number,
 	chassis: BasePart,
 	boost: boolean,
+	boostOnAt: number, -- clock of the last accepted boost start
+	capped: boolean, -- boost cut at MAX_BOOST: ignore boost until the client reports false
 	lastHonk: number,
 	lastSent: number,
 }
 
 local states: { [Player]: FxState } = {}
 
--- Test seams (Lune harness): fake VehicleService.getDriving, Net.fireNear and the clock.
+-- Test seams (Lune harness): fake VehicleService.getDriving, the broadcast, the pass check and the clock.
 type Hooks = {
 	getDriving: ((Player) -> any)?,
-	fireNear: ((name: string, position: Vector3, radius: number, ...any) -> ())?,
+	fireNear: ((name: string, except: Player?, position: Vector3, radius: number, ...any) -> ())?,
+	infiniteNitro: ((Player) -> boolean)?,
 	clock: () -> number,
 }
-local hooks: Hooks = { getDriving = nil, fireNear = nil, clock = os.clock }
+local hooks: Hooks = { getDriving = nil, fireNear = nil, infiniteNitro = nil, clock = os.clock }
 
 function VehicleFxService._setHooks(overrides: { [string]: any }?)
 	hooks.getDriving = if overrides then overrides.getDriving else nil
 	hooks.fireNear = if overrides then overrides.fireNear else nil
+	hooks.infiniteNitro = if overrides then overrides.infiniteNitro else nil
 	hooks.clock = if overrides and overrides.clock then overrides.clock else os.clock
 	table.clear(states)
 end
 
 -- Lazy: VehicleService loads in the same ORDER; requiring at the top would tie our load to its load.
-local vehicleService: any = nil
-local function vehicles(): any
-	if vehicleService == nil then
-		local ms = script.Parent and script.Parent:FindFirstChild("VehicleService")
+local systems: { [string]: any } = {}
+local function sys(name: string): any
+	if systems[name] == nil then
+		local ms = script.Parent and script.Parent:FindFirstChild(name)
 		local ok, mod = false, nil
 		if ms and ms:IsA("ModuleScript") then
 			ok, mod = pcall(require, ms)
 		end
-		vehicleService = if ok and type(mod) == "table" then mod else false
+		systems[name] = if ok and type(mod) == "table" then mod else false
 	end
-	return if vehicleService then vehicleService else nil
+	return if systems[name] then systems[name] else nil
+end
+local function vehicles(): any
+	return sys("VehicleService")
+end
+
+-- Infinite Nitro pass: a legitimately endless boost (MonetizationService, lazy).
+local function hasInfiniteNitro(player: Player): boolean
+	if hooks.infiniteNitro then
+		return hooks.infiniteNitro(player) == true
+	end
+	local ms = sys("MonetizationService")
+	if not ms or type(ms.hasPass) ~= "function" then
+		return false
+	end
+	local ok, has = pcall(ms.hasPass, player, "nitro")
+	return ok and has == true
 end
 
 ---------------------------------------------------------------------------------------------------------------
 -- Pure helpers (unit-tested)
 ---------------------------------------------------------------------------------------------------------------
 
--- Should a request be broadcast? Returns (send, honk): a boost change always goes out; a honk only past the cooldown.
+-- Should a request be broadcast? Returns (send, honk, boost): a boost stop always goes out, a boost start only
+-- MIN_BOOST_EDGE after the previous start (sinceBoostOn; nil = never started), a honk only past the cooldown.
+-- `boost` is the state to adopt (a dropped start keeps the flames off).
 function VehicleFxService.decide(
 	prevBoost: boolean,
 	boost: boolean,
 	honk: boolean,
-	sinceHonk: number
-): (boolean, boolean)
+	sinceHonk: number,
+	sinceBoostOn: number?
+): (boolean, boolean, boolean)
 	local honkOut = honk and sinceHonk >= VehicleFxService.HONK_COOLDOWN
-	return boost ~= prevBoost or honkOut, honkOut
+	local boostOut = boost
+	if boost and not prevBoost and sinceBoostOn ~= nil and sinceBoostOn < VehicleFxService.MIN_BOOST_EDGE then
+		boostOut = false
+	end
+	return boostOut ~= prevBoost or honkOut, honkOut, boostOut
 end
 
 ---------------------------------------------------------------------------------------------------------------
 -- Relay
 ---------------------------------------------------------------------------------------------------------------
+
+-- Net.fireNear minus `except` (the sender draws its own car's flames and horn).
+local function fireNearExcept(name: string, except: Player?, position: Vector3, radius: number, ...: any)
+	for _, p in Players:GetPlayers() do
+		if p ~= except then
+			local char = p.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if root and root:IsA("BasePart") and (root.Position - position).Magnitude <= radius then
+				Net.fireClient(name, p, ...)
+			end
+		end
+	end
+end
 
 local function broadcast(st: FxState, boost: boolean, honk: boolean)
 	local chassis = st.chassis
@@ -86,8 +133,8 @@ local function broadcast(st: FxState, boost: boolean, honk: boolean)
 		return -- despawned: clients drop the flames with the model
 	end
 	st.lastSent = hooks.clock()
-	local fire = hooks.fireNear or Net.fireNear
-	pcall(fire, "VehicleFxState", chassis.Position, VehicleFxService.RANGE, st.vehicleId, boost, honk)
+	local fire = hooks.fireNear or fireNearExcept
+	pcall(fire, "VehicleFxState", st.player, chassis.Position, VehicleFxService.RANGE, st.vehicleId, boost, honk)
 end
 
 -- The live car this player drives, or nil.
@@ -137,20 +184,41 @@ local function onVehicleFx(player: Player, boost: any, honk: any)
 		st = nil
 	end
 	if not st then
-		st = { vehicleId = car.id, chassis = car.chassis, boost = false, lastHonk = -math.huge, lastSent = 0 }
+		st = {
+			player = player,
+			vehicleId = car.id,
+			chassis = car.chassis,
+			boost = false,
+			boostOnAt = -math.huge,
+			capped = false,
+			lastHonk = -math.huge,
+			lastSent = 0,
+		}
 		states[player] = st
 	end
 	local state = st :: FxState
+	local wanted = boost :: boolean
+	if state.capped then
+		if wanted then
+			wanted = false -- cut at MAX_BOOST: stays off until the client says it stopped
+		else
+			state.capped = false
+		end
+	end
 	local now = hooks.clock()
-	local send, honkOut = VehicleFxService.decide(state.boost, boost, honk, now - state.lastHonk)
+	local send, honkOut, boostOut =
+		VehicleFxService.decide(state.boost, wanted, honk, now - state.lastHonk, now - state.boostOnAt)
 	if not send then
 		return
 	end
 	if honkOut then
 		state.lastHonk = now
 	end
-	state.boost = boost
-	broadcast(state, boost, honkOut)
+	if boostOut and not state.boost then
+		state.boostOnAt = now
+	end
+	state.boost = boostOut
+	broadcast(state, boostOut, honkOut)
 end
 
 -- Keep-alive for ongoing boosts + cleanup of drivers who left their car.
@@ -160,6 +228,10 @@ local function sweep()
 		local car = drivenCar(player)
 		if not car or car.id ~= st.vehicleId or player.Parent == nil then
 			endState(player)
+		elseif st.boost and now - st.boostOnAt > VehicleFxService.MAX_BOOST and not hasInfiniteNitro(player) then
+			st.boost = false
+			st.capped = true
+			broadcast(st, false, false)
 		elseif st.boost and now - st.lastSent >= VehicleFxService.KEEPALIVE then
 			broadcast(st, true, false)
 		end

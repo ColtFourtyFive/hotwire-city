@@ -850,6 +850,11 @@ function DealershipService.buildDisplay(carId: string, mutation: string, topCf: 
 			(desc :: any).Disabled = true
 		end
 	end
+	-- display shells cast no shadow (showroom roof; ART-PERF-03)
+	local AssetLibrary = sys("AssetLibrary")
+	if AssetLibrary and typeof(AssetLibrary.unshadowDisplay) == "function" then
+		pcall(AssetLibrary.unshadowDisplay, model)
+	end
 	local def = Cars.get(carId) :: Cars.CarDef
 	model.Name = "Dealer_" .. carId
 	model:SetAttribute("CarId", carId)

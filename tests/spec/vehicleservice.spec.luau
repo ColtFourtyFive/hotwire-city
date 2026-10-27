@@ -144,6 +144,17 @@ return function(t)
 		t.eq(car.chassis.Anchored, true, "parked cars spawn anchored")
 		t.eq(car.seat.Disabled, true, "seat disabled")
 		t.eq(car.seat.Name, "DriverSeat")
+		-- colliding parts in the Car group (NPC humans don't collide with it); everything else stays Default
+		local colliders = 0
+		for _, d in model:GetDescendants() do
+			if d:IsA("BasePart") then
+				if d.CanCollide then
+					colliders += 1
+					t.eq(d.CollisionGroup, VS.CAR_GROUP, "Car group: " .. d.Name)
+				end
+			end
+		end
+		t.ok(colliders >= 1 and car.chassis.CollisionGroup == "Car", "chassis in the Car group")
 		local ride = model:GetAttribute("RideHeight")
 		-- anchored kinds never drop: exactly at rest height, no hover (F10)
 		local expectY = (ground * CFrame.new(0, ride, 0)).Position.Y

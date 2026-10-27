@@ -16,10 +16,11 @@
 --    pedestrians, honk at players blocking them, and break intersection deadlocks with a short "patience" ghost.
 --    Police cars, hot drops and anchored cars are "hard" blockers: never ghosted into; a car stuck behind one
 --    vanishes out of view after STATIC_GIVEUP (in view after HARD_GIVEUP).
---  * NPC driver: a seated R15 humanoid from NPCService.spawnDriver (catalog outfit, welded to the seat, no physics).
---    Until NPCService is ready (or when it is over its humanoid budget) the little block-figure dummy (no Humanoid)
---    sits there instead; dummies are upgraded on NPCService.Ready, then UPGRADES_PER_TICK per manage pass for cars
---    out of players' close view.
+--  * NPC driver: a seated R15 humanoid from NPCService.spawnDriver (catalog outfit, welded to the seat, no physics)
+--    where it can be seen (NPCService.driverVisible: procedural bodies, open-top shells). Closed hero shells, cars
+--    while NPCService isn't ready, and anything over its humanoid budget get the little block-figure dummy (no
+--    Humanoid); visible dummies are upgraded UPGRADES_PER_TICK per manage pass, out of players' close view (no burst
+--    when NPCService becomes ready). A bail-out from a closed shell swaps its dummy for a humanoid on the spot.
 --  * "Carjack" prompt (hold = rarity hotwireTime x 0.9; the car brakes as soon as someone starts holding): the NPC
 --    gets yeeted out of the car (NPCService.ejectComic ragdoll / the dummy's comic tumble, removed after 3s),
 --    kind -> Loot, the player is seated (no heat or credit if seat() refuses), heat max(Heat.carjack,
@@ -747,11 +748,21 @@ local function isHumanoidDriver(npc: Model?): boolean
 	return npc ~= nil and npc:FindFirstChildOfClass("Humanoid") ~= nil
 end
 
--- A humanoid civilian from NPCService when it can give one (ready, under budget), else (allowDummy) the block dummy.
+-- Is a humanoid worth it in this car? (no: a closed hero shell hides its driver)
+local function wantsHuman(NPC: any, car: Car): boolean
+	if typeof(NPC.driverVisible) ~= "function" then
+		return true
+	end
+	local ok, visible = pcall(NPC.driverVisible, car.model)
+	return not ok or visible == true
+end
+
+-- A humanoid civilian from NPCService when it can give one (ready, under budget) and its driver can be seen, else
+-- (allowDummy) the block dummy.
 local function attachDriver(car: Car, allowDummy: boolean): Model?
 	local seat = car.seat
 	local NPC = npcService()
-	if NPC and seat and seat.Parent then
+	if NPC and seat and seat.Parent and wantsHuman(NPC, car) then
 		local ok, npc = pcall(NPC.spawnDriver, seat, "civilian")
 		if ok and typeof(npc) == "Instance" and npc:IsA("Model") then
 			return npc
@@ -773,6 +784,18 @@ local function ejectNPC(e: Entry, away: Vector3?)
 	end
 	local chassis = e.chassis
 	local dir = if away and flat(away).Magnitude > 0.1 then flat(away).Unit else -chassis.CFrame.RightVector
+	if not isHumanoidDriver(npc) then
+		-- a dummy (closed shell / early boot): a real humanoid takes its seat just for the bail-out gag
+		local NPC = npcService()
+		local seat = e.car.seat
+		if NPC and seat and seat.Parent then
+			local ok, human = pcall(NPC.spawnDriver, seat, "civilian")
+			if ok and typeof(human) == "Instance" and human:IsA("Model") then
+				npc:Destroy()
+				npc = human
+			end
+		end
+	end
 	if isHumanoidDriver(npc) then
 		local NPC = npcService()
 		local fling = dir * rng:NextNumber(28, 42) + flat(chassis.AssemblyLinearVelocity) * 0.4
@@ -790,10 +813,14 @@ local function ejectNPC(e: Entry, away: Vector3?)
 		if toCar then
 			toCar:Destroy()
 		end
+		local grouped = VehicleService.ensureCollisionGroups() -- the tumbling dummy is no wall for cars either
 		for _, d in npc:GetDescendants() do
 			if d:IsA("BasePart") then
 				d.Massless = false
 				d.CanCollide = d == torso
+				if grouped then
+					d.CollisionGroup = VehicleService.NPC_GROUP
+				end
 			end
 		end
 		npc.Parent = getEffectsFolder()
@@ -1380,6 +1407,9 @@ local function upgradeDrivers(limit: number, roots: { Vector3 }?)
 		if roots and minDist(e.chassis.CFrame.Position, roots) < TrafficService.UPGRADE_HIDDEN_DIST then
 			continue
 		end
+		if not wantsHuman(npcService(), car) then
+			continue -- closed shell: the dummy stays (nobody can see it)
+		end
 		local human = attachDriver(car, false)
 		if not human then
 			break -- not ready / over budget
@@ -1606,16 +1636,8 @@ function TrafficService.init()
 end
 
 function TrafficService.start()
-	-- every block dummy gets a humanoid as soon as NPCService's templates exist
-	local NPC = npcService()
-	if NPC and NPC.Ready then
-		NPC.Ready:Connect(function()
-			local ok, err = pcall(upgradeDrivers, math.huge, nil)
-			if not ok then
-				warn("[TrafficService] driver upgrade failed: " .. tostring(err))
-			end
-		end)
-	end
+	-- block dummies get their humanoids from the manage pass (UPGRADES_PER_TICK, out of view) once NPCService is
+	-- ready: no all-at-once upgrade burst on NPCService.Ready
 	local scanAcc, manageAcc = 0, 0
 	local frameDt = 0
 	local lastErr: { [string]: number } = {}

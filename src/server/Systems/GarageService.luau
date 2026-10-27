@@ -621,6 +621,11 @@ local function buildDisplay(player: Player, ps: PState, slot: number, rec: SlotR
 		end
 	end
 	chassis.CanCollide = true
+	-- display shells cast no shadow (garage roof; ART-PERF-03)
+	local AssetLibrary = sys("AssetLibrary")
+	if AssetLibrary and typeof(AssetLibrary.unshadowDisplay) == "function" then
+		pcall(AssetLibrary.unshadowDisplay, model)
+	end
 
 	local tier = Rarity.Tiers[def.rarity]
 	local income = EconomyMath.carIncome(rec.carId, rec.mutation) * ps.mult

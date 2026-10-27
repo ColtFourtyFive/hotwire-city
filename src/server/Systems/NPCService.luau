@@ -32,7 +32,8 @@
 --    officers; ejected ones count until removed). Over budget, spawnDriver returns nil (callers fall back to their
 --    humanoid-free dummy) and no more pedestrians spawn.
 --
--- Public API: Ready (Signal), isReady(), spawnDriver(seat, role?): Model?, ejectComic(npc, fromVelocity?),
+-- Public API: Ready (Signal), isReady(), spawnDriver(seat, role?): Model?, driverVisible(car): boolean (callers skip
+--   humanoid drivers in closed hero shells), ejectComic(npc, fromVelocity?),
 --   spawnOfficerAt(cframe, lifetime?): Model?, canSpawn(kind): boolean, getCounts(), buildRig(look?, rng?): Model
 --   (harness-compatible procedural R15 rig).
 -- Pure helpers (tests/spec/npc.spec.luau): _sidewalkRing, _clampToBlock, _fleeDecision, _carHitsPed, _budgetAllows,
@@ -46,6 +47,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
+local CarBuilder = require(Shared.Vehicle.CarBuilder)
 local MapConfig = require(Shared.Config.Map)
 local MapLayout = require(Shared.Util.MapLayout)
 local Net = require(Shared.Net)
@@ -110,6 +112,16 @@ NPCService.FOOT_CLEARANCE = 0.1 -- seated drivers' feet stay this far above the 
 NPCService.FLOOR_MARGIN = 0.1 -- drivers sit at least this far above the chassis bottom (never under the car)
 NPCService.OFFICER_LIFETIME = 4
 NPCService.LATE_STAND_CHECK = 30 -- seconds after Ready: look once more for a plaza hotdog_stand slot
+NPCService.SPAWN_SKINS = { 1, 3, 5 } -- NPCOutfits.SKIN_TONES indices used for spawned drivers / pedestrians
+-- Hero shells with an open seat (the rider shows). Every other shell is one opaque mesh with painted windows: a
+-- seated humanoid in it is never seen (driverVisible).
+NPCService.OPEN_TOP_SHELLS = {
+	toilet_turbo = true,
+	rubber_ducky = true,
+	couch_cruiser = true,
+	rocket_car = true,
+	diamond_dragster = true,
+} :: { [string]: boolean }
 
 local ANIMS = {
 	walk = "rbxassetid://507777826",
@@ -780,7 +792,8 @@ local function buildAvatar(outfit: NPCOutfits.Outfit, skin: Color3): Model?
 end
 
 -- Template hygiene: no scripts / sounds / descriptions, no name or health display, never dies, nothing collides
--- except the root, nothing is touchable / queryable, skin parts marked.
+-- except the root, nothing is touchable / queryable, skin parts marked, every part in the NPC collision group (cars
+-- pass through NPCs: VehicleService.ensureCollisionGroups; clones, seated twins and ragdolls inherit it).
 local function sanitize(model: Model, avatar: boolean)
 	for _, d in model:GetDescendants() do
 		if d:IsA("LuaSourceContainer") or d:IsA("HumanoidDescription") or d:IsA("Sound") or d:IsA("ForceField") then
@@ -793,10 +806,14 @@ local function sanitize(model: Model, avatar: boolean)
 		model.PrimaryPart = root
 		root.Transparency = 1
 	end
+	local grouped = VehicleService.ensureCollisionGroups()
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
 			d.Anchored = false
 			d.CanTouch = false
+			if grouped then
+				d.CollisionGroup = VehicleService.NPC_GROUP
+			end
 			if d ~= root then
 				d.CanCollide = false
 				d.CanQuery = false
@@ -1249,6 +1266,13 @@ end
 
 -- CLONES ----------------------------------------------------------------------------------------------------------------
 
+-- Skin tone for a spawned driver / pedestrian: one of the few SPAWN_SKINS (light / medium / dark), so clients can reuse
+-- the clothing composites of identical-looking humanoids instead of baking one per random tone.
+function NPCService._spawnSkin(r: Random): Color3
+	local idx = NPCService.SPAWN_SKINS[r:NextInteger(1, #NPCService.SPAWN_SKINS)]
+	return NPCOutfits.SKIN_TONES[idx] or NPCOutfits.SKIN_TONES[1]
+end
+
 local function applySkin(model: Model, skin: Color3)
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") and d:GetAttribute(SKIN_ATTR) == true then
@@ -1347,6 +1371,24 @@ function NPCService._kneeAngle(hipHeight: number?, shinLength: number): number
 	return math.deg(math.asin(sine))
 end
 
+-- Would a seated driver in this car be seen? False for a car wearing a closed hero shell: callers keep their cheap
+-- humanoid-free dummy there (and only spawn a humanoid for a bail-out); true for procedural bodies (glass) and
+-- open-top shells (OPEN_TOP_SHELLS, or CarBuilder.OPEN_TOP when it exports one).
+function NPCService.driverVisible(car: Instance?): boolean
+	if typeof(car) ~= "Instance" or car:GetAttribute("HeroMesh") ~= true then
+		return true
+	end
+	local key = CarBuilder.shellKey(car)
+	if key == nil then
+		return true
+	end
+	local open = (CarBuilder :: any).OPEN_TOP
+	if type(open) == "table" and open[key] ~= nil then
+		return open[key] == true
+	end
+	return NPCService.OPEN_TOP_SHELLS[key] == true
+end
+
 -- A seated humanoid driver welded into the car seat (see the header). role "police" uses the police outfit; anything
 -- else a random civilian. nil when not ready, over budget or the seat is unusable (callers keep their fallback).
 function NPCService.spawnDriver(seatPart: BasePart, role: string?): Model?
@@ -1366,7 +1408,7 @@ function NPCService.spawnDriver(seatPart: BasePart, role: string?): Model?
 	local npc = tpl:Clone()
 	npc.Name = "NPCDriver"
 	if kind == "traffic" then
-		applySkin(npc, NPCOutfits.SKIN_TONES[rng:NextInteger(1, #NPCOutfits.SKIN_TONES)])
+		applySkin(npc, NPCService._spawnSkin(rng))
 	end
 	local offsetAttr = npc:GetAttribute("HipOffset")
 	local thighAttr = npc:GetAttribute("ThighHalf")
@@ -1945,7 +1987,7 @@ local function spawnPedestrian(center: Vector3, look: Vector3?, roots: { Vector3
 	local here = ring[idx]
 	local nextIdx = ((idx - 1 + dir) % #ring) + 1
 	local nxt = ring[nextIdx]
-	local skin = NPCOutfits.SKIN_TONES[rng:NextInteger(1, #NPCOutfits.SKIN_TONES)]
+	local skin = NPCService._spawnSkin(rng)
 	local rec = spawnStanding(key, CFrame.lookAt(here, Vector3.new(nxt.X, here.Y, nxt.Z)), false, "pedestrian", skin)
 	if not rec then
 		return false
@@ -2252,6 +2294,7 @@ end
 
 function NPCService.init()
 	npcFolder()
+	VehicleService.ensureCollisionGroups() -- before any template part joins the NPC group
 end
 
 function NPCService.start()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Texture-preserving quadric decimation of a single-primitive textured GLB (trimesh/sam_3_3d layout).
-Usage: python3 decimate.py in.glb out.glb target_faces
+Usage: python3 decimate_glb.py in.glb out.glb target_faces [max_texture_px]
 Keeps POSITION + TEXCOORD_0 + indices + the embedded base-color image + material, same as the input layout.
 """
 import json
@@ -40,6 +40,7 @@ def acc(js, binc, i):
 
 def main():
     src, dst, target = sys.argv[1], sys.argv[2], int(sys.argv[3])
+    max_tex = int(sys.argv[4]) if len(sys.argv) > 4 else 0
     js, binc = load(src)
     assert len(js["meshes"]) == 1 and len(js["meshes"][0]["primitives"]) == 1
     prim = js["meshes"][0]["primitives"][0]
@@ -49,6 +50,18 @@ def main():
     img_bv = js["bufferViews"][js["images"][0]["bufferView"]]
     img = binc[img_bv.get("byteOffset", 0): img_bv.get("byteOffset", 0) + img_bv["byteLength"]]
     mime = js["images"][0].get("mimeType", "image/png")
+    if max_tex > 0:
+        import io
+        from PIL import Image
+        im = Image.open(io.BytesIO(bytes(img))).convert("RGB")
+        if max(im.size) > max_tex:
+            scale = max_tex / max(im.size)
+            im = im.resize((max(1, round(im.size[0] * scale)), max(1, round(im.size[1] * scale))), Image.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, format="PNG", optimize=True)
+        img = buf.getvalue()
+        mime = "image/png"
+        print("texture", im.size)
 
     # weld split (seam) vertices by position, keep per-corner UVs as wedge texcoords
     key = np.round(pos / 1e-6).astype(np.int64)

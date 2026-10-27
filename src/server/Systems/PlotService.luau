@@ -1719,6 +1719,16 @@ local function dressLootSlot(slot: Model): boolean
 			c:ScaleTo(c:GetScale() * fit / def.size)
 		end
 		c:PivotTo(ground)
+		-- the template's AssetRoot only marks the pivot: keep it as WorldPivot, drop the part (ART-PERF-12)
+		local root = c:FindFirstChild("AssetRoot")
+		if root and root:IsA("BasePart") then
+			local pivot = root.CFrame
+			pcall(function()
+				c.PrimaryPart = nil
+			end)
+			root:Destroy()
+			c.WorldPivot = pivot
+		end
 		return c
 	end)
 	if not ok or typeof(res) ~= "Instance" then

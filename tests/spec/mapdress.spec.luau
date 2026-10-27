@@ -657,18 +657,23 @@ return function(t)
 			if d:IsA("Model") and d:GetAttribute("Dressed") == true then
 				clones += 1
 				t.ok(not d:HasTag("AssetSlot"), "clone is not a slot")
-				t.ok(d:FindFirstChild("Mesh") and d:FindFirstChild("AssetRoot"), "clone body + root")
+				t.ok(d:FindFirstChild("Mesh") ~= nil, "clone body")
+				t.ok(d:FindFirstChild("AssetRoot") == nil, "the template root is dropped (pivot kept)")
 			end
 		end
 		t.eq(clones, n, "one clone per dressed slot")
-		-- remaining procedural parts in the dressed city
-		local count = 0
+		-- remaining procedural parts in the dressed city (one mesh per clone, plus the props' invisible colliders)
+		local count, colliders = 0, 0
 		for _, d in folder:GetDescendants() do
 			if d:IsA("BasePart") then
 				count += 1
+				if d.Parent and d.Parent.Name == MapDresser.COLLIDERS then
+					colliders += 1
+				end
 			end
 		end
-		t.ok(count <= MapBuilder.PART_BUDGET + n * 2, "dressed part count " .. count)
+		print(("    [mapdress] dressed: %d parts, %d of them invisible prop colliders"):format(count, colliders))
+		t.ok(count <= MapBuilder.PART_BUDGET + n, "dressed part count " .. count)
 		MapDresser._setSource(nil)
 	end)
 
@@ -685,25 +690,54 @@ return function(t)
 				local want = m:GetPivot() * CFrame.Angles(0, math.rad(yaw), 0)
 				local factor = m:GetAttribute("Fit") / Assets[cat][key].size
 				local parent = m.Parent
+				-- the placeholder's solid parts (world boxes): a dressed prop keeps exactly these as colliders
+				local solid = {}
+				for _, d in m:GetDescendants() do
+					if d:IsA("BasePart") and d.CanCollide then
+						table.insert(solid, { cf = d.CFrame, size = d.Size })
+					end
+				end
 				local clone = MapDresser.dressSlot(m)
 				t.ok(clone and clone.Parent == parent, "clone placed in the slot's folder")
 				t.ok(m.Parent == nil, "placeholder gone")
-				local root = clone:FindFirstChild("AssetRoot")
-				t.ok((root.CFrame.Position - want.Position).Magnitude < 1e-3, "on the slot's ground point")
-				t.ok(root.CFrame.LookVector:Dot(want.LookVector) > 0.999, "front faces the slot's front")
+				t.ok(clone:FindFirstChild("AssetRoot") == nil, "template root dropped")
+				local pivot = clone:GetPivot()
+				t.ok((pivot.Position - want.Position).Magnitude < 1e-3, "on the slot's ground point")
+				t.ok(pivot.LookVector:Dot(want.LookVector) > 0.999, "front faces the slot's front")
 				local mesh = clone:FindFirstChild("Mesh")
 				local size = Assets[cat][key].size
 				t.near(mesh.Size.Y, size * factor, size * 0.011, "scaled to Fit (1% tolerance)")
-				t.near(mesh.CFrame.Position.Y - root.CFrame.Position.Y, mesh.Size.Y / 2, 1e-3, "scaled about the root")
+				t.near(mesh.CFrame.Position.Y - pivot.Position.Y, mesh.Size.Y / 2, 1e-3, "scaled about the root")
+				local holder = clone:FindFirstChild(MapDresser.COLLIDERS)
 				if cat == "Buildings" then
 					t.ok(mesh.CanCollide and mesh.CanQuery, "buildings collide")
 					t.ok(mesh.CastShadow, "buildings cast shadows")
+					t.ok(holder == nil, "buildings collide with their own mesh")
 				else
-					t.ok(not mesh.CanCollide and not mesh.CanQuery, "props never collide")
+					t.ok(not mesh.CanCollide and not mesh.CanQuery, "prop meshes never collide")
 					local big = Assets[cat][key].size * factor >= MapDresser.SMALL_PROP
-					t.eq(mesh.CastShadow, big, "small props cast no shadow: " .. key)
+					t.eq(mesh.CastShadow, big and not MapDresser.NO_SHADOW[key], "prop shadows: " .. key)
+					-- same collision layout as the placeholder
+					local kept = if holder then holder:GetChildren() else {}
+					t.eq(#kept, #solid, "placeholder colliders kept: " .. key)
+					for i, c in kept do
+						t.ok(c:IsA("BasePart") and c.CanCollide and c.Anchored, "collider solid " .. key)
+						t.eq(c.Transparency, 1, "collider invisible " .. key)
+						t.ok(not c.CastShadow and not c.CanTouch, "collider inert " .. key)
+						t.eq(#c:GetChildren(), 0, "collider stripped " .. key)
+						t.eq(#c:GetTags(), 0, "collider untagged " .. key)
+						local match = false
+						for _, b in solid do
+							if
+								(b.cf.Position - c.CFrame.Position).Magnitude < 1e-3
+								and (b.size - c.Size).Magnitude < 1e-3
+							then
+								match = true
+							end
+						end
+						t.ok(match, "collider " .. i .. " where the placeholder had it: " .. key)
+					end
 				end
-				t.ok(not root.CanCollide and not root.CanQuery, "root stays inert")
 				t.eq(MapDresser.dressSlot(m), nil, "a dressed slot is not dressed twice")
 				checked[cat] += 1
 			end
@@ -759,6 +793,87 @@ return function(t)
 		end
 		t.eq(decals, 1, "a board that already has a decal is not touched")
 		MapDresser._setSource(nil)
+		map:Destroy()
+	end)
+
+	t.test("MapDresser.start: a template landing mid-pass still dresses its slots; Map marked Dressed", function()
+		local AssetLibrary = H.require("src/server/Systems/AssetLibrary")
+		local lateKey = "office_block"
+		local available = false
+		local fired = false
+		local source = {}
+		source.get = function(cat, key)
+			if key == "workbench" and not fired and not available then
+				-- the late template lands while the Workspace pass is under way (after Map's slots were visited)
+				available = true
+				fired = true
+				AssetLibrary.Ready:Fire("Buildings", lateKey, fakeSource.get("Buildings", lateKey))
+			end
+			if key == lateKey and not available then
+				return nil
+			end
+			return fakeSource.get(cat, key)
+		end
+		source.clone = function(cat, key, cf, parent)
+			if not source.get(cat, key) then
+				return nil
+			end
+			return fakeSource.clone(cat, key, cf, parent)
+		end
+		MapDresser._setSource(source)
+		local map = MapBuilder.build(H.workspace)
+		local late = 0
+		for _, m in MapBuilder.slots(map) do
+			local _, key = MapDresser.resolve(m)
+			if key == lateKey then
+				late += 1
+			end
+		end
+		t.ok(late > 0, "the map has " .. lateKey .. " lots")
+		-- a slot of another system, outside Workspace.Map: the Workspace pass reaches it after the Map's slots (nested
+		-- deep, so it comes last whether the tag index lists depth- or breadth-first)
+		local extra = H.roblox.Instance.new("Folder")
+		extra.Name = "LateGapExtra"
+		extra.Parent = H.workspace
+		local holder = extra
+		for i = 1, 8 do
+			local f = H.roblox.Instance.new("Folder")
+			f.Name = "Level" .. i
+			f.Parent = holder
+			holder = f
+		end
+		local slot = H.roblox.Instance.new("Model")
+		slot.Name = "Workbench"
+		slot:AddTag(MapDresser.TAG_SLOT)
+		slot:SetAttribute("Category", "Props")
+		slot:SetAttribute("Role", "workbench") -- a garage role: never on the map
+		slot:SetAttribute("Fit", 8)
+		slot.WorldPivot = CFrame.new(5000, 0, 5000)
+		slot.Parent = holder
+		local wait0 = MapDresser.WAIT_TIMEOUT
+		MapDresser.WAIT_TIMEOUT = 0
+		local ok, err = pcall(MapDresser.start)
+		MapDresser.WAIT_TIMEOUT = wait0
+		t.ok(ok, tostring(err))
+		local lunetask = require("@lune/task")
+		lunetask.wait() -- deferred Ready handlers
+		lunetask.wait()
+		t.ok(fired, "the template landed during the pass")
+		local left = 0
+		for _, d in map:GetDescendants() do
+			if d:IsA("Model") and d:HasTag(MapDresser.TAG_SLOT) then
+				local _, key = MapDresser.resolve(d)
+				if key == lateKey then
+					left += 1
+				end
+			end
+		end
+		t.eq(left, 0, lateKey .. " placeholders left after the late template")
+		t.ok(MapDresser.isDone(), "done")
+		local live = H.workspace:FindFirstChild("Map")
+		t.eq(live and live:GetAttribute("Dressed"), true, "Workspace.Map marked Dressed for the loading screen")
+		MapDresser._setSource(nil)
+		extra:Destroy()
 		map:Destroy()
 	end)
 

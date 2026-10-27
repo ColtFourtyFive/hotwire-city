@@ -99,35 +99,141 @@ return function(t)
 		end
 	end
 
-	t.test("load queue: every Hero shell first (police, then Common up), then Props and Buildings", function()
+	t.test("load queue: early heroes, then Buildings, then wanted Props, then the remaining heroes", function()
 		local queue = AssetLibrary.loadQueue()
-		local heroes, props, buildings = 0, 0, 0
-		for _ in Assets.Hero do
-			heroes += 1
+		local early = function(key)
+			local def = Cars.get(key)
+			return key == Cars.Police.id or (def ~= nil and AssetLibrary.EARLY_HERO_TIERS[def.rarity] == true)
 		end
-		for _ in Assets.Props do
-			props += 1
+		local want = { Hero = 0, Props = 0, Buildings = 0 }
+		for _, cat in { "Hero", "Props", "Buildings" } do
+			for key, def in Assets[cat] do
+				if AssetLibrary.wanted(cat, key, def) then
+					want[cat] += 1
+				end
+			end
 		end
-		for _ in Assets.Buildings do
-			buildings += 1
+		t.eq(#queue, want.Hero + want.Props + want.Buildings, "every wanted entry queued once")
+		local seen = {}
+		for _, item in queue do
+			local id = item.cat .. "/" .. item.key
+			t.ok(not seen[id], "queued once: " .. id)
+			seen[id] = true
+			t.ok(AssetLibrary.wanted(item.cat, item.key, item.def), "only wanted entries: " .. id)
 		end
-		t.eq(#queue, heroes + props + buildings, "every entry queued once")
 		t.eq(queue[1].cat, "Hero", "Hero first")
 		t.eq(queue[1].key, "police_unit", "police cruiser loads first")
-		for i = 1, heroes do
-			t.eq(queue[i].cat, "Hero", "Hero block at " .. i)
-		end
-		for i = heroes + 1, #queue do
-			t.ok(queue[i].cat ~= "Hero", "no Hero after the Hero block")
-		end
-		-- catalog order (Common first) within the Hero block
-		for i = 3, heroes do
-			t.ok(
-				AssetLibrary.heroPriority(queue[i - 1].key) <= AssetLibrary.heroPriority(queue[i].key),
-				"priority order " .. queue[i].key
-			)
-		end
 		t.eq(queue[2].key, Cars.List[1].id, "then the first Common car")
+		-- phases: early heroes -> Buildings -> Props -> late heroes
+		local function phase(item)
+			if item.cat == "Hero" then
+				return if early(item.key) then 1 else 4
+			end
+			return if item.cat == "Buildings" then 2 else 3
+		end
+		local counts = { 0, 0, 0, 0 }
+		for i, item in queue do
+			counts[phase(item)] += 1
+			if i > 1 then
+				t.ok(phase(queue[i - 1]) <= phase(item), "phase order at " .. item.key)
+				if phase(queue[i - 1]) == phase(item) and item.cat == "Hero" then
+					t.ok(
+						AssetLibrary.heroPriority(queue[i - 1].key) <= AssetLibrary.heroPriority(item.key),
+						"hero priority order " .. item.key
+					)
+				end
+			end
+		end
+		t.ok(counts[1] >= 6 and counts[2] == want.Buildings and counts[4] > 0, "all four phases present")
+		-- every Building is in by entry ~1/3 of the queue (was 87-108 of 108)
+		local lastBuilding = 0
+		for i, item in queue do
+			if item.cat == "Buildings" then
+				lastBuilding = i
+			end
+		end
+		t.ok(lastBuilding <= counts[1] + counts[2], "buildings right after the early heroes")
+	end)
+
+	t.test("loaded Props / Buildings are the ones something places; SKIP is exactly the unused ones", function()
+		local fs = require("@lune/fs")
+		-- every source file that could place a kit key (Config/Assets itself and AssetLibrary don't count)
+		local sources = {}
+		local function scan(dir)
+			for _, e in fs.readDir(dir) do
+				local path = dir .. "/" .. e
+				if fs.isDir(path) then
+					scan(path)
+				elseif
+					e:match("%.luau$")
+					and path ~= "src/shared/Config/Assets.luau"
+					and path ~= "src/server/Systems/AssetLibrary.luau"
+				then
+					table.insert(sources, fs.readFile(path))
+				end
+			end
+		end
+		scan("src")
+		local blob = table.concat(sources, "\n")
+		local function used(key)
+			return blob:find('"' .. key .. '"', 1, true) ~= nil
+		end
+		for _, cat in { "Props", "Buildings" } do
+			for key, def in Assets[cat] do
+				if AssetLibrary.wanted(cat, key, def) then
+					t.ok(
+						used(key),
+						cat .. "/" .. key .. " is loaded but nothing places it: add it to AssetLibrary.SKIP"
+					)
+				else
+					t.ok(not used(key), cat .. "/" .. key .. " is used now: take it out of AssetLibrary.SKIP")
+				end
+			end
+		end
+		for cat, keys in AssetLibrary.SKIP do
+			for key in keys do
+				t.ok(Assets[cat] and Assets[cat][key], "SKIP names a real entry: " .. cat .. "/" .. key)
+			end
+		end
+	end)
+
+	t.test("Creator Store models: allowlist sanitize + part cap; owned models keep decals", function()
+		local function storeRaw(parts)
+			local raw = Instance.new("Model")
+			for i = 1, parts do
+				local p = Instance.new("Part")
+				p.Size = Vector3.new(1, 1, 1)
+				p.CFrame = CFrame.new(i, 0.5, 0)
+				p.Parent = raw
+				if i == 1 then
+					for _, cls in { "Decal", "SurfaceGui", "PointLight", "ParticleEmitter", "SpecialMesh", "Texture" } do
+						local c = Instance.new(cls)
+						c.Name = cls
+						c.Parent = p
+					end
+				end
+			end
+			return raw
+		end
+		local def = { ids = { 1 }, source = "store", fit = "maxDim", size = 4 }
+		local tpl = AssetLibrary._normalize(storeRaw(3), "store_test", def)
+		t.ok(tpl ~= nil, "a small store model normalizes")
+		local kept = {}
+		for _, d in tpl:GetDescendants() do
+			kept[d.ClassName] = true
+		end
+		t.ok(kept.SpecialMesh, "meshes stay")
+		for _, cls in { "Decal", "SurfaceGui", "PointLight", "ParticleEmitter", "Texture" } do
+			t.ok(not kept[cls], "store " .. cls .. " stripped")
+		end
+		t.eq(AssetLibrary._normalize(storeRaw(AssetLibrary.MAX_STORE_PARTS + 1), "store_big", def), nil, "part cap")
+		local owned = AssetLibrary._normalize(
+			storeRaw(3),
+			"owned_test",
+			{ ids = { 1 }, source = "owned", fit = "maxDim", size = 4 }
+		)
+		t.ok(owned:FindFirstChild("Decal", true) ~= nil, "owned models keep their decals")
+		t.ok(owned:FindFirstChild("PointLight", true) ~= nil, "owned models: blocklist only")
 	end)
 
 	t.test("normalized template + applyShell: GLB yaw honored, mesh runs along the car", function()
@@ -156,6 +262,11 @@ return function(t)
 					local mesh = m:FindFirstChild(CarBuilder.SHELL_NAME):FindFirstChild("Mesh")
 					local rel = ground:ToObjectSpace(mesh.CFrame)
 					t.near(rel.Position.Y - mesh.Size.Y / 2, 0, 1e-3, name .. " shell on its ground")
+				end
+				-- display shells (no DriverSeat) cast no shadow; drivable cars keep theirs (ART-PERF-03)
+				for _, name in { "street", "dealer", "slot" } do
+					local mesh = world[name]:FindFirstChild(CarBuilder.SHELL_NAME):FindFirstChild("Mesh")
+					t.eq(mesh.CastShadow, name == "street", name .. " shell shadow")
 				end
 				t.ok(world.other:GetAttribute("HeroMesh") == nil, "other car ids untouched")
 				t.ok(world.police:GetAttribute("HeroMesh") == nil, "police untouched")

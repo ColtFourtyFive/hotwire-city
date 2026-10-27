@@ -19,7 +19,8 @@
 -- Streamer mode (HUDController.VisibilityChanged) hides the card. The card stays above whatever sits at bottom-center:
 -- HUDController.getBottomClearance() (HOME, hotbar, speedometer, theft timer) and GarageClient.getLockTop().
 --
--- Public API: isActive(): boolean, getStep(): (number, string?), skip(),
+-- Step 1 starts only once the ReplicatedFirst loading overlay ("HC_Loading") is gone (bounded wait).
+-- Public API: isActive(): boolean, getStep(): (number, string?), skip(), loadingScreenUp(): boolean,
 --   StepChanged: Signal(index, id), Finished: Signal(skipped: boolean)
 -- Pure helpers (tests): STEPS, DONE, transition(step, ctx), pickNearest(candidates, origin, maxDistance?), keyFor,
 --   enterKeyFor, shouldRun(snapshot), alreadyDelivered(snapshot), hintFor(stepDef, inputKind), garageCount(snapshot),
@@ -125,6 +126,12 @@ local DELIVER_GRACE = 2.5 -- seconds out of the car (e.g. busted / wrecked) befo
 local RETARGET_EVERY = 2
 local RETARGET_HYSTERESIS = 25 -- a new car must be this many studs closer to replace the current target
 local START_DELAY = 1.5
+-- ReplicatedFirst's loading overlay (src/first/LoadingScreen.client.luau, DisplayOrder 1000) keeps this ScreenGui in
+-- PlayerGui until it has faded out; step 1 waits for it (bounded like its HARD_TIMEOUT) so the card's pop-in, sound
+-- and first waypoint aren't spent behind it on a fresh server.
+local LOADING_GUI = "HC_Loading"
+TutorialController.LOADING_GUI = LOADING_GUI
+local LOADING_WAIT = 25
 local NEAR_PAD = 16
 local TICK = 0.2
 local CARD_BOTTOM = 186 -- clears the LOCK pill inside the garage (bottom 112) and the driving speedometer
@@ -1390,6 +1397,12 @@ function TutorialController.isActive(): boolean
 	return active
 end
 
+-- True while the ReplicatedFirst loading overlay still covers the screen (its ScreenGui is gone once faded).
+function TutorialController.loadingScreenUp(): boolean
+	local pg = if player then player:FindFirstChildOfClass("PlayerGui") else nil
+	return pg ~= nil and pg:FindFirstChild(LOADING_GUI) ~= nil
+end
+
 function TutorialController.getStep(): (number, string?)
 	local def = TutorialController.STEPS[stepIndex]
 	return stepIndex, if def then def.id else nil
@@ -1412,6 +1425,10 @@ function TutorialController.start()
 		end
 		if not TutorialController.shouldRun(snap) then
 			return
+		end
+		local loadingDeadline = os.clock() + LOADING_WAIT
+		while TutorialController.loadingScreenUp() and os.clock() < loadingDeadline do
+			task.wait(0.25)
 		end
 		task.wait(START_DELAY)
 		-- wait (bounded) for our plot + character so the first waypoint has somewhere to point

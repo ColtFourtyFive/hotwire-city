@@ -41,10 +41,12 @@
 --   refreshHoldMultiplier(player), addStealHeat(player, stars, reason) -> applied, isFirstSteal(player),
 --   contractProgress(player, stat, amount), announceSteal(player, car, verb), carLabel(car), getFolder();
 --   signal Wrecked(car) (fired before the driver is ejected). Drive-start tracking: car.data.driveStartAt /
---   car.data.driveStartPos are set whenever a player starts driving the car.
+--   car.data.driveStartPos are set whenever a player starts driving the car. ensureCollisionGroups(): the "Car"
+--   group (every car's colliding parts: Chassis + BumpStops) never collides with the "NPC" group (NPCService humans).
 --   Pure helpers prefixed with _ are exposed for tests/spec/vehicleservice.spec.luau.
 
 local CollectionService = game:GetService("CollectionService")
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -166,6 +168,10 @@ VehicleService.SETTLE_MAX = 15 -- seconds a driverless car runs the server settl
 VehicleService.LOST_Y = MapConfig.WATER_LEVEL - 6
 VehicleService.LOST_AFTER = 1.5
 VehicleService.VOID_Y = MapConfig.WATER_LEVEL - 28 -- fell out of the world: lost at once, police included
+-- Collision groups. Pedestrians / ragdolls are server-owned: on a driver's client they are immovable boxes, so a car
+-- clipping one would stop dead. Cars pass through them; NPCService's server-side hit sweep does the comic knock-down.
+VehicleService.CAR_GROUP = "Car"
+VehicleService.NPC_GROUP = "NPC"
 VehicleService.CHOP_DWELL = 1.2 -- seconds stopped inside the Chop Shop before ChopAttempt (no drive-through chops)
 VehicleService.CHOP_MAX_SPEED = 8 -- studs/s: "stopped" for the chop dwell
 -- lag tolerance: displacement allowance accrues for at most this long (a stalled client may jump by its catch-up,
@@ -769,6 +775,36 @@ local function newState(car: Car): CarState
 	}
 end
 
+-- Registers the Car / NPC collision groups (idempotent; registered groups replicate to clients) and makes them
+-- non-collidable with each other. False when PhysicsService refused (the parts then stay in Default).
+local groupsReady = false
+function VehicleService.ensureCollisionGroups(): boolean
+	if groupsReady then
+		return true
+	end
+	groupsReady = pcall(function()
+		for _, name in { VehicleService.CAR_GROUP, VehicleService.NPC_GROUP } do
+			if not PhysicsService:IsCollisionGroupRegistered(name) then
+				PhysicsService:RegisterCollisionGroup(name)
+			end
+		end
+		PhysicsService:CollisionGroupSetCollidable(VehicleService.CAR_GROUP, VehicleService.NPC_GROUP, false)
+	end)
+	return groupsReady
+end
+
+-- Puts a car's colliding parts (Chassis, BumpStops) in the Car group.
+local function setCarGroup(model: Model)
+	if not VehicleService.ensureCollisionGroups() then
+		return
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d.CanCollide then
+			d.CollisionGroup = VehicleService.CAR_GROUP
+		end
+	end
+end
+
 function VehicleService.spawn(
 	carIdOrDef: any,
 	mutation: any,
@@ -791,6 +827,7 @@ function VehicleService.spawn(
 		model:Destroy()
 		error("VehicleService.spawn: CarBuilder model is missing Chassis / DriverSeat")
 	end
+	setCarGroup(model)
 	-- anchored kinds never drop, so they sit exactly at rest height (F10); physics cars settle the last few tenths
 	local anchored = if o.anchored ~= nil then o.anchored == true else ANCHORED_KINDS[kind :: string] == true
 	local ride = num(model:GetAttribute("RideHeight"), 2)
@@ -2200,6 +2237,7 @@ end
 
 function VehicleService.init()
 	VehicleService.getFolder()
+	VehicleService.ensureCollisionGroups()
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
 
 	local DataService = sys("DataService")

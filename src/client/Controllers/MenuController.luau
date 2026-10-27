@@ -22,6 +22,8 @@
 -- Wanted).
 -- The open menu refreshes on every snapshot and on Cash changes; countdowns tick once per second.
 -- Index car previews (ViewportFrames via CarBuilder) are built lazily, a few per frame, only once the Index opens.
+-- The card grid builds them without the hero shell (opts.noShell: ~30 viewports x a 9k-tri mesh + texture each on
+-- phones); only the single detail-view model wears it.
 -- Pure helpers (resolveName, dailyTileStates, playtimeTiles, contractRows, upgradeRows, ...) are exported for tests.
 
 local Players = game:GetService("Players")
@@ -1704,10 +1706,11 @@ local function isDiscovered(id: string): boolean
 	return s ~= nil and typeof(s.discovered) == "table" and s.discovered[id] == true
 end
 
-local function buildCarModel(carId: string): Model?
+-- shell: dress it in the hero mesh (the detail view); cards stay procedural (see the header).
+local function buildCarModel(carId: string, shell: boolean?): Model?
 	local ok, model = pcall(function()
 		local CarBuilder = (require :: any)(Shared:WaitForChild("Vehicle"):WaitForChild("CarBuilder"))
-		return CarBuilder.build(carId, "None", { forDisplay = true })
+		return CarBuilder.build(carId, "None", { forDisplay = true, noShell = shell ~= true })
 	end)
 	if ok and typeof(model) == "Instance" and model:IsA("Model") then
 		return model
@@ -1998,8 +2001,7 @@ updateIndexDetail = function(ctx: Ctx)
 		end
 		d.carId = def.id
 		if not hidden then
-			local entry = ui.cards[def.id]
-			local model = if entry and entry.model then entry.model:Clone() else buildCarModel(def.id)
+			local model = buildCarModel(def.id, true) -- not a clone of the (shell-less) card model
 			if model then
 				d.model = model
 				d.camera, d.center, d.size = attachModel(d.view, model, CARD_YAW + (ui.spinYaw or 0), 16, d.camera)

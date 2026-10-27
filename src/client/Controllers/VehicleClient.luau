@@ -15,7 +15,9 @@
 --     and horn presses are sent as state changes only (>= FX_MIN_INTERVAL apart, coalesced), the server relays them to
 --     nearby clients as VehicleFxState and EffectsController renders them.
 --   * Car radio (SoundController plays it): on while driving; the DrivingUI pill beside the speedometer shows the
---     station + track with ◀ ▶ buttons, R / T keys, D-pad left / right. The first drive tunes a random station.
+--     station + track with ◀ ▶ buttons, R / T keys, D-pad left / right. Touch screens get a compact station pill
+--     that is itself the "next station" button, kept out of the thumbstick zone (see radioLayout). The first drive
+--     tunes a random station.
 -- Wheels of the driven car are posed by WheelAnimator from getController() data (VehicleClient.positionsWheels=false).
 
 local CollectionService = game:GetService("CollectionService")
@@ -81,11 +83,19 @@ local DRIFT_BANNER_Y = -150
 -- HUDController's theft panel. So on touch screens the small labels get a bigger TextSize instead (same boxes).
 local PHONE_TEXT_MAX_BOOST = 1.4
 -- Radio pill (design px, before its UIScale = the phone text boost): bottom-aligned with the speedometer (half width
--- 170), right of it when that clears the touch cluster (DRIFT's left edge W-256; CombatClient's SPIKES sit higher,
--- above DRIFT) or the screen edge, else mirrored to its left (narrow phone canvases).
+-- 170). Desktop: the full pill (◀ station / track ▶) right of the speedometer when that clears the screen edge, else
+-- mirrored to its left. Touch: the left 40% of the screen (from a third of the height down) is the PlayerModule
+-- thumbstick, so no radio button may sit there. A compact pill (station name only; the whole pill is the "next
+-- station" button) shrinks into the slot between the speedometer and the touch cluster (DRIFT's left edge W-256;
+-- CombatClient's SPIKES sit higher, above DRIFT). A canvas too narrow for even that gets a display-only pill on the
+-- left (nothing Active in it: touches fall through to the thumbstick).
 local RADIO_SIZE = Vector2.new(216, 60)
 local RADIO_BUTTON = 48
 local RADIO_GAP = 6
+local RADIO_TOUCH_MIN_WIDTH = 100 -- narrowest compact pill (design px before its UIScale) that still reads
+-- Compact pill text (design px inside the pill): x its UIScale (the phone boost: >= Theme.TouchMinScale overall) it
+-- stays >= ~14 real px on phones. Fixed size + wrap + truncate: long names never shrink or spill.
+local RADIO_TOUCH_TEXT = 20
 local SPEEDO_HALF_WIDTH = 170
 local TOUCH_CLUSTER_LEFT = 256
 
@@ -239,15 +249,42 @@ function VehicleClient.textBoost(isTouch: boolean, uiScale: number, touchMin: nu
 	return math.clamp(touchMin / uiScale, 1, PHONE_TEXT_MAX_BOOST)
 end
 
--- Radio pill placement on a DrivingUI canvas `canvasWidth` design px wide, pill drawn at `scale`: returns
--- (anchorX, offsetX) for AnchorPoint (anchorX, 1) / Position UDim2.new(0.5, offsetX, 1, -12). Pure, unit-tested.
-function VehicleClient.radioLayout(canvasWidth: number, touch: boolean, scale: number): (number, number)
-	local width = RADIO_SIZE.X * scale
-	local rightLimit = canvasWidth - (if touch then TOUCH_CLUSTER_LEFT + RADIO_GAP else 12)
-	if canvasWidth / 2 + SPEEDO_HALF_WIDTH + RADIO_GAP + width <= rightLimit then
-		return 0, SPEEDO_HALF_WIDTH + RADIO_GAP
+export type RadioLayout = {
+	anchorX: number, -- AnchorPoint (anchorX, 1) / Position UDim2.new(0.5, offsetX, 1, -12)
+	offsetX: number,
+	width: number, -- pill width in design px before its UIScale (height RADIO_SIZE.Y)
+	compact: boolean, -- touch: station name only, no ◀ ▶ buttons, no track line
+	tap: boolean, -- the pill is a tap-to-cycle button (compact pills right of the speedometer only)
+}
+
+-- Radio pill placement on a DrivingUI canvas `canvasWidth` design px wide, pill drawn at `scale` (see RADIO_SIZE).
+-- On touch nothing interactive ever lands left of the speedometer (thumbstick zone). Pure, unit-tested.
+function VehicleClient.radioLayout(canvasWidth: number, touch: boolean, scale: number): RadioLayout
+	local s = if scale == scale and scale > 0 then scale else 1
+	local side = SPEEDO_HALF_WIDTH + RADIO_GAP
+	if not touch then
+		local fits = canvasWidth / 2 + side + RADIO_SIZE.X * s <= canvasWidth - 12
+		return {
+			anchorX = if fits then 0 else 1,
+			offsetX = if fits then side else -side,
+			width = RADIO_SIZE.X,
+			compact = false,
+			tap = false,
+		}
 	end
-	return 1, -(SPEEDO_HALF_WIDTH + RADIO_GAP)
+	-- room between the speedometer and DRIFT, in pill units
+	local slot = (canvasWidth / 2 - side - TOUCH_CLUSTER_LEFT - RADIO_GAP) / s
+	if slot >= RADIO_TOUCH_MIN_WIDTH then
+		return { anchorX = 0, offsetX = side, width = math.min(RADIO_SIZE.X, slot), compact = true, tap = true }
+	end
+	return { anchorX = 1, offsetX = -side, width = RADIO_TOUCH_MIN_WIDTH, compact = true, tap = false }
+end
+
+-- Design-canvas width of DrivingUI: its ScreenGui's AbsoluteSize (inside the device safe-area insets, e.g. notches,
+-- like the touch buttons laid out in it), the camera viewport only until the gui has a size. Pure, unit-tested.
+function VehicleClient.canvasWidth(guiWidth: number, viewportWidth: number, scale: number): number
+	local real = if guiWidth >= 1 then guiWidth else viewportWidth
+	return real / (if scale == scale and scale > 0 then scale else 1)
 end
 
 local function phoneTextBoost(): number
@@ -542,8 +579,9 @@ local function buildUI()
 	end)
 
 	-- Radio ---------------------------------------------------------------------------------------------------------
-	-- Station + track with ◀ ▶ (R / T, D-pad). Placed by layoutRadio (VehicleClient.radioLayout); its UIScale is the
-	-- phone text boost, so the labels inside are TextScaled rather than ts()-boosted.
+	-- Station + track with ◀ ▶ (R / T, D-pad), or on touch the compact station pill (Compact label + Tap button).
+	-- Placed and switched by layoutRadio (VehicleClient.radioLayout); its UIScale is the phone text boost, so the
+	-- labels inside are TextScaled / fixed-size rather than ts()-boosted.
 	local radio = Kit.panel({
 		Name = "Radio",
 		AnchorPoint = Vector2.new(0, 1),
@@ -587,10 +625,36 @@ local function buildUI()
 	})
 	Kit.new("UITextSizeConstraint", { MaxTextSize = 13, MinTextSize = 8, Parent = radioTitle })
 	radioTitle.Parent = radio
+	-- touch: station name only, full pill, fixed readable size (wraps to 2 lines, then truncates)
+	local radioCompact = Kit.label("RADIO", RADIO_TOUCH_TEXT, {
+		Name = "Compact",
+		Position = UDim2.fromOffset(6, 4),
+		Size = UDim2.new(1, -12, 1, -8),
+		RichText = false,
+		TextWrapped = true,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		TextColor3 = Theme.Colors.Secondary,
+		Visible = false,
+	})
+	radioCompact.Parent = radio
+	-- touch: the whole pill = next station (only while it sits right of the speedometer, see radioLayout)
+	local radioTap = Kit.new("TextButton", {
+		Name = "Tap",
+		BackgroundTransparency = 1,
+		Text = "",
+		AutoButtonColor = false,
+		Size = UDim2.fromScale(1, 1),
+		ZIndex = 3,
+		Visible = false,
+		Parent = radio,
+	})
 	radioPrev.Activated:Connect(function()
 		VehicleClient.radioStep(-1)
 	end)
 	radioNext.Activated:Connect(function()
+		VehicleClient.radioStep(1)
+	end)
+	radioTap.Activated:Connect(function()
 		VehicleClient.radioStep(1)
 	end)
 
@@ -616,30 +680,17 @@ local function buildUI()
 		nitroBtn = nitroBtn,
 		radio = radio,
 		radioScale = radioScale,
+		radioPrev = radioPrev,
+		radioNext = radioNext,
 		radioStation = radioStation,
 		radioTitle = radioTitle,
+		radioCompact = radioCompact,
+		radioTap = radioTap,
 	}
 end
 
--- Place the radio pill for the current viewport (see VehicleClient.radioLayout).
-local function layoutRadio()
-	if not ui then
-		return
-	end
-	local cam = Workspace.CurrentCamera
-	if not cam then
-		return
-	end
-	local okScale, canvasScale = pcall(Kit.uiScale)
-	local scale = if okScale and typeof(canvasScale) == "number" and canvasScale > 0 then canvasScale else 1
-	local boost = phoneTextBoost()
-	local anchorX, offsetX = VehicleClient.radioLayout(cam.ViewportSize.X / scale, UserInputService.TouchEnabled, boost)
-	ui.radioScale.Scale = boost
-	ui.radio.AnchorPoint = Vector2.new(anchorX, 1)
-	ui.radio.Position = UDim2.new(0.5, offsetX, 1, -12)
-end
-
 -- Radio label: station + "♪ track" (or MUSIC OFF while the music setting mutes it). Args from RadioChanged / getRadio.
+-- Compact (touch) pill: the station name alone, "▶" when tapping it cycles.
 local function updateRadioUI(station: any, title: any)
 	if not ui then
 		return
@@ -655,6 +706,9 @@ local function updateRadioUI(station: any, title: any)
 		ui.radioTitle.Text = if typeof(title) == "string" then "♪ " .. title else ""
 		ui.radioTitle.TextColor3 = Theme.Colors.TextDim
 	end
+	local name = if typeof(station) == "string" then station else "RADIO"
+	ui.radioCompact.Text = if musicOff then "MUSIC OFF" elseif ui.radioTap.Visible then name .. " ▶" else name
+	ui.radioCompact.TextColor3 = if musicOff then Theme.Colors.Warning else Theme.Colors.Secondary
 end
 
 local function radioCall(method: string, ...: any): ...any
@@ -668,6 +722,33 @@ local function radioCall(method: string, ...: any): ...any
 		return nil
 	end
 	return table.unpack(results, 2, results.n)
+end
+
+-- Place the radio pill on the DrivingUI canvas and pick its full / compact form (see VehicleClient.radioLayout).
+local function layoutRadio()
+	if not ui then
+		return
+	end
+	local cam = Workspace.CurrentCamera
+	local okScale, canvasScale = pcall(Kit.uiScale)
+	local scale = if okScale and typeof(canvasScale) == "number" and canvasScale > 0 then canvasScale else 1
+	local canvas =
+		VehicleClient.canvasWidth(ui.gui.AbsoluteSize.X, if cam then cam.ViewportSize.X else 1280 * scale, scale)
+	local boost = phoneTextBoost()
+	local layout = VehicleClient.radioLayout(canvas, UserInputService.TouchEnabled, boost)
+	ui.radioScale.Scale = boost
+	ui.radio.AnchorPoint = Vector2.new(layout.anchorX, 1)
+	ui.radio.Position = UDim2.new(0.5, layout.offsetX, 1, -12)
+	ui.radio.Size = UDim2.fromOffset(layout.width, RADIO_SIZE.Y)
+	ui.radioPrev.Visible = not layout.compact
+	ui.radioNext.Visible = not layout.compact
+	ui.radioStation.Visible = not layout.compact
+	ui.radioTitle.Visible = not layout.compact
+	ui.radioCompact.Visible = layout.compact
+	if ui.radioTap.Visible ~= layout.tap then
+		ui.radioTap.Visible = layout.tap
+		updateRadioUI(radioCall("getRadio")) -- the "▶" cue follows tappability
+	end
 end
 
 local function controlHint(): string
@@ -741,9 +822,9 @@ local function showUI(s: Session)
 	setRev(0, false)
 	ui.setNitro(s.controller.nitro, false)
 	updateHealthUI(s, false)
-	layoutRadio()
-	updateRadioUI(radioCall("getRadio"))
 	ui.gui.Enabled = true
+	layoutRadio() -- after Enabled: measured on the live DrivingUI canvas
+	updateRadioUI(radioCall("getRadio"))
 	-- slide up + pop
 	ui.speedo.Position = UDim2.new(0.5, 0, 1, 190)
 	TweenService:Create(ui.speedo, Theme.TweenPop, { Position = UDim2.new(0.5, 0, 1, -12) }):Play()
@@ -1464,7 +1545,7 @@ function VehicleClient.radioStep(dir: number)
 	radioCall("stepRadio", dir)
 	playViaController("Click")
 	if ui then
-		Kit.pop(ui.radioStation, 1.15)
+		Kit.pop(if ui.radioCompact.Visible then ui.radioCompact else ui.radioStation, 1.15)
 	end
 end
 
@@ -1479,13 +1560,18 @@ function VehicleClient.start()
 			updateRadioUI(station, title)
 		end)
 	end
+	-- re-place the radio when the DrivingUI canvas (safe-area insets included) or the viewport (UI scale) changes
+	local function relayoutRadio()
+		if session then
+			layoutRadio()
+		end
+	end
+	if ui then
+		ui.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayoutRadio)
+	end
 	local cam = Workspace.CurrentCamera
 	if cam then
-		cam:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-			if session then
-				layoutRadio()
-			end
-		end)
+		cam:GetPropertyChangedSignal("ViewportSize"):Connect(relayoutRadio)
 	end
 	player.CharacterAdded:Connect(function(character: Model)
 		hookCharacter(character)
