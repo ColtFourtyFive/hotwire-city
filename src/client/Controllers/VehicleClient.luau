@@ -1837,10 +1837,20 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 	VehicleClient.Entered:Fire(model, controller)
 end
 
+-- Combat v2 (gta_combat §13.2): guns go away when we get into a car (drive-by is phase 2). The server holsters too.
+local function holsterWeapons()
+	local mod = script.Parent:FindFirstChild("WeaponClient")
+	local ok, wc = pcall(require, mod :: any)
+	if ok and typeof(wc) == "table" and typeof(wc.isGunDrawn) == "function" and wc.isGunDrawn() then
+		pcall(wc.holster)
+	end
+end
+
 local function onSeated(humanoid: Humanoid, active: boolean, seatPart: BasePart?)
 	if active and seatPart then
 		local model = carModelFromSeat(seatPart)
 		if model and seatPart:IsA("VehicleSeat") then
+			holsterWeapons()
 			enter(seatPart, model, humanoid)
 			return
 		end

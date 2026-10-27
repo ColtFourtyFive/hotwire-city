@@ -69,6 +69,10 @@ Economy.Upgrades = {
 } :: { [string]: UpgradeDef }
 
 -- Tools (bought at the Gear Shop, permanent) -----------------------------------
+-- v2 (gta_combat §4.1): guns and melee live in Config/Weapons. Only the two GADGETS stay tools: the Kessler Stun Gun
+-- ("taser", Zapper Pass grandfathered: half cooldown) and the Stinger Strip ("spikes"). `bat` stays listed for the v1
+-- Gear Shop list and old saves (it is the free Slugger Bat, handed out by WeaponService as a melee weapon now);
+-- CombatService no longer builds a bat Tool.
 export type ToolDef = {
 	id: string,
 	name: string,
@@ -80,31 +84,32 @@ export type ToolDef = {
 Economy.Tools = {
 	bat = {
 		id = "bat",
-		name = "Bonk Bat",
-		description = "Bonk thieves out of your cars. Free!",
+		name = "Slugger Bat",
+		description = "Free melee weapon. Knocks thieves out of the driver's seat.",
 		price = 0,
 		cooldown = 0.8,
 	},
 	taser = {
 		id = "taser",
-		name = "Zapper",
-		description = "Zap a thief from range. Stuns them and pops them out of their car.",
+		name = "Kessler Stun Gun",
+		description = "Fires two barbed probes up to 60 studs. Stuns the target and drops a driver out of the seat.",
 		price = 15000,
 		cooldown = 6,
 	},
 	spikes = {
 		id = "spikes",
-		name = "Spike Strip",
-		description = "Drop spikes behind you. Pops the tires of anyone chasing you.",
+		name = "Stinger Strip",
+		description = "Deploy behind your car while driving. Deflates the tires of whoever follows.",
 		price = 6000,
 		cooldown = 12,
 	},
 } :: { [string]: ToolDef }
 
 Economy.ToolOrder = { "bat", "taser", "spikes" }
+Economy.GadgetOrder = { "taser", "spikes" } -- the Tools CombatService builds
 
--- Combat tuning
-Economy.BAT_RANGE = 9
+-- Combat tuning (gadgets; melee + guns: Config/Weapons)
+Economy.BAT_RANGE = 9 -- v1 melee cone reach (kept for the CombatService.selectTarget tests)
 Economy.BAT_KNOCKBACK = 70
 Economy.BAT_STUN = 1.6
 Economy.TASER_RANGE = 60
@@ -112,6 +117,13 @@ Economy.TASER_STUN = 2.5
 Economy.SPIKES_DURATION = 15 -- seconds the strip stays on the road
 Economy.SPIKES_SLOW = 0.4 -- top speed multiplier while tires are popped
 Economy.SPIKES_POP_TIME = 6
+
+-- Hospital (WASTED) -------------------------------------------------------------
+Economy.HOSPITAL_BILL_FRACTION = 0.05 -- min(5% of cash, HOSPITAL_BILL_MAX_SECONDS of income); rookies are free
+Economy.HOSPITAL_BILL_MAX_SECONDS = 120
+Economy.BOUNTY_CASH_FRACTION = 0.1 -- 4+ star bounty = min(10% of the target's cash, stars x 20 s of their income)
+Economy.BOUNTY_INCOME_SECONDS_PER_STAR = 20
+Economy.BOUNTY_PAIR_COOLDOWN = 1800 -- a (killer, target) pair pays a bounty at most once per this many seconds
 
 -- Rebirth ---------------------------------------------------------------------
 Economy.REBIRTH_BASE_COST = 750000
@@ -123,6 +135,8 @@ Economy.REBIRTH_KEEP_CARS = 2 -- rebirth keeps your best N cars (by income)
 -- Wanted / busted --------------------------------------------------------------
 Economy.BUSTED_CASH_PENALTY = 0.1 -- lose 10% of cash on hand
 Economy.BUSTED_MAX_PENALTY_SECONDS = 600 -- penalty capped at 10 minutes of income
+Economy.SURRENDER_PENALTY_MULT = 0.5 -- giving yourself up halves the busted penalty (gta_combat §7.3)
+Economy.BUSTED_AMMO_LOSS = 0.5 -- a bust confiscates this fraction of every weapon's reserve ammo
 Economy.SPRAY_COST_PER_STAR = 250 -- minimum cost to clear wanted at a Spray Shop, per star
 Economy.SPRAY_INCOME_SECONDS = 15 -- per star: cost = stars * max(SPRAY_COST_PER_STAR, income/s * this)
 

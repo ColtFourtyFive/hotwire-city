@@ -714,19 +714,18 @@ return function(t)
 		t.eq(Wanted._decayDelay(99), PoliceConfig.DECAY_DELAY[#PoliceConfig.DECAY_DELAY])
 	end)
 
-	t.test("wanted decay timer: seen resets, then one star per DECAY_STEP", function()
-		local st = { stars = 2, nextDecayAt = 10 }
-		t.eq(Wanted._tickDecay(st, 5, false), 2)
-		t.eq(Wanted._tickDecay(st, 5, true), 2)
-		t.eq(st.nextDecayAt, 5 + PoliceConfig.DECAY_DELAY[2], "seen resets the timer")
-		local at = st.nextDecayAt
-		t.eq(Wanted._tickDecay(st, at - 0.01, false), 2)
-		st.stars = Wanted._tickDecay(st, at, false)
-		t.eq(st.stars, 1)
-		t.eq(st.nextDecayAt, at + PoliceConfig.DECAY_STEP)
-		st.stars = Wanted._tickDecay(st, at + PoliceConfig.DECAY_STEP, false)
-		t.eq(st.stars, 0)
-		t.eq(Wanted._tickDecay(st, 1e6, false), 0)
+	t.test("wanted evade timer (v2): seen resets, all stars clear at once, 2x outside the search area", function()
+		local full = PoliceConfig.DECAY_DELAY[2]
+		local st = { stars = 2, evadeLeft = 3 }
+		t.eq(Wanted._tickEvade(st, 1, true, true), 2)
+		t.eq(st.evadeLeft, full, "seen resets the timer")
+		t.eq(Wanted._tickEvade(st, full - 1, false, true), 2, "inside: 1x")
+		t.near(st.evadeLeft, 1, 1e-9)
+		t.eq(Wanted._tickEvade(st, 1, false, true), 0, "every star clears at once")
+		st = { stars = 2, evadeLeft = full }
+		t.eq(Wanted._tickEvade(st, full / PoliceConfig.EVADE_OUTSIDE_MULT - 0.01, false, false), 2)
+		t.eq(Wanted._tickEvade(st, 0.02, false, false), 0, "outside the circle the timer runs 2x")
+		t.eq(Wanted._tickEvade({ stars = 0, evadeLeft = 5 }, 1, false, true), 0)
 	end)
 
 	-- Fake player + systems for the stateful API.
@@ -907,8 +906,8 @@ return function(t)
 			Wanted._decayPass()
 		end
 		t.eq(Wanted.getStars(p), 0)
-		local expected = PoliceConfig.DECAY_DELAY[3] + 2 * PoliceConfig.DECAY_STEP
-		t.near(guard * 0.25, expected, 0.3, "3 stars hidden decay time")
+		local expected = PoliceConfig.DECAY_DELAY[3] -- v2: the whole evade time, then every star at once
+		t.near(guard * 0.25, expected, 0.3, "3 stars hidden evade time")
 		local stats = {}
 		for _, c in progressCalls do
 			stats[c[2]] = (stats[c[2]] or 0) + c[3]
