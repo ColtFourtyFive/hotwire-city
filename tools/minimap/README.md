@@ -65,8 +65,9 @@ This approximates the radar and the fullscreen map in PIL. It uses the same art,
 `RoadGraph` routes (`tools/minimap/sample_route.luau`) to produce:
 
 - radar close-ups;
-- the desktop and phone HUD with the radar in place;
-- the fullscreen map on desktop and on a phone.
+- the desktop HUD, and the phone HUD on 844x390 (on foot and driving) and 667x375 (the compact radar) with the
+  event feed and the thumbstick zone;
+- the fullscreen map on desktop and on 844x390 / 640x360 phones, with the legend open.
 
 ## Road network / GPS
 

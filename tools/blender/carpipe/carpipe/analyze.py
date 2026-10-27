@@ -717,6 +717,10 @@ class Car:
                 why[i] += " behind-glass"
             elif vis[i] == 0 and role[i] == GLASS:
                 role[i] = DISCARD
+            elif vis[i] == 2 and role[i] == INTERIOR and (abs(self.ic[i, 1]) > 0.36 * L or self.ic[i, 2] < 0.15 * H):
+                # "inner" panels at the nose/tail or under the car are exterior trim, not cabin
+                role[i] = TRIM
+                why[i] += " exterior-inner"
         # front/rear lights
         for i in range(n):
             if role[i] == LIGHT_F:

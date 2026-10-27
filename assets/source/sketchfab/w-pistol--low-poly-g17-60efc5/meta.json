@@ -101,6 +101,7 @@
       "Cube.001_10",
       "Icosphere"
     ],
-    "render_s": 22.1
+    "hidden_helpers": [],
+    "render_s": 27.9
   }
 }

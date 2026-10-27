@@ -13,7 +13,7 @@
 --  * Shows the same map art as the radar, district names (UI labels, nothing baked; they step aside from blips),
 --    every blip (shops, landmarks, your garage, other players' garages with their names, waypoints, police cars,
 --    the police chopper, other players), the GPS route and you. A legend explains the blips (on phones: a toggled
---    two-column panel above its button; it scrolls when the screen is too short).
+--    2-3 column panel above its button; it scrolls only when the screen is still too short).
 --  * Presses that land on the chrome (buttons, legend, title, GPS chip) never also drop a waypoint (overChrome).
 --  * Map layer: a raw ScreenGui (no UIScale) so input math stays in real pixels; the chrome (title, buttons, legend)
 --    is a Kit.screen with the usual scaling.
@@ -660,7 +660,8 @@ local function build(): Ui
 	clearButton.Parent = chrome
 
 	-- legend (bottom-left; on touch a toggled panel above its LEGEND / HIDE button). Rows sit in a grid inside a
-	-- scroll frame: legendLayout picks one column on desktop, two on touch, and caps the height to the free space.
+	-- scroll frame: legendLayout picks one column on desktop, two or three on touch, and caps the height to the free
+	-- space.
 	local legend = Kit.panel({
 		Name = "Legend",
 		Active = true,
@@ -1341,9 +1342,16 @@ local function chromeCanvas(u: Ui): (number, number)
 	return 1280, 720
 end
 
--- Legend size / place + hint text + gamepad reticle for the current input type.
-local function applyChrome(u: Ui)
+-- Legend size / place + hint text + gamepad reticle for the current input type. The legend starts hidden behind
+-- its LEGEND button on touch and always shows otherwise (re-applied when the input type flips while open).
+local chromeTouch: boolean? = nil
+local function applyChrome(u: Ui, reset: boolean?)
 	local touch = Kit.isTouch()
+	if reset or touch ~= chromeTouch then
+		chromeTouch = touch
+		u.legend.Visible = not touch
+		u.legendToggle.Text = "LEGEND"
+	end
 	local pad = not touch and isGamepad()
 	local w, h = chromeCanvas(u)
 	local count = #MapScreenController.legendEntries()
@@ -1446,9 +1454,7 @@ function MapScreenController.open()
 	local lo = limits()
 	scale = lo
 	cx, cz = 0, MapScreenController.fitCenterZ(scale, chromeTop())
-	applyChrome(u)
-	u.legend.Visible = not Kit.isTouch()
-	u.legendToggle.Text = "LEGEND"
+	applyChrome(u, true)
 	u.mapGui.Enabled = true
 	u.chrome.Enabled = true
 	bindPad()
