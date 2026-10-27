@@ -507,14 +507,41 @@ for _arch in VARIANTS:
     SCENES["variants_" + _arch] = (lambda ar: (lambda a: sc_variants(a, ar)))(_arch)
 
 
+def contact_sheet(names, path, cols=3, w=640):
+    """Tile finished renders into one review image (PIL; no Blender needed)."""
+    from PIL import Image, ImageDraw
+    ims = [(n, Image.open(os.path.join(OUT, n + ".png")).convert("RGB")) for n in names
+           if os.path.exists(os.path.join(OUT, n + ".png"))]
+    h = int(w * 9 / 16)
+    rows = (len(ims) + cols - 1) // cols
+    sheet = Image.new("RGB", (cols * w, rows * h), (20, 20, 22))
+    d = ImageDraw.Draw(sheet)
+    for i, (n, im) in enumerate(ims):
+        x, y = (i % cols) * w, (i // cols) * h
+        sheet.paste(im.resize((w, h), Image.LANCZOS), (x, y))
+        d.rectangle([x, y, x + 8 * len(n) + 10, y + 18], fill=(0, 0, 0))
+        d.text((x + 5, y + 3), n, fill=(255, 255, 255))
+    sheet.save(path)
+    return path
+
+
+HERO = ["downtown_street", "midtown_street", "strip_mall", "gas_station", "diner", "corner_store", "deco_beach",
+        "suburbs_street", "industrial_warehouse", "hills_mansion", "block_wide", "deco_night", "downtown_night"]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene")
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--contact", action="store_true", help="tile finished renders into _contact_*.png")
     ap.add_argument("--samples", type=int, default=48)
     ap.add_argument("--res", type=int, nargs=2, default=(960, 540))
     a = ap.parse_args()
     a.res = tuple(a.res)
+    if a.contact:
+        print(contact_sheet(HERO, os.path.join(OUT, "_contact_heroes.png")))
+        print(contact_sheet(["variants_" + k for k in VARIANTS], os.path.join(OUT, "_contact_variants.png"), cols=2, w=960))
+        return
     if a.all:
         for name in SCENES:
             subprocess.run([sys.executable, "-I", os.path.abspath(__file__), "--scene", name, "--samples", str(a.samples),

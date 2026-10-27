@@ -144,6 +144,11 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
                 chans = ["base", "emit", "normal"]
             else:
                 chans = ["base", "rough", "metal", "normal"]
+            # undecimated parts gain nothing from a normal map, and on old sliver-triangle meshes the tangent
+            # basis is garbage (black streaks): only bake normals where decimation actually removed detail
+            kept = sum(tri_count(lows[m]) for m in members) / max(1, sum(tri_count(his[m]) for m in members))
+            if kept > 0.85 and "normal" in chans:
+                chans = [c for c in chans if c != "normal"]
             res = {}
             for m in members:
                 # each member bakes into the shared image: bake one member at a time, then composite by UV coverage
