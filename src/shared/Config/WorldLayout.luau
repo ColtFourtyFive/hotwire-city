@@ -3999,9 +3999,9 @@ local POI_DEFS: { PoiDef } = {
 		id = "Casino",
 		name = "Lucky Seven Casino",
 		kind = "landmark",
-		at = { -2450, -1250 },
-		size = { 200, 120, 160 },
-		setback = 20,
+		at = { -2700, -700 },
+		size = { 190, 120, 150 },
+		setback = 12,
 		tags = { "futureHeist" },
 	},
 	{
