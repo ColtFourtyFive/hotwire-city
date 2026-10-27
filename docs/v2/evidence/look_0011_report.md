@@ -1,9 +1,10 @@
-# Job 0011 report: look sweep on version 31 (PAUSED, partial, no DONE)
+# Job 0011 report: look sweep on version 31 (DONE)
 
-> **Paused at the lead's request:** the owner account is moderated, and Open Cloud returns 403 "User is moderated".
-> All sweeps A–D were already captured when the pause arrived. Play is stopped and the place is back in Edit.
-> **Nothing was saved or published.** No moderation or ban notice appeared in Studio, and nothing was acknowledged.
-> The account issue affects the **PBR verdict** (and possibly sky textures), so step 4 should be redone once the account is cleared.
+> **History:**
+> - The job was paused partway (owner account moderated). Sweeps A–D had already been captured.
+> - It was resumed at step 4 after the lead confirmed the account was cleared, on the same place and Studio window.
+> - **Nothing was saved or published.** No moderation notice appeared in Studio, and nothing was acknowledged.
+> - The resumed session had **0** "403" or "moderated" lines.
 
 ## Setup
 - **Studio:** one window. The owner reopened the place from Roblox and wasn't sure of the version number. The content confirms **v31**:
@@ -33,16 +34,30 @@
 - **All sweep shots below are at Level 21.** I set the setting back to Automatic afterwards.
 - **Recommendation:** treat overview readability on low quality as a draw-distance and LOD question, separate from Atmosphere tuning.
 
-## Step 4: PBR check (cannot be judged)
-- `pbr_check.png` (Level 21): Asphalt is dark grey, Brick is plain brown, Concrete is pale and speckled, Pavement is plain grey.
-- **No HC_ maps show:** no aggregate, no brick bond, no sidewalk joints. They are tinted stock materials.
-- **The cause is the account, not the overrides.** The Server log shows:
-  - `Unable to load MaterialService.HC_Asphalt - ColorMap 'rbxassetid://112223103107268' (Error: HTTP 403 (Forbidden))`
-  - the same for its NormalMap and RoughnessMap, and for HC_Sidewalk;
-  - then `Unable to generate 'MaterialService.HC_Asphalt' due to some of the textures being unavailable`.
-- The overrides are wired correctly (16/16); the textures just can't download while the account returns 403.
-- **Redo step 4 once the account is cleared.**
-- I cleaned up the slabs with `PBRCHECK_CLEAN`.
+## Step 4: PBR check (redone after the account was cleared, 22:01 UTC)
+The first attempt, `pbr_check_403_blocked.png`, was blocked: every HC_ map returned 403 and the slabs rendered as stock materials.
+
+**Redone at Level 21** (`pbr_check.png`, `pbr_close_*`):
+
+| Slab | Override | Result |
+|---|---|---|
+| Asphalt | HC_Asphalt | ✅ **The PBR map shows:** fine dark aggregate with soft tone patches and a slight sheen. Clearly not stock asphalt. *(pbr_close_asphalt)* |
+| Concrete | HC_Concrete | ✅ A mottled, poured-concrete surface with subtle staining. |
+| Pavement | HC_Sidewalk | ✅ **Sidewalk joints are visible:** a square slab grid at about 10.7 studs. |
+| Brick | HC_BrickRed | ❌ **Completely flat brown, with no brick bond at all.** Even stock Roblox Brick would show bricks, so the variant is rendering with empty maps. *(pbr_close_brick, pbr_close_brick_retry)* |
+
+**Brick diagnosis:**
+- The override is correct: `GetBaseMaterialOverride(Brick) = HC_BrickRed`, `StudsPerTile` 5, and ColorMap `130389958232148`.
+- I made two slabs forced to `MaterialVariant = HC_BrickTan` and `HC_BrickRed`. **Both are also flat** (`diag_brick_variants.png`), so it affects both brick variants.
+- The **same texture ids applied as plain Decals do render as brick** (`diag_brick_decals.png`, magenta-backed tiles: BrickRed on the left, BrickTan in the middle, Asphalt on the right). So delivery works and the images are correct. The repo source `assets/materials/brick_red/color.png` is a proper red-brick bond.
+- The log shows the likely cause:
+  - `ContentId: rbxassetid://130389958232148 failed due to: Asset content representation is being generated`;
+  - the same for `119510173406235` (HC_BrickTan) and `112223103107268` (HC_Asphalt), plus several mesh ids.
+  - Roblox is still regenerating asset content after the moderation was lifted, and the brick variants were built while their maps weren't ready.
+  - Asphalt recovered (it had loaded earlier in the session), but the brick variants haven't been rebuilt yet in this Studio process.
+- I can't force a rebuild, because MaterialVariant map properties need plugin security.
+- **Verdict:** the overrides and three of four HC_ materials are confirmed working. **Brick needs a re-check** after a fresh Studio launch, or a live server, once regeneration finishes. It's not a code bug as far as I can see.
+- All slabs, decals and diagnostic parts were cleaned up (`HCPbrCheck` destroyed), and the client quality is back to Automatic.
 
 ## A: noon fog density (lock 13, Level 21)
 | Density | overview_high (≈1,300 studs to downtown) | overview_low_sw (≈1,000 studs) |
@@ -103,9 +118,10 @@
 ## Files
 - **Sweeps:** `A_*`, `B_*`, `C_*`, `D_*` (Level 21).
   - `B_n_tintold_overview_low_sw_banner.png` is the first try, covered by a "Cash Rain" banner; I re-shot it.
-- **PBR:** `pbr_check.png` (Level 21) plus `pbr_check_*_autoquality.png`.
+- **PBR, first attempt (403-blocked):** `pbr_check_403_blocked.png` (Level 21) plus `pbr_check_*_autoquality.png`.
   - The first framing per the job (camera at the printed position) showed only 2 slabs, so I re-framed further back.
+- **PBR, redone:** `pbr_check.png`, `pbr_close_asphalt.png`, `pbr_close_brick.png`, `pbr_close_brick_retry.png`, `diag_brick_variants.png`, `diag_brick_decals.png`.
 - **Diagnostics:** `diag_*` (overview_high grey at Automatic quality, then fixed at Level 21).
 
-## Still to do when the account is cleared
-1. Redo step 4 (PBR slabs) so the HC_ maps can load. Then write DONE.
+## Follow-up
+- Re-check the HC_BrickRed and HC_BrickTan variants on a fresh Studio launch once Roblox has finished regenerating asset content. They render flat in this session (see step 4).
