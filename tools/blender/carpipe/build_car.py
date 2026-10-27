@@ -37,6 +37,9 @@ def main(argv=None):
     cfg = {}
     if a.model:
         reg = json.load(open(os.path.join(HERE, "models.json")))
+        loc = os.path.join(HERE, "models_local.json")  # written by sketchfab_fetch.py
+        if os.path.exists(loc):
+            reg.update(json.load(open(loc)))
         if a.model not in reg:
             sys.exit(f"unknown model id {a.model}; known: {[k for k in reg if not k.startswith('_')]}")
         cfg.update(reg[a.model])

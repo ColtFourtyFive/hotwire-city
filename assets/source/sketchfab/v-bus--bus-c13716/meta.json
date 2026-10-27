@@ -36,5 +36,72 @@
   "sha256": "b7311ed1df5d92901dded01593ea7c39bb4a31212cfdf02a0a936a84db2fc467",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:07:07+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      3.1297,
+      10.2349,
+      3.1324
+    ],
+    "dims_m": [
+      3.13,
+      10.235,
+      3.132
+    ],
+    "front_evidence": "names(front=0,rear=1)",
+    "flipped": false,
+    "mesh_objects": 17,
+    "triangles": 25796,
+    "materials": 17,
+    "material_names": [
+      "backlght",
+      "black",
+      "body",
+      "body_blk",
+      "chrome",
+      "glass",
+      "glassblk",
+      "headlght",
+      "interior",
+      "mirror",
+      "nplate",
+      "plastic",
+      "rearlght",
+      "text",
+      "turnlght",
+      "tyre",
+      "wheel"
+    ],
+    "textures": 0,
+    "texture_max_px": 0,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [
+      "glass",
+      "glassblk"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Object_5",
+      "Object_7",
+      "Object_9",
+      "Object_11",
+      "Object_13",
+      "Object_15",
+      "Object_17",
+      "Object_19",
+      "Object_21",
+      "Object_23",
+      "Object_25",
+      "Object_27",
+      "Object_29",
+      "Object_31",
+      "Object_33",
+      "Object_35",
+      "Object_37"
+    ],
+    "render_s": 47.3
+  }
 }

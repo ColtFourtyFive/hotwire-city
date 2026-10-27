@@ -56,7 +56,8 @@ RE_WHEELCONT = re.compile(r"^(fl|fr|rl|rr|lf|rf|lr|wheel ?fl|wheel ?fr|wheel ?rl
                           r"front ?left|front ?right|rear ?left|rear ?right|back ?left|back ?right)$", re.I)
 RE_WHEELNAME = re.compile(r"wheel|tire|tyre|rim\b|rims|hubcap|\bhub\b|rotor|spoke|lugnut|lug nut|disk|disc", re.I)
 RE_STEER = re.compile(r"steer|misc", re.I)
-RE_WHEEL_STATIC = re.compile(r"^(fixed|wheelfixed|caliper|calipers|brake ?caliper|knuckle|strut)$", re.I)
+RE_WHEEL_STATIC = re.compile(r"^(fixed|wheelfixed|caliper|calipers|brake ?caliper|knuckle|strut|plaquette|etrier|"
+                             r"brake ?pad|pads?)$", re.I)
 RE_LIGHT = re.compile(r"light|lamp|\bled|drl|indicator|signal|blinker|turn|brake|reverse|reversing|fog|beam|"
                       r"hazard|tail|^head|lightbar|siren|strobe|\bels\b|flasher|marker", re.I)
 RE_NOT_LIGHT = re.compile(r"headrest|headliner|lightweight|highlight", re.I)
@@ -65,7 +66,8 @@ RE_EMERG = re.compile(r"lightbar|siren|strobe|\bels\b|flasher|emergency|wail|lig
 RE_GLASS = re.compile(r"glass|window|windscreen|windshield|wind ?shield|wndw|sunroof|moonroof", re.I)
 RE_INTERIOR = re.compile(r"interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|shifter|gear ?stick|"
                          r"headrest|carpet|^int[_ ]|cabin", re.I)
-RE_PAINT = re.compile(r"paint|bodyshell|body ?colou?r|carpaint|^colou?r$|^shell|^body ?panel", re.I)
+RE_PAINT = re.compile(r"paint|bodyshell|body ?colou?r|carpaint|^colou?r$|^shell|^body ?panel|carrosserie|carroceria|"
+                      r"karosserie|^lack$", re.I)
 RE_BRAND = re.compile(r"logo|badge|emblem|ford|toyota|nissan|kia|jaguar|mercedes|benz|amg|peugeot|chevrolet|"
                       r"chevy|gmc|chrysler|prius|patrol|murano|sorento|tundra|isuzu|lexus|bmw|audi|honda|"
                       r"plate|license|licence", re.I)
@@ -76,7 +78,7 @@ REAL_LENGTH_M = {  # approximate real-world overall length of the car each listi
     14746413121: (5.05, "Nissan Patrol Y61 5-door"),
     117276253886376: (4.69, "Kia Sorento XM 2011"),
     73893179863762: (4.77, "Nissan Murano Z50 2005"),
-    126180570128588: (4.94, "Toyota Vellfire AH30 (listed as Tundra)"),
+    126180570128588: (5.93, "2022 Toyota Tundra CrewMax (badged \"VELLFIRE\")"),
     113053967699143: (5.04, "Ford Explorer Police Interceptor-style SUV"),
     103123587729335: (4.25, "Peugeot 308-style hatchback"),
     131180706902259: (7.0, "Isuzu NPR-style 16 ft box truck"),
@@ -283,6 +285,42 @@ def analyze(model_id):
             group[n["id"]] = ("WheelStatic_" if static else "Wheel_") + q
             rule[n["id"]] = "wheel-ish name: " + next(x for x in names if RE_WHEELNAME.search(x))
             wheel_method = wheel_method or "names"
+    # geometric fallback: round parts (Ball / Cylinder / two equal dims) low down near the 4 corners
+    if not any(g.startswith("Wheel_") for g in group.values()):
+        cands = []
+        for n in vis:
+            p = n["props"]
+            sz = np.array(p["Size"], float)
+            sm = next((byid[c] for c in kids[n["id"]] if byid[c]["class"] in ("SpecialMesh", "CylinderMesh")), None)
+            shape = p.get("Shape")
+            if sm is not None and sm["class"] == "SpecialMesh":
+                shape = {"Cylinder": "Cylinder", "Sphere": "Ball"}.get(sm["props"].get("MeshType"), shape)
+            srt = np.sort(sz)
+            roundish = shape in ("Ball", "Cylinder") or (srt[2] > 1.2 and abs(srt[2] - srt[1]) / srt[2] < 0.12 and srt[0] < srt[2] * 0.75)
+            if not roundish:
+                continue
+            lo, hi = boxes[n["id"]]
+            q = local((lo + hi) / 2)
+            if q[1] - ground_y > dims["height"] * 0.45 or abs(q[0]) < dims["width"] * 0.2 or abs(q[2]) < dims["length"] * 0.15:
+                continue
+            cands.append((float(srt[2]), n, q))
+        best = {}
+        for d_, n, q in cands:
+            k = ("F" if q[2] > 0 else "R") + ("R" if q[0] > 0 else "L")
+            if k not in best or d_ > best[k][0]:
+                best[k] = (d_, n, q)
+        if len(best) >= 3:
+            wheel_method = "geometry(round parts at corners)"
+            for k, (d_, hub_n, hq) in best.items():
+                for n in vis:
+                    if n["id"] in group:
+                        continue
+                    lo, hi = boxes[n["id"]]
+                    q = local((lo + hi) / 2)
+                    if np.linalg.norm((q - hq)[[1, 2]]) < d_ * 0.5 and abs(q[0] - hq[0]) < d_ * 0.6 and \
+                            np.max(np.array(n["props"]["Size"], float)) <= d_ * 1.05:
+                        group[n["id"]] = "Wheel_" + k
+                        rule[n["id"]] = f"within {d_ / 2:.2f} studs of round hub part {upath[hub_n['id']]}"
     # hubs: per quadrant, use the largest wheel part (tyre)
     hubs = {}
     for q in ("FL", "FR", "RL", "RR"):
@@ -323,7 +361,7 @@ def analyze(model_id):
                 sub = "Brake"
             elif re.search(r"tail|rear", joined, re.I):
                 sub = "Tail"
-            elif re.search(r"head|front|drl|fog|beam|hi|lo", joined, re.I):
+            elif re.search(r"head|front|drl|fog|beam|\bhi\b|\blo\b|high|low", joined, re.I):
                 sub = "Head"
             elif col[0] > 0.6 and col[1] > 0.35 and col[2] < 0.25:
                 sub = "Indicator_" + ("R" if q[0] > 0 else "L")

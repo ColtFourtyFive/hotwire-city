@@ -48,11 +48,14 @@ def parse_args():
 
 
 def world_bbox(objs):
+    """Bounding box of the *evaluated* objects (armature skinning / modifiers applied)."""
+    dg = bpy.context.evaluated_depsgraph_get()
     mn = Vector((1e18, 1e18, 1e18))
     mx = Vector((-1e18, -1e18, -1e18))
     for o in objs:
-        for c in o.bound_box:
-            w = o.matrix_world @ Vector(c)
+        ob = o.evaluated_get(dg)
+        for c in ob.bound_box:
+            w = ob.matrix_world @ Vector(c)
             mn = Vector(map(min, mn, w))
             mx = Vector(map(max, mx, w))
     return mn, mx
@@ -61,13 +64,16 @@ def world_bbox(objs):
 def world_verts(objs):
     import numpy as np
     out = []
+    dg = bpy.context.evaluated_depsgraph_get()
     for o in objs:
-        me = o.data
+        ob = o.evaluated_get(dg)
+        me = ob.to_mesh()
         n = len(me.vertices)
         co = np.empty(n * 3, dtype=np.float64)
         me.vertices.foreach_get("co", co)
         co = co.reshape(n, 3)
-        M = np.array(o.matrix_world)
+        M = np.array(ob.matrix_world)
+        ob.to_mesh_clear()
         out.append(co @ M[:3, :3].T + M[:3, 3])
     return np.concatenate(out) if out else np.zeros((0, 3))
 

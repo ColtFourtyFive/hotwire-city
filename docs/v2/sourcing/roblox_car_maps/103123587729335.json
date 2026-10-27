@@ -43,7 +43,7 @@
    ],
    "radius": 1.409,
    "width": 1.091,
-   "parts": 4
+   "parts": 3
   },
   "FR": {
    "center": [
@@ -53,7 +53,7 @@
    ],
    "radius": 1.409,
    "width": 1.091,
-   "parts": 4
+   "parts": 3
   },
   "RL": {
    "center": [
@@ -63,7 +63,7 @@
    ],
    "radius": 1.409,
    "width": 1.091,
-   "parts": 4
+   "parts": 3
   },
   "RR": {
    "center": [
@@ -73,18 +73,18 @@
    ],
    "radius": 1.409,
    "width": 1.091,
-   "parts": 4
+   "parts": 3
   }
  },
  "paint": {
   "color_rgb255": [
-   17,
-   17,
-   17
+   117,
+   0,
+   0
   ],
-  "method": "area-dominant colour",
-  "parts": 11,
-  "sameColourButTextured": 0
+  "method": "named paint/body parts",
+  "parts": 2,
+  "sameColourButTextured": 1
  },
  "security": {
   "flaggedScripts": [
@@ -131,15 +131,24 @@
  },
  "groups": {
   "Body": {
-   "count": 16,
+   "count": 25,
    "rules": {
-    "default": 16
+    "default": 25
    },
    "paths": [
+    "LeoRosa44's Car/Body/Body/Avant 1",
+    "LeoRosa44's Car/Body/Body/Avant 2",
+    "LeoRosa44's Car/Body/Body/Avant 3",
     "LeoRosa44's Car/Body/Body/Carrosserie",
-    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration",
-    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration 2",
+    "LeoRosa44's Car/Body/Body/Contours de vitre",
+    "LeoRosa44's Car/Body/Body/Interieur",
+    "LeoRosa44's Car/Body/Body/Interieur 2",
+    "LeoRosa44's Car/Body/Body/Phare",
+    "LeoRosa44's Car/Body/Body/Phare arri\u00e8re",
+    "LeoRosa44's Car/Body/Body/R\u00e9troviseurs",
     "LeoRosa44's Car/Body/Body/Si\u00e8ges",
+    "LeoRosa44's Car/Body/Body/Soubassement",
+    "LeoRosa44's Car/Body/Body/Volant",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/Part",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/[UnionOperation] Union",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_52",
@@ -203,69 +212,92 @@
    ]
   },
   "Paint": {
-   "count": 11,
+   "count": 2,
    "rules": {
-    "Color == rgb(17, 17, 17)": 11
+    "Color == rgb(117, 0, 0)": 2
    },
    "paths": [
-    "LeoRosa44's Car/Body/Body/Avant 1",
-    "LeoRosa44's Car/Body/Body/Avant 2",
-    "LeoRosa44's Car/Body/Body/Avant 3",
-    "LeoRosa44's Car/Body/Body/Contours de vitre",
-    "LeoRosa44's Car/Body/Body/Interieur",
-    "LeoRosa44's Car/Body/Body/Interieur 2",
-    "LeoRosa44's Car/Body/Body/Phare",
-    "LeoRosa44's Car/Body/Body/Phare arri\u00e8re",
-    "LeoRosa44's Car/Body/Body/R\u00e9troviseurs",
-    "LeoRosa44's Car/Body/Body/Soubassement",
-    "LeoRosa44's Car/Body/Body/Volant"
+    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration",
+    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration 2"
+   ]
+  },
+  "WheelStatic_FL": {
+   "count": 1,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/FL (static)": 1
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/FL/Parts/Plaquette"
+   ]
+  },
+  "WheelStatic_FR": {
+   "count": 1,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/FR (static)": 1
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/FR/Parts/Plaquette"
+   ]
+  },
+  "WheelStatic_RL": {
+   "count": 1,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/RL (static)": 1
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/RL/Parts/Plaquette"
+   ]
+  },
+  "WheelStatic_RR": {
+   "count": 1,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/RR (static)": 1
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/RR/Parts/Plaquette"
    ]
   },
   "Wheel_FL": {
-   "count": 4,
+   "count": 3,
    "rules": {
-    "under wheel container LeoRosa44's Car/Wheels/FL": 4
+    "under wheel container LeoRosa44's Car/Wheels/FL": 3
    },
    "paths": [
     "LeoRosa44's Car/Wheels/FL/Parts/Disque",
     "LeoRosa44's Car/Wheels/FL/Parts/Jante",
-    "LeoRosa44's Car/Wheels/FL/Parts/Plaquette",
     "LeoRosa44's Car/Wheels/FL/Parts/Pneu"
    ]
   },
   "Wheel_FR": {
-   "count": 4,
+   "count": 3,
    "rules": {
-    "under wheel container LeoRosa44's Car/Wheels/FR": 4
+    "under wheel container LeoRosa44's Car/Wheels/FR": 3
    },
    "paths": [
     "LeoRosa44's Car/Wheels/FR/Parts/Disque",
     "LeoRosa44's Car/Wheels/FR/Parts/Jante",
-    "LeoRosa44's Car/Wheels/FR/Parts/Plaquette",
     "LeoRosa44's Car/Wheels/FR/Parts/Pneu"
    ]
   },
   "Wheel_RL": {
-   "count": 4,
+   "count": 3,
    "rules": {
-    "under wheel container LeoRosa44's Car/Wheels/RL": 4
+    "under wheel container LeoRosa44's Car/Wheels/RL": 3
    },
    "paths": [
     "LeoRosa44's Car/Wheels/RL/Parts/Disque",
     "LeoRosa44's Car/Wheels/RL/Parts/Jante",
-    "LeoRosa44's Car/Wheels/RL/Parts/Plaquette",
     "LeoRosa44's Car/Wheels/RL/Parts/Pneu"
    ]
   },
   "Wheel_RR": {
-   "count": 4,
+   "count": 3,
    "rules": {
-    "under wheel container LeoRosa44's Car/Wheels/RR": 4
+    "under wheel container LeoRosa44's Car/Wheels/RR": 3
    },
    "paths": [
     "LeoRosa44's Car/Wheels/RR/Parts/Disque",
     "LeoRosa44's Car/Wheels/RR/Parts/Jante",
-    "LeoRosa44's Car/Wheels/RR/Parts/Plaquette",
     "LeoRosa44's Car/Wheels/RR/Parts/Pneu"
    ]
   }

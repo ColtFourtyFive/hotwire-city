@@ -48,5 +48,85 @@
   "sha256": "8a687daea59b032f2f34cf96f779eed6b23bb8d63ace6d441e40e662936e749d",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:06:53+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      6.0175,
+      2.4892,
+      2.8352
+    ],
+    "dims_m": [
+      2.489,
+      6.018,
+      2.835
+    ],
+    "front_evidence": "names(front=7,rear=11)",
+    "flipped": true,
+    "mesh_objects": 27,
+    "triangles": 18939,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "UCB_BOTTOM",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent",
+      "lct3000_Bodymat"
+    ],
+    "textures": 13,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "LCT300095_WheelStock_FL_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_RL_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_RR_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "LCT300095_WheelStock_FL_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_RL_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_RR_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "LCT300095_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "LCT300095_Body_lct3000_Bodymat_0",
+      "LCT300095_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "LCT300095_Bottom_UCB_BOTTOM_0",
+      "LCT300095_Bumper_front_UCB_BOTTOM_0",
+      "LCT300095_Taillights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "LCT300095_Headlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "LCT300095_Interior_UCB_Interiors_2_0",
+      "LCT300095_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "LCT300095_Suspension_UCB_BOTTOM_0",
+      "LCT300095_Bumper_rear_UCB_BOTTOM_0",
+      "LCT300095_Headlights_UCB_Lights_and_Glass_0",
+      "LCT300095_Brakelights_UCB_Lights_and_Glass_0",
+      "LCT300095_Blinkers_UCB_Lights_and_Glass_0",
+      "LCT300095_Reverse_UCB_Lights_and_Glass_0",
+      "LCT300095_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "LCT300095_Steering_Wheel_UCB_Interiors_2_0",
+      "LCT300095_Reardoor_Left_lct3000_Bodymat_0",
+      "LCT300095_Reardoor_Right_lct3000_Bodymat_0",
+      "LCT300095_Reardoor_Right_Inner_UCB_BOTTOM_0",
+      "LCT300095_Reardoor_Left_Inner_UCB_BOTTOM_0",
+      "LCT300095_WheelStock_FL_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_RL_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_RR_RB1c_Tire_1k_0",
+      "LCT300095_WheelStock_FR_RB1c_Tire_1k_0",
+      "LCT300095_Numberplate_front_Numberplates_Misk_U_0",
+      "LCT300095_Body_Badges_Carbadges_misc_U_0",
+      "LCT300095_Numberplate_rear_Numberplates_Misk_U_0"
+    ],
+    "render_s": 54.0
+  }
 }

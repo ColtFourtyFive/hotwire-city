@@ -51,6 +51,8 @@ def main():
     ap.add_argument("--samples", type=int, default=48)
     a = ap.parse_args()
     reg = json.load(open(os.path.join(HERE, "models.json")))
+    if os.path.exists(os.path.join(HERE, "models_local.json")):
+        reg.update(json.load(open(os.path.join(HERE, "models_local.json"))))
     cfg = reg.get(a.model, {})
     src = a.inp or os.path.join(HERE, "_cache", "models", a.model, cfg.get("file", ""))
     glb = os.path.join(a.glbdir, a.model, a.model + ".glb")

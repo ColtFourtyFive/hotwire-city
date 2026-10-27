@@ -33,8 +33,49 @@
   "unions": 0,
   "scripts": 13
  },
- "wheelMethod": null,
- "hubs": {},
+ "wheelMethod": "geometry(round parts at corners)",
+ "hubs": {
+  "FL": {
+   "center": [
+    -5.501,
+    -2.781,
+    9.0
+   ],
+   "radius": 1.5,
+   "width": 3.0,
+   "parts": 1
+  },
+  "FR": {
+   "center": [
+    5.498,
+    -2.706,
+    8.999
+   ],
+   "radius": 1.5,
+   "width": 3.0,
+   "parts": 1
+  },
+  "RL": {
+   "center": [
+    -5.501,
+    -2.8,
+    -8.0
+   ],
+   "radius": 1.5,
+   "width": 3.0,
+   "parts": 1
+  },
+  "RR": {
+   "center": [
+    5.498,
+    -2.775,
+    -7.999
+   ],
+   "radius": 1.5,
+   "width": 3.0,
+   "parts": 1
+  }
+ },
  "paint": {
   "color_rgb255": [
    17,
@@ -42,7 +83,7 @@
    17
   ],
   "method": "area-dominant colour",
-  "parts": 105,
+  "parts": 101,
   "sameColourButTextured": 0
  },
  "security": {
@@ -192,9 +233,9 @@
    ]
   },
   "Paint": {
-   "count": 105,
+   "count": 101,
    "rules": {
-    "Color == rgb(17, 17, 17)": 105
+    "Color == rgb(17, 17, 17)": 101
    },
    "paths": [
     "Model/Part#1",
@@ -202,7 +243,6 @@
     "Model/Part#100",
     "Model/Part#103",
     "Model/Part#105",
-    "Model/Part#108",
     "Model/Part#109",
     "Model/Part#11",
     "Model/Part#110",
@@ -218,7 +258,6 @@
     "Model/Part#121",
     "Model/Part#122",
     "Model/Part#123",
-    "Model/Part#124",
     "Model/Part#125",
     "Model/Part#126",
     "Model/Part#127",
@@ -260,8 +299,6 @@
     "Model/Part#55",
     "Model/Part#56",
     "Model/Part#58",
-    "Model/Part#59",
-    "Model/Part#6",
     "Model/Part#60",
     "Model/Part#63",
     "Model/Part#64",
@@ -303,6 +340,42 @@
     "Model/Wedge#8",
     "Model/Wedge#9"
    ]
+  },
+  "Wheel_FL": {
+   "count": 1,
+   "rules": {
+    "within 1.50 studs of round hub part Model/Part#6": 1
+   },
+   "paths": [
+    "Model/Part#6"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 1,
+   "rules": {
+    "within 1.50 studs of round hub part Model/Part#59": 1
+   },
+   "paths": [
+    "Model/Part#59"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 1,
+   "rules": {
+    "within 1.50 studs of round hub part Model/Part#124": 1
+   },
+   "paths": [
+    "Model/Part#124"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 1,
+   "rules": {
+    "within 1.50 studs of round hub part Model/Part#108": 1
+   },
+   "paths": [
+    "Model/Part#108"
+   ]
   }
  },
  "decals": [
@@ -310,7 +383,7 @@
    "path": "Model/Part#6/Decal",
    "face": "Top",
    "image": 34351358,
-   "parentGroup": "Paint",
+   "parentGroup": "Wheel_FL",
    "transparency": 0
   },
   {
@@ -359,7 +432,7 @@
    "path": "Model/Part#59/Decal",
    "face": "Top",
    "image": 34351358,
-   "parentGroup": "Paint",
+   "parentGroup": "Wheel_FR",
    "transparency": 0
   },
   {
@@ -443,7 +516,7 @@
    "path": "Model/Part#108/Decal",
    "face": "Top",
    "image": 34351358,
-   "parentGroup": "Paint",
+   "parentGroup": "Wheel_RR",
    "transparency": 0
   },
   {
@@ -457,7 +530,7 @@
    "path": "Model/Part#124/Decal",
    "face": "Top",
    "image": 34351358,
-   "parentGroup": "Paint",
+   "parentGroup": "Wheel_RL",
    "transparency": 0
   },
   {

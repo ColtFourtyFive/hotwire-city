@@ -153,24 +153,40 @@
    ]
   },
   "Lights_Head": {
-   "count": 14,
+   "count": 7,
    "rules": {
-    "light: name/light child": 14
+    "light: name/light child": 7
    },
    "paths": [
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#1",
-    "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#2",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#3",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#1",
-    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#10",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#2",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#3",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#1",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#2"
+   ]
+  },
+  "Lights_Indicator_L": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#8"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 6,
+   "rules": {
+    "light: name/light child": 6
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#2",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#10",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#4",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#5",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#6",
-    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#8",
-    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#1",
-    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#2",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#3"
    ]
   },
