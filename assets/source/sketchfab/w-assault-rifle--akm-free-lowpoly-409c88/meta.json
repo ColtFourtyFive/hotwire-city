@@ -1,0 +1,54 @@
+{
+  "source": "sketchfab",
+  "uid": "409c8845a8034f92b860fdff752dc2dc",
+  "slug": "w-assault-rifle--akm-free-lowpoly-409c88",
+  "name": "AKM | Free Lowpoly",
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "dan741vlasov",
+    "displayName": "Vlasov Daniil",
+    "profileUrl": "https://sketchfab.com/dan741vlasov"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/akm-free-lowpoly-409c8845a8034f92b860fdff752dc2dc",
+  "faceCount": 18742,
+  "vertexCount": 10257,
+  "materialCount": 1,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 552,
+  "tags": [
+    "russian",
+    "ak",
+    "47",
+    "kalashnikov",
+    "realistic",
+    "assault-rifle",
+    "weapon",
+    "lowpoly",
+    "military",
+    "gameasset",
+    "free",
+    "gun",
+    "gameready"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "an AKM free gameready lowpoly asset",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-assault-rifle--akm-free-lowpoly-409c88/model.glb",
+  "fileBytes": 3806712,
+  "sha256": "5891efe582251ca14ca1a6d8f671fe6513b6af1801cb9d0c4f699753ea74adef",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:08+00:00",
+  "notes": null
+}

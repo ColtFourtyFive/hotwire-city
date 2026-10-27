@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "9e8f92a215784f3d8aaaaeab1bef54c4",
+  "slug": "v-taxi--canyon-75-taxi-low-poly-model-9e8f92",
+  "name": "Canyon '75 Taxi - Low poly model",
+  "class": "taxi",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/canyon-75-taxi-low-poly-model-9e8f92a215784f3d8aaaaeab1bef54c4",
+  "faceCount": 20037,
+  "vertexCount": 12098,
+  "materialCount": 8,
+  "textureCount": 21,
+  "animationCount": 0,
+  "likeCount": 758,
+  "tags": [
+    "automobile",
+    "sedan",
+    "transport",
+    "automotive",
+    "newyork",
+    "taxi",
+    "regular",
+    "low-poly-model",
+    "low-poly",
+    "vehicle",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "3d model of Classic Taxicab sedan.\n3.12.2021 Uptade: Textured interior, minor defects removed.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-taxi--canyon-75-taxi-low-poly-model-9e8f92/model.glb",
+  "fileBytes": 8133976,
+  "sha256": "3e6e5974fad9d4db095f7639c736f5ee78d1a638ec7e3c72c817be13356372ec",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:48+00:00",
+  "notes": null
+}

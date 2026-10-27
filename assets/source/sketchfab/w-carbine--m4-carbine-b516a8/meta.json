@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "b516a8416b1044a7839b4a89dc24ca38",
+  "slug": "w-carbine--m4-carbine-b516a8",
+  "name": "M4 Carbine",
+  "class": "carbine",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "sinnik",
+    "displayName": "SINNIK",
+    "profileUrl": "https://sketchfab.com/sinnik"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/m4-carbine-b516a8416b1044a7839b4a89dc24ca38",
+  "faceCount": 15377,
+  "vertexCount": 7886,
+  "materialCount": 4,
+  "textureCount": 14,
+  "animationCount": 0,
+  "likeCount": 227,
+  "tags": [
+    "rifle",
+    "m4a1",
+    "assault",
+    "m4",
+    "shooter",
+    "shoot",
+    "ar15",
+    "ar",
+    "sniper",
+    "shooting",
+    "weapon"
+  ],
+  "categories": [
+    "electronics-gadgets",
+    "weapons-military"
+  ],
+  "description": "Standard M4 carbine with extra magazine. Textures included!",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-carbine--m4-carbine-b516a8/model.glb",
+  "fileBytes": 4001492,
+  "sha256": "f2a9dcb3d8165935b941ea044ce8a129d288b14e03fc9fa1e9662ca02a46ec6a",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:27+00:00",
+  "notes": null
+}

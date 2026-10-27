@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "46a36e92379341d495fdcd7750a7ebc3",
+  "slug": "w-assault-rifle--ak-47-assault-rifle-46a36e",
+  "name": "AK-47 (Assault rifle)",
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "so_O",
+    "displayName": "quick_loop",
+    "profileUrl": "https://sketchfab.com/so_O"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/ak-47-assault-rifle-46a36e92379341d495fdcd7750a7ebc3",
+  "faceCount": 19278,
+  "vertexCount": 15377,
+  "materialCount": 1,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 408,
+  "tags": [
+    "weapon",
+    "free",
+    "gun",
+    "ak47"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "**TOOLS**:\n\n* Modeling: 3Ds Max\n\n* Texturing: Quixel suite",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-assault-rifle--ak-47-assault-rifle-46a36e/model.glb",
+  "fileBytes": 2933064,
+  "sha256": "5390bf677c14103464e2ca0d549c453b37504276c754f3a8ad46a58c236548ea",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:10+00:00",
+  "notes": null
+}

@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "8cab1cbeb82c4396a154f9fc8771417b",
+  "slug": "w-carbine--low-poly-m4a1-8cab1c",
+  "name": "Low-Poly M4a1",
+  "class": "carbine",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-m4a1-8cab1cbeb82c4396a154f9fc8771417b",
+  "faceCount": 10680,
+  "vertexCount": 5761,
+  "materialCount": 11,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 491,
+  "tags": [
+    "rifle",
+    "m4a1",
+    "assault",
+    "m4",
+    "m16",
+    "army",
+    "carbine",
+    "ar15",
+    "america",
+    "m4a4",
+    "m16a3",
+    "armalite",
+    "low",
+    "poly",
+    "gun"
+  ],
+  "categories": [
+    "electronics-gadgets",
+    "weapons-military"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-carbine--low-poly-m4a1-8cab1c/model.glb",
+  "fileBytes": 1775584,
+  "sha256": "9640b8d42d8bad5c2310d5e6e8bf4e84d1e091c0939ccd8e36082ae63de46928",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:14+00:00",
+  "notes": null
+}

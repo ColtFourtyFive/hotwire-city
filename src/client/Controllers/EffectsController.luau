@@ -1384,6 +1384,7 @@ type PoliceRec = {
 	glareRed: BillboardGui?, -- glare sprites on the first red / blue light (built once, toggled with the phase)
 	glareBlue: BillboardGui?,
 	glareShown: boolean,
+	glareBuilt: boolean, -- sprites attempted once per car (never rebuilt per tick)
 }
 local policeCars: { [Model]: PoliceRec } = {}
 local sirenPhase = false
@@ -1421,6 +1422,7 @@ local function trackPolice(inst: Instance)
 			scannedAt = -math.huge,
 			off = false,
 			glareShown = false,
+			glareBuilt = false,
 		}
 		scanSirens(rec)
 		policeCars[model] = rec
@@ -1453,13 +1455,16 @@ end
 
 -- Glare sprites flip with the siren phase (red / blue). Built lazily once per car when it first flashes nearby.
 local function showGlare(rec: PoliceRec, redOn: boolean)
-	if not rec.glareRed and rec.reds[1] then
-		local ok, gui = pcall(VFXLibrary.sprite, "SirenGlare", rec.reds[1], SIREN_RED)
-		rec.glareRed = if ok then gui else nil
-	end
-	if not rec.glareBlue and rec.blues[1] then
-		local ok, gui = pcall(VFXLibrary.sprite, "SirenGlare", rec.blues[1], SIREN_BLUE)
-		rec.glareBlue = if ok then gui else nil
+	if not rec.glareBuilt and (rec.reds[1] or rec.blues[1]) then
+		rec.glareBuilt = true
+		if rec.reds[1] then
+			local ok, gui = pcall(VFXLibrary.sprite, "SirenGlare", rec.reds[1], SIREN_RED)
+			rec.glareRed = if ok then gui else nil
+		end
+		if rec.blues[1] then
+			local ok, gui = pcall(VFXLibrary.sprite, "SirenGlare", rec.blues[1], SIREN_BLUE)
+			rec.glareBlue = if ok then gui else nil
+		end
 	end
 	rec.glareShown = true
 	if rec.glareRed then

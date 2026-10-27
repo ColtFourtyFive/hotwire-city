@@ -1,0 +1,51 @@
+{
+  "source": "sketchfab",
+  "uid": "ed2a0b37a01e4e51ba5b82c35d4a9dae",
+  "slug": "v-van--2003-chevrolet-express-gmc-savana-ed2a0b",
+  "name": "2003 Chevrolet Express GMC Savana 2500 Cargo Van",
+  "class": "van",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "ddiaz-design",
+    "displayName": "Ddiaz Design",
+    "profileUrl": "https://sketchfab.com/ddiaz-design"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/2003-chevrolet-express-gmc-savana-2500-cargo-van-ed2a0b37a01e4e51ba5b82c35d4a9dae",
+  "faceCount": 31252,
+  "vertexCount": 17928,
+  "materialCount": 15,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 381,
+  "tags": [
+    "chevrolet",
+    "express",
+    "2003",
+    "gmc",
+    "2500",
+    "need-for-speed",
+    "savana",
+    "cargo-van",
+    "chevrolet-express",
+    "gmc-savana"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Repositorio de modelos 3D de Ddiaz Design\n\n![](https://images.crutchfieldonline.com/ImageBank/v20150730141700/ImageHandler/scale/978/978/core/learn/article/3906/exterior.jpg)\n\nThere's a lot to be said for the traditional, old-school American van. They're not as compact and suburban-friendly as a minivan and they're not as comfy and sleek as the newest transit vans, but plenty of people still rely on vans like the Chevy Express and GMC Savana.\n\nInstagram del proyecto: https://www.instagram.com/ddiaz.design/\n\nPaypal Donations: https://paypal.me/sergiodd\n\nBased on a Need For Speed 3d model\n\nCredi",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-van--2003-chevrolet-express-gmc-savana-ed2a0b/model.glb",
+  "fileBytes": 4148960,
+  "sha256": "25fb62d2d0c5f0d870aaefdd16bac67d476a677e1dfdef213fac3fbadf4590e2",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:54+00:00",
+  "notes": null
+}

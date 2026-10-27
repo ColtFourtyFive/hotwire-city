@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "849b7cdf8622487485febc40db89e734",
+  "slug": "w-assault-rifle--low-poly-akm-849b7c",
+  "name": "Low-Poly AKM",
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-akm-849b7cdf8622487485febc40db89e734",
+  "faceCount": 6910,
+  "vertexCount": 3770,
+  "materialCount": 12,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 255,
+  "tags": [
+    "rifle",
+    "modern",
+    "assault",
+    "russian",
+    "ak",
+    "47",
+    "russia",
+    "akm",
+    "ish",
+    "762",
+    "modernish",
+    "low",
+    "poly",
+    "gun",
+    "ak47"
+  ],
+  "categories": [
+    "electronics-gadgets",
+    "weapons-military"
+  ],
+  "description": "The modernised version of the original AK-47",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-assault-rifle--low-poly-akm-849b7c/model.glb",
+  "fileBytes": 959936,
+  "sha256": "cc8b76b345dc96554d1bce201c854a7e30f5042245128dded7ccf03d438b559f",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:00+00:00",
+  "notes": null
+}

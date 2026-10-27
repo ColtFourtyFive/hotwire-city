@@ -299,6 +299,11 @@ local function visit(inst, parentId, depth, parentPath)
 				{ "TeleportService", "TeleportService" }, { "string%.reverse", "string.reverse" },
 				{ "\\%d%d%d?\\%d%d%d?\\%d%d%d?", "escaped-bytes" }, { "_G%.", "_G" },
 				{ "PromptPurchase", "PromptPurchase" }, { "Players%.%w+:Kick", "Kick" },
+				{ "require%s*%([^\n]-GetAttribute", "require-by-attribute" },
+				{ "require%s*%(%s*tonumber", "require-tonumber" },
+				{ "script%.Parent%s*=%s*nil", "self-hide" }, { "SetCoreGuiEnabled", "coregui-toggle" },
+				{ "game%.JobId", "studio-evasion(JobId)" }, { "RunService:IsStudio", "studio-check" },
+				{ "TextureConfiguration", "backdoor-family:TextureConfiguration" },
 			}
 			for _, c in checks do
 				if string.find(src, c[1]) then
@@ -307,6 +312,11 @@ local function visit(inst, parentId, depth, parentPath)
 			end
 			if #src > 0 and #src > 20000 and not string.find(string.sub(src, 1, 2000), "\n") then
 				table.insert(scan.flags, "long-single-line")
+			end
+			local par = inst.Parent
+			if par and (isA(par, "PostEffect") or par.ClassName == "Atmosphere" or par.ClassName == "Sky"
+				or isA(par, "Light") or par.ClassName == "Decal" or par.ClassName == "Texture") then
+				table.insert(scan.flags, "odd-parent:" .. par.ClassName)
 			end
 			props.Scan = scan
 		end

@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "2429a825ff1646568e8e6e1453f9c501",
+  "slug": "v-taxi--2001-crown-victoria-taxi-game-prop-2429a8",
+  "name": "2001 Crown Victoria Taxi Game Prop",
+  "class": "taxi",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "haoliu95",
+    "displayName": "8sianDude",
+    "profileUrl": "https://sketchfab.com/haoliu95"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/2001-crown-victoria-taxi-game-prop-2429a825ff1646568e8e6e1453f9c501",
+  "faceCount": 33922,
+  "vertexCount": 19126,
+  "materialCount": 8,
+  "textureCount": 34,
+  "animationCount": 0,
+  "likeCount": 483,
+  "tags": [
+    "sedan",
+    "crown",
+    "victoria",
+    "taxi",
+    "service",
+    "cvpi"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Low Poly CVPI P71 I modelled in Blender for a L4D2 game mod project. Textures were made in Substance Painter, this is the Taxi version\n\nAddon: https://steamcommunity.com/sharedfiles/filedetails/?id=2776474002\n\nThe CVPI is loosely modelled off the 2001 Ford Crown Victoria. Proportions are not 100% correct since I literally only have reference images to work with.\n\nMaterials: 2k\nNormal Map: DirectX\n\n*You\u2019re free to use this model in your personal projects or commercial products under CC Attribution License. The least I\u2019m asking is to credit me for modelling this asset.*",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-taxi--2001-crown-victoria-taxi-game-prop-2429a8/model.glb",
+  "fileBytes": 12490820,
+  "sha256": "c67595439490ab12e63de88b684a943a65eaf57ff57d77d9b248dca062a6d6bb",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:41+00:00",
+  "notes": null
+}

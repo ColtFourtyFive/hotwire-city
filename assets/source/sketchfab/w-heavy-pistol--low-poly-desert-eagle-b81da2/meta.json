@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "b81da261345f4462b2c4412352162287",
+  "slug": "w-heavy-pistol--low-poly-desert-eagle-b81da2",
+  "name": "Low-Poly Desert Eagle",
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-desert-eagle-b81da261345f4462b2c4412352162287",
+  "faceCount": 4299,
+  "vertexCount": 2364,
+  "materialCount": 11,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 364,
+  "tags": [
+    "eagle",
+    "action",
+    "desert",
+    "handgun",
+    "big",
+    "44",
+    "pistol",
+    "express",
+    "magnum",
+    "deagle",
+    "imi",
+    "50action",
+    "50ae",
+    "low",
+    "poly",
+    "gun"
+  ],
+  "categories": [
+    "electronics-gadgets"
+  ],
+  "description": "The Desert Eagle is an extremely large Handgun developed by Israeli Firearms company, IMI.\n\nThe pistol has some unusual features, such as a rotating bolt, much like an AR-15 and a gas blowback action, which is uncommon as most semi automatic handguns are short-recoil operated.\n\nRemodelled.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-heavy-pistol--low-poly-desert-eagle-b81da2/model.glb",
+  "fileBytes": 754796,
+  "sha256": "c1467549768efcb566d29632935217d71f446a44d4cb2ae0b2740956aba05173",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:31+00:00",
+  "notes": null
+}

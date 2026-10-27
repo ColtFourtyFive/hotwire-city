@@ -2279,29 +2279,37 @@ local function lowRampAt(w: Way, s: number, L: number): number
 end
 
 local function cleanGenerated()
-	-- corridor & ramp blockers
-	local blockers: { { pts: { P2 }, half: number, w: Way, L: number } } = {}
+	-- corridor & ramp blockers, arterials: segment indexes
+	type Blocker = { w: Way, half: number, cum: { number }, L: number }
+	local blockers: { Blocker } = {}
+	local blk = WorldGen.segIndex(128)
 	for i = 1, authoredCount do
 		local w = ways[i]
 		if w.class == "freeway" or w.class == "ramp" then
-			table.insert(blockers, { pts = w.pts, half = wayWidth(w) / 2 + 10, w = w, L = WorldGen.polyLength(w.pts) })
+			local cum = WorldGen.polyCum(w.pts)
+			local b: Blocker = { w = w, half = wayWidth(w) / 2 + 10, cum = cum, L = cum[#cum] }
+			table.insert(blockers, b)
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(blk, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, #blockers, k, b.half)
+			end
 		end
 	end
-	local arterials: { Way } = {}
+	local art = WorldGen.segIndex(128)
 	for i = 1, authoredCount do
 		local w = ways[i]
 		if
 			w.layer == 0
-			and (
-				w.class == "boulevard"
-				or w.class == "avenue"
-				or w.class == "street"
-				or w.class == "highway"
-				or w.class == "rural"
-			)
+			and (w.class == "boulevard" or w.class == "avenue" or w.class == "street" or w.class == "highway" or w.class == "rural")
 		then
-			table.insert(arterials, w)
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(art, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, i, k, 70)
+			end
 		end
+	end
+	local areaBoxes = {}
+	for _, r in RESERVED_AREAS do
+		local x0, z0, x1, z1 = WorldGen.polyBounds(r.poly)
+		table.insert(areaBoxes, { x0, z0, x1, z1 })
 	end
 	local kept: { Way } = {}
 	for i = 1, authoredCount do
@@ -2309,61 +2317,66 @@ local function cleanGenerated()
 	end
 	for i = authoredCount + 1, #ways do
 		local w = ways[i]
-		local pts = WorldGen.densify(w.pts, 10)
+		local pts = WorldGen.densify(w.pts, 12)
 		local blocked = table.create(#pts, false)
 		for k, p in pts do
+			local nxt = pts[math.min(k + 1, #pts)]
+			local prv = pts[math.max(k - 1, 1)]
+			local dx, dz = nxt.x - prv.x, nxt.z - prv.z
+			local dl = math.sqrt(dx * dx + dz * dz)
+			if dl > 1e-9 then
+				dx, dz = dx / dl, dz / dl
+			end
 			-- reserved areas
-			for _, r in RESERVED_AREAS do
-				if WorldGen.pointInPoly(r.poly, p.x, p.z) then
+			for ri, r in RESERVED_AREAS do
+				local bb = areaBoxes[ri]
+				if p.x >= bb[1] and p.x <= bb[3] and p.z >= bb[2] and p.z <= bb[4] and WorldGen.pointInPoly(r.poly, p.x, p.z) then
 					blocked[k] = true
+					break
 				end
 			end
-			-- low ramps / parallel decks
+			-- low ramps / running along under a deck
 			if not blocked[k] then
-				for _, b in blockers do
-					local d, s = WorldGen.polyProject(b.pts, p.x, p.z)
+				WorldGen.segQuery(blk, p.x, p.z, 0, function(id: number)
+					if blocked[k] then
+						return
+					end
+					local b = blockers[blk.owner[id]]
+					local t, _, _, d = WorldGen.projectSeg(p.x, p.z, blk.ax[id], blk.az[id], blk.bx[id], blk.bz[id])
 					if d < b.half then
-						local y = lowRampAt(b.w, s, b.L)
-						if y < GRADE + S.CLEARANCE + 4 then
+						local sn = blk.segNo[id]
+						local s = b.cum[sn] + t * (b.cum[sn + 1] - b.cum[sn])
+						if lowRampAt(b.w, s, b.L) < GRADE + S.CLEARANCE + 4 then
 							blocked[k] = true
-							break
+							return
 						end
-						-- running along under a deck (parallel within 30 degrees) -> blocked
-						local nxt = pts[math.min(k + 1, #pts)]
-						local prv = pts[math.max(k - 1, 1)]
-						local dx, dz = nxt.x - prv.x, nxt.z - prv.z
-						local dl = math.sqrt(dx * dx + dz * dz)
-						if dl > 1e-6 then
-							local _, _, tx, tz = WorldGen.polyAt(b.pts, s)
-							if math.abs((dx * tx + dz * tz) / dl) > 0.86 then
-								blocked[k] = true
-								break
-							end
+						local tx, tz = blk.bx[id] - blk.ax[id], blk.bz[id] - blk.az[id]
+						local tl = math.sqrt(tx * tx + tz * tz)
+						if tl > 1e-9 and dl > 1e-9 and math.abs((dx * tx + dz * tz) / tl) > 0.86 then
+							blocked[k] = true
 						end
 					end
-				end
+				end)
 			end
 			-- duplicates a parallel arterial within 70 studs
 			if not blocked[k] then
-				for _, a in arterials do
-					local d, s = WorldGen.polyProject(a.pts, p.x, p.z)
+				WorldGen.segQuery(art, p.x, p.z, 0, function(id: number)
+					if blocked[k] then
+						return
+					end
+					local _, _, _, d = WorldGen.projectSeg(p.x, p.z, art.ax[id], art.az[id], art.bx[id], art.bz[id])
 					if d < 70 then
-						local nxt = pts[math.min(k + 1, #pts)]
-						local prv = pts[math.max(k - 1, 1)]
-						local dx, dz = nxt.x - prv.x, nxt.z - prv.z
-						local dl = math.sqrt(dx * dx + dz * dz)
-						local _, _, tx, tz = WorldGen.polyAt(a.pts, s)
-						if dl > 1e-6 and math.abs((dx * tx + dz * tz) / dl) > 0.8 then
+						local tx, tz = art.bx[id] - art.ax[id], art.bz[id] - art.az[id]
+						local tl = math.sqrt(tx * tx + tz * tz)
+						if tl > 1e-9 and dl > 1e-9 and math.abs((dx * tx + dz * tz) / tl) > 0.8 then
 							blocked[k] = true
-							break
 						end
 					end
-				end
+				end)
 			end
 			-- off land
 			if not blocked[k] then
-				local sd = shore(p.x, p.z)
-				if sd < 60 then
+				if shore(p.x, p.z) < 60 then
 					blocked[k] = true
 				end
 			end
@@ -2405,10 +2418,12 @@ local function cleanGenerated()
 		w.pts = out
 	end
 	-- extend loose ends up to 70 studs onto a ground road they point at
-	local ground: { Way } = {}
-	for _, w in kept do
+	local gidx = WorldGen.segIndex(128)
+	for wi, w in kept do
 		if w.layer == 0 and not w.noCross then
-			table.insert(ground, w)
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(gidx, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, wi, k, 0)
+			end
 		end
 	end
 	for i = authoredCount + 1, #kept do
@@ -2424,17 +2439,15 @@ local function cleanGenerated()
 			dx, dz = dx / dl, dz / dl
 			local fx, fz = p.x + dx * 70, p.z + dz * 70
 			local bestT: number? = nil
-			for _, o in ground do
-				if o ~= w then
-					for k = 1, #o.pts - 1 do
-						local a, b = o.pts[k], o.pts[k + 1]
-						local t = WorldGen.segIntersect(p.x, p.z, fx, fz, a.x, a.z, b.x, b.z, 0)
-						if t and t > 1e-4 and (bestT == nil or t < bestT) then
-							bestT = t
-						end
-					end
+			WorldGen.segQuery(gidx, (p.x + fx) / 2, (p.z + fz) / 2, 36, function(id: number)
+				if gidx.owner[id] == i then
+					return
 				end
-			end
+				local t = WorldGen.segIntersect(p.x, p.z, fx, fz, gidx.ax[id], gidx.az[id], gidx.bx[id], gidx.bz[id], 0)
+				if t and t > 1e-4 and (bestT == nil or t < bestT) then
+					bestT = t
+				end
+			end)
 			if bestT then
 				w.pts[endIdx] = P(p.x + (fx - p.x) * bestT, p.z + (fz - p.z) * bestT)
 			end
@@ -2482,30 +2495,51 @@ table.sort(order, function(a: Way, b: Way): boolean
 end)
 
 local done: { Way } = {}
+local groundIdx = WorldGen.segIndex(128) -- aligned ground (crossable) ways, for crossing pins
+local allIdx = WorldGen.segIndex(128) -- every aligned way, for endpoint pins
+
+local function yOnSeg(w: Way, k: number, t: number): number
+	local ys = w.ys :: { number }
+	return ys[k] + (ys[k + 1] - ys[k]) * math.clamp(t, 0, 1)
+end
 
 -- Height of an already-aligned way at the point nearest (x, z), if it passes within tol.
-local function pinFrom(x: number, z: number, tol: number, layerOnly: number?): number?
-	for _, w in done do
-		if layerOnly == nil or (w.layer == layerOnly and not w.noCross) then
-			local d, s, _, _, i = WorldGen.polyProject(w.pts, x, z)
-			if d <= tol then
-				local ys = w.ys :: { number }
-				-- arc length to vertex i
-				local acc = 0
-				for k = 2, i do
-					acc += WorldGen.dist(w.pts[k - 1].x, w.pts[k - 1].z, w.pts[k].x, w.pts[k].z)
-				end
-				local seg = WorldGen.dist(w.pts[i].x, w.pts[i].z, w.pts[i + 1].x, w.pts[i + 1].z)
-				local t = if seg > 1e-9 then (s - acc) / seg else 0
-				return ys[i] + (ys[i + 1] - ys[i]) * math.clamp(t, 0, 1)
+local function pinFrom(x: number, z: number, tol: number): number?
+	local best: number? = nil
+	local bestD = tol
+	WorldGen.segQuery(allIdx, x, z, tol, function(id: number)
+		local t, _, _, d = WorldGen.projectSeg(x, z, allIdx.ax[id], allIdx.az[id], allIdx.bx[id], allIdx.bz[id])
+		if d <= bestD then
+			bestD = d
+			best = yOnSeg(done[allIdx.owner[id]], allIdx.segNo[id], t)
+		end
+	end)
+	return best
+end
+
+local function applyBridges(w: Way)
+	if not w.bridges then
+		return
+	end
+	local ys = w.ys :: { number }
+	local cum = WorldGen.polyCum(w.pts)
+	local function yAt(s: number): number
+		local _, _, _, _, i, t = WorldGen.polyAtCum(w.pts, cum, s)
+		return ys[i] + (ys[math.min(i + 1, #ys)] - ys[i]) * t
+	end
+	for _, span in w.bridges do
+		local s0, s1 = span[1], span[2]
+		local y0, y1 = yAt(s0), yAt(s1)
+		for k = 1, #w.pts do
+			if cum[k] > s0 and cum[k] < s1 then
+				ys[k] = math.max(ys[k], y0 + (y1 - y0) * (cum[k] - s0) / (s1 - s0))
 			end
 		end
 	end
-	return nil
 end
 
 local function alignWay(w: Way)
-	local isFlatCity = function(x: number, z: number): boolean
+	local function isFlatCity(x: number, z: number): boolean
 		return math.abs(gradeAt(x, z) - GRADE) < 0.05
 	end
 	if w.yMode == "ground" then
@@ -2515,33 +2549,43 @@ local function alignWay(w: Way)
 		for i = 2, #pts do
 			local a, b = pts[i - 1], pts[i]
 			local len = WorldGen.dist(a.x, a.z, b.x, b.z)
-			local flat = isFlatCity(a.x, a.z) and isFlatCity(b.x, b.z) and isFlatCity((a.x + b.x) / 2, (a.z + b.z) / 2)
+			local flat = isFlatCity(a.x, a.z)
+				and isFlatCity(b.x, b.z)
+				and isFlatCity((a.x + b.x) / 2, (a.z + b.z) / 2)
 			local n = if flat then 1 else math.max(1, math.ceil(len / 36))
 			for k = 1, n do
 				local t = k / n
 				table.insert(dense, P(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t))
 			end
 		end
-		-- crossing pins (same layer ground ways, both crossable)
-		local pinned: { [number]: number } = {}
 		local withPins: { P2 } = { dense[1] }
-		local pinAt: { number? } = { nil }
+		local pinAt: { [number]: number } = {}
 		for i = 2, #dense do
 			local a, b = dense[i - 1], dense[i]
 			local hits: { { number } } = {}
 			if not w.noCross then
-				for _, o in done do
-					if o.layer == w.layer and not o.noCross and o.yMode == "ground" then
-						for k = 1, #o.pts - 1 do
-							local c, d = o.pts[k], o.pts[k + 1]
-							local t, u = WorldGen.segIntersect(a.x, a.z, b.x, b.z, c.x, c.z, d.x, d.z, 0.5)
-							if t and u and t > 1e-6 and t < 1 - 1e-6 then
-								local ys = o.ys :: { number }
-								table.insert(hits, { t, ys[k] + (ys[k + 1] - ys[k]) * u })
-							end
-						end
+				local cx, cz = (a.x + b.x) / 2, (a.z + b.z) / 2
+				local r = WorldGen.dist(a.x, a.z, b.x, b.z) / 2 + 1
+				WorldGen.segQuery(groundIdx, cx, cz, r, function(id: number)
+					local o = done[groundIdx.owner[id]]
+					if o.layer ~= w.layer then
+						return
 					end
-				end
+					local t, u = WorldGen.segIntersect(
+						a.x,
+						a.z,
+						b.x,
+						b.z,
+						groundIdx.ax[id],
+						groundIdx.az[id],
+						groundIdx.bx[id],
+						groundIdx.bz[id],
+						0.5
+					)
+					if t and u and t > 1e-6 and t < 1 - 1e-6 then
+						table.insert(hits, { t, yOnSeg(o, groundIdx.segNo[id], u) })
+					end
+				end)
 			end
 			table.sort(hits, function(p: { number }, q: { number }): boolean
 				return p[1] < q[1]
@@ -2556,59 +2600,45 @@ local function alignWay(w: Way)
 		-- endpoint pins (any processed way passing through the end, e.g. T-junction onto an aligned road)
 		for _, k in { 1, n } do
 			if pinAt[k] == nil then
-				pinAt[k] = pinFrom(withPins[k].x, withPins[k].z, 1.6, nil)
+				local y = pinFrom(withPins[k].x, withPins[k].z, 1.6)
+				if y then
+					pinAt[k] = y
+				end
 			end
 		end
-		local ys = table.create(n, 0)
+		local cum = WorldGen.polyCum(withPins)
 		local target = table.create(n, 0)
 		for k, p in withPins do
 			target[k] = gradeAt(p.x, p.z)
 			if w.minProfile then
-				-- arc length
-				local acc = 0
-				for j = 2, k do
-					acc += WorldGen.dist(withPins[j - 1].x, withPins[j - 1].z, withPins[j].x, withPins[j].z)
-				end
-				target[k] = math.max(target[k], w.minProfile(acc, 0))
-			end
-			if pinAt[k] then
-				pinned[k] = pinAt[k] :: number
+				target[k] = math.max(target[k], w.minProfile(cum[k], cum[n]))
 			end
 		end
-		-- grade-limited fit between pins: clamp the terrain into the cones of the neighbouring pins
+		-- grade-limited fit: clamp the terrain into the cones of the previous / next fixed heights
 		local g = w.maxGrade
-		local lo = table.create(n, -math.huge)
-		local hi = table.create(n, math.huge)
-		-- forward cone
+		local ys = table.create(n, 0)
 		local lastY: number? = nil
-		local acc = 0
 		for k = 1, n do
-			if k > 1 then
-				acc = WorldGen.dist(withPins[k - 1].x, withPins[k - 1].z, withPins[k].x, withPins[k].z)
-			end
+			local y = target[k]
 			if lastY ~= nil then
-				lo[k] = math.max(lo[k], (lastY :: number) - g * acc)
-				hi[k] = math.min(hi[k], (lastY :: number) + g * acc)
+				local run = cum[k] - cum[k - 1]
+				y = math.clamp(y, (lastY :: number) - g * run, (lastY :: number) + g * run)
 			end
-			local y = math.clamp(target[k], lo[k], hi[k])
-			if pinned[k] then
-				y = pinned[k]
+			if pinAt[k] then
+				y = pinAt[k]
 			end
 			ys[k] = y
 			lastY = y
 		end
-		-- backward pass
 		local nextY: number? = nil
 		for k = n, 1, -1 do
-			local seg = if k < n
-				then WorldGen.dist(withPins[k].x, withPins[k].z, withPins[k + 1].x, withPins[k + 1].z)
-				else 0
 			local y = ys[k]
 			if nextY ~= nil then
-				y = math.clamp(y, (nextY :: number) - g * seg, (nextY :: number) + g * seg)
+				local run = cum[k + 1] - cum[k]
+				y = math.clamp(y, (nextY :: number) - g * run, (nextY :: number) + g * run)
 			end
-			if pinned[k] then
-				y = pinned[k]
+			if pinAt[k] then
+				y = pinAt[k]
 			end
 			ys[k] = y
 			nextY = y
@@ -2617,13 +2647,11 @@ local function alignWay(w: Way)
 		w.ys = ys
 	else
 		local pts = WorldGen.densify(w.pts, 40)
-		local L = WorldGen.polyLength(pts)
+		local cum = WorldGen.polyCum(pts)
+		local L = cum[#cum]
 		local ys = table.create(#pts, 0)
-		local acc = 0
-		for k, p in pts do
-			if k > 1 then
-				acc += WorldGen.dist(pts[k - 1].x, pts[k - 1].z, p.x, p.z)
-			end
+		for k = 1, #pts do
+			local acc = cum[k]
 			local y
 			if w.yMode == "fixed" then
 				y = w.fixedY or GRADE
@@ -2639,91 +2667,26 @@ local function alignWay(w: Way)
 		w.pts = pts
 		w.ys = ys
 	end
-	-- bridges: straight between span ends
-	if w.bridges then
-		for _, span in w.bridges do
-			local acc = 0
-			local ys = w.ys :: { number }
-			local s0, s1 = span[1], span[2]
-			local y0 = WorldGen.polyYAt(
-				(function()
-					local t: { P3 } = {}
-					for k, p in w.pts do
-						table.insert(t, { x = p.x, y = ys[k], z = p.z })
-					end
-					return t
-				end)(),
-				s0
-			)
-			local y1 = WorldGen.polyYAt(
-				(function()
-					local t: { P3 } = {}
-					for k, p in w.pts do
-						table.insert(t, { x = p.x, y = ys[k], z = p.z })
-					end
-					return t
-				end)(),
-				s1
-			)
-			for k = 1, #w.pts do
-				if k > 1 then
-					acc += WorldGen.dist(w.pts[k - 1].x, w.pts[k - 1].z, w.pts[k].x, w.pts[k].z)
-				end
-				if acc > s0 and acc < s1 then
-					ys[k] = y0 + (y1 - y0) * (acc - s0) / (s1 - s0)
-				end
-			end
+	applyBridges(w)
+	table.insert(done, w)
+	local id = #done
+	for k = 1, #w.pts - 1 do
+		local a, b = w.pts[k], w.pts[k + 1]
+		WorldGen.segAdd(allIdx, a.x, a.z, b.x, b.z, id, k, 2)
+		if w.yMode == "ground" and not w.noCross then
+			WorldGen.segAdd(groundIdx, a.x, a.z, b.x, b.z, id, k, 1)
 		end
 	end
-	table.insert(done, w)
+end
+
+-- Skyline Drive flies over Sunwood Canyon (and the H9) on the Canyon Bridge.
+do
+	local _, sC = WorldGen.polyProject(skyline.pts, -2880, -3190)
+	skyline.bridges = { { sC - 400, sC + 400 } }
 end
 
 for _, w in order do
 	alignWay(w)
-end
-
--- Skyline Drive flies over Sunwood Canyon (the H9) on the Canyon Bridge: span where the terrain dips into the canyon.
-do
-	local ys = skyline.ys :: { number }
-	local _, sCross = WorldGen.polyProject(skyline.pts, -2880, -3190)
-	local _ = sCross
-	local acc = 0
-	local accs = {}
-	for k = 1, #skyline.pts do
-		if k > 1 then
-			acc += WorldGen.dist(skyline.pts[k - 1].x, skyline.pts[k - 1].z, skyline.pts[k].x, skyline.pts[k].z)
-		end
-		accs[k] = acc
-	end
-	-- find the span around the canyon crossing where the deck is level between rims
-	local _, sC = WorldGen.polyProject(skyline.pts, H9center[#H9center - 1].x, H9center[#H9center - 1].z)
-	local s0, s1 = sC - 380, sC + 380
-	local y0 = WorldGen.polyYAt(
-		(function()
-			local t: { P3 } = {}
-			for k, p in skyline.pts do
-				table.insert(t, { x = p.x, y = ys[k], z = p.z })
-			end
-			return t
-		end)(),
-		s0
-	)
-	local y1 = WorldGen.polyYAt(
-		(function()
-			local t: { P3 } = {}
-			for k, p in skyline.pts do
-				table.insert(t, { x = p.x, y = ys[k], z = p.z })
-			end
-			return t
-		end)(),
-		s1
-	)
-	for k = 1, #skyline.pts do
-		if accs[k] > s0 and accs[k] < s1 then
-			ys[k] = math.max(ys[k], y0 + (y1 - y0) * (accs[k] - s0) / (s1 - s0))
-		end
-	end
-	skyline.bridges = { { s0, s1 } }
 end
 
 _T("6. Compile the graph")
@@ -3059,47 +3022,48 @@ WorldLayout.Intersections = Intersections
 -------------------------------------------------------------------------------------------------------------------------
 
 local edgePts: { { pts: { P3 } } } = {}
+local edgeCum: { { number } } = {}
+local roadSegs = WorldGen.segIndex(96) -- every edge segment, padded by its half width + sidewalk
+local MAX_EXTRA = 12
 for i, e in Edges do
 	local pts: { P3 } = {}
 	for _, p in e.points do
 		table.insert(pts, { x = p.X, y = p.Y, z = p.Z })
 	end
 	edgePts[i] = { pts = pts }
+	edgeCum[i] = WorldGen.polyCum(pts)
+	local pad = e.width / 2 + e.sidewalk + MAX_EXTRA
+	for k = 1, #pts - 1 do
+		WorldGen.segAdd(roadSegs, pts[k].x, pts[k].z, pts[k + 1].x, pts[k + 1].z, i, k, pad)
+	end
 end
 local edgeIndex = WorldGen.edgeIndex(edgePts, 128, function(i: number): number
 	return Edges[i].width / 2 + Edges[i].sidewalk + 4
 end)
 
--- Footprint of a road edge (curb + sidewalk) at (x, z)?
+-- Is (x, z) on a road's footprint (curb-to-curb + sidewalks + extra)? Returns the edge too.
 local function roadClearance(x: number, z: number, extra: number): (boolean, number?)
-	local found = false
 	local hit: number? = nil
-	local cell = edgeIndex.cell
-	local cx, cz = math.floor(x / cell), math.floor(z / cell)
-	for dx = -1, 1 do
-		for dz = -1, 1 do
-			local list = edgeIndex.cells[WorldGen.cellKey(cx + dx, cz + dz)]
-			if list then
-				for _, ei in list do
-					local e = Edges[ei]
-					local d = WorldGen.polyProject(edgePts[ei].pts, x, z)
-					local reach = e.width / 2 + e.sidewalk + extra
-					if d < reach then
-						found = true
-						hit = ei
-						break
-					end
-				end
-			end
-			if found then
-				break
-			end
+	WorldGen.segQuery(roadSegs, x, z, 0, function(id: number)
+		if hit then
+			return
 		end
-		if found then
-			break
+		local ei = roadSegs.owner[id]
+		local e = Edges[ei]
+		local _, _, _, d = WorldGen.projectSeg(x, z, roadSegs.ax[id], roadSegs.az[id], roadSegs.bx[id], roadSegs.bz[id])
+		if d < e.width / 2 + e.sidewalk + math.min(extra, MAX_EXTRA) then
+			hit = ei
 		end
-	end
-	return found, hit
+	end)
+	return hit ~= nil, hit
+end
+
+-- Point / height / tangent at arc length s along edge ei.
+local function edgeAt(ei: number, s: number): (number, number, number, number, number)
+	local pts = edgePts[ei].pts
+	local px, pz, tx, tz, i, t = WorldGen.polyAtCum(pts, edgeCum[ei], s)
+	local a, b = pts[i], pts[math.min(i + 1, #pts)]
+	return px, a.y + (b.y - a.y) * t, pz, tx, tz
 end
 
 local function nodeRadius(nodeId: number): number
@@ -3176,8 +3140,7 @@ local function placeOnFrontage(
 	else
 		s = e.length / 2
 	end
-	local px, pz, tx, tz = WorldGen.polyAt(pts, s)
-	local py = WorldGen.polyYAt(pts, s)
+	local px, py, pz, tx, tz = edgeAt(ei, s)
 	local rx, rz = WorldGen.right(tx, tz)
 	local side = opts.side or (if (x - px) * rx + (z - pz) * rz >= 0 then 1 else -1)
 	local nx, nz = rx * side, rz * side
@@ -4335,7 +4298,7 @@ do
 			local k = 0
 			while s < sEnd - 30 do
 				k += 1
-				local px, pz, tx, tz = WorldGen.polyAt(pts, s)
+				local px, _, pz, tx, tz = edgeAt(ei, s)
 				local rx, rz = WorldGen.right(tx, tz)
 				local nx, nz = rx * side, rz * side
 				local probeX, probeZ =
@@ -4354,8 +4317,8 @@ do
 					end
 				end
 				local cs = s + width / 2
-				px, pz, tx, tz = WorldGen.polyAt(pts, cs)
-				local py = WorldGen.polyYAt(pts, cs)
+				local py
+				px, py, pz, tx, tz = edgeAt(ei, cs)
 				rx, rz = WorldGen.right(tx, tz)
 				nx, nz = rx * side, rz * side
 				if h2 > rule.density then
@@ -4532,8 +4495,7 @@ do
 		local s = s0
 		while s <= s1 do
 			k += 1
-			local px, pz, tx, tz = WorldGen.polyAt(pts, s)
-			local py = WorldGen.polyYAt(pts, s)
+			local px, py, pz, tx, tz = edgeAt(ei, s)
 			local rx, rz = WorldGen.right(tx, tz)
 			for _, side in { 1, -1 } do
 				-- right side faces along a->b; left side along b->a (one-way: both curbs face a->b)
@@ -4573,8 +4535,7 @@ for _, p in POIs do
 		for _, ds in { -70, 70, -140, 140 } do
 			local ss = math.clamp(s + ds, 10, e.length - 10)
 			for _, dir in (if e.oneWay then { 1 } else { 1, -1 }) :: { number } do
-				local px, pz, tx, tz = WorldGen.polyAt(pts, ss)
-				local py = WorldGen.polyYAt(pts, ss)
+				local px, py, pz, tx, tz = edgeAt(p.edge, ss)
 				local fx, fz = tx * dir, tz * dir
 				local rx, rz = WorldGen.right(fx, fz)
 				local off = if e.oneWay

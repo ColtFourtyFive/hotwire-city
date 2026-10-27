@@ -1,0 +1,50 @@
+{
+  "source": "sketchfab",
+  "uid": "32838f1430494894911b077ab281b6a7",
+  "slug": "w-heavy-pistol--desert-eagle-free-model-32838f",
+  "name": "desert eagle  (FREE MODEL)",
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "javadbayat",
+    "displayName": "javadbayat",
+    "profileUrl": "https://sketchfab.com/javadbayat"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/desert-eagle-free-model-32838f1430494894911b077ab281b6a7",
+  "faceCount": 19836,
+  "vertexCount": 14499,
+  "materialCount": 1,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 376,
+  "tags": [
+    "eagle",
+    "desert",
+    "ammo",
+    "pistol",
+    "deserteagle",
+    "desert-eagle",
+    "game",
+    "gun",
+    "steel"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "desert eagle highpoly model \n\nmodeling in maya 2017 \nready to use in game",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-heavy-pistol--desert-eagle-free-model-32838f/model.glb",
+  "fileBytes": 1241612,
+  "sha256": "f41cc5a5fc00302fb40770053af5791479f17cf21ecd559194ad5994c29d63f4",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:34+00:00",
+  "notes": null
+}

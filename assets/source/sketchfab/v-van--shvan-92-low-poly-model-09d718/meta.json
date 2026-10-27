@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "09d718c9cf72401b8534d265a06a803f",
+  "slug": "v-van--shvan-92-low-poly-model-09d718",
+  "name": "Shvan '92 - Low poly model",
+  "class": "van",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/shvan-92-low-poly-model-09d718c9cf72401b8534d265a06a803f",
+  "faceCount": 23045,
+  "vertexCount": 13762,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 1362,
+  "tags": [
+    "truck",
+    "trucks",
+    "panel",
+    "delivery",
+    "express",
+    "lorry",
+    "low-poly-model",
+    "panelvan",
+    "low-poly",
+    "vehicle",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Model of a Generic panel van, inspired by all beloved movie star - Old black American van.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-van--shvan-92-low-poly-model-09d718/model.glb",
+  "fileBytes": 8026472,
+  "sha256": "c02f916d5e1575427b6592dbf15e1082689a88fe09b787938b8e67a77ebdabfd",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:51+00:00",
+  "notes": null
+}

@@ -1,0 +1,50 @@
+{
+  "source": "sketchfab",
+  "uid": "fa1a26fc2b0848c38efba4ed132b49ad",
+  "slug": "v-taxi--illinois-90-taxi-2-low-poly-model-fa1a26",
+  "name": "Illinois '90 Taxi #2 - Low poly model",
+  "class": "taxi",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/illinois-90-taxi-2-low-poly-model-fa1a26fc2b0848c38efba4ed132b49ad",
+  "faceCount": 19905,
+  "vertexCount": 12913,
+  "materialCount": 8,
+  "textureCount": 21,
+  "animationCount": 0,
+  "likeCount": 105,
+  "tags": [
+    "sedan",
+    "traffic",
+    "urban",
+    "taxi",
+    "90s",
+    "american-car",
+    "low-poly",
+    "vehicle",
+    "lowpoly"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Model of an American sedan of the 90s in a commercial fleet package. The design is inspired not only by famous cabs of the 90s, but also by cab-forward designs, to give a more European appearance to the body. That one with Add placement on the roof and adittional bullbar at the back.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-taxi--illinois-90-taxi-2-low-poly-model-fa1a26/model.glb",
+  "fileBytes": 7788084,
+  "sha256": "8ab01e4698d79455cdcc2c06ea3c46263c20dd2c02d374a5655d71e38ee04b9f",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:44+00:00",
+  "notes": null
+}

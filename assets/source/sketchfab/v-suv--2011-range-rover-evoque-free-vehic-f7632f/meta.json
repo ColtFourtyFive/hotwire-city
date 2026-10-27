@@ -1,0 +1,56 @@
+{
+  "source": "sketchfab",
+  "uid": "f7632f55ed4c49e29f44c409260416f1",
+  "slug": "v-suv--2011-range-rover-evoque-free-vehic-f7632f",
+  "name": "2011 - Range Rover Evoque - Free Vehicle Archive",
+  "class": "suv",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "free-vehicle-archive",
+    "displayName": "Free Vehicle Archive",
+    "profileUrl": "https://sketchfab.com/free-vehicle-archive"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/2011-range-rover-evoque-free-vehicle-archive-f7632f55ed4c49e29f44c409260416f1",
+  "faceCount": 124106,
+  "vertexCount": 73787,
+  "materialCount": 23,
+  "textureCount": 17,
+  "animationCount": 0,
+  "likeCount": 44,
+  "tags": [
+    "suv",
+    "evolution",
+    "midpoly",
+    "landrover",
+    "game-ready",
+    "optimized",
+    "rangerover",
+    "blender",
+    "vehicle",
+    "lowpoly",
+    "model",
+    "car",
+    "free",
+    "textured",
+    "interior"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Download this model and lots of other 3D models and blueprints for free from here [Patreon](https://patreon.com/MahanRasouli?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink).",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-suv--2011-range-rover-evoque-free-vehic-f7632f/model.glb",
+  "fileBytes": 7413572,
+  "sha256": "4e4c241b9fd91e96b7c6cddbc13df04da9544339fa08b6801a383a6f0700c544",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:32+00:00",
+  "notes": null
+}

@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "f69de1315bb049c8946d57f6006acd73",
+  "slug": "v-van--mercedes-benz-sprinter-2006-f69de1",
+  "name": "Mercedes Benz Sprinter 2006",
+  "class": "van",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Max-7215",
+    "displayName": "Max",
+    "profileUrl": "https://sketchfab.com/Max-7215"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mercedes-benz-sprinter-2006-f69de1315bb049c8946d57f6006acd73",
+  "faceCount": 37565,
+  "vertexCount": 21118,
+  "materialCount": 10,
+  "textureCount": 33,
+  "animationCount": 1,
+  "likeCount": 560,
+  "tags": [
+    "van",
+    "transport",
+    "mercedes",
+    "mercedes-benz",
+    "sprinter",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Mercedes Benz Sprinter 2006 - Medium Poly\nMade on Cinema 4D Substance Painter and Photoshop. -> 4K Texture\n This model is not free of rights \nYou must inform me of your usage. \nBy Max \nContact Discord : max7215\n**OLD MODEL**",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-van--mercedes-benz-sprinter-2006-f69de1/model.glb",
+  "fileBytes": 6639928,
+  "sha256": "47507f1fd4922343ee70143959d0627ac9ac0c8b79e4d1330c641fe5e8be9330",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:58+00:00",
+  "notes": null
+}

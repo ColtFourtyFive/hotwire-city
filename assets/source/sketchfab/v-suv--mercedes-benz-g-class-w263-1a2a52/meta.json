@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "1a2a52b16cad4e618af347461817895c",
+  "slug": "v-suv--mercedes-benz-g-class-w263-1a2a52",
+  "name": "Mercedes Benz G-class W263",
+  "class": "suv",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Lexyc16",
+    "displayName": "Lexyc16",
+    "profileUrl": "https://sketchfab.com/Lexyc16"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mercedes-benz-g-class-w263-1a2a52b16cad4e618af347461817895c",
+  "faceCount": 12518,
+  "vertexCount": 7613,
+  "materialCount": 13,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 428,
+  "tags": [
+    "mercedes",
+    "mercedes-benz",
+    "g-class",
+    "vehicle",
+    "lowpoly",
+    "car",
+    "w263",
+    "noai"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "The Mercedes-Benz G-Class, sometimes called G-Wagon (short for Gel\u00e4ndewagen, \"terrain vehicle\"), is a four-wheel drive automobile manufactured by Magna Steyr (formerly Steyr-Daimler-Puch) in Austria and sold by Mercedes-Benz. Originally developed as a military off-roader, later more luxurious models were added to the line. In certain markets, it has been sold under the Puch name as Puch G.\n\nThe G-Wagon is characterised by its boxy styling and body-on-frame construction. It uses three fully locking differentials, one of the few vehicles to have such a feature.\n\nDespite the introduction of an in",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-suv--mercedes-benz-g-class-w263-1a2a52/model.glb",
+  "fileBytes": 581768,
+  "sha256": "5d7650132ccb47436d2694a5b84a375ef414cd89ab3e26ac2a6f9f487e0b27a4",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:37+00:00",
+  "notes": null
+}
