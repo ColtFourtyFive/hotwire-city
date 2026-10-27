@@ -99,6 +99,7 @@
       "Icosphere",
       "Icosphere.001"
     ],
-    "render_s": 10.5
+    "hidden_helpers": [],
+    "render_s": 36.6
   }
 }

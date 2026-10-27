@@ -639,10 +639,11 @@ return function(t)
 		t.ok(400 - short.bottom - short.height >= top - 1e-6, "still below the header")
 	end)
 
-	t.test("district names step aside from blips", function()
-		local y = MapScreen.placeLabel(100, 100, 40, 10, {}, {}, 0, 12)
+	t.test("district names step aside from blips and each other", function()
+		local twelve = { 12, 12, 12, 12, 12 }
+		local y = MapScreen.placeLabel(100, 100, 40, 10, {}, {}, {}, {}, 0)
 		t.eq(y, 100, "free spot: stays")
-		local y2 = MapScreen.placeLabel(100, 100, 40, 10, { 120 }, { 104 }, 1, 12)
+		local y2 = MapScreen.placeLabel(100, 100, 40, 10, { 120 }, { 104 }, twelve, twelve, 1)
 		t.ok(y2 ~= nil and y2 ~= 100, "moved off the blip")
 		t.ok(math.abs(y2 - 104) >= 10 + 12, "box clears the blip")
 		local blocked = MapScreen.placeLabel(100, 100, 40, 10, { 100, 100, 100, 100, 100 }, {
@@ -651,8 +652,11 @@ return function(t)
 			124,
 			52,
 			148,
-		}, 5, 12)
+		}, twelve, twelve, 5)
 		t.eq(blocked, nil, "nowhere to go: skipped")
+		-- a wide name already placed just above: the next one steps down, not onto it
+		local y3 = MapScreen.placeLabel(100, 100, 40, 10, { 130 }, { 90 }, { 60 }, { 12 }, 1)
+		t.ok(y3 ~= nil and y3 >= 90 + 12 + 10, "clear of the other name")
 		-- the config names sit clear of the garage rows (z = -+681) at the phone fit zoom
 		for _, d in Cfg.DISTRICTS do
 			if d.name == "THE DOCKS" or d.name == "SOUTH SHORE" then

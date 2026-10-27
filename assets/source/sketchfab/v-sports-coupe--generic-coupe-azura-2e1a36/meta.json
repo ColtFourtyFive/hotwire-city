@@ -51,5 +51,97 @@
   "sha256": "504a78a996f43e543cda9cb71b4c8de7691756c0967b7d11022a401c0b87f53c",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:51+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      1.4274,
+      4.9196,
+      1.1766
+    ],
+    "dims_m": [
+      1.427,
+      4.92,
+      1.177
+    ],
+    "front_evidence": "names(front=10,rear=10)",
+    "flipped": false,
+    "mesh_objects": 32,
+    "triangles": 36178,
+    "materials": 11,
+    "material_names": [
+      "Azura_Alloy",
+      "Azura_Black",
+      "Azura_Body",
+      "Azura_Chrome",
+      "Azura_Glass",
+      "Azura_Glass_Orange",
+      "Azura_Glass_Red",
+      "Azura_Plastic",
+      "Azura_Shadow",
+      "Azura_Textures",
+      "Azura_Tire"
+    ],
+    "textures": 6,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "WH_FL_Azura_Tire_0",
+      "WH_RL_Azura_Tire_0",
+      "WH_RR_Azura_Tire_0",
+      "WH_FR_Azura_Tire_0"
+    ],
+    "wheel_geom": [
+      "WH_FL_Azura_Alloy_0",
+      "WH_FL_Azura_Tire_0",
+      "WH_RL_Azura_Alloy_0",
+      "WH_RL_Azura_Tire_0",
+      "WH_RR_Azura_Alloy_0",
+      "WH_RR_Azura_Tire_0",
+      "WH_FR_Azura_Alloy_0",
+      "WH_FR_Azura_Tire_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [
+      "Azura_Glass",
+      "Azura_Glass_Orange",
+      "Azura_Glass_Red"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Details_Azura_Textures_0",
+      "Details_Azura_Chrome_0",
+      "Details_Azura_Black_0",
+      "Details_Azura_Glass_0",
+      "Details_Azura_Plastic_0",
+      "Body_Azura_Body_0",
+      "Body_Azura_Textures_0",
+      "Glass_Azura_Glass_0",
+      "Glass_Azura_Glass_Red_0",
+      "Glass_Azura_Glass_Orange_0",
+      "WH_FL_Azura_Alloy_0",
+      "WH_FL_Azura_Plastic_0",
+      "WH_FL_Azura_Chrome_0",
+      "WH_FL_Azura_Tire_0",
+      "WH_FL_Azura_Textures_0",
+      "Shadow_Azura_Shadow_0",
+      "Interior_Azura_Black_0",
+      "WH_RL_Azura_Alloy_0",
+      "WH_RL_Azura_Plastic_0",
+      "WH_RL_Azura_Chrome_0",
+      "WH_RL_Azura_Tire_0",
+      "WH_RL_Azura_Textures_0",
+      "WH_RR_Azura_Alloy_0",
+      "WH_RR_Azura_Plastic_0",
+      "WH_RR_Azura_Chrome_0",
+      "WH_RR_Azura_Tire_0",
+      "WH_RR_Azura_Textures_0",
+      "WH_FR_Azura_Alloy_0",
+      "WH_FR_Azura_Plastic_0",
+      "WH_FR_Azura_Chrome_0",
+      "WH_FR_Azura_Tire_0",
+      "WH_FR_Azura_Textures_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 39.2
+  }
 }

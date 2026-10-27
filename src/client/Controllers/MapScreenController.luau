@@ -195,9 +195,9 @@ function MapScreenController.legendLayout(
 	return { cols = cols, width = width, height = height, bottom = bottom, scrolls = scrolls }
 end
 
--- Where a district name (box centered at x, y with half sizes hw, hh; screen px) can go without covering a blip:
--- the first of y, one step up, one down, two up, two down whose box clears every obstacle (obsX / obsY centers with
--- half size r). nil when none does (the name is skipped this frame).
+-- Where a district name (box centered at x, y with half sizes hw, hh; screen px) can go without covering a blip or
+-- another name: the first of y, one step up, one down, two up, two down whose box clears every obstacle box (centers
+-- obsX / obsY, half sizes obsW / obsH). nil when none does (the name is skipped this frame).
 function MapScreenController.placeLabel(
 	x: number,
 	y: number,
@@ -205,15 +205,16 @@ function MapScreenController.placeLabel(
 	hh: number,
 	obsX: { number },
 	obsY: { number },
-	n: number,
-	r: number
+	obsW: { number },
+	obsH: { number },
+	n: number
 ): number?
 	local step = hh * 2 + 4
 	for _, k in { 0, -1, 1, -2, 2 } do
 		local cy = y + k * step
 		local clear = true
 		for i = 1, n do
-			if math.abs(obsX[i] - x) < hw + r and math.abs(obsY[i] - cy) < hh + r then
+			if math.abs(obsX[i] - x) < hw + obsW[i] and math.abs(obsY[i] - cy) < hh + obsH[i] then
 				clear = false
 				break
 			end
@@ -865,14 +866,19 @@ local function garageList(): { Vector3 }
 	return list
 end
 
--- per-frame scratch: static blip centers (screen px) the district names step aside from
+-- per-frame scratch: boxes (screen px; center + half sizes) the district names step aside from: static blips, then
+-- the names already placed
 local obsX: { number } = {}
 local obsY: { number } = {}
+local obsW: { number } = {}
+local obsH: { number } = {}
 local obsCount = 0
-local function addObstacle(x: number, y: number)
+local function addObstacle(x: number, y: number, hw: number, hh: number)
 	obsCount += 1
 	obsX[obsCount] = x
 	obsY[obsCount] = y
+	obsW[obsCount] = hw
+	obsH[obsCount] = hh
 end
 
 local function refresh()
@@ -895,13 +901,14 @@ local function refresh()
 	local blipSize = math.floor(MAP.BLIP_SIZE * uiScale * math.clamp(0.85 + zoomLevel * 0.08, 0.85, 1.25))
 	hotspotCount = 0
 	obsCount = 0
+	local obstacleHalf = blipSize * 0.5 + 2
 
 	-- POIs
 	for _, poi in poiList() do
 		local sx, sy = MapScreenController.worldToScreen(poi.pos.X, poi.pos.Z, cx, cz, scale, vpW, vpH)
 		blipPut(u.blips, poi.icon, poi.color, blipSize, sx, sy, 2)
 		addHotspot(poi.pos.X, poi.pos.Z, poi.label, sx, sy)
-		addObstacle(sx, sy)
+		addObstacle(sx, sy, obstacleHalf, obstacleHalf)
 	end
 	-- garages
 	local plots = Workspace:FindFirstChild("Plots")
@@ -935,7 +942,7 @@ local function refresh()
 				labelPut(u.labels, name, ownerSize, def.color, sx, sy + blipSize * 0.5 + ownerSize * 0.5 + 4, 2)
 			end
 			addHotspot(door.X, door.Z, name or "GARAGE", sx, sy)
-			addObstacle(sx, sy)
+			addObstacle(sx, sy, obstacleHalf, obstacleHalf)
 		end
 	end
 	-- other players (small dots, lowest)
@@ -988,31 +995,23 @@ local function refresh()
 			size += math.floor((2 + 2 * math.sin(clock * 5)) * uiScale)
 		end
 		blipPut(u.blips, MinimapController.waypointIcon(wpIds[i]), wpColor[i], size, sx, sy, 5)
-		addObstacle(sx, sy)
+		addObstacle(sx, sy, obstacleHalf, obstacleHalf)
 	end
 	blipEnd(u.blips)
 
 	-- district labels (UI text, nothing baked): step aside from the blips placed above
 	local labelSize = math.floor(MAP.LABEL_SIZE * uiScale * math.clamp(0.9 + zoomLevel * 0.1, 0.9, 1.4))
-	local obstacleHalf = blipSize * 0.5 + 2
 	for _, d in MinimapConfig.DISTRICTS do
 		if d.tier == 1 or zoomLevel >= 1.6 then
 			local sx, sy = MapScreenController.worldToScreen(d.x, d.z, cx, cz, scale, vpW, vpH)
 			if sx > -200 and sx < vpW + 200 and sy > -50 and sy < vpH + 50 then
 				local size = if d.tier == 1 then labelSize else math.floor(labelSize * 0.78)
 				-- display font, all caps: ~0.62 em per glyph
-				local y = MapScreenController.placeLabel(
-					sx,
-					sy,
-					#d.name * size * 0.31,
-					(size + 6) / 2,
-					obsX,
-					obsY,
-					obsCount,
-					obstacleHalf
-				)
+				local hw, hh = #d.name * size * 0.31, (size + 6) / 2
+				local y = MapScreenController.placeLabel(sx, sy, hw, hh, obsX, obsY, obsW, obsH, obsCount)
 				if y then
 					labelPut(u.labels, d.name, size, Theme.Colors.Text, sx, y, 1)
+					addObstacle(sx, y, hw + 2, hh + 2)
 				end
 			end
 		end
