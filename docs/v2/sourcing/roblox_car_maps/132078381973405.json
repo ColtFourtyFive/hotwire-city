@@ -123,7 +123,7 @@
     "payloadIds": []
    }
   ],
-  "verdict": "BACKDOOR - strip all scripts before parenting"
+  "verdict": "FLAGGED (backdoor-family, odd-parent, studio-evasion(JobId)) - strip all scripts before parenting"
  },
  "strip": {
   "Script": 2,

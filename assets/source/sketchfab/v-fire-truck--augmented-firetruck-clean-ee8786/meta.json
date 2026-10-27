@@ -44,5 +44,37 @@
   "sha256": "98093a487004c432addb74ffa81d8b9394fe4bd4b8f162973a8514fd7aac6344",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:07:36+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      506.4133,
+      1133.3407,
+      418.1973
+    ],
+    "dims_m": [
+      506.413,
+      1133.341,
+      418.197
+    ],
+    "front_evidence": "roof_offset=-0.15",
+    "flipped": true,
+    "mesh_objects": 1,
+    "triangles": 44806,
+    "materials": 1,
+    "material_names": [
+      "body"
+    ],
+    "textures": 5,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "polySurface177_body_0"
+    ],
+    "render_s": 63.4
+  }
 }

@@ -102,7 +102,7 @@
     ]
    }
   ],
-  "verdict": "BACKDOOR - strip all scripts before parenting"
+  "verdict": "FLAGGED (backdoor-family, studio-evasion(JobId)) - strip all scripts before parenting"
  },
  "strip": {
   "StringValue": 32,

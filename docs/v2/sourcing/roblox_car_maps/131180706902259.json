@@ -71,9 +71,9 @@
     "class": "PlaneConstraint",
     "flags": [
      "code-in-attribute",
-     "a:GetObjects (reversed)",
-     "a:StarterCharacterScripts (reversed)",
-     "a:rbxassetid://%d+ (reversed)"
+     "attr[a]~GetObjects (reversed)",
+     "attr[a]~StarterCharacterScripts (reversed)",
+     "attr[a]~rbxassetid://%d+ (reversed)"
     ],
     "requireIds": [],
     "payloadIds": [
@@ -81,7 +81,7 @@
     ]
    }
   ],
-  "verdict": "BACKDOOR - strip all scripts before parenting"
+  "verdict": "FLAGGED (attr[a]~GetObjects, attr[a]~StarterCharacterScripts, attr[a]~rbxassetid, code-in-attribute, injects-into-services, string-reverse-loop) - strip all scripts before parenting"
  },
  "strip": {
   "Script": 1,

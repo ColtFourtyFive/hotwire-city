@@ -1795,13 +1795,13 @@ addWay(
 addWay(
 	"Mirador Court",
 	"street",
-	smooth({ { 60, -2760 }, { 380, -2700 }, { 420, -2480 } }, 120),
+	smooth({ { -130, -2660 }, { 250, -2620 }, { 420, -2450 } }, 120),
 	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
 )
 addWay(
 	"Sierra Vista Lane",
 	"street",
-	smooth({ { -3550, -2620 }, { -3250, -2560 }, { -3150, -2380 } }, 120),
+	smooth({ { -3700, -2500 }, { -3350, -2520 }, { -3200, -2340 } }, 120),
 	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
 )
 addWay(
@@ -2408,7 +2408,7 @@ end
 			and (w.class == "boulevard" or w.class == "avenue" or w.class == "street" or w.class == "highway" or w.class == "rural")
 		then
 			for k = 1, #w.pts - 1 do
-				WorldGen.segAdd(art, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, i, k, 70)
+				WorldGen.segAdd(art, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, i, k, 115)
 			end
 		end
 	end
@@ -2485,7 +2485,7 @@ end
 						return
 					end
 					local _, _, _, d = WorldGen.projectSeg(p.x, p.z, art.ax[id], art.az[id], art.bx[id], art.bz[id])
-					if d < 70 then
+					if d < 115 then
 						local tx, tz = art.bx[id] - art.ax[id], art.bz[id] - art.az[id]
 						local tl = math.sqrt(tx * tx + tz * tz)
 						if tl > 1e-9 and dl > 1e-9 and math.abs((dx * tx + dz * tz) / tl) > 0.8 then
@@ -3245,6 +3245,21 @@ local function edgeAt(ei: number, s: number): (number, number, number, number, n
 	return px, a.y + (b.y - a.y) * t, pz, tx, tz
 end
 
+-- Clearance needed at node `nodeId` along edge `ei`: the half width + sidewalk of the roads crossing it there (not
+-- of the edge itself or its continuation), so lots and POIs can run right up to the cross street's sidewalk.
+local function endClear(ei: number, nodeId: number): number
+	local n = Nodes[nodeId]
+	local name = Edges[ei].name
+	local c = 0
+	for _, other in n.edges do
+		local o = Edges[other]
+		if other ~= ei and o.name ~= name and o.layer == Edges[ei].layer then
+			c = math.max(c, o.width / 2 + o.sidewalk)
+		end
+	end
+	return c
+end
+
 local function nodeRadius(nodeId: number): number
 	local n = Nodes[nodeId]
 	if n.intersection then
@@ -3297,26 +3312,28 @@ WorldLayout.PlacementErrors = PlacementErrors
 
 -- A footprint is clear when no sample point (corners, edge midpoints, interior grid) touches a road footprint
 -- (curb + sidewalk), it does not overlap another reserved footprint and it stands on land.
-local function footprintClear(obb: WorldGen.OBB): boolean
+local function footprintClear(obb: WorldGen.OBB): (boolean, string?)
 	local vx, vz = -obb.uz, obb.ux
+	local hw, hd = obb.hw - 1.5, obb.hd - 1.5 -- the front face may sit on the back of the sidewalk
 	for i = -2, 2 do
 		for j = -2, 2 do
-			local x = obb.cx + obb.ux * obb.hw * i / 2 + vx * obb.hd * j / 2
-			local z = obb.cz + obb.uz * obb.hw * i / 2 + vz * obb.hd * j / 2
-			if roadClearance(x, z, 1) then
-				return false
+			local x = obb.cx + obb.ux * hw * i / 2 + vx * hd * j / 2
+			local z = obb.cz + obb.uz * hw * i / 2 + vz * hd * j / 2
+			local hit, ei = roadClearance(x, z, 0.5)
+			if hit then
+				return false, "road " .. Edges[ei :: number].name
 			end
 			if (math.abs(i) == 2 or math.abs(j) == 2) and not landAtLeast(x, z, 12) then
-				return false
+				return false, "water"
 			end
 		end
 	end
 	for _, r in reserved do
 		if WorldGen.obbOverlap(obb, r.obb, 4) then
-			return false
+			return false, "overlaps " .. r.what
 		end
 	end
-	return true
+	return true, nil
 end
 
 -- Place a w x d footprint fronting a road near (x, z): the nearest allowed edges are tried in order, sliding along
@@ -3362,12 +3379,13 @@ local function placeOnFrontage(
 	end)
 	local firstCf: CFrame? = nil
 	local firstEntrance, firstEdge, firstObb = Vector3.zero, 0, nil :: WorldGen.OBB?
+	local firstWhy: string? = nil
 	for ci = 1, math.min(#cands, 6) do
 		local ei = cands[ci][2]
 		local e = Edges[ei]
 		local _, s0 = WorldGen.polyProject(edgePts[ei].pts, x, z)
-		local ra = nodeRadius(e.a) + w / 2 + 8
-		local rb = nodeRadius(e.b) + w / 2 + 8
+		local ra = endClear(ei, e.a) + w / 2 + 1
+		local rb = endClear(ei, e.b) + w / 2 + 1
 		if e.length <= ra + rb then
 			continue
 		end
@@ -3392,16 +3410,18 @@ local function placeOnFrontage(
 				local cf = CFrame.lookAt(center, center + Vector3.new(-nx, 0, -nz))
 				local entrance = Vector3.new(px + nx * curb, py, pz + nz * curb)
 				local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = w / 2, hd = d / 2 }
+				local clear, why = footprintClear(obb)
 				if firstCf == nil then
 					firstCf, firstEntrance, firstEdge, firstObb = cf, entrance, ei, obb
+					firstWhy = why
 				end
-				if footprintClear(obb) then
+				if clear then
 					return cf, entrance, ei, obb
 				end
 			end
 		end
 	end
-	table.insert(PlacementErrors, (label or "footprint") .. (" near %d, %d"):format(x, z))
+	table.insert(PlacementErrors, (label or "footprint") .. (" near %d, %d (%s)"):format(x, z, firstWhy or "no frontage"))
 	return firstCf, firstEntrance, firstEdge, firstObb
 end
 
@@ -4654,8 +4674,8 @@ do
 	for _, ei in order do
 		local e = Edges[ei]
 		for sideIdx, side in { 1, -1 } do
-			local s0 = nodeRadius(e.a) + 2
-			local s1 = e.length - nodeRadius(e.b) - 2
+			local s0 = endClear(ei, e.a) + 2
+			local s1 = e.length - endClear(ei, e.b) - 2
 			local F = s1 - s0
 			if F < 40 then
 				continue

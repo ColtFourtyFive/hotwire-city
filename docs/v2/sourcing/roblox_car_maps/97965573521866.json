@@ -122,7 +122,7 @@
     "payloadIds": []
    }
   ],
-  "verdict": "BACKDOOR - strip all scripts before parenting"
+  "verdict": "FLAGGED (backdoor-family, coregui-toggle, odd-parent, require-by-attribute, self-hide) - strip all scripts before parenting"
  },
  "strip": {
   "Script": 15,

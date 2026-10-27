@@ -8,14 +8,14 @@
 
 ## TL;DR
 
-1. **Six of the 11 shortlisted cars contain a backdoor script.** The same malware family is in all six, plus the taxi extra (7 of 17 downloaded models).
-   - **What it is:** the "TextureConfiguration" loader. It hides inside a `BloomEffect`, a `Decal`, a wheel or the paint part.
-   - **What it does:**
-     - It `require`s a remote module whose asset ID is stored in an attribute or a Value.
+1. **Seven of the 11 shortlisted cars carry a backdoor.** Six use one malware family, "TextureConfiguration". The box truck uses a second kit. The taxi extra is also infected, and the Maxima extra has a script that moves itself into ServerScriptService.
+   - **Where they hide:** inside a `BloomEffect`, a `Decal`, a wheel, the paint part, or code reversed into a string attribute.
+   - **What they do:**
+     - They `require` or `GetObjects` a remote module whose asset ID is stored in an attribute or a Value.
      - Some variants check `game.JobId` so they stay quiet in Studio.
-     - A LocalScript disables every CoreGui.
-   - **Affected cars:** Tundra, police interceptor, police hatch, Mercedes, Prius and taxi.
-   - **Payload IDs to blocklist:** `74145699488273`, `95925098868592`, `115188487528112`, `128320524036560`, `130049213376589`, `140312253726156`.
+     - Some hide the CoreGui or inject into StarterCharacterScripts.
+   - **Affected cars:** Tundra, police interceptor, police hatch, box truck, Mercedes, Prius, plus the taxi extra.
+   - **Payload IDs to blocklist:** `74145699488273`, `75521726909736`, `95925098868592`, `115188487528112`, `128320524036560`, `130049213376589`, `140312253726156`.
    - **Rule:** never parent an inserted Creator Store model into the DataModel before deleting every `LuaSourceContainer`. See section 4.
 2. **Every shortlisted car has real-brand marks that must be overridden.**
    - Where they are: textures (Ford oval, Jaguar growler, Toyota/Prius badges, a BMW centre cap on the Kia), real police insignia (Michigan State Police, Ohio State Highway Patrol, Police Nationale), real-format plates, and modelled badges.
@@ -151,9 +151,9 @@ The rules use only Name, Material, Color, Transparency, TextureID and position, 
 4. **Override brands** using the per-car list in §5. Hide the part, or set our own `TextureID` or SurfaceAppearance. Never re-upload the third-party mesh.
 5. **Watch the budget.** MeshParts cost draw calls; Roblox auto-LODs them. The Patrol (463k tris) and Mercedes (422k) are too heavy for traffic. Use them as hero or garage cars only, or not at all.
 
-## 4. Security: the "TextureConfiguration" backdoor family
+## 4. Security: backdoors in 7 of 11 shortlisted cars
 
-All seven infected models carry the same kit:
+The six "TextureConfiguration" models share one kit (the box truck and Maxima rows below are different):
 - A `Script` named to look like an engine feature: `CoreTextureSystem`, `CoreSkyboxSystem`, `Package`, `PoseTexture`, `PoseLink` or `qTexture`.
 - It hides somewhere a quick look misses:
   - inside a `BloomEffect` named `BloomDefect`;
@@ -172,12 +172,16 @@ All seven infected models carry the same kit:
 | `126180570128588` Tundra | `CoreSkyboxSystem` (root) | `95925098868592` |
 | `103123587729335` Police hatch | `PoseTexture` (root) | `140312253726156` |
 | `113053967699143` Police interceptor | `BloomDefect/ExtraData/Shifter/PoseLink` | none visible (obfuscated) |
+| `131180706902259` Box truck | Different kit. `MeshPart/DO NOT DELETE/Material` (a 10 KB fake "texture streaming" Script) clones a `Credits` ScreenGui into StarterGui. Its LocalScript un-reverses a `PlaneConstraint` attribute into `game:GetObjects('rbxassetid://75521726909736')…Parent = StarterCharacterScripts`. | `75521726909736` |
 | `94301391128632` Taxi (extra) | 5 nested copies under `Object.5240` | `115188487528112`, `128320524036560`, `140312253726156` |
+| `951086064` Maxima (extra) | `…/LeanPatcher/Patcher/ThrottlePatcher` runs `script.Parent = game.ServerScriptService`. This is a 2016-era free-model "virus" pattern. | none |
 
 `rbxm_inspect.luau` flags these patterns without writing any source:
 - `require-by-attribute`, `studio-evasion(JobId)`, `self-hide`, `coregui-toggle`;
 - `odd-parent:<class>` (a script under a PostEffect, Light, Decal or Sky);
-- `backdoor-family:TextureConfiguration`.
+- `backdoor-family:TextureConfiguration`;
+- `string-reverse-loop`, `injects-into-services`;
+- `code-in-attribute`: any string attribute that holds `GetObjects`, `require(`, `loadstring` or an asset URL, forwards or reversed.
 
 `rbx_car_map.py` collects the payload IDs from attributes and Values anywhere under a flagged script, and from 10+ digit literals. The scout's Studio inserts were safe because Studio sandboxes inserted scripts and the scout deleted them. A runtime `LoadAssetAsync` path is only safe because `AssetLibrary` strips scripts before parenting. Keep it that way.
 

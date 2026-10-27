@@ -172,7 +172,7 @@
     ]
    }
   ],
-  "verdict": "BACKDOOR - strip all scripts before parenting"
+  "verdict": "FLAGGED (backdoor-family) - strip all scripts before parenting"
  },
  "strip": {
   "Script": 5,

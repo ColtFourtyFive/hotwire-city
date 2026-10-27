@@ -351,7 +351,7 @@ local function visit(inst, parentId, depth, parentPath)
 					for _, pat in { "GetObjects", "require%s*%(", "loadstring", "getfenv", "StarterCharacterScripts",
 						"ServerScriptService", "rbxassetid://%d+" } do
 						if string.find(txt, pat) then
-							table.insert(codeFlags, k .. ":" .. pat .. (txt ~= v and " (reversed)" or ""))
+							table.insert(codeFlags, "attr[" .. k .. "]~" .. pat .. (txt ~= v and " (reversed)" or ""))
 						end
 					end
 				end
