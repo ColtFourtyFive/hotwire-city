@@ -1,166 +1,166 @@
-Body         vis=2 faces=   336 area=  77.461 c=[-0.    0.62  4.09] why=mat:Body :: Body | TOP.002 / TOP.002
-Trim         vis=2 faces=    10 area=  67.764 c=[-0.    0.23  1.33] why=mat:Underside :: Underside | Underside / Underside
-Body         vis=2 faces=   188 area=  30.375 c=[ 2.98 -0.71  2.72] why=mat:Body :: Body | RIGHT / RIGHT
-Body         vis=2 faces=   196 area=  30.194 c=[-2.98 -0.67  2.71] why=mat:Body :: Body | LEFT / LEFT
-Interior     vis=1 faces=    17 area=  18.164 c=[ 0.74 -4.29  3.44] why=mat:Interior :: Interior | Bodywork / Bodywork
-WheelFR      vis=2 faces=   120 area=  16.500 c=[2.83 5.09 1.23] why=wheel-cylinder :: Tyre | Default.003 / Default.003
-WheelRL      vis=2 faces=   120 area=  16.500 c=[-2.83 -5.09  1.23] why=wheel-cylinder :: Tyre | Default.004 / Default.004
-WheelFL      vis=2 faces=   120 area=  16.500 c=[-2.83  5.09  1.23] why=wheel-cylinder :: Tyre | Default.002 / Default.002
-WheelRR      vis=2 faces=   120 area=  16.500 c=[ 2.83 -5.09  1.23] why=wheel-cylinder :: Tyre | Default.007 / Default.007
-Discard      vis=0 faces=     4 area=  16.210 c=[-1.17 -0.01  1.64] why=mat:Interior hidden :: Interior | Chrome.014 / Chrome.014
-Interior     vis=1 faces=    34 area=  12.557 c=[-1.31 -2.03  4.96] why=mat:Interior :: Interior | Bodywork.012 / Bodywork.012
-Interior     vis=1 faces=     2 area=  11.321 c=[-2.42  0.31  2.58] why=mat:Interior :: Interior | Chrome.007 / Chrome.007
-Interior     vis=1 faces=     2 area=  11.321 c=[2.42 0.31 2.58] why=mat:Interior :: Interior | Chrome.001 / Chrome.001
-Interior     vis=1 faces=     9 area=  10.907 c=[-1.23 -3.48  3.08] why=mat:Interior :: Interior | Bodywork.009 / Bodywork.009
-Discard      vis=0 faces=     2 area=  10.872 c=[1.52 0.05 1.51] why=mat:Interior hidden :: Interior | Chrome.003 / Chrome.003
-Interior     vis=1 faces=    21 area=  10.396 c=[ 1.18 -1.95  5.04] why=mat:Interior :: Interior | Bodywork.005 / Bodywork.005
-Glass        vis=2 faces=    12 area=   8.986 c=[-0.   -5.03  4.49] why=mat:Glass :: Glass | Glass / Glass
-Trim         vis=2 faces=     4 area=   8.600 c=[-0.   -7.34  1.66] why=mat:Underside :: Underside | Underside.002 / Underside.002
-Interior     vis=1 faces=    21 area=   8.398 c=[0.21 1.45 3.62] why=mat:Interior :: Interior | Bodywork.014 / Bodywork.014
-Glass        vis=2 faces=     6 area=   7.839 c=[0.   1.27 4.55] why=mat:Glass :: Glass | Glass / Glass
-Body         vis=2 faces=   112 area=   7.772 c=[0.   7.87 2.3 ] why=mat:Body :: Body | FRONT / FRONT
-Trim         vis=2 faces=    17 area=   7.073 c=[2.55 5.09 2.17] why=mat:Underside :: Underside | Underside.001 / Underside.001
-Trim         vis=2 faces=    17 area=   7.073 c=[-2.55  5.09  2.17] why=mat:Underside :: Underside | Underside.001 / Underside.001
-Interior     vis=1 faces=    26 area=   7.008 c=[ 1.37 -1.39  3.02] why=mat:Interior :: Interior | seats.002 / seats.002
-Trim         vis=2 faces=    15 area=   6.941 c=[-2.54 -5.04  2.28] why=mat:Underside :: Underside | Underside.001 / Underside.001
-Trim         vis=2 faces=    15 area=   6.941 c=[ 2.54 -5.04  2.28] why=mat:Underside :: Underside | Underside.001 / Underside.001
-Body         vis=2 faces=    74 area=   5.837 c=[-0.   -8.53  2.28] why=mat:Body :: Body | REAR / REAR
-Trim         vis=2 faces=    46 area=   5.736 c=[-0.    8.03  2.08] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    13 area=   5.408 c=[ 0.   -5.28  4.46] why=mat:BlackPlastic :: BlackPlastic | Chrome.010 / Chrome.010
-Interior     vis=1 faces=    19 area=   5.293 c=[-1.37 -1.45  3.06] why=mat:Interior :: Interior | seats / seats
-Trim         vis=2 faces=    43 area=   4.921 c=[-0.02 -8.69  2.59] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    11 area=   4.663 c=[0.   7.5  1.27] why=mat:Underside :: Underside | Underside.002 / Underside.002
-Discard      vis=0 faces=     1 area=   4.357 c=[ 0.46 -0.71  1.88] why=mat:Interior hidden :: Interior | Chrome.013 / Chrome.013
-Interior     vis=1 faces=    25 area=   4.279 c=[ 1.37 -0.18  2.26] why=mat:Interior :: Interior | seats.002 / seats.002
-Glass        vis=2 faces=     3 area=   3.985 c=[ 2.37 -0.82  4.41] why=mat:Glass :: Glass | Glass / Glass
-Glass        vis=2 faces=     3 area=   3.985 c=[-2.37 -0.82  4.41] why=mat:Glass :: Glass | Glass / Glass
-Interior     vis=1 faces=     2 area=   3.770 c=[0.   0.12 2.33] why=mat:Interior :: Interior | Chrome.015 / Chrome.015
-Trim         vis=2 faces=    30 area=   3.704 c=[-0.   -8.57  2.83] why=mat:BlackPlastic :: BlackPlastic | Chrome.008 / Chrome.008
-Trim         vis=2 faces=    14 area=   3.472 c=[ 1.47 -7.77  1.65] why=mat:Chrome :: Chrome | Exhausts / Exhausts
-Trim         vis=2 faces=    14 area=   3.472 c=[-1.47 -7.77  1.65] why=mat:Chrome :: Chrome | Exhausts / Exhausts
-Discard      vis=0 faces=     1 area=   3.413 c=[0.   2.99 3.08] why=mat:Interior hidden :: Interior | Chrome / Chrome
-Trim         vis=2 faces=    24 area=   2.832 c=[0.   7.64 1.33] why=mat:BlackPlastic :: BlackPlastic | BlackPlastic.001 / BlackPlastic.001
-Body         vis=2 faces=    10 area=   2.795 c=[ 2.34 -4.23  4.38] why=mat:Body :: Body | RIGHT / RIGHT
-Body         vis=2 faces=    10 area=   2.795 c=[-2.34 -4.23  4.38] why=mat:Body :: Body | LEFT / LEFT
-Discard      vis=0 faces=     1 area=   2.688 c=[-1.89 -3.83  2.33] why=mat:Interior hidden :: Interior | Default.010 / Default.010
-Discard      vis=0 faces=     1 area=   2.688 c=[ 1.89 -3.83  2.33] why=mat:Interior hidden :: Interior | Default.009 / Default.009
-Trim         vis=2 faces=     6 area=   2.546 c=[0.   8.03 1.77] why=mat:Grille :: Grille | Bodywork.011 / Bodywork.011
-WheelRL      vis=2 faces=     1 area=   2.522 c=[-2.67 -5.09  1.23] why=wheel-cylinder :: WheelViewBlocker | New object.002 / New object.002
-WheelRR      vis=2 faces=     1 area=   2.522 c=[ 2.67 -5.09  1.23] why=wheel-cylinder :: WheelViewBlocker | New object.003 / New object.003
-WheelFR      vis=2 faces=     1 area=   2.522 c=[2.67 5.09 1.23] why=wheel-cylinder :: WheelViewBlocker | New object.001 / New object.001
-WheelFL      vis=2 faces=     1 area=   2.522 c=[-2.67  5.09  1.23] why=wheel-cylinder :: WheelViewBlocker | New object / New object
-Discard      vis=0 faces=     1 area=   2.398 c=[-1.42  2.99  2.47] why=mat:Interior hidden :: Interior | Chrome.005 / Chrome.005
-Discard      vis=0 faces=     1 area=   2.398 c=[1.42 2.99 2.47] why=mat:Interior hidden :: Interior | Chrome.004 / Chrome.004
-Trim         vis=2 faces=    16 area=   2.373 c=[-2.77 -0.    1.43] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    16 area=   2.373 c=[ 2.77 -0.    1.43] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Interior     vis=1 faces=     8 area=   2.348 c=[-1.37 -0.65  2.21] why=mat:Interior :: Interior | seats / seats
-Interior     vis=1 faces=     2 area=   2.139 c=[ 2.47 -2.82  2.65] why=mat:Interior :: Interior | Bodywork.017 / Bodywork.017
-Interior     vis=1 faces=     2 area=   2.139 c=[-2.47 -2.82  2.65] why=mat:Interior :: Interior | Bodywork.001 / Bodywork.001
-Trim         vis=2 faces=    10 area=   2.020 c=[0.   8.09 2.7 ] why=mat:Grille :: Grille | Chrome.011 / Chrome.011
-Interior     vis=1 faces=     2 area=   1.849 c=[ 2.5  -3.75  3.21] why=mat:Interior :: Interior | Default.008 / Default.008
-Interior     vis=1 faces=     2 area=   1.849 c=[-2.5  -3.75  3.21] why=mat:Interior :: Interior | Default.012 / Default.012
-Trim         vis=2 faces=     5 area=   1.652 c=[ 0.  -4.5  4.8] why=mat:BlackPlastic :: BlackPlastic | Chrome.017 / Chrome.017
-Interior     vis=1 faces=     9 area=   1.638 c=[-1.37  0.35  2.32] why=mat:Interior :: Interior | seats.001 / seats.001
-Interior     vis=1 faces=    23 area=   1.526 c=[ 1.37 -1.9   4.1 ] why=mat:Interior :: Interior | seats.002 / seats.002
-Interior     vis=1 faces=    23 area=   1.526 c=[-1.37 -1.9   4.1 ] why=mat:Interior :: Interior | seats / seats
-Trim         vis=2 faces=     2 area=   1.455 c=[ 0.03 -5.95  4.17] why=mat:BlackPlastic :: BlackPlastic | Default / Default
-WheelFL      vis=2 faces=    35 area=   1.448 c=[-2.98  5.09  1.23] why=wheel-cylinder :: Rim | Default.002 / Default.002
-WheelFR      vis=2 faces=    35 area=   1.448 c=[2.98 5.09 1.23] why=wheel-cylinder :: Rim | Default.003 / Default.003
-WheelRR      vis=2 faces=    35 area=   1.448 c=[ 2.98 -5.09  1.23] why=wheel-cylinder :: Rim | Default.007 / Default.007
-WheelRL      vis=2 faces=    35 area=   1.448 c=[-2.98 -5.09  1.23] why=wheel-cylinder :: Rim | Default.004 / Default.004
-Interior     vis=1 faces=     6 area=   1.434 c=[-1.37 -1.06  2.72] why=mat:Interior :: Interior | seats.001 / seats.001
-Trim         vis=2 faces=     4 area=   1.432 c=[ 0.   -4.14  4.99] why=mat:BlackPlastic :: BlackPlastic | Default.001 / Default.001
-Interior     vis=1 faces=     2 area=   1.331 c=[ 2.25 -3.91  4.46] why=mat:Interior :: Interior | Bodywork.008 / Bodywork.008
-Interior     vis=1 faces=     2 area=   1.306 c=[-1.12  1.68  4.  ] why=mat:Interior :: Interior | Bodywork.012 / Bodywork.012
-Interior     vis=1 faces=    64 area=   1.280 c=[-1.31  0.67  3.51] why=mat:Interior :: Interior | Default.013 / Default.013
-Trim         vis=2 faces=    14 area=   1.114 c=[ 0.   -5.07  4.46] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Interior     vis=1 faces=     1 area=   0.981 c=[0.47 2.39 2.06] why=mat:Interior :: Interior | Chrome.012 / Chrome.012
-Trim         vis=2 faces=     1 area=   0.966 c=[ 0.   -8.55  3.05] why=mat:Badge :: Badge | New object.004 / New object.004
-Trim         vis=2 faces=    14 area=   0.942 c=[0.  1.2 4.5] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Discard      vis=0 faces=     1 area=   0.844 c=[-1.87 -3.05  1.46] why=mat:Interior hidden :: Interior | Bodywork.010 / Bodywork.010
-Discard      vis=0 faces=     1 area=   0.844 c=[ 1.87 -3.05  1.46] why=mat:Interior hidden :: Interior | Bodywork.002 / Bodywork.002
-Trim         vis=2 faces=    14 area=   0.730 c=[-2.41 -1.04  4.39] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    14 area=   0.730 c=[ 2.41 -1.04  4.39] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Interior     vis=1 faces=     2 area=   0.722 c=[-2.48 -0.14  3.73] why=mat:Interior :: Interior | Chrome.018 / Chrome.018
-Interior     vis=1 faces=     2 area=   0.722 c=[ 2.48 -0.14  3.73] why=mat:Interior :: Interior | Chrome.020 / Chrome.020
-Discard      vis=0 faces=     3 area=   0.683 c=[-2.48 -4.07  3.64] why=mat:Interior hidden :: Interior | Default.005 / Default.005
-Discard      vis=0 faces=     3 area=   0.683 c=[ 2.48 -4.07  3.64] why=mat:Interior hidden :: Interior | Default.011 / Default.011
-Glass        vis=2 faces=     2 area=   0.598 c=[-2.4  -2.85  4.47] why=mat:Glass :: Glass | New object.006 / New object.006
-Glass        vis=2 faces=     2 area=   0.598 c=[ 2.4  -2.85  4.47] why=mat:Glass :: Glass | New object.006 / New object.006
-Interior     vis=1 faces=    25 area=   0.587 c=[-1.31  0.73  3.49] why=mat:Interior :: Interior | stering_wheel_column.001 / stering_wheel_column.001
-Trim         vis=2 faces=     5 area=   0.510 c=[ 0.   -8.58  2.16] why=mat:License :: License | New object.004 / New object.004
-LightsRear   vis=2 faces=     2 area=   0.442 c=[-1.68 -8.52  3.06] why=mat:RearLights :: RearLights | Lights / Lights
-LightsRear   vis=2 faces=     2 area=   0.442 c=[ 1.68 -8.52  3.06] why=mat:RearLights :: RearLights | Lights / Lights
-Interior     vis=1 faces=     6 area=   0.438 c=[-1.31  1.17  3.38] why=mat:Interior :: Interior | stering_wheel_column / stering_wheel_column
-Trim         vis=2 faces=    18 area=   0.426 c=[0.97 7.99 1.66] why=mat:BlackPlastic :: BlackPlastic | Chrome.008 / Chrome.008
-Trim         vis=2 faces=    18 area=   0.426 c=[-0.97  7.99  1.66] why=mat:BlackPlastic :: BlackPlastic | Chrome.008 / Chrome.008
-Trim         vis=2 faces=     7 area=   0.403 c=[1.44 8.15 2.05] why=mat:Chrome :: Chrome | New object.006 / New object.006
-Trim         vis=2 faces=     7 area=   0.403 c=[-1.44  8.15  2.05] why=mat:Chrome :: Chrome | New object.006 / New object.006
-Trim         vis=2 faces=     1 area=   0.390 c=[-3.1   2.63  3.27] why=mat:Badge :: Badge | New object.005 / New object.005
-Trim         vis=2 faces=     1 area=   0.390 c=[3.1  2.63 3.27] why=mat:Badge :: Badge | New object.005 / New object.005
-Interior     vis=1 faces=     5 area=   0.374 c=[2.22 0.7  4.63] why=mat:Interior :: Interior | Bodywork.012 / Bodywork.012
-Trim         vis=2 faces=     8 area=   0.371 c=[-0.   -3.89  5.  ] why=mat:BlackPlastic :: BlackPlastic | Chrome.006 / Chrome.006
-Interior     vis=1 faces=     4 area=   0.328 c=[0.87 0.58 5.13] why=mat:Interior :: Interior | Bodywork.016 / Bodywork.016
-Trim         vis=2 faces=    15 area=   0.312 c=[-3.05  0.92  4.02] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
-Trim         vis=2 faces=    15 area=   0.312 c=[3.05 0.92 4.02] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
-LightsFront  vis=2 faces=    12 area=   0.310 c=[-2.49  7.57  2.71] why=mat:FrontLights :: FrontLights | Lights / Lights
-LightsFront  vis=2 faces=    12 area=   0.310 c=[2.49 7.57 2.71] why=mat:FrontLights :: FrontLights | Lights / Lights
-Interior     vis=1 faces=     1 area=   0.282 c=[-1.37 -1.89  3.75] why=mat:Interior :: Interior | seats.001 / seats.001
-Trim         vis=2 faces=    80 area=   0.278 c=[-2.94 -6.81  3.48] why=mat:Chrome :: Chrome | Bodywork.007 / Bodywork.007
-Trim         vis=2 faces=     1 area=   0.263 c=[-0.52  5.79  3.81] why=mat:Grille :: Grille | Chrome.011 / Chrome.011
-Trim         vis=2 faces=     1 area=   0.263 c=[0.52 5.79 3.81] why=mat:Grille :: Grille | Chrome.011 / Chrome.011
-Interior     vis=1 faces=     9 area=   0.244 c=[-0.03  0.57  4.91] why=mat:Interior :: Interior | RearView / RearView
-Trim         vis=2 faces=    16 area=   0.221 c=[-1.47 -8.65  1.62] why=mat:Underside :: Underside | Exhausts.001 / Exhausts.001
-Trim         vis=2 faces=    16 area=   0.221 c=[ 1.47 -8.65  1.62] why=mat:Underside :: Underside | Exhausts.001 / Exhausts.001
-Trim         vis=2 faces=     2 area=   0.197 c=[-0.   -6.19  4.01] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Glass        vis=2 faces=     1 area=   0.181 c=[-2.47 -2.51  4.2 ] why=mat:Glass :: Glass | Glass / Glass
-Glass        vis=2 faces=     1 area=   0.181 c=[ 2.47 -2.51  4.2 ] why=mat:Glass :: Glass | Glass / Glass
-Interior     vis=1 faces=     3 area=   0.179 c=[-0.04  0.53  4.91] why=mat:Chrome behind-glass :: Chrome | RearView.001 / RearView.001
-Trim         vis=2 faces=    12 area=   0.173 c=[2.88 1.23 3.87] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
-Trim         vis=2 faces=    12 area=   0.173 c=[-2.88  1.23  3.87] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
-Trim         vis=2 faces=    25 area=   0.170 c=[-2.97 -2.01  3.34] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    25 area=   0.170 c=[ 2.97 -2.01  3.34] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-LightsFront  vis=2 faces=    12 area=   0.169 c=[-0.97  8.17  1.67] why=mat:FrontLights :: FrontLights | Lights / Lights
-LightsFront  vis=2 faces=    12 area=   0.169 c=[0.97 8.17 1.67] why=mat:FrontLights :: FrontLights | Lights / Lights
-Interior     vis=1 faces=     1 area=   0.164 c=[ 2.54 -2.96  3.86] why=mat:Interior :: Interior | Bodywork.006 / Bodywork.006
-Interior     vis=1 faces=     1 area=   0.164 c=[-2.54 -2.96  3.86] why=mat:Interior :: Interior | Bodywork.004 / Bodywork.004
-Interior     vis=1 faces=     2 area=   0.157 c=[ 2.55 -1.91  3.68] why=mat:Interior :: Interior | Chrome.016 / Chrome.016
-Interior     vis=1 faces=     2 area=   0.157 c=[-2.55 -1.91  3.68] why=mat:Interior :: Interior | Chrome.019 / Chrome.019
-Interior     vis=1 faces=     4 area=   0.147 c=[-0.62  0.61  2.3 ] why=mat:Interior :: Interior | seats / seats
-Interior     vis=1 faces=     4 area=   0.147 c=[-2.13  0.61  2.3 ] why=mat:Interior :: Interior | seats / seats
-Trim         vis=2 faces=     6 area=   0.142 c=[-1.69 -8.54  3.05] why=mat:Chrome :: Chrome | RearLights / RearLights
-Trim         vis=2 faces=     6 area=   0.142 c=[ 1.69 -8.54  3.05] why=mat:Chrome :: Chrome | RearLights / RearLights
-Trim         vis=2 faces=     6 area=   0.135 c=[-1.38  2.02  4.08] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
-Trim         vis=2 faces=     6 area=   0.135 c=[0.59 2.14 4.08] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
-Trim         vis=2 faces=     6 area=   0.107 c=[-0.7   1.97  4.11] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
-Trim         vis=2 faces=     6 area=   0.107 c=[1.24 1.95 4.09] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
-Interior     vis=1 faces=     1 area=   0.079 c=[ 2.54 -2.48  3.7 ] why=mat:Interior :: Interior | Bodywork.015 / Bodywork.015
-Interior     vis=1 faces=     1 area=   0.079 c=[-2.54 -2.48  3.7 ] why=mat:Interior :: Interior | Bodywork.003 / Bodywork.003
-Trim         vis=2 faces=    12 area=   0.079 c=[-2.49  7.54  2.71] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    12 area=   0.079 c=[2.49 7.54 2.71] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Interior     vis=1 faces=     1 area=   0.072 c=[ 0.5  -3.82  4.98] why=mat:Interior :: Interior | Bodywork.016 / Bodywork.016
-LightsFront  vis=2 faces=     1 area=   0.062 c=[1.83 7.76 1.74] why=mat:RearLights :: RearLights | BlackPlastic / BlackPlastic
-LightsFront  vis=2 faces=     1 area=   0.062 c=[-1.83  7.76  1.74] why=mat:RearLights :: RearLights | BlackPlastic / BlackPlastic
-Trim         vis=2 faces=     3 area=   0.062 c=[ 1.78 -4.12  4.91] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Trim         vis=2 faces=     3 area=   0.062 c=[-1.78 -4.12  4.91] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Interior     vis=1 faces=     7 area=   0.058 c=[-0.01  0.65  5.04] why=mat:Interior :: Interior | RearView / RearView
-Interior     vis=1 faces=     1 area=   0.056 c=[ 2.57 -3.76  4.09] why=mat:Interior :: Interior | Bodywork.014 / Bodywork.014
-Trim         vis=2 faces=     1 area=   0.046 c=[ 2.64 -3.64  1.36] why=mat:Underside :: Underside | Bodywork.013 / Bodywork.013
-Trim         vis=2 faces=     1 area=   0.046 c=[-2.64 -3.64  1.36] why=mat:Underside :: Underside | Bodywork.013 / Bodywork.013
-Trim         vis=2 faces=    14 area=   0.045 c=[-1.89  2.01  3.95] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
-Trim         vis=2 faces=    14 area=   0.045 c=[0.08 2.24 3.95] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
-Trim         vis=2 faces=    12 area=   0.043 c=[0.97 8.14 1.67] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Trim         vis=2 faces=    12 area=   0.043 c=[-0.97  8.14  1.67] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
-Interior     vis=1 faces=     9 area=   0.042 c=[-0.15  1.2   2.62] why=mat:Interior :: Interior | middle_column / middle_column
-Body         vis=2 faces=     1 area=   0.032 c=[2.24 6.48 3.46] why=mat:Body :: Body | TOP.001 / TOP.001
-Trim         vis=2 faces=     1 area=   0.030 c=[-1.92 -5.67  4.27] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Trim         vis=2 faces=     1 area=   0.030 c=[ 1.92 -5.67  4.27] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Trim         vis=2 faces=     1 area=   0.030 c=[-1.85 -4.92  4.59] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Trim         vis=2 faces=     1 area=   0.030 c=[ 1.85 -4.92  4.59] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
-Trim         vis=2 faces=     1 area=   0.030 c=[ 1.88 -5.29  4.43] why=mat:BlackPlastic :: BlackPlastic | Chrome.017 / Chrome.017
-Trim         vis=2 faces=     1 area=   0.030 c=[-1.88 -5.29  4.43] why=mat:BlackPlastic :: BlackPlastic | Chrome.017 / Chrome.017
-Interior     vis=1 faces=    32 area=   0.029 c=[-0.19  1.07  2.82] why=mat:Interior :: Interior | middle_column / middle_column
-Trim         vis=2 faces=     1 area=   0.025 c=[-1.95 -6.    4.13] why=mat:BlackPlastic :: BlackPlastic | Default.006 / Default.006
-Interior     vis=1 faces=     1 area=   0.021 c=[-2.45  1.45  3.83] why=mat:Interior :: Interior | Default.012 / Default.012
-Discard      vis=0 faces=     1 area=   0.021 c=[2.45 1.45 3.83] why=mat:Interior hidden :: Interior | Default.008 / Default.008
-Body         vis=2 faces=     1 area=   0.000 c=[-2.56  1.48  3.9 ] why=mat:Body :: Body | TOP / TOP
+Body         vis=2 faces=   336 area=  68.736 c=[-0.    0.58  3.85] why=mat:Body :: Body | TOP.002 / TOP.002
+Trim         vis=2 faces=    10 area=  60.131 c=[0.   0.22 1.25] why=mat:Underside :: Underside | Underside / Underside
+Body         vis=2 faces=   188 area=  26.954 c=[ 2.81 -0.67  2.56] why=mat:Body :: Body | RIGHT / RIGHT
+Body         vis=2 faces=   196 area=  26.793 c=[-2.81 -0.63  2.56] why=mat:Body :: Body | LEFT / LEFT
+Interior     vis=1 faces=    17 area=  16.118 c=[ 0.7  -4.04  3.24] why=mat:Interior :: Interior | Bodywork / Bodywork
+WheelRR      vis=2 faces=   120 area=  14.641 c=[ 2.66 -4.79  1.16] why=wheel-cylinder :: Tyre | Default.007 / Default.007
+WheelRL      vis=2 faces=   120 area=  14.641 c=[-2.66 -4.79  1.16] why=wheel-cylinder :: Tyre | Default.004 / Default.004
+WheelFL      vis=2 faces=   120 area=  14.641 c=[-2.66  4.79  1.16] why=wheel-cylinder :: Tyre | Default.002 / Default.002
+WheelFR      vis=2 faces=   120 area=  14.641 c=[2.66 4.79 1.16] why=wheel-cylinder :: Tyre | Default.003 / Default.003
+Discard      vis=0 faces=     4 area=  14.385 c=[-1.1  -0.01  1.54] why=mat:Interior hidden :: Interior | Chrome.014 / Chrome.014
+Interior     vis=1 faces=    34 area=  11.142 c=[-1.24 -1.91  4.68] why=mat:Interior :: Interior | Bodywork.012 / Bodywork.012
+Interior     vis=1 faces=     2 area=  10.046 c=[2.28 0.29 2.43] why=mat:Interior :: Interior | Chrome.001 / Chrome.001
+Interior     vis=1 faces=     2 area=  10.046 c=[-2.28  0.29  2.43] why=mat:Interior :: Interior | Chrome.007 / Chrome.007
+Interior     vis=1 faces=     9 area=   9.678 c=[-1.16 -3.27  2.9 ] why=mat:Interior :: Interior | Bodywork.009 / Bodywork.009
+Discard      vis=0 faces=     2 area=   9.647 c=[1.43 0.05 1.42] why=mat:Interior hidden :: Interior | Chrome.003 / Chrome.003
+Interior     vis=1 faces=    21 area=   9.225 c=[ 1.11 -1.83  4.75] why=mat:Interior :: Interior | Bodywork.005 / Bodywork.005
+Glass        vis=2 faces=    12 area=   7.974 c=[ 0.   -4.74  4.23] why=mat:Glass :: Glass | Glass / Glass
+Trim         vis=2 faces=     4 area=   7.631 c=[ 0.   -6.91  1.57] why=mat:Underside :: Underside | Underside.002 / Underside.002
+Interior     vis=1 faces=    21 area=   7.452 c=[0.19 1.37 3.41] why=mat:Interior :: Interior | Bodywork.014 / Bodywork.014
+Glass        vis=2 faces=     6 area=   6.956 c=[0.   1.19 4.28] why=mat:Glass :: Glass | Glass / Glass
+Body         vis=2 faces=   112 area=   6.896 c=[0.   7.42 2.17] why=mat:Body :: Body | FRONT / FRONT
+Trim         vis=2 faces=    17 area=   6.276 c=[-2.41  4.79  2.04] why=mat:Underside :: Underside | Underside.001 / Underside.001
+Trim         vis=2 faces=    17 area=   6.276 c=[2.41 4.79 2.04] why=mat:Underside :: Underside | Underside.001 / Underside.001
+Interior     vis=1 faces=    26 area=   6.219 c=[ 1.29 -1.31  2.84] why=mat:Interior :: Interior | seats.002 / seats.002
+Trim         vis=2 faces=    15 area=   6.159 c=[ 2.39 -4.75  2.14] why=mat:Underside :: Underside | Underside.001 / Underside.001
+Trim         vis=2 faces=    15 area=   6.159 c=[-2.39 -4.75  2.14] why=mat:Underside :: Underside | Underside.001 / Underside.001
+Body         vis=2 faces=    74 area=   5.180 c=[ 0.   -8.03  2.15] why=mat:Body :: Body | REAR / REAR
+Trim         vis=2 faces=    46 area=   5.090 c=[-0.    7.57  1.96] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    13 area=   4.799 c=[ 0.   -4.97  4.2 ] why=mat:BlackPlastic :: BlackPlastic | Chrome.010 / Chrome.010
+Interior     vis=1 faces=    19 area=   4.697 c=[-1.29 -1.37  2.88] why=mat:Interior :: Interior | seats / seats
+Trim         vis=2 faces=    43 area=   4.366 c=[-0.02 -8.19  2.44] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    11 area=   4.137 c=[-0.    7.06  1.2 ] why=mat:Underside :: Underside | Underside.002 / Underside.002
+Discard      vis=0 faces=     1 area=   3.866 c=[ 0.44 -0.67  1.77] why=mat:Interior hidden :: Interior | Chrome.013 / Chrome.013
+Interior     vis=1 faces=    25 area=   3.797 c=[ 1.29 -0.17  2.13] why=mat:Interior :: Interior | seats.002 / seats.002
+Glass        vis=2 faces=     3 area=   3.536 c=[-2.24 -0.77  4.16] why=mat:Glass :: Glass | Glass / Glass
+Glass        vis=2 faces=     3 area=   3.536 c=[ 2.24 -0.77  4.16] why=mat:Glass :: Glass | Glass / Glass
+Interior     vis=1 faces=     2 area=   3.345 c=[0.   0.11 2.19] why=mat:Interior :: Interior | Chrome.015 / Chrome.015
+Trim         vis=2 faces=    30 area=   3.287 c=[-0.   -8.07  2.67] why=mat:BlackPlastic :: BlackPlastic | Chrome.008 / Chrome.008
+Trim         vis=2 faces=    14 area=   3.081 c=[-1.38 -7.32  1.56] why=mat:Chrome :: Chrome | Exhausts / Exhausts
+Trim         vis=2 faces=    14 area=   3.081 c=[ 1.38 -7.32  1.56] why=mat:Chrome :: Chrome | Exhausts / Exhausts
+Discard      vis=0 faces=     1 area=   3.029 c=[0.   2.81 2.9 ] why=mat:Interior hidden :: Interior | Chrome / Chrome
+Trim         vis=2 faces=    24 area=   2.513 c=[-0.    7.2   1.25] why=mat:BlackPlastic :: BlackPlastic | BlackPlastic.001 / BlackPlastic.001
+Body         vis=2 faces=    10 area=   2.480 c=[ 2.2  -3.99  4.12] why=mat:Body :: Body | RIGHT / RIGHT
+Body         vis=2 faces=    10 area=   2.480 c=[-2.2  -3.99  4.12] why=mat:Body :: Body | LEFT / LEFT
+Discard      vis=0 faces=     1 area=   2.385 c=[ 1.79 -3.61  2.2 ] why=mat:Interior hidden :: Interior | Default.009 / Default.009
+Discard      vis=0 faces=     1 area=   2.385 c=[-1.79 -3.61  2.2 ] why=mat:Interior hidden :: Interior | Default.010 / Default.010
+Trim         vis=2 faces=     6 area=   2.259 c=[0.   7.56 1.66] why=mat:Grille :: Grille | Bodywork.011 / Bodywork.011
+WheelRL      vis=2 faces=     1 area=   2.238 c=[-2.52 -4.79  1.16] why=wheel-cylinder :: WheelViewBlocker | New object.002 / New object.002
+WheelRR      vis=2 faces=     1 area=   2.238 c=[ 2.52 -4.79  1.16] why=wheel-cylinder :: WheelViewBlocker | New object.003 / New object.003
+WheelFR      vis=2 faces=     1 area=   2.238 c=[2.52 4.79 1.16] why=wheel-cylinder :: WheelViewBlocker | New object.001 / New object.001
+WheelFL      vis=2 faces=     1 area=   2.238 c=[-2.52  4.79  1.16] why=wheel-cylinder :: WheelViewBlocker | New object / New object
+Discard      vis=0 faces=     1 area=   2.128 c=[1.34 2.81 2.33] why=mat:Interior hidden :: Interior | Chrome.004 / Chrome.004
+Discard      vis=0 faces=     1 area=   2.128 c=[-1.34  2.81  2.33] why=mat:Interior hidden :: Interior | Chrome.005 / Chrome.005
+Trim         vis=2 faces=    16 area=   2.106 c=[ 2.61 -0.    1.35] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    16 area=   2.106 c=[-2.61 -0.    1.35] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Interior     vis=1 faces=     8 area=   2.083 c=[-1.29 -0.61  2.08] why=mat:Interior :: Interior | seats / seats
+Interior     vis=1 faces=     2 area=   1.898 c=[-2.33 -2.65  2.5 ] why=mat:Interior :: Interior | Bodywork.001 / Bodywork.001
+Interior     vis=1 faces=     2 area=   1.898 c=[ 2.33 -2.65  2.5 ] why=mat:Interior :: Interior | Bodywork.017 / Bodywork.017
+Trim         vis=2 faces=    10 area=   1.792 c=[0.   7.62 2.55] why=mat:Grille :: Grille | Chrome.011 / Chrome.011
+Interior     vis=1 faces=     2 area=   1.641 c=[-2.36 -3.53  3.02] why=mat:Interior :: Interior | Default.012 / Default.012
+Interior     vis=1 faces=     2 area=   1.641 c=[ 2.36 -3.53  3.02] why=mat:Interior :: Interior | Default.008 / Default.008
+Trim         vis=2 faces=     5 area=   1.465 c=[-0.   -4.23  4.52] why=mat:BlackPlastic :: BlackPlastic | Chrome.017 / Chrome.017
+Interior     vis=1 faces=     9 area=   1.453 c=[-1.29  0.33  2.19] why=mat:Interior :: Interior | seats.001 / seats.001
+Interior     vis=1 faces=    23 area=   1.354 c=[ 1.29 -1.79  3.86] why=mat:Interior :: Interior | seats.002 / seats.002
+Interior     vis=1 faces=    23 area=   1.354 c=[-1.29 -1.79  3.86] why=mat:Interior :: Interior | seats / seats
+Trim         vis=2 faces=     2 area=   1.291 c=[ 0.03 -5.61  3.93] why=mat:BlackPlastic :: BlackPlastic | Default / Default
+WheelFR      vis=2 faces=    35 area=   1.285 c=[2.8  4.79 1.16] why=wheel-cylinder :: Rim | Default.003 / Default.003
+WheelFL      vis=2 faces=    35 area=   1.285 c=[-2.8   4.79  1.16] why=wheel-cylinder :: Rim | Default.002 / Default.002
+WheelRR      vis=2 faces=    35 area=   1.285 c=[ 2.8  -4.79  1.16] why=wheel-cylinder :: Rim | Default.007 / Default.007
+WheelRL      vis=2 faces=    35 area=   1.285 c=[-2.8  -4.79  1.16] why=wheel-cylinder :: Rim | Default.004 / Default.004
+Interior     vis=1 faces=     6 area=   1.272 c=[-1.29 -1.    2.56] why=mat:Interior :: Interior | seats.001 / seats.001
+Trim         vis=2 faces=     4 area=   1.271 c=[-0.  -3.9  4.7] why=mat:BlackPlastic :: BlackPlastic | Default.001 / Default.001
+Interior     vis=1 faces=     2 area=   1.181 c=[ 2.12 -3.68  4.2 ] why=mat:Interior :: Interior | Bodywork.008 / Bodywork.008
+Interior     vis=1 faces=     2 area=   1.159 c=[-1.06  1.58  3.77] why=mat:Interior :: Interior | Bodywork.012 / Bodywork.012
+Interior     vis=1 faces=    64 area=   1.136 c=[-1.24  0.63  3.31] why=mat:Interior :: Interior | Default.013 / Default.013
+Trim         vis=2 faces=    14 area=   0.988 c=[-0.   -4.77  4.2 ] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Interior     vis=1 faces=     1 area=   0.871 c=[0.44 2.25 1.94] why=mat:Interior :: Interior | Chrome.012 / Chrome.012
+Trim         vis=2 faces=     1 area=   0.857 c=[ 0.   -8.06  2.87] why=mat:Badge :: Badge | New object.004 / New object.004
+Trim         vis=2 faces=    14 area=   0.836 c=[-0.    1.13  4.24] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Discard      vis=0 faces=     1 area=   0.749 c=[ 1.76 -2.87  1.38] why=mat:Interior hidden :: Interior | Bodywork.002 / Bodywork.002
+Discard      vis=0 faces=     1 area=   0.749 c=[-1.76 -2.87  1.38] why=mat:Interior hidden :: Interior | Bodywork.010 / Bodywork.010
+Trim         vis=2 faces=    14 area=   0.647 c=[ 2.27 -0.98  4.13] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    14 area=   0.647 c=[-2.27 -0.98  4.13] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Interior     vis=1 faces=     2 area=   0.641 c=[ 2.34 -0.13  3.52] why=mat:Interior :: Interior | Chrome.020 / Chrome.020
+Interior     vis=1 faces=     2 area=   0.641 c=[-2.34 -0.13  3.52] why=mat:Interior :: Interior | Chrome.018 / Chrome.018
+Discard      vis=0 faces=     3 area=   0.606 c=[-2.34 -3.84  3.42] why=mat:Interior hidden :: Interior | Default.005 / Default.005
+Discard      vis=0 faces=     3 area=   0.606 c=[ 2.34 -3.84  3.42] why=mat:Interior hidden :: Interior | Default.011 / Default.011
+Glass        vis=2 faces=     2 area=   0.531 c=[ 2.26 -2.69  4.21] why=mat:Glass :: Glass | New object.006 / New object.006
+Glass        vis=2 faces=     2 area=   0.531 c=[-2.26 -2.69  4.21] why=mat:Glass :: Glass | New object.006 / New object.006
+Interior     vis=1 faces=    25 area=   0.521 c=[-1.24  0.69  3.29] why=mat:Interior :: Interior | stering_wheel_column.001 / stering_wheel_column.001
+Trim         vis=2 faces=     5 area=   0.452 c=[ 0.   -8.09  2.04] why=mat:License :: License | New object.004 / New object.004
+LightsRear   vis=2 faces=     2 area=   0.392 c=[ 1.59 -8.03  2.89] why=mat:RearLights :: RearLights | Lights / Lights
+LightsRear   vis=2 faces=     2 area=   0.392 c=[-1.59 -8.03  2.89] why=mat:RearLights :: RearLights | Lights / Lights
+Interior     vis=1 faces=     6 area=   0.389 c=[-1.24  1.1   3.18] why=mat:Interior :: Interior | stering_wheel_column / stering_wheel_column
+Trim         vis=2 faces=    18 area=   0.378 c=[0.91 7.53 1.56] why=mat:BlackPlastic :: BlackPlastic | Chrome.008 / Chrome.008
+Trim         vis=2 faces=    18 area=   0.378 c=[-0.91  7.53  1.56] why=mat:BlackPlastic :: BlackPlastic | Chrome.008 / Chrome.008
+Trim         vis=2 faces=     7 area=   0.358 c=[1.36 7.68 1.93] why=mat:Chrome :: Chrome | New object.006 / New object.006
+Trim         vis=2 faces=     7 area=   0.358 c=[-1.36  7.68  1.93] why=mat:Chrome :: Chrome | New object.006 / New object.006
+Trim         vis=2 faces=     1 area=   0.346 c=[-2.92  2.48  3.08] why=mat:Badge :: Badge | New object.005 / New object.005
+Trim         vis=2 faces=     1 area=   0.346 c=[2.92 2.48 3.08] why=mat:Badge :: Badge | New object.005 / New object.005
+Interior     vis=1 faces=     5 area=   0.331 c=[2.09 0.66 4.36] why=mat:Interior :: Interior | Bodywork.012 / Bodywork.012
+Trim         vis=2 faces=     8 area=   0.329 c=[-0.   -3.67  4.71] why=mat:BlackPlastic :: BlackPlastic | Chrome.006 / Chrome.006
+Interior     vis=1 faces=     4 area=   0.291 c=[0.82 0.55 4.83] why=mat:Interior :: Interior | Bodywork.016 / Bodywork.016
+Trim         vis=2 faces=    15 area=   0.277 c=[-2.87  0.87  3.79] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
+Trim         vis=2 faces=    15 area=   0.277 c=[2.87 0.87 3.79] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
+LightsFront  vis=2 faces=    12 area=   0.275 c=[-2.34  7.13  2.55] why=mat:FrontLights :: FrontLights | Lights / Lights
+LightsFront  vis=2 faces=    12 area=   0.275 c=[2.34 7.13 2.55] why=mat:FrontLights :: FrontLights | Lights / Lights
+Interior     vis=1 faces=     1 area=   0.250 c=[-1.29 -1.78  3.53] why=mat:Interior :: Interior | seats.001 / seats.001
+Trim         vis=2 faces=    80 area=   0.246 c=[-2.77 -6.42  3.27] why=mat:Chrome :: Chrome | Bodywork.007 / Bodywork.007
+Trim         vis=2 faces=     1 area=   0.233 c=[0.49 5.45 3.59] why=mat:Grille :: Grille | Chrome.011 / Chrome.011
+Trim         vis=2 faces=     1 area=   0.233 c=[-0.49  5.45  3.59] why=mat:Grille :: Grille | Chrome.011 / Chrome.011
+Interior     vis=1 faces=     9 area=   0.217 c=[-0.03  0.54  4.62] why=mat:Interior :: Interior | RearView / RearView
+Trim         vis=2 faces=    16 area=   0.196 c=[-1.38 -8.15  1.52] why=mat:Underside :: Underside | Exhausts.001 / Exhausts.001
+Trim         vis=2 faces=    16 area=   0.196 c=[ 1.38 -8.15  1.52] why=mat:Underside :: Underside | Exhausts.001 / Exhausts.001
+Trim         vis=2 faces=     2 area=   0.175 c=[ 0.   -5.83  3.78] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Glass        vis=2 faces=     1 area=   0.160 c=[-2.32 -2.36  3.95] why=mat:Glass :: Glass | Glass / Glass
+Glass        vis=2 faces=     1 area=   0.160 c=[ 2.32 -2.36  3.95] why=mat:Glass :: Glass | Glass / Glass
+Interior     vis=1 faces=     3 area=   0.159 c=[-0.04  0.49  4.63] why=mat:Chrome behind-glass :: Chrome | RearView.001 / RearView.001
+Trim         vis=2 faces=    12 area=   0.153 c=[-2.72  1.15  3.65] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
+Trim         vis=2 faces=    12 area=   0.153 c=[2.72 1.15 3.65] why=mat:Chrome :: Chrome | rightdoorrearviewglass / rightdoorrearviewglass
+Trim         vis=2 faces=    25 area=   0.151 c=[ 2.8  -1.89  3.15] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    25 area=   0.151 c=[-2.8  -1.89  3.15] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+LightsFront  vis=2 faces=    12 area=   0.150 c=[0.91 7.69 1.57] why=mat:FrontLights :: FrontLights | Lights / Lights
+LightsFront  vis=2 faces=    12 area=   0.150 c=[-0.91  7.69  1.57] why=mat:FrontLights :: FrontLights | Lights / Lights
+Interior     vis=1 faces=     1 area=   0.145 c=[ 2.39 -2.79  3.64] why=mat:Interior :: Interior | Bodywork.006 / Bodywork.006
+Interior     vis=1 faces=     1 area=   0.145 c=[-2.39 -2.79  3.64] why=mat:Interior :: Interior | Bodywork.004 / Bodywork.004
+Interior     vis=1 faces=     2 area=   0.139 c=[-2.4  -1.8   3.46] why=mat:Interior :: Interior | Chrome.019 / Chrome.019
+Interior     vis=1 faces=     2 area=   0.139 c=[ 2.4  -1.8   3.46] why=mat:Interior :: Interior | Chrome.016 / Chrome.016
+Interior     vis=1 faces=     4 area=   0.130 c=[-0.58  0.58  2.17] why=mat:Interior :: Interior | seats / seats
+Interior     vis=1 faces=     4 area=   0.130 c=[-2.    0.58  2.17] why=mat:Interior :: Interior | seats / seats
+Trim         vis=2 faces=     6 area=   0.126 c=[ 1.59 -8.05  2.88] why=mat:Chrome :: Chrome | RearLights / RearLights
+Trim         vis=2 faces=     6 area=   0.126 c=[-1.59 -8.05  2.88] why=mat:Chrome :: Chrome | RearLights / RearLights
+Trim         vis=2 faces=     6 area=   0.120 c=[-1.3   1.9   3.85] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
+Trim         vis=2 faces=     6 area=   0.120 c=[0.55 2.02 3.84] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
+Trim         vis=2 faces=     6 area=   0.095 c=[-0.66  1.85  3.87] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
+Trim         vis=2 faces=     6 area=   0.095 c=[1.17 1.83 3.85] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
+Interior     vis=1 faces=     1 area=   0.070 c=[ 2.39 -2.34  3.48] why=mat:Interior :: Interior | Bodywork.015 / Bodywork.015
+Interior     vis=1 faces=     1 area=   0.070 c=[-2.39 -2.34  3.48] why=mat:Interior :: Interior | Bodywork.003 / Bodywork.003
+Trim         vis=2 faces=    12 area=   0.070 c=[-2.35  7.1   2.55] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    12 area=   0.070 c=[2.35 7.1  2.55] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Interior     vis=1 faces=     1 area=   0.064 c=[ 0.47 -3.6   4.69] why=mat:Interior :: Interior | Bodywork.016 / Bodywork.016
+LightsFront  vis=2 faces=     1 area=   0.055 c=[1.72 7.31 1.64] why=mat:RearLights :: RearLights | BlackPlastic / BlackPlastic
+LightsFront  vis=2 faces=     1 area=   0.055 c=[-1.72  7.31  1.64] why=mat:RearLights :: RearLights | BlackPlastic / BlackPlastic
+Trim         vis=2 faces=     3 area=   0.055 c=[-1.68 -3.88  4.62] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Trim         vis=2 faces=     3 area=   0.055 c=[ 1.68 -3.88  4.62] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Interior     vis=1 faces=     7 area=   0.052 c=[-0.01  0.61  4.75] why=mat:Interior :: Interior | RearView / RearView
+Interior     vis=1 faces=     1 area=   0.050 c=[ 2.42 -3.55  3.85] why=mat:Interior :: Interior | Bodywork.014 / Bodywork.014
+Trim         vis=2 faces=     1 area=   0.041 c=[ 2.49 -3.43  1.28] why=mat:Underside :: Underside | Bodywork.013 / Bodywork.013
+Trim         vis=2 faces=     1 area=   0.041 c=[-2.49 -3.43  1.28] why=mat:Underside :: Underside | Bodywork.013 / Bodywork.013
+Trim         vis=2 faces=    14 area=   0.040 c=[-1.78  1.89  3.72] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
+Trim         vis=2 faces=    14 area=   0.040 c=[0.08 2.11 3.72] why=mat:Chrome :: Chrome | windshield_wipers / windshield_wipers
+Trim         vis=2 faces=    12 area=   0.038 c=[0.91 7.67 1.57] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Trim         vis=2 faces=    12 area=   0.038 c=[-0.91  7.67  1.57] why=mat:Chrome :: Chrome | Chrome.009 / Chrome.009
+Interior     vis=1 faces=     9 area=   0.037 c=[-0.14  1.13  2.47] why=mat:Interior :: Interior | middle_column / middle_column
+Body         vis=2 faces=     1 area=   0.028 c=[2.11 6.11 3.26] why=mat:Body :: Body | TOP.001 / TOP.001
+Trim         vis=2 faces=     1 area=   0.027 c=[-1.81 -5.34  4.03] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Trim         vis=2 faces=     1 area=   0.027 c=[ 1.81 -5.34  4.03] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Trim         vis=2 faces=     1 area=   0.027 c=[ 1.74 -4.64  4.33] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Trim         vis=2 faces=     1 area=   0.027 c=[-1.74 -4.64  4.33] why=mat:BlackPlastic :: BlackPlastic | Chrome.002 / Chrome.002
+Trim         vis=2 faces=     1 area=   0.027 c=[ 1.77 -4.99  4.18] why=mat:BlackPlastic :: BlackPlastic | Chrome.017 / Chrome.017
+Trim         vis=2 faces=     1 area=   0.027 c=[-1.77 -4.99  4.18] why=mat:BlackPlastic :: BlackPlastic | Chrome.017 / Chrome.017
+Interior     vis=1 faces=    32 area=   0.026 c=[-0.18  1.01  2.66] why=mat:Interior :: Interior | middle_column / middle_column
+Trim         vis=2 faces=     1 area=   0.022 c=[-1.84 -5.65  3.89] why=mat:BlackPlastic :: BlackPlastic | Default.006 / Default.006
+Discard      vis=0 faces=     1 area=   0.019 c=[2.31 1.37 3.61] why=mat:Interior hidden :: Interior | Default.008 / Default.008
+Interior     vis=1 faces=     1 area=   0.019 c=[-2.31  1.37  3.61] why=mat:Interior :: Interior | Default.012 / Default.012
+Body         vis=2 faces=     1 area=   0.000 c=[-2.41  1.39  3.67] why=mat:Body :: Body | TOP / TOP

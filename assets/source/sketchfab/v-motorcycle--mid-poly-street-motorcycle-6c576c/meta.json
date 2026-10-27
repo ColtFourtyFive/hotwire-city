@@ -1,0 +1,48 @@
+{
+  "source": "sketchfab",
+  "uid": "6c576c901a094b0d83e490a10c7b8021",
+  "slug": "v-motorcycle--mid-poly-street-motorcycle-6c576c",
+  "name": "Mid-poly street motorcycle",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "tonycheuk",
+    "displayName": "Tony Cheuk",
+    "profileUrl": "https://sketchfab.com/tonycheuk"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mid-poly-street-motorcycle-6c576c901a094b0d83e490a10c7b8021",
+  "faceCount": 15120,
+  "vertexCount": 7944,
+  "materialCount": 12,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 6,
+  "tags": [
+    "bike",
+    "motorcycle",
+    "motorcycles",
+    "vehicle",
+    "model",
+    "free",
+    "street"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Street bike / motorcycle based on Honda VFR.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--mid-poly-street-motorcycle-6c576c/model.glb",
+  "fileBytes": 676028,
+  "sha256": "4c88c598e79ae923580c7bd51e0354fcdfb973ca5dd027ffc6d08cf476813489",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:02:54+00:00",
+  "notes": null
+}

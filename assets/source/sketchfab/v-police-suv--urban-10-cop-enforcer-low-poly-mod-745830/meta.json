@@ -45,5 +45,88 @@
   "sha256": "c17d51bfe9c56670ebd4bdd50fb0a04dfbd2db2a7464e503c4853bb74e755c97",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:27+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      4.3616,
+      1.8827,
+      1.699
+    ],
+    "dims_m": [
+      1.883,
+      4.362,
+      1.699
+    ],
+    "front_evidence": "names(front=8,rear=9)",
+    "flipped": true,
+    "mesh_objects": 29,
+    "triangles": 19493,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RO1a_Tire",
+      "UCB_BOTTOM_LT",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent",
+      "Urban10_bodymat"
+    ],
+    "textures": 16,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Urban10_WheelLifted_FL_RO1a_Tire_0",
+      "Urban10_WheelLifted_RL_RO1a_Tire_0",
+      "Urban10_WheelLifted_RR_RO1a_Tire_0",
+      "Urban10_WheelLifted_FR_RO1a_Tire_0"
+    ],
+    "wheel_geom": [
+      "Urban10_WheelLifted_FL_RO1a_Tire_0",
+      "Urban10_WheelLifted_RL_RO1a_Tire_0",
+      "Urban10_WheelLifted_RR_RO1a_Tire_0",
+      "Urban10_WheelLifted_FR_RO1a_Tire_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Urban10_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Urban10_Glass_Rear_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_body_Urban10_bodymat_0",
+      "Urban10_Headlights_UCB_Lights_and_Glass_0",
+      "Urban10_Bottom_UCB_BOTTOM_LT_0",
+      "Urban10_Brakelights_UCB_Lights_and_Glass_0",
+      "Urban10_Reverse_UCB_Lights_and_Glass_0",
+      "Urban10_Interior_UCB_Interiors_2_0",
+      "Urban10_Body_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_Suspension_UCB_BOTTOM_LT_0",
+      "Urban10_Bumper_Front_Urban10_bodymat_0",
+      "Urban10_Bumper_Rear_Urban10_bodymat_0",
+      "Urban10_Lightbar_UCB_Lights_and_Glass_0",
+      "Urban10_Bullbar_UCB_BOTTOM_LT_0",
+      "Urban10_Bumper_Front_Inner_UCB_BOTTOM_LT_0",
+      "Urban10_Bumper_Rear_Inner_UCB_BOTTOM_LT_0",
+      "Urban10_Headlight_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_Taillights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Urban10_Steering_Wheel_UCB_Interiors_2_0",
+      "Urban10_blinkers_UCB_Lights_and_Glass_0",
+      "Urban10_WheelLifted_FL_RO1a_Tire_0",
+      "Urban10_WheelLifted_RL_RO1a_Tire_0",
+      "Urban10_WheelLifted_RR_RO1a_Tire_0",
+      "Urban10_WheelLifted_FR_RO1a_Tire_0",
+      "Urban10_Body_Badges_Carbadges_misc_U_0",
+      "Urban10Cop_Numberplate_Rear_Numberplates_Misk_U_0",
+      "Urban10Cop_Numberplate_Front_Numberplates_Misk_U_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 41.5
+  }
 }

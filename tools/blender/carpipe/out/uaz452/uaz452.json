@@ -12,37 +12,37 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "uaz452.glb",
   "dimensions": {
-    "length": 17.0,
-    "width": 8.868,
-    "height": 7.914,
-    "wheelbase": 9.094,
-    "track_front": 5.612,
-    "track_rear": 5.612,
+    "length": 14.859,
+    "width": 7.751,
+    "height": 6.918,
+    "wheelbase": 7.949,
+    "track_front": 4.905,
+    "track_rear": 4.905,
     "bbox_min": [
-      -4.4439,
+      -3.8842,
       0.0,
-      -8.5287
+      -7.4545
     ],
     "bbox_max": [
-      4.4245,
-      7.9145,
-      8.4713
+      3.8673,
+      6.9177,
+      7.4045
     ]
   },
   "wheels": {
     "FR": {
       "object": "WheelFR",
       "center": [
-        2.806,
-        1.4629,
-        -4.5469
+        2.4526,
+        1.2787,
+        -3.9743
       ],
-      "radius": 1.4629,
-      "width": 0.9506,
+      "radius": 1.2787,
+      "width": 0.8309,
       "part_center": [
-        2.806,
-        1.4629,
-        -4.5469
+        2.4526,
+        1.2787,
+        -3.9743
       ],
       "attachment_offset": [
         -0.0,
@@ -60,21 +60,21 @@
     "FL": {
       "object": "WheelFL",
       "center": [
-        -2.806,
-        1.4629,
-        -4.5469
+        -2.4526,
+        1.2787,
+        -3.9743
       ],
-      "radius": 1.4629,
-      "width": 0.9506,
+      "radius": 1.2787,
+      "width": 0.8309,
       "part_center": [
-        -2.806,
-        1.4629,
-        -4.5469
+        -2.4526,
+        1.2787,
+        -3.9743
       ],
       "attachment_offset": [
         0.0,
         0.0,
-        -0.0
+        0.0
       ],
       "axle": [
         1,
@@ -87,16 +87,16 @@
     "RR": {
       "object": "WheelRR",
       "center": [
-        2.806,
-        1.4629,
-        4.5469
+        2.4526,
+        1.2787,
+        3.9743
       ],
-      "radius": 1.4629,
-      "width": 0.9506,
+      "radius": 1.2787,
+      "width": 0.8309,
       "part_center": [
-        2.806,
-        1.4629,
-        4.5469
+        2.4526,
+        1.2787,
+        3.9743
       ],
       "attachment_offset": [
         -0.0,
@@ -114,21 +114,21 @@
     "RL": {
       "object": "WheelRL",
       "center": [
-        -2.806,
-        1.4629,
-        4.5469
+        -2.4526,
+        1.2787,
+        3.9743
       ],
-      "radius": 1.4629,
-      "width": 0.9506,
+      "radius": 1.2787,
+      "width": 0.8309,
       "part_center": [
-        -2.806,
-        1.4629,
-        4.5469
+        -2.4526,
+        1.2787,
+        3.9743
       ],
       "attachment_offset": [
         0.0,
         0.0,
-        -0.0
+        0.0
       ],
       "axle": [
         1,
@@ -142,17 +142,17 @@
   "seats": {
     "driver": {
       "position": [
-        -1.685,
-        2.8492,
-        0.7275
+        -1.4728,
+        2.4904,
+        0.6359
       ],
       "estimated": true
     },
     "passenger": {
       "position": [
-        1.685,
-        2.8492,
-        0.7275
+        1.4728,
+        2.4904,
+        0.6359
       ],
       "estimated": true
     },
@@ -162,9 +162,9 @@
     "front": [
       {
         "position": [
-          -3.1926,
-          3.3241,
-          -8.33
+          -2.7905,
+          2.9054,
+          -7.2809
         ],
         "direction": [
           0,
@@ -175,9 +175,9 @@
       },
       {
         "position": [
-          3.1926,
-          3.3241,
-          -8.33
+          2.7905,
+          2.9054,
+          -7.2809
         ],
         "direction": [
           0,
@@ -190,9 +190,9 @@
     "rear": [
       {
         "position": [
-          -3.1926,
-          4.1155,
-          8.33
+          -2.7905,
+          3.5972,
+          7.2809
         ],
         "direction": [
           0,
@@ -203,9 +203,9 @@
       },
       {
         "position": [
-          3.1926,
-          4.1155,
-          8.33
+          2.7905,
+          3.5972,
+          7.2809
         ],
         "direction": [
           0,
@@ -219,16 +219,16 @@
   "exhausts": [
     {
       "position": [
-        -2.6605,
-        0.9497,
-        8.3013
+        -2.3254,
+        0.8301,
+        7.2559
       ],
       "estimated": true
     }
   ],
   "center_of_mass_hint": [
     0.0,
-    2.5326,
+    2.2137,
     -0.0
   ],
   "paint": {
@@ -237,14 +237,14 @@
       "object": "Body",
       "material": "UazMat",
       "color_srgb": [
-        0.8353,
-        0.6118,
+        0.8,
+        0.549,
         0.0
       ],
       "textured": true,
       "metallic": 0.0,
       "roughness": 0.4000000059604645,
-      "mask_coverage": 0.675
+      "mask_coverage": 0.681
     },
     "secondary": null,
     "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
@@ -253,18 +253,18 @@
     "Body": {
       "tris": 611,
       "bbox_min": [
-        -3.7121,
-        1.0002,
-        -8.3955
+        -3.2446,
+        0.8742,
+        -7.3382
       ],
       "bbox_max": [
-        3.6927,
-        7.9145,
-        8.162
+        3.2276,
+        6.9177,
+        7.1341
       ],
       "textures": {
-        "normal": "textures/uaz452_Body_normal.png",
         "metal": "textures/uaz452_Body_metal.png",
+        "normal": "textures/uaz452_Body_normal.png",
         "base": "textures/uaz452_Body_base.png",
         "rough": "textures/uaz452_Body_rough.png",
         "tintmask": "textures/uaz452_Body_tintmask.png",
@@ -274,18 +274,18 @@
     "Trim": {
       "tris": 288,
       "bbox_min": [
-        -4.4439,
-        2.1866,
-        -8.5287
+        -3.8842,
+        1.9112,
+        -7.4545
       ],
       "bbox_max": [
-        4.4245,
-        6.2915,
-        8.4713
+        3.8673,
+        5.4991,
+        7.4045
       ],
       "textures": {
-        "normal": "textures/uaz452_Trim_normal.png",
         "metal": "textures/uaz452_Trim_metal.png",
+        "normal": "textures/uaz452_Trim_normal.png",
         "base": "textures/uaz452_Trim_base.png",
         "rough": "textures/uaz452_Trim_rough.png",
         "ao": "textures/uaz452_Trim_ao.png"
@@ -294,19 +294,19 @@
     "WheelFR": {
       "tris": 28,
       "bbox_min": [
-        2.3307,
+        2.0371,
         0.0,
-        -6.0098
+        -5.2529
       ],
       "bbox_max": [
-        3.2813,
-        2.9259,
-        -3.084
+        2.8681,
+        2.5574,
+        -2.6956
       ],
       "textures": {
         "normal": "textures/uaz452_Wheel_normal.png",
-        "metal": "textures/uaz452_Wheel_metal.png",
         "base": "textures/uaz452_Wheel_base.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
         "rough": "textures/uaz452_Wheel_rough.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -314,19 +314,19 @@
     "WheelFL": {
       "tris": 28,
       "bbox_min": [
-        -3.2813,
+        -2.8681,
         0.0,
-        -6.0098
+        -5.2529
       ],
       "bbox_max": [
-        -2.3307,
-        2.9259,
-        -3.084
+        -2.0371,
+        2.5574,
+        -2.6956
       ],
       "textures": {
         "normal": "textures/uaz452_Wheel_normal.png",
-        "metal": "textures/uaz452_Wheel_metal.png",
         "base": "textures/uaz452_Wheel_base.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
         "rough": "textures/uaz452_Wheel_rough.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -334,19 +334,19 @@
     "WheelRR": {
       "tris": 28,
       "bbox_min": [
-        2.3307,
+        2.0371,
         0.0,
-        3.084
+        2.6956
       ],
       "bbox_max": [
-        3.2813,
-        2.9259,
-        6.0098
+        2.8681,
+        2.5574,
+        5.2529
       ],
       "textures": {
         "normal": "textures/uaz452_Wheel_normal.png",
-        "metal": "textures/uaz452_Wheel_metal.png",
         "base": "textures/uaz452_Wheel_base.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
         "rough": "textures/uaz452_Wheel_rough.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -354,19 +354,19 @@
     "WheelRL": {
       "tris": 28,
       "bbox_min": [
-        -3.2813,
+        -2.8681,
         0.0,
-        3.084
+        2.6956
       ],
       "bbox_max": [
-        -2.3307,
-        2.9259,
-        6.0098
+        -2.0371,
+        2.5574,
+        5.2529
       ],
       "textures": {
         "normal": "textures/uaz452_Wheel_normal.png",
-        "metal": "textures/uaz452_Wheel_metal.png",
         "base": "textures/uaz452_Wheel_base.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
         "rough": "textures/uaz452_Wheel_rough.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -395,39 +395,39 @@
   },
   "scale": {
     "source_length": 4.37029504776001,
-    "factor": 3.8898975502153643,
-    "target_length": 17.0
+    "factor": 3.399999276391182,
+    "target_length": 14.859
   },
   "classes": {
     "Body": {
       "islands": 6,
       "faces": 298,
-      "area": 481.236
+      "area": 367.654
     },
     "Trim": {
       "islands": 8,
       "faces": 144,
-      "area": 26.703
+      "area": 20.4
     },
     "WheelFR": {
       "islands": 1,
       "faces": 10,
-      "area": 20.622
+      "area": 15.755
     },
     "WheelFL": {
       "islands": 1,
       "faces": 10,
-      "area": 20.622
+      "area": 15.755
     },
     "WheelRR": {
       "islands": 1,
       "faces": 10,
-      "area": 20.622
+      "area": 15.755
     },
     "WheelRL": {
       "islands": 1,
       "faces": 10,
-      "area": 20.622
+      "area": 15.755
     }
   },
   "warnings": []

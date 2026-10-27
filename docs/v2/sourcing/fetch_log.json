@@ -1028,5 +1028,25 @@
   "mb": 15.0,
   "license": "by",
   "conversion": "none"
+ },
+ "6c576c901a094b0d83e490a10c7b8021": {
+  "status": "ok",
+  "slug": "v-motorcycle--mid-poly-street-motorcycle-6c576c",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "name": "Mid-poly street motorcycle",
+  "mb": 0.7,
+  "license": "by",
+  "conversion": "none"
+ },
+ "2c2e5e2b36164fa69ba40b9d3be6ef4c": {
+  "status": "ok",
+  "slug": "v-motorcycle--kawasaki-h2r-model-2c2e5e",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "name": "Kawasaki H2R Model",
+  "mb": 4.3,
+  "license": "by",
+  "conversion": "none"
  }
 }

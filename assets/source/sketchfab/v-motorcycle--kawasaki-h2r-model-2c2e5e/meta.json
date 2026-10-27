@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "2c2e5e2b36164fa69ba40b9d3be6ef4c",
+  "slug": "v-motorcycle--kawasaki-h2r-model-2c2e5e",
+  "name": "Kawasaki H2R Model",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "santunihu",
+    "displayName": "SYLVU!",
+    "profileUrl": "https://sketchfab.com/santunihu"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/kawasaki-h2r-model-2c2e5e2b36164fa69ba40b9d3be6ef4c",
+  "faceCount": 60532,
+  "vertexCount": 34138,
+  "materialCount": 38,
+  "textureCount": 9,
+  "animationCount": 0,
+  "likeCount": 15,
+  "tags": [
+    "bike",
+    "superbike",
+    "kawasaki",
+    "h2",
+    "h2r",
+    "render"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Complete 100 Views In This Post To Unlock The Download Button\n\nNot able to download the model? send me a message on my Instagram @sylvu999 i'll send you the download link.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--kawasaki-h2r-model-2c2e5e/model.glb",
+  "fileBytes": 4286216,
+  "sha256": "6cf309c7d76c6ff4673f6b2f3ff520d443d01ee110a3da14e67c7542ce6fac28",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:03:00+00:00",
+  "notes": null
+}

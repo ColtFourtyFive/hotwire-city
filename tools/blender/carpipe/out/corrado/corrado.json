@@ -12,42 +12,42 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "corrado.glb",
   "dimensions": {
-    "length": 15.5,
-    "width": 7.613,
-    "height": 5.573,
-    "wheelbase": 9.816,
-    "track_front": 6.691,
-    "track_rear": 6.691,
+    "length": 13.8,
+    "width": 6.778,
+    "height": 4.962,
+    "wheelbase": 8.74,
+    "track_front": 5.957,
+    "track_rear": 5.957,
     "bbox_min": [
-      -3.8065,
+      -3.389,
       -0.0,
-      -8.0462
+      -7.1637
     ],
     "bbox_max": [
-      3.8065,
-      5.5733,
-      7.4538
+      3.389,
+      4.9621,
+      6.6363
     ]
   },
   "wheels": {
     "FL": {
       "object": "WheelFL",
       "center": [
-        -3.3453,
-        1.2037,
-        -4.9082
+        -2.9784,
+        1.0716,
+        -4.3699
       ],
-      "radius": 1.2037,
-      "width": 0.9224,
+      "radius": 1.0716,
+      "width": 0.8212,
       "part_center": [
-        -3.3453,
-        1.2037,
-        -4.9082
+        -2.9784,
+        1.0716,
+        -4.3699
       ],
       "attachment_offset": [
+        -0.0,
         0.0,
-        0.0,
-        0.0
+        -0.0
       ],
       "axle": [
         1,
@@ -60,16 +60,16 @@
     "FR": {
       "object": "WheelFR",
       "center": [
-        3.3453,
-        1.2037,
-        -4.9082
+        2.9784,
+        1.0716,
+        -4.3699
       ],
-      "radius": 1.2037,
-      "width": 0.9224,
+      "radius": 1.0716,
+      "width": 0.8212,
       "part_center": [
-        3.3453,
-        1.2037,
-        -4.9082
+        2.9784,
+        1.0716,
+        -4.3699
       ],
       "attachment_offset": [
         0.0,
@@ -87,21 +87,21 @@
     "RL": {
       "object": "WheelRL",
       "center": [
-        -3.3453,
-        1.2037,
-        4.9082
+        -2.9784,
+        1.0716,
+        4.3699
       ],
-      "radius": 1.2037,
-      "width": 0.9224,
+      "radius": 1.0716,
+      "width": 0.8212,
       "part_center": [
-        -3.3453,
-        1.2037,
-        4.9082
+        -2.9784,
+        1.0716,
+        4.3699
       ],
       "attachment_offset": [
         -0.0,
         0.0,
-        0.0
+        -0.0
       ],
       "axle": [
         1,
@@ -114,19 +114,19 @@
     "RR": {
       "object": "WheelRR",
       "center": [
-        3.3453,
-        1.2037,
-        4.9082
+        2.9784,
+        1.0716,
+        4.3699
       ],
-      "radius": 1.2037,
-      "width": 0.9224,
+      "radius": 1.0716,
+      "width": 0.8212,
       "part_center": [
-        3.3453,
-        1.2037,
-        4.9082
+        2.9784,
+        1.0716,
+        4.3699
       ],
       "attachment_offset": [
-        -0.0,
+        0.0,
         0.0,
         -0.0
       ],
@@ -142,17 +142,17 @@
   "seats": {
     "driver": {
       "position": [
-        -1.4465,
-        2.0064,
-        0.7853
+        -1.2878,
+        1.7863,
+        0.6992
       ],
       "estimated": true
     },
     "passenger": {
       "position": [
-        1.4465,
-        2.0064,
-        0.7853
+        1.2878,
+        1.7863,
+        0.6992
       ],
       "estimated": true
     },
@@ -162,9 +162,9 @@
     "front": [
       {
         "position": [
-          -2.7407,
-          2.3408,
-          -7.595
+          -2.4401,
+          2.0841,
+          -6.762
         ],
         "direction": [
           0,
@@ -175,9 +175,9 @@
       },
       {
         "position": [
-          2.7407,
-          2.3408,
-          -7.595
+          2.4401,
+          2.0841,
+          -6.762
         ],
         "direction": [
           0,
@@ -190,9 +190,9 @@
     "rear": [
       {
         "position": [
-          -2.7407,
-          2.8981,
-          7.595
+          -2.4401,
+          2.5803,
+          6.762
         ],
         "direction": [
           0,
@@ -203,9 +203,9 @@
       },
       {
         "position": [
-          2.7407,
-          2.8981,
-          7.595
+          2.4401,
+          2.5803,
+          6.762
         ],
         "direction": [
           0,
@@ -219,16 +219,16 @@
   "exhausts": [
     {
       "position": [
-        -2.2839,
-        0.6688,
-        7.2988
+        -2.0334,
+        0.5954,
+        6.4983
       ],
       "estimated": true
     }
   ],
   "center_of_mass_hint": [
     0.0,
-    1.7835,
+    1.5879,
     -0.0
   ],
   "paint": {
@@ -237,14 +237,14 @@
       "object": "Body",
       "material": "01_-_Default",
       "color_srgb": [
-        0.0,
-        0.0,
-        0.0
+        0.5294,
+        0.1451,
+        0.1333
       ],
       "textured": true,
       "metallic": 0.0,
       "roughness": 1.0,
-      "mask_coverage": 0.272
+      "mask_coverage": 0.344
     },
     "secondary": null,
     "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
@@ -253,20 +253,20 @@
     "Body": {
       "tris": 2562,
       "bbox_min": [
-        -3.7694,
-        0.6801,
-        -8.0462
+        -3.356,
+        0.6055,
+        -7.1637
       ],
       "bbox_max": [
-        3.7479,
-        5.5733,
-        7.4538
+        3.3368,
+        4.9621,
+        6.6363
       ],
       "textures": {
         "rough": "textures/corrado_Body_rough.png",
         "metal": "textures/corrado_Body_metal.png",
-        "normal": "textures/corrado_Body_normal.png",
         "base": "textures/corrado_Body_base.png",
+        "normal": "textures/corrado_Body_normal.png",
         "tintmask": "textures/corrado_Body_tintmask.png",
         "overlay": "textures/corrado_Body_overlay.png"
       }
@@ -274,80 +274,80 @@
     "WheelFL": {
       "tris": 72,
       "bbox_min": [
-        -3.8065,
+        -3.389,
         0.0,
-        -6.1304
+        -5.458
       ],
       "bbox_max": [
-        -2.8841,
-        2.4073,
-        -3.6859
+        -2.5678,
+        2.1433,
+        -3.2817
       ],
       "textures": {
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "normal": "textures/corrado_Wheel_normal.png",
         "metal": "textures/corrado_Wheel_metal.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "base": "textures/corrado_Wheel_base.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
     "WheelFR": {
       "tris": 72,
       "bbox_min": [
-        2.8841,
+        2.5678,
         0.0,
-        -6.1304
+        -5.458
       ],
       "bbox_max": [
-        3.8065,
-        2.4073,
-        -3.6859
+        3.389,
+        2.1433,
+        -3.2817
       ],
       "textures": {
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "normal": "textures/corrado_Wheel_normal.png",
         "metal": "textures/corrado_Wheel_metal.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "base": "textures/corrado_Wheel_base.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
     "WheelRL": {
       "tris": 72,
       "bbox_min": [
-        -3.8065,
+        -3.389,
         0.0,
-        3.6859
+        3.2817
       ],
       "bbox_max": [
-        -2.8841,
-        2.4073,
-        6.1304
+        -2.5678,
+        2.1433,
+        5.458
       ],
       "textures": {
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "normal": "textures/corrado_Wheel_normal.png",
         "metal": "textures/corrado_Wheel_metal.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "base": "textures/corrado_Wheel_base.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
     "WheelRR": {
       "tris": 72,
       "bbox_min": [
-        2.8841,
+        2.5678,
         0.0,
-        3.6859
+        3.2817
       ],
       "bbox_max": [
-        3.8065,
-        2.4073,
-        6.1304
+        3.389,
+        2.1433,
+        5.458
       ],
       "textures": {
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "normal": "textures/corrado_Wheel_normal.png",
         "metal": "textures/corrado_Wheel_metal.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "base": "textures/corrado_Wheel_base.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     }
@@ -375,34 +375,34 @@
   },
   "scale": {
     "source_length": 361.42962646484375,
-    "factor": 0.042885250308908156,
-    "target_length": 15.5
+    "factor": 0.03818170672664081,
+    "target_length": 13.8
   },
   "classes": {
     "Body": {
       "islands": 3,
       "faces": 2562,
-      "area": 411.088
+      "area": 325.859
     },
     "WheelFL": {
       "islands": 1,
       "faces": 72,
-      "area": 16.244
+      "area": 12.876
     },
     "WheelFR": {
       "islands": 1,
       "faces": 72,
-      "area": 16.244
+      "area": 12.876
     },
     "WheelRL": {
       "islands": 1,
       "faces": 72,
-      "area": 16.244
+      "area": 12.876
     },
     "WheelRR": {
       "islands": 1,
       "faces": 72,
-      "area": 16.244
+      "area": 12.876
     }
   },
   "warnings": []

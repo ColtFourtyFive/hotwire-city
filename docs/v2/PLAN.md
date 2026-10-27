@@ -64,3 +64,11 @@
 - **Deprecated APIs** are replaced by their `…Async` versions: `CreateHumanoidModelFromDescriptionAsync`, `ApplyDescriptionAsync`, `PlayEmoteAsync`.
 - **Atmosphere.** Haze and Offset still need separating in lighting-lab round 2. Run it once the HDRI sky and the PBR MaterialVariants exist. Until then, keep Density ≤ 0.30 and Haze ≤ 1.2.
 - **Launch audience.** New experiences are visible only to age-checked 16+ players by default. Reaching ages 13–15 needs an ID-verified creator with 2FA, a fee or Plus, and 250 engaged plays within 60 days. This is a user action before launch.
+
+## Lead decisions on the LOOP_V2 open questions (2026-10-27; the user may override)
+
+- **Bank heist:** ships at launch behind a flag, turned on only if it passes QA. Shared heists are the strongest viral moment, so they are worth shipping at launch.
+- **Insurance:** 25% base, as in the user's brief, plus the 7-day payback rule against farming.
+- **Solo heist:** allowed, as a smaller version, so players without friends online can still take part.
+- **Data migration:** `LOOP_V2_ENGINEERING` WP2, the single switchover, supersedes the migration step in `gta_combat.md` (delta D13). Wave B's weapon and armor fields must land in the LOOP_V2 `Types` shape; the C1 integrator reconciles them.
+- **Sequencing:** C1 (loop v2, WP0–WP11 switchover) starts after the Wave B merge, because it touches every system.
