@@ -92,7 +92,7 @@ For live sync while you edit: run `rojo serve` and connect from the Rojo Studio 
    - Anything with id `0` stays hidden. Diamond Dragster is a one-time purchase.
 5. **Group bonus (optional):** set `Economy.GROUP_ID` in `src/shared/Config/Economy.luau`.
 6. **Maturity questionnaire:** answer for **Mild**: cartoon, non-lethal, no blood or gore, no gambling, no realistic weapons.
-7. **Icon and thumbnails:** use `marketing/roblox_ready/`. Before launch, swap at least one thumbnail for a real in-game capture.
+7. **Icon and thumbnails:** use `marketing/roblox_ready/`. Before launch, swap at least one thumbnail for a real in-game capture. For social teaser clips, see `marketing/teasers/`; read its README for which clips are safe to post.
 8. **Launch timing:** GTA VI is expected on **Nov 19, 2026**, and search interest in "open-world car heist" peaks around then.
 
 ## Project layout
@@ -106,7 +106,7 @@ tests/       -> Lune unit tests + harness (runs the real modules headlessly)
 tools/       -> geometry/GLB renderers, Open Cloud upload + smoke-test tools, decimation, asset-config generator
 assets/      -> source GLBs (hero + kit), upload manifests, Creator Store curation
 docs/        -> SPEC, RESEARCH, ART_PASS, integration reports, previews
-marketing/   -> icons, thumbnails, billboard art, concept art
+marketing/   -> icons, thumbnails, billboard art, concept art, teaser clips
 ```
 
 Balancing lives in `src/shared/Config/*.luau`. It covers cars, rarity and witness odds, the economy, police, events, vehicle physics, sounds and assets.

@@ -133,6 +133,9 @@ pcall(roblox.implementMethod, "BasePart", "ApplyImpulseAtPosition", function() e
 pcall(roblox.implementMethod, "BasePart", "ApplyAngularImpulse", function() end)
 pcall(roblox.implementMethod, "Seat", "Sit", function() end)
 pcall(roblox.implementMethod, "VehicleSeat", "Sit", function() end)
+pcall(roblox.implementMethod, "Workspace", "GetServerTimeNow", function()
+	return os.time()
+end)
 
 -- Fake services -----------------------------------------------------------------------------------------------
 local game = roblox.Instance.new("DataModel")
@@ -252,11 +255,36 @@ local function magic(label: string)
 end
 Harness.magic = magic
 local MAGIC_SERVICES = {
-	"DataStoreService", "MarketplaceService", "UserInputService", "ContextActionService", "TextChatService",
-	"ProximityPromptService", "ContentProvider", "AssetService", "GuiService", "PhysicsService", "SocialService",
-	"PolicyService", "GroupService", "MessagingService", "MemoryStoreService", "BadgeService", "InsertService",
-	"HttpService", "Debris", "StarterGui", "TeleportService", "PathfindingService", "VRService", "HapticService",
-	"Chat", "AnalyticsService", "LocalizationService", "StarterPlayer", "ServerStorage", "ServerScriptService",
+	"DataStoreService",
+	"MarketplaceService",
+	"UserInputService",
+	"ContextActionService",
+	"TextChatService",
+	"ProximityPromptService",
+	"ContentProvider",
+	"AssetService",
+	"GuiService",
+	"PhysicsService",
+	"SocialService",
+	"PolicyService",
+	"GroupService",
+	"MessagingService",
+	"MemoryStoreService",
+	"BadgeService",
+	"InsertService",
+	"HttpService",
+	"Debris",
+	"StarterGui",
+	"TeleportService",
+	"PathfindingService",
+	"VRService",
+	"HapticService",
+	"Chat",
+	"AnalyticsService",
+	"LocalizationService",
+	"StarterPlayer",
+	"ServerStorage",
+	"ServerScriptService",
 }
 
 -- Virtual Rojo tree ----------------------------------------------------------------------------------------------

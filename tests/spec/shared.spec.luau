@@ -93,7 +93,14 @@ return function(t)
 		t.eq(EconomyMath.sellValue("rustbucket", "None"), 60)
 		t.eq(EconomyMath.rebirthCost(0), Economy.REBIRTH_BASE_COST)
 		t.eq(EconomyMath.rebirthCost(1), math.floor(Economy.REBIRTH_BASE_COST * Economy.REBIRTH_COST_GROWTH))
-		local m = EconomyMath.playerMultiplier({ rebirths = 2, vip = true, eventMultiplier = 1, friendsInServer = 5, inGroup = true, indexBonus = 0 })
+		local m = EconomyMath.playerMultiplier({
+			rebirths = 2,
+			vip = true,
+			eventMultiplier = 1,
+			friendsInServer = 5,
+			inGroup = true,
+			indexBonus = 0,
+		})
 		t.near(m, (1 + 1 + 0.3 + 0.1) * 2, 1e-9)
 		t.eq(EconomyMath.upgradeValue("lock", 0), 45)
 		t.eq(EconomyMath.upgradePrice("lock", 3), nil)

@@ -51,9 +51,10 @@ Rojo layout:
 src/shared  -> ReplicatedStorage.Shared        (Config/*, Util/*, Vehicle/*, Net, Remotes, Types)
 src/server  -> ServerScriptService.Server       (init.server.luau + Systems/*)
 src/client  -> StarterPlayerScripts.Client      (init.client.luau + Controllers/* + UI/*)
+src/first   -> ReplicatedFirst.Loading          (LoadingScreen.client.luau)
 ```
 
-- **Exactly one Script and one LocalScript.** Everything else is a ModuleScript returning a table with optional `init()` and `start()`.
+- **Exactly one Script and one LocalScript**, plus the ReplicatedFirst loading screen (ReplicatedFirst needs its own LocalScript). Everything else is a ModuleScript returning a table with optional `init()` and `start()`.
 - Boot order is the `ORDER` list in each entry point. `init()` must not yield (except MapBuilder which may take ~1s); long loops go in `start()` (each runs in its own thread). `PlayerAdded` handling goes in `start()` **and must also loop over `Players:GetPlayers()`** for players who joined before start ran.
 - Systems talk via **direct `require` + public functions + Signals** (`Shared/Util/Signal`). To avoid require cycles, a system that needs a "later" system calls it lazily: `local GarageService = require(script.Parent.GarageService)` *inside the function body*, never at the module top, when the dependency points "backwards" in ORDER. The dependency table in §6 marks which edges are lazy.
 - Remotes are declared only in `Shared/Remotes.luau` and used only through `Shared/Net.luau`. Every client→server handler validates **every** argument (`Net.isInt`, `Net.isString`, `typeof`), re-derives everything from server state, and never trusts client-claimed prices, positions, or ownership.
@@ -144,7 +145,7 @@ Each system lives in `src/server/Systems/<Name>.luau`. Only the functions/signal
 ### DealershipService
 - 8 showroom pads (`MapLayout.dealerPads()`); restock all every 240s (+ a single sold pad restocks after 30s). Rolls with `Rolls.car("dealer", luck)` + `Rolls.mutation(1)`; luck from `EventService.getLuck()` (lazy).
 - Display cars: anchored, parented `Workspace.Dealership`, attributes as GarageService display + `Price`, tag `DealerCar`. Client spins turntables (DealershipClient).
-- Prompts: `BuyPrompt` ("Buy $X", hold 0.5) → spend + `storeCar` (refund if storeCar fails), Notify, discover, contract `dealerBuy`; `StealPrompt` ("Steal", hold = hotwireTime × DEALER_STEAL_HOLD_MULTIPLIER) → convert to a Loot car via VehicleService (spawn drivable at pad, seat thief), wanted +`dealerSteal`.
+- Prompts: `BuyPrompt` ("Buy $X", hold 0.5) → spend + `storeCar` (refund if storeCar fails), Notify, discover, contract `dealerBuy`; `StealPrompt` ("Steal", hold = hotwireTime × DEALER_STEAL_HOLD_MULTIPLIER) → convert to a Loot car via VehicleService (spawn drivable at pad, seat thief), wanted +`dealerSteal` (2★).
 - Announce Mythic/Secret stock to everyone (`Announce` + `EventFeed`). Restock board countdown (SurfaceGui on a sign part in the showroom).
 
 ### StreetSpawnService
@@ -154,7 +155,7 @@ Each system lives in `src/server/Systems/<Name>.luau`. Only the functions/signal
 
 ### TrafficService
 - ~18 AI cars (+50% during Rush Hour) driving lanes using `MapLayout.laneCFrame`. Movement: chassis **unanchored**, server network owner, `AlignPosition` + `AlignOrientation` (attachment mode, MaxForce/MaxTorque high, Responsiveness ~25) targeting a point advanced along the lane at 30–45 studs/s; turn randomly at intersections (left/right/straight; never U-turn; smooth by targeting the intersection center then the new lane). Stop if another car is within 14 studs ahead in the same lane (simple spacing). NPC driver dummy (simple R6-ish block figure) in the driver seat visual.
-- Carjack prompt "Carjack" (hold = rarity hotwireTime × 0.9): remove align constraints, NPC flies out (comic ragdoll, removed after 3s), kind → `Loot`, seat player, wanted + `Heat.carjack`.
+- Carjack prompt "Carjack" (hold = rarity hotwireTime × 0.9): remove align constraints, NPC flies out (comic ragdoll, removed after 3s), kind → `Loot`, seat player, wanted + `Heat.carjack` (1★).
 - If a player car rams a traffic car hard, release that traffic car to physics (kind `Parked`-like abandoned loot, despawns per abandon rules).
 - Despawn & respawn traffic far from all players to keep density near players (spawn on lanes 150–450 studs from a random player).
 
@@ -177,8 +178,11 @@ Each system lives in `src/server/Systems/<Name>.luau`. Only the functions/signal
 - **Zapper**: server raycast along aim (from character head) → first player hit → stun `TASER_STUN`, eject from car, `Effect("Zap", {from, to})` lightning beam for everyone.
 - **Spike Strip**: drops a strip part behind the player's car (must be driving) in `Workspace.Effects`; any other car whose chassis touches it gets attribute `TiresPopped = os.clock()+SPIKES_POP_TIME` (VehicleController reads → top speed × `SPIKES_SLOW`). Removed after `SPIKES_DURATION`.
 - Assault heat: hitting a player outside your own garage adds `assault` heat unless the victim is currently stealing from you / wanted.
-- Calls `TheftService.onThiefHit(attacker, victim)` (lazy) on any successful hit; contract `defend` if that ejected a thief driving the attacker's stolen car.
+- Calls `TheftService.onThiefHit(attacker, victim)` (lazy) on any successful hit; contract `defend` if the hit ejected the driver of a `Stolen` car, or of a `Loot` car whose driver is wanted (≥1★), whoever the attacker is (`countsAsThiefBonk`).
 - Stunned state: player attribute `Stunned=true` for the duration (client disables controls).
+
+### VehicleFxService
+- Relays a driver's cosmetic nitro/horn state. `VehicleFx(boost, honk)` (client → server) is validated: booleans, sender is the live driver, rate-limited, horn cooldown, boost-edge debounce, boost capped at the largest legal tank unless the Infinite Nitro pass is owned. It is broadcast as `VehicleFxState(vehicleId, boost, honk)` to players in range except the sender, with a keep-alive while boosting. Purely cosmetic: it never touches physics.
 
 ### EventService
 - Hot Drop: every `HOT_DROP_INTERVAL`: announce countdown (`Announce` + `HotDropState` with startsAt), then spawn a car (`Rolls.carOfRarity(weighted HOT_DROP_RARITY, "any")`, mutation boosted) at a random `MapLayout.hotDropCFrames()` with a giant beacon beam (neon cylinder 300 tall, `Workspace.Effects`), kind `HotDrop`, steal prompt hold `HOT_DROP_HOLD`. Claim → becomes Loot for the claimer, wanted +`hotDrop`, EventFeed, Waypoint cleared for all, contract `hotDrop`, stats. Expires after lifetime.
@@ -221,7 +225,7 @@ Each lives in `src/client/Controllers/<Name>.luau` with `init()`/`start()`. UI b
 | **NotificationController** | Toast stack (top-right), `Announce` banner (center, big, animated), `EventFeed` (left, fades), `CashPopup` floating text, `OfflineEarnings` modal ("While you were away…"), `CarStolenAlert` (red flashing border + siren + "YOUR <car> IS BEING STOLEN!" + arrow via Waypoint). Public `toast(kind, text)`. |
 | **HUDController** | Cash counter (tweening, top-center) + `+$X/s`, wanted stars (top-right, flash when changing), left side menu buttons (Shop, Store, Index, Daily, Contracts, Rebirth, Settings) opening `MenuController`, "Go Home" button, Hot Drop / event timers bar, BUSTED overlay (`Busted` remote: big stamp, lost cash), theft delivery timer. Respects `settings.hideHud` (hide all except vehicle controls). |
 | **MenuController** | All menus as `Kit.window`s: **Gear Shop** (upgrades + tools, opened by `OpenUI("GearShop")`), **Store** (Robux passes/products via `MarketplaceService:PromptGamePassPurchase/PromptProductPurchase`; hide id 0 items; no fake urgency), **Car Index** (grid of every car, silhouette until discovered, ViewportFrame preview via `CarBuilder.build` for discovered, rarity completion bonus), **Daily** (7-day streak track + claim), **Playtime gifts**, **Contracts** (3 dailies with progress bars), **Rebirth** (cost, what you keep, multiplier preview), **Codes**, **Settings** (music, sfx, hide HUD, auto-accelerate). `open(name)`, `close(name)`, `toggle(name)`. |
-| **VehicleClient** | When the local player's humanoid sits in a `Vehicle`-tagged car's `DriverSeat`: runs `VehicleController` on Heartbeat with input from `VehicleSeat.ThrottleFloat/SteerFloat` (keyboard/gamepad/thumbstick all work) + handbrake (Space / ButtonX / mobile button), nitro (Shift / ButtonR2... / mobile button), horn (H), auto-accelerate setting. Mobile buttons (big, right side): Nitro, Drift, Horn, Exit. Speedometer + nitro bar + health bar. Camera: FOV kick with speed + nitro, slight shake on crash. Drift smoke & nitro flame local effects; `Driving` UI only while driving. Exiting = Jump (default). |
+| **VehicleClient** | When the local player's humanoid sits in a `Vehicle`-tagged car's `DriverSeat`: runs `VehicleController` on Heartbeat with input from `VehicleSeat.ThrottleFloat/SteerFloat` (keyboard/gamepad/thumbstick all work) + handbrake (Space / ButtonX / mobile button), nitro (Shift / ButtonR2... / mobile button), horn (H), auto-accelerate setting. Mobile buttons (big, right side): Nitro, Drift, Horn, Exit. Speedometer + nitro bar + health bar. Camera: FOV kick with speed + nitro, slight shake on crash. Drift smoke & nitro flame local effects; nitro on/off and horn presses go to the server as `VehicleFx` so nearby players see the flames and hear the horn. Car radio (◀ ▶ next to the speedometer, R/T keys). `Driving` UI only while driving. Exit = **F** / **ButtonA** (not E, the steal prompts' hold key; Jumping is disabled while seated). |
 | **WheelAnimator** | For every `Vehicle`-tagged car within 250 studs: spin wheels by chassis velocity, steer front wheels visually from yaw rate, suspension bob via raycast — purely cosmetic, client-local weld C0 edits. Rainbow mutation hue cycling for `Mutation="Rainbow"` cars and `DisplayCar`/`DealerCar`. |
 | **GarageClient** | Local gate collision for own plot (CanCollide=false locally when owner). Prompt visibility (owner: Drive/Sell/Unlock; others: Steal). Billboards over display cars (name, rarity color, mutation, `$X/s`, uncollected). Collect pad glow when uncollected > 0. Lock button UI countdown. |
 | **DealershipClient** | Spinning turntables + price/rarity billboards for `DealerCar`s, restock timer. |
