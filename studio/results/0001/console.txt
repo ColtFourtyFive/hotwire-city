@@ -1,0 +1,297 @@
+# Job 0001 console capture
+# get_console_output truncates its result at the MCP length limit, so the complete Output stream is taken verbatim
+# from the Studio session log (0.744.0.7441077_20261027T151739Z_Studio_6fb6d_last.log): every FLog::CreatorOutput, FLog::Output, FLog::CreatorWarning
+# and FLog::Error line from play start (15:18Z) to play stop, covering both get_console_output calls.
+# Note: 'GetBoundingBox is not a valid member of Folder Workspace.Dealership' (Script 'AssistantCommand') came from
+# the operator's own execute_luau probe, not from game code. The 'execute_luau changed camera type' warnings are also operator-caused.
+
+[FLog::Output] All use of Roblox services must comply with Roblox's Terms of Use, Privacy Policy, Community Standards, and applicable laws. Processing of User personal information is limited to the purposes expressly permitted therein.
+2026-10-27T15:18:15.223Z,36.223793,6deab000,6,Warning [FLog::Output] Hello World CLI-226594
+2026-10-27T15:18:15.223Z,36.223808,6deab000,6,Warning [FLog::Output] Hello world, CLI-208683!
+2026-10-27T15:18:15.223Z,36.223816,6deab000,6,Warning [FLog::Output] Hello world, CLI-207485!
+2026-10-27T15:18:15.223Z,36.223820,6deab000,6,Warning [FLog::Output] Hello again, world 206748!
+2026-10-27T15:18:15.223Z,36.223827,6deab000,6,Warning [FLog::Output] Hello world CLI-206426!
+2026-10-27T15:18:15.223Z,36.223831,6deab000,6,Warning [FLog::Output] Hello world ...!
+2026-10-27T15:18:15.223Z,36.223835,6deab000,6,Warning [FLog::Output] Hello 198367!
+2026-10-27T15:18:15.223Z,36.223839,6deab000,6,Warning [FLog::Output] Hello World! **CLI-199819**
+2026-10-27T15:18:15.223Z,36.223843,6deab000,6,Warning [FLog::Output] Hello World! from CLI-206127
+2026-10-27T15:18:15.223Z,36.223850,6deab000,6,Warning [FLog::Output] Hello World! CLI210530
+2026-10-27T15:18:15.223Z,36.223854,6deab000,6,Warning [FLog::Output] Hello World CLI-212185!
+2026-10-27T15:18:15.223Z,36.223858,6deab000,6,Warning [FLog::Output] Hello World! CLI-222132
+2026-10-27T15:18:15.223Z,36.223862,6deab000,6,Warning [FLog::Output] Hello World <3 CLI-225598
+2026-10-27T15:18:15.223Z,36.223866,6deab000,6,Warning [FLog::Output] Hello World! CLI-226477
+2026-10-27T15:18:15.238Z,36.238766,6deab000,6,Warning [FLog::Output] Hello World CLI-226594
+2026-10-27T15:18:15.238Z,36.238789,6deab000,6,Warning [FLog::Output] Hello world, CLI-208683!
+2026-10-27T15:18:15.238Z,36.238792,6deab000,6,Warning [FLog::Output] Hello world, CLI-207485!
+2026-10-27T15:18:15.238Z,36.238800,6deab000,6,Warning [FLog::Output] Hello again, world 206748!
+2026-10-27T15:18:15.238Z,36.238804,6deab000,6,Warning [FLog::Output] Hello world CLI-206426!
+2026-10-27T15:18:15.238Z,36.238811,6deab000,6,Warning [FLog::Output] Hello world ...!
+2026-10-27T15:18:15.238Z,36.238815,6deab000,6,Warning [FLog::Output] Hello 198367!
+2026-10-27T15:18:15.238Z,36.238819,6deab000,6,Warning [FLog::Output] Hello World! **CLI-199819**
+2026-10-27T15:18:15.238Z,36.238823,6deab000,6,Warning [FLog::Output] Hello World! from CLI-206127
+2026-10-27T15:18:15.238Z,36.238831,6deab000,6,Warning [FLog::Output] Hello World! CLI210530
+2026-10-27T15:18:15.238Z,36.238834,6deab000,6,Warning [FLog::Output] Hello World CLI-212185!
+2026-10-27T15:18:15.238Z,36.238838,6deab000,6,Warning [FLog::Output] Hello World! CLI-222132
+2026-10-27T15:18:15.238Z,36.238842,6deab000,6,Warning [FLog::Output] Hello World <3 CLI-225598
+2026-10-27T15:18:15.238Z,36.238846,6deab000,6,Warning [FLog::Output] Hello World! CLI-226477
+2026-10-27T15:18:15.264Z,36.264603,ff30cf40,6 [FLog::Output] Info: 		RobloxViewStudio::RobloxViewStudio - start
+2026-10-27T15:18:15.264Z,36.264637,ff30cf40,6 [FLog::Output] Info: 			Marshaller
+2026-10-27T15:18:15.264Z,36.264641,ff30cf40,6 [FLog::Output] Info: 			BindToWorkspace
+2026-10-27T15:18:15.264Z,36.264668,ff30cf40,6 [FLog::Output] Info: 		RobloxView::RobloxView - end
+2026-10-27T15:18:15.816Z,36.816498,6eb3b000,6,Info [FLog::CreatorOutput] [Server] Hotwire City booted with 24 systems
+2026-10-27T15:18:15.936Z,36.936745,6f36b000,6 [FLog::Output] ! Joining game '00000000-0000-0000-0000-000000000000' place 106226892419530 at localhost
+2026-10-27T15:18:15.969Z,36.969303,6deab000,6 [FLog::Output] New connection from 127.0.0.1|52540
+2026-10-27T15:18:15.998Z,36.998844,6e92f000,6 [FLog::Output] Player 11686693147 added, there are now 1 players total
+2026-10-27T15:18:16.538Z,37.538494,6e0b7000,6 [FLog::Output] Server RobloxGitHash: b06ed5a2056729e5e96702c5885f912373dc2307
+2026-10-27T15:18:16.538Z,37.538525,6e0b7000,6 [FLog::Output] Server Prefix: 0.744.0.7441077_20261027T151739Z_Studio_6fb6d
+2026-10-27T15:18:16.613Z,37.613213,6e0b7000,6,Info [FLog::CreatorOutput] [Client] illintent1 ready with 15 controllers
+2026-10-27T15:18:16.649Z,37.649761,ff30cf40,6 [FLog::Output] Info: 		RobloxViewStudio::RobloxViewStudio - start
+2026-10-27T15:18:16.649Z,37.649765,ff30cf40,6 [FLog::Output] Info: 			Marshaller
+2026-10-27T15:18:16.649Z,37.649769,ff30cf40,6 [FLog::Output] Info: 			BindToWorkspace
+2026-10-27T15:18:16.649Z,37.649784,ff30cf40,6 [FLog::Output] Info: 		RobloxView::RobloxView - end
+2026-10-27T15:18:16.999Z,37.999882,6e723000,6 [FLog::Output] Flag SimCsgEnableNewStudioButtons referenced from Lua isn't defined in C++ code
+2026-10-27T15:18:17.004Z,38.004955,6e723000,6 [FLog::Output] Flag UnifyModelPackagePublish3 referenced from Lua isn't defined in C++ code
+2026-10-27T15:18:17.005Z,38.005520,6e723000,6 [FLog::Output] Flag OpenScriptDocOptionsLua referenced from Lua isn't defined in C++ code
+2026-10-27T15:18:17.389Z,38.389263,6e92f000,6 [FLog::Output] Flag SimCsgEnableNewStudioButtons referenced from Lua isn't defined in C++ code
+2026-10-27T15:18:17.393Z,38.393852,6e92f000,6 [FLog::Output] Flag UnifyModelPackagePublish3 referenced from Lua isn't defined in C++ code
+2026-10-27T15:18:17.394Z,38.394295,6e92f000,6 [FLog::Output] Flag OpenScriptDocOptionsLua referenced from Lua isn't defined in C++ code
+2026-10-27T15:18:17.619Z,38.619663,6deab000,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_water.mp3" load failed: Failed to resolve texture format | 49 44 33 03 00 00 00 00 07 76 54 43 4f 4e 00 00 00 07 00 00 00 4f 74 68 65 72 00 47 45 4f 42 00 00 00 19 00 00 00 00 00 53 66 4d 61 72 6b 65 72 73 00 0c 00 00 00 64 00 00 00 00 00 00 00 47 45     ID3......vTCON.......Other.GEOB.........SfMarkers.....d.......GE
+2026-10-27T15:18:17.619Z,38.619686,6ed47000,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_explosion_03.mp3" load failed: Failed to resolve texture format | 49 44 33 03 00 00 00 00 07 76 54 43 4f 4e 00 00 00 07 00 00 00 4f 74 68 65 72 00 47 45 4f 42 00 00 00 19 00 00 00 00 00 53 66 4d 61 72 6b 65 72 73 00 0c 00 00 00 64 00 00 00 00 00 00 00 47 45     ID3......vTCON.......Other.GEOB.........SfMarkers.....d.......GE
+2026-10-27T15:18:17.801Z,38.801857,ff30cf40,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_water.mp3" load failed: Invalid image or texture.
+2026-10-27T15:18:17.801Z,38.801899,ff30cf40,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_explosion_03.mp3" load failed: Invalid image or texture.
+2026-10-27T15:18:17.996Z,38.996639,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.107Z,39.107269,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113948676 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.107Z,39.107456,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://98063305747867 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.107Z,39.107948,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=98063305747867" load failed in Workspace.Map.Props.Billboard.AdFront.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108055,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://121096162394481 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108070,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://116526585337940 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108231,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=121096162394481" load failed in Workspace.Plots.Plot7.Building.Poster.Art.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108280,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://70828020326332 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108303,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=116526585337940" load failed in Workspace.Plots.Plot8.Building.Poster.Art.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108330,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://97971208325391 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108341,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=97971208325391" load failed in Workspace.Dealership.Dealer_rustbucket.HeroShell.HC Rustbucket.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108379,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=70828020326332" load failed in Workspace.Dealership.Dressing.RoofBanner.Art.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108364,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://74010446392752 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108498,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://109068994523899 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108799,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=109068994523899" load failed in Workspace.Dealership.Dressing.Flag.Art.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108673,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=74010446392752" load failed in Workspace.Plots.Plot3.Building.Poster.Art.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108906,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://98358214059781 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108944,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=98358214059781" load failed in Workspace.Map.Props.Billboard.AdFront.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.108Z,39.108971,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://87646813759701 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.109Z,39.109158,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://111057290103994 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109180,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=111057290103994" load failed in Workspace.Map.Props.Billboard.AdBack.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109203,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://133009385208205 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109219,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=133009385208205" load failed in Workspace.Map.Props.Billboard.AdFront.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109253,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://77258665725831 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109264,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=77258665725831" load failed in Workspace.Plots.Plot2.Building.Poster.Art.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109280,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9116546593 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.109Z,39.109287,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://135307431044010 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109470,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://99439881296609 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109497,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=135307431044010" load failed in Workspace.Map.Props.Billboard.AdFront.Texture: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109501,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=99439881296609" load failed in Workspace.Dealership.Dealer_yellow_cab.HeroShell.HC Yellow Cab.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:18.109Z,39.109589,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113726510 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.109Z,39.109695,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9114402206 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.109Z,39.109718,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://78270463799678 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.109Z,39.109741,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://83551217156102 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.110Z,39.110298,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9114402205 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110512,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=83551217156102" load failed in Workspace.Dealership.Dealer_grandma_sedan.HeroShell.HC Grandma Sedan.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:18.110Z,39.110569,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9118708982 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110775,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113661285 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110828,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://125094987563505 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110855,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9119186024 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110909,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9114590297 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110939,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9112758500 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.110Z,39.110962,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113728049 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.111Z,39.111027,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9117969584 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.111Z,39.111065,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9119165131 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.111Z,39.111225,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://80317022777602 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.111Z,39.111324,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113728042 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.111Z,39.111378,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9112891352 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.111Z,39.111420,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9119165140 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.180Z,39.180580,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+2026-10-27T15:18:18.380Z,39.380886,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.380Z,39.380936,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.380Z,39.380951,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.552Z,39.552921,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://136118913155986 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.553Z,39.553158,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=136118913155986" load failed in Workspace.Dealership.Dealer_hot_hatch.HeroShell.HC Hot Hatch.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:18.553Z,39.553215,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://99804051733745 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.553Z,39.553402,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://91151786791158 failed due to: Asset content representation is being generated
+2026-10-27T15:18:18.553Z,39.553581,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=99804051733745" load failed in Workspace.Dealership.Dealer_mini_bean.HeroShell.HC Mini Bean.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:18.553Z,39.553921,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=91151786791158" load failed in Workspace.Vehicles.pizza_van.HeroShell.HC Pizza Van.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:18.553Z,39.553936,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://81504106 failed due to: Request asset was not found
+2026-10-27T15:18:18.554Z,39.554295,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=81504106" load failed in Workspace.NPCs.Shopkeeper.Hat1.Handle.TextureId: Request asset was not found
+2026-10-27T15:18:18.677Z,39.677998,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.678Z,39.678036,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.678Z,39.678055,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:18.678Z,39.678070,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:19.177Z,40.177589,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://114293391013152 failed due to: Asset content representation is being generated
+2026-10-27T15:18:19.177Z,40.177689,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=114293391013152" load failed in Workspace.Vehicles.family_suv.HeroShell.HC Family SUV.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:19.456Z,40.456043,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://123664518481108 failed due to: Asset content representation is being generated
+2026-10-27T15:18:19.456Z,40.456104,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=123664518481108" load failed in Workspace.Vehicles.bull_charger.HeroShell.HC Bull Charger.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:19.697Z,40.697174,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:19.713Z,40.713428,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:20.226Z,41.226311,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://134605258468282 failed due to: Asset content representation is being generated
+2026-10-27T15:18:20.226Z,41.226421,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=134605258468282" load failed in Workspace.Vehicles.ice_cream.HeroShell.HC Ice Cream Truck.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:20.713Z,41.713894,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:20.729Z,41.729652,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:21.714Z,42.714840,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:21.729Z,42.729919,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:22.730Z,43.730587,6e92f000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:22.764Z,43.764019,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:22.794Z,43.794464,6e92f000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:24.318Z,45.318684,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://135704784587342 failed due to: Asset content representation is being generated
+2026-10-27T15:18:24.318Z,45.318916,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=135704784587342" load failed in Workspace.Vehicles.dirt_hauler.HeroShell.HC Dirt Hauler.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:24.763Z,45.763794,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:24.794Z,45.794518,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:18:28.247Z,49.247101,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://108703083583813 failed due to: Asset content representation is being generated
+2026-10-27T15:18:28.247Z,49.247311,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=108703083583813" load failed in Workspace.Plots.Plot1.Loot.LootSafe.Mesh.HC Safe Vault.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:29.750Z,50.750755,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://138472600123594 failed due to: Asset content representation is being generated
+2026-10-27T15:18:29.751Z,50.751080,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=138472600123594" load failed in Workspace.Vehicles.stallion_gt.HeroShell.HC Stallion GT.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:29.849Z,50.849392,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://120372093537538 failed due to: Asset content representation is being generated
+2026-10-27T15:18:29.849Z,50.849659,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=120372093537538" load failed in Workspace.Dealership.Dealer_bigfoot.HeroShell.HC Bigfoot.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:30.065Z,51.065006,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://117289194505943 failed due to: Asset content representation is being generated
+2026-10-27T15:18:30.065Z,51.065033,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://95147798390796 failed due to: Asset content representation is being generated
+2026-10-27T15:18:30.065Z,51.065102,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=117289194505943" load failed in Workspace.Vehicles.retired_cruiser.HeroShell.HC Retired Cruiser.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:30.065Z,51.065132,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=95147798390796" load failed in Workspace.Vehicles.stretch_limo.HeroShell.HC Stretch Limo.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:30.471Z,51.471245,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://75191033196532 failed due to: Asset content representation is being generated
+2026-10-27T15:18:30.471Z,51.471272,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://125287203683449 failed due to: Asset content representation is being generated
+2026-10-27T15:18:30.471Z,51.471340,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=75191033196532" load failed in Workspace.Vehicles.phantom_gt.HeroShell.HC Phantom GT.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:30.471Z,51.471382,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=125287203683449" load failed in Workspace.Vehicles.crusher.HeroShell.HC Crusher.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705215,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://89244993542969 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705246,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://134113096755019 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705345,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=89244993542969" load failed in Workspace.Plots.Plot1.Dressing.OilBarrels.HC Oil Barrels.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705395,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://140136782335427 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705418,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=134113096755019" load failed in Workspace.Plots.Plot1.Dressing.Shelf.HC Garage Shelf.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705467,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=140136782335427" load failed in Workspace.Map.Buildings.diner.HC Diner.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705574,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://83245146447125 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705612,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://81312027666689 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705681,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=83245146447125" load failed in Workspace.Map.POIs.StuntPark.RoadBarrier.HC Road Barrier.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705776,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=81312027666689" load failed in Workspace.Map.POIs.ChopShop.CrateStack.HC Crate Stack.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705807,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://100990569298014 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705822,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=100990569298014" load failed in Workspace.Map.Props.Tree.HC Pine Tree.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705845,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://97263187530790 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705856,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=97263187530790" load failed in Workspace.Map.Buildings.brick_loft.HC Brick Loft.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705868,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://84562406246641 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705902,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=84562406246641" load failed in Workspace.Map.Buildings.skyscraper_neon.HC Neon Skyscraper.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705879,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://132402950802770 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705963,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://73649606519428 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705967,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=132402950802770" load failed in Workspace.Map.Beach.surf_shack.HC Surf Shack.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.706Z,53.706112,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://132947325550302 failed due to: Asset content representation is being generated
+2026-10-27T15:18:32.706Z,53.706223,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=132947325550302" load failed in Workspace.Map.Props.PalmTree.HC Palm Tree A.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:32.705Z,53.705990,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=73649606519428" load failed in Workspace.Map.Props.StreetLamp.HC Street Lamp.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.067Z,54.067970,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://91803844301516 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.067Z,54.067978,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://135029095694809 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068359,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=91803844301516" load failed in Workspace.Map.Buildings.beach_villa.HC Beach Villa.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068417,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=135029095694809" load failed in Workspace.Map.Buildings.skyscraper_deco.HC Deco Skyscraper.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068443,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://138148342819336 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068573,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=138148342819336" load failed in Workspace.Map.POIs.Park.Fountain.HC Plaza Fountain.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068619,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://112920749392871 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068699,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=112920749392871" load failed in Workspace.Map.Buildings.gas_station.HC Gas Station.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068737,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://73501237525325 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068756,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=73501237525325" load failed in Workspace.Map.Props.Bush.HC Hedge Bush.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068783,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://106195631576464 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068798,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=106195631576464" load failed in Workspace.Map.Buildings.suburban_house.HC Suburban House.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068794,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://121291682280773 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068874,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=121291682280773" load failed in Workspace.Map.Buildings.hotel_beach.HC Beach Hotel.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068951,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://138295932795839 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069275,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=138295932795839" load failed in Workspace.Dealership.Dressing.HotdogStand.HC Hot Dog Stand.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069309,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://84232303327804 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069324,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=84232303327804" load failed in Workspace.Dealership.Dressing.Palm2.HC Palm Tree B.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069374,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://103082031705389 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069386,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=103082031705389" load failed in Workspace.Plots.Plot1.Dressing.CarLift.HC Car Lift.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069408,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://102390509118362 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.068Z,54.068825,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://111869334558231 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069660,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=102390509118362" load failed in Workspace.Plots.Plot1.Dressing.ToolChest.HC Tool Chest.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069763,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=111869334558231" load failed in Workspace.Map.Buildings.apartment_balcony.HC Balcony Apartments.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069775,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://112273437814613 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069813,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://103854628839649 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069878,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=112273437814613" load failed in Workspace.Plots.Plot1.Dressing.TireStack.HC Tire Stack.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069889,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=103854628839649" load failed in Workspace.Map.Props.TrashCan.HC Trash Can.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069908,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://75225294617477 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069923,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=75225294617477" load failed in Workspace.Map.Props.Bench.HC Park Bench.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.069Z,54.069992,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://96526623600845 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070004,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=96526623600845" load failed in Workspace.Map.Props.Tree.HC Round Tree.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070038,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://134336914585056 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070049,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=134336914585056" load failed in Workspace.Dealership.Dressing.ShowroomBackdrop.HC Car Showroom.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070076,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://133461335728312 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070087,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=133461335728312" load failed in Workspace.Map.Buildings.office_block.HC Office Block.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070271,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://98642849287481 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070286,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=98642849287481" load failed in Workspace.Plots.Plot1.Dressing.Workbench.HC Workbench.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070312,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://120159066119167 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.070Z,54.070335,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=120159066119167" load failed in Workspace.Map.Props.SurfboardRack.HC Surfboard Rack.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.242Z,54.242691,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://94554913799495 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.242Z,54.242886,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=94554913799495" load failed in Workspace.Map.POIs.GearShop.GearShopArt.HC Gear Shop.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.242Z,54.242912,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://98225971335967 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.242Z,54.242939,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://99982397532850 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.242Z,54.242954,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=98225971335967" load failed in Workspace.Map.POIs.Pier.FerrisWheelArt.HC Ferris Wheel.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243073,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://119464967751911 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243385,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=99982397532850" load failed in Workspace.Map.Buildings.skyscraper_twist.HC Twist Skyscraper.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243439,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://113829047157450 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243462,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=113829047157450" load failed in Workspace.Map.POIs.PoliceHQ.police_hq.HC Police HQ.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243484,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://71919480030926 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243496,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=71919480030926" load failed in Workspace.Map.Buildings.convenience_store.HC Corner Store.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243607,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://81393827777602 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243721,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=81393827777602" load failed in Workspace.Map.Props.BillboardSign.HC Billboard.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243694,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=119464967751911" load failed in Workspace.Map.Buildings.warehouse.HC Warehouse.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243885,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://120283673948413 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.243Z,54.243923,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://134475949414456 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244095,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=120283673948413" load failed in Workspace.Map.Props.LifeguardTower.HC Lifeguard Tower.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244144,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://97936349285755 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244469,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=134475949414456" load failed in Workspace.Map.POIs.Pier.lighthouse.HC Lighthouse.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244526,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://109044232363050 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244541,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=109044232363050" load failed in Workspace.Map.POIs.SprayShopB.spray_booth.HC Spray Booth.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244564,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://87033765797366 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244576,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=87033765797366" load failed in Workspace.Map.Props.BusStop.HC Bus Stop.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244598,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://122727644791471 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244610,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=122727644791471" load failed in Workspace.Map.POIs.Park.Rock.HC Boulder.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244526,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=97936349285755" load failed in Workspace.Map.Props.NewspaperBox.HC Newspaper Box.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244640,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://98840970422607 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244659,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=98840970422607" load failed in Workspace.Map.Props.TrafficLight.HC Traffic Light.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244671,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://93238500583160 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244686,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://120644505908876 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244705,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=93238500583160" load failed in Workspace.Map.Props.Hydrant.HC Fire Hydrant.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244740,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://108757670563698 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244755,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=108757670563698" load failed in Workspace.Map.POIs.ChopShop.chop_shop.HC Chop Shop.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244801,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://84991053857530 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244820,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=120644505908876" load failed in Workspace.Map.Buildings.pizza_shop.HC Pizza Shop.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244884,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=84991053857530" load failed in Workspace.Map.Props.ShippingContainer.HC Shipping Container.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244946,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://73751392247802 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.244Z,54.244976,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://128160400866828 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.245Z,54.245029,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=128160400866828" load failed in Workspace.Map.POIs.StuntPark.TrafficCone.HC Traffic Cone.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.245Z,54.245003,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=73751392247802" load failed in Workspace.Map.Props.Mailbox.HC Mailbox.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315071,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://140346328000610 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315121,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://127601396734447 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315216,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=140346328000610" load failed in Workspace.Map.Props.WaterTower.HC Water Tower.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315262,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=127601396734447" load failed in Workspace.Map.Buildings.donut_shop.HC Donut Shop.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315327,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://124185930037647 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315395,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=124185930037647" load failed in Workspace.Map.POIs.ChopShop.CarCrusher.HC Car Crusher.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315437,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://89963499640509 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315456,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://126149434231746 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315556,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=89963499640509" load failed in Workspace.Map.Props.Dumpster.HC Dumpster.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315571,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=126149434231746" load failed in Workspace.Map.Props.BeachUmbrella.HC Beach Umbrella.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315617,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://127072111223840 failed due to: Asset content representation is being generated
+2026-10-27T15:18:33.315Z,54.315636,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=127072111223840" load failed in Workspace.Map.Props.BeachChair.HC Beach Chair.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:19:49.944Z,130.944778,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://77773887156793 failed due to: Asset content representation is being generated
+2026-10-27T15:19:49.944Z,130.944916,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=77773887156793" load failed in Workspace.Vehicles.bank_truck.HeroShell.HC Bank Truck.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:20:30.396Z,171.396393,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://103451857953217 failed due to: Asset content representation is being generated
+2026-10-27T15:20:30.396Z,171.396591,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=103451857953217" load failed in Workspace.Vehicles.night_raven.HeroShell.HC Night Raven.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:20:48.205Z,189.205429,6e723000,6,Warning [FLog::CreatorWarning] Warning: [Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Custom back to Enum.CameraType.Scriptable
+2026-10-27T15:20:59.242Z,200.242416,6deab000,6,Info [FLog::CreatorOutput] Info: Stack Begin
+2026-10-27T15:20:59.242Z,200.242432,6deab000,6,Info [FLog::CreatorOutput] Info: Script 'AssistantCommand', Line 16
+2026-10-27T15:20:59.242Z,200.242462,6deab000,6,Info [FLog::CreatorOutput] Info: Stack End
+2026-10-27T15:21:23.080Z,224.080307,455bf000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://87759727213891 failed due to: Asset content representation is being generated
+2026-10-27T15:21:23.082Z,224.082230,455bf000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=87759727213891" load failed in Workspace.Vehicles.rocket_car.HeroShell.HC Rocket Car.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:21:24.170Z,225.170105,6ed47000,6,Warning [FLog::CreatorWarning] Warning: [Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Custom back to Enum.CameraType.Scriptable
+2026-10-27T15:21:34.254Z,235.254944,6e92f000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:21:47.987Z,248.987091,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:21:50.488Z,251.488815,6f15f000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:22:03.438Z,264.438416,6ef53000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T15:22:04.396Z,265.396515,45533000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://70678112075553 failed due to: Asset content representation is being generated
+2026-10-27T15:22:04.396Z,265.396729,45533000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=70678112075553" load failed in Workspace.Vehicles.neon_drift.HeroShell.HC Neon Drift.geometry_0_Node.geometry_0.TextureId: Asset content representation is being generated
+2026-10-27T15:22:05.280Z,266.280212,ff30cf40,6 [FLog::Output] Info: 		RobloxViewStudio::RobloxViewStudio - start
+2026-10-27T15:22:05.280Z,266.280212,ff30cf40,6 [FLog::Output] Info: 			Marshaller
+2026-10-27T15:22:05.280Z,266.280243,ff30cf40,6 [FLog::Output] Info: 			BindToWorkspace
+2026-10-27T15:22:05.280Z,266.280487,ff30cf40,6 [FLog::Output] Info: 		RobloxView::RobloxView - end
+2026-10-27T15:22:05.485Z,266.485596,6eb3b000,6,Info [FLog::CreatorOutput] Disconnect from 127.0.0.1|52540
+2026-10-27T15:22:05.485Z,266.485657,6eb3b000,6,Info [FLog::CreatorOutput] Disconnect from 127.0.0.1|52540
+2026-10-27T15:22:05.490Z,266.490845,6eb3b000,6,Warning [FLog::Output] Player 11686693147 leaving, 0 remain
