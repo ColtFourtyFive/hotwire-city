@@ -1,0 +1,30 @@
+# Job 0009 console: get_console_output at the end of the run, verbatim. Play ended on its own with the server kick at the bottom.
+[LightingService] destroyed 4 duplicate Lighting effect(s) (Team Create / Rojo live-sync leftovers)
+[Server] Hotwire City booted with 24 systems
+[Client] illintent1 ready with 19 controllers
+ContentId: rbxassetid://125094987563505 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9113728042 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9114402205 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9113726510 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9119186024 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9117969584 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9116546593 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9113661285 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9112891352 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://87646813759701 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9118708982 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9119165131 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9113728049 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9112758500 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9113948676 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://80317022777602 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9119165140 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://78270463799678 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9114402206 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://9114590297 failed due to: Asset type does not match requested type
+(the 20 lines above repeat twice more, verbatim)
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type   (x3)
+ContentId: rbxassetid://4542793421 failed due to: User is not authorized to access Asset.   (x6)
+[AssetLibrary] Props/flower_bed unavailable; using procedural fallback
+[DataService] session lost for 11686693147 (profile opened elsewhere); not overwriting
+Server Kick Message: Your Hotwire City save was opened on another server. Please rejoin!; Metadata: 
