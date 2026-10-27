@@ -71,7 +71,7 @@ def main():
         ctype = {".fbx": "model/fbx", ".glb": "model/gltf-binary", ".gltf": "model/gltf+json", ".obj": "model/obj"}[ext]
         st, body, _ = upload(a[1], a[2], a[3], "Model", ctype); print(st); print(body[:2000])
     elif a[0] == "upload-image":
-        st, body, _ = upload(a[1], a[2], a[3], "Decal", "image/png"); print(st); print(body[:2000])
+        st, body, _ = upload(a[1], a[2], a[3], "Image", "image/png"); print(st); print(body[:2000])  # "Decal" ids do not resolve in Sky/ImageLabel/Texture
     elif a[0] == "operation":
         st, body, _ = req("GET", f"https://apis.roblox.com/assets/v1/{a[1]}"); print(st); print(body[:2000])
 
