@@ -1,8 +1,10 @@
 --!nocheck
--- The v2 look (pure): Config/Look presets + LightingService interpolation, the 24-minute clock, the engine sun model
--- (vs the real-engine probe), the sky-swap schedule against sun elevation, NightFactor, rate-limited sky yaw, cloud
--- share per sky, lit-window spread, wet streets, the client sky preload order, and that the generated Look data
--- matches what default.project.json bakes into the place (MaterialService variants/overrides, Lighting, default Sky).
+-- The v2 look (pure): Config/Look presets + LightingService interpolation, the 24-minute game clock, the engine clock
+-- mapping (lab round 2: the engine sun never goes deep below the horizon), the engine sun model (vs the real-engine
+-- probe), the sky-swap schedule against the engine sun, the swap / jump exposure dip, NightFactor continuity, the
+-- locked day Atmosphere, the faked night, rate-limited sky yaw, cloud share per sky, lit-window spread + the building
+-- package's window helper, wet streets, the client sky preload order, and that the generated Look data matches what
+-- default.project.json bakes into the place (MaterialService variants/overrides, Lighting, default Sky).
 return function(t)
 	local H = t.H
 	local fs = require("@lune/fs")
@@ -10,6 +12,7 @@ return function(t)
 	H.setMode("server")
 	local Look = H.require("src/shared/Config/Look")
 	local L = H.require("src/server/Systems/LightingService")
+	local Color3 = H.roblox.Color3
 
 	local function lum(c)
 		return 0.2126 * c[1] + 0.7152 * c[2] + 0.0722 * c[3]
@@ -90,6 +93,75 @@ return function(t)
 		t.ok(night.atmosphere.color[3] >= night.atmosphere.color[1], "night haze is navy-grey")
 	end)
 
+	t.test("presets: day Atmosphere locked at Offset 0.25 / Haze 0.8 (lab round 2 S1)", function()
+		local lock = Look.AtmosphereLock
+		t.eq(lock.offset, 0.25, "Offset locked (no visible effect at Density 0.27)")
+		t.eq(lock.haze, 0.8, "Haze locked (best pair with Offset 0.25)")
+		t.eq(Look.Tuning.offset, nil, "no global Offset tuning on top of the lock")
+		for _, name in { "day", "goldenMorning", "goldenEvening" } do
+			local a = Look.Presets[name].atmosphere
+			t.eq(a.offset, lock.offset, name .. " Offset")
+			t.eq(a.haze, lock.haze, name .. " Haze")
+			t.ok(a.density <= Look.Caps.densityMax, name .. " Density <= 0.30")
+		end
+		-- lookAt holds the lock over the whole sunlit day (golden morning key .. golden evening key), with no swap
+		-- haze bump on top any more
+		local from, to
+		for _, k in Look.Keys do
+			if k.preset == "goldenMorning" then
+				from = k.hour
+			elseif k.preset == "goldenEvening" then
+				to = k.hour
+			end
+		end
+		for h = from, to, 0.05 do
+			local a = L.lookAt(h).atmosphere
+			t.near(a.offset, lock.offset, 1e-9, "Offset at " .. h)
+			t.near(a.haze, lock.haze, 1e-9, "Haze at " .. h)
+		end
+		for _, e in Look.SkySchedule do
+			t.ok(L.lookAt(e.hour).atmosphere.haze <= lock.haze + 1e-9, "no haze bump at the swap at " .. e.hour)
+		end
+	end)
+
+	t.test("presets: the night is faked (exposure, ambient, cool desaturated grade); no blue-purple fog", function()
+		local day, night = Look.Presets.day, Look.Presets.night
+		-- the held engine clock (sun -3 deg) only renders twilight: the night preset supplies the darkness
+		t.ok(night.exposure < 0, "night darkened by ExposureCompensation")
+		t.ok(night.exposure >= -1, "... but not so far that lamps and the night sky die")
+		t.ok(lum(night.outdoorAmbient) < 0.5 * lum(day.outdoorAmbient), "dark OutdoorAmbient")
+		t.ok(lum(night.ambient) < lum(day.ambient), "dark Ambient")
+		t.ok(night.outdoorAmbient[3] > night.outdoorAmbient[1], "cool ambient")
+		t.ok(night.brightness < 1, "a faint key light from the held sun / low moon")
+		t.ok(night.colorCorrection.saturation < 0, "night grade desaturated ...")
+		t.ok(night.colorCorrection.saturation >= -0.25, "... only slightly")
+		t.ok(night.colorCorrection.tint[3] > night.colorCorrection.tint[1], "cool night grade")
+		t.ok(night.atmosphere.haze < day.atmosphere.haze, "thin night haze keeps the night HDRI visible")
+		t.ok(night.bloom.threshold >= 1.2, "night bloom threshold: lit windows do not bloom into slabs")
+		-- blue hour sits between golden and night, never near-black
+		for _, name in { "blueMorning", "blueEvening" } do
+			local p = Look.Presets[name]
+			t.ok(p.exposure > night.exposure and p.exposure <= 0, name .. " exposure between night and day")
+			t.ok(lum(p.outdoorAmbient) > 1.5 * lum(night.outdoorAmbient), name .. " is not near-black")
+			t.ok(p.brightness > night.brightness, name .. " key light above night")
+		end
+		-- twilight / night fog, decay and cloud colours: never magenta (red above green), only slightly blue
+		for _, name in { "blueMorning", "blueEvening", "night" } do
+			local p = Look.Presets[name]
+			for label, c in { color = p.atmosphere.color, decay = p.atmosphere.decay, clouds = p.clouds.color } do
+				t.ok(c[1] <= c[2], name .. " " .. label .. " has a magenta / purple cast")
+				t.ok(c[3] - c[2] <= 16, name .. " " .. label .. " is too blue")
+				t.ok(chroma(c) <= 24, name .. " " .. label .. " is too saturated")
+			end
+		end
+		-- the darkest moment of the cycle (exposure incl. the dips) is still a moderate underexposure
+		local minExp = math.huge
+		for s = 0, L.CYCLE_SECONDS, 5 do
+			minExp = math.min(minExp, L.lookAt(L.hourAt(s)).exposure)
+		end
+		t.ok(minExp >= -1, "deepest exposure " .. minExp)
+	end)
+
 	t.test("lookAt: interpolates between keys, smooth over the whole cycle, caps always hold", function()
 		local noon = L.lookAt(12)
 		t.near(noon.brightness, Look.Presets.day.brightness, 1e-9, "plateau = day preset")
@@ -112,11 +184,12 @@ return function(t)
 		t.ok(golden.sunRays.intensity > noon.sunRays.intensity, "golden sun rays")
 		t.ok(midnight.brightness < noon.brightness, "night darker")
 		t.ok(midnight.atmosphere.density < noon.atmosphere.density, "thinner night atmosphere")
-		-- no big jumps between consecutive env steps, caps hold everywhere (incl. the sky-swap haze bump)
+		-- no big jumps between consecutive env steps (incl. the swap / jump exposure dips), caps hold everywhere
 		local prev = L.lookAt(L.hourAt(0))
 		for s = Look.Cycle.envInterval, L.CYCLE_SECONDS, Look.Cycle.envInterval do
 			local cur = L.lookAt(L.hourAt(s))
 			t.ok(math.abs(cur.brightness - prev.brightness) < 0.15, "brightness step at " .. s)
+			t.ok(math.abs(cur.exposure - prev.exposure) < 0.05, "exposure step at " .. s)
 			t.ok(math.abs(cur.atmosphere.haze - prev.atmosphere.haze) < 0.1, "haze step at " .. s)
 			t.ok(cur.atmosphere.haze <= Look.Caps.hazeMax + 1e-9, "haze cap at " .. s)
 			t.ok(cur.atmosphere.density <= Look.Caps.densityMax + 1e-9, "density cap at " .. s)
@@ -162,8 +235,100 @@ return function(t)
 		t.ok(L.nightFactorAt(24) == L.nightFactorAt(0), "wraps")
 	end)
 
+	t.test("NightFactor: continuous over the whole game cycle (decoupled from the engine clock jump)", function()
+		-- per real second of the 24-minute cycle, NightFactor (game hour) never steps
+		local prev = L.nightFactorAt(L.hourAt(0))
+		local maxStep = 0
+		for s = 1, L.CYCLE_SECONDS do
+			local f = L.nightFactorAt(L.hourAt(s))
+			maxStep = math.max(maxStep, math.abs(f - prev))
+			prev = f
+		end
+		t.ok(maxStep < 0.03, "NightFactor per-second step " .. maxStep)
+		-- across the engine-clock jump it stays at full night on both sides, although Lighting.ClockTime jumps from
+		-- the evening to the morning horizon (computed from the engine clock it would be ~0.2 / ~0.9 instead)
+		local j = Look.EngineClock.jumpHour
+		t.eq(L.nightFactorAt(j - 0.01), 1, "full night before the jump")
+		t.eq(L.nightFactorAt(j + 0.01), 1, "full night after the jump")
+		t.ok(L.nightFactorAt(L.engineClockAt(j - 0.01)) < 0.5, "(NightFactor of the engine clock would be wrong)")
+		-- street lights are on (NightFactor >= lightsOn) whenever the game says night, all night long
+		for h = Look.Night.duskFull, Look.Night.duskFull + 9.4, 0.1 do
+			t.eq(L.nightFactorAt(h), 1, "full night at game hour " .. h % 24)
+		end
+	end)
+
+	-- Engine clock (lab round 2) ---------------------------------------------------------------------------------------
+	t.test("engine clock: the game hour by day, held near the horizon at night, one invisible jump", function()
+		local E = Look.EngineClock
+		-- the lab rule: hold ~18.0-18.3 for the first half of the night, ~5.7-6.0 for the second
+		t.ok(E.eveningHold >= 18.0 and E.eveningHold <= 18.3, "evening hold " .. E.eveningHold)
+		t.ok(E.morningHold >= 5.7 and E.morningHold <= 6.0, "morning hold " .. E.morningHold)
+		local holdEve, holdMorn = L.sunElevationAt(E.eveningHold), L.sunElevationAt(E.morningHold)
+		t.ok(holdEve < 0 and holdEve > E.minElevation, "evening hold just below the horizon: " .. holdEve)
+		t.ok(holdMorn < 0 and holdMorn > E.minElevation, "morning hold just below the horizon: " .. holdMorn)
+		t.ok(E.minElevation > -10, "the threshold stays above the lab's near-black -10 deg")
+		-- by day the engine IS the game clock
+		for h = E.morningHold + E.ease / 2, E.eveningHold - E.ease / 2, 0.05 do
+			t.near(L.engineClockAt(h), h, 1e-9, "engine = game at " .. h)
+		end
+		t.near(L.engineClockAt(Look.Cycle.startHour), Look.Cycle.startHour, 1e-9, "servers start on the game clock")
+		t.near(L.engineClockAt(12), 12, 1e-9)
+		-- the holds
+		t.near(L.engineClockAt(21), E.eveningHold, 1e-9, "first half of the night: evening hold")
+		t.near(L.engineClockAt(E.jumpHour - 0.001), E.eveningHold, 1e-9)
+		t.near(L.engineClockAt(E.jumpHour), E.morningHold, 1e-9, "second half: morning hold")
+		t.near(L.engineClockAt(3), E.morningHold, 1e-9)
+		t.near(L.engineClockAt(24), L.engineClockAt(0), 1e-9, "wraps")
+		-- C1 easing: full speed where the ease starts, (almost) stopped where the hold starts -> no visible halt
+		local eve0, eve1 = E.eveningHold - E.ease / 2, E.eveningHold + E.ease / 2
+		local morn0, morn1 = E.morningHold - E.ease / 2, E.morningHold + E.ease / 2
+		local eps = 0.001
+		t.near((L.engineClockAt(eve0 + eps) - L.engineClockAt(eve0)) / eps, 1, 0.01, "slope 1 entering the ease")
+		t.near((L.engineClockAt(eve1) - L.engineClockAt(eve1 - eps)) / eps, 0, 0.01, "slope 0 reaching the hold")
+		t.near((L.engineClockAt(morn0 + eps) - L.engineClockAt(morn0)) / eps, 0, 0.01, "slope 0 leaving the hold")
+		t.near((L.engineClockAt(morn1) - L.engineClockAt(morn1 - eps)) / eps, 1, 0.01, "slope 1 back on the game clock")
+		-- the jump sits inside the night hold, in full night
+		t.ok((E.jumpHour - eve1) % 24 > 0 and (morn0 - E.jumpHour) % 24 > 0, "jumpHour inside the night hold")
+		-- what the engine renders, tick by tick (Look.Cycle.clockInterval) over a whole cycle
+		local dtTick = Look.Cycle.clockInterval
+		local prevGame = L.hourAt(0)
+		local prev = L.engineClockAt(prevGame)
+		local jumps, minEl = 0, math.huge
+		for s = dtTick, L.CYCLE_SECONDS, dtTick do
+			local g = L.hourAt(s)
+			local e = L.engineClockAt(g)
+			local el = L.sunElevationAt(e)
+			minEl = math.min(minEl, el)
+			t.ok(el >= E.minElevation, "engine sun " .. el .. " deg below the threshold at game " .. g)
+			local dGame = (g - prevGame) % 24
+			local dEngine = (e - prev) % 24
+			if dEngine > dGame + 1e-9 then
+				-- the jump: ONE write between the two holds (no deep-night ClockTime is ever rendered), in full
+				-- night, under the exposure dip, while no sun-following sky is up to spin
+				jumps += 1
+				t.near(prev, E.eveningHold, 1e-9, "jumps from the evening hold")
+				t.near(e, E.morningHold, 1e-9, "... straight to the morning hold")
+				t.eq(L.nightFactorAt(prevGame), 1, "full night before the jump")
+				t.eq(L.nightFactorAt(g), 1, "full night after the jump")
+				t.ok(L.swapDipAt(g) >= 0.9 * Look.SkySwap.exposureDip, "the jump is under the exposure dip")
+				t.eq(Look.Skies[L.skyAt(g)].followSun, false, "a fixed sky is up at the jump")
+			else
+				t.ok(dEngine <= dGame + 1e-9, "the engine clock never outruns the game clock at " .. g)
+			end
+			prevGame, prev = g, e
+		end
+		t.eq(jumps, 1, "exactly one jump per cycle")
+		t.ok(minEl > -4, "deepest engine sun of the cycle ~-3 deg: " .. minEl)
+		-- whenever the game says lights on, the engine sun is down (and the lamps make sense)
+		for h = 0, 23.95, 0.05 do
+			if L.nightFactorAt(h) >= Look.Night.lightsOn then
+				t.ok(L.sunElevationAt(L.engineClockAt(h)) < 0, "lights on with the engine sun up at " .. h)
+			end
+		end
+	end)
+
 	-- Sky schedule -----------------------------------------------------------------------------------------------------
-	t.test("sky schedule: sorted, every sky exists, right sky at the right time, wraps", function()
+	t.test("sky schedule: sorted, every sky exists, right sky at the right game hour, wraps", function()
 		local sched = Look.SkySchedule
 		for i = 2, #sched do
 			t.ok(sched[i - 1].hour < sched[i].hour, "schedule sorted")
@@ -172,10 +337,10 @@ return function(t)
 			t.ok(Look.Skies[e.sky] ~= nil, "schedule names a generated sky: " .. e.sky)
 		end
 		t.eq(L.skyAt(12), "day")
-		t.eq(L.skyAt(17), "golden")
-		t.eq(L.skyAt(7), "golden")
+		t.eq(L.skyAt(17.3), "day", "golden hour: golden light under the day sky")
+		t.eq(L.skyAt(7), "day")
 		t.eq(L.skyAt(18.8), "blue")
-		t.eq(L.skyAt(5.5), "blue")
+		t.eq(L.skyAt(5.3), "blue")
 		t.eq(L.skyAt(23), "night")
 		t.eq(L.skyAt(1), "night", "wraps over midnight")
 		t.eq(L.skyAt(sched[1].hour - 0.01), sched[#sched].sky, "before the first entry = the last sky")
@@ -187,64 +352,64 @@ return function(t)
 		end
 		local dt, nextSky = L.nextSkySwap(12)
 		t.near(dt, afterNoon.hour - 12, 1e-9)
-		t.eq(nextSky, "golden")
+		t.eq(nextSky, "blue")
 		local dt2, nextSky2 = L.nextSkySwap(23)
 		t.near(dt2, sched[1].hour + 1, 1e-9, "next swap wraps")
 		t.eq(nextSky2, sched[1].sky)
 	end)
 
-	t.test("sky swaps happen where they are hard to see", function()
-		for _, e in Look.SkySchedule do
+	t.test("sky swaps: few, never day <-> golden, engine sun below the horizon, under an exposure dip", function()
+		local sched = Look.SkySchedule
+		t.ok(#sched <= 4, "at most four swaps a day (was six)")
+		for _, e in sched do
 			local before = L.skyAt(e.hour - 0.01)
-			local after = e.sky
-			local pair = before .. ">" .. after
-			if pair == "night>blue" or pair == "blue>night" then
-				t.ok(L.nightFactorAt(e.hour) >= 0.5, pair .. " swaps in the dark (NightFactor)")
+			local pair = before .. ">" .. e.sky
+			t.ok(before ~= e.sky, "a real swap at " .. e.hour)
+			-- lab round 2 S3: day <-> golden pops visibly and cannot be hidden with the sun up
+			t.ok(pair ~= "day>golden" and pair ~= "golden>day", "no day <-> golden swap")
+			-- every swap with the ENGINE sun below the horizon (what the engine renders, not the game hour)
+			local el = L.sunElevationAt(L.engineClockAt(e.hour))
+			t.ok(el <= -1 and el >= Look.EngineClock.minElevation, pair .. " engine sun " .. el .. " at the swap")
+			if before == "night" or e.sky == "night" then
+				t.ok(L.nightFactorAt(e.hour) >= 0.9, pair .. " swaps in the dark")
 			end
-			if before == "blue" or after == "blue" then
-				-- blue-hour swaps happen with the sun below the horizon (Look.Sun: measured sunrise / sunset)
-				t.ok(
-					e.hour <= Look.Sun.rise or e.hour >= Look.Sun.set,
-					pair .. " swaps with the sun below the horizon at " .. e.hour
-				)
-				t.ok(L.sunElevationAt(e.hour) <= 0, pair .. " sun elevation <= 0 at " .. e.hour)
-			end
-			if pair == "golden>day" or pair == "day>golden" then
-				-- the golden HDRI (its own sun at ~8 deg) must not sit under a high engine sun ("two suns"), and the
-				-- day sky must not show a sun skimming the horizon
-				local el = L.sunElevationAt(e.hour)
-				t.ok(el >= 15 and el <= 20, pair .. " at sun elevation 15..20 deg, got " .. el)
-				local look = L.lookAt(e.hour)
-				local g = if e.hour < 12 then Look.Presets.goldenMorning else Look.Presets.goldenEvening
-				local d = Look.Presets.day
-				local share = (look.colorCorrection.tint[3] - d.colorCorrection.tint[3])
-					/ (g.colorCorrection.tint[3] - d.colorCorrection.tint[3])
-				t.ok(share >= 0.6, pair .. ": the light is still mostly golden at the swap (" .. share .. ")")
-			end
-			-- every swap sits on a haze bump (capped)
-			t.ok(L.swapHazeAt(e.hour) >= Look.SkySwap.hazeBoost - 1e-9, "haze bump at " .. pair)
-			local look = L.lookAt(e.hour)
-			t.ok(look.atmosphere.haze <= Look.Caps.hazeMax + 1e-9, "bump stays under the cap at " .. pair)
+			-- masked: the full exposure dip at the swap
+			t.near(L.swapDipAt(e.hour), Look.SkySwap.exposureDip, 1e-6, "exposure dip at " .. pair)
 		end
-		t.ok(L.swapHazeAt(12) < 0.01, "no bump at noon")
-		-- the blue-hour sky only shows while it is getting dark / light
-		for h = 0, 23.9, 0.1 do
-			if L.skyAt(h) == "blue" then
-				local f = L.nightFactorAt(h)
-				t.ok(f > 0 and f < 1 or (h > 18 and h < 19.6) or (h > 4.8 and h < 6.4), "blue sky at twilight " .. h)
+		t.ok(L.swapDipAt(12) < 1e-6, "no dip at noon")
+		t.near(L.swapDipAt(Look.EngineClock.jumpHour), Look.SkySwap.exposureDip, 1e-6, "the engine jump is masked too")
+		-- the dips are short: gone 3 widths away from every swap and the jump
+		local marks = { Look.EngineClock.jumpHour }
+		for _, e in sched do
+			table.insert(marks, e.hour)
+		end
+		for h = 0, 23.95, 0.05 do
+			local near = math.huge
+			for _, m in marks do
+				local d = math.abs(h - m)
+				near = math.min(near, d, 24 - d)
 			end
-			if L.skyAt(h) == "day" then
-				t.eq(L.nightFactorAt(h), 0, "day sky only in daylight " .. h)
-				t.ok(L.sunElevationAt(h) >= 18, "day sky only with the sun up high " .. h)
-			end
-			if L.skyAt(h) == "golden" then
-				local el = L.sunElevationAt(h)
-				t.ok(el > -2 and el < 19, "golden sky only with a low sun " .. h .. " (" .. el .. ")")
-			end
-			if L.skyAt(h) == "night" or L.skyAt(h) == "blue" then
-				t.ok(L.sunElevationAt(h) < 0, "blue / night sky only with the sun down " .. h)
+			if near > 3 * Look.SkySwap.width then
+				t.ok(L.swapDipAt(h) < 0.01, "no dip away from the swaps at " .. h)
 			end
 		end
+		-- the sky over the cycle
+		for h = 0, 23.95, 0.05 do
+			local sky = L.skyAt(h)
+			local el = L.sunElevationAt(L.engineClockAt(h))
+			t.ok(sky ~= "golden", "golden is not scheduled at " .. h)
+			if sky == "day" then
+				t.ok(el >= -2, "day sky only around a risen engine sun at " .. h .. " (" .. el .. ")")
+			elseif sky == "blue" then
+				t.ok(el < 0, "blue sky only with the engine sun down at " .. h)
+				t.ok(L.nightFactorAt(h) > 0, "blue sky only at twilight at " .. h)
+			elseif sky == "night" then
+				t.ok(L.nightFactorAt(h) >= 0.9, "night sky only in the dark at " .. h)
+				t.ok(el < 0, "night sky with the engine sun down at " .. h)
+			end
+		end
+		-- the golden faces are still generated (Look.Skies), just not scheduled
+		t.ok(Look.Skies.golden ~= nil, "golden sky kept in the generated data")
 	end)
 
 	-- Sun model (measured in the real engine) --------------------------------------------------------------------------
@@ -274,7 +439,13 @@ return function(t)
 		end
 		t.near(L.cloudScaleAt(12), Look.Skies.day.clouds, 1e-9, "day sky share at noon")
 		t.near(L.cloudScaleAt(1), Look.Skies.night.clouds, 1e-9, "night share")
-		local blueMid = (Look.SkySchedule[5].hour + Look.SkySchedule[6].hour) / 2
+		local sched = Look.SkySchedule
+		local blueMid
+		for i, e in sched do
+			if e.sky == "blue" and e.hour > 12 then
+				blueMid = (e.hour + sched[i % #sched + 1].hour) / 2
+			end
+		end
 		t.near(L.cloudScaleAt(blueMid), Look.Skies.blue.clouds, 1e-9, "blue share mid blue hour")
 		local prev = L.cloudScaleAt(0)
 		for s = 1, L.CYCLE_SECONDS do
@@ -290,20 +461,27 @@ return function(t)
 		t.near(L.stepYaw(10, 12, 3), 12, 1e-9, "reaches the target")
 		t.near(L.stepYaw(178, -178, 3), -179, 1e-9, "short way round across +-180")
 		t.near(L.stepYaw(0, 90, math.huge), 90, 1e-9, "huge step snaps")
-		-- simulate the day sky from its swap to the golden swap at the clock rate
+		-- simulate the day sky from its swap to the next swap at the clock rate, under the ENGINE sun
 		local def = Look.Skies.day
 		local dtTick = Look.Cycle.clockInterval
 		local rate = Look.SkyStyle.maxYawRate
-		local t0 = L.timeForHour(Look.SkySchedule[3].hour)
-		local x, _, z = L.sunDirectionAt(L.hourAt(t0))
+		local sched = Look.SkySchedule
+		local dayFrom, dayTo
+		for i, e in sched do
+			if e.sky == "day" then
+				dayFrom, dayTo = e.hour, sched[i % #sched + 1].hour
+			end
+		end
+		local t0 = L.timeForHour(dayFrom)
+		local x, _, z = L.sunDirectionAt(L.engineClockAt(L.hourAt(t0)))
 		local cur = L.skyYaw(def.glowAzimuth, x, z)
 		local maxStep, maxTargetStep = 0, 0
 		local prevTarget = cur
-		local tEnd = L.timeForHour(Look.SkySchedule[4].hour)
+		local tEnd = L.timeForHour(dayTo)
 		local s = t0
 		while s < tEnd do
 			s += dtTick
-			local sx, _, sz = L.sunDirectionAt(L.hourAt(s))
+			local sx, _, sz = L.sunDirectionAt(L.engineClockAt(L.hourAt(s)))
 			local target = L.skyYaw(def.glowAzimuth, sx, sz)
 			maxTargetStep = math.max(maxTargetStep, math.abs(L.wrapDeg(target - prevTarget)))
 			prevTarget = target
@@ -342,6 +520,7 @@ return function(t)
 				local p = L.windowParams(137.25 + i * 6, 14 + j * 12, -402.5)
 				n += 1
 				t.ok(p.threshold >= W.onBand[1] and p.threshold <= W.onBand[2], "threshold in band")
+				t.ok(p.level >= 0 and p.level < 1, "level in 0..1")
 				t.ok(p.brightness >= W.brightness[1] and p.brightness <= W.brightness[2], "brightness in range")
 				if p.lit then
 					lit += 1
@@ -366,6 +545,73 @@ return function(t)
 		t.eq(L.windowParams(10.1, 20, 30).threshold, a.threshold, "half-stud rounding absorbs float noise")
 		t.ok(L.windowParams(16, 20, 30).threshold ~= a.threshold, "neighbours differ")
 		t.ok(W.onBand[2] <= 1 and W.onBand[1] > 0, "all lit windows are on by full night, none at day")
+		-- dim (lab round 2 S6): Neon only on small cells and only at colour x <= 0.4; bigger parts never Neon
+		t.ok(W.brightness[2] <= 0.4, "Neon window brightness <= 0.4 (was 0.55-1.0: glowing slabs)")
+		t.ok(W.facadeMaterial ~= "Neon", "facade-sized parts are never lit as Neon")
+		t.ok(W.maxNeonArea >= 6 * 12 and W.maxNeonArea < 200, "a window cell fits, a facade band does not")
+		t.eq(L.largestFaceArea(H.roblox.Vector3.new(6, 12, 0.5)), 72)
+		t.eq(L.largestFaceArea(H.roblox.Vector3.new(1, 12, 40)), 480)
+	end)
+
+	t.test("windowEmissive: dim lit-window helper + config for the building package", function()
+		local E = Look.Night.windowEmissive
+		local W = Look.Windows
+		t.ok(E.material == "SmoothPlastic" or E.material == "Glass", "recommended cell material is not Neon")
+		t.ok(E.neonFactor[1] >= 0.25 - 1e-9 and E.neonFactor[2] <= 0.4 + 1e-9, "Neon only at lab S6's 0.25-0.4")
+		t.ok(E.factor[1] < E.factor[2] and E.factor[2] <= 1, "factor range")
+		t.ok(E.litFraction >= 0.3 and E.litFraction <= 0.5, "lab S6: ~35 % lit reads fine")
+		t.near(E.warmShare, 0.7, 1e-9, "70 / 30 warm / cool reads correctly (lab S6)")
+		t.ok(E.fadeIn[1] > 0 and E.fadeIn[2] <= 1 and E.fadeIn[1] < E.fadeIn[2], "fades in over dusk")
+		-- the LitWindow system uses the same pick, share, colours and dim factors
+		t.eq(W.share, E.litFraction)
+		t.eq(W.warmShare, E.warmShare)
+		t.eq(W.brightness, E.neonFactor)
+		t.eq(W.facadeMaterial, E.material)
+		t.eq(W.maxNeonArea, E.maxNeonArea)
+		-- the helper over a facade grid of cells
+		local dayColor = Color3.fromRGB(40, 48, 56)
+		local black = Color3.new(0, 0, 0)
+		local n, lit, warm = 0, 0, 0
+		local sample
+		for i = 0, 39 do
+			for j = 0, 29 do
+				local x, y, z = 52.5 + i * 6, 8 + j * 12, 311
+				local isLit, cDay = L.windowEmissiveColor(x, y, z, 0, dayColor)
+				local isLit2, cNight = L.windowEmissiveColor(x, y, z, 1, dayColor)
+				local _, cMid = L.windowEmissiveColor(x, y, z, (E.fadeIn[1] + E.fadeIn[2]) / 2, dayColor)
+				n += 1
+				t.eq(isLit, isLit2, "lit is per cell, not per NightFactor")
+				t.eq(isLit, L.windowParams(x, y, z).lit, "same pick as the LitWindow system")
+				t.eq(cDay, dayColor, "every cell shows its day colour by day")
+				if isLit then
+					lit += 1
+					t.ok(cNight ~= dayColor, "a lit cell changes at night")
+					local p = L.windowParams(x, y, z)
+					local k = E.factor[1] + (E.factor[2] - E.factor[1]) * p.level
+					local base = if p.warm then E.warm else E.cool
+					t.near(cNight.R, base[1] / 255 * k, 1e-6, "night colour = warm/cool x factor (R)")
+					t.near(cNight.B, base[3] / 255 * k, 1e-6, "night colour = warm/cool x factor (B)")
+					-- faded in by NightFactor: half way it sits between the day and the night colour
+					t.ok(math.abs(cMid.R - dayColor.R) < math.abs(cNight.R - dayColor.R) + 1e-9, "fade (R)")
+					if p.warm then
+						warm += 1
+						sample = sample or { x, y, z }
+					end
+				else
+					t.eq(cNight, dayColor, "an unlit cell keeps its day colour at night")
+				end
+			end
+		end
+		t.near(lit / n, E.litFraction, 0.04, "lit share of cells")
+		t.near(warm / lit, E.warmShare, 0.06, "warm share among lit cells")
+		-- default day colour is black; Neon gets the dim range
+		local x, y, z = sample[1], sample[2], sample[3]
+		local _, soft = L.windowEmissiveColor(x, y, z, 1)
+		local _, neon = L.windowEmissiveColor(x, y, z, 1, nil, "Neon")
+		local _, dark = L.windowEmissiveColor(x, y, z, 0)
+		t.eq(dark, black, "no day colour: black by day")
+		t.ok(neon.R < soft.R, "Neon cells are dimmer than SmoothPlastic / Glass cells")
+		t.ok(math.max(neon.R, neon.G, neon.B) <= E.neonFactor[2] + 1e-6, "a Neon cell stays at colour x <= 0.4")
 	end)
 
 	-- Wet streets -----------------------------------------------------------------------------------------------------
@@ -382,6 +628,7 @@ return function(t)
 	end)
 
 	t.test("sky yaw: puts the sky glow azimuth on the engine sun azimuth", function()
+		t.eq(Look.SkyStyle.yawSign, 1, "yawSign +1 is engine-verified (lab round 2 S0: yaw 0 shows Ft, 90 shows Lf)")
 		t.near(L.azimuthOf(0, -1), 0, 1e-9, "-Z = 0")
 		t.near(L.azimuthOf(1, 0), 90, 1e-9, "+X = 90")
 		t.near(math.abs(L.azimuthOf(0, 1)), 180, 1e-9, "+Z = 180")
@@ -527,8 +774,12 @@ return function(t)
 		t.near(p.OutdoorAmbient[1] * 255, day.outdoorAmbient[1], 0.6)
 		local a = lt.Atmosphere["$properties"]
 		t.near(a.Density, day.atmosphere.density, 1e-6)
-		t.near(a.Haze, day.atmosphere.haze, 1e-6)
 		t.near(a.Offset, day.atmosphere.offset, 1e-6)
+		-- The place file's Atmosphere is only the edit-mode / first-frame value: LightingService.init writes the preset
+		-- (and dedupes Rojo's leftovers). The day Haze lock (0.9 -> 0.8, lab round 2) reaches the file on the next
+		-- `python3 tools/look/gen_project.py` from the branch that owns default.project.json; until then allow 0.1.
+		t.ok(math.abs(a.Haze - day.atmosphere.haze) <= 0.1 + 1e-6, "place-file day Haze near the locked preset")
+		t.ok(a.Haze <= Look.Caps.hazeMax, "place-file Haze within the lab cap")
 		t.eq(lt.Bloom["$className"], "BloomEffect")
 		t.eq(lt.ColorCorrection["$className"], "ColorCorrectionEffect")
 		t.eq(lt.SunRays["$className"], "SunRaysEffect")
@@ -543,12 +794,19 @@ return function(t)
 	end)
 
 	-- Client sky preload -----------------------------------------------------------------------------------------------
-	t.test("LookClient: preloads every sky face, the sky that comes up next first", function()
+	t.test("LookClient: preloads every scheduled sky face, the sky that comes up next first", function()
 		H.setMode("client")
 		local LookClient = H.require("src/client/Controllers/LookClient")
 		H.setMode("server")
+		local scheduled, nScheduled = {}, 0
+		for _, e in Look.SkySchedule do
+			if not scheduled[e.sky] then
+				scheduled[e.sky] = true
+				nScheduled += 1
+			end
+		end
 		local order = LookClient.skyOrder("day")
-		t.eq(order[1], "golden", "after day comes golden")
+		t.eq(order[1], "blue", "after day comes blue (dusk)")
 		t.eq(order[#order], "day", "the sky already on screen goes last")
 		local seen = {}
 		for _, name in order do
@@ -556,15 +814,14 @@ return function(t)
 			seen[name] = true
 		end
 		for name in Look.Skies do
-			t.ok(seen[name], "every sky preloaded: " .. name)
+			t.eq(seen[name] == true, scheduled[name] == true, "preloaded iff scheduled: " .. name)
 		end
+		t.eq(seen.golden, nil, "the unscheduled golden sky is not preloaded")
 		local ids = LookClient.skyAssetList("night")
-		local want = 0
-		for _ in Look.Skies do
-			want += 6
-		end
-		t.eq(#ids, want, "six faces per sky")
+		t.eq(#ids, 6 * nScheduled, "six faces per scheduled sky")
 		t.eq(ids[1], Look.Skies.blue.faces.Bk, "night -> blue first")
-		t.eq(#LookClient.skyOrder(nil), #order, "unknown current sky: all skies")
+		t.eq(#LookClient.skyOrder(nil), nScheduled, "unknown current sky: every scheduled sky")
+		local fromGolden = LookClient.skyOrder("golden")
+		t.eq(fromGolden[#fromGolden], "golden", "a sky already on screen goes last even if unscheduled")
 	end)
 end

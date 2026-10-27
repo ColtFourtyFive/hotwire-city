@@ -404,7 +404,9 @@ return function(t)
 		t.eq(L.isNight(), true)
 		t.eq(Lighting:GetAttribute("IsNight"), true)
 		t.eq(fired, true, "NightChanged fired")
-		t.ok(math.abs(Lighting.ClockTime - 22) < 0.1, "clock jumped")
+		t.ok(math.abs(L.getClockTime() - 22) < 0.1, "game clock jumped")
+		-- Lighting.ClockTime is the ENGINE clock, held near the evening horizon at night (Config/Look.EngineClock)
+		t.ok(math.abs(Lighting.ClockTime - L.engineClockAt(22)) < 0.01, "engine clock held near the horizon")
 		for _, p in CollectionService:GetTagged("StreetLight") do
 			local pl = p:FindFirstChildOfClass("PointLight")
 			if pl then

@@ -1,7 +1,8 @@
 --!strict
--- Config/Look: the v2 "look" (docs/v2/PLAN.md decision 3, research/lighting_lab.md, research/gta_realism_gap.md).
+-- Config/Look: the v2 "look" (docs/v2/PLAN.md decision 3, research/lighting_lab.md rounds 1 + 2,
+-- research/gta_realism_gap.md).
 --
--- * Day cycle, lighting presets, sky schedule and night thresholds for LightingService (server).
+-- * Day cycle, engine clock mapping, lighting presets, sky schedule and night thresholds for LightingService (server).
 -- * MaterialVariants, base-material overrides, decal images and sky faces (GENERATED block at the bottom, written by
 --   tools/look/gen_project.py from assets/materials + assets/sky manifests; the same data is baked into
 --   default.project.json MaterialService / Lighting.Sky, because MaterialVariant maps cannot be set by game scripts).
@@ -75,7 +76,8 @@ export type SkyDef = {
 export type WindowParams = {
 	lit: boolean, -- this window is one of the share that lights up at night
 	warm: boolean,
-	brightness: number,
+	level: number, -- 0..1: where this window sits in a brightness / factor range
+	brightness: number, -- Look.Windows.brightness at `level` (Neon colour multiplier)
 	threshold: number, -- NightFactor at which it switches on (and back off at dawn)
 }
 
@@ -118,7 +120,53 @@ Look.Sun = {
 	set = 18.0, -- elevation 0 (measured: +1.47 deg at 17.9, -1.47 at 18.1)
 }
 
--- NightFactor (Workspace attribute, 0 = day .. 1 = night; smoothstep ramps) drives lit windows and street lights.
+-- Engine clock (lab round 2, job 0007 S2): the engine blacks out ANY skybox once its sun is well below the horizon:
+-- pure black at ClockTime 22.5, near-black and purple at 18.7 (sun -10 deg), while the same night sky at 14.2 shows
+-- moonlit clouds and a warm city glow. So the GAME time of day (the 24-minute cycle, Workspace "TimeOfDay",
+-- NightFactor, street lights, windows) is decoupled from Lighting.ClockTime:
+--   * by day the engine clock IS the game clock (from morningHold + ease / 2 to eveningHold - ease / 2: 6.45 h to
+--     17.55 h with the values below);
+--   * from the late golden hour it eases into eveningHold (C1: the sun slows smoothly to a stop, never a visible halt)
+--     and stays there through the first half of the night;
+--   * at jumpHour (full night, NightFactor 1, under a Look.SkySwap exposure dip) it jumps to morningHold in ONE write,
+--     so the engine never renders a deep-night sun in between (both holds put the sun at -3 deg);
+--   * it eases back onto the game clock after dawn.
+-- Night darkness is faked by the night presets (ExposureCompensation, Ambient / OutdoorAmbient, a cool desaturated
+-- ColorCorrection) and the night HDRI stays visible. Live override for labs: Workspace "EngineClockOverride" (hours).
+Look.EngineClock = {
+	eveningHold = 18.2, -- engine sun -3.0 deg toward -X (west); lab rule: hold at ~18.0-18.3
+	morningHold = 5.8, -- engine sun -3.0 deg toward +X (east); lab rule: ~5.7-6.0
+	ease = 1.3, -- game hours over which the engine clock eases into / out of a hold
+	jumpHour = 0, -- game hour of the evening -> morning hold jump (midnight: NightFactor 1 on both sides)
+	minElevation = -5, -- deg: the engine sun never goes below this (tested over the whole cycle)
+}
+
+-- NightFactor (Workspace attribute, 0 = day .. 1 = night; smoothstep ramps over the GAME hour) drives lit windows and
+-- street lights.
+--
+-- windowEmissive: guidance + data for the building package's lit windows (lab round 2 S6: Neon at colour x 0.55-1.0
+-- under the night Bloom turned ribbon windows into glowing slabs and lit whole towers as glowing columns):
+--   * light individual window CELLS (one part / one grid cell per window), never a whole facade, ribbon or tower part;
+--   * pick the lit cells at random (litFraction; LightingService.windowParams gives a deterministic per-position pick,
+--     the same one the LitWindow system uses), warm / cool 70 / 30 (reads correctly in the lab);
+--   * a dim surface that cannot bloom: `material` (SmoothPlastic, or Glass) with colour = warm / cool x factor, faded
+--     in by NightFactor over fadeIn (LightingService.windowEmissiveColor). These materials are not self-lit, so a lit
+--     cell never blooms into a slab: it reads as a warm / cool panel among dark glass, brightened by the street lamps;
+--   * Neon only for small cells (a panel behind glass, <= maxNeonArea studs^2 face) and only at neonFactor, which keeps
+--     the cell under the night Bloom threshold (Look.Presets.night.bloom). LightingService applies the same rule to
+--     the parts it lights ("LitWindow" + adopted v1 glass): bigger parts get `material`, never Neon.
+local WindowEmissive = {
+	material = "SmoothPlastic",
+	litFraction = 0.4, -- lab S6: ~35 % lit "is fine"
+	warmShare = 0.7,
+	warm = { 255, 196, 136 },
+	cool = { 214, 226, 255 },
+	factor = { 0.75, 1.0 }, -- colour multiplier range at full night for `material` (not self-lit: needs a bright colour)
+	neonFactor = { 0.25, 0.4 }, -- colour multiplier range if a small cell is Neon (lab S6: 0.25-0.4, not 0.55-1.0)
+	fadeIn = { 0.15, 0.9 }, -- NightFactor range over which a lit cell's colour fades in from its day colour
+	maxNeonArea = 80, -- studs^2 (largest face): a 6 x 12 window cell is 72; facade bands / towers are far bigger
+}
+
 Look.Night = {
 	duskStart = 17.9,
 	duskFull = 19.4,
@@ -126,6 +174,7 @@ Look.Night = {
 	dawnEnd = 6.3,
 	lightsOn = 0.5, -- v1 contract (StreetLight / NightGlow tags, Lighting "IsNight") switches here ...
 	hysteresis = 0.05, -- ... with this much hysteresis
+	windowEmissive = WindowEmissive,
 }
 
 -- Hard limits from lighting lab round 1 (aerial views drown above ~0.35 density; the brown wall was Haze 2.05).
@@ -134,14 +183,33 @@ Look.Caps = {
 	hazeMax = 1.2,
 }
 
--- Lab round 2 (studio/jobs/0007) settles these. offset = nil keeps each preset's own Atmosphere.Offset.
--- Live overrides in Play mode: Workspace attributes "AtmosphereOffsetOverride" (number) and "TimeOfDayLock" (hour).
+-- LOCKED by lab round 2 (job 0007 S1) for the sunlit presets (day, goldenMorning, goldenEvening): Offset made no
+-- visible difference at Density 0.27 (captures at Offset 0 and 1.0 were pixel-identical), and Haze 0.8 + Offset 0.25
+-- was the best pair (hazy but readable, white-grey horizon; Haze 1.2 greys the lower sky). Do not tune these again.
+-- The blue-hour and night presets keep the same Offset and their own (lower) Haze.
+Look.AtmosphereLock = {
+	offset = 0.25,
+	haze = 0.8,
+}
+
+-- offset = nil keeps each preset's own Atmosphere.Offset (the lock above). Live overrides in Play mode: Workspace
+-- attributes "AtmosphereOffsetOverride" (number) and "TimeOfDayLock" (game hour).
 export type Tuning = { offset: number?, hazeScale: number, densityScale: number }
 Look.Tuning = { hazeScale = 1, densityScale = 1 } :: Tuning
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Presets (lab-calibrated: day_clear is the base; neutral warm-grey haze by day, desaturated navy-grey at night)
+--
+-- Blue hour and night are FAKED (Look.EngineClock): the engine sun is held at -3 deg, which the engine renders as
+-- early twilight, so these presets supply the darkness themselves: negative ExposureCompensation, a dim key light
+-- (Brightness: the engine's light at a -3 deg sun / low moon), low cool Ambient / OutdoorAmbient (they darken the
+-- world but not the sky, so the night HDRI stays readable) and a cool, slightly desaturated ColorCorrection. The old
+-- blue hour (exposure +0.28, mauve haze (132, 130, 142) at a -10 deg engine sun) rendered near-black and purple;
+-- these haze / decay / cloud colours are neutral blue-grey with red never above green (no magenta, tested).
+-- Starting values for the next lab round; the structure (what fakes the night) is the binding part.
 ---------------------------------------------------------------------------------------------------------------------
+
+local LOCK = Look.AtmosphereLock
 
 local Presets: { [string]: Preset } = {
 	day = {
@@ -152,8 +220,8 @@ local Presets: { [string]: Preset } = {
 		shadowSoftness = 0.12,
 		atmosphere = {
 			density = 0.27,
-			offset = 0.25,
-			haze = 0.9,
+			offset = LOCK.offset,
+			haze = LOCK.haze,
 			glare = 0.25,
 			color = { 200, 199, 194 },
 			decay = { 128, 130, 134 },
@@ -171,8 +239,8 @@ local Presets: { [string]: Preset } = {
 		shadowSoftness = 0.16,
 		atmosphere = {
 			density = 0.27,
-			offset = 0.28,
-			haze = 1.0,
+			offset = LOCK.offset,
+			haze = LOCK.haze,
 			glare = 0.45,
 			color = { 226, 214, 196 },
 			decay = { 124, 124, 134 },
@@ -190,8 +258,8 @@ local Presets: { [string]: Preset } = {
 		shadowSoftness = 0.18,
 		atmosphere = {
 			density = 0.27,
-			offset = 0.3,
-			haze = 1.05,
+			offset = LOCK.offset,
+			haze = LOCK.haze,
 			glare = 0.55,
 			color = { 234, 212, 184 },
 			decay = { 128, 124, 140 },
@@ -202,68 +270,70 @@ local Presets: { [string]: Preset } = {
 		clouds = { cover = 0.34, density = 0.45, color = { 255, 226, 200 } },
 	},
 	blueMorning = {
-		brightness = 1.4,
-		exposure = 0.25,
-		ambient = { 12, 13, 18 },
-		outdoorAmbient = { 84, 90, 108 },
-		shadowSoftness = 0.25,
-		atmosphere = {
-			density = 0.25,
-			offset = 0.2,
-			haze = 0.8,
-			glare = 0.1,
-			color = { 122, 128, 144 },
-			decay = { 72, 76, 92 },
-		},
-		bloom = { intensity = 0.85, size = 30, threshold = 1.25 },
-		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.02, tint = { 242, 245, 255 } },
-		sunRays = { intensity = 0.02, spread = 0.6 },
-		clouds = { cover = 0.3, density = 0.4, color = { 132, 134, 148 } },
-	},
-	blueEvening = {
-		brightness = 1.3,
-		exposure = 0.28,
-		ambient = { 12, 12, 17 },
-		outdoorAmbient = { 88, 88, 104 },
-		shadowSoftness = 0.25,
-		atmosphere = {
-			density = 0.25,
-			offset = 0.2,
-			haze = 0.8,
-			glare = 0.1,
-			color = { 132, 130, 142 },
-			decay = { 74, 74, 90 },
-		},
-		bloom = { intensity = 0.9, size = 30, threshold = 1.2 },
-		colorCorrection = { brightness = 0, contrast = 0.13, saturation = -0.02, tint = { 244, 244, 255 } },
-		sunRays = { intensity = 0.02, spread = 0.6 },
-		clouds = { cover = 0.32, density = 0.42, color = { 128, 126, 140 } },
-	},
-	night = {
-		brightness = 1.0,
-		exposure = 0.3,
-		ambient = { 8, 9, 12 },
-		outdoorAmbient = { 50, 56, 70 },
+		brightness = 0.9,
+		exposure = -0.1,
+		ambient = { 10, 11, 15 },
+		outdoorAmbient = { 78, 86, 102 },
 		shadowSoftness = 0.3,
 		atmosphere = {
-			density = 0.22,
-			offset = 0.15,
-			haze = 0.5,
-			glare = 0,
-			color = { 46, 52, 64 },
-			decay = { 22, 24, 32 },
+			density = 0.25,
+			offset = LOCK.offset,
+			haze = 0.7,
+			glare = 0.1,
+			color = { 116, 124, 138 },
+			decay = { 66, 72, 86 },
 		},
-		bloom = { intensity = 1.0, size = 30, threshold = 1.05 },
-		colorCorrection = { brightness = 0, contrast = 0.15, saturation = -0.05, tint = { 236, 240, 255 } },
+		bloom = { intensity = 0.7, size = 28, threshold = 1.3 },
+		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.05, tint = { 240, 244, 255 } },
+		sunRays = { intensity = 0.02, spread = 0.6 },
+		clouds = { cover = 0.3, density = 0.4, color = { 124, 130, 142 } },
+	},
+	blueEvening = {
+		brightness = 0.8,
+		exposure = -0.15,
+		ambient = { 10, 11, 15 },
+		outdoorAmbient = { 80, 86, 100 },
+		shadowSoftness = 0.3,
+		atmosphere = {
+			density = 0.25,
+			offset = LOCK.offset,
+			haze = 0.7,
+			glare = 0.1,
+			color = { 120, 124, 134 },
+			decay = { 68, 72, 84 },
+		},
+		bloom = { intensity = 0.75, size = 28, threshold = 1.25 },
+		colorCorrection = { brightness = 0, contrast = 0.13, saturation = -0.05, tint = { 242, 244, 255 } },
+		sunRays = { intensity = 0.02, spread = 0.6 },
+		clouds = { cover = 0.32, density = 0.42, color = { 120, 124, 136 } },
+	},
+	night = {
+		brightness = 0.4, -- the held engine sun / low moon: a faint key light, faint long shadows
+		exposure = -0.3, -- the fake night (the engine at -3 deg only renders twilight); lamps + windows still read
+		ambient = { 6, 7, 10 },
+		outdoorAmbient = { 40, 46, 60 },
+		shadowSoftness = 0.45,
+		atmosphere = {
+			density = 0.2,
+			offset = LOCK.offset,
+			haze = 0.35, -- thin: the night HDRI's moonlit clouds and city-glow band stay visible above the haze
+			glare = 0,
+			color = { 40, 43, 50 },
+			decay = { 20, 22, 27 },
+		},
+		-- threshold up / intensity down from 1.05 / 1.0: lit windows no longer bloom into slabs (lab round 2 S6)
+		bloom = { intensity = 0.7, size = 26, threshold = 1.25 },
+		colorCorrection = { brightness = 0, contrast = 0.14, saturation = -0.12, tint = { 228, 236, 255 } },
 		sunRays = { intensity = 0, spread = 0.5 },
-		clouds = { cover = 0.3, density = 0.4, color = { 52, 56, 68 } },
+		clouds = { cover = 0.3, density = 0.4, color = { 48, 52, 62 } },
 	},
 }
 Look.Presets = Presets
 
--- Keyframes (sorted, 0 and 24 are the same preset so midnight wraps). Between keys LightingService smoothsteps.
--- Golden keys sit at sun elevation ~10 deg and the day plateau starts/ends at ~38-42 deg (mirror images around noon:
--- 6.7 / 17.3 and 8.6 / 15.4), so the light is mostly golden while the golden sky is up (sun below ~18 deg).
+-- Keyframes in GAME hours (sorted, 0 and 24 are the same preset so midnight wraps). Between keys LightingService
+-- smoothsteps. Golden keys sit at sun elevation ~10 deg and the day plateau starts/ends at ~38-42 deg (mirror images
+-- around noon: 6.7 / 17.3 and 8.6 / 15.4). At the blue keys (5.6 / 18.6) the engine sun is already below the horizon
+-- (Look.EngineClock puts the engine sunrise / sunset at game ~5.87 / ~18.13).
 Look.Keys = {
 	{ hour = 0, preset = "night" },
 	{ hour = 4.4, preset = "night" },
@@ -278,31 +348,42 @@ Look.Keys = {
 }
 
 ---------------------------------------------------------------------------------------------------------------------
--- Sky schedule: each entry holds until the next (wraps at 24). Swaps sit where the change is least visible: with the
--- sun below the horizon (blue <-> night, golden <-> blue) or under a short haze bump (day <-> golden). The golden
--- HDRI (its own sun at 8 deg) is only up while the engine sun is below ~18.4 deg (7.25 / 16.75 at latitude 34), so
--- its sunset glow never sits under a high sun ("two suns").
+-- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Four swaps a day, all with the ENGINE sun
+-- below the horizon, each under a short exposure dip (Look.SkySwap):
+--   night -> blue in the dark, blue -> day just before the engine sunrise, day -> blue just after the engine sunset,
+--   blue -> night in the dark.
+--
+-- No golden sky (decision after lab round 2 S3). The day <-> golden swap popped visibly: thin warm wisps <-> white
+-- cumulus, seen straight through a Haze 1.2 bump, and the facades shifted with it because the sky feeds ambient and
+-- specular light. A Sky cannot cross-fade, and that swap cannot be hidden: it has to happen with the sun UP (the
+-- golden HDRI paints its sun glow at 8 deg, so it must be up during the golden hour and must not sit under a high
+-- sun). Moving it to the horizon would leave golden up for a minute of twilight, add two more swaps and put an 8 deg
+-- glow over a set sun. So the day sky stays up from sunrise to sunset; the golden HOUR still comes from the presets
+-- (warm low key light, warm Atmosphere colour + glare tinting the horizon band, warm grade) under the milky,
+-- desaturated day dome. The golden faces stay in Look.Skies (generated) but are not scheduled or preloaded.
 ---------------------------------------------------------------------------------------------------------------------
 
 Look.SkySchedule = {
-	{ hour = 5.0, sky = "blue" },
-	{ hour = 5.95, sky = "golden" }, -- sun -0.7 deg, just before sunrise
-	{ hour = 7.25, sky = "day" }, -- sun 18.4 deg
-	{ hour = 16.75, sky = "golden" }, -- sun 18.4 deg
-	{ hour = 18.1, sky = "blue" }, -- sun -1.5 deg, just after sunset
-	{ hour = 19.5, sky = "night" },
+	{ hour = 5.0, sky = "blue" }, -- NightFactor 0.99; engine sun held at -3 deg
+	{ hour = 5.65, sky = "day" }, -- engine ClockTime 5.90: sun -1.5 deg, just before the engine sunrise
+	{ hour = 18.35, sky = "blue" }, -- engine ClockTime 18.10: sun -1.5 deg, just after the engine sunset
+	{ hour = 19.5, sky = "night" }, -- NightFactor 1
 }
 
+-- Mask for sky swaps and the engine-clock jump (Look.EngineClock.jumpHour): ExposureCompensation dips by up to
+-- exposureDip EV (gaussian over +-width game hours, ~20 real seconds at dusk), so the frame is slightly darker while
+-- the sky (and the sky-fed ambient) changes. The old haze bump is gone: lab round 2 saw the swap straight through it,
+-- and the day Haze is locked (Look.AtmosphereLock). Volumetric cloud cover also blends over +-width around a swap.
 Look.SkySwap = {
-	hazeBoost = 0.2, -- extra Atmosphere.Haze at a swap (still capped by Caps.hazeMax) ...
-	width = 0.3, -- ... gaussian width in game hours; volumetric cloud cover also blends over +-width
+	exposureDip = 0.2,
+	width = 0.25,
 }
 
 Look.SkyStyle = {
 	sunAngularSize = 10, -- real sun ~0.5 deg; 21 default reads storybook
 	moonAngularSize = 6,
-	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - target azimuth). +1 assumes the CFrame.Angles(0, y, 0)
-	-- convention; studio/jobs/0007 step S0 verifies it (flip to -1 if the glow ends up mirrored).
+	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - target azimuth), the CFrame.Angles(0, y, 0) convention.
+	-- CONFIRMED in the engine (lab round 2 S0, job 0007): yaw 0 shows Ft, yaw 90 shows Lf, nothing mirrored.
 	yawSign = 1,
 	-- A following sky turns at most this fast (deg per real second; reads as cloud drift). Near noon the engine sun's
 	-- azimuth sweeps ~70-80 deg per game hour (~1.2 deg/s: it passes 10.5 deg from the zenith), which would visibly
@@ -329,16 +410,22 @@ Look.WetStreets = {
 -- part's position picks whether it lights at all, warm or cool, its brightness and its own NightFactor threshold, so
 -- the city fills in over dusk instead of every window switching at once. Unlit or daytime: the part's DayColor /
 -- DayMaterial attributes (captured on first sight when missing). "LitWindowColor" (Color3) overrides the colour.
+-- Dim, per lab round 2 S6 (Look.Night.windowEmissive): small cells light as Neon at colour x 0.25-0.4 (under the
+-- night Bloom threshold); a part whose largest face exceeds maxNeonArea (a v1 facade band, ribbon or whole tower)
+-- lights as facadeMaterial at facadeBrightness instead, so it can never glow as a slab or a column.
 Look.Windows = {
 	tag = "LitWindow",
 	adoptGlassNightGlow = true,
-	share = 0.5, -- of windows that light up at all
-	warmShare = 0.7,
-	warm = { 255, 196, 136 },
-	cool = { 214, 226, 255 },
-	brightness = { 0.55, 1.0 }, -- colour multiplier range (Neon glow scales with the colour)
+	share = WindowEmissive.litFraction, -- of windows that light up at all
+	warmShare = WindowEmissive.warmShare,
+	warm = WindowEmissive.warm,
+	cool = WindowEmissive.cool,
+	brightness = WindowEmissive.neonFactor, -- Neon colour multiplier range (Neon glow scales with the colour)
 	onBand = { 0.15, 0.9 }, -- NightFactor range the per-window thresholds spread over
 	material = "Neon",
+	maxNeonArea = WindowEmissive.maxNeonArea,
+	facadeMaterial = WindowEmissive.material,
+	facadeBrightness = WindowEmissive.factor,
 	batch = 200, -- windows switched per frame
 }
 
@@ -352,8 +439,9 @@ Look.Water = {
 	waveSpeed = 10,
 }
 
--- Live overrides for Play-mode tuning / lab round 2 (Workspace attributes, read every env tick):
---   "TimeOfDayLock" (hours)  "AtmosphereOffsetOverride" (number)  "CloudsOverride" (multiplier on the cloud cover)
+-- Live overrides for Play-mode tuning / lab rounds (Workspace attributes, read every tick):
+--   "TimeOfDayLock" (game hours)  "EngineClockOverride" (engine ClockTime, e.g. to compare holds 18.0 .. 18.3)
+--   "AtmosphereOffsetOverride" (number)  "CloudsOverride" (multiplier on the cloud cover)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- BEGIN GENERATED (tools/look/gen_project.py) - do not edit by hand
