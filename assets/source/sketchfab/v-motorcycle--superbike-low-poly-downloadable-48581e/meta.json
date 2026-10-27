@@ -42,5 +42,70 @@
   "sha256": "0c721c20cb5c77ef370cb4d31ef86715edd5f363832a8e04da5dce20564222cf",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T17:02:39+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      28.1975,
+      103.7442,
+      53.7219
+    ],
+    "dims_m": [
+      28.198,
+      103.744,
+      53.722
+    ],
+    "front_evidence": "roof_offset=+0.10",
+    "flipped": true,
+    "mesh_objects": 16,
+    "triangles": 10473,
+    "materials": 16,
+    "material_names": [
+      "Disc_Brake_Material",
+      "Disc_Material",
+      "Exhaust_Pipe_Material",
+      "Fairing_Material",
+      "Glass_Material",
+      "Handlebar_Material",
+      "Lights_Material",
+      "Material",
+      "Material.002",
+      "Material.003",
+      "Material.004",
+      "Metal_Material",
+      "Rim_Material",
+      "Seat_Material",
+      "Tire_Material",
+      "Tire_Material.001"
+    ],
+    "textures": 15,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [
+      "Glass_Material"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Superbike_0",
+      "Superbike_1",
+      "Superbike_2",
+      "Superbike_3",
+      "Superbike_4",
+      "Superbike_5",
+      "Superbike_6",
+      "Superbike_7",
+      "Superbike_8",
+      "Superbike_9",
+      "Superbike_10",
+      "Superbike_11",
+      "Superbike_12",
+      "Superbike_13",
+      "Superbike_14",
+      "Superbike_15"
+    ],
+    "hidden_helpers": [],
+    "render_s": 18.9
+  }
 }
