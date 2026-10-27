@@ -41,5 +41,44 @@
   "sha256": "bbe709fe73d0c016677d35bca0388239c9f8f76cae02ff9f73f43de98d6bf6b7",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:13:05+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      10.5408,
+      167.6009,
+      32.243
+    ],
+    "dims_m": [
+      167.601,
+      10.541,
+      32.243
+    ],
+    "front_evidence": "upright_band",
+    "flipped": true,
+    "mesh_objects": 8,
+    "triangles": 13087,
+    "materials": 1,
+    "material_names": [
+      "sniper"
+    ],
+    "textures": 3,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "base_sniper_0",
+      "scope_sniper_0",
+      "boltback_sniper_0",
+      "bolt_sniper_0",
+      "release_sniper_0",
+      "trigger_sniper_0",
+      "mag_sniper_0",
+      "bullet_sniper_0"
+    ],
+    "render_s": 46.0
+  }
 }

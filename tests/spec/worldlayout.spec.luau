@@ -221,6 +221,9 @@ return function(t)
 				if math.abs(y1 - y2) < S.CLEARANCE - 2 then
 					bad += 1
 					first = first or ("%s x %s at (%d, %d) dy %.1f"):format(e1.name, e2.name, px, pz, math.abs(y1 - y2))
+					if _G.WL_VERBOSE then
+						print(("  crossing %s(%s, y %.1f) x %s(%s, y %.1f) at (%d, %d)"):format(e1.name, e1.class, y1, e2.name, e2.class, y2, px, pz))
+					end
 				end
 			end)
 		end

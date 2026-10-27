@@ -115,7 +115,7 @@ def sheet(ids, cell=(480, 270)):
         dims = o.get("dims_studs", {})
         cnt = o.get("counts", {})
         sec = " | BACKDOOR SCRIPT" if o.get("security", {}).get("flaggedScripts") else ""
-        title = f"{mid}  {(o.get('depicts') or o.get('name') or '')[:44]}"
+        title = f"{mid}  {(o.get('depicts') or o.get('name') or '')[:66]}"
         sub = (f"{dims.get('length', '?')} x {dims.get('width', '?')} x {dims.get('height', '?')} studs  "
                f"{cnt.get('visibleParts', '?')} visible parts  ~{cnt.get('approxTris', 0) // 1000}k tris  "
                f"scale x{o.get('suggested_uniform_scale')}{sec}")

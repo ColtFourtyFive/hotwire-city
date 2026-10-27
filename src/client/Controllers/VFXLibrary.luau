@@ -633,7 +633,7 @@ export type Stream = {
 local activeStreams: { [Stream]: boolean } = {}
 -- every live stream / trail rig (weak: callers own them), for tier changes
 local allStreams: { [Stream]: boolean } = setmetatable({}, { __mode = "k" }) :: any
-local allTrails: { [any]: VFX.TrailPreset } = setmetatable({}, { __mode = "k" }) :: any
+local allTrails: { [TrailRig]: VFX.TrailPreset } = setmetatable({}, { __mode = "k" }) :: any
 local appliedEpoch = 0
 local rebalanceAt = -math.huge
 
@@ -662,9 +662,8 @@ function VFXLibrary.rebalance()
 			end
 		end
 		for rig, p in allTrails do
-			local trail = rig.trail :: Trail
-			if trail.Parent then
-				trail.Lifetime = p.lifetime * tier.trailLife
+			if rig.trail.Parent then
+				rig.trail.Lifetime = p.lifetime * tier.trailLife
 			end
 		end
 	end

@@ -494,27 +494,51 @@ V2 changes:
 
 ### 2.8 Keep-on-steal protections (fair play)
 
+All rules below are evaluated by one pure function, `TheftRules.canKeep(ctx) -> (ok, reason)` (§9.4), with one table-driven test per row. The first failing rule's `reason` is what the thief's prompt and the victim's padlock show.
+
+**Owner-wide protections** (no thief can keep any of your cars; while one applies, every drive you take is a protected drive capped at **×5**, `S_CAP_PROTECTED`; the player attribute `ProtectedReason` names it):
+
 | Protection | Rule | Value (Config/Theft) | Why |
 |---|---|---|---|
-| **Starter protection** | Your cars can't be *kept* by a thief (carjack becomes a joyride; garage raids are refused) until you reach Rep 5 **and** own 4 or more cars | `STARTER_REP = 5`, `STARTER_CARS = 4` (v1 `NEWBIE_PROTECTION_CARS 3` → 4) | First-session safety |
-| **Rookie protection** | The first 30 min of playtime: no PvP at all, either way (gta_combat §8). It ends early if you deal player damage, mug, carjack or raid, buy a rifle, **pick up event loot**, or opt out. | `ROOKIE_SECONDS = 1800` | First-minute bounce |
+| **Starter protection** (`starter`) | Your cars can't be *kept* (carjack becomes a joyride; garage raids are refused) until **both** `rep ≥ 8` **and** `activePlaytime ≥ 7,200 s`. It is a **one-way latch** (`starterDone`); owning more or fewer cars never turns it back on. It also ends the moment you keep or chop another player's car. | `STARTER_REP = 8`, `STARTER_ACTIVE_SECONDS = 7200` | First two hours are safe; no farming it back |
+| **Last cars** (`lastcars`) | A thief can't keep a car if the victim would be left with fewer than 2 non-bound cars | `MIN_CARS_KEPT = 2` | Never unplayable |
+| **Shaken** (`shaken`) | After a **counted** loss, none of your cars can be kept for 10 min | `VICTIM_COOLDOWN = 600` | No chain-looting |
+| **Daily loss cap** (`daycap`) | After `MAX_LOSSES_PER_DAY` counted losses in a UTC day (**1 while you are below Rep 15**, 3 after), your cars are protected until 00:00 UTC (shield icon on the garage sign) | `MAX_LOSSES_PER_DAY = 3`, `MAX_LOSSES_PER_DAY_LOW = 1`, `LOW_REP = 15` | Anti-quit |
+| **Counted loss** | A kept or chopped car counts toward Shaken and the daily cap **only if its value is at least 20% of the victim's most valuable non-bound car**. Losing a junk car is still a loss; it just can't be used to buy a shield. | `LOSS_COUNT_MIN_VALUE_SHARE = 0.20` | Closes "lose 3 Rustbuckets to alts, then drive the hypercar at ×10" |
+
+**Per-car and per-pair rules** (they don't cap S×, because another thief could still take the car):
+
+| Protection | Rule | Value (Config/Theft) | Why |
+|---|---|---|---|
+| **Rookie protection** | The first 10 min of playtime: no PvP at all, either way (gta_combat §8, delta D12). It ends early if you deal player damage, mug, carjack or raid, buy a rifle, **pick up event loot** (with a confirm prompt), or opt out from the HUD pill. | `ROOKIE_SECONDS = 600` | First-minute bounce, without emptying launch servers of PvP |
 | **Vault bays** | Parked vault cars can never be stolen. When driven, they are normal cars. | 1 (Rep 5), +1 (Rep 25), +1 (pass) | Endowment without stagnation |
-| **Last cars** | A thief can't keep a car if the victim would be left with fewer than 2 non-bound cars | `MIN_CARS_KEPT = 2` | Never unplayable |
-| **Shaken** | After losing a car (kept), none of your cars can be stolen for 10 min | `VICTIM_COOLDOWN = 600` (v1 `THEFT_VICTIM_COOLDOWN 25`) | No chain-looting |
-| **Daily loss cap** | After 3 kept losses in a UTC day, your cars are protected until 00:00 UTC (shield icon on the garage sign) | `MAX_LOSSES_PER_DAY = 3` | Anti-quit |
-| **Pair cooldown** | The same thief can keep a car from the same victim at most once per 60 min | `PAIR_COOLDOWN = 3600` | Anti-bullying |
-| **Punch-down rule** | If `thief.rep − victim.rep > 15`, the thief can joyride or chop but not keep, and chop pays 0. Exceptions: the victim is at 3★ or more, or holds a REVENGE mark on the thief. | `PUNCH_DOWN_REP_GAP = 15` | Veterans don't farm newcomers |
-| **Insurance** | Paid at lay-low end: `InsuranceRate[track] × value`. Only if this owner has held the car for at least 20 min, at most 3 claims per UTC day, and the first claim per pair per 24 h. | `INSURANCE_MIN_HOLD = 1200`, `INSURANCE_CLAIMS_PER_DAY = 3` | Loss softening that alts can't farm |
-| **Player-car chop cap** | Chopping a player car pays 20% of value at most 3 times per UTC day, with the pair rule and the 20-min hold rule as above. The victim's car always survives. | `PLAYER_CAR_CHOPS_PER_DAY = 3` | Quick-cash option that can't be farmed |
-| **Repo window** | 300 s | `LAYLOW_SECONDS = 300` | Revenge arc instead of a rage-quit |
-| **Bound cars** | Carjack is a joyride only: the drop-off refuses the car, which returns home after 60 s abandoned or a 120 s timer, and it can't be chopped. Bound cars can't be traded or pink-slipped. | `S_CAP_BOUND = 5` | Robux never buys street immunity at full reward |
+| **Bound cars** (`bound`) | Carjack is a joyride only: the drop-off refuses the car, which returns home after 60 s abandoned or a 120 s timer, and it can't be chopped. Bound cars can't be traded or pink-slipped. Always a protected drive (×5). | `S_CAP_PROTECTED = 5` | Robux never buys street immunity at full reward |
+| **Pair cooldown** (`pair`) | The same thief can keep a car from the same victim at most once per 60 min | `PAIR_COOLDOWN = 3600` | Anti-bullying |
+| **Punch-down rule** (`outranked`) | If `thief.rep − victim.rep > max(6, floor(victim.rep / 2))`, the thief can joyride but not keep, and chop pays 0. Exceptions: the victim is at 3★ or more, or holds a REVENGE mark on the thief. | `PUNCH_DOWN_MIN_GAP = 6` | Veterans don't farm newcomers; the gap scales with the victim |
+| **Counterparty rule** (`counterparty`) | A thief can't keep or chop a car they **traded or pink-slipped** to this victim within the last 72 h (`lastTransfer` on the record) | `COUNTERPARTY_LOCK = 259200` | No "trade it, then raid it back" |
+| **Carjack immunity** | 180 s after any carjack of you (joyride included), you can't be carjacked again | `CARJACK_VICTIM_IMMUNITY = 180` | No pull-out loops |
+| **Friends** | Thief and victim in the same party or crew, or Roblox friends: the car can be kept, but **no insurance and no chop pay** | — | Friends can't mint money from each other |
 | **Offline** | Offline players can't be robbed (their plot and cars are not in the world; v1) | — | — |
+
+**Payout rules:**
+
+| Rule | Detail | Value (Config/Theft) | Why |
+|---|---|---|---|
+| **Insurance** | Credited to the victim's bank at the final transfer: `InsuranceRate[track] × value`, rates {25, 32, 39, 45}% (always below the 50% sell value). Only if the victim has held the car for at least 20 min, at most 3 claims per UTC day, the first claim per pair per 24 h, never between friends, and never for **reward-origin** cars (playtime, daily, referral, codes). | `INSURANCE_RATES`, `INSURANCE_MIN_HOLD = 1200`, `INSURANCE_CLAIMS_PER_DAY = 3` | Loss softening that alts can't farm |
+| **Insurance clawback** | The payout is recorded in the victim's `insured[uid] = { amount, until = now + 7 d }`. If that uid returns to them by **any** route (trade, pink slip, theft, repo after transfer) before `until`, the amount is taken back from their bank (then wallet), shown as "Insurance repaid". | `INSURANCE_CLAWBACK_SECONDS = 604800` | Insure-then-recover loops pay nothing |
+| **Player-car chop** | Pays the loot `chopValue` (§2.6), at most 3 per UTC day, with the pair rule and the 20-min hold rule. Counts as a kept loss for the victim. The car goes to the victim's impound. $0 between friends. | `PLAYER_CAR_CHOPS_PER_DAY = 3` | Quick-cash option that can't be farmed |
+| **Repo window** | 300 s | `LAYLOW_SECONDS = 300` | Revenge arc instead of a rage-quit |
+| **Theft locks** | A kept car is trade-locked and sell-locked for 7 days | `THEFT_TRADE_LOCK = 604800`, `THEFT_SELL_LOCK = 604800` | Stolen cars can't be laundered straight to cash or to a main |
+
+**Visibility.** The victim-side `ProtectedReason` attribute (`starter` / `shaken` / `daycap` / `lastcars`, or nil) is replicated per player; per-car `Bound` is a model attribute. The client works out `pair`, `outranked` and `counterparty` from public `Rep`, `RevengeState` and the thief's own recent history, so the prompt can read "STEAL" or "JOYRIDE (protected: reason)" before the hold. The server re-checks everything at the final transfer.
+
+**V2.1 Car Keys interaction.** A lent car earns **no garage income** while lent, and the borrower drives at the **owner's** S× cap, so a protected owner can't lend out a full-rate car.
 
 ### 2.9 Limited numbered cars
 
 - **What they are.** Event, seasonal and Admin Abuse cars with a serial number (`#7 of 500`). Caps per car are 100, 250, 500 or 1,000 (`Cars[id].limitedCap`).
 - **How they are minted.** `SerialService.mint(carId)` runs a DataStore `UpdateAsync` on `HC_Serials_v1/<carId>`. It returns the next serial, or nil when sold out.
-- **Owner registry.** `HC_LimitedRegistry_v1/<carId>#<serial>` maps to the owner's userId. It is updated in the same flow as every transfer (theft finalisation, trade, pink slip).
+- **Owner registry.** `HC_LimitedRegistry_v1/<carId>#<serial>` holds `{ ownerUserId, uid, xferSeq }`. The record carries the same `xferSeq`, which goes up by one on every transfer. The registry is written after each transfer (theft finalisation, trade, pink slip); that write may fail or be throttled on its own without harming the car.
 - **How to get one** (never for Robux):
   - complete an event challenge, which unlocks the right to buy it with cash at the dealership during the event;
   - Admin Abuse drops;
@@ -523,7 +547,11 @@ V2 changes:
   - Limited cars **can** be stolen and traded. "Someone stole my #7" is the clip.
   - Vault them to keep them safe.
   - Serials #1–10 get a gold plate frame and a ×1.5 value premium; the rest get ×1.2.
-- **Dupe guard.** On profile load, every serial car is checked against the registry. A mismatch moves the record to `retiredCars` with reason "dupe" and logs it (§10.4).
+- **Dupe guard.** On profile load, every serial car is checked against the registry:
+  - same uid and the record's `xferSeq` is **higher** than the registry's → the registry lagged; repair it;
+  - same uid and equal → fine;
+  - lower `xferSeq`, or a different uid holds the serial → the car is **frozen** (`frozen = "serial"`: it can be driven and parked but not traded, staked, sold or chopped) and flagged to `/hc audit`.
+  - Nothing is ever retired automatically. An admin decides; `retiredCars` keeps the **full** `CarRecord`, so a wrong call can be undone.
 
 ### 2.10 Catalog direction (for the vehicles workstream)
 
@@ -555,36 +583,42 @@ liveOpsMult = e.g. 2 during "Double Crime Cash" weekends (§6.7)
 ```
 
 - `stars at payout` includes stars the crime itself just added, so a robbery at 0★ pays ×1.5 (2★).
+- **Clamps first, events last.** Where a payout has a per-player clamp (truck §3.6, heist §3.7, Most Wanted §3.12), the clamp applies to the base-and-wanted amount, and `liveOpsMult` and event multipliers (Golden Truck, Bounty Night) apply **after** it, so an advertised ×5 really is ×5.
+- **Over a soft cap** (Law 10): the payout is multiplied by `CAP_SOFT_MULT = 0.25` and the breakdown adds "(limit reached: reduced)".
 - Payouts land in the **wallet**.
 - RP and car XP are granted at the same time.
 - Every payout is logged to EconomyTelemetry (§7.5).
+
+**Show the stack (Law 9).** Every §3.2 payout, truck bag, heist share, bounty and evade bonus fires `PayoutBreakdown { amount, base, mults = { {label, value} } }` to the earner. The HUD prints it under the cash delta, for example **"$12,400 · ×1.5 WANTED 2★ · ×1.25 DOWNTOWN · ×1.1 PARTY"**. Multipliers of exactly 1 are omitted. At 3★ and above the wanted chip pulses gold as the payout lands. That frame is the clip.
 
 ### 3.2 Activity table
 
 | Activity | Rep | Duration | base | secs × G | Heat | Cooldown | RP |
 |---|---|---|---|---|---|---|---|
-| Street steal and deliver | 1 | 1–2 min | the car | — | rarity `wantedChance` / `wantedOnSteal` (v1) | — | 30 + 10 × rarity order |
+| Street steal and deliver | 1 | 1–2 min | the car + trunk (§2.5.1) | — | rarity `wantedChance` / `wantedOnSteal` (v1), additive | — | 30 + 10 × rarity order |
 | Chop a loot car | 1 | dwell 2 s (v1 `CHOP_DWELL`) | `chopValue` × order mult {1, 1.5, 2, 3} | — | — | — | 30 (order: 80) |
-| Evade bonus | 1 | — | $100 per star | 15 per star | — | — | 20 per star |
-| NPC mugging | 1 | 1.5 s hold | $40 | 8 | 50% chance of 1★ | 120 s per ped; payout ×0.25 after 10 muggings in 10 min | 8 |
-| Convenience store hold-up | 1 | 8 s fill | $500 | 120 | 1★ at start, 2★ at full | 300 s per store (server); 45 s per player | 80 |
-| Gas station | 6 | 10 s fill | $800 | 150 | 2★ | 300 s per store | 100 |
-| ATM hack | 6 (Hacking Device $2,500) | 6 s mini-game | $300 | 90 | 2★ | 600 s per ATM | 70 |
-| Jewelry store | 8 | ~90 s | $800 per case × 8 | 30 per case × 8 | 3★ at the first smash | 900 s (server) | 250 |
-| Pawn shop | 10 | 12 s fill | $1,500 | 200 | 3★ | 480 s per store | 140 |
-| Phone jobs (§3.10) | 1–10 | 1–3 min | $300 | 60–120 | varies | per job | 60–120 |
-| Armored truck bag | 3 | 2–4 min | §3.6 | §3.6 | 3★ on crack | 300 s pulse | 200 per bag delivered |
-| Bank heist | 10 (whole crew) | 8–10 min | §3.7 | §3.7 | 3★ → 4★ | 1,800 s big pulse | 800 + 100 per bag |
-| Hot Drop | 1 | 2 min | Legendary-or-better car | — | 3★ (v1 `Heat.hotDrop`) | 600–900 s | 250 |
-| Player mugging | 5 (off rookie) | 1.5 s hold | 25% of the victim's wallet (transfer) | — | 1★ (`assault`) | victim immune 120 s | 40 |
-| Carjack and keep a player car | 5 | 2–5 min | the car (transfer) | — | 2★ | §2.8 | 150 (raid 200) |
+| Evade bonus | 1 | — | $100 per star | 15 per star | — | 6 paid per hour, then ×0.25 | 20 per star |
+| NPC mugging | 1 | 1.5 s hold | $40 | 8 | +1★ at 50% | 120 s per ped; ×0.25 after 10 muggings in 10 min | 8 |
+| Convenience store hold-up | 1 | 8 s fill | $500 | 120 | floor 1★ at start, floor 2★ at full | 300 s per store (server); 45 s per player | 80 |
+| Gas station | 6 | 10 s fill | $800 | 150 | floor 2★ | 300 s per store | 100 |
+| ATM hack | 6 (Hacking Device $2,500) | 6 s mini-game | $300 | 90 | floor 2★ | 600 s per ATM | 70 |
+| Jewelry store | 8 | ~90 s | $800 per case × 8 | 30 per case × 8 | floor 3★ at the first smash | 900 s (server) | 250 |
+| Pawn shop | 10 | 12 s fill | $1,500 | 200 | floor 3★ | 480 s per store | 140 |
+| Phone jobs (§3.10) | 1–10 | 1–3 min | $300 | 60–120 | varies | per job; 20 paid per day, then ×0.25 | 60–120 |
+| Armored truck bag | 3 | 2–4 min | §3.6 | §3.6 | floor 3★ on crack | 300 s pulse; 12 bags per hour, then ×0.25 | 200 per bag delivered |
+| Bank heist | leader 10, members 3 | 8–10 min | §3.7 | §3.7 | floor 3★ → floor 4★ | 1,800 s big pulse | 800 + 100 per bag |
+| Hot Drop | 1 | 2 min | Legendary-or-better car | — | +3★ (v1 `Heat.hotDrop`) | 600–900 s | 250 |
+| Player mugging | 5 (off rookie) | 1.5 s hold | 25% of the victim's wallet (transfer) | — | +1★ (`mugPlayer`) | victim immune 120 s | 40 |
+| Carjack and keep a player car | 5 | 2–5 min | the car (transfer) | — | +2★ (`carjackPlayer`) | §2.8 | 150 (raid 200) |
+
+**Heat notation.** "floor N★" means `WantedService.raiseTo(player, N)`: stars become `max(current, N)`, so a robbery at 0★ ends at the listed level and never stacks to 5★ by itself. "+N★" means the additive `addHeat` (§3.11).
 
 **Stage C examples** (G = $800/s, Downtown ×1.25):
 - Convenience store: `(500 + 96,000) × 1.25 × 1.5` = **$181K**.
 - ATM hack: `(300 + 72,000) × 1.25 × 1.5` = **$135K**.
 - Jewelry store: `8 × (800 + 24,000) × 1.25 × 2.0` = **$496K**.
 
-These match the "street pays 3–10× the garage" pillar: about $180K for roughly 60–90 s of work, against $48–72K of garage income over the same time.
+These match the "street pays 3–10× the garage" pillar: about $180K for roughly 60–90 s of work, against $48–72K of garage income over the same time. Starting the same store at 2★ (mid-chain) ends at 2★ and pays the same ×1.5; starting at 3★ pays ×2.0, because stars only ever add risk you already took.
 
 ### 3.3 Store robberies (convenience stores, gas stations, pawn shop)
 
@@ -608,9 +642,9 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
   - The target gets a 0.5 s "HANDS OFF" warning and breaks the hold by moving 6 studs or hitting the mugger.
   - Takes `MUG_RATE = 25%` of the victim's wallet. This is a pure transfer.
   - The victim gets a REVENGE mark and is immune to further mugging for 120 s.
-- **LOADED drop.** A player **downed by another player while LOADED** drops 20% of their wallet as a cash bag.
+- **LOADED drop.** A player **downed by another player while LOADED** drops 20% of their wallet as a cash bag. If they were also wanted, the drop comes out of their wanted loss rather than on top of it (§4.3).
   - The killer has priority for 3 s, then anyone can take it. It vanishes after 30 s, which is a sink.
-  - Non-LOADED players drop nothing, matching gta_combat's "no kill-farming" rule.
+  - Non-LOADED, non-wanted players drop nothing, matching gta_combat's "no kill-farming" rule.
 
 ### 3.5 ATMs and banking
 
@@ -629,11 +663,12 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
 | Announce | At T−30 s, a feed card and phone text: "ARMORED TRUCK leaving <depot>", with the route drawn on the map. Route: depot → 3 bank stops on the RoadGraph, about 150 s at 35 studs/s. Needs at least 1 player at Rep 3 or more in the server. |
 | Stop it | Truck: 2,000 HP and 4 tires at 150 HP each. It halts when 2 tires are flat, HP is below 30%, or it is pinned under 3 studs/s for 4 s (ramming or PIT). Two NPC guards step out: 60 HP, pistols, 2★-level accuracy (gta_combat PoliceAim). |
 | Crack the doors | Hold CRACK at the rear doors for 8 s. Extra crackers speed it up: `8 / (1 + 0.5 × (n − 1))`. Everyone within 50 studs at crack time gets 3★. |
-| Bags | 4 bags. A carrier holds 1 bag (2 with the Duffel at Rep 15) and is slowed 10% per bag. A $ blip shows on every map. Bags go in a car's trunk automatically when the carrier enters a car. |
+| Bags | 4 bags. A carrier holds 1 bag (2 with the Duffel at Rep 15) and is slowed 10% per bag. A $ blip shows on every map (`MapBlips` kind `bag`). Bags go in a car's trunk automatically when the carrier enters a car. A rookie may pick one up after a confirm prompt ("Taking event loot ends your Rookie Protection"). |
 | Deliver | At your own garage drop-off, or a party member's garage while they are online. The bag pays into the wallet on delivery. Dropped on WASTED (lies 60 s); confiscated on BUSTED. |
-| Bag value | Frozen at spawn: `bagBase = 2,000 + 120 s × medianG(server, excluding rookie or AFK players)`, shown on the bag ("$98K"). At delivery: `pay = min(bagBase, 5,000 + 300 s × ownG) × wantedMult × partyMult`. The clamp is a catch-up bounded by the deliverer's own scale. |
+| Bag value | Frozen at spawn: `bagBase = 2,000 + 120 s × medianG(server, excluding rookie or AFK players)`. At delivery: `pay = min(bagBase, 5,000 + 300 s × ownG) × wantedMult × partyMult × eventMult`. The clamp is a catch-up bounded by the deliverer's own scale; `eventMult` (Golden Truck ×5, live-ops) applies after it. |
+| Bag label | Each client shows **its own** value: `min(bagBase, 5,000 + 300 × ownG) × current wantedMult × eventMult`, computed from the public `bagBase` (in `TruckState`) and its own `G` attribute. A low-G player sees "$31K", not the server median, so the payout matches the label. |
 | Unstopped | The truck reaches the last bank and despawns. |
-| Caps | At most 12 truck bags per player per hour. Golden Truck (Admin Abuse): `bagBase × 5`. |
+| Caps | 12 truck bags per player per hour at full pay, then ×0.25 (Law 10). Golden Truck (Admin Abuse): `eventMult = 5`, applied after the clamp. |
 
 ### 3.7 Bank heist (big pulse, crew of 2–4)
 

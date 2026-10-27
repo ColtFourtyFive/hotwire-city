@@ -10,11 +10,14 @@
 --     The CoreGui backpack hotbar is hidden while driving (it sat on top of the speedometer; tools can't be used
 --     from the seat, spikes have their own button/key) and restored on exit.
 --   * Feel: FOV kick with speed + nitro, camera shake on crashes, screech while drifting. Effects come from the
---     shared VFXLibrary (Config/VFX presets, quality-scaled + budgeted): flipbook tire smoke from the rear wheels and
---     skid-mark Trails that only draw while they slide, nitro = flipbook flame + hot core + shock-diamond jet beam
---     with a flickering light, backfire pops on nitro start and on upshifts (arcade gear points), collision sparks
---     at the contact point on hard hits, surface dust off-road (grass / sand / dirt) and water spray, and speed lines
---     around the camera while boosting. Other players' drift smoke and screech come from WheelAnimator (derived from
+--     shared VFXLibrary (Config/VFX presets, quality-scaled + budgeted; our streams have priority in the budget):
+--     flipbook tire smoke + skid-mark Trails per rear tyre, only while that tyre slides on the ground (the marks
+--     follow its suspension travel), nitro = exhaust-locked flipbook flame + hot core + shock-diamond jet beam with a
+--     flickering light, backfire pops (an emitter on the exhaust, inheriting the car's velocity) on nitro start and on
+--     upshifts (arcade gear points), collision sparks at the contact point on hard hits, surface dust off-road
+--     (grass / sand / dirt) and water spray (terrain water and "Water" parts such as the Stunt Park pool), and speed
+--     lines around the screen edge while boosting (ring sized from the FOV + aspect; on touch screens none sweep
+--     into the thumbstick / pedal corners). Other players' drift smoke and screech come from WheelAnimator (derived from
 --     the replicated chassis velocity); their nitro flames and horn come from the VehicleFx remote: nitro start/stop
 --     and horn presses are sent as state changes only (>= FX_MIN_INTERVAL apart, coalesced), the server relays them to
 --     nearby clients as VehicleFxState and EffectsController renders them.
@@ -111,9 +114,15 @@ local SPLASH_MIN_SPEED = 25
 local BACKFIRE_COOLDOWN = 0.6
 local SPARK_PROBE = 4 -- studs past the bumper the crash ray looks for the contact point
 local SPEED_LINE_RING = 8
-local SPEED_LINE_RADIUS = 7.5
+local SPEED_LINE_SCREEN = 0.62 -- spawn ring, normalised screen radius (0 centre, 1 edge): clear of car + reticle
 local SPEED_LINE_AHEAD = 28
 local SPEED_LINE_FRACTION = 0.9 -- of top speed: speed lines (lighter) without nitro too
+local SPEED_LINE_LINGER = 0.35 -- s the host keeps following the camera after the lines stop (> their lifetime)
+local SPEED_LINE_REFIT = 0.5 -- degrees of FOV change before the ring is re-fitted
+local SKID_LIFT = 0.04 -- studs the skid trail floats over the contact patch (no z-fighting)
+local WATER_TAG = "Water" -- CollectionService tag for water parts (also: Map parts named "...Water")
+local WATER_RESCAN = 10 -- s between searches for water parts while none were found
+local WATER_ABOVE = 1.5 -- chassis centre may sit this far (+ wheel radius) above a water part's top
 
 type Session = {
 	model: Model,
@@ -146,23 +155,27 @@ type Session = {
 	fxHonk: boolean, -- a horn press waiting to be sent
 	fxAt: number, -- os.clock() of the last VehicleFx send
 	fx: {
-		smoke: { VFXLibrary.Stream }, -- rear-left, rear-right
-		skids: { VFXLibrary.TrailRig },
+		-- per rear tyre, keyed 1 = rear-left (wheel 3), 2 = rear-right (wheel 4)
+		smoke: { [number]: VFXLibrary.Stream },
+		skids: { [number]: VFXLibrary.TrailRig },
+		hubY: { [number]: number }, -- built hub height (chassis space) of that tyre
 		dust: { VFXLibrary.Stream },
 		spray: VFXLibrary.Stream?,
 		flame: VFXLibrary.Stream?,
 		core: VFXLibrary.Stream?,
 		jet: VFXLibrary.BeamRig?,
+		backfire: VFXLibrary.Attached?,
 		light: PointLight?,
 		exhaust: Attachment?,
 		speedHost: BasePart?,
 		speedLines: { VFXLibrary.Stream },
+		lineSlots: { { att: Attachment, angle: number } },
+		lineFov: number, -- FOV / aspect the ring was last fitted for
+		lineAspect: number,
 		rayParams: RaycastParams?,
 		screech: Sound?,
 		horn: Sound?,
 	},
-	fxSlideOn: boolean,
-	fxSlideLevel: number,
 	fxGear: number,
 	fxBackfireAt: number,
 	fxSurfaceT: number,
@@ -172,6 +185,7 @@ type Session = {
 	fxDustColor: Color3?,
 	fxSprayOn: boolean,
 	fxLinesLevel: number,
+	fxLinesOffAt: number, -- os.clock() when the speed lines last stopped
 	prevVel: Vector3,
 }
 
@@ -320,6 +334,57 @@ end
 function VehicleClient.canvasWidth(guiWidth: number, viewportWidth: number, scale: number): number
 	local real = if guiWidth >= 1 then guiWidth else viewportWidth
 	return real / (if scale == scale and scale > 0 then scale else 1)
+end
+
+----------------------------------------------------------------------------------------------------------------------
+-- Effect math (pure, unit-tested)
+----------------------------------------------------------------------------------------------------------------------
+-- Tyre smoke for one rear tyre: on only while the car drifts AND that tyre is on the ground; level (rate intensity)
+-- grows with the sideways speed in 0.1 steps.
+function VehicleClient.tyreSmoke(drifting: boolean, grounded: boolean, lateralSpeed: number): (boolean, number)
+	if not (drifting and grounded) then
+		return false, 0
+	end
+	return true, math.clamp(math.floor(math.abs(lateralSpeed) / 6) / 10 + 0.5, 0.5, 1.3)
+end
+
+-- Height (chassis space) of a skid mark under a tyre built with its hub at hubY: the contact patch moves with the
+-- suspension (wheelOffset: VehicleController's visual offset, -RIDE_LIFT at rest), plus a hair against z-fighting.
+function VehicleClient.skidContactY(hubY: number, radius: number, wheelOffset: number?): number
+	local o = if typeof(wheelOffset) == "number" and wheelOffset == wheelOffset
+		then wheelOffset
+		else -VehicleController.RIDE_LIFT
+	return hubY - radius + o + SKID_LIFT
+end
+
+-- Ring angles (radians, 0 = screen right, counter-clockwise) of the speed-line emitters. On touch screens the slots
+-- pointing down (they sweep into the thumbstick and pedal clusters in the bottom corners) are left out.
+function VehicleClient.speedLineSlots(count: number, touch: boolean): { number }
+	local out = {}
+	for k = 1, count do
+		local a = (k - 0.5) * 2 * math.pi / count
+		if not (touch and math.sin(a) < -0.7) then
+			table.insert(out, a)
+		end
+	end
+	return out
+end
+
+-- Camera-space spawn point of a speed line at ring `angle`: `ahead` studs in front of the camera at normalised screen
+-- radius `screen` (1 = the screen edge along that axis) for a vertical FOV (degrees) and aspect (width / height).
+function VehicleClient.speedLinePos(angle: number, fovDeg: number, aspect: number, ahead: number, screen: number): Vector3
+	local tanV = math.tan(math.rad(math.clamp(fovDeg, 1, 179)) / 2)
+	local a = if aspect == aspect and aspect > 0 then aspect else 16 / 9
+	return Vector3.new(math.cos(angle) * screen * ahead * tanV * a, math.sin(angle) * screen * ahead * tanV, -ahead)
+end
+
+-- Is a point (in a water part's object space) in that water: inside its footprint, at most `above` studs over its
+-- top and not far under it.
+function VehicleClient.inWaterVolume(localPos: Vector3, size: Vector3, above: number): boolean
+	return math.abs(localPos.X) <= size.X / 2
+		and math.abs(localPos.Z) <= size.Z / 2
+		and localPos.Y <= size.Y / 2 + above
+		and localPos.Y >= -size.Y / 2 - 2
 end
 
 local function phoneTextBoost(): number

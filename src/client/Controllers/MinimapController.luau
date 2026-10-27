@@ -253,6 +253,67 @@ function MinimapController.cellOf(icon: string): { number }?
 	return CELLS[icon] or CELLS[MinimapConfig.DEFAULT_WAYPOINT_ICON] or CELLS.dot
 end
 
+-- Touch readability factor for radar text and blips at UIScale `scale` (phones sit at the 0.55 floor): what
+-- Theme.TouchMinScale would give them, capped at RADAR.TOUCH_BOOST_MAX; 1 on desktop / big screens.
+function MinimapController.touchBoost(scale: number, touch: boolean): number
+	if not touch or not (scale > 0) then
+		return 1
+	end
+	return math.clamp(Theme.TouchMinScale / scale, 1, RADAR.TOUCH_BOOST_MAX)
+end
+
+-- Radar diameter on touch for a design canvas (inset-relative, design px): compact on 16:9 phones.
+function MinimapController.touchDiameter(canvasW: number, canvasH: number): number
+	if canvasW < RADAR.TOUCH_COMPACT_W and canvasH < RADAR.TOUCH_COMPACT_H then
+		return RADAR.TOUCH_SIZE_COMPACT
+	end
+	return RADAR.TOUCH_SIZE
+end
+
+export type TouchMetrics = {
+	diameter: number,
+	boost: number,
+	reserve: number, -- design px from the radar's left screen margin the HUD buttons stay clear of (left edge excluded)
+	pillHeight: number, -- GPS distance pill (centered 2 px above the radar's bottom edge)
+	areaGap: number, -- area name top, below the radar's bottom edge
+	areaHeight: number,
+	bottom: number, -- design px (inset-relative) where the radar block (radar + pill + area name) ends
+}
+
+-- Touch layout numbers for a canvas (design px) at UIScale `scale`: shared by applyLayout and the specs.
+function MinimapController.touchMetrics(canvasW: number, canvasH: number, scale: number): TouchMetrics
+	local d = MinimapController.touchDiameter(canvasW, canvasH)
+	local b = MinimapController.touchBoost(scale, true)
+	local pillH = math.ceil(24 * b)
+	local areaGap = math.ceil(pillH / 2) + 2
+	local areaH = math.ceil(RADAR.AREA_TEXT_TOUCH * b) + 6
+	return {
+		diameter = d,
+		boost = b,
+		reserve = d + RADAR.TOUCH_GAP,
+		pillHeight = pillH,
+		areaGap = areaGap,
+		areaHeight = areaH,
+		bottom = RADAR.TOUCH_TOP + d + areaGap + areaH,
+	}
+end
+
+-- Transparency of the N marker for map rotation `rotDeg`: 0 normally, fading to 1 as it passes under the map button
+-- on the rim (both travel the same circle; N sits at `rotDeg` clockwise from up).
+function MinimapController.northFade(rotDeg: number): number
+	local diff = math.abs((rotDeg - RADAR.MAP_BUTTON_ANGLE + 180) % 360 - 180)
+	local t = 1 - math.clamp(diff / RADAR.NORTH_FADE_DEG, 0, 1)
+	return t * t * (3 - 2 * t)
+end
+
+-- Seconds to wait before searching again for a GPS target that failed `failures` times in a row (doubling).
+function MinimapController.retryDelay(failures: number): number
+	if failures <= 0 then
+		return 0
+	end
+	return math.min(GPS.REROUTE_MIN_INTERVAL * 2 ^ (failures - 1), GPS.FAIL_RETRY_MAX)
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Route renderer (shared with MapScreenController): pill segments laid out in the map frame's scale space, so a
 -- zoom only resizes the parent frame; the line keeps a constant pixel width with round caps (UICorner) and a dark
@@ -319,7 +380,9 @@ function MinimapController.newRouteRenderer(parent: GuiObject, width: number, ou
 	}
 end
 
--- Lay out segment i (a -> b in world XZ). transparency: 0 solid; tail segments fade a little.
+-- Lay out segment i (a -> b in world XZ). alpha: 0 solid; the off-road tail fades a little. A segment shorter than
+-- MIN_SEGMENT studs is hidden (a zero-length pill would draw a stray dot).
+local MIN_SEGMENT = 0.05
 local function setSegment(r: RouteRenderer, i: number, ax: number, az: number, bx: number, bz: number, alpha: number)
 	local core = r.cores[i]
 	local out = r.outlines[i]
@@ -330,6 +393,11 @@ local function setSegment(r: RouteRenderer, i: number, ax: number, az: number, b
 		r.cores[i] = core
 	end
 	local cu, cv, len, angle = MinimapController.segmentGeometry(ax, az, bx, bz)
+	if len < MIN_SEGMENT then
+		core.Visible = false
+		out.Visible = false
+		return
+	end
 	local pos = UDim2.fromScale(cu / WORLD_SIZE, cv / WORLD_SIZE)
 	local w = r.width
 	local o = w + r.outline * 2
@@ -346,8 +414,10 @@ local function setSegment(r: RouteRenderer, i: number, ax: number, az: number, b
 	out.Visible = true
 end
 
--- Draw points[first + 1 .. n] starting from (sx, sz) (the trimmed head), then an optional faded tail to the real
--- target (tx, tz) when it is off the road. Hides leftovers. nil points clears.
+-- Draw the route from (sx, sz) (the player's spot projected onto segment `first`): segment 1 is always the head,
+-- (sx, sz) -> points[first + 1] (hidden while it has no length), then points[first + 1 .. n], then an optional faded
+-- tail to the real target (tx, tz) when it is off the road. Slot 1 being the head is what lets the per-frame
+-- moveHead touch only that segment. Hides leftovers. nil points clears.
 function MinimapController.drawRoute(
 	r: RouteRenderer,
 	points: { Vector3 }?,
@@ -360,10 +430,13 @@ function MinimapController.drawRoute(
 	r.color = color
 	local n = 0
 	if points and #points >= 2 then
-		local px, pz = sx, sz
-		for i = first + 1, #points do
+		local head = points[math.clamp(first + 1, 2, #points)]
+		n = 1
+		setSegment(r, 1, sx, sz, head.X, head.Z, 0)
+		local px, pz = head.X, head.Z
+		for i = math.clamp(first + 2, 2, #points + 1), #points do
 			local p = points[i]
-			if math.abs(p.X - px) + math.abs(p.Z - pz) > 0.05 then
+			if math.abs(p.X - px) + math.abs(p.Z - pz) > MIN_SEGMENT then
 				n += 1
 				setSegment(r, n, px, pz, p.X, p.Z, 0)
 				px, pz = p.X, p.Z
@@ -381,8 +454,8 @@ function MinimapController.drawRoute(
 	r.used = n
 end
 
--- Fast path: only move the head segment (index 1) to start at (sx, sz).
-local function moveHead(r: RouteRenderer, sx: number, sz: number, bx: number, bz: number)
+-- Fast path (every frame): only move the head segment (slot 1, see drawRoute) to start at (sx, sz).
+function MinimapController.moveRouteHead(r: RouteRenderer, sx: number, sz: number, bx: number, bz: number)
 	if r.used >= 1 then
 		setSegment(r, 1, sx, sz, bx, bz, 0)
 	end
@@ -417,17 +490,27 @@ type Radar = {
 	blips: BlipPool,
 	arrow: ImageLabel,
 	north: Frame,
+	northStroke: UIStroke,
+	northLabel: TextLabel,
 	area: TextLabel,
+	areaFit: UITextSizeConstraint,
 	dist: Frame,
 	distDot: ImageLabel,
 	distLabel: TextLabel,
 	keyHint: Frame,
+	keyLabel: TextLabel,
+	keyPad: ImageLabel,
 }
 
 local radar: Radar? = nil
 local hidden = false
 local diameter = RADAR.DESKTOP_SIZE
 local touchLayout = false
+local padLayout = false
+local boost = 1 -- touch readability boost for text + blips (MinimapController.touchBoost)
+local blipBig = RADAR.BLIP_SIZE
+local blipSmall = RADAR.BLIP_SIZE_SMALL
+local northAlpha = 0
 
 local zoom = RADAR.ZOOM_FOOT
 local lastScale = -1
@@ -444,6 +527,12 @@ local routeColor = WHITE
 local routeHead = 1 -- route segment the player is on (points[routeHead] -> points[routeHead + 1])
 local lastRouteAt = -math.huge
 local remaining = 0
+-- unreachable GPS target: don't search again every slow tick (MinimapController.retryDelay)
+local failId: string? = nil
+local failTarget: Vector3? = nil
+local failFrom: Vector3? = nil
+local failAt = -math.huge
+local failCount = 0
 local gpsId: string? = nil
 local gpsPos: Vector3? = nil
 local candidates: { { id: string, pos: Vector3, color: Color3 } } = {}
@@ -698,11 +787,13 @@ local function buildRadar(): Radar
 	})
 	local routeR = MinimapController.newRouteRenderer(world, GPS.WIDTH, GPS.OUTLINE)
 
+	-- blips above the edge vignette: the sticky ones (your garage, the GPS target, the chopper) sit on the rim, where
+	-- the vignette is darkest
 	local blipLayer = Kit.new("Frame", {
 		Name = "Blips",
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
-		ZIndex = 4,
+		ZIndex = 7,
 		Parent = clip,
 	})
 	atlasImage("_vignette", {
@@ -748,8 +839,9 @@ local function buildRadar(): Radar
 		Parent = holder,
 	})
 	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = north })
-	Kit.stroke(Theme.Colors.TextDim, 1.5).Parent = north
-	Kit.label("N", 14, {
+	local northStroke = Kit.stroke(Theme.Colors.TextDim, 1.5)
+	northStroke.Parent = north
+	local northLabel = Kit.label("N", 14, {
 		Size = UDim2.fromScale(1, 1),
 		TextWrapped = false,
 		ZIndex = 9,
@@ -795,7 +887,7 @@ local function buildRadar(): Radar
 		Parent = dist,
 	})
 
-	local area = Kit.label("", 15, {
+	local area = Kit.label("", RADAR.AREA_TEXT, {
 		Name = "Area",
 		FontFace = Theme.Fonts.BodyHeavy,
 		TextColor3 = Theme.Colors.Text,
@@ -804,6 +896,12 @@ local function buildRadar(): Radar
 		Size = UDim2.fromOffset(220, 20),
 		ZIndex = 8,
 		Parent = holder,
+	})
+	-- touch: the name is scaled down to fit under the radar (never into the HUD buttons right of it)
+	local areaFit = Kit.new("UITextSizeConstraint", {
+		MaxTextSize = RADAR.AREA_TEXT,
+		MinTextSize = 8,
+		Parent = area,
 	})
 
 	-- "M" key cap (desktop) / map glyph (touch) on the top-right rim: the radar is the map button
@@ -818,10 +916,21 @@ local function buildRadar(): Radar
 	})
 	Kit.new("UICorner", { CornerRadius = UDim.new(0, 6), Parent = keyHint })
 	Kit.stroke(Theme.Colors.Stroke, 2).Parent = keyHint
-	Kit.label("M", 14, {
+	local keyLabel = Kit.label("M", 14, {
 		Name = "Key",
 		Size = UDim2.fromScale(1, 1),
 		TextWrapped = false,
+		ZIndex = 9,
+		Parent = keyHint,
+	})
+	-- gamepad: the engine's own glyph for the map button (MinimapConfig.MAP.PAD_KEY)
+	local keyPad = Kit.new("ImageLabel", {
+		Name = "Pad",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.9, 0.9),
+		Visible = false,
 		ZIndex = 9,
 		Parent = keyHint,
 	})
@@ -841,11 +950,16 @@ local function buildRadar(): Radar
 		blips = newPool(blipLayer),
 		arrow = arrow,
 		north = north,
+		northStroke = northStroke,
+		northLabel = northLabel,
 		area = area,
+		areaFit = areaFit,
 		dist = dist,
 		distDot = distDot,
 		distLabel = distLabel,
 		keyHint = keyHint,
+		keyLabel = keyLabel,
+		keyPad = keyPad,
 	}
 end
 
