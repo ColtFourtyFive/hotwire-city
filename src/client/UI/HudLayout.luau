@@ -1,0 +1,263 @@
+--!strict
+-- HudLayout: every HUD anchor of the GTA V layout (gta_ui_language §2.1, §5, §7) as one pure function of the design
+-- canvas, so the controllers, the unit tests and the PIL mockups (tools/ui/mockups.py, via tools/ui/export_layout.luau)
+-- all use the same numbers.
+--
+-- Units: design px on the Kit.screen canvas (1280x720 at UIScale 1), measured inside CoreUISafeInsets (the Roblox top
+-- bar and notches are already outside it). Every rect is { x, y, w, h } from the canvas top-left.
+--
+-- Desktop (GTA V):
+--   radar 0.150 W x 0.189 H bottom-left (192 x 136 at 720p; width = 0.2667 H on other aspects), the 50/25/25
+--   health | armour | ability bar 4 px under it, the feed stacked above it; help text top-left; stars, cash, delta,
+--   ammo top-right with no panels; objective / subtitles bottom-centre; vehicle / district / street script lines
+--   bottom-right with GTA Online timer bars above them; the optional speed readout in the corner under them.
+-- Touch (§7): the thumbstick owns bottom-left and the action buttons bottom-right, so the radar goes top-left (168 x
+--   118) with help text and the feed under it; objective, location (one line), radio and timer bars stack at
+--   top-centre between the radar and the top-right block; PHONE / MAP buttons sit above the jump button; the driving
+--   cluster (NITRO, DRIFT, HORN, EXIT) is a tight bottom-right arc.
+
+local HudLayout = {}
+
+export type Rect = { x: number, y: number, w: number, h: number }
+
+export type Layout = {
+	touch: boolean,
+	w: number,
+	h: number,
+	safe: number,
+	radar: Rect,
+	bars: Rect,
+	help: Rect, -- h = the box's minimum height; it grows with AutomaticSize
+	feed: Rect, -- desktop: grows upward from its bottom edge (y + h); touch: grows down from y
+	feedMax: number, -- cards shown at once
+	stars: Rect,
+	starSize: number,
+	starPitch: number,
+	cash: Rect, -- right-aligned text box
+	delta: Rect,
+	ammo: Rect,
+	arrest: Rect, -- label + 4 px bar
+	objective: Rect, -- bottom edge anchored on desktop, top edge on touch
+	location: Rect, -- desktop: 3 stacked script lines (bottom-anchored); touch: one line
+	locationDriving: Rect,
+	locationLines: number,
+	locationSize: number,
+	timers: Rect, -- first timer bar; desktop stacks upward, touch downward
+	timersDriving: Rect,
+	timerStep: number, -- signed: -(h + gap) on desktop, +(h + gap) on touch
+	speed: Rect, -- driving speed readout
+	radio: Rect,
+	phone: Rect,
+	phoneScale: number,
+	list: Rect, -- interaction list menu (touch: bottom sheet)
+	listRow: number,
+	buttons: { [string]: Rect }, -- touch only: phone, map (on foot); nitro, drift, horn, exit (driving)
+}
+
+HudLayout.SAFE = 20
+HudLayout.SAFE_TOUCH = 10
+HudLayout.RADAR_TOUCH = { w = 168, h = 118 }
+HudLayout.BAR_H = 6
+HudLayout.BAR_GAP = 4
+HudLayout.HELP_W = 300
+HudLayout.HELP_W_TOUCH = 260
+HudLayout.FEED_W = 220
+HudLayout.FEED_W_TOUCH = 260
+HudLayout.STAR_SIZE = 22
+HudLayout.STAR_PITCH = 25
+HudLayout.RIGHT_BLOCK_W = 300
+HudLayout.TIMER = { w = 220, h = 28, gap = 4 }
+HudLayout.PHONE = { w = 176, h = 330 }
+HudLayout.LIST_W = 300
+
+local function rect(x: number, y: number, w: number, h: number): Rect
+	return { x = x, y = y, w = w, h = h }
+end
+HudLayout.rect = rect
+
+local function round(v: number): number
+	return math.floor(v + 0.5)
+end
+
+-- Do two rects overlap (touching edges do not count)?
+function HudLayout.overlaps(a: Rect, b: Rect): boolean
+	return a.x < b.x + b.w and b.x < a.x + a.w and a.y < b.y + b.h and b.y < a.y + a.h
+end
+
+-- Is `a` fully inside a canvas of w x h?
+function HudLayout.inside(a: Rect, w: number, h: number): boolean
+	return a.x >= -1e-6 and a.y >= -1e-6 and a.x + a.w <= w + 1e-6 and a.y + a.h <= h + 1e-6
+end
+
+-- The radar size for a canvas height (desktop): GTA's 0.189 H tall and 0.2667 H wide (= 0.15 W at 16:9).
+function HudLayout.radarSize(h: number): (number, number)
+	return math.clamp(round(0.2667 * h), 150, 300), math.clamp(round(0.189 * h), 106, 212)
+end
+
+local function desktop(w: number, h: number): Layout
+	local S = HudLayout.SAFE
+	local rw, rh = HudLayout.radarSize(h)
+	local radar = rect(S, h - S - 14 - rh, rw, rh)
+	local bars = rect(S, radar.y + rh + HudLayout.BAR_GAP, rw, HudLayout.BAR_H)
+	local help = rect(S, S, HudLayout.HELP_W, 46)
+	-- the feed may grow up to just under the help box (4 cards)
+	local feedTop = help.y + 150
+	local feed = rect(S, feedTop, HudLayout.FEED_W, radar.y - 6 - feedTop)
+	local right = w - S
+	local B = HudLayout.RIGHT_BLOCK_W
+	local starRow = 4 * HudLayout.STAR_PITCH + HudLayout.STAR_SIZE
+	local stars = rect(right - starRow, S + 4, starRow, HudLayout.STAR_SIZE)
+	local cash = rect(right - B, 50, B, 34)
+	local delta = rect(right - B, 84, B, 26)
+	local ammo = rect(right - B, 112, B, 30)
+	local arrest = rect(right - 120, 148, 120, 20)
+	-- objective: half the width, bottom-centre (the location block owns the right side)
+	local objW = round(w * 0.5)
+	local objective = rect(round(w / 2 - objW / 2), h - 34 - 50, objW, 50)
+	local locW = 280
+	local lines, size = 3, 26
+	local lineH = 32
+	local location = rect(right - locW, h - S - lines * lineH, locW, lines * lineH)
+	local speed = rect(right - 160, h - S - 40, 160, 40)
+	local locationDriving = rect(right - locW, speed.y - 4 - lines * lineH, locW, lines * lineH)
+	local T = HudLayout.TIMER
+	local timers = rect(right - T.w, location.y - 6 - T.h, T.w, T.h)
+	local timersDriving = rect(right - T.w, locationDriving.y - 6 - T.h, T.w, T.h)
+	local radio = rect(round(w / 2 - 200), S, 400, 44)
+	local P = HudLayout.PHONE
+	local phoneScale = math.min(1, (h - 32) / P.h)
+	local pw, ph = round(P.w * phoneScale), round(P.h * phoneScale)
+	local phone = rect(w - 36 - pw, h - 16 - ph, pw, ph)
+	local list = rect(S, S, HudLayout.LIST_W, 0)
+	return {
+		touch = false,
+		w = w,
+		h = h,
+		safe = S,
+		radar = radar,
+		bars = bars,
+		help = help,
+		feed = feed,
+		feedMax = 4,
+		stars = stars,
+		starSize = HudLayout.STAR_SIZE,
+		starPitch = HudLayout.STAR_PITCH,
+		cash = cash,
+		delta = delta,
+		ammo = ammo,
+		arrest = arrest,
+		objective = objective,
+		location = location,
+		locationDriving = locationDriving,
+		locationLines = lines,
+		locationSize = size,
+		timers = timers,
+		timersDriving = timersDriving,
+		timerStep = -(T.h + T.gap),
+		speed = speed,
+		radio = radio,
+		phone = phone,
+		phoneScale = phoneScale,
+		list = list,
+		listRow = 28,
+		buttons = {},
+	}
+end
+
+local function touchLayout(w: number, h: number): Layout
+	local S = HudLayout.SAFE_TOUCH
+	local R = HudLayout.RADAR_TOUCH
+	local radar = rect(S, S, R.w, R.h)
+	local bars = rect(S, radar.y + R.h + HudLayout.BAR_GAP, R.w, HudLayout.BAR_H)
+	local help = rect(S, bars.y + bars.h + 10, HudLayout.HELP_W_TOUCH, 46)
+	local feed = rect(S, help.y, HudLayout.FEED_W_TOUCH, math.max(80, h - help.y - S))
+	local right = w - S
+	local B = 220
+	local starRow = 4 * HudLayout.STAR_PITCH + HudLayout.STAR_SIZE
+	local stars = rect(right - starRow, S + 4, starRow, HudLayout.STAR_SIZE)
+	local cash = rect(right - B, 40, B, 34)
+	local delta = rect(right - B, 74, B, 26)
+	local ammo = rect(right - B, 102, B, 30)
+	local arrest = rect(right - 120, 138, 120, 20)
+	-- top-centre column between the radar and the right block
+	local leftLimit = radar.x + radar.w + 16
+	local rightLimit = right - B - 8
+	local cx = w / 2
+	local half = math.max(120, math.min(cx - leftLimit, rightLimit - cx))
+	local colW = math.min(round(half * 2), 640)
+	local colX = round(cx - colW / 2)
+	local objective = rect(colX, S, colW, 44)
+	local location = rect(colX, objective.y + objective.h + 2, colW, 28)
+	local radio = rect(colX, location.y + location.h + 2, colW, 40)
+	local T = HudLayout.TIMER
+	local timers = rect(round(cx - T.w / 2), radio.y + radio.h + 4, T.w, T.h)
+	-- touch buttons (bottom-right arc), above the Roblox jump button when on foot
+	local nitro = rect(right - 96, h - S - 96, 96, 96)
+	local drift = rect(nitro.x - 10 - 84, h - S - 84, 84, 84)
+	local horn = rect(right - 60 - 18, nitro.y - 10 - 60, 60, 60)
+	local exit = rect(horn.x - 12 - 60, horn.y, 60, 60)
+	local phoneBtn = rect(right - 56, h - 136 - 56, 56, 56)
+	local mapBtn = rect(phoneBtn.x - 12 - 56, phoneBtn.y, 56, 56)
+	local speed = rect(drift.x - 12 - 130, h - S - 44, 130, 44)
+	local P = HudLayout.PHONE
+	local phoneScale = math.clamp((h - 32) / P.h, 0.8, 1.3)
+	local pw, ph = round(P.w * phoneScale), round(P.h * phoneScale)
+	local phone = rect(w - 24 - pw, h - 16 - ph, pw, ph)
+	local listH = round(h * 0.42)
+	local list = rect(0, h - listH, w, listH)
+	return {
+		touch = true,
+		w = w,
+		h = h,
+		safe = S,
+		radar = radar,
+		bars = bars,
+		help = help,
+		feed = feed,
+		feedMax = 2,
+		stars = stars,
+		starSize = HudLayout.STAR_SIZE,
+		starPitch = HudLayout.STAR_PITCH,
+		cash = cash,
+		delta = delta,
+		ammo = ammo,
+		arrest = arrest,
+		objective = objective,
+		location = location,
+		locationDriving = location,
+		locationLines = 1,
+		locationSize = 22,
+		timers = timers,
+		timersDriving = timers,
+		timerStep = T.h + T.gap,
+		speed = speed,
+		radio = radio,
+		phone = phone,
+		phoneScale = phoneScale,
+		list = list,
+		listRow = 40,
+		buttons = { phone = phoneBtn, map = mapBtn, nitro = nitro, drift = drift, horn = horn, exit = exit },
+	}
+end
+
+-- The whole HUD layout for a w x h design canvas.
+function HudLayout.compute(w: number, h: number, touch: boolean): Layout
+	local cw = if w == w and w >= 1 then w else 1280
+	local ch = if h == h and h >= 1 then h else 720
+	return if touch then touchLayout(cw, ch) else desktop(cw, ch)
+end
+
+-- Big-message band (§5.9) on the full screen (ScreenInsets None): centre 48.8% H, 19.5% H tall.
+function HudLayout.shardBand(screenH: number): (number, number)
+	return screenH * 0.488, screenH * 0.195
+end
+
+-- Health / armour / ability split (§5.2): widths of the three segments for a bar `w` wide with `gap` px between.
+function HudLayout.barSegments(w: number, gap: number): (number, number, number)
+	local inner = math.max(0, w - 2 * gap)
+	local a = math.floor(inner * 0.5 + 0.5)
+	local b = math.floor(inner * 0.25 + 0.5)
+	return a, b, inner - a - b
+end
+
+return HudLayout
