@@ -49,5 +49,58 @@
   "sha256": "fa28b051644ceea0328082eed600a3945dfa6417e42262ecef728ced5b3f4e6f",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:12:07+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      8.1172,
+      1.618,
+      5.6167
+    ],
+    "dims_m": [
+      8.117,
+      1.618,
+      5.617
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 12,
+    "triangles": 2397,
+    "materials": 11,
+    "material_names": [
+      "Material",
+      "Material.001",
+      "Material.002",
+      "Material.003",
+      "Material.004",
+      "Material.005",
+      "Material.006",
+      "Material.007",
+      "Material.008",
+      "Material.009",
+      "Material.010"
+    ],
+    "textures": 0,
+    "texture_max_px": 0,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Cube.001_0",
+      "Cube.001_1",
+      "Cube.001_2",
+      "Cube.001_3",
+      "Cube.001_4",
+      "Cube.001_5",
+      "Cube.001_6",
+      "Cube.001_7",
+      "Cube.001_8",
+      "Cube.001_9",
+      "Cube.001_10",
+      "Icosphere"
+    ],
+    "render_s": 48.8
+  }
 }
