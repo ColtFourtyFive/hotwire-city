@@ -396,6 +396,38 @@
   "animations": 0,
   "skins": 0
  },
+ "v-fire-truck--ladder-truck-b24cdf": {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "author": "overseerover12",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 11,
+  "tex_max": 1024,
+  "materials": 26,
+  "extensions": [
+   "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-fire-truck--red-fire-truck-with-ladder-5c8d87": {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "author": "Chenzoss",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 3,
+  "tex_max": 1024,
+  "materials": 1,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
  "v-limousine--chrysler-300c-limo-mk1-2004-2010-8f2f46": {
   "class": "limousine",
   "kind": "vehicle",
@@ -609,6 +641,76 @@
    "KHR_texture_transform",
    "KHR_materials_clearcoat",
    "KHR_materials_specular"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-motorcycle--kawasaki-h2r-model-2c2e5e": {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "author": "santunihu",
+  "brand": [
+   "kawasaki"
+  ],
+  "rip_names": [],
+  "logo_names": [
+   "logoh2r2"
+  ],
+  "wheel_nodes": 0,
+  "textures": 9,
+  "tex_max": 1024,
+  "materials": 38,
+  "extensions": [
+   "KHR_materials_transmission"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-motorcycle--mid-poly-street-motorcycle-6c576c": {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "author": "tonycheuk",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 3,
+  "textures": 1,
+  "tex_max": 256,
+  "materials": 12,
+  "extensions": [],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-motorcycle--superbike-low-poly-downloadable-48581e": {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "author": "rhcreations",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 10,
+  "tex_max": 1024,
+  "materials": 16,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "animations": 0,
+  "skins": 0
+ },
+ "v-motorcycle--superbike-v1-1-free-download-82b69f": {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "author": "rhcreations",
+  "brand": [],
+  "rip_names": [],
+  "logo_names": [],
+  "wheel_nodes": 0,
+  "textures": 21,
+  "tex_max": 1024,
+  "materials": 24,
+  "extensions": [
+   "KHR_materials_pbrSpecularGlossiness"
   ],
   "animations": 0,
   "skins": 0

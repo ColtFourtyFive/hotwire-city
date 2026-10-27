@@ -382,9 +382,11 @@ def append_attribution(meta: dict, rel_path: str) -> bool:
     if not ATTRIBUTION.exists():
         ATTRIBUTION.write_text(
             "# Third-party asset attribution\n\n"
-            "Every third-party model shipped or used in Hotwire City is listed here and must also appear "
-            "in the in-game Credits screen. Only CC0 and CC-BY (4.0) assets are allowed; CC-BY requires "
-            "crediting the author as below. Real brand logos/badges are stripped before use.\n\n"
+            "Every third-party model downloaded for Hotwire City is listed here (sourcing candidates "
+            "included). Every model that ships must also appear in the in-game Credits screen; see "
+            "docs/v2/sourcing/PICKS.md for which candidates are picked. Only CC0 and CC-BY (4.0) assets are "
+            "allowed; CC-BY requires crediting the author as below. Real brand logos/badges are stripped "
+            "before use.\n\n"
             "## Sketchfab\n\n"
             "| Model | Author | License | Source | Local | uid |\n"
             "|---|---|---|---|---|---|\n",

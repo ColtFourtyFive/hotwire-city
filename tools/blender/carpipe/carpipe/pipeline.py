@@ -174,6 +174,7 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
             textures[gname] = merged
 
     # ---------------------------------------------------------------- final materials
+    _SHARED_MATS.clear()
     for img in list(bpy.data.images):  # bake targets are stale in memory (AO/tint were applied on disk)
         if img.filepath_raw and os.path.abspath(bpy.path.abspath(img.filepath_raw)).startswith(os.path.abspath(tex_dir)):
             bpy.data.images.remove(img)
@@ -329,8 +330,18 @@ def _merge_paths(paths, members, lows, size, out_path, data=False):
     return out_path
 
 
+_SHARED_MATS: dict = {}
+
+
 def _final_material(lo, nm, gname, tex, car, cfg, route):
-    mat = bpy.data.materials.new(nm)
+    # the four wheels (and the two light groups) share one material -> one SurfaceAppearance/texture set in Roblox
+    if gname in ("Wheel", "Lights") and gname in _SHARED_MATS and _SHARED_MATS[gname].name in bpy.data.materials:
+        lo.data.materials.clear()
+        lo.data.materials.append(_SHARED_MATS[gname])
+        return
+    mat = bpy.data.materials.new(gname if gname in ("Wheel", "Lights") else nm)
+    if gname in ("Wheel", "Lights"):
+        _SHARED_MATS[gname] = mat
     mat.use_nodes = True
     nt = mat.node_tree
     b = nt.nodes.get("Principled BSDF")
@@ -432,8 +443,9 @@ def _seats(car):
         mn = np.array([car.imin[i] for i in isl])
         mx = np.array([car.imax[i] for i in isl])
         a = car.ia[isl]
-        # seats that span both sides (bench objects) -> split later with the fallback
-        single = (mx[:, 0] - mn[:, 0]) < 0.45 * W
+        # one seat per island: narrower than ~40% of the car and clearly off the centre line
+        single = ((mx[:, 0] - mn[:, 0]) < 0.40 * W) & (np.abs(cs[:, 0]) > 0.08 * W) & \
+                 ((mx[:, 2] - mn[:, 2]) > 0.08 * H)
         if single.sum() >= 1:
             cs, mn, mx, a = cs[single], mn[single], mx[single], a[single]
             front_y = cs[:, 1].max()
