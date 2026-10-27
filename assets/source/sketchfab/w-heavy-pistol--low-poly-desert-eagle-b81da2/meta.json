@@ -57,12 +57,12 @@
   "analysis": {
     "import_dims_m": [
       269.6328,
-      38.7347,
+      40.2532,
       150.5303
     ],
     "dims_m": [
       269.633,
-      38.735,
+      40.253,
       150.53
     ],
     "front_evidence": "upright_band",
@@ -105,6 +105,6 @@
       "Object_22",
       "Icosphere"
     ],
-    "render_s": 49.1
+    "render_s": 9.1
   }
 }
