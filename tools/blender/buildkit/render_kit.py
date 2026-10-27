@@ -120,8 +120,8 @@ def sc_downtown(a, night=False):
         S.night()
     else:
         S.world("sky_late_afternoon", sun_az=-150.0)
-    avenue(-460, 420, night=night, lamps=70, palms=(38, 50), palm_kind="date", seed=3, far_w=0, no_cars=(-460, -330),
-           clear=(-392, -7, 30))
+    avenue(-460, 420, night=night, lamps=70, palms=(50, 64), palm_kind="fan", seed=3, far_w=0, no_cars=(-460, -330),
+           clear=(-392, -7, 75))
     specs = [("tower", 3, -330), ("tower", 7, -230), ("tower", 1, -120), ("tower", 12, -10), ("tower", 5, 100), ("tower", 9, 210)]
     for (arch, sd, x) in specs:
         B = BK.build(arch, sd)

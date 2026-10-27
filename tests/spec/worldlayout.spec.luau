@@ -545,6 +545,11 @@ return function(t)
 		t.ok(Q.pointInDistrict(Vector3.new(0, 12, 0), "downtown"), "downtown at the center")
 		t.eq(Q.districtAt(Vector3.new(-4300, 12, 0)).id, "beach", "Palmera Beach on the west coast")
 		t.eq(Q.districtAt(Vector3.new(4300, 30, -560)).id, "cactus", "Cactus Junction overrides Red Mesa")
+		local walk = Q.sidewalkCFrame(ei, 1, s)
+		t.ok(
+			walk ~= nil and not Q.isOnRoad(walk.Position - Vector3.new(0, S.CURB_HEIGHT, 0)),
+			"sidewalk is off the asphalt"
+		)
 		local par = W.Parcels[math.floor(#W.Parcels / 2)]
 		t.eq(Q.parcelAt(par.cframe.Position), par, "parcelAt")
 		t.ok(Q.parcelAt(Vector3.new(320, 12, -250)) == nil, "no lot on Crown Boulevard")

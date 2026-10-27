@@ -52,14 +52,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      2.0801,
+      2.0971,
       9.323,
-      2.8854
+      2.9108
     ],
     "dims_m": [
       9.323,
-      2.08,
-      2.885
+      2.097,
+      2.911
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -86,6 +86,6 @@
       "Object_5",
       "Object_6"
     ],
-    "render_s": 31.5
+    "render_s": 23.4
   }
 }

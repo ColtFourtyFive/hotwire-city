@@ -638,3 +638,62 @@ For night, Poly Haven does have pure-sky HDRIs (corrected in verification): `klo
 | `img_gta/assets_npc_bodies.jpg`, `assets_npc_civ.jpg`, `assets_npc_police.jpg`, `assets_npc_police_acc.jpg`, `assets_npc_hats.jpg`, `assets_npc_street.jpg` | avatar items |
 | `img_gta/assets_city_sketchfab_buildings.jpg`, `assets_city_sketchfab_props.jpg`, `assets_props_polyhaven.jpg`, `assets_props_creatorstore.jpg` | city |
 | `img_gta/assets_sky_creatorstore.jpg`, `assets_sky_polyhaven.jpg` | skies |
+
+---
+
+## Verification
+
+Skeptical re-check made on 2026-10-27 by a second agent against the live APIs and the Roblox docs. **Totals: 23 CONFIRMED, 8 WRONG (all fixed in place above), 3 UNVERIFIABLE.** Changed lines in the body are the corrections listed here; rows added in verification are marked *(added in verification)*.
+
+Sources queried: `apis.roblox.com/toolbox-service/v1/items/details`, `catalog.roblox.com/v1/bundles/<id>/details`, `catalog.roblox.com/v1/favorites/assets/<id>/count`, `economy.roblox.com/v2/assets/<id>/details`, `users.roblox.com/v1/usernames/users`, `thumbnails.roblox.com/v1/assets`, `api.sketchfab.com/v3/models[/<uid>]`, `api.polyhaven.com/assets`, and the Roblox engine reference sources at `github.com/Roblox/creator-docs` (`Humanoid.yaml`, `Players.yaml`, `Sound.yaml`, `InsertService.yaml`, `AssetService.yaml`, `HumanoidDescription.yaml`, `projects/assets/privacy.md`, `production/creator-store.md`, `art/modeling/specifications.md`).
+
+### Wrong (corrected in place)
+
+| # | Claim | Correction |
+|---|---|---|
+| W1 | Base Body bundles 979–995 all have "realistic proportions" and rate 4 (Charlie 983, Glenn 984, Parker 985 in the table). | **979–987 (Riley, Cameron, Peyton, Charlie, Glenn, Parker, Devin, Kayden) use Roblox's "Anime Style 1/2" torso and head meshes.** For example, Charlie's 11572083496 is "Anime Style 1 – Torso" and 11572085825 is "Anime Style 1 – Head". The head thumbnails show large anime eyes. Only **988–995** have their own realistic-proportion parts. The 3 rows were moved to Notable 3s, and the decision summary now says 988–995. |
+| W2 | Use `Players:CreateHumanoidModelFromDescription`, `Humanoid:ApplyDescription` and `Humanoid:PlayEmote`. | All three are tagged **Deprecated** in the engine reference. Use `CreateHumanoidModelFromDescriptionAsync`, `ApplyDescriptionAsync` and `PlayEmoteAsync`. |
+| W3 | "For night, Poly Haven has no pure-sky option." | Poly Haven has 5 night "pure skies" HDRIs: `kloppenheim_07_puresky` (overcast, artificial light: the best fit for a lit city), `kloppenheim_02_puresky`, `qwantani_night_puresky`, `qwantani_moonrise_puresky` and `qwantani_moon_noon_puresky`. Rows were added to §6.2, with thumbnails in `img_gta/assets/ph_*`. |
+| W4 | "Nothing below repeats an ID from `assets/curation/*.json` … unless marked." | 4 IDs in Notable-3 lists were already in `assets/curation/vehicles-characters-props.json` and were unmarked: 1081392, 144076760, 6554200369 and 6555797786. They are now marked *(already in repo)*. All 18 IDs that the doc marked "already in repo" are present. |
+| W5 | Fleet has "police (7 cruisers and 5 interceptors)". | The library has about **8 cruisers/enforcers and 8 interceptors**. That includes two modern units the doc missed: **Trinity '03 Cop Interceptor** `6a5c6c8a75764eea905541fd5b05e9bf` (20.8k) and **Urban '10 Cop Enforcer** `745830362bb342128ef6509345606ffe` (19.6k), both CC BY and downloadable. They were added to §1.1 because they close part of the "too 1980s for GTA V" gap. |
+| W6 | Fictional brands mean "GTA-style parody brands come built in". | Mostly true, but **"Phoenix" (Imponte Phoenix) and "Cheetah" (Grotti Cheetah) are GTA's own vehicle names**, and "Duke" is close to Imponte Dukes. The §1.3 use-label "Burrito" is GTA's Declasse Burrito. Rename them, because the lead direction rules out GTA names. Notes were added to §1.1 and §1.2, and "Burrito" was removed from §1.3. Sources: <https://www.grandtheftwiki.com/Imponte>, <https://gtabase.com/grand-theft-auto-v/vehicles/declasse-burrito>, <https://op.gg/gta6/vehicles/cheetah>. |
+| W7 | Both opened GLBs have `WheelStamp_FL/FR/RL/RR` wheel meshes. | Only the Fairheaven uses `WheelStamp_*`. Kiri '10 and Shvan '92 use `WheelStock_*`, and **3** GLBs were opened, not 2. The re-parse of the scratchpad GLBs gave Kiri 12,980 tris / 31 meshes, Fairheaven 19,501 / 36 and Shvan 25,943 / 28. The importer must match `Wheel(Stamp\|Stock)_(FL\|FR\|RL\|RR)` or go by position. |
+| W8 | "223 per-item thumbnails" (author summary). | `img_gta/assets/` held **224** files before verification. It now holds 230, after 6 added thumbnails: 4 Poly Haven night skies and 2 Sketchfab police cars. The 18 contact sheets are confirmed. |
+
+### Confirmed
+
+| # | Claim | Evidence |
+|---|---|---|
+| C1 | Daniel Zhabotinsky has 100+ downloadable CC BY 4.0 models. | 136 models are listed (the profile says 133), and **130 are CC BY 4.0 and downloadable**. 3 are "Free Standard" (Suggan '53, Milano '95 Racemod, the material system) and 3 are not downloadable. None of those 6 is in this doc. |
+| C2 | The "I unconditionally give you permission…" quote. | It is verbatim in the description of `61766c1e6e1e4b2b803c174f33433a74`. |
+| C3 | All 48 §1.1 uids and the 4 DZ building sets. | Each one is by DanielZhabotinsky, CC BY 4.0 (`creativecommons.org/licenses/by/4.0/`) and downloadable, and its `faceCount` is within 150 tris of the listed figure. |
+| C4 | The other 58 Sketchfab uids (§1.2, §4.1, §4.2, notable 3s). | All are CC BY and downloadable, except TampaJoey City Props vol. 1 (`32b8b82bb1…`), which is **Free Standard** exactly as the doc says. These like counts were checked: Generic Town Bus 1,085, Burned Police Cars 1,406, Road Signs 1,394, Atlanta 3,430. |
+| C5 | Free Standard: commercial use is OK, with no stand-alone redistribution. | Sketchfab's licence page forbids making the material "available … as a stand-alone file", and its help pages allow commercial use. Added: set Asset Privacy to Restricted for those uploads (§7). Sources: <https://sketchfab.com/licenses>, <https://help.sketchfab.com/en/articles/16152225-store-license-usage-faq>. |
+| C6 | Creator Store cars §1.3 (16 IDs). | All exist, are public, and match on creator, tris, MeshParts, scripts and votes. For example: fire truck 8062915410 by CodeAta has 61,273 tris, 18 MeshParts, 0 scripts and 60 votes at 83%, and is free. Taxi 11721302627 by ryteclipse has 26,863 tris, 14 MeshParts and 33 scripts, and is free. Andru7rs Checker 97528551904169 costs **$14.99**. |
+| C7 | Creator Store props §4.3 (14 IDs). | All match, including the 2 paid items at $2.99 (74128359748221 and 118336156580063). The crane's real name is "…EC-B **Short** Flat top…", with 10 votes at 64%; this was fixed. |
+| C8 | Creator Store skies §6.1 (13 IDs). | All match on creator and votes. For example, 5186800496 by DotDDotexe has 1,000 votes at 97%. Caveat: its thumbnail shows a cloud sea below the horizon, so check it over open ocean in Studio. |
+| C9 | Only 4 creators have the blue badge, and toolbox `verified:true` does not mean a badge. | `hasVerifiedBadge` is true for Andru7rs, Natalie_Clabo, Stickmasterluke and CRRAANNNEEEEEEE, and false for CodeAta, ryteclipse, DotDDotexe, BadboyWestern, Regole_CKC, baxzzi and others. Toolbox `isVerifiedCreator` is true for all of them. |
+| C10 | Base Body bundles are free and Roblox-made, and the 988 and 991 part IDs are right. | All 16 checked bundles (979–995) are free and by Roblox. The Dawson and Addison part IDs match the bundle contents. |
+| C11 | Bundles 572 Summer, 573 Oliver, 722 Denny and 337 City Life Woman. | All are Roblox-made, free and on sale. |
+| C12 | Animation pack IDs (§3.2). | adidas Community: all 5 IDs, **including the "inferred" Run 124765145869332** (asset type 53, RunAnimation). Also adidas Sports, Rthro and Bold by e.l.f. The inferred-ID caveat was removed. The adidas and e.l.f. packs cost 300 R$, which doesn't matter for NPCs. |
+| C13 | The NPC emotes. | Cower 4940597758, Point2 3576823880, Salute 3360689775 and Shrug 3576968026 are all Roblox-made EmoteAnimation assets (type 61). Salute 3360689775 is the ID used in Roblox's own `HumanoidDescription:SetEmotes` doc example. |
+| C14 | Catalog items work on NPCs without ownership. | This is the documented `HumanoidDescription` pattern. `InsertService` docs also call shirts, pants and accessories `OpenUse`. Studio test still advised. |
+| C15 | Clothing sample (12 IDs). | Creator, asset type and badge match. The Roblox LC items (Zip Hoodie, Business Coat, Basic Tee, Leather Jacket) are 0 R$, and Floral Button Down is 105 R$ as noted. |
+| C16 | 53k and 57k favorites. | Tactical Operator Kit 11309698643 has 53,088. Police Utility Belt 4376960922 has 57,474. |
+| C17 | PSE and Audioscape audio (32 IDs sampled across §2, §5.1, §5.2 and §5.3). | All exist. The uploader is ProSoundEffects (7462895450) or Audioscape (34159607), and durations match. Engine-clip descriptions match the doc: Ferrari 308 "Hard Booming Revs, Very Fast Away with Gear Changes", Chevy pickup "Deep Humming Idle with Big Revs", Peterbilt "Driving Constant… Loop". Note that several clips start with a door slam or failed start, so set the loop region past it. |
+| C18 | `Sound.LoopRegion` exists. | It exists and is not deprecated. It needs `PlaybackRegionsEnabled = true` (note added to §5.1). `AudioPlayer.LoopRegion` also exists. |
+| C19 | Animation ownership rule. | Confirmed, with one addition: owners can now grant a universe access on the asset's Permissions page (`projects/assets/privacy.md`). Community packs won't grant it to us, so the rule stays blocking (text updated in §2). Both gun-anim packs exist: 3631707712 has 2 animations and 100 votes at 95%; 13408250226 has 29 animations. |
+| C20 | Creator Store models "load by ID, no upload". | True, but **only through `AssetService:LoadAssetAsync()` with "Allow Loading Third Party Assets" enabled**. `InsertService:LoadAsset` cannot load third-party free models, and loaded models are sandboxed. The mechanism was added to §1.3 and §7. |
+| C21 | Paid items need a purchase first. | Confirmed by the Creator Store FAQ. Added: only individual accounts can buy, and a paid model loaded dynamically fails in a group-owned game unless it was inserted before publish. |
+| C22 | `city.json` is cartoony. | It contains "synty city corner shop", "Low Poly Simulator Shop", "Cartoon House" ×3 and "Low Poly Palm Tree". |
+| C23 | Poly Haven IDs and polycounts. | All 11 HDRI IDs and 14 model IDs exist, and the polycounts match (for example `modular_electricity_poles` 200,610 and `concrete_road_barrier` 80,776). `covered_car` is the only car; the other car-tagged items are tyres and rims. |
+
+### Unverifiable here
+
+| # | Claim | Why |
+|---|---|---|
+| U1 | Audio realism ratings, and "no licensed per-class RPM loop sets exist". | There is no playback in the container, and the absence claim needs an exhaustive Store search. Listen in Studio. |
+| U2 | Realism ratings, and "every thumbnail looked at". | These are subjective. I spot-checked 16 thumbnails against their names and all matched. The only rating overturned on evidence is W1. |
+| U3 | Emotes, animation packs and LC clothing render correctly on server-spawned NPCs. | This needs Studio. The docs support the pattern (C13, C14). |
+
+Pipeline fact added for the importer: Roblox caps each mesh at **20,000 triangles** (`art/modeling/specifications.md`). The DZ cars are already split into 28–36 meshes, but Poly Haven props (80–200k) and the 55.5k bus must be decimated or split.

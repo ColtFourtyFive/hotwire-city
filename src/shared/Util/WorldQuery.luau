@@ -6,7 +6,8 @@
 -- Terrain     heightAt(pos) / gradeAt(pos), isWater(pos), shoreDistance(pos)
 -- Districts   districtAt(pos) -> District, pointInDistrict(pos, id)
 -- Roads       nearestRoadPoint(pos, opts?), isOnRoad(pos, margin?), edgePoint(edge, s), laneCFrame(edge, lane, dir, s),
---             laneCount(edge, dir), laneOffset(edge, lane, dir), parkingCFrame(edge, side, s), nearestLane(pos, heading?),
+--             laneCount(edge, dir), laneOffset(edge, lane, dir), parkingCFrame(edge, side, s), sidewalkCFrame(edge, side, s),
+--             nearestLane(pos, heading?),
 --             outgoing(node), otherEnd(edge, node), route(from, to, opts?), routeLength(points)
 -- Junctions   intersectionAt(pos, slack?), signalState(intersection, approach, time)
 -- Places      parcelAt(pos), poi(id), poisOfKind(kind), nearestPOI(pos, kind), plot(i), plotAt(pos), plotCount(),
@@ -288,6 +289,19 @@ function WorldQuery.parkingCFrame(ei: number, side: number, s: number): CFrame
 	local pos = p + right * side * (e.width / 2 - WorldLayout.Scale.PARKING_LANE / 2)
 	local f = if side < 0 and not e.oneWay then -tan else tan
 	return CFrame.lookAt(pos, pos + f)
+end
+
+-- Middle of the sidewalk on side (+1 right of a -> b, -1 left) at arc length s, at curb-top height, facing a -> b.
+-- nil when the edge has no sidewalk (freeway, rural, alley). NPC walkers follow these and turn at junction radii.
+function WorldQuery.sidewalkCFrame(ei: number, side: number, s: number): CFrame?
+	local e = Edges[ei]
+	if e.sidewalk <= 0 then
+		return nil
+	end
+	local p, tan = WorldQuery.edgePoint(ei, s)
+	local right = Vector3.new(-tan.Z, 0, tan.X)
+	local pos = p + right * side * (e.width / 2 + e.sidewalk / 2) + Vector3.new(0, WorldLayout.Scale.CURB_HEIGHT, 0)
+	return CFrame.lookAt(pos, pos + tan)
 end
 
 -- Nearest legal traffic-lane CFrame (outer lane, facing a legal direction; the one closest to `heading` if given).
