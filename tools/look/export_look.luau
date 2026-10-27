@@ -14,4 +14,6 @@ print(serde.encode("json", {
 	Keys = Look.Keys,
 	SkySchedule = Look.SkySchedule,
 	SkyStyle = Look.SkyStyle,
+	SkySwap = Look.SkySwap,
+	EngineClock = Look.EngineClock,
 }, false))

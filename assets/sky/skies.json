@@ -113,51 +113,137 @@
   "skies": {
     "blue": {
       "celestialBodiesShown": true,
-      "clouds": 1.0,
+      "clouds": 0.0,
       "files": {
         "bk": "assets/sky/blue/bk.png",
-        "dn": "assets/sky/blue/dn.png",
+        "dn": "assets/sky/shared/dn_twilight.png",
         "ft": "assets/sky/blue/ft.png",
         "lf": "assets/sky/blue/lf.png",
         "rt": "assets/sky/blue/rt.png",
         "up": "assets/sky/blue/up.png"
       },
       "followSun": true,
-      "glowAzimuth": 32.7,
-      "glowElevation": 12.3,
+      "glowAzimuth": 0.0,
+      "glowElevation": -3.0,
       "grading": {
-        "below": 0.45,
-        "contrast": 1.0,
-        "ev": -0.35,
-        "haze_white": 0.2,
-        "horizon": 0.18,
-        "horizon_w": 8.0,
-        "sat": 0.5,
-        "sun": null,
-        "tint": [
-          0.94,
-          0.97,
-          1.04
-        ]
+        "clipped_share": 0.01316,
+        "engine": {
+          "bg_far": 0.85,
+          "bg_low": 0.22,
+          "bg_near": 0.7,
+          "bg_scale": 13.0,
+          "g_high": 0.142,
+          "g_low": 0.022,
+          "g_scale": 10.0,
+          "g_sun": 0.45,
+          "gamma": 1.35,
+          "psi0": 90.0,
+          "psi1": 150.0,
+          "ref_ev": 2.0,
+          "rg_far": 2.8,
+          "rg_near": 1.85
+        },
+        "exposure": 0.625,
+        "grade": {
+          "contrast": 0.12,
+          "saturation": -0.07892580791989051,
+          "tint": [
+            229.29631315430134,
+            238.10741920801095,
+            255.0
+          ]
+        },
+        "reference_clocks": [
+          18.2
+        ],
+        "reference_hour": 18.9,
+        "strength": 1.0
       },
       "hazeColor": [
-        120,
-        112,
-        122
+        28,
+        33,
+        45
       ],
-      "hdri": "qwantani_dusk_2_puresky",
-      "horizonGlowAzimuth": 48.1,
+      "hdri": null,
+      "horizonGlowAzimuth": 0.0,
       "sha1": {
-        "bk": "9baed0532b693ba2d91a96e81d58b8c0b58e96e4",
-        "dn": "4423eb4773a47a2f674432a5f9c2e62b89200ec5",
-        "ft": "8ffe6b847f4310f285a6d562f9a3f922d12f6223",
-        "lf": "5eedacef0aa4f29041d335592640534e831bfe80",
-        "rt": "fb299550922895a735a9fd2652716b63549c2cf7",
-        "up": "81ef209bb96728e1ea14503b050acc93f9e6d6b7"
+        "bk": "25a890d1e4093b7d6a006c2ab77b85b1051e3cdd",
+        "dn": "5a790729d0deb008ad5fa006fd79710c51e8f0f9",
+        "ft": "c5344e380862935eb8b6d102808a0c6fa16c934d",
+        "lf": "e945e66b8ba39867bf92212fe0d167da5f9fa148",
+        "rt": "f777052ed955c4a582cb8bdfd6cb32b2241ad387",
+        "up": "bda1059c87e8d71c1c7124bb981dfd061f6c3bb7"
       },
-      "source": "Poly Haven (CC0) qwantani_dusk_2_puresky 4k",
+      "source": "procedural (tools/look/procedural_sky.py), no third-party source",
       "starCount": 0,
-      "use": "05:00-05:57 and 18:06-19:30 blue hours (sun below the horizon); volumetric clouds kept"
+      "use": "18:21-19:30 dusk: amber glow on the sun side, pink belt opposite, deep blue zenith"
+    },
+    "dawn": {
+      "celestialBodiesShown": true,
+      "clouds": 0.0,
+      "files": {
+        "bk": "assets/sky/dawn/bk.png",
+        "dn": "assets/sky/shared/dn_twilight.png",
+        "ft": "assets/sky/dawn/ft.png",
+        "lf": "assets/sky/dawn/lf.png",
+        "rt": "assets/sky/dawn/rt.png",
+        "up": "assets/sky/dawn/up.png"
+      },
+      "followSun": true,
+      "glowAzimuth": 0.0,
+      "glowElevation": -3.0,
+      "grading": {
+        "clipped_share": 0.01266,
+        "engine": {
+          "bg_far": 0.85,
+          "bg_low": 0.22,
+          "bg_near": 0.7,
+          "bg_scale": 13.0,
+          "g_high": 0.142,
+          "g_low": 0.022,
+          "g_scale": 10.0,
+          "g_sun": 0.45,
+          "gamma": 1.35,
+          "psi0": 90.0,
+          "psi1": 150.0,
+          "ref_ev": 2.0,
+          "rg_far": 2.8,
+          "rg_near": 1.85
+        },
+        "exposure": 0.548,
+        "grade": {
+          "contrast": 0.12,
+          "saturation": -0.081875,
+          "tint": [
+            228.875,
+            237.8125,
+            255.0
+          ]
+        },
+        "reference_clocks": [
+          5.8
+        ],
+        "reference_hour": 5.3,
+        "strength": 1.0
+      },
+      "hazeColor": [
+        27,
+        32,
+        44
+      ],
+      "hdri": null,
+      "horizonGlowAzimuth": 0.0,
+      "sha1": {
+        "bk": "6c8ce0118e15063b9d9bb1664c48a50c62a14eb5",
+        "dn": "5a790729d0deb008ad5fa006fd79710c51e8f0f9",
+        "ft": "041bc23b3d7befbd1cfe752ddd5d12ae44573b7a",
+        "lf": "e42898409b918ed30db7c65e02388fc1b79b004b",
+        "rt": "4aa6ca93a678ee68d6ccee4b58ec0a7b8e7100cc",
+        "up": "f4d7cfe45bca36cc46ce471ab28511a2faa24335"
+      },
+      "source": "procedural (tools/look/procedural_sky.py), no third-party source",
+      "starCount": 0,
+      "use": "05:00-05:39 dawn: peach / pink glow on the sun side, deep blue zenith"
     },
     "day": {
       "celestialBodiesShown": true,
@@ -275,48 +361,201 @@
       "clouds": 0.0,
       "files": {
         "bk": "assets/sky/night/bk.png",
-        "dn": "assets/sky/night/dn.png",
+        "dn": "assets/sky/shared/dn_twilight.png",
         "ft": "assets/sky/night/ft.png",
         "lf": "assets/sky/night/lf.png",
         "rt": "assets/sky/night/rt.png",
         "up": "assets/sky/night/up.png"
       },
       "followSun": false,
-      "glowAzimuth": 35.5,
-      "glowElevation": 38.3,
+      "glowAzimuth": 0.0,
+      "glowElevation": -3.0,
       "grading": {
-        "below": 0.55,
-        "contrast": 1.05,
-        "ev": -2.1,
-        "haze_white": 0.0,
-        "horizon": 0.12,
-        "horizon_w": 8.0,
-        "sat": 0.42,
-        "sun": null,
-        "tint": [
-          0.92,
-          0.96,
-          1.0
-        ]
+        "clipped_share": 0.0,
+        "engine": {
+          "bg_far": 0.85,
+          "bg_low": 0.22,
+          "bg_near": 0.7,
+          "bg_scale": 13.0,
+          "g_high": 0.142,
+          "g_low": 0.022,
+          "g_scale": 10.0,
+          "g_sun": 0.45,
+          "gamma": 1.35,
+          "psi0": 90.0,
+          "psi1": 150.0,
+          "ref_ev": 2.0,
+          "rg_far": 2.8,
+          "rg_near": 1.85
+        },
+        "exposure": 0.8,
+        "grade": {
+          "contrast": 0.12,
+          "saturation": -0.2,
+          "tint": [
+            212.0,
+            226.0,
+            255.0
+          ]
+        },
+        "reference_clocks": [
+          18.2
+        ],
+        "reference_hour": 22.5,
+        "strength": 1.0
       },
       "hazeColor": [
-        53,
-        54,
-        56
+        22,
+        29,
+        41
       ],
-      "hdri": "kloppenheim_07_puresky",
-      "horizonGlowAzimuth": 17.4,
+      "hdri": null,
+      "horizonGlowAzimuth": 90.0,
       "sha1": {
-        "bk": "6b534186a12e3547fac6ffadc6de0d8252b3308a",
-        "dn": "d3e5584e6bba04af095693846e733e3cdd3518f8",
-        "ft": "3d8eb69f6778d8027393ea96abe2b490d65c3ec2",
-        "lf": "39f13d37876a17c387fb6c24021a23221cd678ae",
-        "rt": "39033ada75b38b4f2917dd76c207a309e922cdc6",
-        "up": "87789fa27579233903c71855b8e1ef2fa4825fc4"
+        "bk": "aebf3145ea7917ef0f136dcc846836e4e4174b7b",
+        "dn": "5a790729d0deb008ad5fa006fd79710c51e8f0f9",
+        "ft": "0eb17cee056abc25e54d45f360d279cde64b29e2",
+        "lf": "718bd1c2beeca58eb13ea982fd07519254b8a4a0",
+        "rt": "c6b79277890d4f4dfc56e7eae6bdd2d58462f0d6",
+        "up": "dfa44614a9d737938dab51a450ccf934abe8effa"
       },
-      "source": "Poly Haven (CC0) kloppenheim_07_puresky 4k",
+      "source": "procedural (tools/look/procedural_sky.py), no third-party source",
       "starCount": 0,
-      "use": "19:30-05:00 night: moonlit cloud deck (no engine moon/stars), warm city glow parked inland"
+      "use": "19:30-00:00 night (evening hold, sun west): blue-black sky, subtle stars, warm city glow at +X"
+    },
+    "nightLate": {
+      "celestialBodiesShown": false,
+      "clouds": 0.0,
+      "files": {
+        "bk": "assets/sky/nightLate/bk.png",
+        "dn": "assets/sky/shared/dn_twilight.png",
+        "ft": "assets/sky/nightLate/ft.png",
+        "lf": "assets/sky/nightLate/lf.png",
+        "rt": "assets/sky/nightLate/rt.png",
+        "up": "assets/sky/nightLate/up.png"
+      },
+      "followSun": false,
+      "glowAzimuth": 0.0,
+      "glowElevation": -3.0,
+      "grading": {
+        "clipped_share": 0.0,
+        "engine": {
+          "bg_far": 0.85,
+          "bg_low": 0.22,
+          "bg_near": 0.7,
+          "bg_scale": 13.0,
+          "g_high": 0.142,
+          "g_low": 0.022,
+          "g_scale": 10.0,
+          "g_sun": 0.45,
+          "gamma": 1.35,
+          "psi0": 90.0,
+          "psi1": 150.0,
+          "ref_ev": 2.0,
+          "rg_far": 2.8,
+          "rg_near": 1.85
+        },
+        "exposure": 0.8,
+        "grade": {
+          "contrast": 0.12,
+          "saturation": -0.2,
+          "tint": [
+            212.0,
+            226.0,
+            255.0
+          ]
+        },
+        "reference_clocks": [
+          5.8
+        ],
+        "reference_hour": 2.0,
+        "strength": 1.0
+      },
+      "hazeColor": [
+        22,
+        29,
+        41
+      ],
+      "hdri": null,
+      "horizonGlowAzimuth": 90.0,
+      "sha1": {
+        "bk": "ca7c1f1fe7d20a7a04171d992c5c25c4b92d2f8a",
+        "dn": "5a790729d0deb008ad5fa006fd79710c51e8f0f9",
+        "ft": "536329b3e0dca3cd193401588e9526d723a12f43",
+        "lf": "afdadcd858d93ba5fb198bef59f0623edcaad3b3",
+        "rt": "281a0777df1edf06072f5b3b4f6fc91e00fb8037",
+        "up": "36600c68820b166fe3cbec22743db86e69a23ef7"
+      },
+      "source": "procedural (tools/look/procedural_sky.py), no third-party source",
+      "starCount": 0,
+      "use": "00:00-05:00 night (morning hold, sun east): the same look, compensated for the other side"
+    },
+    "nightMild": {
+      "celestialBodiesShown": false,
+      "clouds": 0.0,
+      "files": {
+        "bk": "assets/sky/nightMild/bk.png",
+        "dn": "assets/sky/shared/dn_twilight.png",
+        "ft": "assets/sky/nightMild/ft.png",
+        "lf": "assets/sky/nightMild/lf.png",
+        "rt": "assets/sky/nightMild/rt.png",
+        "up": "assets/sky/nightMild/up.png"
+      },
+      "followSun": false,
+      "glowAzimuth": 0.0,
+      "glowElevation": -3.0,
+      "grading": {
+        "clipped_share": 0.0,
+        "engine": {
+          "bg_far": 0.85,
+          "bg_low": 0.22,
+          "bg_near": 0.7,
+          "bg_scale": 13.0,
+          "g_high": 0.142,
+          "g_low": 0.022,
+          "g_scale": 10.0,
+          "g_sun": 0.45,
+          "gamma": 1.35,
+          "psi0": 90.0,
+          "psi1": 150.0,
+          "ref_ev": 2.0,
+          "rg_far": 2.8,
+          "rg_near": 1.85
+        },
+        "exposure": 0.8,
+        "grade": {
+          "contrast": 0.12,
+          "saturation": -0.2,
+          "tint": [
+            212.0,
+            226.0,
+            255.0
+          ]
+        },
+        "reference_clocks": [
+          18.2
+        ],
+        "reference_hour": 22.5,
+        "strength": 0.7
+      },
+      "hazeColor": [
+        22,
+        29,
+        41
+      ],
+      "hdri": null,
+      "horizonGlowAzimuth": 90.0,
+      "sha1": {
+        "bk": "1119218205a46b73cfebbbcef0cac2426b7e6942",
+        "dn": "5a790729d0deb008ad5fa006fd79710c51e8f0f9",
+        "ft": "8063a568c7913e31cea0dd640aa63f0d31a19da5",
+        "lf": "f208c8a13615b545088b973e89a02ef5db073492",
+        "rt": "07c5b52ae23cb9ef04ab02e493ac4f76c3c9001b",
+        "up": "738e8b194d870c24a41b78f4e5f8d58f2ad0ac39"
+      },
+      "source": "procedural (tools/look/procedural_sky.py), no third-party source",
+      "starCount": 0,
+      "use": "A/B only (Workspace SkyOverride): 'night' at 70 % compensation"
     }
   }
 }

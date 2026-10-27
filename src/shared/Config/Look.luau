@@ -62,7 +62,7 @@ export type DecalDef = {
 
 export type SkyDef = {
 	faces: { [string]: string }, -- Bk/Dn/Ft/Lf/Rt/Up -> rbxassetid (Image assets)
-	glowAzimuth: number, -- degrees, 0 = -Z, 90 = +X (azimuth of the HDRI's brightest region / sun before rotation)
+	glowAzimuth: number, -- degrees, 0 = -Z, 90 = +X (azimuth of the sky's sun glow / brightest region before rotation)
 	horizonGlowAzimuth: number, -- brightest part of the 0..6 deg band (a night sky's city glow)
 	sunAzimuth: number?,
 	sunElevation: number?,
@@ -221,10 +221,15 @@ Look.Tuning = { hazeScale = 1, densityScale = 1 } :: Tuning
 -- showed the night HDRI and a readable city: the engine already darkens a -3 deg world heavily, so the presets must
 -- LIFT it ~2 stops (positive ExposureCompensation, a moonlight-level key, a brighter cool OutdoorAmbient), not darken
 -- it further. "Still clearly night" comes from the low key light, the cool desaturated grade, the dark navy haze and
--- the night HDRI. The engine also tints that held world and its sky reddish-brown (the HDRI itself is navy-grey), so
--- the night grade is a clear blue tint (Look.Presets.night.colorCorrection). The blue hour sits between golden and
--- night and is never darker than the night. Haze / decay / cloud colours are neutral blue-grey with red never above
--- green (no magenta, tested). Job 0011 sweeps night exposure and tint ("ExposureOverride", "TintOverride").
+-- the night sky. The engine also tints that held world and its sky reddish-brown, so the night grade is a clear blue
+-- tint (Look.Presets.night.colorCorrection; job 0011 kept Exposure +0.8 and tint (212, 226, 255)). The blue hour sits
+-- between golden and night and is never darker than the night. Haze / decay / cloud colours are neutral blue-grey with
+-- red never above green (no magenta, tested). Job 0011 swept night exposure and tint ("ExposureOverride",
+-- "TintOverride").
+--
+-- The night / dawn / dusk sky faces are built AGAINST these presets (tools/look/procedural_sky.py reads the exposure
+-- and ColorCorrection at its reference hours and pre-compensates the engine's sky cast for them): after changing the
+-- night or blue-hour exposure or grade, re-run it (and re-upload), or the sky drifts from its target colours.
 --
 -- Golden hour (job 0009): the old warm Atmosphere colour + warm tint + saturation boost read sepia / brown (dusty,
 -- smoggy) on top of the engine's own orange low sun. The grade is now warm-but-neutral: near-neutral haze, a faint
@@ -341,15 +346,16 @@ local Presets: { [string]: Preset } = {
 		atmosphere = {
 			density = DENSITY.night,
 			offset = LOCK.offset,
-			haze = 0.35, -- thin: the night HDRI's moonlit clouds and city-glow band stay visible above the haze
+			haze = 0.35, -- thin: the night sky's stars and city-glow band stay visible above the haze
 			glare = 0,
 			color = { 40, 43, 50 },
 			decay = { 20, 22, 27 },
 		},
 		-- lab round 2 S6 (windows bloomed into slabs at 1.05 / 1.0); threshold up a little more for the +0.8 EV lift
 		bloom = { intensity = 0.6, size = 26, threshold = 1.4 },
-		-- a clear blue tint + desaturation: cancels the engine's reddish-brown cast on the held night sky (job 0009)
-		-- while warm lamps and windows stay warm
+		-- a clear blue tint + desaturation: cools the engine's reddish-brown cast on the held world (job 0009) while warm
+		-- lamps and windows stay warm. It cannot fix the sky alone (job 0011): the night sky faces are pre-compensated
+		-- for this grade instead (Look.SkySchedule)
 		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.2, tint = { 212, 226, 255 } },
 		sunRays = { intensity = 0, spread = 0.5 },
 		clouds = { cover = 0.3, density = 0.4, color = { 48, 52, 62 } },
@@ -375,10 +381,20 @@ Look.Keys = {
 }
 
 ---------------------------------------------------------------------------------------------------------------------
--- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Four swaps a day, all with the ENGINE sun
--- below the horizon, each under a short exposure dip (Look.SkySwap):
---   night -> blue in the dark, blue -> day just before the engine sunrise, day -> blue just after the engine sunset,
---   blue -> night in the dark.
+-- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Four sky changes a day, all with the ENGINE
+-- sun below the horizon, each under a short exposure dip (Look.SkySwap; `dip` overrides its depth for one entry):
+--   nightLate -> dawn in the dark, dawn -> day just before the engine sunrise, day -> blue (dusk) just after the engine
+--   sunset, blue -> night in the dark;
+-- plus night -> nightLate AT the engine-clock jump (Look.EngineClock.jumpHour, same tick, same dip): the two night skies
+-- are the same picture, each pre-compensated for the engine's colour cast with the held sun on its own side (west
+-- before the jump, east after it), so the frame does not change (backlog 14, research/lighting_lab.md round 5).
+--
+-- The night, dawn and dusk skies are procedural (tools/look/procedural_sky.py), not HDRIs: the engine renders a skybox
+-- at the held -3 deg sun ~50x darker than by day and strongly red (R/G ~2.8), which is what turned the navy-grey night
+-- HDRI reddish-brown (job 0011). Their faces are the inverse of that measured transfer applied to the look we want on
+-- screen at the preset's grade: a deep blue night needs a cyan-blue face. The twilight <-> night swaps change the most
+-- (the sun-side glow goes, stars come out), so they get a deeper dip; the dusk zenith is kept within ~1.5x of the
+-- night's so that step stays small.
 --
 -- No golden sky (decision after lab round 2 S3). The day <-> golden swap popped visibly: thin warm wisps <-> white
 -- cumulus, seen straight through a Haze 1.2 bump, and the facades shifted with it because the sky feeds ambient and
@@ -390,17 +406,25 @@ Look.Keys = {
 -- desaturated day dome. The golden faces stay in Look.Skies (generated) but are not scheduled or preloaded.
 ---------------------------------------------------------------------------------------------------------------------
 
+export type SkySwapEntry = {
+	hour: number, -- GAME hour the sky comes up
+	sky: string, -- a Look.Skies name
+	dip: number?, -- this swap's ExposureCompensation dip in EV (default Look.SkySwap.exposureDip)
+}
+
 Look.SkySchedule = {
-	{ hour = 5.0, sky = "blue" }, -- NightFactor 0.99; engine sun held at -3 deg
+	{ hour = 0, sky = "nightLate" }, -- = EngineClock.jumpHour: the held sun jumps to the east in the same tick
+	{ hour = 5.0, sky = "dawn", dip = 0.35 }, -- NightFactor 0.99; engine sun held at -3 deg (east)
 	{ hour = 5.65, sky = "day" }, -- engine ClockTime 5.90: sun -1.5 deg, just before the engine sunrise
 	{ hour = 18.35, sky = "blue" }, -- engine ClockTime 18.10: sun -1.5 deg, just after the engine sunset
-	{ hour = 19.5, sky = "night" }, -- NightFactor 1
-}
+	{ hour = 19.5, sky = "night", dip = 0.35 }, -- NightFactor 1; engine sun held at -3 deg (west)
+} :: { SkySwapEntry }
 
 -- Mask for sky swaps and the engine-clock jump (Look.EngineClock.jumpHour): ExposureCompensation dips by up to
 -- exposureDip EV (gaussian over +-width game hours, ~20 real seconds at dusk), so the frame is slightly darker while
--- the sky (and the sky-fed ambient) changes. The old haze bump is gone: lab round 2 saw the swap straight through it,
--- and the day Haze is locked (Look.AtmosphereLock). Volumetric cloud cover also blends over +-width around a swap.
+-- the sky (and the sky-fed ambient) changes; a schedule entry's `dip` sets its own depth. The old haze bump is gone:
+-- lab round 2 saw the swap straight through it, and the day Haze is locked (Look.AtmosphereLock). Volumetric cloud
+-- cover also blends over +-width around a swap.
 Look.SkySwap = {
 	exposureDip = 0.2,
 	width = 0.25,
@@ -410,8 +434,8 @@ Look.SkyStyle = {
 	sunAngularSize = 10, -- real sun ~0.5 deg; 21 default reads storybook
 	-- Job 0009: a large pale moon disc sat on the horizon opposite the golden-hour sun, next to a bright cumulus day
 	-- sky. The engine moon is now small and HIDDEN (Sky.MoonAngularSize 0) whenever the engine sun is above
-	-- moonHideAboveElevation (LightingService.moonSizeAt); it only shows at twilight under the blue sky (the night sky
-	-- hides all celestial bodies anyway). Live override: Workspace "MoonSizeOverride" (degrees, 0 hides).
+	-- moonHideAboveElevation (LightingService.moonSizeAt); it only shows at twilight under the dusk / dawn skies (the
+	-- night skies hide all celestial bodies anyway). Live override: Workspace "MoonSizeOverride" (degrees, 0 hides).
 	moonAngularSize = 1.5,
 	moonHideAboveElevation = -2, -- deg, engine sun; below both day <-> blue swaps (-1.5): never under the day sky
 	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - target azimuth), the CFrame.Angles(0, y, 0) convention.
@@ -422,7 +446,7 @@ Look.SkyStyle = {
 	-- spin the painted clouds, so the day sky lags there and catches up in the afternoon. Swaps snap.
 	maxYawRate = 0.3,
 	yawEpsilon = 0.02, -- degrees; SkyboxOrientation is only rewritten past this (steps are ~0.075 deg at 4 Hz)
-	-- Skies that do not follow the sun (night) park their horizon glow (the HDRI's warm city glow) here: east / +X,
+	-- Skies that do not follow the sun (night, nightLate) park their horizon glow (the warm city glow) here: east / +X,
 	-- inland. The Palmera Beach ocean horizon is the -X side (WorldLayout coast), and should stay dark.
 	fixedGlowAzimuth = 90,
 }
@@ -480,6 +504,8 @@ Look.Water = {
 --   "AtmosphereDensityOverride" (number)  "AtmosphereHazeOverride" (number)  "ExposureOverride" (EV)
 --   "BrightnessOverride" (number)  "OutdoorAmbientOverride" (Color3)  "TintOverride" (Color3, ColorCorrection)
 --   "SaturationOverride" (number, ColorCorrection)  "MoonSizeOverride" (degrees, 0 hides the engine moon)
+--   "SkyOverride" (string, a Look.Skies name: that sky instead of Look.SkySchedule, e.g. the "nightMild" A/B of job
+--   0012; yaw / stars / sun-moon discs follow that sky's own settings)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- BEGIN GENERATED (tools/look/gen_project.py) - do not edit by hand

@@ -24,11 +24,13 @@
 --   smoothstepped every 1 s. Atmosphere capped at Density 0.30 / Haze 1.2 (lab round 1); the sunlit presets' Offset
 --   0.25 / Haze 0.8 are locked (lab round 2, Look.AtmosphereLock). Writes are cheap: a property is only written when it
 --   moved past a per-property epsilon since the last write (plateaus cost nothing).
--- * Sky: HDRI skies (Look.Skies) swapped on Look.SkySchedule, four times a day, always with the engine sun below the
---   horizon and under a short exposure dip (Look.SkySwap); there is no day <-> golden swap (it cannot be hidden; see
---   Look.SkySchedule). Per-sky stars, sun/moon discs and volumetric cloud share. A following sky's glow is kept on the
---   engine sun at most Look.SkyStyle.maxYawRate deg/s (yawSign +1, engine-verified); the night sky parks its city
---   glow inland.
+-- * Sky: skies (Look.Skies: the HDRI day sky, procedural dawn / dusk / night skies pre-compensated for the engine's
+--   cast at the held clock) swapped on Look.SkySchedule, four times a day, always with the engine sun below the horizon
+--   and under a short exposure dip (Look.SkySwap, deeper for twilight <-> night), plus night -> nightLate in the same
+--   tick as the engine-clock jump (the same picture, compensated for the held sun's other side). There is no day <->
+--   golden swap (it cannot be hidden; see Look.SkySchedule). Per-sky stars, sun/moon discs and volumetric cloud share.
+--   A following sky's glow is kept on the engine sun at most Look.SkyStyle.maxYawRate deg/s (yawSign +1,
+--   engine-verified); the night skies park their city glow inland. Workspace "SkyOverride" forces a sky (A/B labs).
 -- * One of each: exactly one Sky, Atmosphere, BloomEffect, ColorCorrectionEffect and SunRaysEffect under Lighting
 --   (dedupe: at init, and again whenever one of those is added). Team Create + Rojo live-sync leaves duplicates
 --   (Rojo cannot swap the Lighting service, job 0007); the instance this service owns (attribute "HCLookOwned") is
@@ -187,18 +189,19 @@ function LightingService.sunElevationAt(hour: number, latitude: number?): number
 end
 
 -- ExposureCompensation dip (EV, >= 0) that masks each sky swap and the engine-clock jump: a gaussian of
--- Look.SkySwap.exposureDip over +-Look.SkySwap.width game hours, circular over midnight.
+-- Look.SkySwap.exposureDip (or the schedule entry's own `dip`) over +-Look.SkySwap.width game hours, circular over
+-- midnight. Where two coincide (the night -> nightLate swap sits on the jump) the deeper one applies, once.
 function LightingService.swapDipAt(hour: number): number
 	local h = hour % 24
 	local S = Look.SkySwap
-	local function dip(at: number): number
+	local function dip(at: number, depth: number): number
 		local d = math.abs(h - at % 24)
 		d = math.min(d, 24 - d)
-		return S.exposureDip * math.exp(-(d / S.width) ^ 2)
+		return depth * math.exp(-(d / S.width) ^ 2)
 	end
-	local best = dip(Look.EngineClock.jumpHour)
+	local best = dip(Look.EngineClock.jumpHour, S.exposureDip)
 	for _, e in Look.SkySchedule do
-		best = math.max(best, dip(e.hour))
+		best = math.max(best, dip(e.hour, e.dip or S.exposureDip))
 	end
 	return best
 end
@@ -239,6 +242,7 @@ LightingService.OVERRIDE_ATTRIBUTES = {
 	TintOverride = "ColorCorrection.TintColor (Color3)",
 	SaturationOverride = "ColorCorrection.Saturation (number)",
 	MoonSizeOverride = "Sky.MoonAngularSize (degrees; 0 hides the moon, ignores moonSizeAt)",
+	SkyOverride = "the Sky (string, a Look.Skies name; replaces Look.SkySchedule, e.g. the nightMild A/B)",
 }
 
 -- Applies the sweep overrides to an interpolated look (in place; returns it). `attr` reads one attribute (Workspace
@@ -297,6 +301,15 @@ function LightingService.skyAt(hour: number): string
 		end
 	end
 	return name
+end
+
+-- The sky to show: `override` when it names a Look.Skies entry (Workspace "SkyOverride", labs / A/B), else the
+-- schedule's sky at the game hour. A wrong-typed or unknown override is ignored. Pure.
+function LightingService.skyFor(hour: number, override: any): string
+	if typeof(override) == "string" and Look.Skies[override] ~= nil then
+		return override
+	end
+	return LightingService.skyAt(hour)
 end
 
 -- Game hours until the next sky swap from `hour`, and the sky it swaps to.
@@ -746,7 +759,7 @@ local function applySky(hour: number, dt: number)
 	if not sky then
 		return
 	end
-	local name = LightingService.skyAt(hour)
+	local name = LightingService.skyFor(hour, Workspace:GetAttribute("SkyOverride"))
 	local def = Look.Skies[name]
 	local swapped = false
 	if name ~= currentSky then
