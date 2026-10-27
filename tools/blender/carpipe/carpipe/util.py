@@ -113,8 +113,10 @@ def rgb_to_hsv(rgb):
 
 
 def select_only(objs, active=None):
-    for o in bpy.context.view_layer.objects:
-        o.select_set(False)
+    bpy.context.view_layer.update()
+    for o in bpy.context.scene.objects:
+        if o is not None:
+            o.select_set(False)
     for o in objs:
         o.select_set(True)
     if active is not None or objs:

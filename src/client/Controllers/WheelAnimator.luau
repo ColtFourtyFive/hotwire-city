@@ -12,7 +12,8 @@
 --     the wheel spin / steer / bob work entirely; rainbow, sparkles and observer drift FX still run.
 --   * Mutation "Diamond"/"Galaxy": the server-built CarBuilder.SPARKLES_NAME emitter only emits within SPARKLE_RANGE.
 --   * Other players' / AI cars that drift (sideways slip from the replicated chassis velocity, same test as the
---     driving controller) get local tire smoke + a SoundController screech loop; the driver's own FX are VehicleClient's.
+--     driving controller) get local flipbook tire smoke (VFXLibrary "TireSmoke" streams, quality-scaled + budgeted),
+--     skid-mark Trails from the rear wheels + a SoundController screech loop; the driver's own FX are VehicleClient's.
 --   * Budget: the HOT_COUNT nearest on-screen cars update every frame, the rest round-robin COLD_PER_FRAME per frame.
 --     Cars behind the camera are skipped; only Vehicles and rainbow cars take a slot; bob rays are cast every other
 --     update (every TRAFFIC_BOB_EVERY for Traffic, which holds a fixed height); unchanged wheel poses are not
@@ -27,6 +28,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local VehicleController = require(Shared.Vehicle.VehicleController)
+local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
 local VMath = VehicleController.math
 local WHEEL_NAMES = VehicleController.WHEEL_NAMES
@@ -79,7 +81,8 @@ type WheelRig = {
 }
 
 type DriftFx = {
-	smoke: { ParticleEmitter },
+	smoke: { VFXLibrary.Stream },
+	skids: { VFXLibrary.TrailRig },
 	screech: Sound?,
 	on: boolean,
 }
@@ -436,33 +439,21 @@ local function buildDriftFx(rig: Rig): DriftFx?
 	if not chassis then
 		return nil
 	end
-	local fx: DriftFx = { smoke = {}, screech = nil, on = false }
+	local fx: DriftFx = { smoke = {}, skids = {}, screech = nil, on = false }
 	for _, w in rig.wheels do
 		if w.rear then
 			local att = Instance.new("Attachment")
 			att.Name = "HC_ObserverSmoke"
 			att.Position = w.basePos - Vector3.new(0, rig.radius * 0.85, 0)
 			att.Parent = chassis
-			local pe = Instance.new("ParticleEmitter")
-			pe.Name = "TireSmoke"
-			pe.Texture = "rbxasset://textures/particles/smoke_main.dds"
-			pe.Color = ColorSequence.new(Color3.fromRGB(240, 240, 245), Color3.fromRGB(185, 185, 200))
-			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 6) })
-			pe.Transparency =
-				NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1) })
-			pe.Lifetime = NumberRange.new(0.6, 1.1)
-			pe.Rate = 30
-			pe.Speed = NumberRange.new(2, 6)
-			pe.SpreadAngle = Vector2.new(35, 35)
-			pe.Acceleration = Vector3.new(0, 4, 0)
-			pe.Drag = 2
-			pe.Rotation = NumberRange.new(0, 360)
-			pe.RotSpeed = NumberRange.new(-60, 60)
-			pe.LightInfluence = 0.6
-			pe.EmissionDirection = Enum.NormalId.Back
-			pe.Enabled = false
-			pe.Parent = att
-			table.insert(fx.smoke, pe)
+			local smoke = VFXLibrary.stream("TireSmoke", att, { rateScale = 0.8 })
+			if smoke then
+				table.insert(fx.smoke, smoke)
+			end
+			local skid = VFXLibrary.trail("SkidMark", chassis, w.basePos - Vector3.new(0, rig.radius - 0.08, 0))
+			if skid then
+				table.insert(fx.skids, skid)
+			end
 		end
 	end
 	return fx
@@ -478,9 +469,12 @@ local function setDriftFx(rig: Rig, on: boolean)
 		return
 	end
 	fx.on = on
-	for _, pe in fx.smoke do
-		if pe.Parent then
-			pe.Enabled = on
+	for _, st in fx.smoke do
+		VFXLibrary.setStream(st, on)
+	end
+	for _, skid in fx.skids do
+		if skid.trail.Parent then
+			skid.trail.Enabled = on
 		end
 	end
 	local sc = soundController

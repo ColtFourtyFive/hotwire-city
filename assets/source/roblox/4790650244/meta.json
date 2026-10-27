@@ -1,0 +1,16 @@
+{
+ "id": 4790650244,
+ "fetched_at": "2026-10-27T15:59:30Z",
+ "status": 200,
+ "assetTypeId": 1,
+ "assetType": "Image",
+ "requestId": "639287135705000019",
+ "isArchived": false,
+ "isRecordable": true,
+ "ok": true,
+ "kind": "png",
+ "ext": "png",
+ "file": "asset.png",
+ "bytes": 6235,
+ "sha256": "c3b9bb2e67583b6952a66a931435076ccd0cde7fa8e79db925e236d952a6c394"
+}

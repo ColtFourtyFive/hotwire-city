@@ -138,7 +138,26 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--top", type=int, default=25)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--user", default=None, help="grid of one author's models instead of class searches")
+    ap.add_argument("--q", default="")
+    ap.add_argument("--name", default=None, help="name for an ad-hoc --q/--user grid")
+    ap.add_argument("--kind", default="vehicle")
     a = ap.parse_args()
+    if a.user or a.name:
+        out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
+        cat = "cars-vehicles" if a.kind == "vehicle" else "weapons-military" if a.kind == "weapon" else None
+        items = sf.search(a.q, "both", max_faces=150000, min_faces=1000, user=a.user, pages=8 if a.user else 2,
+                          categories=None if a.user else cat)
+        for r in items:
+            r["bad_name"] = bool(BAD.search(r["name"] or "")); r["too_big"] = False
+        name = a.name or a.user
+        data = json.loads(OUT_JSON.read_text()) if OUT_JSON.exists() else {}
+        data["_adhoc_" + name] = {"kind": a.kind, "queries": [a.q], "user": a.user, "items": items}
+        OUT_JSON.write_text(json.dumps(data, indent=1))
+        for i in range(0, len(items), a.top):
+            grid(f"{name}_{i // a.top}", items[i:i + a.top], out, a.top)
+        print(f"[scout] {name}: {len(items)}")
+        return
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     only = set(filter(None, a.only.split(",")))
