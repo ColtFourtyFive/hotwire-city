@@ -363,9 +363,13 @@ local function getHost(): Part
 	p.Size = Vector3.new(0.2, 0.2, 0.2)
 	p.CFrame = CFrame.identity
 	p.Parent = folder
+	if host then
+		-- the old host's slots died with it (pool records stay valid: callers may hold one)
+		for _, pool in pools do
+			table.clear(pool.slots)
+		end
+	end
 	host = p
-	-- the old host's slots died with it
-	table.clear(pools)
 	return p
 end
 

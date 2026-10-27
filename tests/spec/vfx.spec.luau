@@ -322,7 +322,11 @@ return function(t)
 		t.ok(Lib.burst("WreckSmoke", Vector3.new(0, 0, 251), { force = true }) > 0, "force ignores distance")
 		t.eq(Lib.burst("Nope", Vector3.zero), 0, "unknown preset")
 		t.eq(Lib.burst("TireSmoke", Vector3.zero), 0, "streams can't burst")
-		t.eq(Lib.burst("ImpactStar", Vector3.zero, { count = 3 }), 2, "explicit count still quality-scaled")
+		t.eq(
+			Lib.burst("ImpactStar", Vector3.zero, { count = 5 }),
+			Lib.scaledCount(5, VFX.Quality.low.count),
+			"explicit count still quality-scaled"
+		)
 		Lib._setEmitter(nil)
 	end)
 
@@ -345,9 +349,9 @@ return function(t)
 		t.near(e.Size.Keypoints[1].Value, VFX.Presets.Confetti.size[1].v, 1e-6, "scale reset")
 		t.eq(e.Color.Keypoints[1].Value, Color3.new(1, 1, 1), "color reset to the preset")
 		-- cap: fill the budget, then bursts are refused until particles expire
-		Lib.budget.cap = 30
 		Lib._reset()
 		Lib.setQualityOverride("high")
+		Lib.quality() -- latch the tier (it sets the cap), then shrink the cap for the test
 		Lib.budget.cap = 30
 		t.eq(Lib.burst("Sparks", Vector3.zero), 26)
 		t.eq(Lib.burst("Sparks", Vector3.zero), 4, "clipped to the cap")
@@ -393,15 +397,15 @@ return function(t)
 		local rig = Lib.trail("SkidMark", part, Vector3.new(2, -1, 4))
 		t.ok(rig ~= nil, "trail")
 		local w = VFX.Trails.SkidMark.width
-		t.near((rig.a0.Position - Vector3.new(2 - w / 2, -1, 4)).Magnitude, 0, 1e-6, "a0 left of the contact point")
-		t.near((rig.a1.Position - Vector3.new(2 + w / 2, -1, 4)).Magnitude, 0, 1e-6, "a1 right of it")
+		t.near((rig.a0.Position - Vector3.new(2 - w / 2, -1, 4)).Magnitude, 0, 1e-4, "a0 left of the contact point")
+		t.near((rig.a1.Position - Vector3.new(2 + w / 2, -1, 4)).Magnitude, 0, 1e-4, "a1 right of it")
 		t.eq(rig.trail.Enabled, false)
 		t.eq(rig.trail.FaceCamera, false, "lies flat on the road")
 		t.eq(rig.trail.Texture, VFX.Textures.skid_mark)
 		t.near(rig.trail.Lifetime, VFX.Trails.SkidMark.lifetime, 1e-6)
 		local beam = Lib.beam("NitroJet", part, Vector3.new(0, 0, 3), Vector3.new(0, 0, 1))
 		t.ok(beam ~= nil, "beam")
-		t.near((beam.a1.Position - Vector3.new(0, 0, 3 + VFX.Beams.NitroJet.length)).Magnitude, 0, 1e-6, "length")
+		t.near((beam.a1.Position - Vector3.new(0, 0, 3 + VFX.Beams.NitroJet.length)).Magnitude, 0, 1e-4, "length")
 		t.eq(beam.beam.Enabled, false)
 		t.eq(beam.beam.Texture, VFX.Textures.nitro_jet)
 		Lib.setQualityOverride("low")

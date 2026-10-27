@@ -4,6 +4,7 @@ assets/vfx/manifest.json. A key whose PNG hash matches the manifest is skipped, 
 changed. The API key is read by tools/rbxcloud.py (never printed).
 
 Usage: python3 tools/vfx/upload.py [key ...] [--user 11686693147] [--force]
+       python3 tools/vfx/upload.py --status        # refresh moderation states in the manifest
 Then:  python3 tools/vfx/gen_luau.py   (writes the ids into src/shared/Config/VFX.luau)
 """
 import hashlib
@@ -41,7 +42,22 @@ def poll(op_path, tries=45):
     return None
 
 
+def refresh_status(man):
+    for k in sorted(man):
+        aid = man[k].get("assetId")
+        if not aid:
+            continue
+        st, body, _ = req("GET", f"https://apis.roblox.com/assets/v1/assets/{aid}")
+        if st == 200:
+            man[k]["moderation"] = json.loads(body).get("moderationResult", {}).get("moderationState")
+        print(k, aid, man[k].get("moderation"))
+    json.dump(man, open(MANIFEST, "w"), indent=2, sort_keys=True)
+
+
 def main(argv):
+    if "--status" in argv:
+        refresh_status(json.load(open(MANIFEST)))
+        return
     user = "11686693147"
     force = "--force" in argv
     if "--user" in argv:
