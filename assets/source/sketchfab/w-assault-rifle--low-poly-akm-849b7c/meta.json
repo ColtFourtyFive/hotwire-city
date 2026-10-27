@@ -56,14 +56,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      943.6527,
-      51.3908,
-      318.5603
+      943.8036,
+      55.6894,
+      321.667
     ],
     "dims_m": [
-      943.653,
-      51.391,
-      318.56
+      943.804,
+      55.689,
+      321.667
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -107,6 +107,7 @@
       "Object_35",
       "Icosphere"
     ],
-    "render_s": 26.8
+    "hidden_helpers": [],
+    "render_s": 32.9
   }
 }

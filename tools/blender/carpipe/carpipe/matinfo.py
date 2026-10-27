@@ -137,7 +137,16 @@ def material_info(mat) -> dict:
     tr, _ = _val(b, "Transmission Weight", 0.0)
     d["transmission"] = float(tr)
     al, atex = _val(b, "Alpha", 1.0)
-    d["alpha"] = float(al) if atex is None else 0.5
+    if atex is None:
+        d["alpha"] = float(al)
+    else:  # alpha from a texture (cut-outs vs. tinted glass): use the texture's mean coverage
+        arr = image_small(atex.image, 64)
+        if arr is None:
+            d["alpha"] = 0.5
+        elif atex.image.channels == 4 and float(arr[..., 3].min()) < 0.99:
+            d["alpha"] = float(arr[..., 3].mean())
+        else:
+            d["alpha"] = float(arr[..., :3].mean())
     if atex is not None and getattr(mat, "surface_render_method", "") == "DITHERED" and mat.blend_method == "OPAQUE":
         d["alpha"] = 1.0
     ec, etex = _val(b, "Emission Color", (0, 0, 0, 1))

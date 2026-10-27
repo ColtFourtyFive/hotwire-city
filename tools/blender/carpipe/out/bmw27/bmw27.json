@@ -1,0 +1,548 @@
+{
+  "name": "bmw27",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "BMW27 Cycles benchmark scene",
+    "url": "https://download.blender.org/demo/test/",
+    "download": "https://download.blender.org/demo/test/BMW27_2.blend.zip",
+    "license": "UNVERIFIED (blender.org demo/benchmark file by Mike Pan; no licence text shipped). BMW trademarks. TEST ONLY - do not ship.",
+    "attribution": "BMW27 benchmark scene by Mike Pan, distributed by blender.org"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "bmw27.glb",
+  "dimensions": {
+    "length": 15.5,
+    "width": 6.785,
+    "height": 5.087,
+    "wheelbase": 9.44,
+    "track_front": 5.532,
+    "track_rear": 5.223,
+    "bbox_min": [
+      -3.4145,
+      -0.0025,
+      -7.4193
+    ],
+    "bbox_max": [
+      3.3707,
+      5.0847,
+      8.0807
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.7439,
+        1.2234,
+        -4.7198
+      ],
+      "radius": 1.2243,
+      "width": 0.834,
+      "part_center": [
+        -2.7376,
+        1.2214,
+        -4.7218
+      ],
+      "attachment_offset": [
+        -0.0064,
+        0.0019,
+        0.0019
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 821
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.7877,
+        1.2217,
+        -4.7198
+      ],
+      "radius": 1.2243,
+      "width": 0.8331,
+      "part_center": [
+        2.7959,
+        1.2299,
+        -4.7141
+      ],
+      "attachment_offset": [
+        -0.0081,
+        -0.0082,
+        -0.0057
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 838
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.5894,
+        1.2262,
+        4.7081
+      ],
+      "radius": 1.2245,
+      "width": 1.0368,
+      "part_center": [
+        2.5834,
+        1.2308,
+        4.7023
+      ],
+      "attachment_offset": [
+        0.0061,
+        -0.0046,
+        0.0058
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 848
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.6332,
+        1.2262,
+        4.7198
+      ],
+      "radius": 1.2245,
+      "width": 1.0368,
+      "part_center": [
+        -2.6332,
+        1.229,
+        4.7256
+      ],
+      "attachment_offset": [
+        0.0,
+        -0.0028,
+        -0.0058
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 811
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.2892,
+        1.8314,
+        0.7552
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.2892,
+        1.8314,
+        0.7552
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.0963,
+          2.4388,
+          -6.9058
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.0324,
+          2.386,
+          -6.9058
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.2283,
+          3.1085,
+          7.4792
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.1652,
+          3.112,
+          7.4793
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -0.0219,
+        1.0914,
+        7.0365
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        -1.6714,
+        1.0994,
+        7.7099
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        -1.3504,
+        1.0994,
+        7.7857
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        1.3066,
+        1.0994,
+        7.7857
+      ],
+      "estimated": false
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.6279,
+    -0.0
+  ],
+  "paint": {
+    "route": "strip",
+    "primary": {
+      "object": "Body",
+      "material": "CarShellNew",
+      "color_srgb": [
+        0.9063,
+        0.3733,
+        0.186
+      ],
+      "textured": false,
+      "metallic": 0.0,
+      "roughness": 0.5
+    },
+    "secondary": null,
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 6942,
+      "bbox_min": [
+        -3.4147,
+        0.5897,
+        -7.4191
+      ],
+      "bbox_max": [
+        3.3711,
+        5.0847,
+        8.0807
+      ],
+      "textures": {
+        "normal": "textures/bmw27_Body_normal.png",
+        "ao": "textures/bmw27_Body_ao.png"
+      }
+    },
+    "Glass": {
+      "tris": 504,
+      "bbox_min": [
+        -2.6744,
+        3.2954,
+        -3.2201
+      ],
+      "bbox_max": [
+        2.6306,
+        4.8642,
+        6.4186
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 450,
+      "bbox_min": [
+        -2.843,
+        2.0365,
+        -6.9058
+      ],
+      "bbox_max": [
+        2.7993,
+        2.6814,
+        -5.7815
+      ],
+      "textures": {
+        "normal": "textures/bmw27_Lights_normal.png",
+        "emit": "textures/bmw27_Lights_emit.png",
+        "base": "textures/bmw27_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 448,
+      "bbox_min": [
+        -2.6999,
+        2.7804,
+        6.5072
+      ],
+      "bbox_max": [
+        2.6561,
+        3.2293,
+        7.4793
+      ],
+      "textures": {
+        "normal": "textures/bmw27_Lights_normal.png",
+        "emit": "textures/bmw27_Lights_emit.png",
+        "base": "textures/bmw27_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2411,
+      "bbox_min": [
+        -2.7429,
+        0.7133,
+        -7.1247
+      ],
+      "bbox_max": [
+        2.6983,
+        4.8356,
+        7.7864
+      ],
+      "textures": {
+        "normal": "textures/bmw27_Trim_normal.png",
+        "rough": "textures/bmw27_Trim_rough.png",
+        "metal": "textures/bmw27_Trim_metal.png",
+        "base": "textures/bmw27_Trim_base.png",
+        "ao": "textures/bmw27_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 1500,
+      "bbox_min": [
+        -3.1777,
+        0.6159,
+        -6.8573
+      ],
+      "bbox_max": [
+        3.1338,
+        4.4355,
+        7.4379
+      ],
+      "textures": {
+        "normal": "textures/bmw27_Interior_normal.png",
+        "rough": "textures/bmw27_Interior_rough.png",
+        "metal": "textures/bmw27_Interior_metal.png",
+        "base": "textures/bmw27_Interior_base.png",
+        "ao": "textures/bmw27_Interior_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 821,
+      "bbox_min": [
+        -3.1645,
+        -0.0161,
+        -5.9507
+      ],
+      "bbox_max": [
+        -2.3106,
+        2.4589,
+        -3.4928
+      ],
+      "textures": {
+        "rough": "textures/bmw27_Wheel_rough.png",
+        "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
+        "ao": "textures/bmw27_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 838,
+      "bbox_min": [
+        2.3694,
+        -0.0019,
+        -5.933
+      ],
+      "bbox_max": [
+        3.2224,
+        2.4618,
+        -3.4953
+      ],
+      "textures": {
+        "rough": "textures/bmw27_Wheel_rough.png",
+        "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
+        "ao": "textures/bmw27_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 848,
+      "bbox_min": [
+        2.0532,
+        0.0046,
+        3.4798
+      ],
+      "bbox_max": [
+        3.1135,
+        2.4571,
+        5.9248
+      ],
+      "textures": {
+        "rough": "textures/bmw27_Wheel_rough.png",
+        "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
+        "ao": "textures/bmw27_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 811,
+      "bbox_min": [
+        -3.1695,
+        0.001,
+        3.5031
+      ],
+      "bbox_max": [
+        -2.097,
+        2.4571,
+        5.9481
+      ],
+      "textures": {
+        "rough": "textures/bmw27_Wheel_rough.png",
+        "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
+        "ao": "textures/bmw27_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 220096,
+    "total": 15573,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": -3.0,
+      "red_lights": -0.505,
+      "white_lights": 0.0,
+      "deck_height": -0.8,
+      "cabin": -0.592,
+      "mirrors": -1.2
+    },
+    "confidence": 6.096
+  },
+  "scale": {
+    "source_length": 5.9402995109558105,
+    "factor": 2.60929604162434,
+    "target_length": 15.5
+  },
+  "classes": {
+    "Body": {
+      "islands": 10,
+      "faces": 12436,
+      "area": 151.288
+    },
+    "Glass": {
+      "islands": 4,
+      "faces": 252,
+      "area": 37.547
+    },
+    "LightsFront": {
+      "islands": 3,
+      "faces": 264,
+      "area": 2.176
+    },
+    "LightsRear": {
+      "islands": 2,
+      "faces": 840,
+      "area": 1.354
+    },
+    "Trim": {
+      "islands": 67,
+      "faces": 14319,
+      "area": 43.895
+    },
+    "Interior": {
+      "islands": 12,
+      "faces": 2036,
+      "area": 326.995
+    },
+    "Discard": {
+      "islands": 62,
+      "faces": 5735,
+      "area": 18.005
+    },
+    "WheelFL": {
+      "islands": 16,
+      "faces": 18769,
+      "area": 22.793
+    },
+    "WheelFR": {
+      "islands": 16,
+      "faces": 18769,
+      "area": 22.793
+    },
+    "WheelRR": {
+      "islands": 16,
+      "faces": 18769,
+      "area": 26.389
+    },
+    "WheelRL": {
+      "islands": 17,
+      "faces": 18769,
+      "area": 26.389
+    }
+  },
+  "warnings": []
+}

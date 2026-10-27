@@ -109,12 +109,18 @@ def main():
     ap.add_argument("--tiles", type=int, default=2)
     ap.add_argument("--world-min", type=float, default=-1024)
     ap.add_argument("--world-size", type=float, default=2048)
+    ap.add_argument("--geometry", help="reuse this geometry.json instead of exporting the world again (a restyle of "
+                    "the current map while the city layout is being changed elsewhere)")
     args = ap.parse_args()
     os.makedirs(ASSETS, exist_ok=True)
     os.makedirs(BUILD, exist_ok=True)
 
-    geo = os.path.join(BUILD, "geometry.json")
-    run(["lune", "run", "tools/minimap/export.luau", geo])
+    if args.geometry:
+        geo = os.path.abspath(args.geometry)
+        print(f"reusing {os.path.relpath(geo, ROOT)} (no export)")
+    else:
+        geo = os.path.join(BUILD, "geometry.json")
+        run(["lune", "run", "tools/minimap/export.luau", geo])
     run([sys.executable, "-I", "tools/minimap/render_map.py", geo, ASSETS, "--ss", str(args.ss), "--px", str(args.px),
          "--tiles", str(args.tiles), "--world-min", str(args.world_min), "--world-size", str(args.world_size)])
     run([sys.executable, "-I", "tools/minimap/icons.py", os.path.join(ASSETS, "blips.png"),

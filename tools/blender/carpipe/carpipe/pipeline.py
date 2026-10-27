@@ -13,13 +13,30 @@ from .analyze import INTERIOR, KW_SEAT, TRIM, WHEEL0
 from .util import ensure_dir, fmt3, kw_match, log, reset_scene, select_only, srgb_to_lin, tri_count, verts_np
 
 DEFAULTS = {
-    "length": 17.0,          # studs, bumper to bumper
+    "length": "auto",        # studs bumper to bumper, or "auto": real length (m) x studs_per_meter if the file
+                             # is in metres (plausible 2.8-16 m), else 17
+    "studs_per_meter": 3.4,  # 5.0 m sedan -> 17 studs, matching the ~5.5-stud character
     "tex_body": 1024, "tex_trim": 1024, "tex_interior": 512, "tex_wheel": 512, "tex_lights": 256,
     "glass_tint": [0.06, 0.08, 0.09], "glass_alpha": 0.45,
     "body_maps": True,       # also write Body normal/AO PNGs for an optional SurfaceAppearance
     "budget": {},            # per-object overrides of optimize.BUDGET
     "bake": True,
 }
+
+
+def resolve_length(car, cfg):
+    """Explicit length wins; 'auto' keeps real-world proportions between cars when the source is in metres."""
+    L = cfg.get("length", "auto")
+    if L != "auto":
+        return float(L)
+    lo, hi = car.bbox()
+    src = float(hi[1] - lo[1])
+    if getattr(car, "wheels", None) and 2.8 <= src <= 16.0:
+        r = max(w["radius"] for w in car.wheels)
+        if 0.22 <= r <= 0.75:  # wheel radius also plausible in metres
+            return round(src * float(cfg.get("studs_per_meter", 3.4)), 3)
+    car.warnings.append(f"source length {src:.3g} is not plausibly metres; using 17 studs (set 'length')")
+    return 17.0
 
 
 def rbx(v):
@@ -48,11 +65,12 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     car.orient()
     car.find_wheels()
     car.unsteer_wheels()
-    car.ground_and_scale(float(cfg["length"]))
+    car.ground_and_scale(resolve_length(car, cfg))
     car.classify()
     car.debug_dump(os.path.join(out_dir, "islands_debug.txt"))
     seats = _seats(car)
     exhausts = _exhausts(car)
+    paint_hint = _paint_hint(car)
     if cfg.get("paint_default") and getattr(car, "paint", None):
         car.paint["color_srgb"] = [float(c) for c in cfg["paint_default"]]
     lo_b, hi_b = car.bbox()
@@ -74,6 +92,9 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     for nm, hi in his.items():
         b = budget["Wheel"] if nm in wheel_names else budget.get(nm, 2000)
         lows[nm] = optimize.make_low(hi, nm, b, L, symmetric=nm in ("Body", "Body2", "Glass"))
+    nflip = optimize.orient_outward([o for n, o in lows.items() if n != "Interior"])
+    if nflip:
+        log(f"orient_outward: flipped {nflip} inward-facing faces")
     total = sum(tri_count(o) for o in lows.values())
     if total > optimize.CAR_BUDGET:  # squeeze trim/interior first
         over = total - optimize.CAR_BUDGET
@@ -108,7 +129,7 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
         groups.append(("Wheel", [n for n in wheel_names if n in lows], cfg["tex_wheel"]))
     for gname, members, size in groups:
         objs = [lows[m] for m in members]
-        optimize.atlas_uv(objs, margin=0.006 if size >= 512 else 0.012)
+        optimize.atlas_uv(objs, margin=3.0 / size, angle=75.0)  # ~3 px gutter; 75 deg = fewer, bigger islands
     if cfg["bake"]:
         for gname, members, size in groups:
             if gname == "Body":
@@ -123,6 +144,11 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
                 chans = ["base", "emit", "normal"]
             else:
                 chans = ["base", "rough", "metal", "normal"]
+            # undecimated parts gain nothing from a normal map, and on old sliver-triangle meshes the tangent
+            # basis is garbage (black streaks): only bake normals where decimation actually removed detail
+            kept = sum(tri_count(lows[m]) for m in members) / max(1, sum(tri_count(his[m]) for m in members))
+            if kept > 0.85 and "normal" in chans:
+                chans = [c for c in chans if c != "normal"]
             res = {}
             for m in members:
                 # each member bakes into the shared image: bake one member at a time, then composite by UV coverage
@@ -147,7 +173,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
                 route = "tintmask"
                 uvm = _uv_coverage(lows["Body"], size)
                 pc, cov = bake.tint_mask(merged["base"], os.path.join(tex_dir, f"{name}_Body_tintmask.png"),
-                                         os.path.join(tex_dir, f"{name}_Body_overlay.png"), uv_mask=uvm)
+                                         os.path.join(tex_dir, f"{name}_Body_overlay.png"), uv_mask=uvm,
+                                         paint_hint=paint_hint)
                 paint["color_srgb"] = [round(c, 4) for c in pc]
                 paint["mask_coverage"] = round(cov, 3)
                 merged["tintmask"] = os.path.join(tex_dir, f"{name}_Body_tintmask.png")
@@ -155,6 +182,7 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
             textures[gname] = merged
 
     # ---------------------------------------------------------------- final materials
+    _SHARED_MATS.clear()
     for img in list(bpy.data.images):  # bake targets are stale in memory (AO/tint were applied on disk)
         if img.filepath_raw and os.path.abspath(bpy.path.abspath(img.filepath_raw)).startswith(os.path.abspath(tex_dir)):
             bpy.data.images.remove(img)
@@ -310,8 +338,18 @@ def _merge_paths(paths, members, lows, size, out_path, data=False):
     return out_path
 
 
+_SHARED_MATS: dict = {}
+
+
 def _final_material(lo, nm, gname, tex, car, cfg, route):
-    mat = bpy.data.materials.new(nm)
+    # the four wheels (and the two light groups) share one material -> one SurfaceAppearance/texture set in Roblox
+    if gname in ("Wheel", "Lights") and gname in _SHARED_MATS and _SHARED_MATS[gname].name in bpy.data.materials:
+        lo.data.materials.clear()
+        lo.data.materials.append(_SHARED_MATS[gname])
+        return
+    mat = bpy.data.materials.new(gname if gname in ("Wheel", "Lights") else nm)
+    if gname in ("Wheel", "Lights"):
+        _SHARED_MATS[gname] = mat
     mat.use_nodes = True
     nt = mat.node_tree
     b = nt.nodes.get("Principled BSDF")
@@ -383,6 +421,26 @@ def export_glb(path):
     log("exported", path, f"{os.path.getsize(path) / 1e6:.2f} MB")
 
 
+def _paint_hint(car):
+    """Dominant colour of the body's flanks (doors/fenders between sill and beltline), area weighted, from the
+    per-face texture samples.  Atlas UV space over-represents glass/tyres/trim; 3D area doesn't."""
+    lo, hi = car.bbox()
+    H = hi[2] - lo[2]
+    sel = (car.frole == analyze.BODY) & (car.fc[:, 2] > 0.22 * H) & (car.fc[:, 2] < 0.6 * H) & \
+          (np.abs(car.fn[:, 2]) < 0.8)
+    if sel.sum() < 6:
+        return None
+    col = np.clip(car.fcol[sel], 0, 1)
+    w = car.fa[sel]
+    q = np.clip((col * 12).astype(int), 0, 11)
+    key = q[:, 0] * 144 + q[:, 1] * 12 + q[:, 2]
+    cnt = np.bincount(key, weights=w, minlength=12 ** 3)
+    best = int(cnt.argmax())
+    hint = np.median(col[key == best], axis=0)
+    log(f"paint hint from body flanks: {np.round(hint, 3)} ({cnt[best] / max(w.sum(), 1e-9):.0%} of flank area)")
+    return [float(x) for x in hint]
+
+
 def _seats(car):
     lo, hi = car.bbox()
     W, L, H = hi - lo
@@ -393,8 +451,9 @@ def _seats(car):
         mn = np.array([car.imin[i] for i in isl])
         mx = np.array([car.imax[i] for i in isl])
         a = car.ia[isl]
-        # seats that span both sides (bench objects) -> split later with the fallback
-        single = (mx[:, 0] - mn[:, 0]) < 0.45 * W
+        # one seat per island: narrower than ~40% of the car and clearly off the centre line
+        single = ((mx[:, 0] - mn[:, 0]) < 0.40 * W) & (np.abs(cs[:, 0]) > 0.08 * W) & \
+                 ((mx[:, 2] - mn[:, 2]) > 0.08 * H)
         if single.sum() >= 1:
             cs, mn, mx, a = cs[single], mn[single], mx[single], a[single]
             front_y = cs[:, 1].max()

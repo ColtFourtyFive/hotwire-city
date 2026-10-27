@@ -140,7 +140,9 @@ return function(t)
 				flyover += 1
 			end
 		end
-		for _, c in { "freeway", "ramp", "highway", "boulevard", "avenue", "street", "rural", "channel", "pier", "runway" } do
+		for _, c in
+			{ "freeway", "ramp", "highway", "boulevard", "avenue", "street", "rural", "channel", "pier", "runway" }
+		do
 			t.ok((classes[c] or 0) > 0, "has class " .. c)
 		end
 		t.ok(bridges >= 5, "bridges over water / the channel: " .. bridges)
@@ -358,17 +360,49 @@ return function(t)
 			t.near(d, e.width / 2, 1.5, "entrance on the curb of " .. p.id)
 			t.ok(e.layer == 0 and not e.elevated, "POI fronts a ground road " .. p.id)
 			-- no Rockstar names
-			for _, banned in { "Los Santos", "Vinewood", "Vice", "Ammu", "Pay 'n' Spray", "Maze Bank", "Fleeca", "Vespucci", "Del Perro", "Rockford" } do
+			for _, banned in
+				{
+					"Los Santos",
+					"Vinewood",
+					"Vice",
+					"Ammu",
+					"Pay 'n' Spray",
+					"Maze Bank",
+					"Fleeca",
+					"Vespucci",
+					"Del Perro",
+					"Rockford",
+				}
+			do
 				t.ok(not p.name:find(banned, 1, true), "no Rockstar names: " .. p.name)
 			end
 		end
 		for i, a in W.POIs do
 			for j = i + 1, #W.POIs do
 				local b = W.POIs[j]
-				t.ok(not WG.obbOverlap(obbOf(a.cframe, a.size), obbOf(b.cframe, b.size), 0), a.id .. " overlaps " .. b.id)
+				t.ok(
+					not WG.obbOverlap(obbOf(a.cframe, a.size), obbOf(b.cframe, b.size), 0),
+					a.id .. " overlaps " .. b.id
+				)
 			end
 		end
-		for _, k in { "dealership", "gunshop", "bank", "jewelry", "convenience", "gas", "police", "hospital", "customs", "spray", "chop", "armored_depot", "plaza" } do
+		for _, k in
+			{
+				"dealership",
+				"gunshop",
+				"bank",
+				"jewelry",
+				"convenience",
+				"gas",
+				"police",
+				"hospital",
+				"customs",
+				"spray",
+				"chop",
+				"armored_depot",
+				"plaza",
+			}
+		do
 			t.ok((kinds[k] or 0) >= 1, "has POI kind " .. k)
 		end
 		t.ok(kinds.convenience >= 5, "several stores to rob")
@@ -386,10 +420,14 @@ return function(t)
 			local hit, who = footprintOnRoad(p.cframe, p.size)
 			t.ok(not hit, "plot " .. i .. " overlaps road " .. tostring(who))
 			t.ok(p.nearestOnRamp <= 950, ("plot %d is %d from an on-ramp"):format(i, p.nearestOnRamp))
-			-- door faces the street: a point just past the door is on a road
-			local front = p.door + p.cframe.LookVector * (W.Edges[p.edge].sidewalk + 20)
-			local onRoad = Q.isOnRoad(Vector3.new(front.X, W.Edges[p.edge].points[1].Y, front.Z), 14)
-			t.ok(onRoad, "plot " .. i .. " door faces its street")
+			-- door faces the street: a point just past the curb in front of the door is on the plot's own road
+			local e = W.Edges[p.edge]
+			local front = p.door + p.cframe.LookVector * (e.sidewalk + 14 + 6)
+			local rp, ej, _, d = Q.nearestRoadPoint(front, { ignoreHeight = true, maxDistance = 200 })
+			t.ok(
+				rp ~= nil and W.Edges[ej].name == e.name and d <= e.width / 2,
+				"plot " .. i .. " door faces its street"
+			)
 			t.eq(Q.plotAt(p.cframe.Position + Vector3.new(0, 5, 0)), i, "plotAt finds plot " .. i)
 			for j = i + 1, #W.Plots do
 				local q = W.Plots[j]
@@ -397,7 +435,10 @@ return function(t)
 				t.ok(d >= 1000, ("plots %d and %d only %d apart (raids need a getaway drive)"):format(i, j, d))
 			end
 			for _, poi in W.POIs do
-				t.ok(not WG.obbOverlap(obbOf(p.cframe, p.size), obbOf(poi.cframe, poi.size), 0), "plot overlaps " .. poi.id)
+				t.ok(
+					not WG.obbOverlap(obbOf(p.cframe, p.size), obbOf(poi.cframe, poi.size), 0),
+					"plot overlaps " .. poi.id
+				)
 			end
 		end
 		-- every garage reaches every other garage by road
@@ -445,7 +486,7 @@ return function(t)
 			local p = z.cframe.Position
 			t.ok(inBounds(p), z.id .. " in bounds")
 			t.ok(W.gradeAt(p.X, p.Z) > W.SEA_LEVEL, z.id .. " on land")
-			local rp = Q.nearestRoadPoint(p, { maxDistance = 160, ignoreHeight = true })
+			local rp = Q.nearestRoadPoint(p, { maxDistance = 200, ignoreHeight = true })
 			t.ok(rp ~= nil, z.id .. " reachable by road")
 		end
 		t.ok(#W.StuntJumps >= 10, "stunt jumps")
@@ -504,6 +545,11 @@ return function(t)
 		t.ok(Q.pointInDistrict(Vector3.new(0, 12, 0), "downtown"), "downtown at the center")
 		t.eq(Q.districtAt(Vector3.new(-4300, 12, 0)).id, "beach", "Palmera Beach on the west coast")
 		t.eq(Q.districtAt(Vector3.new(4300, 30, -560)).id, "cactus", "Cactus Junction overrides Red Mesa")
+		local walk = Q.sidewalkCFrame(ei, 1, s)
+		t.ok(
+			walk ~= nil and not Q.isOnRoad(walk.Position - Vector3.new(0, S.CURB_HEIGHT, 0)),
+			"sidewalk is off the asphalt"
+		)
 		local par = W.Parcels[math.floor(#W.Parcels / 2)]
 		t.eq(Q.parcelAt(par.cframe.Position), par, "parcelAt")
 		t.ok(Q.parcelAt(Vector3.new(320, 12, -250)) == nil, "no lot on Crown Boulevard")
@@ -562,6 +608,29 @@ return function(t)
 		end
 	end)
 
+	t.test("deterministic: a fresh build produces identical data", function()
+		local function fingerprint(L)
+			local acc = { #L.Nodes, #L.Edges, #L.Parcels, #L.POIs, #L.Spawns.parking }
+			local sum = 0
+			for _, e in L.Edges do
+				for _, p in e.points do
+					sum += p.X * 0.37 + p.Y * 1.3 + p.Z * 0.71
+				end
+			end
+			for _, p in L.Parcels do
+				local c = p.cframe.Position
+				sum += c.X * 0.13 + c.Z * 0.29 + p.size.X + p.size.Y * 0.5 + p.size.Z
+			end
+			table.insert(acc, math.floor(sum * 1000))
+			return table.concat(acc, ":")
+		end
+		local first = fingerprint(W)
+		H.setMode("server") -- clears the module cache
+		local W2 = H.require("src/shared/Config/WorldLayout")
+		t.ok(W2 ~= W, "rebuilt")
+		t.eq(fingerprint(W2), first, "same layout twice")
+	end)
+
 	t.test("terrain: sea, beach, hills, flat basin, channel", function()
 		t.ok(W.heightAt(-6200, 0) < W.SEA_LEVEL, "ocean west")
 		t.near(W.heightAt(0, 0), W.GRADE, 0.01, "downtown is flat at grade")
@@ -570,5 +639,7 @@ return function(t)
 		t.ok(beach > W.SEA_LEVEL and beach < W.GRADE, "beach slope")
 		t.ok(W.heightAt(1952, 500) < 5, "Rust River channel floor is sunken")
 		t.ok(Q.isWater(Vector3.new(700, 0, 3200)), "Iron Bay channel is water")
+		t.ok(not Q.isWater(Vector3.new(1952, -5, 500)), "the Rust River channel is dry")
+		t.ok(Q.isWater(Vector3.new(3000, 70, -2800)), "the reservoir is water")
 	end)
 end

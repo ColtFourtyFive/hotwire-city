@@ -13,21 +13,28 @@
 --  * GPS: a thin route line in the target's colour (yellow objective, purple waypoint) along the roads (RoadGraph
 --    A*), recomputed when the target changes / moves or when the player strays; the driven part is trimmed every
 --    frame, and the remaining distance shows top-right inside the radar. The custom map waypoint clears itself on
---    arrival. Entering a new area shows its name in the HUD's bottom-right script block (HUDController.showLocation).
---  * Click / tap the radar for the full map (pause menu MAP tab). Hidden in streamer mode (settings.hideHud).
---  * Cost: one RenderStep update at <= RADAR.UPDATE_HZ; no Instance.new or table allocation per frame (pools grow only
---    when more blips than ever before are on screen).
+--    arrival; an unreachable target is retried with a growing wait (retryDelay). Entering a new area shows its name
+--    in the HUD's bottom-right script block (HUDController.showLocation).
+--  * Expanded radar (§5.1): Z or gamepad D-pad down doubles the radar for 6 s (or while held; a second press closes
+--    it). The HUD's health / armour / ability bars follow the radar (HUDController.setRadarRect). Click / tap the
+--    radar or press M for the full map (pause menu MAP tab). Hidden in streamer mode (settings.hideHud).
+--  * Cost: one RenderStep update. Every frame: map position / rotation, arrow, N, route head and blip positions (so
+--    nothing drifts against the turning map; unchanged values are not re-written). At RADAR.UPDATE_HZ: the waypoint
+--    list and the wanted visuals (flash + cones); at GPS.SELECT_INTERVAL: target pick + routing. No Instance.new or
+--    table allocation per frame (pools grow only when more blips than ever before are on screen).
 --
 -- Public API (beyond init/start):
 --   getRoute(): ({ Vector3 }?, Color3?, Vector3?)   current GPS polyline (road points), its color and the real target
 --   getGpsTarget(): (string?, Vector3?)            active GPS waypoint id + position
 --   setCustomWaypoint(pos: Vector3?, label?)       place / clear the player's map waypoint
---   getCustomWaypoint(): Vector3?, getRemaining(): number (studs left on the route), getPolice(): { Model }
+--   getCustomWaypoint(): Vector3?, getRemaining(): number (studs left on the route), getPolice() / getHelis(): { Model }
+--   expand(seconds?) / isExpanded(): the 2x radar; ExpandedChanged: Signal(on)
 --   RouteChanged: Signal()                         fires when the polyline is recomputed or cleared
---   newRouteRenderer(parent, width, outline) / drawRoute(renderer, ...)   shared with MapScreenController
+--   newRouteRenderer(parent, width, outline) / drawRoute(renderer, ...) / moveRouteHead(renderer, ...)   shared with
+--                                                  MapScreenController (slot 1 is always the head segment)
 -- Pure helpers (tests): worldToMap, mapToWorld, headingOf, rotate, radarOffset, radarToWorld, clampToCircle,
 --   clampToRect, zoomFor, smooth, waypointIcon, routable, priorityOf, pickTarget, areaAt, titleCase, poiPositions,
---   wantedRadius, segmentGeometry, flashOn, cellOf, poiColor.
+--   wantedRadius, segmentGeometry, flashOn, cellOf, poiColor, retryDelay, expandedRect.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -85,6 +92,11 @@ local CONE_RANGE = 400 -- studs: cops whose vision cone shows while they search
 local CONE_RADIUS = 90 -- studs: cone length
 local BLIP_OWN_GARAGE = C.Blue
 MinimapController.PIVOT_Y = 0.6 -- the player sits centred, 60% down (GTA V)
+-- expanded radar (§5.1): 2x for EXPAND_SECONDS after a Z / D-pad down press, or while the key is held
+MinimapController.EXPAND_SCALE = 2
+MinimapController.EXPAND_SECONDS = 6
+MinimapController.EXPAND_KEY = Enum.KeyCode.Z
+MinimapController.EXPAND_PAD_KEY = Enum.KeyCode.DPadDown
 local UPDATE_DT = 1 / RADAR.UPDATE_HZ
 local SLOW_DT = GPS.SELECT_INTERVAL
 
@@ -188,6 +200,24 @@ local POI_COLORS: { [string]: Color3 } = {
 }
 function MinimapController.poiColor(id: string, fallback: Color3): Color3
 	return POI_COLORS[id] or fallback
+end
+
+-- The expanded radar rect (§5.1): `scale` x the normal one, kept on screen. Desktop grows up and right from the
+-- bottom-left corner (the bars move down with it); touch grows down and right from the top-left corner. Pure.
+function MinimapController.expandedRect(
+	r: { x: number, y: number, w: number, h: number },
+	canvasW: number,
+	canvasH: number,
+	touch: boolean,
+	scale: number
+): { x: number, y: number, w: number, h: number }
+	local w = math.min(math.floor(r.w * scale + 0.5), math.max(r.w, canvasW - 2 * r.x))
+	local h = math.min(math.floor(r.h * scale + 0.5), math.max(r.h, canvasH - 2 * r.x))
+	if touch then
+		return { x = r.x, y = r.y, w = w, h = h }
+	end
+	-- keep the bottom edge where it is
+	return { x = r.x, y = math.max(r.x, r.y + r.h - h), w = w, h = h }
 end
 
 -- Target zoom (studs from the radar center to its edge).
@@ -319,6 +349,14 @@ function MinimapController.cellOf(icon: string): { number }?
 	return CELLS[icon] or CELLS[MinimapConfig.DEFAULT_WAYPOINT_ICON] or CELLS.dot
 end
 
+-- Seconds to wait before searching again for a GPS target that failed `failures` times in a row (doubling).
+function MinimapController.retryDelay(failures: number): number
+	if failures <= 0 then
+		return 0
+	end
+	return math.min(GPS.REROUTE_MIN_INTERVAL * 2 ^ (failures - 1), GPS.FAIL_RETRY_MAX)
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Route renderer (shared with MapScreenController): pill segments laid out in the map frame's scale space, so a
 -- zoom only resizes the parent frame; the line keeps a constant pixel width with round caps (UICorner) and a dark
@@ -385,7 +423,9 @@ function MinimapController.newRouteRenderer(parent: GuiObject, width: number, ou
 	}
 end
 
--- Lay out segment i (a -> b in world XZ). transparency: 0 solid; tail segments fade a little.
+-- Lay out segment i (a -> b in world XZ). alpha: 0 solid; the off-road tail fades a little. A segment shorter than
+-- MIN_SEGMENT studs is hidden (a zero-length pill would draw a stray dot).
+local MIN_SEGMENT = 0.05
 local function setSegment(r: RouteRenderer, i: number, ax: number, az: number, bx: number, bz: number, alpha: number)
 	local core = r.cores[i]
 	local out = r.outlines[i]
@@ -396,6 +436,11 @@ local function setSegment(r: RouteRenderer, i: number, ax: number, az: number, b
 		r.cores[i] = core
 	end
 	local cu, cv, len, angle = MinimapController.segmentGeometry(ax, az, bx, bz)
+	if len < MIN_SEGMENT then
+		core.Visible = false
+		out.Visible = false
+		return
+	end
 	local pos = UDim2.fromScale(cu / WORLD_SIZE, cv / WORLD_SIZE)
 	local w = r.width
 	local o = w + r.outline * 2
@@ -412,8 +457,10 @@ local function setSegment(r: RouteRenderer, i: number, ax: number, az: number, b
 	out.Visible = true
 end
 
--- Draw points[first + 1 .. n] starting from (sx, sz) (the trimmed head), then an optional faded tail to the real
--- target (tx, tz) when it is off the road. Hides leftovers. nil points clears.
+-- Draw the route from (sx, sz) (the player's spot projected onto segment `first`): segment 1 is always the head,
+-- (sx, sz) -> points[first + 1] (hidden while it has no length), then points[first + 1 .. n], then an optional faded
+-- tail to the real target (tx, tz) when it is off the road. Slot 1 being the head is what lets the per-frame
+-- moveRouteHead touch only that segment. Hides leftovers. nil points clears.
 function MinimapController.drawRoute(
 	r: RouteRenderer,
 	points: { Vector3 }?,
@@ -426,10 +473,13 @@ function MinimapController.drawRoute(
 	r.color = color
 	local n = 0
 	if points and #points >= 2 then
-		local px, pz = sx, sz
-		for i = first + 1, #points do
+		local head = points[math.clamp(first + 1, 2, #points)]
+		n = 1
+		setSegment(r, 1, sx, sz, head.X, head.Z, 0)
+		local px, pz = head.X, head.Z
+		for i = math.clamp(first + 2, 2, #points + 1), #points do
 			local p = points[i]
-			if math.abs(p.X - px) + math.abs(p.Z - pz) > 0.05 then
+			if math.abs(p.X - px) + math.abs(p.Z - pz) > MIN_SEGMENT then
 				n += 1
 				setSegment(r, n, px, pz, p.X, p.Z, 0)
 				px, pz = p.X, p.Z
@@ -447,8 +497,8 @@ function MinimapController.drawRoute(
 	r.used = n
 end
 
--- Fast path: only move the head segment (index 1) to start at (sx, sz).
-local function moveHead(r: RouteRenderer, sx: number, sz: number, bx: number, bz: number)
+-- Fast path (every frame): only move the head segment (slot 1, see drawRoute) to start at (sx, sz).
+function MinimapController.moveRouteHead(r: RouteRenderer, sx: number, sz: number, bx: number, bz: number)
 	if r.used >= 1 then
 		setSegment(r, 1, sx, sz, bx, bz, 0)
 	end
@@ -464,6 +514,9 @@ type BlipPool = {
 	icon: { string },
 	color: { Color3 },
 	size: { number },
+	x: { number },
+	y: { number },
+	z: { number },
 	used: number,
 	shown: number,
 }
@@ -492,9 +545,15 @@ local radar: Radar? = nil
 local hidden = false
 local touchLayout = false
 -- radar rect (design px) and the player pivot inside it (GTA V: centred, 60% down)
+local baseRect = { x = 20, y = 550, w = 192, h = 136 }
 local rectW, rectH = 192, 136
 local pivotX, pivotY = 96, 82
 local spinSize = 300
+-- expanded radar (§5.1)
+local expandUntil = -math.huge
+local expandHeld = false
+local expanded = false
+MinimapController.ExpandedChanged = Signal.new()
 
 local zoom = RADAR.ZOOM_FOOT
 local lastScale = -1
@@ -512,6 +571,12 @@ local routeColor = WHITE
 local routeHead = 1 -- route segment the player is on (points[routeHead] -> points[routeHead + 1])
 local lastRouteAt = -math.huge
 local remaining = 0
+-- unreachable GPS target: don't search again every slow tick (MinimapController.retryDelay)
+local failId: string? = nil
+local failTarget: Vector3? = nil
+local failFrom: Vector3? = nil
+local failAt = -math.huge
+local failCount = 0
 local gpsId: string? = nil
 local gpsPos: Vector3? = nil
 local candidates: { { id: string, pos: Vector3, color: Color3 } } = {}
@@ -546,7 +611,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 local function newPool(parent: Frame): BlipPool
-	return { parent = parent, items = {}, icon = {}, color = {}, size = {}, used = 0, shown = 0 }
+	return { parent = parent, items = {}, icon = {}, color = {}, size = {}, x = {}, y = {}, z = {}, used = 0, shown = 0 }
 end
 
 local function poolBegin(pool: BlipPool)
@@ -575,6 +640,9 @@ local function poolPut(pool: BlipPool, icon: string, color: Color3, size: number
 		pool.icon[i] = ""
 		pool.size[i] = -1
 		pool.color[i] = BLACK
+		pool.x[i] = math.huge
+		pool.y[i] = math.huge
+		pool.z[i] = -1
 	end
 	local it = item :: ImageLabel
 	if pool.icon[i] ~= icon then
@@ -594,8 +662,15 @@ local function poolPut(pool: BlipPool, icon: string, color: Color3, size: number
 		pool.size[i] = size
 		it.Size = UDim2.fromOffset(size, size)
 	end
-	it.Position = UDim2.fromOffset(x, y)
-	it.ZIndex = z
+	-- placed every frame: write only what moved (a still camera + still player costs nothing)
+	if math.abs(pool.x[i] - x) > 0.02 or math.abs(pool.y[i] - y) > 0.02 then
+		pool.x[i], pool.y[i] = x, y
+		it.Position = UDim2.fromOffset(x, y)
+	end
+	if pool.z[i] ~= z then
+		pool.z[i] = z
+		it.ZIndex = z
+	end
 	if i > pool.shown then
 		it.Visible = true
 	end
@@ -841,27 +916,63 @@ local function buildRadar(): Radar
 	}
 end
 
--- Placement from the shared HUD layout (UI/HudLayout): bottom-left on desktop, top-left on touch.
+-- Design canvas (inset-relative) of the radar's ScreenGui (1280x720 when nothing is measurable, e.g. headless).
+local function canvasSize(gui: ScreenGui): (number, number)
+	local ok, size = pcall(Kit.canvasSize, gui)
+	if ok and typeof(size) == "Vector2" and size.X >= 1 and size.Y >= 1 then
+		return size.X, size.Y
+	end
+	return 1280, 720
+end
+
+-- Size the radar to `r` (design px): the map window, the pivot (centred, 60% down) and the spinning map square that
+-- covers every corner of the window at any rotation. Tells the HUD where the radar is (its bars hang under it).
+local function setRect(r: { x: number, y: number, w: number, h: number })
+	local rd = radar
+	if not rd then
+		return
+	end
+	rectW, rectH = r.w, r.h
+	pivotX, pivotY = rectW * 0.5, rectH * MinimapController.PIVOT_Y
+	local far = math.max(pivotX, rectW - pivotX)
+	local farY = math.max(pivotY, rectH - pivotY)
+	spinSize = math.ceil(2 * math.sqrt(far * far + farY * farY)) + 4
+	rd.holder.Position = UDim2.fromOffset(r.x, r.y)
+	rd.holder.Size = UDim2.fromOffset(rectW, rectH)
+	rd.spin.Size = UDim2.fromOffset(spinSize, spinSize)
+	rd.spin.Position = UDim2.fromOffset(pivotX, pivotY)
+	rd.arrow.Position = UDim2.fromOffset(pivotX, pivotY)
+	lastScale = -1
+	lastWorldX = math.huge
+	pcall(HUDController.setRadarRect, r.x, r.y, r.w, r.h)
+end
+
+-- Placement from the shared HUD layout (UI/HudLayout): bottom-left on desktop, top-left on touch; doubled while the
+-- expanded radar is up.
 local function applyLayout()
 	local r = radar
 	if not r then
 		return
 	end
 	touchLayout = Kit.isTouch()
-	local canvas = Kit.canvasSize(r.gui)
-	local L = HudLayout.compute(canvas.X, canvas.Y, touchLayout)
-	rectW, rectH = L.radar.w, L.radar.h
-	pivotX, pivotY = rectW * 0.5, rectH * MinimapController.PIVOT_Y
-	local far = math.max(pivotX, rectW - pivotX)
-	local farY = math.max(pivotY, rectH - pivotY)
-	spinSize = math.ceil(2 * math.sqrt(far * far + farY * farY)) + 4
-	r.holder.Position = UDim2.fromOffset(L.radar.x, L.radar.y)
-	r.holder.Size = UDim2.fromOffset(rectW, rectH)
-	r.spin.Size = UDim2.fromOffset(spinSize, spinSize)
-	r.spin.Position = UDim2.fromOffset(pivotX, pivotY)
-	r.arrow.Position = UDim2.fromOffset(pivotX, pivotY)
-	lastScale = -1
-	lastWorldX = math.huge
+	local cw, ch = canvasSize(r.gui)
+	local L = HudLayout.compute(cw, ch, touchLayout)
+	baseRect = L.radar
+	if expanded then
+		setRect(MinimapController.expandedRect(L.radar, cw, ch, touchLayout, MinimapController.EXPAND_SCALE))
+	else
+		setRect(L.radar)
+	end
+end
+
+-- Expanded radar on / off (re-lays the radar out when it flips).
+local function setExpanded(on: boolean)
+	if on == expanded then
+		return
+	end
+	expanded = on
+	applyLayout()
+	MinimapController.ExpandedChanged:Fire(on)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1024,8 +1135,19 @@ local function computeRoute(pos: Vector3, id: string, target: Vector3, color: Co
 	lastRouteAt = clock
 	if not ok or not pts then
 		clearRoute()
+		-- remember the miss: slowTick waits retryDelay(failCount) before searching for this target again (the count
+		-- restarts when the target or the player has moved somewhere new since the last miss)
+		local ft, ff = failTarget, failFrom
+		local same = failId == id
+			and ft ~= nil
+			and ff ~= nil
+			and Vector3.new(ft.X - target.X, 0, ft.Z - target.Z).Magnitude <= GPS.TARGET_MOVED
+			and Vector3.new(ff.X - pos.X, 0, ff.Z - pos.Z).Magnitude <= GPS.REROUTE_DISTANCE
+		failCount = if same then failCount + 1 else 1
+		failId, failTarget, failFrom, failAt = id, target, pos, clock
 		return
 	end
+	failId, failTarget, failFrom, failCount = nil, nil, nil, 0
 	route = pts
 	routeTarget = target
 	routeTargetId = id
@@ -1071,6 +1193,15 @@ local function slowTick(pos: Vector3)
 	local need = false
 	if id ~= routeTargetId or route == nil then
 		need = true -- new target: route right away
+		local ft, ff = failTarget, failFrom
+		if id == failId and ft and ff then
+			-- the last search for this target found no road path (one-way trap, disconnected level): retry only after
+			-- a growing wait, or sooner once the target or the player has moved somewhere new
+			local moved = Vector3.new(ft.X - target.X, 0, ft.Z - target.Z).Magnitude > GPS.TARGET_MOVED
+				or Vector3.new(ff.X - pos.X, 0, ff.Z - pos.Z).Magnitude > GPS.REROUTE_DISTANCE
+			local waited = clock - failAt
+			need = waited >= MinimapController.retryDelay(failCount) or (moved and waited >= GPS.REROUTE_MIN_INTERVAL)
+		end
 	else
 		local old = routeTarget
 		if old and Vector3.new(old.X - target.X, 0, old.Z - target.Z).Magnitude > GPS.TARGET_MOVED then
@@ -1137,16 +1268,25 @@ local function update(dt: number)
 	clock += dt
 	accum += dt
 	slowAccum += dt
-	if accum < UPDATE_DT then
-		return
+	-- 30 Hz work (waypoint list, wanted visuals). Subtracting (not zeroing) keeps an even cadence under frame-time
+	-- jitter; the cap stops a hitch from queueing a burst.
+	local tick = accum >= UPDATE_DT
+	if tick then
+		accum = math.min(accum - UPDATE_DT, UPDATE_DT)
 	end
-	local step = accum
-	accum = 0
+
+	-- expanded radar: timed (Z press) or held (Z / D-pad down)
+	if expanded and not expandHeld and clock >= expandUntil then
+		setExpanded(false)
+	end
 
 	local rootCf = root.CFrame
 	local pos = rootCf.Position
-	collectWaypoints()
-	if slowAccum >= SLOW_DT then
+	local slow = slowAccum >= SLOW_DT
+	if tick or slow then
+		collectWaypoints()
+	end
+	if slow then
 		slowAccum = 0
 		slowTick(pos)
 		if math.floor(clock) ~= math.floor(clock - SLOW_DT) then
@@ -1169,11 +1309,13 @@ local function update(dt: number)
 		return -- streamer mode: GPS bookkeeping (routes, arrival) keeps running, nothing is drawn
 	end
 
-	-- zoom + scale: `zoom` studs fill the distance from the player up to the top edge
+	-- Every frame from here: the map, the arrow, N, the route head and the blips all move together with the camera
+	-- (~6 property sets for the map + one Position per visible blip). `zoom` studs fill the distance from the player
+	-- up to the top edge.
 	local vel = root.AssemblyLinearVelocity
 	local speed = Vector3.new(vel.X, 0, vel.Z).Magnitude
 	local driving = player:GetAttribute("Driving") == true
-	zoom = MinimapController.smooth(zoom, MinimapController.zoomFor(driving, speed), step, RADAR.ZOOM_RESPONSE)
+	zoom = MinimapController.smooth(zoom, MinimapController.zoomFor(driving, speed), dt, RADAR.ZOOM_RESPONSE)
 	local scale = pivotY / zoom
 	local rot = radarRotation(rootCf)
 	local half = spinSize / 2
@@ -1217,58 +1359,64 @@ local function update(dt: number)
 		end
 		if best ~= head then
 			redrawRoute(pos)
-		else
+		elseif head + 1 <= #pts then
 			local a, b = pts[head], pts[head + 1]
 			local dx, dz = b.X - a.X, b.Z - a.Z
 			local len2 = dx * dx + dz * dz
 			local t = if len2 > 1e-9 then math.clamp(((pos.X - a.X) * dx + (pos.Z - a.Z) * dz) / len2, 0, 1) else 0
-			moveHead(r.route, a.X + dx * t, a.Z + dz * t, b.X, b.Z)
+			MinimapController.moveRouteHead(r.route, a.X + dx * t, a.Z + dz * t, b.X, b.Z)
 		end
 	end
 
-	-- wanted: red / blue flash while a cop sees you; vision cones while they search (§5.1)
-	local stars = wantedStars()
-	local seen = player:GetAttribute("WantedSeen") ~= false
-	if stars >= 1 and seen then
-		r.flash.Visible = true
-		r.flashStroke.Color = if MinimapController.flashOn(clock, 2) then C.Red else C.Blue
-	elseif r.flash.Visible then
-		r.flash.Visible = false
-	end
-	local cones = r.cones
-	cones.used = 0
-	if stars >= 1 and not seen then
-		for _, model in police do
-			local pp = model.PrimaryPart
-			if pp then
-				local p = pp.Position
-				local dx, dz = p.X - pos.X, p.Z - pos.Z
-				if dx * dx + dz * dz < CONE_RANGE * CONE_RANGE then
-					local cu, cv = MinimapController.worldToMap(p.X, p.Z)
-					local look = pp.CFrame.LookVector
-					conePut(cones, cu, cv, CONE_RADIUS, MinimapController.headingOf(look.X, look.Z))
+	-- wanted (30 Hz): red / blue flash while a cop sees you; vision cones while they search (§5.1). The cones live in
+	-- the map frame, so they already move with it every frame.
+	if tick then
+		local stars = wantedStars()
+		local seen = player:GetAttribute("WantedSeen") ~= false
+		if stars >= 1 and seen then
+			r.flash.Visible = true
+			r.flashStroke.Color = if MinimapController.flashOn(clock, 2) then C.Red else C.Blue
+		elseif r.flash.Visible then
+			r.flash.Visible = false
+		end
+		local cones = r.cones
+		cones.used = 0
+		if stars >= 1 and not seen then
+			for _, model in police do
+				local pp = model.PrimaryPart
+				if pp then
+					local p = pp.Position
+					local dx, dz = p.X - pos.X, p.Z - pos.Z
+					if dx * dx + dz * dz < CONE_RANGE * CONE_RANGE then
+						local cu, cv = MinimapController.worldToMap(p.X, p.Z)
+						local look = pp.CFrame.LookVector
+						conePut(cones, cu, cv, CONE_RADIUS, MinimapController.headingOf(look.X, look.Z))
+					end
 				end
 			end
 		end
+		coneEnd(cones)
 	end
-	coneEnd(cones)
 
-	-- blips ------------------------------------------------------------------------------------------------------
+	-- blips (every frame, so they stay glued to the map while it turns) -----------------------------------------------
 	local pool = r.blips
 	poolBegin(pool)
 	local big = BLIP_SIZE
 	local small = BLIP_SMALL
 	local view = zoom * 1.6
-
+	local view2 = view * view
+	local rr = math.rad(rot)
+	local cs, sn = math.cos(rr) * scale, math.sin(rr) * scale
+	local px0, pz0 = pos.X, pos.Z
 	rectLeft, rectRight, rectTop, rectBottom = left, right, top, bottom
 
 	-- other players (lowest)
 	for _, other in otherRoots do
 		if other.Parent then
 			local p = other.Position
-			local dx, dz = p.X - pos.X, p.Z - pos.Z
-			if dx * dx + dz * dz < view * view then
-				local x, y = MinimapController.radarOffset(dx, dz, scale, rot)
+			local dx, dz = p.X - px0, p.Z - pz0
+			if dx * dx + dz * dz < view2 then
+				local x, y = dx * cs - dz * sn, dx * sn + dz * cs
 				if inRect(x, y) then
 					poolPut(pool, "dot", C.Freemode, small, pivotX + x, pivotY + y, 1)
 				end
@@ -1277,11 +1425,11 @@ local function update(dt: number)
 	end
 	-- landmarks / shops
 	for _, poi in pois do
-		local dx, dz = poi.pos.X - pos.X, poi.pos.Z - pos.Z
+		local dx, dz = poi.pos.X - px0, poi.pos.Z - pz0
 		local d2 = dx * dx + dz * dz
 		local range = poi.range
-		if d2 < view * view and (range == nil or d2 < range * range) then
-			local x, y = MinimapController.radarOffset(dx, dz, scale, rot)
+		if d2 < view2 and (range == nil or d2 < range * range) then
+			local x, y = dx * cs - dz * sn, dx * sn + dz * cs
 			if inRect(x, y) then
 				poolPut(pool, poi.icon, poi.color, big, pivotX + x, pivotY + y, 2)
 			end
@@ -1292,8 +1440,8 @@ local function update(dt: number)
 	for _, g in garages do
 		local mine = g.owner == me and me ~= 0
 		if mine or g.owner ~= 0 then
-			local dx, dz = g.pos.X - pos.X, g.pos.Z - pos.Z
-			local x, y = MinimapController.radarOffset(dx, dz, scale, rot)
+			local dx, dz = g.pos.X - px0, g.pos.Z - pz0
+			local x, y = dx * cs - dz * sn, dx * sn + dz * cs
 			if mine then
 				x, y = MinimapController.clampToRect(x, y, left, right, top, bottom)
 				poolPut(pool, "garage", BLIP_OWN_GARAGE, big + 2, pivotX + x, pivotY + y, 4)
@@ -1307,9 +1455,9 @@ local function update(dt: number)
 		local pp = model.PrimaryPart
 		if pp then
 			local p = pp.Position
-			local dx, dz = p.X - pos.X, p.Z - pos.Z
-			if dx * dx + dz * dz < view * view then
-				local x, y = MinimapController.radarOffset(dx, dz, scale, rot)
+			local dx, dz = p.X - px0, p.Z - pz0
+			if dx * dx + dz * dz < view2 then
+				local x, y = dx * cs - dz * sn, dx * sn + dz * cs
 				if inRect(x, y) then
 					local siren = model:GetAttribute("Siren") == true
 					local c = if siren and MinimapController.flashOn(clock, RADAR.WANTED_FLASH_HZ, i)
@@ -1320,29 +1468,21 @@ local function update(dt: number)
 			end
 		end
 	end
+	local heliRed = MinimapController.flashOn(clock, 2)
 	for _, model in helis do
 		local pp = model.PrimaryPart
 		if pp then
 			local p = pp.Position
-			local x, y = MinimapController.radarOffset(p.X - pos.X, p.Z - pos.Z, scale, rot)
-			x, y = MinimapController.clampToRect(x, y, left, right, top, bottom)
-			poolPut(
-				pool,
-				"heli",
-				if MinimapController.flashOn(clock, 2) then C.Red else C.Blue,
-				big,
-				pivotX + x,
-				pivotY + y,
-				3
-			)
+			local dx, dz = p.X - px0, p.Z - pz0
+			local x, y = MinimapController.clampToRect(dx * cs - dz * sn, dx * sn + dz * cs, left, right, top, bottom)
+			poolPut(pool, "heli", if heliRed then C.Red else C.Blue, big, pivotX + x, pivotY + y, 3)
 		end
 	end
 	-- waypoints (sticky to the edge, on top)
 	for i = 1, candidateCount do
 		local c = candidates[i]
-		local dx, dz = c.pos.X - pos.X, c.pos.Z - pos.Z
-		local x, y = MinimapController.radarOffset(dx, dz, scale, rot)
-		x, y = MinimapController.clampToRect(x, y, left, right, top, bottom)
+		local dx, dz = c.pos.X - px0, c.pos.Z - pz0
+		local x, y = MinimapController.clampToRect(dx * cs - dz * sn, dx * sn + dz * cs, left, right, top, bottom)
 		poolPut(pool, MinimapController.waypointIcon(c.id), c.color, big + 2, pivotX + x, pivotY + y, 5)
 	end
 	poolEnd(pool)
@@ -1385,13 +1525,85 @@ function MinimapController.getPolice(): { Model }
 	return police
 end
 
+-- Police choppers currently tracked (CollectionService tag "PoliceHeli"); read-only.
+function MinimapController.getHelis(): { Model }
+	return helis
+end
+
 function MinimapController.isHidden(): boolean
 	return hidden
+end
+
+-- Expanded radar (§5.1): 2x for `seconds` (default EXPAND_SECONDS); 0 / a negative number collapses it now.
+function MinimapController.expand(seconds: number?)
+	local s = if typeof(seconds) == "number" and seconds == seconds then seconds else MinimapController.EXPAND_SECONDS
+	if s <= 0 then
+		expandHeld = false
+		expandUntil = -math.huge
+		setExpanded(false)
+		return
+	end
+	expandUntil = clock + s
+	setExpanded(true)
+end
+
+function MinimapController.isExpanded(): boolean
+	return expanded
+end
+
+-- The radar rect (design px, HC_Minimap canvas) as laid out now, and the normal (not expanded) one.
+function MinimapController.getRect(): ({ x: number, y: number, w: number, h: number }, {
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+})
+	local r = radar
+	local x, y = baseRect.x, baseRect.y
+	if r then
+		x, y = r.holder.Position.X.Offset, r.holder.Position.Y.Offset
+	end
+	return { x = x, y = y, w = rectW, h = rectH }, baseRect
 end
 
 -- Advance one frame by hand (headless tests). The live game drives this from RenderStepped.
 function MinimapController.step(dt: number)
 	update(dt)
+end
+
+-- Is a menu / the phone up (their lists own the arrows and the D-pad)?
+local function menuUp(): boolean
+	local menu = lazy("MenuController")
+	if menu then
+		local okP, paused = pcall(menu.isPauseOpen)
+		local okO, open = pcall(menu.getOpen)
+		if (okP and paused == true) or (okO and open ~= nil) then
+			return true
+		end
+	end
+	local phone = lazy("PhoneController")
+	if phone then
+		local ok, open = pcall(phone.isOpen)
+		return ok and open == true
+	end
+	return false
+end
+
+-- Z / gamepad D-pad down (§5.1): a press toggles the expanded radar (6 s); holding keeps it up until released.
+local function onExpandKey(began: boolean)
+	if began then
+		if menuUp() then
+			return
+		end
+		if expanded and not expandHeld then
+			MinimapController.expand(0)
+			return
+		end
+		expandHeld = true
+		MinimapController.expand()
+	else
+		expandHeld = false
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -1426,10 +1638,11 @@ function MinimapController.start()
 	MinimapController.mount()
 	local r = radar :: Radar
 
+	-- the canvas (inset-relative) settles after the first layout pass and when the topbar inset / UIScale changes
 	r.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(applyLayout)
-	local scale = r.gui:FindFirstChildOfClass("UIScale")
-	if scale then
-		scale:GetPropertyChangedSignal("Scale"):Connect(applyLayout)
+	local uiScale = r.gui:FindFirstChildOfClass("UIScale")
+	if uiScale then
+		uiScale:GetPropertyChangedSignal("Scale"):Connect(applyLayout)
 	end
 	pcall(function()
 		UserInputService.LastInputTypeChanged:Connect(function()
@@ -1437,6 +1650,23 @@ function MinimapController.start()
 				applyLayout()
 			end
 		end)
+	end)
+
+	-- expanded radar keys (D-pad down is kept free for this, §5.1)
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if processed or hidden then
+			return
+		end
+		local k = input.KeyCode
+		if k == MinimapController.EXPAND_KEY or k == MinimapController.EXPAND_PAD_KEY then
+			onExpandKey(true)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input: InputObject)
+		local k = input.KeyCode
+		if k == MinimapController.EXPAND_KEY or k == MinimapController.EXPAND_PAD_KEY then
+			onExpandKey(false)
+		end
 	end)
 
 	r.holder.Activated:Connect(function()

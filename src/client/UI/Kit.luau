@@ -415,22 +415,25 @@ function Kit.button(text: string, color: Color3?, props: Props?): TextButton
 	local restText = btn.TextColor3
 	local restBg = btn.BackgroundColor3
 	local restAlpha = btn.BackgroundTransparency
-	btn.MouseEnter:Connect(function()
-		restText, restBg, restAlpha = btn.TextColor3, btn.BackgroundColor3, btn.BackgroundTransparency
-		btn.BackgroundColor3 = C.TextPure
-		btn.BackgroundTransparency = 0
-		btn.TextColor3 = C.Black
-		if rule then
-			rule.Visible = false
-		end
-	end)
-	btn.MouseLeave:Connect(function()
-		btn.BackgroundColor3 = restBg
-		btn.BackgroundTransparency = restAlpha
-		btn.TextColor3 = restText
-		if rule then
-			rule.Visible = true
-		end
+	-- pcall: headless builds (Lune instances have no mouse events) still get the button
+	pcall(function()
+		btn.MouseEnter:Connect(function()
+			restText, restBg, restAlpha = btn.TextColor3, btn.BackgroundColor3, btn.BackgroundTransparency
+			btn.BackgroundColor3 = C.TextPure
+			btn.BackgroundTransparency = 0
+			btn.TextColor3 = C.Black
+			if rule then
+				rule.Visible = false
+			end
+		end)
+		btn.MouseLeave:Connect(function()
+			btn.BackgroundColor3 = restBg
+			btn.BackgroundTransparency = restAlpha
+			btn.TextColor3 = restText
+			if rule then
+				rule.Visible = true
+			end
+		end)
 	end)
 	return btn
 end
@@ -596,11 +599,13 @@ function Kit.instructionButton(key: string?, label: string, props: Props?): Text
 		cap.Parent = btn
 	end
 	apply(btn, props)
-	btn.MouseEnter:Connect(function()
-		text.TextColor3 = C.TextPure
-	end)
-	btn.MouseLeave:Connect(function()
-		text.TextColor3 = C.Text
+	pcall(function() -- headless builds: no mouse events
+		btn.MouseEnter:Connect(function()
+			text.TextColor3 = C.TextPure
+		end)
+		btn.MouseLeave:Connect(function()
+			text.TextColor3 = C.Text
+		end)
 	end)
 	return btn
 end

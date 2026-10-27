@@ -14,8 +14,8 @@ Minimap.WORLD_SIZE = 2048
 Minimap.TILE_COUNT = 2
 Minimap.TILE_PIXELS = 1024
 Minimap.TILES = {
-	{ "rbxassetid://117519932574490", "rbxassetid://125804761967084" },
-	{ "rbxassetid://84265254994123", "rbxassetid://71493891656879" },
+	{ "rbxassetid://135922170470653", "rbxassetid://105033145059125" },
+	{ "rbxassetid://122934829430314", "rbxassetid://135277028789790" },
 }
 -- Blip atlas (tools/minimap/icons.py): name -> { x, y, w, h } in atlas pixels.
 Minimap.ATLAS = "rbxassetid://120282250823159"
@@ -72,7 +72,7 @@ Minimap.RADAR = {
 	-- desktop: design px kept free above the radar top for what pokes out of it (the N marker reaches ~8 px above
 	-- the rim, the wanted glow ~22 px), so the HUD menu column never overlaps them
 	TOP_CLEARANCE = 28,
-	TOUCH_TOP = 6, -- design px below the topbar inset (touch)
+	TOUCH_TOP = 10, -- design px below the topbar inset (touch); the N marker pokes ~11 px above the rim
 	-- Phones sit at the 0.55 UIScale floor: radar text and blips grow by Theme.TouchMinScale / scale (capped here)
 	-- so they read like the rest of the HUD; the radar circle itself (and the HUD space it reserves) does not.
 	TOUCH_BOOST_MAX = 1.4,

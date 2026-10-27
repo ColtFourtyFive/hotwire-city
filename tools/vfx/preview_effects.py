@@ -4,9 +4,13 @@ acceleration, spread, color / size / transparency sequences, flipbooks, orientat
 the uploaded textures over a simple street scene with a car-sized reference block. It approximates the engine
 (no lighting, no depth-sorting against geometry), good for judging scale, timing, color and density.
 
+Moving-car scenes (nitro at boost speed) simulate the car moving: lockedToPart particles live in car space,
+velocityInheritance adds that share of the car's velocity to world-space particles.
+
 Usage:
   lune run tools/vfx/dump_presets.luau /tmp/presets.json
-  python3 tools/vfx/preview_effects.py /tmp/presets.json [outdir]   -> outdir/preview_effects.png (+ per-scene pngs)
+  python3 tools/vfx/preview_effects.py /tmp/presets.json [outdir]   -> outdir/preview_effects.png
+  (default outdir: assets/vfx/preview)
 """
 import json
 import math
@@ -108,7 +112,8 @@ def basis(direction):
     return d, a, b
 
 
-def spawn(preset, pos, direction, n, overrides=None):
+def spawn(preset, pos, direction, n, overrides=None, inherit=None):
+    """inherit: world velocity added to every particle (ParticleEmitter.VelocityInheritance x the part velocity)."""
     o = overrides or {}
     out = []
     d, a, b = basis(direction)
@@ -124,8 +129,9 @@ def spawn(preset, pos, direction, n, overrides=None):
         rot = preset.get("rotation", [0, 0])
         rs = preset.get("rotSpeed", [0, 0])
         fb = preset.get("flipbook") or {}
+        vel = v * speed if inherit is None else v * speed + np.asarray(inherit, dtype=np.float64)
         out.append({
-            "p": np.array(pos, dtype=np.float64), "v": v * speed, "age": 0.0, "life": RNG.uniform(lo, hi),
+            "p": np.array(pos, dtype=np.float64), "v": vel, "age": 0.0, "life": RNG.uniform(lo, hi),
             "u": RNG.uniform(-1, 1), "rot": RNG.uniform(rot[0], rot[-1]), "rs": RNG.uniform(rs[0], rs[-1]),
             "frame0": RNG.integers(0, 64) if fb.get("startRandom") else 0,
             "fps": RNG.uniform(*(fb.get("fps") or [30, 30])) if fb else 0,
@@ -392,6 +398,46 @@ def stream_scene(P, cam, emitters, duration, path=None, night=False, cars_fn=Non
     return buf
 
 
+def moving_stream_scene(P, cam, emitters, duration, car_vel, night=False, cars_fn=None, extra=None, bursts=()):
+    """Like stream_scene, but emitter offsets are car-local and the car drives at car_vel, ending at the origin at
+    t = duration. lockedToPart particles are simulated in car space (they ride along), the rest in world space with
+    velocityInheritance x car_vel added. bursts: (presetName, t, offset, direction, count, overrides)."""
+    car_vel = np.asarray(car_vel, dtype=np.float64)
+    parts = []
+    acc = {i: 0.0 for i in range(len(emitters))}
+    pending = list(bursts)
+    tt = 0.0
+
+    def emit(pr, pos, d, n, ov):
+        car_pos = car_vel * (tt - duration)
+        if pr.get("lockedToPart"):
+            return spawn(pr, pos, d, n, ov)  # car space == world space at the end (the car ends at the origin)
+        return spawn(pr, np.asarray(pos) + car_pos, d, n, ov, inherit=car_vel * pr.get("velocityInheritance", 0))
+
+    while tt < duration:
+        for i, (name, fn, rs, ov) in enumerate(emitters):
+            pr = P[name]
+            acc[i] += pr["rate"] * rs * DT
+            while acc[i] >= 1:
+                acc[i] -= 1
+                pos, d = fn(tt)
+                parts += emit(pr, pos, d, 1, ov)
+        for b in list(pending):
+            name, t_at, pos, d, n, ov = b
+            if tt >= t_at:
+                pending.remove(b)
+                parts += emit(P[name], pos, d, n or P[name].get("count", 1), ov)
+        parts = step(parts, DT)
+        tt += DT
+    buf = scene(cam, night)
+    if cars_fn:
+        buf = cars_fn(buf)
+    if extra:
+        extra(buf)
+    render_particles(buf, cam, parts)
+    return buf
+
+
 def main(presets_json, outdir):
     data = json.load(open(presets_json))
     P = data["presets"]
@@ -438,32 +484,45 @@ def main(presets_json, outdir):
     em = [("TireSmoke", (lambda tt, s=s: (arc(tt, s)[0] + np.array([0, 0.6, 0]), arc(tt, s)[1])), 1.0, None)
           for s in (-1, 1)]
     buf = stream_scene(P, cam2, em, 2.0, cars_fn=drift_car, extra=drift_extra)
-    panels.append(to_img(buf, "Drift: TireSmoke streams + SkidMark trails"))
+    panels.append(to_img(buf, "Drift (high): TireSmoke streams + SkidMark trails"))
+    q = data.get("quality", {}).get("medium", {"rate": 0.65, "sizeScale": 0.75})
+    em_mid = [(n, fn, q["rate"], {"scale": q.get("sizeScale", 1)}) for n, fn, _, _ in em]
+    buf = stream_scene(P, cam2, em_mid, 2.0, cars_fn=drift_car, extra=drift_extra)
+    panels.append(to_img(buf, "Drift (medium = phones): smaller, fewer puffs"))
 
-    # 3. nitro from behind (chase cam): flame + core streams + jet beam + backfire
+    # 3. nitro at boost speed (110 studs/s, the car drives toward -Z and ends at the origin): flame + core streams +
+    #    jet beam + a backfire pop just before the frame; chase cam and side view, plus the v2 world-space flame
+    BOOST = np.array([0, 0, -110.0])
+    ex = np.array([0, 1.6, 6.3])
     cam3 = Cam([0, 6.5, 22], [0, 2.5, -10])
 
     def nitro_extra(buf):
-        ex = np.array([0, 1.6, 6.3])
         strip(buf, cam3, "nitro_jet", [ex, ex + np.array([0, 0, 4.5])], (1.35, 0.4), (90, 210, 255), 1.0, le=1.0,
               ground=False)
 
-    em3 = [("NitroFlame", lambda tt: (np.array([0, 1.6, 6.3]), np.array([0, 0, 1])), 1.0, None),
-           ("NitroCore", lambda tt: (np.array([0, 1.6, 6.3]), np.array([0, 0, 1])), 1.0, None)]
-    buf = stream_scene(P, cam3, em3, 0.4, night=True,
-                       cars_fn=lambda b: car(b, cam3, (0, 0, 0), (60, 60, 70)), extra=nitro_extra)
-    panels.append(to_img(buf, "Nitro (night, chase cam): NitroFlame + NitroCore"))
+    em3 = [("NitroFlame", lambda tt: (ex, np.array([0, 0, 1])), 1.0, None),
+           ("NitroCore", lambda tt: (ex, np.array([0, 0, 1])), 1.0, None)]
+    pop = [("Backfire", 0.3, ex, np.array([0, 0, 1]), 3, None)]
+    buf = moving_stream_scene(P, cam3, em3, 0.4, BOOST, night=True, bursts=pop,
+                              cars_fn=lambda b: car(b, cam3, (0, 0, 0), (60, 60, 70)), extra=nitro_extra)
+    panels.append(to_img(buf, "Nitro @110 studs/s (night, chase cam)"))
     camn = Cam([-16, 4, 2], [0, 2, 6])
 
     def nitro_side(buf):
-        ex = np.array([0, 1.6, 6.3])
         strip(buf, camn, "nitro_jet", [ex, ex + np.array([0, 0, 2.25]), ex + np.array([0, 0, 4.5])], (2.0, 0.6),
               (255, 255, 255), 1.0, le=1.0, ground=False, tint_seq=[(0, (255, 255, 255)), (0.3, (0, 214, 255)),
                                                                       (1, (175, 80, 255))])
 
-    buf = stream_scene(P, camn, em3, 0.4, night=True,
-                       cars_fn=lambda b: car(b, camn, (0, 0, 0), (60, 60, 70)), extra=nitro_side)
-    panels.append(to_img(buf, "Nitro (night, side): + NitroJet beam"))
+    buf = moving_stream_scene(P, camn, em3, 0.4, BOOST, night=True, bursts=pop,
+                              cars_fn=lambda b: car(b, camn, (0, 0, 0), (60, 60, 70)), extra=nitro_side)
+    panels.append(to_img(buf, "Nitro @110 studs/s (night, side) + jet + pop"))
+    old = dict(P)
+    old["NitroFlame"] = dict(P["NitroFlame"], lockedToPart=False, orientation="VelocityParallel", rotation=[-15, 15],
+                             rotSpeed=[0, 0], squash=[{"t": 0, "v": 0.6}, {"t": 1, "v": 0.3}])
+    old["Backfire"] = dict(P["Backfire"], velocityInheritance=0)
+    buf = moving_stream_scene(old, camn, em3, 0.4, BOOST, night=True, bursts=pop,
+                              cars_fn=lambda b: car(b, camn, (0, 0, 0), (60, 60, 70)), extra=nitro_side)
+    panels.append(to_img(buf, "BEFORE (v2): world-space flame + pop, side"))
 
     # 4. cash burst
     for t in (0.35, 1.0):
@@ -524,4 +583,4 @@ def main(presets_json, outdir):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "docs", "v2", "early", "vfx"))
+    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "assets", "vfx", "preview"))

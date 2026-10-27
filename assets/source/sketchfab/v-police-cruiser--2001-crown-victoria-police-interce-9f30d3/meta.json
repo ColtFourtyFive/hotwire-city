@@ -44,5 +44,53 @@
   "sha256": "e6f2592f50cbc9077f5baae4882bccf375e61cbe05cde46974b634255a7268ca",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:14+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      2.6405,
+      6.6199,
+      2.0283
+    ],
+    "dims_m": [
+      2.64,
+      6.62,
+      2.028
+    ],
+    "front_evidence": "roof_offset=+0.08",
+    "flipped": false,
+    "mesh_objects": 7,
+    "triangles": 42362,
+    "materials": 7,
+    "material_names": [
+      "fs_vector",
+      "glass",
+      "interior2",
+      "interior_bottom",
+      "main_frame",
+      "plate",
+      "wheels_and_parts"
+    ],
+    "textures": 22,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "glass_low_wheels_and_parts_0"
+    ],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [
+      "glass"
+    ],
+    "animations": 0,
+    "object_names": [
+      "glass_low_glass_0",
+      "glass_low_main_frame_0",
+      "glass_low_interior2_0",
+      "glass_low_plate_0",
+      "glass_low_interior_bottom_0",
+      "glass_low_wheels_and_parts_0",
+      "fs_vector_bulbs_base_low_fs_vector_0"
+    ],
+    "render_s": 24.8
+  }
 }

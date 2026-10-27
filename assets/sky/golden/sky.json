@@ -1,0 +1,80 @@
+{
+ "name": "golden",
+ "label": "Golden hour with clouds",
+ "source": {
+  "hdri": "kloppenheim_06_puresky",
+  "res": "2k",
+  "url": "https://polyhaven.com/a/kloppenheim_06_puresky",
+  "license": "CC0 (Poly Haven)"
+ },
+ "faces": {
+  "SkyboxFt": "assets/sky/golden/SkyboxFt.png",
+  "SkyboxBk": "assets/sky/golden/SkyboxBk.png",
+  "SkyboxLf": "assets/sky/golden/SkyboxLf.png",
+  "SkyboxRt": "assets/sky/golden/SkyboxRt.png",
+  "SkyboxUp": "assets/sky/golden/SkyboxUp.png",
+  "SkyboxDn": "assets/sky/golden/SkyboxDn.png"
+ },
+ "convention": "SkyboxFt=-Z, Bk=+Z, Lf=+X, Rt=-X; Up top=+X; Dn top=-X (Studio job 0005)",
+ "settings": {
+  "hdri": "kloppenheim_06_puresky",
+  "label": "Golden hour with clouds",
+  "key": 0.3,
+  "ev": 0.0,
+  "tonemap": "agx",
+  "sat": 1.08,
+  "sun_az": 255.0,
+  "haze": 0.18,
+  "haze_color": [
+   0.98,
+   0.8,
+   0.6
+  ],
+  "ground": "haze",
+  "clock_hint": 17.6
+ },
+ "yaw_deg": 0.0,
+ "sun": {
+  "in_hdri": false,
+  "painted_out": true,
+  "compass_az": null,
+  "elevation": null,
+  "roblox_dir": null,
+  "note": "match Lighting:GetSunDirection() at the shipped ClockTime; rerun with --sun-dir if it differs"
+ },
+ "hints": {
+  "horizon_srgb": [
+   158,
+   149,
+   143
+  ],
+  "zenith_srgb": [
+   82,
+   104,
+   131
+  ],
+  "sky_mean_srgb": [
+   134,
+   144,
+   157
+  ],
+  "sun_color_srgb": null,
+  "use": "Atmosphere.Color/Decay ~ horizon; OutdoorAmbient ~ darker sky_mean; Lighting sun tint ~ sun_color",
+  "clock_time_hint": 17.6
+ },
+ "edge_error_0_255": {
+  "Bk-Dn": 0.04,
+  "Bk-Lf": 0.24,
+  "Bk-Rt": 0.1,
+  "Bk-Up": 0.1,
+  "Dn-Ft": 0.14,
+  "Dn-Lf": 0.06,
+  "Dn-Rt": 0.02,
+  "Ft-Lf": 0.48,
+  "Ft-Rt": 0.34,
+  "Ft-Up": 0.94,
+  "Lf-Up": 0.34,
+  "Rt-Up": 0.28
+ },
+ "seconds": 30.2
+}

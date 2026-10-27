@@ -48,5 +48,68 @@
   "sha256": "a2ccd7609aed26d4d1ff67671cfc49f5596a6a21086cb378a589aed9ea087ca8",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:08:38+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      0.754,
+      1.9506,
+      1.0883
+    ],
+    "dims_m": [
+      0.754,
+      1.951,
+      1.088
+    ],
+    "front_evidence": "names(front=2,rear=1)",
+    "flipped": false,
+    "mesh_objects": 17,
+    "triangles": 27095,
+    "materials": 6,
+    "material_names": [
+      "Material_2",
+      "Material_3",
+      "Material_4",
+      "Material_5",
+      "Material_6",
+      "Material_7"
+    ],
+    "textures": 5,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Wheel_B_tyres_Material #3_0",
+      "Wheel_B_rims_Material #2_0",
+      "Wheel_F_tyres_Material #3_0",
+      "Wheel_F_rims_Material #2_0"
+    ],
+    "wheel_geom": [
+      "Wheel_B_tyres_Material #3_0",
+      "Wheel_B_rims_Material #2_0",
+      "Wheel_F_tyres_Material #3_0",
+      "Wheel_F_rims_Material #2_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Wheel_B_tyres_Material #3_0",
+      "lights_position_back_glows_Material #7_0",
+      "detach_element_B_25_pivot_chassis_Material #4_0",
+      "chassis_chassis_Material #4_0",
+      "Wheel_B_rims_Material #2_0",
+      "lights_brakes_glows_Material #7_0",
+      "skinned_mesh_details_Material #5_0",
+      "detach_element_FL_20_pivot_chassis_Material #4_0",
+      "glasses_glass_Material #6_0",
+      "detach_exhaust_R_20_pivot_chassis_Material #4_0",
+      "chassis_chassis_mate_Material #4_0",
+      "detach_element_D_25_pivot_chassis_Material #4_0",
+      "Wheel_F_tyres_Material #3_0",
+      "chassis_details_Material #5_0",
+      "detach_element_FR_20_pivot_chassis_Material #4_0",
+      "skinned_mesh_chassis_Material #4_0",
+      "Wheel_F_rims_Material #2_0"
+    ],
+    "render_s": 45.8
+  }
 }

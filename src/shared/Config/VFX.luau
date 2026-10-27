@@ -8,7 +8,8 @@
 --
 -- Preset fields (all optional unless noted). Sizes are studs, speeds studs/s, times seconds, angles degrees:
 --   texture (required)  key into VFX.Textures
---   kind (required)     "burst" (pooled, Emit(count) at a position) | "stream" (an emitter on an attachment, Rate)
+--   kind (required)     "burst" (Emit(count): pooled at a position, or VFXLibrary.attach on a caller's attachment)
+--                       | "stream" (an emitter on an attachment, Rate)
 --   count / rate        particles per burst / per second at "high" quality (Quality tiers scale them down)
 --   lifetime, speed, rotation, rotSpeed, spread      { min, max } (spread = { x, y })
 --   size, transparency, squash                      NumberSequence keys: K(time, value, envelope?)
@@ -601,14 +602,16 @@ VFX.Presets = {
 	SpeedLines = {
 		texture = "speed_line",
 		kind = "stream",
-		rate = 6, -- per ring attachment (8 of them)
+		rate = 6, -- per ring attachment (8 of them; 6 on touch screens)
 		lifetime = { 0.22, 0.32 },
-		speed = { 120, 160 },
+		-- spawned 28 studs ahead at 0.62 of the screen radius (VehicleClient): at ~85 studs/s a line sweeps to the
+		-- screen edge in ~0.12 s (faster and it would be gone before it faded in)
+		speed = { 75, 95 },
 		spread = { 0, 0 },
 		emissionDirection = "Back",
 		size = { K(0, 0.35), K(1, 0.35) },
 		squash = { K(0, 3), K(1, 3) },
-		transparency = { K(0, 1), K(0.2, 0.45), K(0.8, 0.45), K(1, 1) },
+		transparency = { K(0, 1), K(0.12, 0.45), K(0.8, 0.45), K(1, 1) },
 		color = { C(0, 230, 245, 255), C(1, 230, 245, 255) },
 		lightEmission = 1,
 		lightInfluence = 0,

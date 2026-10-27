@@ -44,14 +44,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      231.8552,
-      902.8394,
-      233.1431
+      233.5808,
+      910.7794,
+      240.1312
     ],
     "dims_m": [
-      902.839,
-      231.855,
-      233.143
+      910.779,
+      233.581,
+      240.131
     ],
     "front_evidence": "upright_band",
     "flipped": true,
@@ -98,6 +98,7 @@
       "rogatka_low_m134_0",
       "bolt_low_m134_0"
     ],
-    "render_s": 44.2
+    "hidden_helpers": [],
+    "render_s": 34.5
   }
 }

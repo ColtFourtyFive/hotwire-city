@@ -5,6 +5,7 @@
 return function(t)
 	local H = t.H
 	local Vector3 = H.roblox.Vector3
+	local Vector2 = H.roblox.Vector2
 	local fs = require("@lune/fs")
 	local serde = require("@lune/serde")
 
@@ -423,6 +424,459 @@ return function(t)
 			gui:Destroy()
 		end
 		H.setMode("server")
+		t.ok(ok, tostring(err))
+	end)
+
+	-- Phones (the legend layout below uses these canvases)
+	local PHONES = { { 844, 390 }, { 667, 375 }, { 640, 360 }, { 896, 414 }, { 932, 430 }, { 736, 414 } }
+	local function phoneCanvas(w, h, topbar, floor)
+		local s = math.clamp(math.min(w / 1280, h / 720), 0.55, 1.6)
+		if floor then
+			s = math.max(s, floor)
+		end
+		return s, w / s, (h - topbar) / s
+	end
+
+	-- v2 radar (UI/HudLayout rectangle): the v1 circle's touch boost / compact diameter / menu-strip reserve / N fade
+	-- under the map button went with the circle (ui_v2 specs cover the rectangle's placement).
+	t.test("expanded radar: 2x, desktop keeps its bottom edge (the bars stay), touch keeps its top-left", function()
+		local HudLayout = H.require("src/client/UI/HudLayout")
+		for _, c in
+			{ { 1280, 720, false }, { 1920 / 1.5, 1080 / 1.5, false }, { 1172, 492, true }, { 1280, 828, true } }
+		do
+			local L = HudLayout.compute(c[1], c[2], c[3])
+			local r = L.radar
+			local e = Mini.expandedRect(r, c[1], c[2], c[3], Mini.EXPAND_SCALE)
+			local tag = ("%dx%d %s"):format(c[1], c[2], if c[3] then "touch" else "desktop")
+			t.ok(e.w > r.w and e.h > r.h, tag .. ": bigger")
+			t.ok(e.w <= r.w * Mini.EXPAND_SCALE + 1 and e.h <= r.h * Mini.EXPAND_SCALE + 1, tag .. ": at most 2x")
+			t.ok(e.x >= 0 and e.y >= 0 and e.x + e.w <= c[1] and e.y + e.h <= c[2], tag .. ": on screen")
+			t.eq(e.x, r.x, tag .. ": same left edge")
+			if c[3] then
+				t.eq(e.y, r.y, tag .. ": same top edge (under the top bar)")
+			else
+				t.near(e.y + e.h, r.y + r.h, 1, tag .. ": same bottom edge")
+			end
+		end
+		-- a tiny canvas never pushes it off screen
+		local e = Mini.expandedRect({ x = 10, y = 10, w = 168, h = 118 }, 300, 200, true, 2)
+		t.ok(e.x + e.w <= 300 and e.y + e.h <= 200, "clamped to a tiny canvas")
+	end)
+
+	t.test("unreachable GPS targets back off", function()
+		local G = Cfg.GPS
+		t.eq(Mini.retryDelay(0), 0)
+		t.eq(Mini.retryDelay(1), G.REROUTE_MIN_INTERVAL)
+		t.eq(Mini.retryDelay(2), G.REROUTE_MIN_INTERVAL * 2)
+		t.eq(Mini.retryDelay(50), G.FAIL_RETRY_MAX, "capped")
+		local prev = 0
+		for i = 1, 10 do
+			t.ok(Mini.retryDelay(i) >= prev, "never shrinks")
+			prev = Mini.retryDelay(i)
+		end
+	end)
+
+	-- Route renderer: slot 1 is always the head (the per-frame fast path rewrites only that slot)
+	t.test("drawRoute keeps the head in slot 1, even when it has no length", function()
+		H.setMode("client")
+		local M = H.require("src/client/Controllers/MinimapController")
+		H.setMode("server")
+		local holder = H.roblox.Instance.new("Frame")
+		local r = M.newRouteRenderer(holder, 6, 2)
+		local white = H.roblox.Color3.new(1, 1, 1)
+		local function visible()
+			local out = {}
+			for i = 1, r.used do
+				if r.cores[i].Visible then
+					table.insert(out, i)
+				end
+			end
+			return out
+		end
+		-- standing on the road point closest to an off-road target: route {Q, Q} + a faded line to the target
+		local Q = Vector3.new(-640, 0, -240)
+		local target = Vector3.new(-686, 0, -240)
+		M.drawRoute(r, { Q, Q }, 1, Q.X, Q.Z, white, target)
+		t.eq(r.used, 2, "head slot + tail")
+		t.ok(not r.cores[1].Visible, "zero-length head hidden (no stray dot)")
+		t.ok(r.cores[2].Visible, "tail drawn")
+		t.near(r.cores[2].BackgroundTransparency, 0.35, 1e-6, "tail is the faded one")
+		-- next frame: the fast path moves the head; the tail must survive
+		for _ = 1, 5 do
+			M.moveRouteHead(r, Q.X, Q.Z, Q.X, Q.Z)
+		end
+		t.ok(r.cores[2].Visible, "tail still drawn after moveRouteHead")
+		t.eq(#visible(), 1)
+		-- normal route: slot 1 runs from the player's spot to the next corner
+		local pts = { Vector3.new(0, 0, 0), Vector3.new(100, 0, 0), Vector3.new(100, 0, 100) }
+		M.drawRoute(r, pts, 1, 40, 0, white, nil)
+		t.eq(r.used, 2)
+		local u0, v0 = M.worldToMap(70, 0)
+		t.near(
+			r.cores[1].Position.X.Scale * Cfg.WORLD_SIZE,
+			u0,
+			1e-3,
+			"head centered between the player and the corner"
+		)
+		t.near(r.cores[1].Position.Y.Scale * Cfg.WORLD_SIZE, v0, 1e-3)
+		M.moveRouteHead(r, 90, 0, 100, 0)
+		local u1 = M.worldToMap(95, 0)
+		t.near(r.cores[1].Position.X.Scale * Cfg.WORLD_SIZE, u1, 1e-3, "fast path moved the head")
+		t.ok(r.cores[2].Visible, "rest of the route untouched")
+		M.drawRoute(r, nil, 1, 0, 0, white, nil)
+		t.eq(#visible(), 0, "cleared")
+	end)
+
+	-- Fullscreen map ------------------------------------------------------------------------------------------------------
+	t.test("map legend fits the pause MAP tab (phones 2-3 columns, desktop one; scrolls only when short)", function()
+		local PauseMenu = H.require("src/client/UI/PauseMenu")
+		local n = #MapScreen.legendEntries()
+		t.ok(n >= 16, "every blip kind explained, got " .. n)
+		local function check(lay, cw, ch, touch, tag)
+			local F = PauseMenu.frame(touch)
+			t.ok(lay.top >= ch * F.top - 1e-6, tag .. ": below the pause tabs")
+			t.ok(
+				lay.top + lay.height <= ch * F.bottom - MapScreen.toolSize(touch) - 8 + 1e-6,
+				tag .. ": above the bottom row (tools / Legend button)"
+			)
+			t.ok(lay.right - lay.width >= cw * F.left - 1e-6, tag .. ": inside the content area")
+			t.ok(lay.right <= cw * F.right + 1e-6, tag .. ": right edge on the content area")
+		end
+		for _, vp in PHONES do
+			for _, topbar in { 36, 58 } do
+				local _, cw, ch = phoneCanvas(vp[1], vp[2], topbar, 0.72)
+				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
+				local lay = MapScreen.legendLayout(n, cw, ch, true)
+				t.ok(lay.cols == 2 or lay.cols == 3, tag)
+				t.ok(not lay.scrolls, tag .. ": every row visible without scrolling")
+				check(lay, cw, ch, true, tag)
+			end
+		end
+		-- desktop: one column top-right; 720p shows every row without scrolling
+		local lay = MapScreen.legendLayout(n, 1280, 720, false)
+		t.eq(lay.cols, 1)
+		t.ok(not lay.scrolls, "720p fits")
+		check(lay, 1280, 720, false, "720p")
+		-- a roomy tablet keeps two columns
+		t.eq(MapScreen.legendLayout(n, 1280, 900, true).cols, 2, "tablet: two columns")
+		-- a very short window scrolls instead of overflowing
+		local short = MapScreen.legendLayout(n, 1280, 400, false)
+		t.ok(short.scrolls, "scrolls")
+		check(short, 1280, 400, false, "short")
+		-- the fit view starts under the pause header
+		t.near(MapScreen.chromeTopFor(720, false), 720 * PauseMenu.frame(false).top, 1e-9)
+	end)
+
+	t.test("district names step aside from blips and each other", function()
+		local twelve = { 12, 12, 12, 12, 12 }
+		local y = MapScreen.placeLabel(100, 100, 40, 10, {}, {}, {}, {}, 0)
+		t.eq(y, 100, "free spot: stays")
+		local y2 = MapScreen.placeLabel(100, 100, 40, 10, { 120 }, { 104 }, twelve, twelve, 1)
+		t.ok(y2 ~= nil and y2 ~= 100, "moved off the blip")
+		t.ok(math.abs(y2 - 104) >= 10 + 12, "box clears the blip")
+		local blocked = MapScreen.placeLabel(100, 100, 40, 10, { 100, 100, 100, 100, 100 }, {
+			100,
+			76,
+			124,
+			52,
+			148,
+		}, twelve, twelve, 5)
+		t.eq(blocked, nil, "nowhere to go: skipped")
+		-- a wide name already placed just above: the next one steps down, not onto it
+		local y3 = MapScreen.placeLabel(100, 100, 40, 10, { 130 }, { 90 }, { 60 }, { 12 }, 1)
+		t.ok(y3 ~= nil and y3 >= 90 + 12 + 10, "clear of the other name")
+		-- the config names sit clear of the garage rows (z = -+681) at the phone fit zoom
+		for _, d in Cfg.DISTRICTS do
+			if d.name == "THE DOCKS" or d.name == "SOUTH SHORE" then
+				t.ok(math.abs(math.abs(d.z) - 681) >= 120, d.name .. " off the garage row")
+			end
+		end
+	end)
+
+	-- shared headless setup for the runtime specs below: a character at `at`, Kit stubs, returns a cleanup function
+	local function headless(at, touch)
+		H.setMode("client")
+		local lp = H.localPlayer
+		local char = H.roblox.Instance.new("Model")
+		char.Name = "MinimapRuntimeChar"
+		local root = H.roblox.Instance.new("Part")
+		root.Name = "HumanoidRootPart"
+		root.CFrame = H.roblox.CFrame.new(at)
+		root.Position = at -- Lune parts don't derive Position from CFrame
+		root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		root.Parent = char
+		char.Parent = H.workspace
+		lp.Character = char
+		pcall(function()
+			lp.UserId = 4242
+		end)
+		local Kit = H.require("src/client/UI/Kit")
+		Kit.screen = function(name, order)
+			local g = H.roblox.Instance.new("ScreenGui")
+			g.Name = name
+			g.DisplayOrder = order
+			g.Parent = lp:FindFirstChild("PlayerGui")
+			return g
+		end
+		Kit.juice = function() end -- Lune buttons have no engine events
+		Kit.uiScale = function()
+			return 0.72
+		end
+		Kit.isTouch = function()
+			return touch == true
+		end
+		local extra = {}
+		local function cleanup()
+			char:Destroy()
+			for _, inst in extra do
+				inst:Destroy()
+			end
+			for _, name in { "HC_Minimap", "HC_Map", "HC_MapChrome" } do
+				local gui = lp.PlayerGui:FindFirstChild(name)
+				if gui then
+					gui:Destroy()
+				end
+			end
+			lp:SetAttribute("Wanted", nil)
+			H.setMode("server")
+		end
+		return root, extra, cleanup
+	end
+
+	local function visibleCores(radar)
+		local out = {}
+		for _, f in radar.Clip.Spin.World.Route.Core:GetChildren() do
+			if f.Visible then
+				table.insert(out, f)
+			end
+		end
+		return out
+	end
+
+	t.test("radar runtime: map moves every frame, 30 Hz work keeps an even cadence", function()
+		local root, extra, cleanup = headless(Vector3.new(-300, 3, 160), false)
+		local ok, err = pcall(function()
+			-- a police car near the player (its vision cone is the 30 Hz work measured below)
+			local cop = H.roblox.Instance.new("Model")
+			local copBody = H.roblox.Instance.new("Part")
+			copBody.CFrame = H.roblox.CFrame.new(-260, 3, 180)
+			copBody.Position = Vector3.new(-260, 3, 180)
+			copBody.Parent = cop
+			cop.PrimaryPart = copBody
+			cop:AddTag("Police")
+			cop.Parent = H.workspace
+			table.insert(extra, cop)
+			local M = H.require("src/client/Controllers/MinimapController")
+			M.mount()
+			local radar = H.localPlayer.PlayerGui.HC_Minimap.Radar
+			t.ok(radar.Clip:IsA("Frame") and not radar.Clip:IsA("CanvasGroup"), "a plain clipping Frame (§5.1)")
+			t.ok(radar.Clip.ClipsDescendants, "clips the turning map")
+			t.ok(radar.Clip.Blips.ZIndex > radar.Clip.Spin.ZIndex, "blips above the map")
+			M.step(1 / 60)
+			-- running (4 studs a frame, > 1 px: UDim offsets are whole pixels): the map follows every frame
+			local changes, last = 0, radar.Clip.Spin.World.Position
+			for i = 1, 60 do
+				root.CFrame = H.roblox.CFrame.new(-300 + 4 * i, 3, 160)
+				M.step(1 / 60)
+				local p = radar.Clip.Spin.World.Position
+				if p ~= last then
+					changes += 1
+				end
+				last = p
+			end
+			t.eq(changes, 60, "map position updated every frame")
+			-- seen by a cop: the red / blue flash frame shows (30 Hz work)
+			H.localPlayer:SetAttribute("Wanted", 2)
+			H.localPlayer:SetAttribute("WantedSeen", true)
+			for _ = 1, 4 do
+				M.step(1 / 60)
+			end
+			t.ok(radar.Flash.Visible, "flash while seen")
+			-- searching (unseen): a vision cone per cop in range, moved at RADAR.UPDATE_HZ even with frame-time jitter
+			H.localPlayer:SetAttribute("WantedSeen", false)
+			local updates, lastP = 0, nil
+			for i = 1, 120 do
+				local at = Vector3.new(-200 + i, 3, 180)
+				copBody.CFrame = H.roblox.CFrame.new(at)
+				copBody.Position = at
+				M.step(if i % 2 == 0 then 1 / 60 + 0.0012 else 1 / 60 - 0.0012)
+				local cone = radar.Clip.Spin.World.Cones:FindFirstChild("Cone")
+				local p = cone and cone.Visible and cone.Position or nil
+				if p ~= lastP then
+					updates += 1
+				end
+				lastP = p
+			end
+			t.ok(not radar.Flash.Visible, "no flash while searching")
+			t.ok(updates >= 57 and updates <= 61, "30 Hz cadence over 2 s, got " .. updates)
+			H.localPlayer:SetAttribute("Wanted", 0)
+			for _ = 1, 4 do
+				M.step(1 / 60)
+			end
+			local cone = radar.Clip.Spin.World.Cones:FindFirstChild("Cone")
+			t.ok(cone == nil or not cone.Visible, "cones gone with the stars")
+		end)
+		H.localPlayer:SetAttribute("WantedSeen", nil)
+		cleanup()
+		t.ok(ok, tostring(err))
+	end)
+
+	t.test("radar runtime: the faded line to an off-road target survives the per-frame head update", function()
+		local MapLayout2 = H.require("src/shared/Util/MapLayout")
+		local drop = MapLayout2.plotDropoffZone(1).Position
+		local RoadGraph = H.require("src/shared/Util/RoadGraph")
+		local Q = RoadGraph.nearestPoint(drop)
+		local root, _, cleanup = headless(Vector3.new(Q.X + 3, 3, Q.Z), false)
+		local ok, err = pcall(function()
+			local M = H.require("src/client/Controllers/MinimapController")
+			local WP = H.require("src/client/Controllers/WaypointController")
+			M.mount()
+			for _ = 1, 5 do
+				M.step(1 / 30)
+			end
+			WP.set("home", drop, nil, "HOME")
+			local radar = H.localPlayer.PlayerGui.HC_Minimap.Radar
+			for frame = 1, 60 do
+				M.step(1 / 30)
+				if frame >= 15 and frame % 15 == 0 then
+					local faded = 0
+					for _, f in visibleCores(radar) do
+						if f.BackgroundTransparency > 0.3 and f.Size.X.Scale > 0 then
+							faded += 1
+						end
+					end
+					t.eq(faded, 1, "faded line to the drop-off drawn at frame " .. frame)
+				end
+			end
+			t.ok(M.getRemaining() > 40, "distance pill counts the off-road leg")
+			root.CFrame = root.CFrame -- keep the root referenced
+		end)
+		cleanup()
+		t.ok(ok, tostring(err))
+	end)
+
+	t.test("radar runtime: an unreachable target is not searched again every slow tick", function()
+		local _, _, cleanup = headless(Vector3.new(-300, 3, 160), false)
+		local RoadGraph = H.require("src/shared/Util/RoadGraph")
+		local original = RoadGraph.route
+		local calls = 0
+		local ok, err = pcall(function()
+			local M = H.require("src/client/Controllers/MinimapController")
+			local WP = H.require("src/client/Controllers/WaypointController")
+			M.mount()
+			RoadGraph.route = function()
+				calls += 1
+				return nil
+			end
+			WP.set(Cfg.CUSTOM_WAYPOINT.ID, Vector3.new(480, 0, -400), nil, "WAYPOINT")
+			for _ = 1, 120 do -- 4 s
+				M.step(1 / 30)
+			end
+			t.ok(calls >= 2 and calls <= 4, "backed off (0, 0.75, 2.25 s), got " .. calls)
+			t.eq(M.getRoute(), nil, "no route")
+			-- the target moves somewhere new: searched again right away (after the normal throttle)
+			calls = 0
+			WP.set(Cfg.CUSTOM_WAYPOINT.ID, Vector3.new(-480, 0, 400), nil, "WAYPOINT")
+			for _ = 1, 30 do
+				M.step(1 / 30)
+			end
+			t.ok(calls >= 1 and calls <= 2, "moved target: searched again, then backs off afresh; got " .. calls)
+			-- the road becomes reachable: the next retry finds it
+			RoadGraph.route = original
+			for _ = 1, 150 do
+				M.step(1 / 30)
+			end
+			t.ok(M.getRoute() ~= nil, "routed once reachable")
+		end)
+		RoadGraph.route = original
+		cleanup()
+		t.ok(ok, tostring(err))
+	end)
+
+	t.test("fullscreen map runtime: every blip, names clear of blips, tap sets / clears the waypoint", function()
+		local _, extra, cleanup = headless(Vector3.new(-300, 3, 160), true)
+		local ok, err = pcall(function()
+			-- a police car with its siren on and the police chopper
+			for _, spec in { { "Police", Vector3.new(-260, 3, 180) }, { "PoliceHeli", Vector3.new(200, 80, -300) } } do
+				local m = H.roblox.Instance.new("Model")
+				local body = H.roblox.Instance.new("Part")
+				body.CFrame = H.roblox.CFrame.new(spec[2])
+				body.Position = spec[2]
+				body.Parent = m
+				m.PrimaryPart = body
+				m:SetAttribute("Siren", true)
+				m:AddTag(spec[1])
+				m.Parent = H.workspace
+				table.insert(extra, m)
+			end
+			local M = H.require("src/client/Controllers/MinimapController")
+			local MS = H.require("src/client/Controllers/MapScreenController")
+			M.mount()
+			MS.mount()
+			-- show() is what the pause menu's MAP tab calls (open() asks MenuController for the pause menu)
+			MS.show()
+			t.ok(MS.isOpen(), "open")
+			for _ = 1, 3 do
+				MS.step(1 / 30)
+			end
+			local gui = H.localPlayer.PlayerGui.HC_Map
+			local chrome = H.localPlayer.PlayerGui.HC_MapChrome
+			t.ok(gui.Enabled and chrome.Enabled, "shown")
+			-- blips: every POI + the police car + the chopper
+			local poiCount = 0
+			for _, def in Cfg.POIS do
+				poiCount += #M.poiPositions(def.at)
+			end
+			local blips = {}
+			for _, b in gui.Backdrop.Overlay.Blips:GetChildren() do
+				if b.Visible then
+					table.insert(blips, b)
+				end
+			end
+			t.eq(#blips, poiCount + 2, "POIs + police + chopper")
+			-- district names never sit on a blip
+			local labels = 0
+			for _, l in gui.Backdrop.Overlay.Labels:GetChildren() do
+				if l.Visible then
+					labels += 1
+					local hw = #l.Text * l.TextSize * 0.31
+					local hh = (l.TextSize + 6) / 2
+					for _, b in blips do
+						local half = b.Size.X.Offset / 2
+						local clear = math.abs(b.Position.X.Offset - l.Position.X.Offset) >= hw + half - 2.5
+							or math.abs(b.Position.Y.Offset - l.Position.Y.Offset) >= hh + half - 2.5
+						t.ok(clear, l.Text .. " clear of every blip")
+					end
+				end
+			end
+			t.ok(labels >= 5, "district names shown, got " .. labels)
+			-- touch: the legend starts hidden behind its button (bottom row), sized for the canvas, top-right
+			t.ok(not chrome.Legend.Visible, "legend hidden on touch")
+			t.ok(chrome.LegendToggle.Visible, "Legend button")
+			local lay = MS.legendLayout(#MS.legendEntries(), 1280, 720, true)
+			t.eq(chrome.Legend.Size.X.Offset, lay.width)
+			t.eq(chrome.Legend.Size.Y.Offset, lay.height)
+			-- (UDim offsets are whole pixels)
+			t.near(chrome.Legend.Position.X.Offset, lay.right, 1, "right edge of the content area")
+			t.near(chrome.Legend.Position.Y.Offset, lay.top, 1, "under the pause tabs")
+			t.ok(chrome.LegendToggle.Position.Y.Offset > lay.top + lay.height, "its button sits below it")
+			-- no title or close button of its own: the pause menu owns those
+			t.eq(chrome:FindFirstChild("Title"), nil)
+			t.eq(chrome:FindFirstChild("Close"), nil)
+			-- tap an empty spot: the custom waypoint goes there; tap it again: gone
+			local top = MS.chromeTopFor(720, true)
+			local sc = MS.fitScale(1280, 720, top)
+			local sx, sy = MS.worldToScreen(-400, 220, 0, MS.fitCenterZ(sc, top), sc, 1280, 720)
+			MS.tap(Vector2.new(sx, sy))
+			local wp = M.getCustomWaypoint()
+			t.ok(wp ~= nil and math.abs(wp.X + 400) < 1 and math.abs(wp.Z - 220) < 1, "waypoint where tapped")
+			MS.step(1 / 30)
+			MS.tap(Vector2.new(sx, sy))
+			t.eq(M.getCustomWaypoint(), nil, "second tap clears it")
+			MS.hide()
+			t.ok(not gui.Enabled and not chrome.Enabled and not MS.isOpen(), "closed")
+		end)
+		cleanup()
 		t.ok(ok, tostring(err))
 	end)
 

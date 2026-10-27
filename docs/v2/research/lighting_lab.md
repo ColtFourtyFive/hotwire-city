@@ -21,3 +21,24 @@ These are binding for LightingService v2.
    - Night Atmosphere is too blue and too dense. Use Density ≤ 0.3 and a dark, desaturated navy-grey colour.
 6. **Overcast.** Not worth shipping as-is. If weather is added, use neutral grey fog, Density ≤ 0.3, plus rain effects.
 7. **Technology.** `Lighting.Technology` cannot be set from `execute_luau`, because that lacks the capability. Set it through the Rojo project file (`default.project.json` Lighting properties), or once by hand in Studio, and verify with `inspect_instance`.
+
+# Lighting lab, round 2 (real engine, Studio job 0007; full report in docs/v2/evidence/lighting_lab_0007_report.md)
+
+These findings are binding and override round 1 where they conflict.
+
+1. **Sky rotation.** `yawSign = +1` is confirmed: at yaw 0 the camera sees Ft, at yaw 90 it sees Lf.
+2. **Atmosphere Offset** has no visible effect at Density 0.27; captures at 0 and 1.0 were pixel-identical. Lock **Haze 0.8 and Offset 0.25**.
+3. **Day and golden HDRI skies are excellent.** The engine sun sits inside the golden glow, and there is no double sun.
+4. **BLOCKER: the engine blacks out the skybox when the sun is well below the horizon.**
+   - At ClockTime 22.5 the night sky is pure black. The same night sky at 14.2 renders moonlit clouds and city glow.
+   - Blue hour at 18.7 (sun at −10°) is near-black and purple.
+   - Rule: never run `Lighting.ClockTime` deep into night. Hold it near the horizon: ~18.0–18.3 for the first half of the night, then ~5.7–6.0 for the second half.
+   - Fake night darkness with ExposureCompensation, Ambient and OutdoorAmbient, and ColorCorrection; the night HDRI then stays visible.
+5. **The golden ↔ day sky swap pops visibly,** and the lighting shifts with it. Minimise swaps and hide them, or drop the day ↔ golden swap entirely.
+6. **Lit windows using Neon plus bloom become glowing slabs** and light up whole towers. Use a dimmer emissive (Glass or SmoothPlastic, colour × factor), per-cell windows, or a random lit-cell mask.
+7. **Rojo live-sync limits** (Studio Team Create session):
+   - The Lighting node fails ("Cannot change Parent of type Lighting"), leaving duplicate Sky, Atmosphere, Bloom and SunRays.
+   - LightingStyle reads Soft.
+   - MaterialService stays empty.
+
+   These settings only arrive through a real publish. At runtime LightingService must dedupe Lighting children and keep exactly one of each effect.

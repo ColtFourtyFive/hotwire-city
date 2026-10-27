@@ -3,7 +3,7 @@
 
 Usage: python3 -I tools/sources/preview_batch.py [--kind vehicle|weapon] [--only slug-substr] [--force]
 
-Each model is rendered in its own Blender process (crash isolation, 15 min timeout) via
+Each model is rendered in its own Blender process (crash isolation, 5 min timeout) via
 tools/sources/render_preview.py -> <dir>/preview.png + preview_inset.png; stats go to meta.json["analysis"].
 """
 import argparse
@@ -42,7 +42,7 @@ def main():
         cmd = [sys.executable, "-I", str(HERE / "render_preview.py"), str(glb), str(out), str(stats),
                "--kind", meta.get("kind") or "vehicle", "--cls", meta.get("class") or "", "--samples", a.samples]
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             ok = r.returncode == 0 and stats.exists()
         except subprocess.TimeoutExpired:
             ok, r = False, None

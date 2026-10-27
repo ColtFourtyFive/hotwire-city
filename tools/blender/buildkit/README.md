@@ -59,6 +59,9 @@ edge to edge, so the city's sidewalk meets the facade.
 | Grime | alpha dirt decals: rising damp, rain streaks, rust leaks, soot | RGBA atlas `grime.png` | SurfaceAppearance `AlphaMode=Transparency`, `CastShadow=false` |
 | WindowsLit | about 30-55% of the window quads, duplicated 0.03 studs proud with `windows_lit.png` | night only | `Transparency=1` by day. At night, show it with `Material=Neon` and a warm `Color`, or with the SurfaceAppearance emissive mask if the engine has it |
 
+Colours in the specs and JSON are **sRGB**. That is what `Color3` and `SurfaceAppearance.Color` use, so they can be
+copied straight across. The Cycles previews linearise them (`bk_mat.lin`), so what you see is what Roblox should show.
+
 `UV tile_studs` in the JSON gives the studs per texture repeat for each role. Tiling roles use world-space box UVs,
 so texel density is the same on every building. That is why one shared SurfaceAppearance per texture set works
 city-wide.
@@ -92,6 +95,31 @@ city-wide.
 The axes go from Blender to glTF. In Roblox, a building's front faces -Z after a yaw of 180 degrees, which is the
 same rule as the car kit.
 
+## Renders (`render_kit.py`, written to `docs/v2/proto/buildkit/`)
+
+**Street level, late afternoon**
+
+- `downtown_street`
+- `midtown_street`
+- `strip_mall`
+- `gas_station`
+- `diner`
+- `corner_store`
+- `deco_beach`
+- `suburbs_street`
+- `industrial_warehouse`
+- `hills_mansion`
+
+**Wide shot:** `block_wide`, a district sampler of 35 blocks with the beach, the hills and the skyline.
+
+**Night:** `deco_night` and `downtown_night`. Both use WindowsLit, Neon, backlit signs and sodium street lights.
+
+**Parametric range:** `variants_<arch>` puts 3-6 seeds of each archetype side by side.
+
+The preview lighting is a Poly Haven pure-sky HDRI with the sun removed, plus a Sun lamp matched to it. The sky fill
+is 2.2x, the view transform is AgX Medium High Contrast and the compositor adds mist-pass haze. The scene props
+(palms, trees, bushes, lamps, cars, terrain) exist only in the previews.
+
 ## Files
 
 | file | role |
@@ -111,3 +139,32 @@ same rule as the car kit.
 - Textures and HDRIs come from Poly Haven and are CC0. Each texture set's folder has a `SOURCE.txt`.
 - The fonts used for signs are SIL OFL Google Fonts, and are baked into atlases.
 - The brand names are our own parodies: PUMP & GO, QUIK STOP, PACIFIC TRUST and others.
+
+## Budgets (4 seeds per archetype, 40 buildings)
+
+| arch | triangles per building | largest part | parts |
+|---|---|---|---|
+| tower | 5.2k-6.2k | 2.7k | 12 |
+| midtown | 18.6k-28.2k | 10.8k | 11 |
+| deco | 4.2k-7.5k | 3.8k | 13 |
+| strip, store, gas, diner | 1.0k-3.0k | 1.2k | 16-17 |
+| house | 1.1k-1.9k | 0.7k | 15 |
+| warehouse | 2.0k-2.5k | 0.7k | 17 |
+| mansion | 1.5k | 0.6k | 17 |
+
+There are 0 budget violations. A light GLB is 0.1-1.9 MB. The embedded test copies are 11-27 MB.
+
+## Known limitations
+
+- Nothing has been imported into Roblox Studio yet. Three things need checking there:
+  - that the tiling UVs wrap on MeshPart SurfaceAppearances;
+  - which emissive route works for WindowsLit, Sign and Brand;
+  - draw-call cost at 15-17 MeshParts per building on mobile.
+- Draw calls are not reduced yet. The colour-only roles (Accent, Frames, Paint, Neon) could later be merged into one
+  palette-textured part. That would lose runtime recolouring.
+- The tower facade uses square interior cells stretched across two bays. Towers have no chamfered or curved
+  footprints, and no LOD meshes; the engine's automatic LOD is assumed.
+- There is no weathering variation beyond the shared grime atlas, and no unique baked AO.
+- Curved diner glass is faceted, and the deco corners are square, not streamline-rounded.
+- The preview cars, palms and trees are deliberately simple stand-ins, not game assets.
+

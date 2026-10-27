@@ -46,5 +46,91 @@
   "sha256": "270876921e07ad9cbf0f5d7620a4eca1651497e90ad1e872a1db6158acb68616",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:03+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      2.385,
+      7.0102,
+      2.6389
+    ],
+    "dims_m": [
+      2.385,
+      7.01,
+      2.639
+    ],
+    "front_evidence": "names(front=4,rear=1)",
+    "flipped": false,
+    "mesh_objects": 31,
+    "triangles": 47582,
+    "materials": 6,
+    "material_names": [
+      "Material.001",
+      "Material.002",
+      "Material.003",
+      "Material.004",
+      "Material.005",
+      "chassis_license__0"
+    ],
+    "textures": 7,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "wheelBL_details_Material.002_0",
+      "wheelBL_tyre_Material.004_0",
+      "wheelBR_details_Material.002_0",
+      "wheelBR_tyre_Material.004_0",
+      "wheelFL_details_Material.002_0",
+      "wheelFL_tyre_Material.004_0",
+      "wheelFR_details_Material.002_0",
+      "wheelFR_tyre_Material.004_0",
+      "detach_wing_tyre_Material.004_0"
+    ],
+    "wheel_geom": [
+      "wheelBL_details_Material.002_0",
+      "wheelBL_tyre_Material.004_0",
+      "wheelBR_details_Material.002_0",
+      "wheelBR_tyre_Material.004_0",
+      "wheelFL_details_Material.002_0",
+      "wheelFL_tyre_Material.004_0",
+      "wheelFR_details_Material.002_0",
+      "wheelFR_tyre_Material.004_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "bone_caliper_BL_details.001_Material.002_0",
+      "bone_caliper_BR_details.001_Material.002_0",
+      "bone_caliper_FL_details.001_Material.002_0",
+      "bone_caliper_FR_details.001_Material.002_0",
+      "wheelBL_details_Material.002_0",
+      "wheelBL_tyre_Material.004_0",
+      "wheelBR_details_Material.002_0",
+      "wheelBR_tyre_Material.004_0",
+      "wheelFL_details_Material.002_0",
+      "wheelFL_tyre_Material.004_0",
+      "wheelFR_details_Material.002_0",
+      "wheelFR_tyre_Material.004_0",
+      "chassis_bottom.001_Material.003_0",
+      "chassis_carpaint.001_Material.001_0",
+      "chassis_details.001_Material.002_0",
+      "chassis_license__0",
+      "detach_bumper_front_details_Material.002_0",
+      "detach_door_L_carpaint_Material.001_0",
+      "detach_door_L_details_Material.002_0",
+      "detach_door_R_carpaint_Material.001_0",
+      "detach_door_R_details_Material.002_0",
+      "detach_door_R_glows_Material.005_0",
+      "detach_wing_details_Material.002_0",
+      "detach_wing_tyre_Material.004_0",
+      "glasses_glass.001__0",
+      "lights_brakes_pivot_glows_Material.005_0",
+      "lights_position_back_pivot_glows_Material.005_0",
+      "lights_position_front_and_back_pivot_glows_Material.005_0",
+      "lights_reverse_pivot_glows_Material.005_0",
+      "skinned_mesh_carpaint_Material.001_0",
+      "skinned_mesh_details_Material.002_0"
+    ],
+    "render_s": 49.3
+  }
 }

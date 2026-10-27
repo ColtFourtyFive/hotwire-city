@@ -1,0 +1,87 @@
+{
+ "name": "night",
+ "label": "Blue-hour / night city",
+ "source": {
+  "hdri": "qwantani_dusk_2_puresky",
+  "res": "2k",
+  "url": "https://polyhaven.com/a/qwantani_dusk_2_puresky",
+  "license": "CC0 (Poly Haven)"
+ },
+ "faces": {
+  "SkyboxFt": "assets/sky/night/SkyboxFt.png",
+  "SkyboxBk": "assets/sky/night/SkyboxBk.png",
+  "SkyboxLf": "assets/sky/night/SkyboxLf.png",
+  "SkyboxRt": "assets/sky/night/SkyboxRt.png",
+  "SkyboxUp": "assets/sky/night/SkyboxUp.png",
+  "SkyboxDn": "assets/sky/night/SkyboxDn.png"
+ },
+ "convention": "SkyboxFt=-Z, Bk=+Z, Lf=+X, Rt=-X; Up top=+X; Dn top=-X (Studio job 0005)",
+ "settings": {
+  "hdri": "qwantani_dusk_2_puresky",
+  "label": "Blue-hour / night city",
+  "key": 0.075,
+  "ev": 0.0,
+  "tonemap": "agx",
+  "sat": 1.0,
+  "sun_az": 285.0,
+  "haze": 0.0,
+  "haze_color": [
+   0.3,
+   0.33,
+   0.42
+  ],
+  "ground": "haze",
+  "glow": 0.55,
+  "glow_color": [
+   1.0,
+   0.56,
+   0.26
+  ],
+  "glow_width": 9.0,
+  "clock_hint": 19.4
+ },
+ "yaw_deg": 0.0,
+ "sun": {
+  "in_hdri": false,
+  "painted_out": true,
+  "compass_az": null,
+  "elevation": null,
+  "roblox_dir": null,
+  "note": "match Lighting:GetSunDirection() at the shipped ClockTime; rerun with --sun-dir if it differs"
+ },
+ "hints": {
+  "horizon_srgb": [
+   88,
+   68,
+   74
+  ],
+  "zenith_srgb": [
+   53,
+   59,
+   83
+  ],
+  "sky_mean_srgb": [
+   91,
+   83,
+   97
+  ],
+  "sun_color_srgb": null,
+  "use": "Atmosphere.Color/Decay ~ horizon; OutdoorAmbient ~ darker sky_mean; Lighting sun tint ~ sun_color",
+  "clock_time_hint": 19.4
+ },
+ "edge_error_0_255": {
+  "Bk-Dn": 0.02,
+  "Bk-Lf": 0.11,
+  "Bk-Rt": 0.11,
+  "Bk-Up": 0.11,
+  "Dn-Ft": 0.03,
+  "Dn-Lf": 0.03,
+  "Dn-Rt": 0.02,
+  "Ft-Lf": 0.15,
+  "Ft-Rt": 0.13,
+  "Ft-Up": 0.16,
+  "Lf-Up": 0.12,
+  "Rt-Up": 0.17
+ },
+ "seconds": 29.8
+}

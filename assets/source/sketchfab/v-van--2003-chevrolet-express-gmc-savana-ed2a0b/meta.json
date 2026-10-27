@@ -47,5 +47,101 @@
   "sha256": "25fb62d2d0c5f0d870aaefdd16bac67d476a677e1dfdef213fac3fbadf4590e2",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:54+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      0.0241,
+      0.0568,
+      0.0201
+    ],
+    "dims_m": [
+      0.024,
+      0.057,
+      0.02
+    ],
+    "front_evidence": "names(front=1,rear=0)",
+    "flipped": false,
+    "mesh_objects": 32,
+    "triangles": 31238,
+    "materials": 15,
+    "material_names": [
+      "CGphong10SG1",
+      "CGphong11SG1",
+      "CGphong12SG1",
+      "CGphong13SG1",
+      "CGphong15SG1",
+      "CGphong16SG1",
+      "CGphong1SG1",
+      "CGphong2SG1",
+      "CGphong3SG1",
+      "CGphong4SG1",
+      "CGphong5SG1",
+      "CGphong6SG1",
+      "CGphong8SG1",
+      "CGphong9SG1",
+      "orange_glass"
+    ],
+    "textures": 16,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "CG:W1RIM_1_CG:phong13SG1_0",
+      "CG:W2Rim_2_CG:phong13SG1_0",
+      "CG:W3Rim_3_CG:phong13SG1_0",
+      "CG:W4Rim_4_CG:phong13SG1_0"
+    ],
+    "wheel_geom": [
+      "CG:W1_CG:phong11SG1_0",
+      "CG:W1RIM_1_CG:phong13SG1_0",
+      "CG:W2_CG:phong11SG1_0",
+      "CG:W2Rim_2_CG:phong13SG1_0",
+      "CG:W3_CG:phong11SG1_0",
+      "CG:W3Rim_3_CG:phong13SG1_0",
+      "CG:W4_CG:phong11SG1_0",
+      "CG:W4Rim_4_CG:phong13SG1_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "CG:M_TrafficBadge_Maxcar_chevrolet_express_2003_Mesh_lod0_CG:phong9SG1_0"
+    ],
+    "glass_materials": [
+      "orange_glass"
+    ],
+    "animations": 0,
+    "object_names": [
+      "CG:Cal_3_CG:phong16SG1_0",
+      "CG:Cal_1_CG:phong16SG1_0",
+      "CG:CAl_4_CG:phong16SG1_0",
+      "CG:Cal_2_CG:phong16SG1_0",
+      "CG:M_TrafficBadge_Maxcar_chevrolet_express_2003_Mesh_lod0_CG:phong9SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficLicensePlate_Medium_CG:phong6SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficCarpaint_Max_CG:phong5SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficChassis_Max_CG:phong10SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficGlassOpaque_Mirror_Max_CG:phong12SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficGrilleA_Max_CG:phong4SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficInterior_Max_CG:phong2SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficLightGlass_Max_CG:phong8SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficLightGlass_Max_orange_glass_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficLightGlass_Max_CG:phong1SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficLight_Max_CG:phong3SG1_0",
+      "CG:car_chevrolet_express_2003_Mesh_lod0M_TrafficOpaque_ChromeSmooth_Max_CG:phong6SG1_0",
+      "CG:W1_CG:phong11SG1_0",
+      "CG:W1RIM_1_CG:phong13SG1_0",
+      "CG:W1polySurface20_CG:phong9SG1_0",
+      "CG:W1Disk_1_CG:phong15SG1_0",
+      "CG:W2_CG:phong11SG1_0",
+      "CG:W2Rim_2_CG:phong13SG1_0",
+      "CG:W2polySurface21_CG:phong9SG1_0",
+      "CG:W2Disk_2_CG:phong15SG1_0",
+      "CG:W3_CG:phong11SG1_0",
+      "CG:W3Rim_3_CG:phong13SG1_0",
+      "CG:W3polySurface18_CG:phong9SG1_0",
+      "CG:W3Disk_3_CG:phong15SG1_0",
+      "CG:W4_CG:phong11SG1_0",
+      "CG:W4Rim_4_CG:phong13SG1_0",
+      "CG:W4polySurface19_CG:phong9SG1_0",
+      "CG:W4Disk_4_CG:phong15SG1_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 33.8
+  }
 }

@@ -109,6 +109,7 @@
       "Cube.011_0",
       "Cylinder.014_0"
     ],
-    "render_s": 34.8
+    "hidden_helpers": [],
+    "render_s": 28.6
   }
 }

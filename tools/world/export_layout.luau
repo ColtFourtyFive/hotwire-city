@@ -164,7 +164,10 @@ for _, e in W.Edges do
 end
 
 for _, i in W.Intersections do
-	table.insert(data.intersections, { id = i.id, pos = v3(i.pos), control = i.control, radius = r1(i.radius), degree = #i.approaches })
+	table.insert(
+		data.intersections,
+		{ id = i.id, pos = v3(i.pos), control = i.control, radius = r1(i.radius), degree = #i.approaches }
+	)
 end
 
 for _, p in W.Parcels do
@@ -232,7 +235,10 @@ for _, r in W.Routes do
 	for _, p in r.stops do
 		table.insert(stops, v3(p))
 	end
-	table.insert(data.routes, { id = r.id, name = r.name, kind = r.kind, length = r1(r.length), laps = r.laps, path = pts, stops = stops })
+	table.insert(
+		data.routes,
+		{ id = r.id, name = r.name, kind = r.kind, length = r1(r.length), laps = r.laps, path = pts, stops = stops }
+	)
 end
 
 for _, r in W.Rails do
@@ -254,7 +260,10 @@ for _, s in W.Spawns.police do
 end
 for i, s in W.Spawns.parking do
 	if i % 3 == 0 then
-		table.insert(data.parkingSample, { pos = v3(s.cframe.Position), look = { r1(s.cframe.LookVector.X * 100) / 100, r1(s.cframe.LookVector.Z * 100) / 100 } })
+		table.insert(data.parkingSample, {
+			pos = v3(s.cframe.Position),
+			look = { r1(s.cframe.LookVector.X * 100) / 100, r1(s.cframe.LookVector.Z * 100) / 100 },
+		})
 	end
 end
 
@@ -263,7 +272,15 @@ if dir and not fs.isDir(dir) then
 	fs.writeDir(dir)
 end
 fs.writeFile(out, serde.encode("json", data, false))
-print(("wrote %s  (build %.2fs, %d edges, %d parcels, %d pois)"):format(out, buildTime, #data.edges, #data.parcels, #data.pois))
+print(
+	("wrote %s  (build %.2fs, %d edges, %d parcels, %d pois)"):format(
+		out,
+		buildTime,
+		#data.edges,
+		#data.parcels,
+		#data.pois
+	)
+)
 if #W.RouteErrors > 0 then
 	for _, e in W.RouteErrors do
 		print("route error: " .. e)

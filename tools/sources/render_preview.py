@@ -12,6 +12,7 @@ wheel detection (by name and by geometry), logo/badge-like names, glass-like mat
 """
 import json
 import math
+import os
 import re
 import sys
 import time
@@ -20,6 +21,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 WHEEL_RE = re.compile(r"wheel|tire|tyre|\brims?\b|_rims?|rims?_|whl|roda|колес", re.I)
+HELPER_RE = re.compile(r"sphere|plane|ground|floor|backdrop|background|shadow|shd|sky|studio|dome|env", re.I)
 STEER_RE = re.compile(r"steer|spare", re.I)
 FRONT_RE = re.compile(r"front|head ?lights?|headlamp|grill|hood|bonnet|windshield|windscreen|(?:^|[_\W])f[lr](?:$|[_\W\d])", re.I)
 REAR_RE = re.compile(r"rear|tail ?lights?|brake ?lights?|trunk|\bboot|exhaust|reverse|(?:^|[_\W])r[lr](?:$|[_\W\d])", re.I)
@@ -84,8 +86,13 @@ def robust_bbox(objs, q=0.15):
     V = world_verts(objs)
     if len(V) < 50:
         return world_bbox(objs)
-    lo = np.percentile(V, q, axis=0)
-    hi = np.percentile(V, 100 - q, axis=0)
+    rlo = np.percentile(V, q, axis=0)
+    rhi = np.percentile(V, 100 - q, axis=0)
+    flo, fhi = V.min(axis=0), V.max(axis=0)
+    ext = np.maximum(rhi - rlo, 1e-9)
+    # keep the true extreme unless it sticks out far beyond the bulk (stray plane / helper / junk)
+    lo = np.where(rlo - flo > 0.25 * ext, rlo, flo)
+    hi = np.where(fhi - rhi > 0.25 * ext, rhi, fhi)
     return Vector(lo.tolist()), Vector(hi.tolist())
 
 
@@ -103,7 +110,21 @@ def main():
     if not meshes:
         raise SystemExit("no meshes")
 
-    # hide obviously non-model helpers (shadow planes baked as separate objects are kept – they show up)
+    # hide presentation helpers (backdrop spheres, ground planes) that are much bigger than the model itself
+    helpers = []
+    for o in list(meshes):
+        if not HELPER_RE.search(o.name):
+            continue
+        rest = [m for m in meshes if m is not o and m not in helpers]
+        if not rest:
+            continue
+        omn, omx = world_bbox([o]); rmn, rmx = world_bbox(rest)
+        if max(omx - omn) > 1.6 * max(rmx - rmn):
+            helpers.append(o)
+    for o in helpers:
+        o.hide_render = True
+        o.hide_set(True)
+        meshes.remove(o)
     # ---------------------------------------------------------------- root for re-orientation
     root = bpy.data.objects.new("PREVIEW_ROOT", None)
     scene.collection.objects.link(root)
@@ -237,6 +258,7 @@ def main():
         "glass_materials": glass[:12],
         "animations": len(bpy.data.actions),
         "object_names": names[:80],
+        "hidden_helpers": [o.name for o in helpers],
     })
 
     # ---------------------------------------------------------------- studio
@@ -336,6 +358,19 @@ def main():
         dist = radius / math.sin(fov_v / 2) * fill
         cam.location = center + dvec * dist
         cam.rotation_euler = (center - cam.location).to_track_quat("-Z", "Y").to_euler()
+        if a["kind"] != "vehicle":
+            # exact fit of the (robust) bbox corners for this view direction, then back off by `fill`
+            bpy.context.view_layer.update()
+            corners = [Vector((x, y, z)) for x in (mn.x, mx.x) for y in (mn.y, mx.y) for z in (mn.z, mx.z)]
+            flat = [c for v in corners for c in v]
+            loc, _ = cam.camera_fit_coords(bpy.context.evaluated_depsgraph_get(), flat)
+            d_fit = (Vector(loc) - center).dot(dvec)
+            cam.location = Vector(loc) + dvec * (max(d_fit, 1e-6) * (fill - 1.0))
+            dist = (cam.location - center).length
+            if os.environ.get("HC_DEBUG_FIT"):
+                from bpy_extras.object_utils import world_to_camera_view
+                bpy.context.view_layer.update()
+                print("FITDBG", [tuple(round(c, 2) for c in world_to_camera_view(scene, cam, v)[:2]) for v in corners])
         cam_d.clip_start = dist * 0.01
         cam_d.clip_end = dist * 20
 
@@ -344,7 +379,7 @@ def main():
     if a["kind"] == "vehicle":
         views = [("main", 35, 14, (W, Hh), 0.80), ("inset", 180 + 35, 14, (W // 2, Hh // 2), 0.80)]
     else:
-        views = [("main", 18, 12, (W, Hh), 0.62), ("inset", 180 + 18, 12, (W // 2, Hh // 2), 0.62)]
+        views = [("main", 18, 12, (W, Hh), 1.25), ("inset", 180 + 18, 12, (W // 2, Hh // 2), 1.15)]
     paths = []
     for tag, az, el, (rw, rh), fill in views:
         scene.render.resolution_x, scene.render.resolution_y = rw, rh

@@ -62,14 +62,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      494.7891,
-      29.2482,
-      91.7064
+      496.0802,
+      30.364,
+      91.8606
     ],
     "dims_m": [
-      494.789,
-      29.248,
-      91.706
+      496.08,
+      30.364,
+      91.861
     ],
     "front_evidence": "upright_band",
     "flipped": true,
@@ -125,6 +125,7 @@
       "Cylinder.000_Material.038_0",
       "Icosphere"
     ],
-    "render_s": 46.7
+    "hidden_helpers": [],
+    "render_s": 16.7
   }
 }

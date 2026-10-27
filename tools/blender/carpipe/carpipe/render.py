@@ -161,7 +161,7 @@ def _tex_mat(name, key, scale, rough_mul=1.0, tint=(1, 1, 1), wet=0.0):
     nt.links.new(nm.outputs["Normal"], b.inputs["Normal"])
     if wet > 0:
         b.inputs["Coat Weight"].default_value = wet
-        b.inputs["Coat Roughness"].default_value = 0.03
+        b.inputs["Coat Roughness"].default_value = 0.12
     return m
 
 
@@ -226,10 +226,11 @@ def studio(L=17.0):
         lt.visible_glossy = True
 
 
-def street(L=17.0, night=False):
-    """Golden-hour (or wet night) street: 4-lane asphalt, markings, curb + sidewalk, lamp posts."""
+def street(L=17.0, night=False, keep_clear=None):
+    """Golden-hour (or wet night) street: 4-lane asphalt, markings, curb + sidewalk, lamp posts.
+    keep_clear: (x, y) camera position; lamp posts between it and the origin are skipped."""
     if night:
-        world_hdri(os.path.join(CACHE, "hdri", "street_night.hdr"), strength=0.6, rot_deg=110, bg_strength=0.5)
+        world_hdri(os.path.join(CACHE, "hdri", "street_night.hdr"), strength=0.35, rot_deg=200, bg_strength=0.45)
     else:
         path = os.path.join(CACHE, "hdri", "street_sunset.hdr")
         az, el = hdri_sun(path)
@@ -246,8 +247,8 @@ def street(L=17.0, night=False):
         sun.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
     lane = L * 0.42  # lane width ~ 3.6 m at car-length 4.8 m
     road_w = lane * 4
-    asphalt = _tex_mat("asphalt", "asphalt", 0.12 * 17 / L, rough_mul=0.55 if night else 1.0,
-                       tint=(0.85, 0.85, 0.85), wet=0.85 if night else 0.0)
+    asphalt = _tex_mat("asphalt", "asphalt", 0.12 * 17 / L, rough_mul=0.8 if night else 1.0,
+                       tint=(0.6, 0.6, 0.62) if night else (0.85, 0.85, 0.85), wet=0.35 if night else 0.0)
     _plane("Road", road_w, L * 30, loc=(0, 0, 0), mat=asphalt)
     paint = _mat("marking", (0.85, 0.85, 0.8), rough=0.6)
     yellow = _mat("yellow", (0.85, 0.65, 0.1), rough=0.6)
@@ -267,9 +268,15 @@ def street(L=17.0, night=False):
     # lamp posts (and their lights at night)
     pole = _mat("pole", (0.18, 0.19, 0.2), rough=0.4, metal=0.8)
     for s in (-1, 1):
-        for k in (-2, -1, 0, 1, 2):
+        for k in (-3, -2, -1, 0, 1, 2, 3):
             x = s * (road_w / 2 + 0.9 * L / 17)
             y = k * L * 1.6 + (L * 0.8 if s > 0 else 0)
+            if keep_clear is not None:
+                cx, cy = keep_clear
+                # distance from the pole to the segment camera -> origin
+                t = max(0.0, min(1.0, (x * cx + y * cy) / max(cx * cx + cy * cy, 1e-6)))
+                if math.hypot(x - t * cx, y - t * cy) < L * 0.45 and t > 0.05:
+                    continue
             _box("pole", (0.25, 0.25, 9.5 * L / 17), (x, y, 4.75 * L / 17), pole)
             _box("arm", (2.6 * L / 17, 0.2, 0.2), (x - s * 1.2 * L / 17, y, 9.4 * L / 17), pole)
             if night:
@@ -278,6 +285,14 @@ def street(L=17.0, night=False):
                 lt.data.energy = 9000 * (L / 17) ** 2
                 lt.data.color = (1.0, 0.62, 0.3)
                 lt.data.shadow_soft_size = 0.4
+
+
+def camera_pos(target, L, az_deg=35.0, el_deg=10.0, lens=50, dist_mul=1.0):
+    a = math.radians(az_deg)
+    e = math.radians(el_deg)
+    fov = 2 * math.atan(18.0 / lens)
+    d = (L * 0.62) / math.tan(fov / 2) * dist_mul
+    return Vector(target) + Vector((math.sin(a) * math.cos(e), math.cos(a) * math.cos(e), math.sin(e))) * d
 
 
 def camera(target, L, az_deg=35.0, el_deg=10.0, lens=50, dist_mul=1.0, shift_y=0.0):
@@ -298,6 +313,17 @@ def camera(target, L, az_deg=35.0, el_deg=10.0, lens=50, dist_mul=1.0, shift_y=0
     return ob
 
 
+def camera_lookat(pos, target, lens=35):
+    cam = bpy.data.cameras.new("Cam")
+    cam.lens = lens
+    ob = bpy.data.objects.new("Cam", cam)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.location = pos
+    ob.rotation_euler = (Vector(target) - Vector(pos)).to_track_quat("-Z", "Y").to_euler()
+    bpy.context.scene.camera = ob
+    return ob
+
+
 def render_to(path):
     bpy.context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
@@ -306,6 +332,32 @@ def render_to(path):
 
 
 # ------------------------------------------------------------------------------------------ car loading
+def _tintmask_nodes(m, b, tint_png, paint):
+    """Emulate Roblox SurfaceAppearance AlphaMode=TintMask: colour = lerp(ColorMap, ColorMap * Color, ColorMap.a)
+    using carpipe's <name>_Body_tintmask.png (paint pixels are neutral shading with alpha = 1)."""
+    nt = m.node_tree
+    src = b.inputs["Base Color"].links[0].from_socket if b.inputs["Base Color"].is_linked else None
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = bpy.data.images.load(tint_png, check_existing=True)
+    uv = nt.nodes.new("ShaderNodeUVMap")
+    nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
+    mul = nt.nodes.new("ShaderNodeMix")
+    mul.data_type = "RGBA"
+    mul.blend_type = "MULTIPLY"
+    mul.inputs["Factor"].default_value = 1.0
+    nt.links.new(tex.outputs["Color"], mul.inputs[6])
+    mul.inputs[7].default_value = tuple(srgb_to_lin(paint)) + (1,)
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    nt.links.new(tex.outputs["Alpha"], mix.inputs["Factor"])
+    if src is not None:
+        nt.links.new(src, mix.inputs[6])
+    else:
+        nt.links.new(tex.outputs["Color"], mix.inputs[6])
+    nt.links.new(mul.outputs[2], mix.inputs[7])
+    nt.links.new(mix.outputs[2], b.inputs["Base Color"])
+
+
 def load_glb(path, offset=(0, 0, 0), rot_z=0.0, paint=None, lights_on=False):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
@@ -332,10 +384,15 @@ def load_glb(path, offset=(0, 0, 0), rot_z=0.0, paint=None, lights_on=False):
                 m = m.copy()
                 s.material = m
                 b = m.node_tree.nodes.get("Principled BSDF")
+                tint_png = os.path.join(os.path.dirname(path), "textures",
+                                        os.path.splitext(os.path.basename(path))[0] + "_Body_tintmask.png")
                 if not b.inputs["Base Color"].is_linked:
                     b.inputs["Base Color"].default_value = tuple(srgb_to_lin(paint)) + (1,)
-            if base == "Body" or base == "Body2":
-                # stand-in for Roblox's glossy paint look
+                elif os.path.exists(tint_png):
+                    _tintmask_nodes(m, b, tint_png, paint)
+            if (base == "Body" or base == "Body2") and not b.inputs["Roughness"].is_linked:
+                # strip route (untextured paint): stand-in for Roblox's glossy paint look.  Tint-mask bodies keep
+                # their baked roughness: old game textures have highlights painted in and look wrong under coat.
                 b.inputs["Metallic"].default_value = 0.0
                 b.inputs["Roughness"].default_value = 0.32
                 try:

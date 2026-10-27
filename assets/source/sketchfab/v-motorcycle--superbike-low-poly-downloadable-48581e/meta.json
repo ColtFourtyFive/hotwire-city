@@ -1,0 +1,111 @@
+{
+  "source": "sketchfab",
+  "uid": "48581e4c3ca14d25bca7cdff42db9ef3",
+  "slug": "v-motorcycle--superbike-low-poly-downloadable-48581e",
+  "name": "Superbike Low Poly (Downloadable)",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "rhcreations",
+    "displayName": "rhcreations",
+    "profileUrl": "https://sketchfab.com/rhcreations"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/superbike-low-poly-downloadable-48581e4c3ca14d25bca7cdff42db9ef3",
+  "faceCount": 10473,
+  "vertexCount": 5379,
+  "materialCount": 16,
+  "textureCount": 9,
+  "animationCount": 0,
+  "likeCount": 11,
+  "tags": [
+    "bike",
+    "motorbike",
+    "motorcycle",
+    "superbike",
+    "vehicle"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "A low poly version of the Superbike made using Blender\n\nThe texture sizes are from 512X 512 to 2048 X 2048\n\nI have a blog at: https://rhcreations.tumblr.com/",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--superbike-low-poly-downloadable-48581e/model.glb",
+  "fileBytes": 5898648,
+  "sha256": "0c721c20cb5c77ef370cb4d31ef86715edd5f363832a8e04da5dce20564222cf",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:02:39+00:00",
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      28.1975,
+      103.7442,
+      53.7219
+    ],
+    "dims_m": [
+      28.198,
+      103.744,
+      53.722
+    ],
+    "front_evidence": "roof_offset=+0.10",
+    "flipped": true,
+    "mesh_objects": 16,
+    "triangles": 10473,
+    "materials": 16,
+    "material_names": [
+      "Disc_Brake_Material",
+      "Disc_Material",
+      "Exhaust_Pipe_Material",
+      "Fairing_Material",
+      "Glass_Material",
+      "Handlebar_Material",
+      "Lights_Material",
+      "Material",
+      "Material.002",
+      "Material.003",
+      "Material.004",
+      "Metal_Material",
+      "Rim_Material",
+      "Seat_Material",
+      "Tire_Material",
+      "Tire_Material.001"
+    ],
+    "textures": 15,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [
+      "Glass_Material"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Superbike_0",
+      "Superbike_1",
+      "Superbike_2",
+      "Superbike_3",
+      "Superbike_4",
+      "Superbike_5",
+      "Superbike_6",
+      "Superbike_7",
+      "Superbike_8",
+      "Superbike_9",
+      "Superbike_10",
+      "Superbike_11",
+      "Superbike_12",
+      "Superbike_13",
+      "Superbike_14",
+      "Superbike_15"
+    ],
+    "hidden_helpers": [],
+    "render_s": 18.9
+  }
+}

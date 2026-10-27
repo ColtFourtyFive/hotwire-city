@@ -1,0 +1,128 @@
+{
+  "source": "sketchfab",
+  "uid": "6c576c901a094b0d83e490a10c7b8021",
+  "slug": "v-motorcycle--mid-poly-street-motorcycle-6c576c",
+  "name": "Mid-poly street motorcycle",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "tonycheuk",
+    "displayName": "Tony Cheuk",
+    "profileUrl": "https://sketchfab.com/tonycheuk"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mid-poly-street-motorcycle-6c576c901a094b0d83e490a10c7b8021",
+  "faceCount": 15120,
+  "vertexCount": 7944,
+  "materialCount": 12,
+  "textureCount": 1,
+  "animationCount": 0,
+  "likeCount": 6,
+  "tags": [
+    "bike",
+    "motorcycle",
+    "motorcycles",
+    "vehicle",
+    "model",
+    "free",
+    "street"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Street bike / motorcycle based on Honda VFR.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--mid-poly-street-motorcycle-6c576c/model.glb",
+  "fileBytes": 676028,
+  "sha256": "4c88c598e79ae923580c7bd51e0354fcdfb973ca5dd027ffc6d08cf476813489",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:02:54+00:00",
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      0.8496,
+      1.7725,
+      1.0995
+    ],
+    "dims_m": [
+      0.85,
+      1.773,
+      1.1
+    ],
+    "front_evidence": "names(front=0,rear=1)",
+    "flipped": false,
+    "mesh_objects": 30,
+    "triangles": 15120,
+    "materials": 12,
+    "material_names": [
+      "black",
+      "chrome",
+      "glass",
+      "glossy_rubber",
+      "iron",
+      "light",
+      "mirror",
+      "motor",
+      "motorcycle_paint",
+      "plastic",
+      "rearLight",
+      "rubber"
+    ],
+    "textures": 1,
+    "texture_max_px": 256,
+    "wheel_named": [],
+    "wheel_geom": [
+      "Object_4",
+      "Object_5",
+      "Object_56",
+      "Object_57"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [
+      "glass"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Object_4",
+      "Object_5",
+      "Object_7",
+      "Object_8",
+      "Object_10",
+      "Object_12",
+      "Object_14",
+      "Object_16",
+      "Object_18",
+      "Object_20",
+      "Object_22",
+      "Object_24",
+      "Object_26",
+      "Object_28",
+      "Object_30",
+      "Object_32",
+      "Object_33",
+      "Object_35",
+      "Object_36",
+      "Object_38",
+      "Object_40",
+      "Object_42",
+      "Object_44",
+      "Object_46",
+      "Object_48",
+      "Object_50",
+      "Object_52",
+      "Object_54",
+      "Object_56",
+      "Object_57"
+    ],
+    "hidden_helpers": [],
+    "render_s": 17.5
+  }
+}

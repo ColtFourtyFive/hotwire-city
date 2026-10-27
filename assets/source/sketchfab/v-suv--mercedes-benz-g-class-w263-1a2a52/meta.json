@@ -45,5 +45,80 @@
   "sha256": "5d7650132ccb47436d2694a5b84a375ef414cd89ab3e26ac2a6f9f487e0b27a4",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:37+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      1.4132,
+      3.1631,
+      1.324
+    ],
+    "dims_m": [
+      1.413,
+      3.163,
+      1.324
+    ],
+    "front_evidence": "roof_offset=+0.15",
+    "flipped": false,
+    "mesh_objects": 22,
+    "triangles": 12516,
+    "materials": 13,
+    "material_names": [
+      "Material.001",
+      "Material.002",
+      "Material.003",
+      "Material.004",
+      "Material.005",
+      "Material.006",
+      "Material.007",
+      "Material.008",
+      "Material.009",
+      "Material.012",
+      "Material.013",
+      "Material.014",
+      "Material.015"
+    ],
+    "textures": 1,
+    "texture_max_px": 128,
+    "wheel_named": [],
+    "wheel_geom": [
+      "Object_15",
+      "Object_16",
+      "Object_19",
+      "Object_20",
+      "Object_23",
+      "Object_24",
+      "Object_27",
+      "Object_28"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Object_4",
+      "Object_5",
+      "Object_6",
+      "Object_7",
+      "Object_8",
+      "Object_9",
+      "Object_10",
+      "Object_11",
+      "Object_12",
+      "Object_13",
+      "Object_15",
+      "Object_16",
+      "Object_17",
+      "Object_19",
+      "Object_20",
+      "Object_21",
+      "Object_23",
+      "Object_24",
+      "Object_25",
+      "Object_27",
+      "Object_28",
+      "Object_29"
+    ],
+    "hidden_helpers": [],
+    "render_s": 32.1
+  }
 }

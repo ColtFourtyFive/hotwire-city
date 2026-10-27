@@ -53,14 +53,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      1.2301,
-      13.3806,
-      3.77
+      1.2835,
+      13.3827,
+      3.8364
     ],
     "dims_m": [
-      13.381,
-      1.23,
-      3.77
+      13.383,
+      1.284,
+      3.836
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -86,6 +86,7 @@
       "mag_release_AK_mat_0",
       "trigger_AK_mat_0"
     ],
-    "render_s": 30.0
+    "hidden_helpers": [],
+    "render_s": 30.2
   }
 }

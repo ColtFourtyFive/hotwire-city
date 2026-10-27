@@ -385,70 +385,8 @@ return function(t)
 		model:Destroy()
 	end)
 
-	-- LightingService -------------------------------------------------------------------------------------------------
+	-- LightingService (v2 look + cheap-write tests live in tests/spec/look.spec.luau and lighting.spec.luau) ---------
 	local L = H.require("src/server/Systems/LightingService")
-
-	t.test("lighting look: golden hour, moody neon night, keys sorted + wrapping", function()
-		for i = 2, #L.KEYS do
-			t.ok(L.KEYS[i - 1].hour < L.KEYS[i].hour, "keys sorted")
-		end
-		local first, last = L.KEYS[1], L.KEYS[#L.KEYS]
-		t.eq(first.hour, 0)
-		t.eq(last.hour, 24)
-		for k, v in first do
-			if k ~= "hour" then
-				t.ok(last[k] == v, "midnight wraps: " .. k)
-			end
-		end
-		local noon, golden, night = L.lookAt(12), L.lookAt(16.4), L.lookAt(0)
-		t.ok(L.START_HOUR >= 15.5 and L.START_HOUR <= 17.2, "servers start at golden hour")
-		t.ok(not L.isNightHour(L.START_HOUR), "golden hour is day")
-		local warm = function(c)
-			return c.R - c.B
-		end
-		t.ok(warm(golden.tint) > warm(noon.tint) + 0.1, "golden tint is warmer than noon")
-		t.ok(golden.rays > noon.rays, "golden sun rays")
-		t.ok(night.density > noon.density, "thicker night atmosphere")
-		t.ok(night.haze > noon.haze, "deeper night haze")
-		t.ok(night.bloom > noon.bloom and night.bloomThreshold < noon.bloomThreshold, "neon blooms at night")
-		t.ok(night.saturation > noon.saturation, "saturated night")
-		t.ok(night.brightness > 1, "night stays readable")
-		-- smooth: no big jump between consecutive 2 s env steps anywhere in the cycle
-		local step = L.ENV_INTERVAL
-		local prev = L.lookAt(L.hourAt(0))
-		for s = step, L.CYCLE_SECONDS, step do
-			local cur = L.lookAt(L.hourAt(s))
-			t.ok(math.abs(cur.brightness - prev.brightness) < 0.2, "brightness step at " .. s)
-			t.ok(math.abs(cur.haze - prev.haze) < 0.25, "haze step at " .. s)
-			prev = cur
-		end
-	end)
-
-	t.test("lighting writes: unchanged values are skipped", function()
-		t.eq(L._changed(nil, 1, 0.1), true, "never written")
-		t.eq(L._changed(1, 1.05, 0.1), false)
-		t.eq(L._changed(1, 1.2, 0.1), true)
-		local c = H.roblox.Color3.fromRGB
-		t.eq(L._changed(c(10, 10, 10), c(11, 10, 10), 1.5 / 255), false)
-		t.eq(L._changed(c(10, 10, 10), c(13, 10, 10), 1.5 / 255), true)
-		t.eq(L._changed(1, c(1, 1, 1), 0.1), true, "type change")
-
-		local Lighting = H.game:GetService("Lighting")
-		L.init()
-		L.setClockTime(12)
-		local before = Lighting.Brightness
-		Lighting.Brightness = 0.123 -- simulated foreign write: the cache must not rewrite an unchanged look
-		L.setClockTime(12)
-		t.near(Lighting.Brightness, 0.123, 1e-6, "skipped")
-		L.setClockTime(0)
-		t.ok(math.abs(Lighting.Brightness - L.lookAt(0).brightness) < 0.05, "a real change is written")
-		local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
-		t.ok(math.abs(atmo.Haze - L.lookAt(0).haze) < 0.05, "night haze applied")
-		local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
-		t.ok(math.abs(bloom.Threshold - L.lookAt(0).bloomThreshold) < 0.02, "night bloom threshold applied")
-		L.setClockTime(12)
-		t.ok(math.abs(Lighting.Brightness - before) < 0.05, "day restored")
-	end)
 
 	t.test("one Clouds under Terrain: LightingService adopts MapBuilder's", function()
 		local terrain = H.workspace:FindFirstChildOfClass("Terrain")

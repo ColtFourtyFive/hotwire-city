@@ -7,12 +7,15 @@ Reads assets/minimap/map_full.png + blips.png, build/minimap/geometry.json (POIs
 src/shared/Config/Minimap.luau (radar sizes, zoom, GPS widths). Routes come from the real RoadGraph via
 `lune run tools/minimap/sample_route.luau` (run automatically when --routes is not given).
 
-Outputs (desktop at 1280x720 design scale 1, phone 844x390 at the HUD's 0.55 floor):
-    radar_closeups.png          the radar in four states (on foot / driving + GPS / wanted chase / phone size)
-    hud_desktop_minimap.png     desktop HUD: radar bottom-left, menu column wrapped above it, area name
-    hud_phone_minimap.png       phone HUD: radar top-left under the topbar, buttons moved right, thumbstick zone
-    map_fullscreen_desktop.png  fullscreen map with legend, labels, blips, GPS route + chip
-    map_fullscreen_phone.png    the same on a phone
+Outputs (desktop at 1280x720 design scale 1, phones at the HUD's 0.55 floor with a 58 px topbar):
+    radar_closeups.png               the radar in four states (on foot / driving + GPS / wanted chase / hot drop)
+    hud_desktop_minimap.png          desktop HUD: radar bottom-left, menu column wrapped above it, area name
+    hud_phone_minimap.png            844x390 phone HUD: radar top-left, buttons right of it, event feed, thumbstick zone
+    hud_phone_16x9_minimap.png       667x375 phone: the compact radar, the 52 px menu strip in two rows
+    hud_phone_driving_minimap.png    844x390 while driving (menu hidden, feed below the radar)
+    map_fullscreen_desktop.png       fullscreen map with legend, labels, blips, GPS route + chip
+    map_fullscreen_phone.png         844x390 phone, legend open (columns above its button)
+    map_fullscreen_phone_16x9.png    640x360 phone, legend open
 """
 import argparse, json, math, os, re, subprocess, sys
 
@@ -114,10 +117,9 @@ POIS = [
 ]
 RANGE = {"star": 500, "flag": 600, "tree": 600, "wheel": 600}
 GARAGES = [tuple(g["door"]) for g in GEO["garages"]]
-DISTRICTS = [("DOWNTOWN", 0, -240, 1), ("MIDTOWN", -400, -400, 1), ("MARKET ROW", 240, -560, 1),
-             ("PALM SUBURBS", -720, -80, 1), ("SUNSET BEACH", 720, 80, 1), ("THE DOCKS", 0, -720, 1),
-             ("SOUTH SHORE", 0, 720, 1), ("STUNT PARK", 720, 640, 2), ("CITY PARK", -720, 640, 2),
-             ("OCEAN PIER", 720, -910, 2), ("CHOP YARD", -720, -800, 2)]
+DISTRICTS = [(n, float(x), float(z), int(t)) for n, x, z, t in re.findall(
+    r'\{ name = "([A-Z ]+)", x = (-?[\d.]+), z = (-?[\d.]+), tier = (\d) \}',
+    open(os.path.join(ROOT, "src", "shared", "Config", "Minimap.luau")).read())]
 
 
 def garage_door(i):
@@ -128,9 +130,23 @@ def garage_door(i):
 # ---------------------------------------------------------------------------------------------------------------------
 # Radar
 # ---------------------------------------------------------------------------------------------------------------------
+def touch_boost(scale):
+    """MinimapController.touchBoost on a touch screen."""
+    return max(1.0, min(C["TOUCH_BOOST_MAX"], 0.72 / scale))
+
+
+def north_fade(rot):
+    """MinimapController.northFade."""
+    diff = abs((rot - C["MAP_BUTTON_ANGLE"] + 180) % 360 - 180)
+    t = 1 - max(0.0, min(1.0, diff / C["NORTH_FADE_DEG"]))
+    return t * t * (3 - 2 * t)
+
+
 def render_radar(state, d_real, ui):
-    """Radar image (RGBA, d_real + margin) mirroring MinimapController's layer stack."""
+    """Radar image (RGBA, d_real + margin) mirroring MinimapController's layer stack. state["boost"]: touch text /
+    blip boost (MinimapController.touchBoost)."""
     k = SS
+    bo = state.get("boost", 1.0)
     D = int(round(d_real * k))
     pad = int(D * 0.2)
     W = D + pad * 2
@@ -212,9 +228,9 @@ def render_radar(state, d_real, ui):
             ld.line([pts[-1], t], fill=col + (150,), width=int(w))
 
     # blips
-    blip = C["BLIP_SIZE"] * ui * k
-    small = C["BLIP_SIZE_SMALL"] * ui * k
-    edge = R - C["EDGE_INSET"] * ui * k
+    blip = round(C["BLIP_SIZE"] * bo) * ui * k
+    small = round(C["BLIP_SIZE_SMALL"] * bo) * ui * k
+    edge = R - max(C["EDGE_INSET"], blip / (ui * k) / 2 + 2) * ui * k
 
     def put(wx, wz, name, color, sz, sticky=False, rng=None):
         dx, dz = wx - px, wz - pz
@@ -240,10 +256,14 @@ def render_radar(state, d_real, ui):
     for (wx, wz), name, color in state.get("waypoints", []):
         put(wx, wz, name, color, blip + 2 * ui * k, True)
 
-    # clip to circle + vignette
+    # clip to circle + vignette (the blips sit above it in the game: Blips ZIndex 7 > Vignette 6)
     vx, vy, vw, vh = C["cells"]["_vignette"]
     vig = ATLAS.crop((vx, vy, vx + vw, vy + vh)).resize((size, size), Image.LANCZOS)
-    lay.alpha_composite(vig)
+    under = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    under.paste(big.convert("RGBA"), (0, 0))
+    under.alpha_composite(vig)
+    under.alpha_composite(lay)
+    lay = under
     mask = Image.new("L", (size, size), 0)
     ImageDraw.Draw(mask).ellipse([0, 0, size - 1, size - 1], fill=255)
     img.paste(lay, (int(cx - size / 2), int(cy - size / 2)), mask)
@@ -251,33 +271,41 @@ def render_radar(state, d_real, ui):
     d.ellipse([cx - R, cy - R, cx + R, cy + R], outline=(255, 255, 255, 46), width=int(1.5 * k))
 
     # player arrow
-    ar = C["PLAYER_ARROW"] * ui * k
+    ar = round(C["PLAYER_ARROW"] * min(bo, 1.2)) * ui * k
     paste_center(img, icon("_arrow", ar), cx, cy, heading(*state["face"]) + rot)
-    # north
+    # north (fades while it passes under the map button)
     nx, ny = rot2(0, -(D / 2 - 3 * ui * k), rot)
-    nr = 11 * ui * k
-    d.ellipse([cx + nx - nr, cy + ny - nr, cx + nx + nr, cy + ny + nr], fill=THEME["Background"] + (255,),
-              outline=THEME["TextDim"] + (255,), width=int(1.5 * ui * k))
-    text_center(d, (cx + nx, cy + ny), "N", font(FONT_HEAVY, 13 * ui * k), (255, 255, 255), 0)
-    # M key cap (desktop) at 45 degrees
-    hx, hy = cx + D * 0.354, cy - D * 0.354
-    hs = 12 * ui * k
+    nr = round(22 * bo) / 2 * ui * k
+    na = int(255 * (1 - north_fade(rot)))
+    if na > 0:
+        nl = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        nd = ImageDraw.Draw(nl)
+        nd.ellipse([cx + nx - nr, cy + ny - nr, cx + nx + nr, cy + ny + nr], fill=THEME["Background"] + (255,),
+                   outline=THEME["TextDim"] + (255,), width=int(1.5 * ui * k))
+        text_center(nd, (cx + nx, cy + ny), "N", font(FONT_HEAVY, round(14 * bo) * ui * k), (255, 255, 255), 0)
+        nl.putalpha(nl.getchannel("A").point(lambda v: v * na // 255))
+        img.alpha_composite(nl)
+        d = ImageDraw.Draw(img)
+    # map button (M key cap / map glyph) on the rim at MAP_BUTTON_ANGLE
+    bx, by = rot2(0, -D / 2, C["MAP_BUTTON_ANGLE"])
+    hx, hy = cx + bx, cy + by
+    hs = round(24 * bo) / 2 * ui * k
     rounded(d, [hx - hs, hy - hs, hx + hs, hy + hs], 6 * ui * k, fill=THEME["PanelLight"] + (255,),
             outline=THEME["Stroke"] + (255,), width=int(2 * ui * k))
-    text_center(d, (hx, hy), state.get("key", "M"), font(FONT_HEAVY, 13 * ui * k), (255, 255, 255), 0)
+    text_center(d, (hx, hy), state.get("key", "M"), font(FONT_HEAVY, round(14 * bo) * ui * k), (255, 255, 255), 0)
     # distance pill
     if state.get("dist"):
-        tf = font(FONT_HEAVY, 15 * ui * k)
+        tf = font(FONT_HEAVY, round((C["DIST_TEXT_TOUCH"] if bo > 1 else C["DIST_TEXT"]) * bo) * 0.95 * ui * k)
         tw = d.textlength(state["dist"], font=tf)
-        pw = tw + 40 * ui * k
-        ph = 24 * ui * k
+        ph = math.ceil(24 * bo) * ui * k
+        pw = tw + (16 + 4 + round(18 * bo)) * ui * k
         py = cy + D / 2 - 2 * ui * k
         rounded(d, [cx - pw / 2, py - ph / 2, cx + pw / 2, py + ph / 2], ph / 2, fill=THEME["Background"] + (255,),
                 outline=THEME["Stroke"] + (255,), width=int(2 * ui * k))
-        paste_center(img, icon(state.get("dist_icon", "pin"), 18 * ui * k, state["route_color"]),
-                     cx - pw / 2 + 16 * ui * k, py)
-        d.text((cx - pw / 2 + 28 * ui * k, py), state["dist"], font=tf, fill=(255, 255, 255), anchor="lm",
-               stroke_width=int(1.5 * k), stroke_fill=THEME["Stroke"])
+        paste_center(img, icon(state.get("dist_icon", "pin"), round(18 * bo) * ui * k, state["route_color"]),
+                     cx - pw / 2 + (6 + round(18 * bo) / 2) * ui * k, py)
+        d.text((cx - pw / 2 + (10 + round(18 * bo)) * ui * k, py), state["dist"], font=tf, fill=(255, 255, 255),
+               anchor="lm", stroke_width=int(1.5 * k), stroke_fill=THEME["Stroke"])
     out = img.resize((W // k, W // k), Image.LANCZOS)
     return out, pad // k
 
@@ -384,7 +412,7 @@ def scene_desktop(routes, out):
     stars(img, W / 2, inset + 80, s, 3)
     # HUD menu column (HUDController.layout with the minimap reserve)
     D = C["DESKTOP_SIZE"]
-    reserve = D + C["MARGIN"] + C["PILL_ROOM"] + 4
+    reserve = D + C["MARGIN"] + C["PILL_ROOM"] + C["TOP_CLEARANCE"]
     top = 250
     top_row(img, 12, inset + top, 52, s)
     menu_top = top + 52 + 14
@@ -420,29 +448,70 @@ def scene_desktop(routes, out):
     img.convert("RGB").save(out)
 
 
-def scene_phone(routes, out):
-    W, H = 844, 390
-    s = 0.55
-    inset = 36
+def touch_metrics(cw, ch, s):
+    """MinimapController.touchMetrics."""
+    d = C["TOUCH_SIZE_COMPACT"] if cw < C["TOUCH_COMPACT_W"] and ch < C["TOUCH_COMPACT_H"] else C["TOUCH_SIZE"]
+    b = touch_boost(s)
+    pill = math.ceil(24 * b)
+    gap = math.ceil(pill / 2) + 2
+    area = math.ceil(C["AREA_TEXT_TOUCH"] * b) + 6
+    return {"d": d, "boost": b, "reserve": d + C["TOUCH_GAP"], "gap": gap, "area": area,
+            "bottom": C["TOUCH_TOP"] + d + gap + area}
+
+
+def touch_strip(count, cw, ch, reserve, top):
+    """HUDController.touchStripLayout."""
+    left = 12 + reserve
+    first = None
+    for top_cell in (62, 52):
+        menu_top = top + top_cell + 14
+        cols, rows, cell = touch_grid(count, cw / 2 - 168 - left, ch / 3 - menu_top, [76, 62, 52], 6)
+        bottom = menu_top + rows * (cell + 6) - 6
+        st = {"left": left, "top_cell": top_cell, "menu_top": menu_top, "cols": cols, "rows": rows, "cell": cell,
+              "bottom": bottom, "fits": bottom <= ch / 3}
+        if st["fits"]:
+            return st
+        first = first or st
+    return first
+
+
+def scene_phone(routes, out, W=844, H=390, inset=58, driving=False):
+    s = max(0.55, min(W / 1280, H / 720))
     img = backdrop(W, H)
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, W, inset], fill=(20, 22, 30, 230))
     for i in range(2):
         rounded(d, [12 + i * 32, 6, 38 + i * 32, 30], 8, fill=(60, 62, 76))
     canvas_w, canvas_h = W / s, (H - inset) / s
-    D = C["TOUCH_SIZE"]
-    left = 12 + D + 12
-    top_row(img, left * s, inset + 6 * s, 62, s)
-    menu_top = 6 + 62 + 14
-    cols, rows, cell = touch_grid(7, canvas_w / 2 - 168 - left, canvas_h / 3 - menu_top, [76, 62], 6)
-    menu_grid(img, left * s, inset + menu_top * s, cols, rows, cell, 6, s, MENU_LABELS)
+    m = touch_metrics(canvas_w, canvas_h, s)
+    D = m["d"]
+    st = touch_strip(7, canvas_w, canvas_h, m["reserve"], 6)
+    left = st["left"]
+    top_row(img, left * s, inset + 6 * s, st["top_cell"], s)
+    if not driving:
+        menu_grid(img, left * s, inset + st["menu_top"] * s, st["cols"], st["rows"], st["cell"], 6, s, MENU_LABELS)
     cash_pill(img, W / 2, inset + 8 * s, s)
-    # thumbstick zone (left 40%, bottom 2/3)
+    # event feed (NotificationController at its 0.72 touch floor): x = 12, below the radar block / menu strip
+    fy = max((st["bottom"] + 8) if not driving else st["menu_top"], m["bottom"] + 8)
+    fs = max(s, 0.72)
+    d = ImageDraw.Draw(img)
+    for i, line in enumerate(["Rival_Kid stole a Phantom GT!", "+$1,250  delivered", "HOT DROP in 0:45"]):
+        y = inset + fy * s + i * 34 * fs
+        lw = d.textlength(line, font=font(FONT_HEAVY, 20 * fs)) + 30 * fs
+        band = Image.new("RGBA", (int(lw), int(30 * fs)), THEME["Background"] + (0,))
+        for xx in range(band.width):
+            a = int(220 * max(0.0, 1 - xx / band.width) ** 0.6)
+            ImageDraw.Draw(band).line([(xx, 0), (xx, band.height)], fill=THEME["Background"] + (a,))
+        img.alpha_composite(band, (int(12 * s), int(y)))
+        d = ImageDraw.Draw(img)
+        d.text((12 * s + 14 * fs, y + 15 * fs), line, font=font(FONT_HEAVY, 20 * fs), fill=(255, 255, 255),
+               anchor="lm", stroke_width=1, stroke_fill=(10, 11, 22))
+    # thumbstick zone (left 40%, bottom 2/3 of the inset-relative screen)
     zone = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     zd = ImageDraw.Draw(zone)
     zx1, zy0 = W * 0.4, inset + (H - inset) / 3
     zd.rectangle([0, zy0, zx1, H], fill=(255, 255, 255, 26), outline=(255, 255, 255, 120), width=1)
-    zd.text((8, zy0 + 6), "dynamic thumbstick zone", font=font(FONT_BOLD, 11), fill=(255, 255, 255, 190))
+    zd.text((8, H - 18), "dynamic thumbstick zone", font=font(FONT_BOLD, 11), fill=(255, 255, 255, 190))
     img.alpha_composite(zone)
     d = ImageDraw.Draw(img)
     # driving buttons (right) placeholders
@@ -454,13 +523,20 @@ def scene_phone(routes, out):
         "pos": (route["from"][0], route["from"][1]), "cam": (-1, 0.05), "face": (-1, 0.1), "zoom": 165,
         "route": [tuple(p) for p in route["points"]], "route_color": (186, 94, 255),
         "waypoints": [((route["to"][0], route["to"][1]), "pin", (186, 94, 255))], "own_garage": 0,
-        "rival_garages": (3, 5), "dist": f"{route['length'] / 3:.0f}m", "dist_icon": "pin", "key": "🗺",
+        "rival_garages": (3, 5), "dist": f"{route['length'] / 3:.0f}m", "dist_icon": "pin", "key": "M",
+        "boost": m["boost"],
     }, D * s, s)
-    rx, ry = 12 * s, inset + 6 * s
+    rx, ry = 12 * s, inset + C["TOUCH_TOP"] * s
     img.alpha_composite(radar, (int(rx - pad), int(ry - pad)))
     d = ImageDraw.Draw(img)
-    d.text((rx + D * s / 2, ry + D * s + 14 * s), "SPAWN PLAZA", font=font(FONT_HEAVY, 15 * s * 1.1),
-           fill=(255, 255, 255), anchor="mt", stroke_width=1, stroke_fill=(10, 11, 22))
+    # area name: scaled to fit the radar width (TextScaled + UITextSizeConstraint)
+    size = round(C["AREA_TEXT_TOUCH"] * m["boost"])
+    f = font(FONT_HEAVY, size * s)
+    while size > 8 and d.textlength("SPAWN PLAZA", font=f) > (D + C["TOUCH_GAP"]) * s:
+        size -= 1
+        f = font(FONT_HEAVY, size * s)
+    d.text((rx + D * s / 2, ry + (D + m["gap"]) * s), "SPAWN PLAZA", font=f, fill=(255, 255, 255), anchor="mt",
+           stroke_width=1, stroke_fill=(10, 11, 22))
     img.convert("RGB").save(out)
 
 
@@ -501,26 +577,41 @@ def scene_map(routes, out, W, H, phone):
         ld.ellipse([p[0] - w * SS / 2, p[1] - w * SS / 2, p[0] + w * SS / 2, p[1] + w * SS / 2], fill=(186, 94, 255, 255))
     img.alpha_composite(lay.resize((W, H), Image.LANCZOS))
     d = ImageDraw.Draw(img)
-    # labels
-    lf = font(FONT_HEAVY, 20 * ui)
-    lf2 = font(FONT_HEAVY, 15 * ui)
-    for name, x, z, tier in DISTRICTS:
-        if tier != 1:
-            continue  # tier-2 names appear once zoomed in (zoom >= 1.6)
-        sx, sy = ws(x, z)
-        d.text((sx, sy), name, font=lf if tier == 1 else lf2, fill=(255, 255, 255), anchor="mm",
-               stroke_width=max(1, int(2 * ui)), stroke_fill=(10, 11, 22))
-    # blips
+    # blips (obstacles for the district names, like MapScreenController.placeLabel)
     bs = 30 * ui * 0.93
+    obs = []
     for (x, z), name, color, _ in POIS:
         sx, sy = ws(x, z)
         paste_center(img, icon(name, bs, color), sx, sy)
+        obs.append((sx, sy, bs / 2 + 2, bs / 2 + 2))
     for i, door in enumerate(GARAGES):
         sx, sy = ws(*door)
         if i == 4:
             paste_center(img, icon("garage", bs + 6, (70, 235, 110)), sx, sy)
+            obs.append((sx, sy, bs / 2 + 2, bs / 2 + 2))
         elif i in (1, 6):
             paste_center(img, icon("garage", bs, (150, 156, 190)), sx, sy)
+            obs.append((sx, sy, bs / 2 + 2, bs / 2 + 2))
+    for (x, z) in [(-300, -560), (520, 260)]:  # other players
+        sx, sy = ws(x, z)
+        paste_center(img, icon("dot", bs * 0.5, (0, 214, 255)), sx, sy)
+    sx, sy = ws(-380, 80)  # police chopper
+    paste_center(img, icon("heli", bs, (255, 80, 80)), sx, sy)
+    # labels
+    d = ImageDraw.Draw(img)
+    size1 = int(20 * ui)
+    for name, x, z, tier in DISTRICTS:
+        if tier != 1:
+            continue  # tier-2 names appear once zoomed in (zoom >= 1.6)
+        sx, sy = ws(x, z)
+        hw, hh = len(name) * size1 * 0.31, (size1 + 6) / 2
+        for kk in (0, -1, 1, -2, 2):
+            cy = sy + kk * (hh * 2 + 4)
+            if all(abs(ox - sx) >= hw + ow or abs(oy - cy) >= hh + oh for ox, oy, ow, oh in obs):
+                d.text((sx, cy), name, font=font(FONT_HEAVY, size1), fill=(255, 255, 255), anchor="mm",
+                       stroke_width=max(1, int(2 * ui)), stroke_fill=(10, 11, 22))
+                obs.append((sx, cy, hw + 2, hh + 2))
+                break
     for (x, z) in [(-470, 310), (-500, 150), (330, -90)]:
         sx, sy = ws(x, z)
         paste_center(img, icon("dot", bs * 0.55, (255, 60, 60)), sx, sy)
@@ -567,28 +658,47 @@ def scene_map(routes, out, W, H, phone):
             fill=THEME["Primary"], outline=(10, 11, 22), width=int(3 * cs))
     text_center(d, (W - 96 * cs - 105 * cs, H - 18 * cs - 25 * cs), "CLEAR WAYPOINT", font(FONT_HEAVY, 16 * cs),
                 (255, 255, 255))
-    # legend
+    # legend (MapScreenController.legendLayout): desktop one column bottom-left; phone two columns above its
+    # LEGEND / HIDE button (drawn open), capped below the header (the rows scroll when they still don't fit)
+    rows = [("_arrow", (255, 255, 255), "You"), ("garage", (70, 235, 110), "Your Garage"),
+            ("garage", (150, 156, 190), "Rival Garage")] + \
+           [(n, c, lab) for _, n, c, lab in POIS if lab] + \
+           [("flame", (255, 190, 40), "Hot Drop"), ("pin", (186, 94, 255), "Waypoint"),
+            ("dot", (255, 60, 60), "Police"), ("heli", (255, 80, 80), "Police Chopper"),
+            ("dot", (0, 214, 255), "Other Players")]
+    rowh, colw = C["LEGEND_ROW"], C["LEGEND_COLUMN"]
+    bottom = 18 + (48 + 8 if phone else 0)
+    canvas_h = (H - (58 if phone else 0)) / cs  # the chrome is inset-relative in the game
+    max_h = canvas_h - bottom - 84 - 8
+
+    def shape(c):
+        nr = math.ceil(len(rows) / c)
+        return 24 + 30 + nr * rowh + (nr - 1) * 2, 24 + c * colw + (c - 1) * 8
+
+    cols = 2 if phone else 1
+    full, width = shape(cols)
+    if phone and full > max_h and 18 + shape(3)[1] <= W / cs - 100:
+        cols = 3
+        full, width = shape(3)
+    height = max(min(full, max_h), 24 + 30 + rowh)
+    scrolls = height < full
+    width += 8 if scrolls else 0
+    top = H - bottom * cs - height * cs
+    rounded(d, [18 * cs, top, (18 + width) * cs, H - bottom * cs], 14 * cs, fill=THEME["Panel"] + (240,),
+            outline=(10, 11, 22), width=int(3 * cs))
+    d.text((30 * cs, top + 12 * cs), "LEGEND", font=font(FONT_HEAVY, 17 * cs), fill=(255, 255, 255))
+    for i, (name, col, lab) in enumerate(rows):
+        r_, c_ = i // cols, i % cols
+        y = top + (12 + 30 + r_ * (rowh + 2)) * cs
+        if y + rowh * cs > H - (bottom + 12) * cs + 1:
+            break  # scrolled out of view
+        x = (30 + c_ * (colw + 8)) * cs
+        paste_center(img, icon(name, 22 * cs, col), x + 12 * cs, y + 13 * cs)
+        d.text((x + 32 * cs, y + 13 * cs), lab, font=font(FONT_BOLD, 15 * cs), fill=(255, 255, 255), anchor="lm")
     if phone:
         rounded(d, [18 * cs, H - 18 * cs - 48 * cs, 148 * cs, H - 18 * cs], 14 * cs, fill=THEME["PanelLight"],
                 outline=(10, 11, 22), width=int(3 * cs))
-        text_center(d, (83 * cs, H - 42 * cs), "LEGEND", font(FONT_HEAVY, 17 * cs), (255, 255, 255))
-    else:
-        rows = [("_arrow", (255, 255, 255), "You"), ("garage", (70, 235, 110), "Your Garage"),
-                ("garage", (150, 156, 190), "Rival Garage")] + \
-               [(n, c, lab) for _, n, c, lab in POIS if lab] + \
-               [("flame", (255, 190, 40), "Hot Drop"), ("pin", (186, 94, 255), "Waypoint"),
-                ("dot", (255, 60, 60), "Police")]
-        lh = 26 * cs
-        lw = 210 * cs
-        top = H - 18 * cs - (len(rows) * (lh + 2) + 24 * cs + 30 * cs)
-        rounded(d, [18 * cs, top, 18 * cs + lw, H - 18 * cs], 14 * cs, fill=THEME["Panel"] + (240,),
-                outline=(10, 11, 22), width=int(3 * cs))
-        d.text((30 * cs, top + 12 * cs), "LEGEND", font=font(FONT_HEAVY, 17 * cs), fill=(255, 255, 255))
-        y = top + 40 * cs
-        for name, col, lab in rows:
-            paste_center(img, icon(name, 22 * cs, col), 42 * cs, y + 12 * cs)
-            d.text((62 * cs, y + 12 * cs), lab, font=font(FONT_BOLD, 15 * cs), fill=(255, 255, 255), anchor="lm")
-            y += lh + 2
+        text_center(d, (83 * cs, H - 42 * cs), "HIDE", font(FONT_HEAVY, 17 * cs), (255, 255, 255))
     img.convert("RGB").save(out)
 
 
@@ -647,8 +757,11 @@ def main():
     scene_closeups(routes, os.path.join(a.outdir, "radar_closeups.png"))
     scene_desktop(routes, os.path.join(a.outdir, "hud_desktop_minimap.png"))
     scene_phone(routes, os.path.join(a.outdir, "hud_phone_minimap.png"))
+    scene_phone(routes, os.path.join(a.outdir, "hud_phone_16x9_minimap.png"), 667, 375, 58)
+    scene_phone(routes, os.path.join(a.outdir, "hud_phone_driving_minimap.png"), 844, 390, 58, driving=True)
     scene_map(routes, os.path.join(a.outdir, "map_fullscreen_desktop.png"), 1280, 720, False)
     scene_map(routes, os.path.join(a.outdir, "map_fullscreen_phone.png"), 844, 390, True)
+    scene_map(routes, os.path.join(a.outdir, "map_fullscreen_phone_16x9.png"), 640, 360, True)
     print("wrote previews to " + a.outdir)
 
 

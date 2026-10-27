@@ -49,11 +49,11 @@
   "analysis": {
     "import_dims_m": [
       1.0015,
-      1.3054,
+      1.5,
       1.0124
     ],
     "dims_m": [
-      1.305,
+      1.5,
       1.001,
       1.012
     ],
@@ -99,6 +99,7 @@
       "Icosphere",
       "Icosphere.001"
     ],
-    "render_s": 32.1
+    "hidden_helpers": [],
+    "render_s": 36.6
   }
 }

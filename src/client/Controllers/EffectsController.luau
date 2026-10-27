@@ -533,9 +533,13 @@ local function hostAt(position: Vector3): Host
 	return h
 end
 
--- Pooled particle burst (VFXLibrary: quality-scaled, budgeted, culled beyond 250 studs). Never throws.
+-- Pooled particle burst (VFXLibrary: quality-scaled, budgeted). Forced past the library's own 250-stud cull: play()
+-- already culled the whole effect at CULL_DISTANCE, and a far wreck must not show its comic + flash without its
+-- fireball. Never throws.
 local function fx(name: string, at: Vector3, opts: VFXLibrary.BurstOpts?)
-	local ok, err = pcall(VFXLibrary.burst, name, at, opts)
+	local o: VFXLibrary.BurstOpts = opts or {}
+	o.force = true
+	local ok, err = pcall(VFXLibrary.burst, name, at, o)
 	if not ok then
 		warn("[EffectsController] vfx " .. name .. ": " .. tostring(err))
 	end
@@ -725,7 +729,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 local groundParams: RaycastParams? = nil
-local function groundBelow(pos: Vector3): number
+local function groundRay(pos: Vector3): number
 	local params = groundParams
 	if not params then
 		params = RaycastParams.new()
@@ -745,6 +749,11 @@ local function groundBelow(pos: Vector3): number
 	params.FilterDescendantsInstances = exclude
 	local hit = Workspace:Raycast(pos + Vector3.new(0, 4, 0), Vector3.new(0, -60, 0), params)
 	return if hit then hit.Position.Y else pos.Y - 3
+end
+
+local groundFn: (Vector3) -> number = groundRay -- injectable (the headless harness has no raycasts)
+local function groundBelow(pos: Vector3): number
+	return groundFn(pos)
 end
 
 local function randomFlat(): Vector3
@@ -1727,6 +1736,7 @@ type BoostRec = {
 	flame: VFXLibrary.Stream?,
 	core: VFXLibrary.Stream?,
 	jet: VFXLibrary.BeamRig?,
+	backfire: VFXLibrary.Attached?, -- pop on boost start, riding the exhaust (inherits the car's velocity)
 	light: PointLight,
 	on: boolean,
 	expiresAt: number,
@@ -1775,7 +1785,8 @@ local function releaseBoost(rec: BoostRec)
 end
 
 -- Exhaust attachment at the car's tail (+Z; fronts face -Z) with the same nitro look as our own (VehicleClient):
--- flipbook flame stream + hot core glow + (quality permitting) the shock-diamond jet beam.
+-- exhaust-locked flipbook flame stream + hot core glow + (quality permitting) the shock-diamond jet beam + the
+-- backfire emitter.
 local function buildBoost(model: Model, chassis: BasePart): BoostRec
 	local length = model:GetAttribute("Length")
 	local halfLength = math.max(chassis.Size.Z / 2, if typeof(length) == "number" then length / 2 - 0.3 else 0)
@@ -1803,6 +1814,7 @@ local function buildBoost(model: Model, chassis: BasePart): BoostRec
 		flame = VFXLibrary.stream("NitroFlame", exhaust),
 		core = VFXLibrary.stream("NitroCore", exhaust),
 		jet = jet,
+		backfire = VFXLibrary.attach("Backfire", exhaust),
 		light = light,
 		on = false,
 		expiresAt = 0,
@@ -1845,7 +1857,7 @@ local function setBoost(model: Model, on: boolean)
 		if not live.on then
 			live.on = true
 			setBoostFx(live, true)
-			fx("Backfire", live.exhaust.WorldPosition, { direction = live.exhaust.WorldCFrame.LookVector * -1 })
+			pcall(VFXLibrary.emit, live.backfire, nil, true) -- (already culled at CULL_DISTANCE above)
 			if now - live.whooshAt >= BOOST_WHOOSH_GAP then
 				live.whooshAt = now
 				playSound("Whoosh", live.exhaust.WorldPosition)
@@ -1898,6 +1910,31 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 -- Lifecycle
 -------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Test hooks (harness only)
+-------------------------------------------------------------------------------------------------------------------------
+
+function EffectsController._setGround(fn: ((Vector3) -> number)?)
+	groundFn = fn or groundRay
+end
+
+-- Siren pipeline without the 6 Hz loop: track / untrack a police model, run one update at a phase, read its record.
+EffectsController._sirens = {
+	track = function(inst: Instance)
+		trackPolice(inst)
+	end,
+	untrack = function(inst: Instance)
+		untrackPolice(inst)
+	end,
+	update = function(redPhase: boolean)
+		sirenPhase = redPhase
+		updateSirens()
+	end,
+	record = function(model: Model): any
+		return policeCars[model]
+	end,
+}
 
 function EffectsController.init() end
 

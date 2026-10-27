@@ -633,7 +633,7 @@ export type Stream = {
 local activeStreams: { [Stream]: boolean } = {}
 -- every live stream / trail rig (weak: callers own them), for tier changes
 local allStreams: { [Stream]: boolean } = setmetatable({}, { __mode = "k" }) :: any
-local allTrails: { [any]: VFX.TrailPreset } = setmetatable({}, { __mode = "k" }) :: any
+local allTrails: { [TrailRig]: VFX.TrailPreset } = setmetatable({}, { __mode = "k" }) :: any
 local appliedEpoch = 0
 local rebalanceAt = -math.huge
 
@@ -645,6 +645,11 @@ end
 -- Steady-state budget weight of a stream emitting `rate`/s: particles alive x the preset's cost.
 local function weightedLoad(preset: Preset, rate: number): number
 	return VFXLibrary.streamLoad(rate, preset.lifetime) * (preset.cost or 1)
+end
+
+-- A stream's rate before any budget throttling.
+local function wantedRate(s: Stream, tier: VFX.QualityTier): number
+	return (s.preset.rate or 0) * s.rateScale * math.max(s.intensity, 0) * tier.rate
 end
 
 -- Re-rate every active stream from the current tier and load (priority streams first), write the rates that moved,
@@ -662,9 +667,8 @@ function VFXLibrary.rebalance()
 			end
 		end
 		for rig, p in allTrails do
-			local trail = rig.trail :: Trail
-			if trail.Parent then
-				trail.Lifetime = p.lifetime * tier.trailLife
+			if rig.trail.Parent then
+				rig.trail.Lifetime = p.lifetime * tier.trailLife
 			end
 		end
 	end
@@ -675,7 +679,7 @@ function VFXLibrary.rebalance()
 			s.active = false
 			continue
 		end
-		local want = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, s.intensity, tier.rate, math.huge, 0)
+		local want = wantedRate(s, tier)
 		if s.priority then
 			priorityLoad += weightedLoad(s.preset, want)
 		else
@@ -685,8 +689,7 @@ function VFXLibrary.rebalance()
 	local pScale, oScale = VFXLibrary.streamShares(budget.cap, priorityLoad, otherLoad)
 	local total = 0
 	for s in activeStreams do
-		local want = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, s.intensity, tier.rate, math.huge, 0)
-		local rate = want * (if s.priority then pScale else oScale)
+		local rate = wantedRate(s, tier) * (if s.priority then pScale else oScale)
 		if (s.rate <= 0 and rate > 0) or math.abs(rate - s.rate) > math.max(0.5, s.rate * 0.08) then
 			s.rate = rate
 			s.emitter.Rate = rate
@@ -719,13 +722,15 @@ local function ensureTicker()
 	end
 end
 
+export type StreamOpts = {
+	scale: number?, -- Size multiplier (x the tier's sizeScale for tierSize presets)
+	color: Color3?, -- constant color instead of the preset's sequence
+	rateScale: number?, -- Rate multiplier (e.g. observers' cars a bit lighter)
+	priority: boolean?, -- the local player's own effects: served first when the budget is tight
+}
+
 -- A continuous emitter parented to `parent` (an Attachment or BasePart owned by the caller; destroyed with it).
--- priority: the local player's own effects (served first when the budget is tight).
-function VFXLibrary.stream(
-	name: string,
-	parent: Instance,
-	opts: { scale: number?, color: Color3?, rateScale: number?, priority: boolean? }?
-): Stream?
+function VFXLibrary.stream(name: string, parent: Instance, opts: StreamOpts?): Stream?
 	local preset = VFX.Presets[name]
 	if not preset or preset.kind ~= "stream" then
 		return nil

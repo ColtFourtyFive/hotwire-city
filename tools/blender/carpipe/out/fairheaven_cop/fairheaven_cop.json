@@ -1,0 +1,522 @@
+{
+  "name": "fairheaven_cop",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Fairheaven LT '80 Cop Cruiser - Low poly model",
+    "url": "https://sketchfab.com/3d-models/fairheaven-lt-80-cop-cruiser-low-poly-model-61766c1e6e1e4b2b803c174f33433a74",
+    "download": "sketchfab:61766c1e6e1e4b2b803c174f33433a74",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Fairheaven LT '80 Cop Cruiser - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "fairheaven_cop.glb",
+  "dimensions": {
+    "length": 17.254,
+    "width": 6.231,
+    "height": 5.345,
+    "wheelbase": 9.012,
+    "track_front": 4.96,
+    "track_rear": 4.957,
+    "bbox_min": [
+      -3.1183,
+      -0.0016,
+      -8.3869
+    ],
+    "bbox_max": [
+      3.1124,
+      5.3433,
+      8.8671
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.4799,
+        1.0323,
+        -4.5062
+      ],
+      "radius": 1.0307,
+      "width": 0.8073,
+      "part_center": [
+        -2.3396,
+        1.0323,
+        -4.5062
+      ],
+      "attachment_offset": [
+        -0.1403,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 746
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.4799,
+        1.0291,
+        -4.5062
+      ],
+      "radius": 1.0307,
+      "width": 0.8081,
+      "part_center": [
+        2.3353,
+        1.0291,
+        -4.5062
+      ],
+      "attachment_offset": [
+        0.1446,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 746
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.4787,
+        1.0291,
+        4.5062
+      ],
+      "radius": 1.0307,
+      "width": 0.7405,
+      "part_center": [
+        2.509,
+        1.0291,
+        4.5062
+      ],
+      "attachment_offset": [
+        -0.0303,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 711
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.4787,
+        1.0323,
+        4.5062
+      ],
+      "radius": 1.0307,
+      "width": 0.7405,
+      "part_center": [
+        -2.509,
+        1.0323,
+        4.5062
+      ],
+      "attachment_offset": [
+        0.0303,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 711
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.1838,
+        1.9242,
+        0.721
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.1838,
+        1.9242,
+        0.721
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -1.9903,
+          2.2258,
+          -7.4935
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.9833,
+          2.2232,
+          -7.4935
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.3064,
+          2.1308,
+          8.4223
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.2993,
+          2.1277,
+          8.4223
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -1.8692,
+        0.6414,
+        8.6945
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.7104,
+    0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "Fairheaven_LT80_Bodymat",
+      "color_srgb": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "textured": true,
+      "metallic": 0.5,
+      "roughness": 0.5,
+      "mask_coverage": 0.465
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 5598,
+      "bbox_min": [
+        -3.006,
+        0.7661,
+        -7.641
+      ],
+      "bbox_max": [
+        2.9988,
+        4.5866,
+        8.4983
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Body_rough.png",
+        "base": "textures/fairheaven_cop_Body_base.png",
+        "metal": "textures/fairheaven_cop_Body_metal.png",
+        "tintmask": "textures/fairheaven_cop_Body_tintmask.png",
+        "overlay": "textures/fairheaven_cop_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 264,
+      "bbox_min": [
+        -2.4941,
+        2.9549,
+        -2.59
+      ],
+      "bbox_max": [
+        2.4881,
+        5.0668,
+        5.287
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 130,
+      "bbox_min": [
+        -2.5693,
+        1.94,
+        -7.4935
+      ],
+      "bbox_max": [
+        2.5619,
+        2.4805,
+        -7.2336
+      ],
+      "textures": {
+        "base": "textures/fairheaven_cop_Lights_base.png",
+        "emit": "textures/fairheaven_cop_Lights_emit.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 126,
+      "bbox_min": [
+        -2.5912,
+        1.8738,
+        8.2346
+      ],
+      "bbox_max": [
+        2.5838,
+        2.5661,
+        8.4223
+      ],
+      "textures": {
+        "base": "textures/fairheaven_cop_Lights_base.png",
+        "emit": "textures/fairheaven_cop_Lights_emit.png"
+      }
+    },
+    "Trim": {
+      "tris": 2599,
+      "bbox_min": [
+        -3.107,
+        0.5505,
+        -8.3897
+      ],
+      "bbox_max": [
+        3.1011,
+        5.3433,
+        8.8709
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Trim_rough.png",
+        "base": "textures/fairheaven_cop_Trim_base.png",
+        "metal": "textures/fairheaven_cop_Trim_metal.png",
+        "normal": "textures/fairheaven_cop_Trim_normal.png",
+        "ao": "textures/fairheaven_cop_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 1500,
+      "bbox_min": [
+        -2.4959,
+        1.0356,
+        -2.8309
+      ],
+      "bbox_max": [
+        2.4881,
+        4.8855,
+        5.287
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Interior_rough.png",
+        "base": "textures/fairheaven_cop_Interior_base.png",
+        "metal": "textures/fairheaven_cop_Interior_metal.png",
+        "normal": "textures/fairheaven_cop_Interior_normal.png",
+        "ao": "textures/fairheaven_cop_Interior_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 746,
+      "bbox_min": [
+        -2.9121,
+        0.0016,
+        -5.5497
+      ],
+      "bbox_max": [
+        -1.7672,
+        2.063,
+        -3.4627
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Wheel_rough.png",
+        "base": "textures/fairheaven_cop_Wheel_base.png",
+        "metal": "textures/fairheaven_cop_Wheel_metal.png",
+        "ao": "textures/fairheaven_cop_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 746,
+      "bbox_min": [
+        1.7586,
+        -0.0016,
+        -5.5498
+      ],
+      "bbox_max": [
+        2.9121,
+        2.0597,
+        -3.4626
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Wheel_rough.png",
+        "base": "textures/fairheaven_cop_Wheel_base.png",
+        "metal": "textures/fairheaven_cop_Wheel_metal.png",
+        "ao": "textures/fairheaven_cop_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 711,
+      "bbox_min": [
+        2.1052,
+        -0.0016,
+        3.4757
+      ],
+      "bbox_max": [
+        2.9129,
+        2.0597,
+        5.5367
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Wheel_rough.png",
+        "base": "textures/fairheaven_cop_Wheel_base.png",
+        "metal": "textures/fairheaven_cop_Wheel_metal.png",
+        "ao": "textures/fairheaven_cop_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 711,
+      "bbox_min": [
+        -2.9129,
+        0.0016,
+        3.4757
+      ],
+      "bbox_max": [
+        -2.1052,
+        2.063,
+        5.5367
+      ],
+      "textures": {
+        "rough": "textures/fairheaven_cop_Wheel_rough.png",
+        "base": "textures/fairheaven_cop_Wheel_base.png",
+        "metal": "textures/fairheaven_cop_Wheel_metal.png",
+        "ao": "textures/fairheaven_cop_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 19499,
+    "total": 13131,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.08,
+      "white_lights": 0.0,
+      "deck_height": 0.376,
+      "cabin": 0.32,
+      "mirrors": 0.954
+    },
+    "confidence": 4.73
+  },
+  "scale": {
+    "source_length": 5.074589252471924,
+    "factor": 3.400078142599476,
+    "target_length": 17.254
+  },
+  "classes": {
+    "Body": {
+      "islands": 50,
+      "faces": 5602,
+      "area": 176.978
+    },
+    "Glass": {
+      "islands": 14,
+      "faces": 266,
+      "area": 29.735
+    },
+    "LightsFront": {
+      "islands": 6,
+      "faces": 130,
+      "area": 1.107
+    },
+    "LightsRear": {
+      "islands": 6,
+      "faces": 126,
+      "area": 1.091
+    },
+    "Trim": {
+      "islands": 105,
+      "faces": 6238,
+      "area": 219.631
+    },
+    "Interior": {
+      "islands": 40,
+      "faces": 3589,
+      "area": 198.425
+    },
+    "Discard": {
+      "islands": 17,
+      "faces": 634,
+      "area": 70.359
+    },
+    "WheelFL": {
+      "islands": 13,
+      "faces": 746,
+      "area": 16.875
+    },
+    "WheelFR": {
+      "islands": 13,
+      "faces": 746,
+      "area": 16.875
+    },
+    "WheelRR": {
+      "islands": 10,
+      "faces": 711,
+      "area": 16.309
+    },
+    "WheelRL": {
+      "islands": 10,
+      "faces": 711,
+      "area": 16.309
+    }
+  },
+  "warnings": []
+}

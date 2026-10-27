@@ -39,7 +39,8 @@ def load_before(path, cfg):
     car.build(objs)
     car.orient()
     car.find_wheels()
-    car.ground_and_scale(float(cfg.get("length", 17.0)))
+    from carpipe import pipeline
+    car.ground_and_scale(pipeline.resolve_length(car, {**pipeline.DEFAULTS, **cfg}))
     return car.obj
 
 
@@ -51,6 +52,7 @@ def main():
     ap.add_argument("--glbdir", default=os.path.join(HERE, "out"))
     ap.add_argument("--shots", default=",".join(ALL))
     ap.add_argument("--samples", type=int, default=48)
+    ap.add_argument("--res", default="960x540")
     a = ap.parse_args()
     reg = json.load(open(os.path.join(HERE, "models.json")))
     if os.path.exists(os.path.join(HERE, "models_local.json")):
@@ -67,7 +69,7 @@ def main():
     tgt = (0, 0, H * 0.42)
     for shot in shots:
         util.reset_scene()
-        R.setup_cycles(samples=a.samples)
+        R.setup_cycles(samples=a.samples, res=tuple(int(x) for x in a.res.split("x")))
         p = os.path.join(a.outdir, f"{a.model}_{shot}.png")
         if shot == "before_studio":
             load_before(src, cfg)
@@ -83,23 +85,32 @@ def main():
             else:
                 R.camera(tgt, L, az_deg=35, el_deg=9)
         elif shot == "street_day":
-            R.street(L, night=False)
-            W = side["dimensions"]["width"]
             lane = L * 0.42
-            # three paint variants parked/driving in the near lanes
+            tgt_s = (lane * 0.3, -L * 0.25, H * 0.45)
+            cam = dict(az_deg=30, el_deg=7, lens=35, dist_mul=1.75)
+            cp = R.camera_pos(tgt_s, L, **cam)
+            R.street(L, night=False, keep_clear=(cp.x, cp.y))
+            # three paint variants: hero in the near lane, one behind it, one oncoming
             R.load_glb(glb, offset=(lane * 0.5, 0, 0), paint=PAINTS[0])
-            R.load_glb(glb, offset=(lane * 1.5, -L * 1.25, 0), paint=PAINTS[2])
-            R.load_glb(glb, offset=(-lane * 0.5, L * 1.6, 0), rot_z=math.pi, paint=PAINTS[1])
-            R.camera((lane * 0.6, -L * 0.2, H * 0.45), L, az_deg=28, el_deg=7, lens=40, dist_mul=1.15)
+            R.load_glb(glb, offset=(lane * 1.5, -L * 1.35, 0), paint=PAINTS[2])
+            R.load_glb(glb, offset=(-lane * 0.5, -L * 1.1, 0), rot_z=math.pi, paint=PAINTS[1])
+            R.camera(tgt_s, L, **cam)
         elif shot == "street_night":
-            R.street(L, night=True)
             lane = L * 0.42
+            tgt_s = (lane * 0.3, -L * 0.2, H * 0.45)
+            cam = dict(az_deg=24, el_deg=6, lens=35, dist_mul=1.6)
+            cp = R.camera_pos(tgt_s, L, **cam)
+            R.street(L, night=True, keep_clear=(cp.x, cp.y))
             R.load_glb(glb, offset=(lane * 0.5, 0, 0), paint=PAINTS[1], lights_on=True)
-            R.load_glb(glb, offset=(-lane * 0.5, L * 1.7, 0), rot_z=math.pi, paint=PAINTS[2], lights_on=True)
-            R.camera((lane * 0.5, L * 0.1, H * 0.45), L, az_deg=24, el_deg=6, lens=40, dist_mul=1.0)
+            R.load_glb(glb, offset=(-lane * 0.5, -L * 1.2, 0), rot_z=math.pi, paint=PAINTS[2], lights_on=True)
+            R.camera(tgt_s, L, **cam)
         else:
             continue
         out[shot] = R.render_to(p)
+    for s in ["before_studio", "after_studio", "roles", "street_day"]:  # reuse shots rendered earlier
+        p = os.path.join(a.outdir, f"{a.model}_{s}.png")
+        if s not in out and os.path.exists(p):
+            out[s] = p
     sheet_shots = [s for s in ["before_studio", "after_studio", "roles", "street_day"] if s in out]
     if len(sheet_shots) >= 2:
         labels = {"before_studio": "BEFORE: raw import (source materials)",

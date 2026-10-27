@@ -27,7 +27,7 @@ def warehouse(seed=0, **kw):
               "Roof": ("tex", "corrugated", (0.9, 0.9, 0.9)) if style == "metal" else ("tex", "roof_gravel", (1, 1, 1)),
               "Details": ("tex", "metal", (0.6, 0.62, 0.64)), "Doors": ("tex", "shutter", (0.85, 0.85, 0.85)),
               "Brand": ("atlas", "brands.png"), "Site": ("tex", "curb", (0.95, 0.95, 0.95)),
-              "Asphalt": ("tex", "asphalt", (0.8, 0.8, 0.82)), "Paint": ("color", (0.92, 0.88, 0.5), 0.7, 0.0),
+              "Asphalt": ("tex", "asphalt", (0.92, 0.92, 0.94)), "Paint": ("color", (0.92, 0.88, 0.5), 0.7, 0.0),
               "Neon": ("neon", (1.0, 0.85, 0.6)), "Grime": ("grime",), "WindowsLit": ("lit",),
               "Roof2": ("color", (0.08, 0.08, 0.08), 0.9, 0.0)}
     x0, x1 = -Wb / 2 + r.uniform(-6, 6), 0.0

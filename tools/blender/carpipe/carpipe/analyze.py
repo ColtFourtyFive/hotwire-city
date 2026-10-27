@@ -45,7 +45,8 @@ KW_TRIM = [r"chrome", r"metal", r"plastic", r"rubber", r"grill", r"trim", r"badg
            r"intake", r"diffuser", r"roundel", r"kidney", r"splitter", r"_net_", r"mesh_grill", r"_hinge",
            r"blocker", r"_pipe", r"muffler", r"_tank", r"bumper_?black", r"_cladding"]
 KW_TRIM_STRONG = [r"wiper", r"gasket", r"_seal", r"handle", r"chrome", r"rubber", r"_trim", r"trim_", r"weather_?strip",
-                  r"_frame", r"mirror", r"badge", r"emblem", r"logo", r"licen[cs]e", r"_plate"]
+                  r"_frame", r"mirror", r"badge", r"emblem", r"logo", r"licen[cs]e", r"_plate", r"number_?plate",
+                  r"num_?plate", r"decal"]
 KW_PAINT_STRONG = [r"paint", r"lack", r"karosserie", r"car_?paint", r"carbody", r"body_?colou?r", r"_coat"]
 KW_PAINT = KW_PAINT_STRONG + [r"_body", r"body_", r"bodywork", r"car_?shell", r"_shell", r"exterior", r"_hood_",
                               r"_door_?[lr]?_", r"fender", r"_roof"]
@@ -124,6 +125,15 @@ class Car:
             f"{self.n_isl} islands")
 
     def _drop_backdrops(self, objs):
+        """Remove floors, light cards, shadow planes and backdrops (by name, or by being much bigger than the rest).
+        Repeats until stable: a huge floor can hide a merely big light card on the first pass."""
+        while True:
+            n0 = len(objs)
+            objs = self._drop_backdrops_once(objs)
+            if len(objs) == n0:
+                return objs
+
+    def _drop_backdrops_once(self, objs):
         keep = []
         boxes = []
         for o in objs:
@@ -465,6 +475,8 @@ class Car:
             w["islands"] = sorted(isl)
             w["width"] = float(2 * half_w)
         # name them
+        if len(wheels) == 1:
+            wheels[0]["name"] = "WheelF" + ("L" if wheels[0]["side"] < 0 else "R")
         if len(wheels) >= 2:
             ys = sorted({round(float(w["center"][1]), 3) for w in wheels}, reverse=True)
             front_y = max(w["center"][1] for w in wheels)
@@ -485,7 +497,8 @@ class Car:
                     for k, w in enumerate(dup):
                         w["name"] = f"{nm}{k + 1}"
         if len(wheels) != 4:
-            self.warnings.append(f"found {len(wheels)} wheels (expected 4)")
+            self.warnings.append(f"found {len(wheels)} wheels (expected 4)" +
+                                 ("; several cars in one file? set 'select' in the model config" if len(wheels) > 6 else ""))
         for w in wheels:
             log(f"wheel {w.get('name')}: c={np.round(w['center'], 3)} r={w['radius']:.3f} w={w['width']:.3f} "
                 f"islands={len(w['islands'])}")
@@ -576,6 +589,21 @@ class Car:
                         why[k] = "overlay-shell"
                         log(f"overlay shell dropped: {self.island_name(k)}")
                         break
+        # a shell is usually split into many islands; once most of a material's area is a confirmed overlay,
+        # the rest of that material is overlay too
+        nm = len(self.mats)
+        tot = np.bincount(self.imat, weights=self.ia, minlength=nm)
+        gone = np.zeros(nm)
+        sel = np.array([w == "overlay-shell" for w in why])
+        if sel.any():
+            np.add.at(gone, self.imat[sel], self.ia[sel])
+            for mi in np.where(gone > 0.3 * np.maximum(tot, 1e-12))[0]:
+                rest = np.where((self.imat == mi) & (role != DISCARD))[0]
+                for k in rest:
+                    role[k] = DISCARD
+                    why[k] = "overlay-shell (material)"
+                if len(rest):
+                    log(f"overlay material '{self.mats[mi]['name']}': dropped {len(rest)} more islands")
 
     def visibility(self, glass_mask_faces, gone_mask_faces=None):
         """Per island: 2 = visible from outside, 1 = only visible through glass, 0 = hidden."""
@@ -653,8 +681,18 @@ class Car:
                     why[i] = f"cfg:{rx}"
                     break
             if hit is None:
+                # Sketchfab/FBX exports name nodes "<object>_<material>_0": strip the material from the path so
+                # "Windshield_Lights_and_Glass_Transparent_0" reads as a windshield, not a light
+                obj_clean = norm_name(nm_obj).replace(norm_name(re.sub(r"\.\d{3}$", "", nm_mat)), " ")
                 rm = self._role_from_name(nm_mat) if not m["generic"] else None
-                ro = self._role_from_name(nm_obj)
+                ro = self._role_from_name(obj_clean)
+                if not m["generic"] and kw_match(nm_mat, KW_GLASS) and kw_match(nm_mat, KW_LIGHT):
+                    # shared "lights and glass" material: the object decides; else position (lamps sit at the ends)
+                    if ro in (GLASS, LIGHT_F):
+                        rm = ro
+                    else:
+                        rm = LIGHT_F if abs(self.ic[i, 1]) > 0.40 * L and self.ic[i, 2] < 0.62 * H else GLASS
+                        ro = rm
                 if rm is not None and not (rm == BODY and not kw_match(nm_mat, KW_PAINT_STRONG)
                                            and ro in (INTERIOR, GLASS, LIGHT_F, DISCARD)):
                     hit, why[i] = rm, f"mat:{nm_mat[:30]}"
@@ -694,6 +732,21 @@ class Car:
                 why[i] += " behind-glass"
             elif vis[i] == 0 and role[i] == GLASS:
                 role[i] = DISCARD
+            elif vis[i] == 2 and role[i] == INTERIOR and (abs(self.ic[i, 1]) > 0.36 * L or self.ic[i, 2] < 0.15 * H):
+                # "inner" panels at the nose/tail or under the car are exterior trim, not cabin
+                role[i] = TRIM
+                why[i] += " exterior-inner"
+        # lamp internals and covers on models without light names: anything only seen through "glass" at the
+        # nose/tail below the beltline is a lamp unit, and low glass at the very ends is a lamp cover
+        for i in range(n):
+            at_end = abs(self.ic[i, 1]) > 0.36 * L and self.ic[i, 2] < 0.62 * H
+            if role[i] == INTERIOR and "behind-glass" in why[i] and at_end:
+                role[i] = LIGHT_F
+                why[i] += " lamp-unit"
+            elif role[i] == GLASS and abs(self.ic[i, 1]) > 0.40 * L and self.ic[i, 2] < 0.6 * H and \
+                    not kw_match(self.island_name(i), [r"wind", r"window", r"screen", r"scheibe"]):
+                role[i] = LIGHT_F
+                why[i] += " lamp-cover"
         # front/rear lights
         for i in range(n):
             if role[i] == LIGHT_F:
