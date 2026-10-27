@@ -379,8 +379,9 @@ def load_glb(path, offset=(0, 0, 0), rot_z=0.0, paint=None, lights_on=False):
                     b.inputs["Base Color"].default_value = tuple(srgb_to_lin(paint)) + (1,)
                 elif os.path.exists(tint_png):
                     _tintmask_nodes(m, b, tint_png, paint)
-            if base == "Body" or base == "Body2":
-                # stand-in for Roblox's glossy paint look
+            if (base == "Body" or base == "Body2") and not b.inputs["Roughness"].is_linked:
+                # strip route (untextured paint): stand-in for Roblox's glossy paint look.  Tint-mask bodies keep
+                # their baked roughness: old game textures have highlights painted in and look wrong under coat.
                 b.inputs["Metallic"].default_value = 0.0
                 b.inputs["Roughness"].default_value = 0.32
                 try:

@@ -124,9 +124,24 @@ def bake_selected_to_active(lo, hi_objs, img, btype, extrusion, ray, samples=4, 
     _cycles(samples)
     _target_material(lo, img)
     select_only(list(hi_objs) + [lo], lo)
-    bpy.ops.object.bake(type=btype, use_selected_to_active=True, cage_extrusion=extrusion,
-                        max_ray_distance=ray, margin=margin, margin_type="EXTEND", use_clear=True,
-                        target="IMAGE_TEXTURES", normal_space="TANGENT")
+    # Rays leave the low mesh along its *shading* normals.  On sliver triangles of old game meshes the smoothed
+    # normals swing far from the face and rays miss (black texels), so colour-type bakes use flat shading;
+    # the normal map needs the real (smooth) shading normals.
+    flat = btype != "NORMAL"
+    me = lo.data
+    smooth = np.empty(len(me.polygons), dtype=bool)
+    me.polygons.foreach_get("use_smooth", smooth)
+    if flat:
+        me.polygons.foreach_set("use_smooth", np.zeros(len(me.polygons), dtype=bool))
+        me.update()
+    try:
+        bpy.ops.object.bake(type=btype, use_selected_to_active=True, cage_extrusion=extrusion,
+                            max_ray_distance=ray, margin=margin, margin_type="EXTEND", use_clear=True,
+                            target="IMAGE_TEXTURES", normal_space="TANGENT")
+    finally:
+        if flat:
+            me.polygons.foreach_set("use_smooth", smooth)
+            me.update()
 
 
 def bake_channels(lo, hi_objs, size, outdir, prefix, channels, extrusion, ray):
