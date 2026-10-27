@@ -192,24 +192,47 @@ Look.AtmosphereLock = {
 	haze = 0.8,
 }
 
--- offset = nil keeps each preset's own Atmosphere.Offset (the lock above). Live overrides in Play mode: Workspace
--- attributes "AtmosphereOffsetOverride" (number) and "TimeOfDayLock" (game hour).
+-- Atmosphere.Density: THE single fog tunable of each preset (the presets below read it from here). Job 0009 (real
+-- engine, v30): at 0.27 everything beyond ~350-400 studs became a flat grey wall from the overview camera and hid
+-- downtown, on a city ~3 km across. Lowered so a skyline 1,500-2,500 studs away stays readable with gentle aerial
+-- perspective; Offset 0.25 / Haze 0.8 stay locked (above). Job 0011 sweeps 0.12 / 0.16 / 0.2 / 0.27 at noon from the
+-- overview cameras (Workspace "AtmosphereDensityOverride") and picks the final values. Night stays the thinnest: the
+-- far city lights and the night sky's horizon glow must read through it.
+Look.AtmosphereDensity = {
+	day = 0.16,
+	goldenMorning = 0.18,
+	goldenEvening = 0.18,
+	blueMorning = 0.16,
+	blueEvening = 0.16,
+	night = 0.12,
+}
+
+-- offset = nil keeps each preset's own Atmosphere.Offset (the lock above). Live overrides in Play mode: see "Live
+-- overrides" below (TimeOfDayLock, AtmosphereOffsetOverride, AtmosphereDensityOverride, ExposureOverride, ...).
 export type Tuning = { offset: number?, hazeScale: number, densityScale: number }
 Look.Tuning = { hazeScale = 1, densityScale = 1 } :: Tuning
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Presets (lab-calibrated: day_clear is the base; neutral warm-grey haze by day, desaturated navy-grey at night)
 --
--- Blue hour and night are FAKED (Look.EngineClock): the engine sun is held at -3 deg, which the engine renders as
--- early twilight, so these presets supply the darkness themselves: negative ExposureCompensation, a dim key light
--- (Brightness: the engine's light at a -3 deg sun / low moon), low cool Ambient / OutdoorAmbient (they darken the
--- world but not the sky, so the night HDRI stays readable) and a cool, slightly desaturated ColorCorrection. The old
--- blue hour (exposure +0.28, mauve haze (132, 130, 142) at a -10 deg engine sun) rendered near-black and purple;
--- these haze / decay / cloud colours are neutral blue-grey with red never above green (no magenta, tested).
--- Starting values for the next lab round; the structure (what fakes the night) is the binding part.
+-- Blue hour and night are FAKED (Look.EngineClock): the engine sun is held at -3 deg. Job 0009 (real engine, v30)
+-- measured what the engine makes of that: at the old night (Exposure -0.3, Brightness 0.4, OutdoorAmbient (40, 46, 60))
+-- the street was almost black and the overview completely black, while a diagnostic at Exposure +2 / Brightness 2
+-- showed the night HDRI and a readable city: the engine already darkens a -3 deg world heavily, so the presets must
+-- LIFT it ~2 stops (positive ExposureCompensation, a moonlight-level key, a brighter cool OutdoorAmbient), not darken
+-- it further. "Still clearly night" comes from the low key light, the cool desaturated grade, the dark navy haze and
+-- the night HDRI. The engine also tints that held world and its sky reddish-brown (the HDRI itself is navy-grey), so
+-- the night grade is a clear blue tint (Look.Presets.night.colorCorrection). The blue hour sits between golden and
+-- night and is never darker than the night. Haze / decay / cloud colours are neutral blue-grey with red never above
+-- green (no magenta, tested). Job 0011 sweeps night exposure and tint ("ExposureOverride", "TintOverride").
+--
+-- Golden hour (job 0009): the old warm Atmosphere colour + warm tint + saturation boost read sepia / brown (dusty,
+-- smoggy) on top of the engine's own orange low sun. The grade is now warm-but-neutral: near-neutral haze, a faint
+-- warm tint, no saturation boost; the warmth comes from the engine's low sun itself.
 ---------------------------------------------------------------------------------------------------------------------
 
 local LOCK = Look.AtmosphereLock
+local DENSITY = Look.AtmosphereDensity
 
 local Presets: { [string]: Preset } = {
 	day = {
@@ -219,7 +242,7 @@ local Presets: { [string]: Preset } = {
 		outdoorAmbient = { 120, 124, 132 },
 		shadowSoftness = 0.12,
 		atmosphere = {
-			density = 0.27,
+			density = DENSITY.day,
 			offset = LOCK.offset,
 			haze = LOCK.haze,
 			glare = 0.25,
@@ -234,96 +257,100 @@ local Presets: { [string]: Preset } = {
 	goldenMorning = {
 		brightness = 2.9,
 		exposure = 0.05,
-		ambient = { 16, 14, 14 },
-		outdoorAmbient = { 124, 116, 108 },
+		ambient = { 15, 14, 14 },
+		outdoorAmbient = { 122, 119, 116 },
 		shadowSoftness = 0.16,
 		atmosphere = {
-			density = 0.27,
+			density = DENSITY.goldenMorning,
+			offset = LOCK.offset,
+			haze = LOCK.haze,
+			glare = 0.4,
+			color = { 212, 208, 200 },
+			decay = { 124, 126, 134 },
+		},
+		bloom = { intensity = 0.5, size = 26, threshold = 1.6 },
+		colorCorrection = { brightness = 0, contrast = 0.1, saturation = 0, tint = { 255, 251, 245 } },
+		sunRays = { intensity = 0.08, spread = 0.65 },
+		clouds = { cover = 0.3, density = 0.42, color = { 250, 240, 230 } },
+	},
+	goldenEvening = {
+		brightness = 3.0,
+		exposure = 0.05,
+		ambient = { 16, 14, 13 },
+		outdoorAmbient = { 126, 119, 114 },
+		shadowSoftness = 0.18,
+		atmosphere = {
+			density = DENSITY.goldenEvening,
 			offset = LOCK.offset,
 			haze = LOCK.haze,
 			glare = 0.45,
-			color = { 226, 214, 196 },
-			decay = { 124, 124, 134 },
+			color = { 218, 211, 200 },
+			decay = { 126, 126, 134 },
 		},
-		bloom = { intensity = 0.55, size = 26, threshold = 1.6 },
-		colorCorrection = { brightness = 0, contrast = 0.12, saturation = 0.05, tint = { 255, 248, 238 } },
-		sunRays = { intensity = 0.09, spread = 0.65 },
-		clouds = { cover = 0.3, density = 0.42, color = { 255, 232, 212 } },
-	},
-	goldenEvening = {
-		brightness = 3.1,
-		exposure = 0.05,
-		ambient = { 18, 14, 12 },
-		outdoorAmbient = { 130, 112, 100 },
-		shadowSoftness = 0.18,
-		atmosphere = {
-			density = 0.27,
-			offset = LOCK.offset,
-			haze = LOCK.haze,
-			glare = 0.55,
-			color = { 234, 212, 184 },
-			decay = { 128, 124, 140 },
-		},
-		bloom = { intensity = 0.6, size = 28, threshold = 1.5 },
-		colorCorrection = { brightness = 0, contrast = 0.12, saturation = 0.07, tint = { 255, 244, 230 } },
-		sunRays = { intensity = 0.11, spread = 0.65 },
-		clouds = { cover = 0.34, density = 0.45, color = { 255, 226, 200 } },
+		bloom = { intensity = 0.55, size = 28, threshold = 1.55 },
+		colorCorrection = { brightness = 0, contrast = 0.1, saturation = 0, tint = { 255, 250, 242 } },
+		sunRays = { intensity = 0.1, spread = 0.65 },
+		clouds = { cover = 0.34, density = 0.45, color = { 252, 236, 220 } },
 	},
 	blueMorning = {
-		brightness = 0.9,
-		exposure = -0.1,
-		ambient = { 10, 11, 15 },
-		outdoorAmbient = { 78, 86, 102 },
+		brightness = 1.5,
+		exposure = 0.6,
+		ambient = { 12, 13, 18 },
+		outdoorAmbient = { 82, 92, 112 },
 		shadowSoftness = 0.3,
 		atmosphere = {
-			density = 0.25,
+			density = DENSITY.blueMorning,
 			offset = LOCK.offset,
 			haze = 0.7,
 			glare = 0.1,
 			color = { 116, 124, 138 },
 			decay = { 66, 72, 86 },
 		},
-		bloom = { intensity = 0.7, size = 28, threshold = 1.3 },
-		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.05, tint = { 240, 244, 255 } },
+		bloom = { intensity = 0.6, size = 28, threshold = 1.4 },
+		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.06, tint = { 232, 240, 255 } },
 		sunRays = { intensity = 0.02, spread = 0.6 },
 		clouds = { cover = 0.3, density = 0.4, color = { 124, 130, 142 } },
 	},
 	blueEvening = {
-		brightness = 0.8,
-		exposure = -0.15,
-		ambient = { 10, 11, 15 },
-		outdoorAmbient = { 80, 86, 100 },
+		brightness = 1.4,
+		exposure = 0.6,
+		ambient = { 12, 13, 18 },
+		outdoorAmbient = { 84, 92, 110 },
 		shadowSoftness = 0.3,
 		atmosphere = {
-			density = 0.25,
+			density = DENSITY.blueEvening,
 			offset = LOCK.offset,
 			haze = 0.7,
 			glare = 0.1,
 			color = { 120, 124, 134 },
 			decay = { 68, 72, 84 },
 		},
-		bloom = { intensity = 0.75, size = 28, threshold = 1.25 },
-		colorCorrection = { brightness = 0, contrast = 0.13, saturation = -0.05, tint = { 242, 244, 255 } },
+		bloom = { intensity = 0.6, size = 28, threshold = 1.4 },
+		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.06, tint = { 232, 240, 255 } },
 		sunRays = { intensity = 0.02, spread = 0.6 },
 		clouds = { cover = 0.32, density = 0.42, color = { 120, 124, 136 } },
 	},
 	night = {
-		brightness = 0.4, -- the held engine sun / low moon: a faint key light, faint long shadows
-		exposure = -0.3, -- the fake night (the engine at -3 deg only renders twilight); lamps + windows still read
-		ambient = { 6, 7, 10 },
-		outdoorAmbient = { 40, 46, 60 },
+		-- job 0009: Brightness 0.4 / Exposure -0.3 rendered nearly black (the overview completely black); the report's
+		-- starting point is Brightness ~1.2, Exposure +0.6..+1.0 and an OutdoorAmbient lift (~2 stops in all)
+		brightness = 1.2, -- a moonlight-level key from the held engine sun / low moon: faint long shadows
+		exposure = 0.8,
+		ambient = { 12, 14, 20 },
+		outdoorAmbient = { 60, 70, 92 },
 		shadowSoftness = 0.45,
 		atmosphere = {
-			density = 0.2,
+			density = DENSITY.night,
 			offset = LOCK.offset,
 			haze = 0.35, -- thin: the night HDRI's moonlit clouds and city-glow band stay visible above the haze
 			glare = 0,
 			color = { 40, 43, 50 },
 			decay = { 20, 22, 27 },
 		},
-		-- threshold up / intensity down from 1.05 / 1.0: lit windows no longer bloom into slabs (lab round 2 S6)
-		bloom = { intensity = 0.7, size = 26, threshold = 1.25 },
-		colorCorrection = { brightness = 0, contrast = 0.14, saturation = -0.12, tint = { 228, 236, 255 } },
+		-- lab round 2 S6 (windows bloomed into slabs at 1.05 / 1.0); threshold up a little more for the +0.8 EV lift
+		bloom = { intensity = 0.6, size = 26, threshold = 1.4 },
+		-- a clear blue tint + desaturation: cancels the engine's reddish-brown cast on the held night sky (job 0009)
+		-- while warm lamps and windows stay warm
+		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.2, tint = { 212, 226, 255 } },
 		sunRays = { intensity = 0, spread = 0.5 },
 		clouds = { cover = 0.3, density = 0.4, color = { 48, 52, 62 } },
 	},
@@ -381,7 +408,12 @@ Look.SkySwap = {
 
 Look.SkyStyle = {
 	sunAngularSize = 10, -- real sun ~0.5 deg; 21 default reads storybook
-	moonAngularSize = 6,
+	-- Job 0009: a large pale moon disc sat on the horizon opposite the golden-hour sun, next to a bright cumulus day
+	-- sky. The engine moon is now small and HIDDEN (Sky.MoonAngularSize 0) whenever the engine sun is above
+	-- moonHideAboveElevation (LightingService.moonSizeAt); it only shows at twilight under the blue sky (the night sky
+	-- hides all celestial bodies anyway). Live override: Workspace "MoonSizeOverride" (degrees, 0 hides).
+	moonAngularSize = 1.5,
+	moonHideAboveElevation = -2, -- deg, engine sun; below both day <-> blue swaps (-1.5): never under the day sky
 	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - target azimuth), the CFrame.Angles(0, y, 0) convention.
 	-- CONFIRMED in the engine (lab round 2 S0, job 0007): yaw 0 shows Ft, yaw 90 shows Lf, nothing mirrored.
 	yawSign = 1,
@@ -439,9 +471,15 @@ Look.Water = {
 	waveSpeed = 10,
 }
 
--- Live overrides for Play-mode tuning / lab rounds (Workspace attributes, read every tick):
+-- Live overrides for Play-mode tuning / lab rounds (Workspace attributes, set on the SERVER; LightingService reads them
+-- every tick / every look step, ~1 s). Unset in production, where they cost nothing:
 --   "TimeOfDayLock" (game hours)  "EngineClockOverride" (engine ClockTime, e.g. to compare holds 18.0 .. 18.3)
 --   "AtmosphereOffsetOverride" (number)  "CloudsOverride" (multiplier on the cloud cover)
+-- Sweep overrides (job 0011; each REPLACES one value of the interpolated look, after the caps and the swap dip, so the
+-- frame shows exactly the value set):
+--   "AtmosphereDensityOverride" (number)  "AtmosphereHazeOverride" (number)  "ExposureOverride" (EV)
+--   "BrightnessOverride" (number)  "OutdoorAmbientOverride" (Color3)  "TintOverride" (Color3, ColorCorrection)
+--   "SaturationOverride" (number, ColorCorrection)  "MoonSizeOverride" (degrees, 0 hides the engine moon)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- BEGIN GENERATED (tools/look/gen_project.py) - do not edit by hand
@@ -718,7 +756,9 @@ local Materials: { [string]: MaterialDef } = {
 }
 Look.Materials = Materials
 
--- MaterialService.<Material>Name overrides baked into the place (global: every part and terrain voxel).
+-- Global base-material overrides (every part and terrain voxel). Baked into the place as
+-- MaterialService.<Material>Name, which the real engine does not honour (job 0009), so
+-- Util/MaterialOverrides applies them at runtime too (server + every client).
 local Overrides: { [string]: string } = {
 	Asphalt = "HC_Asphalt",
 	Brick = "HC_BrickRed",

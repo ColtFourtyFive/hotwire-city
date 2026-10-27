@@ -33,6 +33,7 @@
 2. **Stop setting `Lighting.Technology`.** It is deprecated and has RobloxScript security.
    - `src/server/Systems/LightingService.luau:470` writes it at runtime. That write will always fail.
    - Instead, set `LightingStyle = Realistic` and `PrioritizeLightingQuality = true` in the Rojo project. They are also non-scriptable, so they cannot be set at runtime.
+   - **Update (look-fix3, [EVID]): keep `Technology = Future` in the FILE too.** On load the engine maps the legacy Technology onto LightingStyle and PrioritizeLightingQuality and ignores the file's own values. A headless server of v30 (no Technology) loaded Soft with quality off; v31 (`Technology = Future`) loaded Realistic with quality on (`tools/look/probe_place.py`). Only the runtime write stays forbidden.
 3. **Assume the Open Cloud place-publish API will not deliver `SurfaceAppearance` or unions (`PartOperation`)** from our Rojo-built file ([DOC], [place publishing](https://create.roblox.com/docs/cloud/guides/usage-place-publishing)).
    - MaterialVariants are not on that list. Make them our main PBR route for world surfaces (roads, walls, sidewalks).
    - Deliver meshes that carry a SurfaceAppearance (cars, guns, hero props) as uploaded **Model assets**, loaded at runtime with `InsertService:LoadAsset`. v1 already proved this path.
@@ -302,8 +303,8 @@ Unified Lighting has been live since 2025-07-23. `Technology` is deprecated and 
 | Voxel | Soft | Disabled |
 
 - Neither new property is scriptable.
-- **Our setting:** `LightingStyle = Realistic` and `PrioritizeLightingQuality = true` in `default.project.json`. Delete `Technology`.
-  - Rojo currently writes both `Technology` and `LightingStyle` when both are present [ROJO]. Avoid the ambiguity.
+- **Our setting:** `Technology = Future` **and** `LightingStyle = Realistic` + `PrioritizeLightingQuality = true` in `default.project.json`.
+  - Rojo writes both `Technology` and `LightingStyle` when both are present [ROJO]. The engine then derives the new properties from Technology on load [EVID look-fix3: v30 without it loaded Soft and quality off; v31 with Future loaded Realistic and quality on]. So Technology must agree with them.
 - `ShadowSoftness` only works with Realistic.
 
 ### Mobile reality
@@ -882,10 +883,10 @@ An expedited review costs a refundable 50,000 Robux. A group-owned game is check
 3. **Rojo-only MeshParts have no collision or physics data.** Use `CreateMeshPartAsync`, Studio-made `.rbxm` files, or uploaded Models.
 4. **`StreamingEnabled = false` in `default.project.json`.** SLIM, Server Authority, MRF, frustum and predictive streaming all silently do nothing.
 5. **Turning streaming on breaks v1 assumptions:** start-up `GetDescendants` scans, unguarded `WaitForChild`, client code that assumes the car or map exists, and minimap blips read from Workspace. Audit every client system.
-6. **`Lighting.Technology` is deprecated and RobloxScript-only.** `LightingService.luau:470` cannot set it. `LightingStyle` and `PrioritizeLightingQuality` are file-only.
+6. **`Lighting.Technology` is deprecated and RobloxScript-only.** `LightingService.luau:470` cannot set it. `LightingStyle` and `PrioritizeLightingQuality` are file-only, and the engine derives both from the file's `Technology` on load, so the file needs `Technology = Future` [EVID look-fix3].
 7. **Players on low graphics quality never see shadows** (below level 4), and nothing can force a higher level. A look that depends on shadows collapses on phones.
 8. **Atmosphere Density ≥ 0.35 hides the city from the air** (v1 and the lab [EVID]).
-9. **MaterialVariant maps cannot be created or changed at runtime** (Plugin security). All variants ship in the file. Only `SetBaseMaterialOverride` swaps them at runtime.
+9. **MaterialVariant maps cannot be created or changed at runtime** (Plugin security). All variants ship in the file. Only `SetBaseMaterialOverride` swaps them at runtime. Studio did not honour the file's `<Material>Name` overrides in job 0009 (a headless server did), so we also apply them with `SetBaseMaterialOverride` on the server and every client. The docs do not say whether that call replicates.
 10. **Normal maps must be OpenGL (+Y)**, and meshes must be exported with tangents. A DirectX map gives inverted bumps, and missing tangents make the map invisible.
 11. **Sky faces probably stop at 1024²** (Sky is not in texture streaming yet), and their orientation is undocumented. Run the diagnostic kit before baking any HDRI.
 12. **NotScriptable properties do not live-sync through `rojo serve`.** The operator's Studio will not show new streaming or lighting settings until the published place is reopened. The repo pins Rojo 7.6.1 while the lead builds with 7.7.1.

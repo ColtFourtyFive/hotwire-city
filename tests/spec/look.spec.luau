@@ -4,7 +4,9 @@
 -- probe), the sky-swap schedule against the engine sun, the swap / jump exposure dip, NightFactor continuity, the
 -- locked day Atmosphere, the faked night, rate-limited sky yaw, cloud share per sky, lit-window spread + the building
 -- package's window helper, wet streets, the client sky preload order, and that the generated Look data matches what
--- default.project.json bakes into the place (MaterialService variants/overrides, Lighting, default Sky).
+-- default.project.json bakes into the place (MaterialService variants/overrides, Lighting, default Sky). Job 0009 /
+-- look-fix3: one fog Density per preset, the lifted night, the neutral golden grade, the moon, the sweep overrides,
+-- Technology = Future in the file and the client's runtime base-material overrides.
 return function(t)
 	local H = t.H
 	local fs = require("@lune/fs")
@@ -72,15 +74,18 @@ return function(t)
 	t.test("presets: lab caps and colour rules (neutral haze, no purple/orange/teal, restrained grade)", function()
 		for name, p in Look.Presets do
 			local a = p.atmosphere
-			t.ok(a.density >= 0.2 and a.density <= Look.Caps.densityMax, name .. " density " .. a.density)
+			t.ok(a.density >= 0.1 and a.density <= Look.Caps.densityMax, name .. " density " .. a.density)
 			t.ok(a.haze <= Look.Caps.hazeMax, name .. " haze " .. a.haze)
 			t.ok(a.offset >= 0.1, name .. " offset")
 			-- haze colour: never purple (blue AND red well above green) and never saturated orange/teal
 			local c = a.color
 			t.ok(not (c[3] > c[2] + 12 and c[1] > c[2] + 4), name .. " atmosphere is purple")
 			t.ok(chroma(c) <= 52, name .. " atmosphere too saturated: " .. chroma(c))
+			-- a restrained grade; only the night grade is a clear blue tint (it cancels the engine's reddish-brown
+			-- cast on the held night sky, job 0009)
+			local minTint = if name == "night" then 200 else 225
 			for _, ch in p.colorCorrection.tint do
-				t.ok(ch >= 225, name .. " tint channel below 225")
+				t.ok(ch >= minTint, name .. " tint channel below " .. minTint)
 			end
 			t.ok(p.colorCorrection.saturation <= 0.1, name .. " saturation > +0.10")
 			t.ok(p.bloom.threshold >= 1.0, name .. " bloom threshold")
@@ -91,6 +96,25 @@ return function(t)
 		t.ok(night.atmosphere.density < day.atmosphere.density, "lower density at night")
 		t.ok(lum(night.atmosphere.color) < 70, "night haze is dark")
 		t.ok(night.atmosphere.color[3] >= night.atmosphere.color[1], "night haze is navy-grey")
+	end)
+
+	t.test("presets: one fog Density per preset, low enough for a readable skyline (job 0009)", function()
+		local D = Look.AtmosphereDensity
+		for name, p in Look.Presets do
+			t.ok(type(D[name]) == "number", "Look.AtmosphereDensity." .. name)
+			t.eq(p.atmosphere.density, D[name], name .. " reads its Density from Look.AtmosphereDensity")
+		end
+		for name in D do
+			t.ok(Look.Presets[name] ~= nil, "AtmosphereDensity names a preset: " .. name)
+		end
+		-- job 0009: at 0.27 the far haze was a flat grey wall beyond ~400 studs and hid downtown (city ~3 km); the
+		-- sunlit presets now sit in the 0.12-0.2 band job 0011 sweeps
+		for _, name in { "day", "goldenMorning", "goldenEvening" } do
+			t.ok(D[name] >= 0.12 and D[name] <= 0.2, name .. " Density in 0.12-0.2: " .. D[name])
+		end
+		t.ok(D.night <= D.day, "night fog no denser than day (far city lights read through it)")
+		t.near(L.lookAt(12).atmosphere.density, D.day, 1e-9, "noon = day Density (no scaling by default)")
+		t.eq(Look.Tuning.densityScale, 1)
 	end)
 
 	t.test("presets: day Atmosphere locked at Offset 0.25 / Haze 0.8 (lab round 2 S1)", function()
@@ -124,26 +148,39 @@ return function(t)
 		end
 	end)
 
-	t.test("presets: the night is faked (exposure, ambient, cool desaturated grade); no blue-purple fog", function()
+	t.test("presets: the held night is lifted ~2 stops (job 0009), still clearly night, cool; no purple fog", function()
 		local day, night = Look.Presets.day, Look.Presets.night
-		-- the held engine clock (sun -3 deg) only renders twilight: the night preset supplies the darkness
-		t.ok(night.exposure < 0, "night darkened by ExposureCompensation")
-		t.ok(night.exposure >= -1, "... but not so far that lamps and the night sky die")
-		t.ok(lum(night.outdoorAmbient) < 0.5 * lum(day.outdoorAmbient), "dark OutdoorAmbient")
-		t.ok(lum(night.ambient) < lum(day.ambient), "dark Ambient")
+		-- job 0009: Exposure -0.3 / Brightness 0.4 / OutdoorAmbient (40, 46, 60) at the held -3 deg engine sun was
+		-- nearly black (overview completely black); Exposure +2 / Brightness 2 showed a readable city. The engine
+		-- darkens that world itself, so the night preset LIFTS it (report: Brightness ~1.2, Exposure +0.6..+1.0)
+		t.ok(night.exposure >= 0.6 and night.exposure <= 1.0, "night exposure lifted: " .. night.exposure)
+		t.ok(night.brightness >= 1.0 and night.brightness <= 1.5, "moonlight-level key: " .. night.brightness)
+		local oldOutdoor = { 40, 46, 60 }
+		t.ok(lum(night.outdoorAmbient) >= 1.3 * lum(oldOutdoor), "OutdoorAmbient lifted over job 0009's")
+		local lift = (night.exposure + 0.3) + math.log(lum(night.outdoorAmbient) / lum(oldOutdoor), 2)
+		t.ok(lift >= 1.5 and lift <= 2.5, "ambient-lit surfaces ~2 stops brighter than job 0009: " .. lift)
+		-- ... and still clearly night
+		t.ok(night.brightness <= 0.5 * day.brightness, "a faint key light")
+		t.ok(lum(night.outdoorAmbient) < 0.65 * lum(day.outdoorAmbient), "dark OutdoorAmbient")
+		t.ok(lum(night.ambient) < 1.5 * lum(day.ambient), "dark Ambient")
 		t.ok(night.outdoorAmbient[3] > night.outdoorAmbient[1], "cool ambient")
-		t.ok(night.brightness < 1, "a faint key light from the held sun / low moon")
 		t.ok(night.colorCorrection.saturation < 0, "night grade desaturated ...")
-		t.ok(night.colorCorrection.saturation >= -0.25, "... only slightly")
-		t.ok(night.colorCorrection.tint[3] > night.colorCorrection.tint[1], "cool night grade")
+		t.ok(night.colorCorrection.saturation >= -0.3, "... only moderately")
+		-- the engine tints the held night sky reddish-brown (job 0009): a clear blue night grade cancels it
+		local tint = night.colorCorrection.tint
+		local cool = tint[3] - tint[1]
+		t.ok(cool >= 30 and cool <= 60, "clear blue night tint, B - R = " .. cool)
+		t.ok(tint[2] > tint[1] and tint[3] >= tint[2], "tint ordered R < G <= B")
 		t.ok(night.atmosphere.haze < day.atmosphere.haze, "thin night haze keeps the night HDRI visible")
 		t.ok(night.bloom.threshold >= 1.2, "night bloom threshold: lit windows do not bloom into slabs")
-		-- blue hour sits between golden and night, never near-black
+		-- blue hour sits between golden and night and is never darker than the night (same held engine sun)
 		for _, name in { "blueMorning", "blueEvening" } do
 			local p = Look.Presets[name]
-			t.ok(p.exposure > night.exposure and p.exposure <= 0, name .. " exposure between night and day")
-			t.ok(lum(p.outdoorAmbient) > 1.5 * lum(night.outdoorAmbient), name .. " is not near-black")
+			t.ok(math.abs(p.exposure - night.exposure) <= 0.5, name .. " exposure near the night's")
+			t.ok(p.exposure > day.exposure, name .. " lifted like the night")
+			t.ok(lum(p.outdoorAmbient) > 1.2 * lum(night.outdoorAmbient), name .. " brighter ambient than night")
 			t.ok(p.brightness > night.brightness, name .. " key light above night")
+			t.ok(p.brightness < Look.Presets.goldenEvening.brightness, name .. " key light below golden")
 		end
 		-- twilight / night fog, decay and cloud colours: never magenta (red above green), only slightly blue
 		for _, name in { "blueMorning", "blueEvening", "night" } do
@@ -154,12 +191,33 @@ return function(t)
 				t.ok(chroma(c) <= 24, name .. " " .. label .. " is too saturated")
 			end
 		end
-		-- the darkest moment of the cycle (exposure incl. the dips) is still a moderate underexposure
-		local minExp = math.huge
+		-- exposure over the whole cycle (incl. the swap / jump dips) stays a moderate grade
+		local minExp, maxExp = math.huge, -math.huge
 		for s = 0, L.CYCLE_SECONDS, 5 do
-			minExp = math.min(minExp, L.lookAt(L.hourAt(s)).exposure)
+			local e = L.lookAt(L.hourAt(s)).exposure
+			minExp = math.min(minExp, e)
+			maxExp = math.max(maxExp, e)
 		end
 		t.ok(minExp >= -1, "deepest exposure " .. minExp)
+		t.ok(maxExp <= 1.2, "highest exposure " .. maxExp)
+	end)
+
+	t.test("presets: golden hour warm-but-neutral, no sepia (job 0009)", function()
+		local day = Look.Presets.day
+		local dayWarmth = day.colorCorrection.tint[1] - day.colorCorrection.tint[3]
+		for _, name in { "goldenMorning", "goldenEvening" } do
+			local p = Look.Presets[name]
+			local c = p.atmosphere.color
+			-- job 0009: (234, 212, 184) haze + (255, 244, 230) tint + saturation 0.07 read sepia / brown
+			t.ok(chroma(c) <= 24, name .. " haze near-neutral, chroma " .. chroma(c))
+			t.ok(c[1] >= c[3], name .. " haze leans warm, not blue")
+			local tint = p.colorCorrection.tint
+			local warmth = tint[1] - tint[3]
+			t.ok(warmth <= 16, name .. " faint warm tint, R - B = " .. warmth)
+			t.ok(warmth >= dayWarmth, name .. " at least as warm as noon")
+			t.ok(p.colorCorrection.saturation <= 0.02, name .. " no saturation boost")
+			t.ok(chroma(p.outdoorAmbient) <= 16, name .. " ambient near-neutral")
+		end
 	end)
 
 	t.test("lookAt: interpolates between keys, smooth over the whole cycle, caps always hold", function()
@@ -649,6 +707,73 @@ return function(t)
 		t.near(L.azimuthOf(rotated.X, rotated.Z), L.azimuthOf(sunX, sunZ), 1e-4, "glow lands on the sun")
 	end)
 
+	-- Moon (job 0009: a big moon disc on the golden-hour horizon) ----------------------------------------------------
+	t.test("moon: small, hidden while the engine sun is up, shown only at twilight", function()
+		local S = Look.SkyStyle
+		t.ok(S.moonAngularSize > 0 and S.moonAngularSize <= 2, "small moon: " .. S.moonAngularSize)
+		t.eq(L.moonSizeAt(60), 0, "noon: hidden")
+		t.eq(L.moonSizeAt(5.9), 0, "golden hour (engine 17.6): hidden")
+		t.eq(L.moonSizeAt(0), 0, "sunset: hidden")
+		t.eq(L.moonSizeAt(-3), S.moonAngularSize, "held twilight sun: shown")
+		-- over the game cycle: never with the sun up, never under the day sky
+		local shown = 0
+		for h = 0, 23.95, 0.05 do
+			local el = L.sunElevationAt(L.engineClockAt(h))
+			local size = L.moonSizeAt(el)
+			if size > 0 then
+				shown += 1
+				t.ok(el < 0, "moon with the engine sun up at " .. h)
+				t.ok(L.skyAt(h) ~= "day", "moon under the day sky at " .. h)
+			end
+		end
+		t.ok(shown > 0, "the moon still shows at twilight")
+	end)
+
+	-- Sweep overrides (studio job 0011) --------------------------------------------------------------------------------
+	t.test("withOverrides: each attribute replaces one look value, wrong types ignored, none = unchanged", function()
+		local base = L.lookAt(12)
+		local plain = L.withOverrides(L.lookAt(12), function()
+			return nil
+		end)
+		t.eq(plain.exposure, base.exposure)
+		t.eq(plain.atmosphere.density, base.atmosphere.density)
+		t.eq(plain.colorCorrection.tint[1], base.colorCorrection.tint[1])
+		local attrs = {
+			AtmosphereDensityOverride = 0.12,
+			AtmosphereHazeOverride = 0.6,
+			ExposureOverride = 1.25,
+			BrightnessOverride = 2.2,
+			OutdoorAmbientOverride = Color3.fromRGB(10, 20, 30),
+			TintOverride = Color3.fromRGB(200, 220, 255),
+			SaturationOverride = -0.3,
+		}
+		local o = L.withOverrides(L.lookAt(22), function(n)
+			return attrs[n]
+		end)
+		t.near(o.atmosphere.density, 0.12, 1e-9)
+		t.near(o.atmosphere.haze, 0.6, 1e-9)
+		t.near(o.exposure, 1.25, 1e-9, "exposure replaced (no swap dip on top)")
+		t.near(o.brightness, 2.2, 1e-9)
+		t.near(o.outdoorAmbient[2], 20, 1e-3)
+		t.near(o.colorCorrection.tint[1], 200, 1e-3)
+		t.near(o.colorCorrection.tint[3], 255, 1e-3)
+		t.near(o.colorCorrection.saturation, -0.3, 1e-9)
+		t.near(o.atmosphere.offset, L.lookAt(22).atmosphere.offset, 1e-9, "untouched values stay")
+		local wrong = L.withOverrides(L.lookAt(12), function(n)
+			return if n == "ExposureOverride" then "2" elseif n == "TintOverride" then 5 else nil
+		end)
+		t.eq(wrong.exposure, base.exposure, "a string is ignored")
+		t.eq(wrong.colorCorrection.tint[1], base.colorCorrection.tint[1], "a number for a Color3 is ignored")
+		local documented = 0
+		for name, what in L.OVERRIDE_ATTRIBUTES do
+			documented += 1
+			t.ok(name:match("Override$") ~= nil and type(what) == "string", "documented override " .. name)
+		end
+		t.ok(documented >= 8, "sweep overrides documented: " .. documented)
+		t.eq(L.OVERRIDE_ATTRIBUTES.AtmosphereDensityOverride ~= nil, true)
+		t.eq(L.OVERRIDE_ATTRIBUTES.ExposureOverride ~= nil, true)
+	end)
+
 	-- Generated data <-> place file -----------------------------------------------------------------------------------
 	local project = serde.decode("json", fs.readFile("default.project.json"))
 	local tree = project.tree
@@ -758,10 +883,12 @@ return function(t)
 		t.ok(w.transparency <= 0.35, "transparency")
 	end)
 
-	t.test("place file Lighting: Realistic + quality, no Technology, day preset + day sky baked in", function()
+	t.test("place file Lighting: Technology Future + Realistic + quality, day preset + day sky baked in", function()
 		local lt = tree.Lighting
 		local p = lt["$properties"]
-		t.eq(p.Technology, nil, "deprecated Technology removed")
+		-- the engine derives LightingStyle from the legacy Technology when a place loads: without it a real server
+		-- read Soft although the file said Realistic (jobs 0007 / 0009)
+		t.eq(p.Technology, "Future", "legacy Technology = Future (maps to Realistic + quality on load)")
 		t.eq(p.LightingStyle, "Realistic")
 		t.eq(p.PrioritizeLightingQuality, true)
 		t.eq(p.GlobalShadows, true)
@@ -773,13 +900,10 @@ return function(t)
 		t.near(p.ClockTime, Look.Cycle.startHour, 1e-6)
 		t.near(p.OutdoorAmbient[1] * 255, day.outdoorAmbient[1], 0.6)
 		local a = lt.Atmosphere["$properties"]
-		t.near(a.Density, day.atmosphere.density, 1e-6)
+		-- the place file's Atmosphere is only the edit-mode / first-frame value: LightingService.init writes the preset
+		t.near(a.Density, day.atmosphere.density, 1e-6, "place-file Density = Look.AtmosphereDensity.day")
 		t.near(a.Offset, day.atmosphere.offset, 1e-6)
-		-- The place file's Atmosphere is only the edit-mode / first-frame value: LightingService.init writes the preset
-		-- (and dedupes Rojo's leftovers). The day Haze lock (0.9 -> 0.8, lab round 2) reaches the file on the next
-		-- `python3 tools/look/gen_project.py` from the branch that owns default.project.json; until then allow 0.1.
-		t.ok(math.abs(a.Haze - day.atmosphere.haze) <= 0.1 + 1e-6, "place-file day Haze near the locked preset")
-		t.ok(a.Haze <= Look.Caps.hazeMax, "place-file Haze within the lab cap")
+		t.near(a.Haze, day.atmosphere.haze, 1e-6, "place-file day Haze = the locked preset")
 		t.eq(lt.Bloom["$className"], "BloomEffect")
 		t.eq(lt.ColorCorrection["$className"], "ColorCorrectionEffect")
 		t.eq(lt.SunRays["$className"], "SunRaysEffect")
@@ -788,6 +912,8 @@ return function(t)
 			t.eq(sky["Skybox" .. f], Look.Skies.day.faces[f], "default sky = day sky " .. f)
 		end
 		t.eq(sky.SunAngularSize, Look.SkyStyle.sunAngularSize)
+		t.eq(sky.MoonAngularSize, L.moonSizeAt(L.sunElevationAt(Look.Cycle.startHour)), "moon as at the start hour")
+		t.eq(sky.MoonAngularSize, 0, "no moon in the daylight the place starts in")
 		t.eq(sky.StarCount, Look.Skies.day.starCount)
 		t.eq(sky.CelestialBodiesShown, Look.Skies.day.celestialBodiesShown)
 		t.eq(p.GeographicLatitude, Look.Sun.latitude, "the measured sun model's latitude")
@@ -823,5 +949,45 @@ return function(t)
 		t.eq(#LookClient.skyOrder(nil), nScheduled, "unknown current sky: every scheduled sky")
 		local fromGolden = LookClient.skyOrder("golden")
 		t.eq(fromGolden[#fromGolden], "golden", "a sky already on screen goes last even if unscheduled")
+	end)
+
+	-- Base-material overrides on the client (job 0009: the file's <Material>Name properties are not honoured) ----------
+	t.test("LookClient.init: every base-material override applied, a late variant on arrival", function()
+		H.setMode("client")
+		local LookClient = H.require("src/client/Controllers/LookClient")
+		local MO = H.require("src/shared/Util/MaterialOverrides")
+		H.setMode("server")
+		local MS = H.game:GetService("MaterialService")
+		local Enum = H.roblox.Enum
+		-- a fresh client: nothing overridden (the engine reads back the stock names)
+		table.clear(H.materialOverrides)
+		t.eq(MS:GetBaseMaterialOverride(Enum.Material.Asphalt), "Asphalt", "stock name before (job 0009)")
+		LookClient.init()
+		local n = 0
+		for base, variant in Look.Overrides do
+			n += 1
+			t.eq(MS:GetBaseMaterialOverride(Enum.Material[base]), variant, "client override " .. base)
+		end
+		t.ok(n >= 16, "every override: " .. n)
+		t.eq(MS:GetAttribute(MO.ATTRIBUTE), n, "published count")
+		t.eq(#LookClient.pendingOverrides(), 0, "nothing pending")
+		-- idempotent: a second pass writes nothing
+		local r = LookClient.applyMaterialOverrides()
+		t.eq(#r.set, 0, "no rewrite")
+		t.eq(#r.already, n, "all already active")
+		-- a variant that has not replicated yet: pending, then applied on MaterialService.ChildAdded
+		table.clear(H.materialOverrides)
+		local sand = MS:FindFirstChild("HC_Sand")
+		sand.Parent = nil
+		local r2 = LookClient.applyMaterialOverrides()
+		t.eq(#r2.missing, 1, "one missing")
+		t.eq(LookClient.pendingOverrides()[1], "Sand -> HC_Sand")
+		t.eq(MS:GetBaseMaterialOverride(Enum.Material.Sand), "Sand", "not pointed at a missing variant")
+		t.eq(MS:GetBaseMaterialOverride(Enum.Material.Asphalt), "HC_Asphalt", "the others applied")
+		sand.Parent = MS
+		LookClient._onMaterialAdded(sand)
+		t.eq(MS:GetBaseMaterialOverride(Enum.Material.Sand), "HC_Sand", "late variant applied")
+		t.eq(#LookClient.pendingOverrides(), 0)
+		t.eq(MS:GetAttribute(MO.ATTRIBUTE), n)
 	end)
 end
