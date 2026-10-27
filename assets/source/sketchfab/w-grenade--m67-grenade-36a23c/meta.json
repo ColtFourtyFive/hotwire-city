@@ -84,6 +84,7 @@
       "safty pin_low_Material.016_0",
       "striker_low_Material.016_0"
     ],
-    "render_s": 10.4
+    "hidden_helpers": [],
+    "render_s": 42.0
   }
 }

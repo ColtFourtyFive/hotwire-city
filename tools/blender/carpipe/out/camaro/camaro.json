@@ -12,42 +12,42 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "camaro.glb",
   "dimensions": {
-    "length": 17.0,
-    "width": 6.777,
-    "height": 4.729,
-    "wheelbase": 10.157,
-    "track_front": 5.913,
-    "track_rear": 5.913,
+    "length": 16.0,
+    "width": 6.378,
+    "height": 4.451,
+    "wheelbase": 9.56,
+    "track_front": 5.565,
+    "track_rear": 5.565,
     "bbox_min": [
-      -3.3883,
+      -3.189,
       0.0,
-      -7.9606
+      -7.4923
     ],
     "bbox_max": [
-      3.3883,
-      4.7287,
-      9.0394
+      3.189,
+      4.4505,
+      8.5077
     ]
   },
   "wheels": {
     "FL": {
       "object": "WheelFL",
       "center": [
-        -2.9567,
-        1.1268,
-        -5.0787
+        -2.7827,
+        1.0605,
+        -4.7799
       ],
-      "radius": 1.1268,
-      "width": 0.8632,
+      "radius": 1.0605,
+      "width": 0.8124,
       "part_center": [
-        -0.2122,
-        1.1268,
-        -1.9557
+        -0.1997,
+        1.0605,
+        -1.8406
       ],
       "attachment_offset": [
-        -2.7444,
+        -2.583,
         0.0,
-        -3.123
+        -2.9393
       ],
       "axle": [
         1,
@@ -60,21 +60,21 @@
     "FR": {
       "object": "WheelFR",
       "center": [
-        2.9567,
-        1.1268,
-        -5.0787
+        2.7827,
+        1.0605,
+        -4.7799
       ],
-      "radius": 1.1268,
-      "width": 0.8632,
+      "radius": 1.0605,
+      "width": 0.8124,
       "part_center": [
-        0.2214,
-        1.1268,
-        -1.9557
+        0.2084,
+        1.0605,
+        -1.8406
       ],
       "attachment_offset": [
-        2.7352,
+        2.5743,
         0.0,
-        -3.123
+        -2.9393
       ],
       "axle": [
         1,
@@ -87,21 +87,21 @@
     "RL": {
       "object": "WheelRL",
       "center": [
-        -2.9567,
-        1.1268,
-        5.0787
+        -2.7827,
+        1.0605,
+        4.7799
       ],
-      "radius": 1.1268,
-      "width": 0.8632,
+      "radius": 1.0605,
+      "width": 0.8124,
       "part_center": [
-        -0.2122,
-        1.1268,
-        4.2498
+        -0.1997,
+        1.0605,
+        3.9998
       ],
       "attachment_offset": [
-        -2.7444,
+        -2.583,
         0.0,
-        0.8289
+        0.7801
       ],
       "axle": [
         1,
@@ -114,21 +114,21 @@
     "RR": {
       "object": "WheelRR",
       "center": [
-        2.9567,
-        1.1268,
-        5.0787
+        2.7827,
+        1.0605,
+        4.7799
       ],
-      "radius": 1.1268,
-      "width": 0.8632,
+      "radius": 1.0605,
+      "width": 0.8124,
       "part_center": [
-        0.2214,
-        1.1268,
-        4.2498
+        0.2084,
+        1.0605,
+        3.9998
       ],
       "attachment_offset": [
-        2.7352,
+        2.5743,
         0.0,
-        0.8289
+        0.7801
       ],
       "axle": [
         1,
@@ -142,17 +142,17 @@
   "seats": {
     "driver": {
       "position": [
-        -1.2875,
-        1.7023,
-        0.8126
+        -1.2118,
+        1.6022,
+        0.7648
       ],
       "estimated": true
     },
     "passenger": {
       "position": [
-        1.2875,
-        1.7023,
-        0.8126
+        1.2118,
+        1.6022,
+        0.7648
       ],
       "estimated": true
     },
@@ -162,9 +162,9 @@
     "front": [
       {
         "position": [
-          -2.4396,
-          1.986,
-          -8.33
+          -2.2961,
+          1.8692,
+          -7.84
         ],
         "direction": [
           0,
@@ -175,9 +175,9 @@
       },
       {
         "position": [
-          2.4396,
-          1.986,
-          -8.33
+          2.2961,
+          1.8692,
+          -7.84
         ],
         "direction": [
           0,
@@ -190,9 +190,9 @@
     "rear": [
       {
         "position": [
-          -2.4396,
-          2.4589,
-          8.33
+          -2.2961,
+          2.3143,
+          7.84
         ],
         "direction": [
           0,
@@ -203,9 +203,9 @@
       },
       {
         "position": [
-          2.4396,
-          2.4589,
-          8.33
+          2.2961,
+          2.3143,
+          7.84
         ],
         "direction": [
           0,
@@ -219,16 +219,16 @@
   "exhausts": [
     {
       "position": [
-        -2.033,
-        0.5674,
-        8.8694
+        -1.9134,
+        0.5341,
+        8.3477
       ],
       "estimated": true
     }
   ],
   "center_of_mass_hint": [
     0.0,
-    1.5132,
+    1.4242,
     -0.0
   ],
   "paint": {
@@ -252,14 +252,14 @@
     "Body": {
       "tris": 3200,
       "bbox_min": [
-        -3.3621,
-        0.6037,
-        -7.9606
+        -3.1643,
+        0.5682,
+        -7.4923
       ],
       "bbox_max": [
-        3.3805,
-        4.7287,
-        9.0394
+        3.1816,
+        4.4505,
+        8.5077
       ],
       "textures": {
         "normal": "textures/camaro_Body_normal.png",
@@ -269,100 +269,100 @@
     "Trim": {
       "tris": 376,
       "bbox_min": [
-        -3.2983,
-        0.6823,
-        -7.6515
+        -3.1043,
+        0.6421,
+        -7.2014
       ],
       "bbox_max": [
-        3.3352,
-        4.6498,
-        8.8626
+        3.139,
+        4.3763,
+        8.3412
       ],
       "textures": {
-        "base": "textures/camaro_Trim_base.png",
         "metal": "textures/camaro_Trim_metal.png",
-        "normal": "textures/camaro_Trim_normal.png",
         "rough": "textures/camaro_Trim_rough.png",
+        "normal": "textures/camaro_Trim_normal.png",
+        "base": "textures/camaro_Trim_base.png",
         "ao": "textures/camaro_Trim_ao.png"
       }
     },
     "WheelFL": {
       "tris": 630,
       "bbox_min": [
-        -3.3883,
+        -3.189,
         0.0,
-        -6.2116
+        -5.8462
       ],
       "bbox_max": [
-        2.9638,
-        2.2535,
-        2.3003
+        2.7895,
+        2.121,
+        2.165
       ],
       "textures": {
-        "normal": "textures/camaro_Wheel_normal.png",
-        "base": "textures/camaro_Wheel_base.png",
         "metal": "textures/camaro_Wheel_metal.png",
         "rough": "textures/camaro_Wheel_rough.png",
+        "normal": "textures/camaro_Wheel_normal.png",
+        "base": "textures/camaro_Wheel_base.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     },
     "WheelFR": {
       "tris": 630,
       "bbox_min": [
-        -2.9454,
+        -2.7722,
         0.0,
-        -6.2116
+        -5.8462
       ],
       "bbox_max": [
-        3.3883,
-        2.2535,
-        2.3003
+        3.189,
+        2.121,
+        2.165
       ],
       "textures": {
-        "normal": "textures/camaro_Wheel_normal.png",
-        "base": "textures/camaro_Wheel_base.png",
         "metal": "textures/camaro_Wheel_metal.png",
         "rough": "textures/camaro_Wheel_rough.png",
+        "normal": "textures/camaro_Wheel_normal.png",
+        "base": "textures/camaro_Wheel_base.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     },
     "WheelRL": {
       "tris": 630,
       "bbox_min": [
-        -3.3883,
+        -3.189,
         0.0,
-        2.2879
+        2.1534
       ],
       "bbox_max": [
-        2.9638,
-        2.2535,
-        6.2116
+        2.7895,
+        2.121,
+        5.8462
       ],
       "textures": {
-        "normal": "textures/camaro_Wheel_normal.png",
-        "base": "textures/camaro_Wheel_base.png",
         "metal": "textures/camaro_Wheel_metal.png",
         "rough": "textures/camaro_Wheel_rough.png",
+        "normal": "textures/camaro_Wheel_normal.png",
+        "base": "textures/camaro_Wheel_base.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     },
     "WheelRR": {
       "tris": 630,
       "bbox_min": [
-        -2.9454,
+        -2.7722,
         0.0,
-        2.2879
+        2.1534
       ],
       "bbox_max": [
-        3.3883,
-        2.2535,
-        6.2116
+        3.189,
+        2.121,
+        5.8462
       ],
       "textures": {
-        "normal": "textures/camaro_Wheel_normal.png",
-        "base": "textures/camaro_Wheel_base.png",
         "metal": "textures/camaro_Wheel_metal.png",
         "rough": "textures/camaro_Wheel_rough.png",
+        "normal": "textures/camaro_Wheel_normal.png",
+        "base": "textures/camaro_Wheel_base.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     }
@@ -390,39 +390,39 @@
   },
   "scale": {
     "source_length": 3.0870548486709595,
-    "factor": 5.506866846670654,
-    "target_length": 17.0
+    "factor": 5.182933502748851,
+    "target_length": 16.0
   },
   "classes": {
     "Body": {
       "islands": 10,
       "faces": 1656,
-      "area": 326.13
+      "area": 288.89
     },
     "Trim": {
       "islands": 17,
       "faces": 208,
-      "area": 45.384
+      "area": 40.201
     },
     "WheelFL": {
       "islands": 1,
       "faces": 330,
-      "area": 14.906
+      "area": 13.204
     },
     "WheelFR": {
       "islands": 1,
       "faces": 330,
-      "area": 14.906
+      "area": 13.204
     },
     "WheelRL": {
       "islands": 1,
       "faces": 330,
-      "area": 14.906
+      "area": 13.204
     },
     "WheelRR": {
       "islands": 1,
       "faces": 330,
-      "area": 14.906
+      "area": 13.204
     }
   },
   "warnings": []

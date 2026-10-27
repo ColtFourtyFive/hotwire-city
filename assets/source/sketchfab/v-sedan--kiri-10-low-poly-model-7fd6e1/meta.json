@@ -54,5 +54,91 @@
   "sha256": "1cde66fff03a2716ffa3492d162e4405ca595b0a0f39681b254bad6f2f493d32",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:39+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      4.3584,
+      1.707,
+      1.4799
+    ],
+    "dims_m": [
+      1.707,
+      4.358,
+      1.48
+    ],
+    "front_evidence": "names(front=9,rear=12)",
+    "flipped": true,
+    "mesh_objects": 31,
+    "triangles": 12980,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Kiri10_bodymat",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "UCB_BOTTOM_LT",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 13,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Kiri10_WheelStock_FL_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_RL_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_FR_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "Kiri10_WheelStock_FL_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_RL_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_FR_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Kiri10_Body_Badges_Carbadges_misc_U_0",
+      "Kiri10_Trunkdoor_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Kiri10_body_Kiri10_bodymat_0",
+      "Kiri10_interior_UCB_Interiors_2_0",
+      "Kiri10_Bottom_UCB_BOTTOM_LT_0",
+      "Kiri10_glass_Body_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Bumper_Rear_Inner_UCB_BOTTOM_LT_0",
+      "Kiri10_Bumper_Front_Inner_UCB_BOTTOM_LT_0",
+      "Kiri10_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Glass_Rear_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Brakelights_UCB_Lights_and_Glass_0",
+      "Kiri10_Reverse_UCB_Lights_and_Glass_0",
+      "Kiri10_Suspension_UCB_BOTTOM_LT_0",
+      "Kiri10_bumper_Front_Kiri10_bodymat_0",
+      "Kiri10_Bumper_Rear_Kiri10_bodymat_0",
+      "Kiri10_Hood_Kiri10_bodymat_0",
+      "Kiri10_Trunkdoor_Kiri10_bodymat_0",
+      "Kiri10_Headlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Taillights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Kiri10_Steering_Wheel_UCB_Interiors_2_0",
+      "Kiri10_blinkers_UCB_Lights_and_Glass_0",
+      "Kiri10_Headlights_UCB_Lights_and_Glass_0",
+      "Kiri10_Trunkdoor_Inner_UCB_BOTTOM_LT_0",
+      "Kiri10_WheelStock_FL_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_RL_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_FR_RB1c_Tire_1k_0",
+      "Kiri10_WheelStock_RR_RB1c_Tire_1k_0",
+      "Kiri10_Numberplate_Front_Numberplates_Misk_U_0",
+      "Kiri10_Body_Badges_Carbadges_misc_U_0",
+      "Kiri10_Numberplate_Rear_Numberplates_Misk_U_0",
+      "Kiri10_Trunkdoor_Badges_Carbadges_misc_U_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 36.5
+  }
 }
