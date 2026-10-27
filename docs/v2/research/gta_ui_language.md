@@ -1020,3 +1020,95 @@ Keep its public API and its pure helpers.
 3. **HOME teleport.** Remove it, or replace it with a taxi or mechanic contact.
 4. **Brand accent.** `#FF8A3D` "Ignition Orange" is proposed. A teal alternative would read Miami without pink.
 5. **GTA VI extras for phase 2.** Heat badges, red/grey/hollow star states, and a rounded or 3D minimap.
+
+---
+
+## Verification
+
+A skeptical re-check on 2026-10-27, done without Studio. Errors were fixed in place, and each fix is marked *(corrected in verification)* or *(added in verification)*.
+
+**Tally: 39 confirmed, 13 wrong (all fixed, or flagged where noted), 2 unverifiable, out of 54 checked claims.**
+
+### Asset IDs
+
+Checked against `economy.roblox.com/v2/assets/<id>/details`, `apis.roblox.com/toolbox-service/v1/items/details` and `assetdelivery`.
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| 1 | Kanit `12187373592`: Roblox-owned font family, weights 100–900 plus italics | CONFIRMED | Type 73, creator Roblox (user 1), free and published. The family JSON has 18 faces; Black 900 is `rbxassetid://12187289877` |
+| 2 | Damion `12187607722`: Roblox, weight 400 | CONFIRMED | Type 73, Roblox, free. A single Regular 400 face |
+| 3 | Inter `12187365364` | CONFIRMED | Type 73, Roblox, free; Thin to Black |
+| 4 | Yellowtail `12187373881` | CONFIRMED | Type 73, Roblox, free |
+| 5 | 91 Store font families, all owned by "Roblox" | CONFIRMED | `toolbox-service/v1/marketplace/73` returns `totalResults` 91, all with creator Roblox |
+| 6 | `9120704346`: whoosh, reversed boom | CONFIRMED | ProSoundEffects, 3 s, free |
+| 7 | `9125404320`: deep distant boom | CONFIRMED | ProSoundEffects, 3 s, free |
+| 8 | `9113678227`: camera shutter | CONFIRMED | ProSoundEffects, 1.3 s, free |
+| 9 | `1840078221`: "Building Success (sting)" | CONFIRMED | APMOfficial, free. It is **8 s**, not the 2–3 s the table wants, so trim it |
+| 10 | `538449705`: phone vibrate | CONFIRMED | Exists, free, 2 s. It is a user upload (miamipaid, 2016), not APM or ProSoundEffects |
+| 11 | `139804904213958` is APM or ProSoundEffects audio | WRONG (fixed) | It exists and is free, but it is a **user upload** by Vicktor2012 (a verified creator), not licensed library audio |
+| 12 | `120446204561335`: phone vibrate candidate | WRONG (fixed) | It is a **3 min 53 s pop song**, "Phone Vibrates" by Stevie Horn (DistrokidOfficial, audioType Music). Removed |
+| 13 | `9112851363`: dispatcher / radio chatter for busted | WRONG (fixed) | The name matches, but the description is "Landing Craft Air Cushion, Light Chatter, Interior Whine, Loop", a 56 s loop. It is not a police dispatcher; the slot is marked "none yet" |
+
+### Roblox API and policy claims
+
+Checked against the `Roblox/creator-docs` source YAML (raw GitHub) and the DevForum.
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| 14 | Gotham and Arial are removed and map to Montserrat and Arimo | CONFIRMED | `enums/Font.yaml`: "`Gotham` has been removed. Using it will map to the `Montserrat` font family". The same note appears for Arial → Arimo |
+| 15 | Oswald, Montserrat, Sarpanch and RobotoMono are built-in | CONFIRMED | `datatypes/Font.yaml` lists their `rbxasset://fonts/families/*.json` |
+| 16 | Built-in weight ranges (Oswald ExtraLight–Bold, Montserrat Thin–Black plus italics, Sarpanch Regular–Black) | UNVERIFIABLE | The Roblox family JSONs cannot be reached from here. The ranges match the Google Fonts releases. Studio checklist item 1 should also check `Oswald SemiBold` |
+| 17 | `ScreenInsets.CoreUISafeInsets` keeps UI clear of the top bar and notches; `None` is for non-interactive overlays | CONFIRMED | `enums/ScreenInsets.yaml`. `IgnoreGuiInset = true` only flips `CoreUISafeInsets` to `DeviceSafeInsets`, so it is redundant once `ScreenInsets = None` |
+| 18 | `GuiService.TopbarInset` is a dynamic Rect; watch it with `GetPropertyChangedSignal` | CONFIRMED | `classes/GuiService.yaml` |
+| 19 | The top bar grew from 36 to 58 px and varies by device | CONFIRMED | devforum 2567355: "increasing the Roblox reserved space from a height of 36 pixels to 58 pixels… may vary based on device". The StarterGui docs still say 36 px, which is stale |
+| 20 | `TopbarEnabled = false` hides the CoreGuis, the region still swallows clicks, and the origin offset remains | CONFIRMED | `classes/StarterGui.yaml` |
+| 21 | CoreGuiTypes PlayerList, Health, Backpack, EmotesMenu, SelfView, Captures and Chat exist; Captures is on the right | CONFIRMED | `enums/CoreGuiType.yaml`: Captures is "A 'capture' button along the right side of the screen" |
+| 22 | `ChatWindowConfiguration` has Horizontal/VerticalAlignment (Center allowed), FontFace, TextSize, BackgroundColor3/Transparency and TextStrokeTransparency | CONFIRMED | `classes/ChatWindowConfiguration.yaml`. The defaults are Left / Top |
+| 23 | UIStroke has `BorderOffset`, `BorderStrokePosition` and `StrokeSizingMode` | CONFIRMED | `classes/UIStroke.yaml` |
+| 24 | CanvasGroup always clips; its memory is capped by QualityLevel; it renders blank over the cap | CONFIRMED | `classes/CanvasGroup.yaml`. It also needs `ZIndexBehavior.Sibling` to flatten |
+| 25 | "`ClipsDescendants` ignores rotation, so the minimap needs a CanvasGroup" | WRONG (fixed in §5.1) | `GuiObject.ClipsDescendants` docs: with `StarterGui.ClipsDescendantsSupportsRotation`, "clipping works correctly for rotated shapes". The default flipped to Enabled in the 2026 rollout and the property is removed on 2026-11-03 ([devforum 4737864](https://devforum.roblox.com/t/opt-in-phase-introducing-clipping-support-for-rotated-elements-path2d/4737864); `roblox_tech.md`). Only a rotated or rounded clipping *parent* still needs a CanvasGroup |
+| 26 | ColorCorrection Saturation −1 means full desaturation; post effects work under `CurrentCamera` | CONFIRMED | `ColorCorrectionEffect.yaml`, `PostEffect.yaml` |
+| 27 | Rich text supports `<mark color transparency>`, `<stroke>`, `<sc>` and `<uc>` | CONFIRMED | `ui/rich-text.md` |
+| 28 | These methods exist: `CaptureService:CaptureScreenshot`, `UserInputService:GetImageForKeyCode` / `GetStringForKeyCode`, `TextService:GetTextBoundsAsync` (Font), `ContextActionService:BindActionAtPriority` | CONFIRMED | Docs YAML. `GetImageForKeyCode` only covers Xbox, PlayStation and Windows pads |
+| 29 | `EqualizerSoundEffect.HighGain −25` | CONFIRMED | Docs: the range is −80 to 10 dB |
+| 30 | "Pricedown is not usable: its licence lists games as needing another licence" | WRONG in conclusion (fixed in §0) | The dafont download's `read-this.html` (EULA v260817) does list "Webfonts, apps, **games**…" under *Needs another license*, so the font file, live text and digit atlases are out (EULA §4.3 embedding, §4.5 "recombinable character sheet"). But **EULA §2.2 permits distributing fixed artwork** that is not individually addressable, and dafont's page says: "Pre-rendered static graphics inside those products are permitted when they contain no working font or reusable characters." Pre-rendered PNGs of the fixed shard words and the wordmark therefore look permitted, provided the Licensee (the user) renders them on their own workstation (§4.4 bars server or cloud font storage). **Lead decision:** use Pricedown PNGs for wasted, busted and passed (the authentic look, but closer to GTA trade dress), or keep Kanit for everything (safer, slightly off) |
+| 31 | Loading art at 1920×1080, "upload ≤ 4096" | UNVERIFIABLE (noted in §6) | Image uploads may be up to 8000² (`cloud/guides/usage-assets.md`). The [4K rendering ANN](https://devforum.roblox.com/t/4k-texture-rendering/4316229) lists MeshPart, SurfaceAppearance, Texture, Decal and MaterialVariant only, **not UI images**. Check in Studio |
+
+### GTA reference numbers
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| 32 | Palette hexes from `hudcolor.dat` (25 tokens: WHITE, PURE_WHITE, GREY, MENU_GREY, GREYDARK, INGAME_BG 186, PANEL_LIGHT 77, PAUSEMAP_TINT 215, MENU_HIGHLIGHT, MENU_GREY_DARK, RED, REDDARK, RADAR_DAMAGE, BLUE = RADAR_ARMOUR = FRIENDLY, BLUEDARK, YELLOW = LOCATION = OBJECTIVE_ROUTE, YELLOWDARK, GREEN = PICKUP, RADAR_HEALTH, WAYPOINT/LIGHT/DARK, ORANGE, PURPLE, GOLD, BRONZE, PLATINUM, FREEMODE/DARK, SIMPLEBLIP_DEFAULT) | CONFIRMED | Every value matches docs.fivem.net/docs/game-references/hud-colors. Note that `HUD_COLOUR_ENEMY` (119) is `#C25050`; the spec's enemy red `#E03232` comes from the `~r~` text code, which is also correct |
+| 33 | Silver `#969AA1` | WRONG (fixed) | SILVER (108) is rgba(150, **153**, 161), so the hex is `#9699A1` |
+| 34 | Text codes `~r~` enemy, `~b~` friendly, `~y~` destination, `~g~` pickup, `~c~`/`~t~` MENU_GREY | CONFIRMED | docs.fivem.net text-formatting |
+| 35 | `frontend.xml` minimap posX −0.0045, posY 0.002, size 0.150 × 0.188888, align L/B | CONFIRMED | FiveM cookbook 2019-08-12. In the 2013 console weapon-wheel capture the radar measures ≈0.137 W × 0.171 H, which depends on the safe zone |
+| 36 | 192×136 on 1280×720; 288×204 at 1080p; width 0.2667 H; SAFE 20 = 1.6% W / 2.8% H; transparency 1 − a/255 (0.27 / 0.70 / 0.16); 16 × 0.72 = 11.5 px | CONFIRMED | Arithmetic |
+| 37 | Bars split 50 / 25 / 25 | CONFIRMED | Measured 51/25/24 in `GTAV_new_screen` and 52/23/21 in `WeaponWheel-GTAV` |
+| 38 | Fonts: Chalet Comprime / Chalet London for menus, Pricedown for money and centre messages, SignPainter for the bottom-right location | CONFIRMED | gta.wiki/w/Fonts |
+| 39 | Death-wiki wasted sequence quote | CONFIRMED | grandtheftwiki.com/Death, verbatim |
+| 40 | The tutorial says "blue vision cones" | WRONG (fixed in §2.2) | The tutorial says the radar "flashes red and blue" and "cones will appear on the Radar". The cone colour is not given |
+| 41 | Weapon wheel order clockwise from the top: handguns, SMG, rifle, sniper, melee, shotgun, heavy, thrown | CONFIRMED | `WeaponWheel-GTAV.jpg` |
+| 42 | Shard band: full width, 17.8% H, centre 49%, 42% opacity | WRONG (fixed in §0, §2.10, §5.9) | Re-measured on all three captures (`Busted-GTAV`, `Wasted-GTAV-EnhancedVersion`, `Wasted-GTAVe-MissionFailed`). The top edge rises and the bottom edge falls from left to right, so the band is a **keystone**: ≈15.5% H at x=0 and ≈23% at x=W, 17.8% only at about x=30%. The mean is ≈19.5% and the centre is **48.8%**, constant. The inside/outside luma ratio is 0.48–0.49, so ≈51% black (the spec's 42% is at the low end) |
+| 43 | Title colours and size | CONFIRMED | Busted median `#5690AC` (spec ≈`#5890B0`); wasted median `#8F2033`, within the spec's range. Title width 21.4–23.8% W; glyph box 9.8% H (spec says ≈9%; for Kanit Black use TextSize ≈100, not 92) |
+
+### Codebase and audit claims
+
+| # | Claim | Verdict | Evidence / correction |
+|---|---|---|---|
+| 44 | FredokaOne appears in 10 files, at the listed server lines | CONFIRMED | `grep -rl FredokaOne src` gives 10 files. MapBuilder:90, PlotService:129, EventService:352/366, LeaderboardService:67, DealershipService:377, PoliceService:1722, CarBuilder:469, NotificationController:437 (GetTextSize) |
+| 45 | Line counts: Theme 53, Kit 414, Menu 3688, Tutorial 1447, Notification 1978; MenuController has about 122 emoji | CONFIRMED | `wc -l`. 121 lines contain emoji |
+| 46 | HUDController is 2395 lines | WRONG, now stale (fixed note) | It is 2432 after a 16:04 UTC edit by another agent. References after about L600 are 2–37 lines too low |
+| 47 | `Kit.screen` UIScale = min(vpX/1280, vpY/720); `Kit.label` auto-stroke `size/14`; Kit function line ranges | CONFIRMED | `Kit.luau` L96–142 and L145–163. The scale is clamped to 0.55–1.6, with a touch floor of 0.72 |
+| 48 | `Kit.iconButton` is used only by the HUD menu column | WRONG (fixed) | `VehicleClient.luau:356` also uses it, for the touch driving buttons |
+| 49 | Tests exercise only pure helpers | CONFIRMED, but the list was incomplete (added in §9) | They also pin `touchMenuGrid`, `gridFit`, `homeState`, `MENU`/`MENU_TOP_ROW`, the `Menu.open`/`close` API, and every minimap helper (`minimap.spec.luau`). Deleting the HOME button or the menu column has to leave those helpers in place |
+| 50 | The minimap (§5.1, "new" modules in §9) must be built | WRONG (omission, fixed in §9) | `MinimapController.luau` (1464 lines) and `MapScreenController.luau` (1118 lines) already exist and are tested: tiles, rotation, blip atlas, rim clamp, speed zoom, A* GPS, red/blue bezel, mobile top-left. v2 is a restyle |
+| 51 | Mobile: the radar moves top-left | CONFIRMED | The v1 MinimapController already does this |
+| 52 | Original brief: 44% play on both, 12% mobile only; touch targets 8–10% H | CONFIRMED | `original_brief.md` L193 and L413 |
+| 53 | Phone opens on `↑` (PC) | WRONG (fixed in §5.11) | Roblox's default keyboard controls move the character with ↑ and ↓ ([devforum 269923](https://devforum.roblox.com/t/how-do-i-disable-arrow-keys/269923)) |
+| 54 | Cinematic cam on "hold `R`" in the car; weapon wheel on `ButtonL1` | WRONG (R fixed; L1 flagged) | `R` is radio-previous (`VehicleClient.luau` L1117). `ButtonL1` and `G` drop spikes while driving (`CombatClient.luau` L903), so give the wheel or the spikes another button for drive-by |
+
+**Still needing Studio:**
+- the font weights (#16);
+- the UI image resolution (#31);
+- a listening test for every sound.
+- Pricedown static art (#30) needs the lead's legal and brand decision before anyone renders it.

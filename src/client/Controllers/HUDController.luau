@@ -97,6 +97,9 @@ local MENU_CELL_TOUCH = 76
 local TOP_ROW_CELL_TOUCH = 62
 local MENU_PAD = 6
 local TOP_ROW_CELL = 52
+-- touch menu strip cells, largest first: 16:9 phones with the radar in the corner need the 52 px one to keep the strip
+-- in two rows above the thumbstick zone
+local TOUCH_MENU_CELLS = { MENU_CELL_TOUCH, TOP_ROW_CELL_TOUCH, TOP_ROW_CELL }
 local HOTBAR_REAL_PX = 74 -- default backpack hotbar height in real pixels (+ margin)
 local CHAT_FALLBACK_BOTTOM = 250 -- desktop: design px the default chat window covers when we can't measure it
 local TOP_CENTER_HALF = 168 -- design px either side of center kept free for the cash pill + status stack (touch)
@@ -340,6 +343,71 @@ function HUDController.touchMenuGrid(
 		end
 	end
 	return cols, rows, cell
+end
+
+export type TouchStrip = {
+	left: number, -- design px: where the CODES / SETTINGS row and the menu strip start (right of the radar)
+	topCell: number, -- CODES / SETTINGS cell size
+	menuTop: number,
+	cols: number,
+	rows: number,
+	cell: number,
+	bottom: number, -- design px (canvas-relative) where the menu strip ends
+	fits: boolean, -- the strip ends above the dynamic thumbstick zone (a third of the canvas height down)
+}
+
+-- Touch layout of the top-left buttons on a canvas (design px, inset-relative): the CODES / SETTINGS row at `top`,
+-- starting right of `reserveLeft` (the radar's MinimapController reserve), and the menu strip under it, left of the
+-- top-center cash pill + status stack and above the thumbstick zone. Tries the big top-row cell first, then the
+-- small one; menu cells largest first (TOUCH_MENU_CELLS). When nothing fits, the big-top-row result (smallest
+-- menu cell) is returned with fits = false.
+function HUDController.touchStripLayout(
+	count: number,
+	canvasW: number,
+	canvasH: number,
+	reserveLeft: number,
+	top: number
+): TouchStrip
+	local left = 12 + math.max(0, reserveLeft)
+	local zone = canvasH / 3
+	local first: TouchStrip? = nil
+	for _, topCell in { TOP_ROW_CELL_TOUCH, TOP_ROW_CELL } do
+		local menuTop = top + topCell + 14
+		local cols, rows, cell = HUDController.touchMenuGrid(
+			count,
+			canvasW / 2 - TOP_CENTER_HALF - left,
+			zone - menuTop,
+			TOUCH_MENU_CELLS,
+			MENU_PAD
+		)
+		local bottom = menuTop + math.max(1, rows) * (cell + MENU_PAD) - MENU_PAD
+		local strip: TouchStrip = {
+			left = left,
+			topCell = topCell,
+			menuTop = menuTop,
+			cols = cols,
+			rows = rows,
+			cell = cell,
+			bottom = bottom,
+			fits = bottom <= zone + 1e-6,
+		}
+		if strip.fits then
+			return strip
+		end
+		first = first or strip
+	end
+	return first :: TouchStrip
+end
+
+-- Touch: design px top-left of NotificationController's event feed. With the radar in the top-left corner the feed
+-- hugs the left edge below whichever is lower, the radar block (`minimapBottom`, its area name included) or the menu
+-- strip (when shown), so long lines stay clear of the top-center cash pill and the HOT DROP / DELIVER panels.
+function HUDController.touchFeedAnchor(strip: TouchStrip, menuVisible: boolean, minimapBottom: number): (number, number)
+	local below = if menuVisible then strip.bottom + 8 else strip.menuTop
+	if minimapBottom > 0 then
+		return 12, math.max(below, minimapBottom + 8)
+	end
+	return strip.left, below
 end
 
 -- Chat prefix for a message sender (nil = leave the message alone).

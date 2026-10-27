@@ -252,7 +252,7 @@ Each car is a **CarRecord** (§9.1) with a permanent `uid` and a `place` (where 
 **Capacity** is `slotsUnlocked` (4 → 10, `Economy.START_SLOTS`/`MAX_SLOTS`, prices `Economy.SLOT_PRICES` unchanged) + 2 (pass, `PASS_EXTRA_SLOTS`) + vault bays.
 - Vault bays: 1 at Rep 5, +1 at Rep 25, +1 from a pass; maximum 3.
 - Impounded and in-repair cars keep their slot reserved. The pad shows IMPOUNDED or IN REPAIR.
-- The lay-low bay is extra: 1 per garage, so a player can hold **at most one stolen car at a time**. This rate-limits theft by design.
+- The lay-low bay is extra: 1 per garage, so a player can hold **at most one stolen car at a time**. This rate-limits theft by design. The thief must have a free slot when the theft starts; it is reserved until the window ends.
 
 **Mechanic (phone):** delivers a parked car to the nearest road node within 60 studs of you in 30 s.
 - Fee: `max(250, 5 s × G)`, free for VIP. Cooldown 60 s.
