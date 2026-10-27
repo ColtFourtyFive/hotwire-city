@@ -79,6 +79,7 @@
       "mag_sniper_0",
       "bullet_sniper_0"
     ],
-    "render_s": 18.4
+    "hidden_helpers": [],
+    "render_s": 17.2
   }
 }
