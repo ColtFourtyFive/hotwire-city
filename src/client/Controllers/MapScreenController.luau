@@ -1,20 +1,21 @@
 --!strict
--- MapScreenController: the fullscreen city map (GTA pause-map style).
+-- MapScreenController: the full city map, shown as the pause menu's MAP tab (gta_ui_language §2.13, §5.12).
 --
---  * Open with M, by clicking / tapping the radar (MinimapController), or MapScreenController.open(). Close with the X
---    button, M again or gamepad B.
+--  * Open with M (straight to the MAP tab), P then Q / E, by clicking / tapping the radar, or
+--    MapScreenController.open(), which asks MenuController for the pause menu on MAP; the pause menu calls show() /
+--    hide() as the tab changes. Without a MenuController it shows on its own. Close with Backspace / B or M again.
 --  * Pan by dragging (mouse or one finger), zoom with the mouse wheel (around the cursor), a pinch (around the
 --    fingers) or the +/- buttons; the target button re-centers on you.
 --  * Click / tap the map to set your waypoint (WaypointController id Config/Minimap.CUSTOM_WAYPOINT.ID: the 3D beam in
 --    the world + the GPS route on the radar); tapping a blip drops the waypoint right on that place. Tap your
 --    waypoint again (or CLEAR WAYPOINT) to remove it.
---  * Shows the same map art as the radar, district names (UI labels, nothing baked), every blip (shops, landmarks,
---    your garage, other players' garages with their names, waypoints, police, players), the GPS route and you.
---    A legend explains the blips (collapsible on phones).
---  * Map layer: a raw ScreenGui (no UIScale) so input math stays in real pixels; the chrome (title, buttons, legend)
---    is a Kit.screen with the usual scaling.
+--  * Shows the same map art as the radar, district names (Oswald labels, nothing baked), every blip in the GTA
+--    palette (shops / landmarks white, your garage blue, rivals grey with their names, waypoints, police red / blue),
+--    the GPS route and you. A legend sits on the right (collapsible on phones); zoom / re-centre are flat squares.
+--  * Map layer: a raw ScreenGui (no UIScale) under the pause chrome so input math stays in real pixels; the map's
+--    own chrome (GPS line, tools, legend) is a Kit.screen with the usual scaling.
 --
--- Public API: open(), close(), toggle(), isOpen()
+-- Public API: open(), close(), toggle(), isOpen(), show(), hide()
 -- Pure helpers (tests): fitScale, fitCenterZ, worldToScreen, screenToWorld, zoomAround, clampCenter, isTap.
 
 local GuiService = game:GetService("GuiService")
@@ -56,6 +57,9 @@ local FIT_SPAN = (MapConfig.BOUNDARY + 50) * 2 -- studs the fit-to-screen view s
 local CENTER_LIMIT = MapConfig.BOUNDARY + 40
 local UPDATE_DT = 1 / 30
 local WHITE = Color3.new(1, 1, 1)
+local C = Theme.Colors
+local MAP_WATER = Color3.fromHex("#1F3445")
+local PAUSE_TOP = 0.235 -- the pause header + tabs take the top of the screen (UI/PauseMenu.frame)
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests). A view is (cx, cz, scale): world point at the screen center + px per stud.
@@ -191,9 +195,9 @@ local function viewport(): (number, number)
 	return 1280, 720
 end
 
--- Real px the title / hint / GPS chip take at the top of the screen.
+-- Real px the pause header + tabs take at the top of the screen.
 local function chromeTop(): number
-	return MAP.CHROME_TOP * Kit.uiScale(Theme.TouchMinScale)
+	return vpH * PAUSE_TOP
 end
 
 local function limits(): (number, number)
@@ -258,12 +262,19 @@ local function labelPut(pool: LabelPool, text: string, size: number, color: Colo
 	pool.used = i
 	local item = pool.items[i]
 	if not item then
-		item = Kit.label("", 18, {
+		item = Kit.text("", "condensed", 18, {
 			Name = "Label",
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			AutomaticSize = Enum.AutomaticSize.X,
-			TextWrapped = false,
+			TextTransparency = 0.15,
 			Parent = pool.parent,
+		})
+		Kit.new("UIStroke", {
+			Color = Color3.new(0, 0, 0),
+			Thickness = 1,
+			Transparency = 0.5,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
+			Parent = item,
 		})
 		pool.items[i] = item
 	end
@@ -307,36 +318,26 @@ local function atlasImage(name: string, props: { [string]: any }): ImageLabel
 	return img
 end
 
-local function chromeButton(text: string, color: Color3, size: Vector2): TextButton
-	local b = Kit.button(text, color, {
-		Size = UDim2.fromOffset(size.X, size.Y),
-		TextSize = 22,
-	})
-	return b
-end
-
 local function legendRow(parent: Instance, order: number, icon: string, color: Color3, text: string)
 	local row = Kit.new("Frame", {
 		Name = "Row",
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 26),
+		Size = UDim2.new(1, 0, 0, 20),
 		LayoutOrder = order,
 		Parent = parent,
 	})
 	atlasImage(icon, {
-		Size = UDim2.fromOffset(24, 24),
-		Position = UDim2.fromOffset(0, 1),
+		Size = UDim2.fromOffset(16, 16),
+		Position = UDim2.fromOffset(0, 2),
 		ImageColor3 = color,
 		BackgroundColor3 = color,
 		BackgroundTransparency = if ATLAS == "" then 0 else 1,
 		Parent = row,
 	})
-	Kit.label(text, 16, {
-		FontFace = Theme.Fonts.Body,
+	Kit.text(text, "condensedMedium", 13, {
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false,
-		Position = UDim2.fromOffset(32, 0),
-		Size = UDim2.new(1, -32, 1, 0),
+		Position = UDim2.fromOffset(24, 0),
+		Size = UDim2.new(1, -24, 1, 0),
 		Parent = row,
 	})
 end
@@ -348,14 +349,14 @@ local function build(): Ui
 		ResetOnSpawn = false,
 		IgnoreGuiInset = true,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-		DisplayOrder = Theme.Layers.Menus + 2,
+		DisplayOrder = Theme.Layers.Pause - 1,
 		Enabled = false,
 		Parent = pg,
 	})
 	local backdrop = Kit.new("Frame", {
 		Name = "Backdrop",
 		Active = true,
-		BackgroundColor3 = MinimapConfig.WATER_COLOR,
+		BackgroundColor3 = MAP_WATER,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
 		Size = UDim2.fromScale(1, 1),
@@ -400,7 +401,7 @@ local function build(): Ui
 		})
 		Kit.new("UIGradient", {
 			Rotation = if top then 90 else -90,
-			Transparency = NumberSequence.new(0.35, 1),
+			Transparency = NumberSequence.new(0.15, 1),
 			Parent = band,
 		})
 	end
@@ -425,7 +426,7 @@ local function build(): Ui
 		ZIndex = 2,
 		Parent = overlay,
 	})
-	local arrow = atlasImage("_arrow", {
+	local arrow = Kit.image("hud.arrow", {
 		Name = "Player",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Size = UDim2.fromOffset(36, 36),
@@ -433,153 +434,128 @@ local function build(): Ui
 		Parent = overlay,
 	})
 
-	-- chrome ---------------------------------------------------------------------------------------------------------
-	local chrome = Kit.screen("HC_MapChrome", Theme.Layers.Menus + 3, { touchMin = Theme.TouchMinScale })
+	-- chrome (under the pause header: GPS line bottom-left, tools + legend right) --------------------------------------
+	local chrome = Kit.screen("HC_MapChrome", Theme.Layers.Pause + 1, { touchMin = Theme.TouchMinScale })
 	chrome.Enabled = false
-	local title = Kit.label("HOTWIRE CITY", 34, {
-		Name = "Title",
-		Position = UDim2.fromOffset(24, 14),
-		Size = UDim2.fromOffset(420, 40),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false,
-		Parent = chrome,
-	})
-	Kit.new("UIGradient", {
-		Color = ColorSequence.new(Theme.Colors.Text, Theme.Colors.Secondary),
-		Rotation = 90,
-		Parent = title,
-	})
-	local hint = Kit.label("", 16, {
+	local hint = Kit.text("", "body", 14, {
 		Name = "Hint",
-		FontFace = Theme.Fonts.Body,
-		TextColor3 = Theme.Colors.TextDim,
-		Position = UDim2.fromOffset(26, 54),
-		Size = UDim2.fromOffset(640, 22),
+		TextColor3 = C.TextDim,
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0.16, 0, 0.82, 34),
+		Size = UDim2.fromOffset(640, 18),
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false,
 		Parent = chrome,
 	})
-	local close = chromeButton("X", Theme.Colors.Danger, Vector2.new(56, 56))
-	close.Name = "Close"
-	close.AnchorPoint = Vector2.new(1, 0)
-	close.Position = UDim2.new(1, -18, 0, 14)
-	close.Parent = chrome
-	close.Activated:Connect(function()
-		MapScreenController.close()
-	end)
 
-	-- GPS chip (top-center)
+	-- GPS line (bottom-left of the content area)
 	local gpsChip = Kit.panel({
 		Name = "Gps",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 16),
-		Size = UDim2.fromOffset(0, 44),
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0.16, 0.82),
+		Size = UDim2.fromOffset(0, 30),
 		AutomaticSize = Enum.AutomaticSize.X,
 		Visible = false,
 		Parent = chrome,
 	})
 	Kit.new("UIPadding", {
-		PaddingLeft = UDim.new(0, 12),
-		PaddingRight = UDim.new(0, 16),
+		PaddingLeft = UDim.new(0, 8),
+		PaddingRight = UDim.new(0, 12),
 		Parent = gpsChip,
 	})
-	Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center).Parent =
+	Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center).Parent =
 		gpsChip
 	local gpsIcon = atlasImage("pin", {
 		Name = "Icon",
-		Size = UDim2.fromOffset(28, 28),
+		Size = UDim2.fromOffset(20, 20),
 		LayoutOrder = 1,
 		Parent = gpsChip,
 	})
-	local gpsText = Kit.label("", 20, {
+	local gpsText = Kit.text("", "condensedMedium", 16, {
 		Name = "Text",
 		AutomaticSize = Enum.AutomaticSize.X,
-		Size = UDim2.fromOffset(0, 28),
-		TextWrapped = false,
+		Size = UDim2.fromOffset(0, 24),
 		LayoutOrder = 2,
 		Parent = gpsChip,
 	})
 
-	-- zoom / recenter / clear (bottom-right)
+	-- zoom / recenter (flat squares, right edge of the content area)
 	local tools = Kit.new("Frame", {
 		Name = "Tools",
 		AnchorPoint = Vector2.new(1, 1),
-		Position = UDim2.new(1, -18, 1, -18),
-		Size = UDim2.fromOffset(64, 214),
+		Position = UDim2.fromScale(0.84, 0.82),
+		Size = UDim2.fromOffset(40, 132),
 		BackgroundTransparency = 1,
 		Parent = chrome,
 	})
-	Kit.list(Enum.FillDirection.Vertical, 10, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Bottom).Parent =
+	Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Bottom).Parent =
 		tools
-	local zoomIn = chromeButton("+", Theme.Colors.PanelLight, Vector2.new(60, 60))
-	zoomIn.LayoutOrder = 1
-	zoomIn.TextSize = 32
-	zoomIn.Parent = tools
-	local zoomOut = chromeButton("-", Theme.Colors.PanelLight, Vector2.new(60, 60))
-	zoomOut.LayoutOrder = 2
-	zoomOut.TextSize = 32
-	zoomOut.Parent = tools
-	local recenter = chromeButton("", Theme.Colors.Secondary, Vector2.new(60, 60))
+	local function toolButton(text: string, order: number): TextButton
+		return Kit.button(text, nil, {
+			Size = UDim2.fromOffset(40, 40),
+			TextSize = 24,
+			LayoutOrder = order,
+			Parent = tools,
+		})
+	end
+	local zoomIn = toolButton("+", 1)
+	local zoomOut = toolButton("-", 2)
+	local recenter = toolButton("", 3)
 	recenter.Name = "Recenter"
-	recenter.LayoutOrder = 3
-	recenter.Parent = tools
-	atlasImage("target", {
+	Kit.image("hud.arrow", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(36, 36),
+		Size = UDim2.fromOffset(20, 20),
 		ZIndex = 4,
 		Parent = recenter,
 	})
-	local clearButton = chromeButton("CLEAR WAYPOINT", Theme.Colors.Primary, Vector2.new(210, 50))
-	clearButton.Name = "ClearWaypoint"
-	clearButton.TextSize = 18
-	clearButton.AnchorPoint = Vector2.new(1, 1)
-	clearButton.Position = UDim2.new(1, -96, 1, -18)
-	clearButton.Visible = false
-	clearButton.Parent = chrome
-
-	-- legend (bottom-left)
-	local legend = Kit.panel({
-		Name = "Legend",
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 18, 1, -18),
-		Size = UDim2.fromOffset(210, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 0.1,
+	local clearButton = Kit.instructionButton(nil, "Clear waypoint", {
+		Name = "ClearWaypoint",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(0.84, -52, 0.82, 0),
+		Visible = false,
 		Parent = chrome,
 	})
-	Kit.padding(12).Parent = legend
-	Kit.list(Enum.FillDirection.Vertical, 2, Enum.HorizontalAlignment.Left).Parent = legend
-	Kit.label("LEGEND", 18, {
+
+	-- legend (right side of the content area, GTA pause-map style)
+	local legend = Kit.panel({
+		Name = "Legend",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.84, PAUSE_TOP + 0.02),
+		Size = UDim2.fromOffset(190, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Parent = chrome,
+	})
+	Kit.padding(8, 10).Parent = legend
+	Kit.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Left).Parent = legend
+	Kit.text("LEGEND", "condensed", 14, {
 		LayoutOrder = 0,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, 0, 0, 24),
+		Size = UDim2.new(1, 0, 0, 22),
 		Parent = legend,
 	})
 	local order = 1
 	local B = MinimapConfig.BLIPS
-	legendRow(legend, order, "_arrow", WHITE, "You")
+	legendRow(legend, order, "garage", C.Blue, B.ownGarage.label)
 	order += 1
-	legendRow(legend, order, B.ownGarage.icon, B.ownGarage.color, B.ownGarage.label)
-	order += 1
-	legendRow(legend, order, B.otherGarage.icon, B.otherGarage.color, "Rival Garage")
+	legendRow(legend, order, B.otherGarage.icon, C.TextDim, "Rival Garage")
 	order += 1
 	for _, def in MinimapConfig.POIS do
-		legendRow(legend, order, def.icon, def.color, def.label)
+		legendRow(legend, order, def.icon, MinimapController.poiColor(def.id, def.color), def.label)
 		order += 1
 	end
-	legendRow(legend, order, B.hotDrop.icon, B.hotDrop.color, B.hotDrop.label)
+	legendRow(legend, order, B.hotDrop.icon, C.Yellow, B.hotDrop.label)
 	order += 1
-	legendRow(legend, order, B.waypoint.icon, CUSTOM.COLOR, B.waypoint.label)
+	legendRow(legend, order, B.waypoint.icon, C.Waypoint, B.waypoint.label)
 	order += 1
-	legendRow(legend, order, B.police.icon, B.police.red, B.police.label)
-	local legendToggle = chromeButton("LEGEND", Theme.Colors.PanelLight, Vector2.new(130, 48))
-	legendToggle.Name = "LegendToggle"
-	legendToggle.TextSize = 18
-	legendToggle.AnchorPoint = Vector2.new(0, 1)
-	legendToggle.Position = UDim2.new(0, 18, 1, -18)
-	legendToggle.Visible = false
-	legendToggle.Parent = chrome
+	legendRow(legend, order, B.police.icon, C.Red, B.police.label)
+	local legendToggle = Kit.button("Legend", nil, {
+		Name = "LegendToggle",
+		Size = UDim2.fromOffset(110, 36),
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.97, PAUSE_TOP + 0.02),
+		Visible = false,
+		Parent = chrome,
+	})
 
 	local u: Ui = {
 		mapGui = mapGui,
@@ -667,7 +643,12 @@ local function poiList(): { { pos: Vector3, icon: string, color: Color3, label: 
 	local list = {}
 	for _, def in MinimapConfig.POIS do
 		for _, pos in MinimapController.poiPositions(def.at) do
-			table.insert(list, { pos = pos, icon = def.icon, color = def.color, label = string.upper(def.label) })
+			table.insert(list, {
+				pos = pos,
+				icon = def.icon,
+				color = MinimapController.poiColor(def.id, def.color),
+				label = string.upper(def.label),
+			})
 		end
 	end
 	poiCache = list
@@ -738,10 +719,11 @@ local function refresh()
 			local mine = owner == me
 			local sx, sy = MapScreenController.worldToScreen(door.X, door.Z, cx, cz, scale, vpW, vpH)
 			local def = if mine then B.ownGarage else B.otherGarage
+			local garageColor = if mine then C.Blue else C.TextDim
 			blipPut(
 				u.blips,
 				def.icon,
-				def.color,
+				garageColor,
 				if mine then blipSize + 6 else blipSize,
 				sx,
 				sy,
@@ -755,7 +737,15 @@ local function refresh()
 				end
 			end
 			if name and zoomLevel >= 1.3 then
-				labelPut(u.labels, name, math.floor(13 * uiScale), def.color, sx, sy + blipSize * 0.5 + 10 * uiScale, 2)
+				labelPut(
+					u.labels,
+					name,
+					math.floor(13 * uiScale),
+					garageColor,
+					sx,
+					sy + blipSize * 0.5 + 10 * uiScale,
+					2
+				)
 			end
 			addHotspot(door.X, door.Z, name or "GARAGE", sx, sy)
 		end
@@ -769,7 +759,7 @@ local function refresh()
 			blipPut(
 				u.blips,
 				B.police.icon,
-				if red and model:GetAttribute("Siren") == true then B.police.red else B.police.blue,
+				if red and model:GetAttribute("Siren") == true then C.Red else C.Blue,
 				math.floor(blipSize * 0.55),
 				sx,
 				sy,
@@ -844,7 +834,7 @@ local function refreshRoute()
 				end
 			end)
 		end
-		u.gpsText.Text = ("%s  •  %s"):format(
+		u.gpsText.Text = ("%s  ·  %s"):format(
 			string.upper(label),
 			WaypointController.formatDistance(MinimapController.getRemaining())
 		)
@@ -1033,7 +1023,17 @@ function MapScreenController.isOpen(): boolean
 	return isOpen
 end
 
-function MapScreenController.open()
+local function lazyMenu(): any
+	local mod = script.Parent:FindFirstChild("MenuController")
+	if not (mod and mod:IsA("ModuleScript")) then
+		return nil
+	end
+	local ok, result = pcall(require, mod :: any)
+	return if ok and typeof(result) == "table" and typeof(result.openPause) == "function" then result else nil
+end
+
+-- Draw the map (the pause menu's MAP tab calls this when the tab shows).
+function MapScreenController.show()
 	local u = ui
 	if not u or isOpen then
 		return
@@ -1047,8 +1047,8 @@ function MapScreenController.open()
 	cx, cz = 0, MapScreenController.fitCenterZ(scale, chromeTop())
 	local touch = Kit.isTouch()
 	u.hint.Text = if touch
-		then "Tap to set a waypoint  •  Pinch to zoom  •  Drag to move"
-		else "Click to set a waypoint  •  Scroll to zoom  •  Drag to move  •  [M] close"
+		then "Tap to set a waypoint  ·  Pinch to zoom  ·  Drag to move"
+		else "Click to set a waypoint  ·  Scroll to zoom  ·  Drag to move"
 	u.legend.Visible = not touch
 	u.legendToggle.Visible = touch
 	u.legendToggle.Text = "LEGEND"
@@ -1057,10 +1057,9 @@ function MapScreenController.open()
 	accum = math.huge
 	routeAccum = math.huge
 	step(0)
-	pcall(SoundController.play, "Whoosh")
 end
 
-function MapScreenController.close()
+function MapScreenController.hide()
 	local u = ui
 	if not u or not isOpen then
 		return
@@ -1070,11 +1069,31 @@ function MapScreenController.close()
 	pressCount = 0
 	u.mapGui.Enabled = false
 	u.chrome.Enabled = false
-	pcall(SoundController.play, "Click")
+end
+
+-- Open the full map: the pause menu on its MAP tab (or the bare map without a MenuController).
+function MapScreenController.open()
+	local menu = lazyMenu()
+	if menu then
+		pcall(menu.openPause, "MAP")
+		return
+	end
+	MapScreenController.show()
+	pcall(SoundController.play, "Whoosh")
+end
+
+function MapScreenController.close()
+	local menu = lazyMenu()
+	if menu and typeof(menu.closePause) == "function" then
+		pcall(menu.closePause)
+	end
+	MapScreenController.hide()
 end
 
 function MapScreenController.toggle()
-	if isOpen then
+	local menu = lazyMenu()
+	local pauseOpen = menu ~= nil and typeof(menu.isPauseOpen) == "function" and menu.isPauseOpen()
+	if isOpen or pauseOpen then
 		MapScreenController.close()
 	else
 		MapScreenController.open()
@@ -1102,8 +1121,6 @@ function MapScreenController.start()
 		end
 		if input.KeyCode == MAP.KEY then
 			MapScreenController.toggle()
-		elseif input.KeyCode == Enum.KeyCode.ButtonB and isOpen then
-			MapScreenController.close()
 		end
 	end)
 	RunService.RenderStepped:Connect(function(dt: number)

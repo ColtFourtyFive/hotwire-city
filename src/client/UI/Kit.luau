@@ -220,10 +220,12 @@ end
 
 -- Design-px size of a Kit.screen's canvas (its AbsoluteSize / UIScale); 1280x720 until it has been laid out.
 function Kit.canvasSize(gui: ScreenGui): Vector2
-	local abs = gui.AbsoluteSize
+	local ok, abs = pcall(function(): Vector2
+		return gui.AbsoluteSize
+	end)
 	local scale = gui:FindFirstChildOfClass("UIScale")
 	local s = if scale and scale.Scale > 0 then scale.Scale else 1
-	if abs.X < 1 or abs.Y < 1 then
+	if not ok or typeof(abs) ~= "Vector2" or abs.X < 1 or abs.Y < 1 then
 		return Vector2.new(1280, 720)
 	end
 	return Vector2.new(abs.X / s, abs.Y / s)
