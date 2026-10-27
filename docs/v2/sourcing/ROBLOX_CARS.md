@@ -512,7 +512,7 @@ The JSON maps are in `roblox_car_maps/`. Previews are in `assets/source/roblox/<
 | `3204824887` ME412 | Chrysler ME Four-Twelve concept | 19.35 × 9.89 × 5.19 (×0.84) | 18 / 23k | Clean supercar silhouette, flat materials; the Chrysler wing badge is modelled. A "super"-class candidate. |
 | `10141791793` "2020 GMC 2500 AT4" | Actually a **2020 Chevrolet Silverado WT PPV** (`Body/2020 Silverado WT/PPV package`), unmarked black, with Whelen Talon and lightbar | 23.49 × 9.57 × 8.43 (×0.97) | 281 / 367k (62 unions shown as boxes) | Heavy. Unmarked-police flavour. 300 parts exceeds `AssetLibrary.MAX_STORE_PARTS` = 250, so it would be rejected as is. |
 | `71284840505836` Panel van | Low-poly 1980s panel van, light blue-grey, untextured | 19.08 × 6.41 × 7.71 (×0.92) | 15 / 5k | Plain and toy-like up close: background traffic or a parked van only. No textures, no scripts, no backdoor. Front comes from lamp names (no seat). Wheel grouping is uneven (3/2/1/2 parts), so check it by hand. |
-| `94301391128632` Taxi | Crown Victoria-style yellow cab, 2 MeshParts | 18.99 × 7.52 × 5.71 (×1.01) | 2 / 3k | Wheels baked into the body mesh. **Backdoor**: 5 nested TextureConfiguration copies. Per the scout, `112789212430129` is the same mesh (not downloaded). |
+| `94301391128632` Taxi | Crown Victoria-style yellow cab, weathered PS3-era texture, "TAXI" lettering and roof sign | 18.99 × 7.52 × 5.71 (×1.01) | 2 / 3k | It reads well at street distance, and its scale is already right. But the wheels are baked into the body mesh, like the box truck. **Backdoor:** 5 nested TextureConfiguration copies. Per the scout, `112789212430129` is the same mesh (not downloaded). |
 
 ## 7. Problems, assumptions and open items
 

@@ -85,8 +85,13 @@ def robust_bbox(objs, q=0.15):
     V = world_verts(objs)
     if len(V) < 50:
         return world_bbox(objs)
-    lo = np.percentile(V, q, axis=0)
-    hi = np.percentile(V, 100 - q, axis=0)
+    rlo = np.percentile(V, q, axis=0)
+    rhi = np.percentile(V, 100 - q, axis=0)
+    flo, fhi = V.min(axis=0), V.max(axis=0)
+    ext = np.maximum(rhi - rlo, 1e-9)
+    # keep the true extreme unless it sticks out far beyond the bulk (stray plane / helper / junk)
+    lo = np.where(rlo - flo > 0.25 * ext, rlo, flo)
+    hi = np.where(fhi - rhi > 0.25 * ext, rhi, fhi)
     return Vector(lo.tolist()), Vector(hi.tolist())
 
 

@@ -16,13 +16,19 @@ docs/v2/sourcing/roblox_car_maps/<id>.json:
 Rules (first match wins, applied to visible BaseParts; Decals follow their parent part):
   1 Wheel_*      descendant of a wheel container (Wheels/FL.., or a part named like a wheel),
                  quadrant by position in the car frame; Fixed/WheelFixed/Caliper/Brake -> WheelStatic_*
-  2 Lights_*     name ~ light|lamp|led|drl|indicator|signal|blinker|brake|reverse|fog|tail|head..,
+  2 Lights_*     name ~ light|lamp|led|drl|indicator|signal|blinker|brake|reverse|fog|tail|head|phare..,
                  or Material=Neon, or has a Light child; subtype by name, then colour/position
-  3 Glass        Material=Glass, or name ~ glass|window|windscreen|windshield, or 0.15<=T<=0.85
-  4 Interior     name ~ interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|mirror_in
-  5 Paint        untextured parts whose Color matches the paint colour (named paint/body parts first,
-                 else the area-dominant chromatic colour)
-  6 Body         everything else visible
+  3 Glass        Material=Glass, or name ~ glass|window|windscreen|vitre (not trim/contour), or 0.15<=T<=0.85 dark
+  4 Plate        name ~ plate|licence|plaque|matricula
+  5 Interior     name ~ interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|siege|volant
+  6 Lights_*     (second pass) saturated red parts in the rear quarter; parts sharing a dedicated lamp texture
+  7 Paint        untextured parts whose Color matches the paint colour (named paint/body/carrosserie/COLOR
+                 parts first, else the area-dominant chromatic colour); PaintBaked when the named body
+                 part is textured (livery in TextureID/SurfaceAppearance)
+  8 Body         everything else visible
+Also: forward vector (seat look vector checked against the long axis, else lamp names, else the
+ThumbnailCamera side), Config/Assets yaw, suggested scale (1 stud = 0.28 m), compact selectors,
+and a security section (flagged scripts, payload asset ids) from rbxm_inspect's Scan data.
 """
 import json
 import math

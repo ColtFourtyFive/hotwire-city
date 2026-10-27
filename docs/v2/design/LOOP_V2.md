@@ -1270,37 +1270,49 @@ Stage C reference: G = $800/s, Downtown (×1.25). "Per active hour" is a typical
 
 ### 7.4 First 30 minutes, simulated (checks that the numbers hang together)
 
+Revision 2 re-runs this with the new onboarding (Gold Common), the V2 playtime gifts (active seconds) and the trunk. `G_MIN = 5` applies until the garage passes it. incomeMinutes gifts use the garage income at the moment of the claim.
+
 | Time | Action | Wallet | Bank | G |
 |---|---|---|---|---|
-| 0:00 | Spawn | 0 | 150 | 3 |
-| 1:00 | Deliver a Common ($5/s). Evade 1★: `100 + 15 × 3` | 145 | 150 | 8 |
-| 1:10 | Collect | 145 | ~330 | 8 |
-| 1:20–3:00 | Cruise the Rustbucket at ×3–×3.5 | ~1,150 | 330 | 8 |
-| 3:30 | Store hold-up: `(500 + 120 × 8) × 1.0 (industrial) × 1.5` | ~3,340 | 330 | 8 |
-| 4:45 | Evade 2★ (+$440), deposit at the garage, collect | 0 | ~4,800 | 8 |
-| 5–8 | Engine 1 ($100), slot 5 ($1,500), steal 3 more cars | 0 | ~4,000 | ~35 |
-| ~10 | Truck bag: `min(2,000 + 120 × 400, 5,000 + 300 × 35 = 15,500) × 2.0` | 31,000 | 4,000 | 35 |
-| 10–20 | 2 hold-ups (~$8K each), 2 evades, 3 min cruising a Bull Charger | ~60,000 | ~20,000 | ~60 |
-| 20 | Deposit. Buy slot 6 ($8K), slot 7 ($40K), a Rare ($9K), Micro SMG ($6K) | 0 | ~17,000 | ~130 |
-| 30 | — | — | — | **~130 (Stage B ✓)** |
+| 0:00 | Spawn (Rustbucket $3/s) | 0 | 150 | 5 (G_MIN) |
+| 0:45 | Scripted 2★ evade: `2 × (100 + 15 × 5)` | 350 | 150 | 5 |
+| 0:50 | Deliver the Gold Common ($10/s). Trunk: cash `50 + 10 × 13` | 530 | 150 | 13 |
+| 1:10 | Collect | 530 | ~560 | 13 |
+| 1:20–2:30 | Mission 2: hotwire a blue Common, chop it for the order (`0.35 × $250 × 1.5`) | ~660 | 560 | 13 |
+| 3:00 | Playtime gift: 2 incomeMinutes (`2 × 60 × 13`) | 660 | ~2,120 | 13 |
+| 3:30 | Store hold-up: `(500 + 120 × 13) × 1.0 (industrial) × 1.5` | ~3,750 | 2,120 | 13 |
+| 4:30 | Evade 2★ (+$590) | ~4,340 | 2,120 | 13 |
+| 4:45 | Home: deposit and collect (~$2.8K) | 0 | ~9,250 | 13 |
+| 5–8 | Engine 1 ($100), slot 5 ($1,500), steal 3 more cars (+$27/s; ~$600 trunk cash). 8-min gift: 5 incomeMinutes (`5 × 60 × 40`) | ~600 | ~24,500 | 40 |
+| 8–10 | Mission 4: drive the Gold Common at ~×3.5 for 2 min | ~4,800 | 24,500 | 40 |
+| ~10 | Truck bag at 3★: `min(2,000 + 120 × 400, 5,000 + 300 × 40) × 2.0` = $34K. Rookie protection ends. | ~38,800 | 24,500 | 40 |
+| 15 | Playtime gift: Uncommon car (+$20/s) | 38,800 | 24,500 | ~60 |
+| 10–20 | 2 hold-ups at G ~50 (~$9.75K each), 2 evades (~$3.4K), 3 min driving the Uncommon at ~×4 (~$13K) | ~74,700 | 24,500 | 60 |
+| 20 | Deposit and collect (~$36K). Buy slot 6 ($8K), slot 7 ($40K), a Rare ($9K, +$65/s), Micro SMG ($6K) | 0 | ~72,000 | ~125 |
+| 25 | Playtime gift: 10 incomeMinutes (`10 × 60 × 125`) | — | ~150,000 | 125 |
+| 30 | — | — | — | **~125–150 (Stage B ✓)** |
 
-Without the truck bag, G at 30 min is about 80–100. Still Stage B.
+- Without the truck bag, G at 30 min is about 100–120. Still Stage B.
+- **At 60 min** (40-min Rare gift, 60-min gift of 20 incomeMinutes ≈ $300K to the bank, Rep 10 reached): G is about 250–350, the Stage B/C boundary. The v1 gift table (Rare, Epic, then a **Legendary** at 60 min) would have put G near $1,900/s at minute 60, skipping Stage C entirely; that is why it changed (Critique log EC3).
+- **Seven days of gifts** now add one Uncommon and one Rare a day (about $85/s of base income per day, under 1% of a Stage E garage), instead of a Rare, Epic and Legendary a day.
 
 ### 7.5 Inflation controls and telemetry
 
-1. **Income-second scaling with floors and clamps.** Every source is `base + s × G`. Event payouts are clamped to the earner's own scale (truck, heist), so one rich server can't hand a newcomer millions.
-2. **Exponential sink ladders tied to car price.** Upgrades (~20.6 × price to max), slots, security, and Prestige (×2.75 each), which wipes cash.
-3. **Risk sinks.** BUSTED 35% of the wallet, unclaimed drops, ATM fees. Players who never bank lose money to the system.
-4. **Transfers mint nothing.** Mugging, LOADED drops, street bounties, thefts, pink slips and trades. The only minted PvP-adjacent sources (insurance, player-car chop, Most Wanted reward, interceptor, revenge, repo) all have per-day and per-pair caps.
-5. **No cash trading, no cash wagers.** No real-money cash market to inflate.
-6. **Fixed-price soft sinks** (ammo, weapons) are accepted to be trivial late on (gta_combat §5.2).
-7. **Telemetry (EconomyTelemetry).**
-   - Every source and sink calls `AnalyticsService:LogEconomyEvent(player, flowType, "Cash", amount, endingBalance, transactionType, itemSku)`. `transactionType` uses `Enum.AnalyticsEconomyTransactionType` (Gameplay, Shop, IAP, TimedReward, Onboarding, ContextualPurchase) and the SKU is the §7.2 row id (S4, K3…).
-   - Custom funnels: first steal, first deposit, first truck bag, Rep 5/10, first theft loss → still playing 10 min later (quit-after-loss rate).
-8. **Anomaly flag.**
-   - A player whose minted $/h exceeds 20 × G × 3,600 over a rolling 30 min, or whose wallet grows faster than any legal source allows, is logged to AdminService with a source breakdown. Never auto-kicked.
+1. **Income-second scaling with floors and clamps.** Every source is `base + s × G`. Payouts that scale with someone else's G (truck bags, heist shares, the Most Wanted reward) are clamped to the **earner's own** scale, so one rich server or one rich target can't hand a newcomer or an alt millions. Event multipliers apply after the clamp.
+2. **Exponential sink ladders tied to car price.** Upgrades (~20.6 × price to max), slots, security, and Prestige (`max(×2.75 ladder, 3 h × G)`), which wipes cash.
+3. **Risk sinks.** The wanted loss (7% of the wallet per star on BUSTED, WASTED while wanted and combat-logging), unclaimed drops, the LOADED leave fee, ATM fees. Players who never bank lose money to the system.
+4. **Transfers mint nothing.** Mugging, LOADED drops, street bounties, thefts, pink slips and trades. The only minted PvP-adjacent sources (insurance, player-car chop, Most Wanted reward, interceptor, revenge, repo) all have hard per-day and per-pair caps, pay nothing between friends where a friend could stage them, and insurance is clawed back if the car comes home.
+5. **Asset funnels are bounded.** Trades and pink-slip losses are capped by `TRADE_NET_OUT_PER_DAY`; reward-origin cars are trade-locked 14 days; stolen cars are trade- and sell-locked 7 days; dealership purchases are Rep-gated by rarity.
+6. **No cash trading, no cash wagers.** No real-money cash market to inflate.
+7. **Fixed-price soft sinks** (ammo, weapons) are accepted to be trivial late on (gta_combat §5.2).
+8. **Telemetry (EconomyTelemetry).**
+   - Every source and sink calls `AnalyticsService:LogEconomyEvent(player, flowType, "Cash", amount, endingBalance, transactionType, itemSku)` with **one currency, "Cash"**, and `endingBalance = wallet + bank`. Deposits (wallet → bank) are internal moves and are **not** logged. `transactionType` uses `Enum.AnalyticsEconomyTransactionType` (Gameplay, Shop, IAP, TimedReward, Onboarding, ContextualPurchase) and the SKU is the §7.2 row id (S4, K3…).
+   - **Street income is logged once per drive** (on park, eject, WASTED or BUSTED, and at most every 60 s while driving), never per tick: at 1 Hz, 8 drivers alone would send 480 events a minute into a per-server rate limit.
+   - Custom funnels: first steal, first deposit, first truck bag, Rep 5/10, first theft loss → still playing 10 min later (quit-after-loss rate), rookie opt-out rate, first heist (solo vs crew).
+9. **Anomaly flag.**
+   - A player whose minted $/h exceeds 20 × G × 3,600 over a rolling 30 min, whose wallet grows faster than any legal source allows, or who earns street income for more than 2 h straight with a near-miss/drift/airtime rate of zero, is logged to AdminService with a source breakdown. Never auto-kicked.
    - Admins review in `/hc audit <player>`.
-9. **Weekly balance review:** the share of sources by stage, against §7.1's mix column. Tune through `HC_LiveConfig` multipliers and Config.
+10. **Weekly balance review:** the share of sources by stage, against §7.1's mix column. Tune through `HC_LiveConfig` multipliers and Config.
 
 ---
 
@@ -1328,8 +1340,8 @@ Without the truck bag, G at 30 min is about 80–100. Still Stage B.
 | `slots` | +2 Garage Slots | 299 | Slots 11–12 (v1) | Capacity |
 | `vault` | +1 Vault Bay | 249 | A third vault bay (a second one is free at Rep 25) | Protects parked cars only. Driving still carries full risk. |
 | `autocollect` | Auto-Collect | 199 | Garage cash goes to the bank every 60 s | Convenience |
-| `neon` | Neon & Underglow Kit | 149 | Underglow and neon accents from Rep 1 (free at Rep 20) | Cosmetic |
-| `plates` | Custom Plates | 99 | Custom plate text from Rep 1 (free at Rep 20) | Cosmetic |
+| `neon` | Neon & Underglow Kit | 149 | Underglow and neon accents from Rep 1 (free at Rep 10) | Cosmetic |
+| `plates` | Custom Plates | 99 | Custom plate text from Rep 1 (free at Rep 10) | Cosmetic |
 | `horns` | Horn & Radio Pack | 99 | 10 horns, 2 extra radio stations | Cosmetic |
 | `emotes` | Street Emotes | 149 | 8 emotes | Cosmetic |
 
@@ -1345,11 +1357,11 @@ Without the truck bag, G at 30 min is about 80–100. Still Stage B.
 | `starter_pack` | Starter Pack | 99 | One-time per account: a bound Rare "Stallion GT" with exclusive paint, $10,000 to the bank, 3 light armor, 48 P9 rounds | Once, 8–10 min into the first session (phone text), then only in the store |
 | `lockdown` | Lockdown | 49 | Lock the garage for 10 min; stacks (v1 `lock_10`, DECISIONS §7). **V2: can't be bought while a theft from your garage is in progress, and never ejects a thief already driving out.** | When the Alarm fires (intruder entered) |
 | `lose_cops` | Lose the Cops | 49 | Clears 1–4★. Not at 5★, not while carrying event loot, not with a street bounty, not as Menace. Refused at 0★ (v1). | Phone › Contacts › Lawyer (cash option beside it) |
-| `impound_release` | Impound Release | 29 | Instantly releases one impounded car | Impound notice |
-| `rush_repair` | Rush Repair | 19 | Instantly finishes one repair | Repair notice |
+| `impound_release` | Impound Release | 29 | Instantly releases one impounded car (the free wait is only 120 s, so this is a pure convenience) | Impound notice |
+| `rush_repair` | Rush Repair | 19 | Instantly finishes one repair (free after 60 s) | Repair notice |
 | `server_luck` | Server Luck ×2 | 199 | Street and dealer luck ×2 for **everyone** for 15 min, stacking duration; buyer announced; displayed odds update (v1) | Phone store |
 | `make_it_rain` | Make It Rain | 149 | Triggers a server-wide Cash Rain (v1 mechanics); buyer announced | Phone store |
-| `double_it` | Double It | 49 | Doubles the buyer's own share of the truck bag or heist payout just delivered (PvE only). Max 3 per UTC day. | On the payout shard, 10 s window, quiet button |
+| `double_it` | Double It | 49 | Grants the buyer `min(share, 300 s × G)` more for the truck bag or heist share just delivered (PvE only), to the bank. **Once per UTC day.** Refused while any live-ops or event multiplier (Double Crime Cash, Golden Truck, Bounty Night) applied to that payout. The 300 s cap keeps the rate equal to `cash_small` (99 R$ for 600 s × G), so it is never the cheapest way to buy cash. | In the payout summary, a quiet button visible for 30 s (no countdown) |
 | `tint_gold` / `tint_platinum` | Weapon tints | 99 / 149 | Cosmetic gun tints (gta_combat §5.3; also $2M cash) | Gun store |
 | `diamond_dragster` | Diamond Dragster | 799 | Bound hero car, re-tuned (§2.10): Epic-band income, Legendary-band performance, unstealable-to-keep, untradeable, excluded from pink slips | Dealership "Hero" stand |
 | `street_pass` | Street Pass Premium | 499 | §6.5 premium track (a pass-type product per season) | Pause › STORE |

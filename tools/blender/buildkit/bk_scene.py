@@ -47,7 +47,7 @@ def reset(res=(960, 540)):
             break
         except Exception:
             continue
-    s.view_settings.exposure = -0.6
+    s.view_settings.exposure = -0.7
     s.render.image_settings.file_format = "PNG"
     return s
 
@@ -106,7 +106,7 @@ def prep_sky(sky):
 
 
 def world(sky="sky_late_afternoon", sun_az=-55.0, strength=1.0, sun=True, sun_scale=1.0, sun_el=None,
-          sun_tint=(1.0, 0.93, 0.82), sky_gain=1.5):
+          sun_tint=(1.0, 0.93, 0.82), sky_gain=2.2):
     """sun_az: azimuth (deg, from +X towards +Y) of the direction pointing AT the sun.
     The sky is rotated so its painted-out sun sits at sun_az; a Sun lamp replaces it."""
     info = prep_sky(sky)
@@ -234,6 +234,7 @@ def _m(key):
          "curb": lambda: M.textured("Curb", "curb", tint=(1.05, 1.05, 1.05)),
          "grass": lambda: M.textured("Grass", "grass", tint=(0.62, 0.95, 0.42)),
          "dirt": lambda: M.textured("Dirt", "roof_gravel", tint=(0.75, 0.62, 0.48)),
+         "drygrass": lambda: M.textured("DryGrass", "grass", tint=(1.05, 0.88, 0.5)),
          "sand": lambda: M.textured("Sand", "sand", tint=(1.05, 1.0, 0.92)),
          "sea": lambda: M.water("Sea", (0.04, 0.22, 0.30)),
          "white": lambda: M.paint("PaintWhite", (0.85, 0.85, 0.82), 0.7),
@@ -468,9 +469,11 @@ def tree(col, x, y, h=22.0, seed=0, spread=None):
         tip = crown_c + Vector((math.cos(a) * spread * 0.5, math.sin(a) * spread * 0.5, r.uniform(-1, h * 0.15)))
         G.hcylinder(t, fork, tip, 0.45, seg=6)
     G.to_object(t, _m("tree_trunk"), col)
+    lobes = [crown_c + Vector((r.uniform(-0.5, 0.5) * spread, r.uniform(-0.5, 0.5) * spread, r.uniform(-0.1, 0.25) * h))
+             for _ in range(4)]
     for key in ("tree_leaf", "tree_leaf2"):
         lf = G.MeshBuf("Leaves", 4)
-        n = 900
+        n = 1500
         for i in range(n):
             # sample inside a lumpy ellipsoid, biased to the surface
             while True:
@@ -478,8 +481,9 @@ def tree(col, x, y, h=22.0, seed=0, spread=None):
                 if v.length <= 1:
                     break
             v = v.normalized() * (v.length ** 0.35)
-            p = crown_c + Vector((v.x * spread, v.y * spread, v.z * h * 0.34))
-            s = r.uniform(0.9, 1.6)
+            cc = lobes[i % len(lobes)]
+            p = cc + Vector((v.x * spread * 0.62, v.y * spread * 0.62, v.z * h * 0.24))
+            s = r.uniform(0.55, 1.0)
             a = Vector((r.uniform(-1, 1), r.uniform(-1, 1), r.uniform(-0.3, 1))).normalized()
             b = a.cross(Vector((r.uniform(-1, 1), r.uniform(-1, 1), r.uniform(-1, 1)))).normalized()
             G.tri(lf, tuple(p), tuple(p + a * s), tuple(p + b * s))

@@ -1,21 +1,26 @@
 --!strict
 -- MapScreenController: the fullscreen city map (GTA pause-map style).
 --
---  * Open with M, by clicking / tapping the radar (MinimapController), or MapScreenController.open(). Close with the X
---    button, M again or gamepad B.
+--  * Open with M, gamepad D-pad up (MinimapConfig.MAP.PAD_KEY), by clicking / tapping the radar (MinimapController),
+--    or MapScreenController.open(). Close with the X button, M / D-pad up again or gamepad B.
+--  * Gamepad (bound while open, sinks the character / driving binds): left stick pans, LT / RT or the right stick
+--    zoom, A sets the waypoint under the center reticle (on it: clears it), X clears, Y finds you.
 --  * Pan by dragging (mouse or one finger), zoom with the mouse wheel (around the cursor), a pinch (around the
 --    fingers) or the +/- buttons; the target button re-centers on you.
 --  * Click / tap the map to set your waypoint (WaypointController id Config/Minimap.CUSTOM_WAYPOINT.ID: the 3D beam in
 --    the world + the GPS route on the radar); tapping a blip drops the waypoint right on that place. Tap your
 --    waypoint again (or CLEAR WAYPOINT) to remove it.
---  * Shows the same map art as the radar, district names (UI labels, nothing baked), every blip (shops, landmarks,
---    your garage, other players' garages with their names, waypoints, police, players), the GPS route and you.
---    A legend explains the blips (collapsible on phones).
+--  * Shows the same map art as the radar, district names (UI labels, nothing baked; they step aside from blips),
+--    every blip (shops, landmarks, your garage, other players' garages with their names, waypoints, police cars,
+--    the police chopper, other players), the GPS route and you. A legend explains the blips (on phones: a toggled
+--    two-column panel above its button; it scrolls when the screen is too short).
+--  * Presses that land on the chrome (buttons, legend, title, GPS chip) never also drop a waypoint (overChrome).
 --  * Map layer: a raw ScreenGui (no UIScale) so input math stays in real pixels; the chrome (title, buttons, legend)
 --    is a Kit.screen with the usual scaling.
 --
 -- Public API: open(), close(), toggle(), isOpen()
--- Pure helpers (tests): fitScale, fitCenterZ, worldToScreen, screenToWorld, zoomAround, clampCenter, isTap.
+-- Pure helpers (tests): fitScale, fitCenterZ, worldToScreen, screenToWorld, zoomAround, clampCenter, isTap,
+--   legendEntries, legendLayout, placeLabel.
 
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
@@ -168,7 +173,12 @@ export type LegendLayout = {
 -- Legend panel for `count` rows on the chrome canvas (design px, inset-relative): one column on desktop (bottom-left),
 -- two on touch, opening above the LEGEND / HIDE button. Never taller than the space between the title / hint header
 -- (MAP.CHROME_TOP) and its bottom edge: the rows scroll instead.
-function MapScreenController.legendLayout(count: number, _canvasW: number, canvasH: number, touch: boolean): LegendLayout
+function MapScreenController.legendLayout(
+	count: number,
+	_canvasW: number,
+	canvasH: number,
+	touch: boolean
+): LegendLayout
 	local cols = if touch then 2 else 1
 	local rows = math.max(1, math.ceil(count / cols))
 	local content = rows * MAP.LEGEND_ROW + (rows - 1) * LEGEND_ROW_GAP
@@ -264,6 +274,11 @@ local presses: { [InputObject]: Press } = {}
 local pressCount = 0
 local pinchDist = 0
 local pinchMid = Vector2.zero
+-- gamepad (ContextActionService while open): left stick pans, LT / RT and the right stick zoom
+local padStick = Vector2.zero
+local padZoom = 0 -- right stick Y
+local padIn, padOut = 0, 0 -- RT / LT pressure
+local padBound = false
 
 local function cellOf(icon: string): { number }?
 	return MinimapController.cellOf(icon)
@@ -1051,6 +1066,35 @@ local function refreshRoute()
 	end
 end
 
+-- Radial deadzone, rescaled so the stick still reaches 1 at full tilt.
+local function deadzone(v: Vector2): Vector2
+	local m = v.Magnitude
+	if m <= MAP.PAD_DEADZONE then
+		return Vector2.zero
+	end
+	return v.Unit * math.min(1, (m - MAP.PAD_DEADZONE) / (1 - MAP.PAD_DEADZONE))
+end
+
+local function padStep(dt: number)
+	local stick = deadzone(padStick)
+	if stick.Magnitude > 0 then
+		-- stick up = north (screen up); the speed is in screen px so it feels the same at every zoom
+		local px = MAP.PAD_PAN_SPEED * dt * uiScale
+		cx, cz = MapScreenController.clampCenter(cx + stick.X * px / scale, cz - stick.Y * px / scale)
+		accum = math.huge
+	end
+	local z = padIn - padOut
+	if math.abs(padZoom) > MAP.PAD_DEADZONE then
+		z += padZoom
+	end
+	if math.abs(z) > 0.05 then
+		local lo, hi = limits()
+		local factor = MAP.PAD_ZOOM_RATE ^ (math.clamp(z, -1, 1) * dt)
+		cx, cz, scale = MapScreenController.zoomAround(cx, cz, scale, factor, vpW / 2, vpH / 2, vpW, vpH, lo, hi)
+		accum = math.huge
+	end
+end
+
 local function step(dt: number)
 	if not isOpen then
 		return
@@ -1058,6 +1102,9 @@ local function step(dt: number)
 	clock += dt
 	accum += dt
 	routeAccum += dt
+	if padBound then
+		padStep(dt)
+	end
 	if accum >= UPDATE_DT then
 		accum = 0
 		refresh()
@@ -1076,6 +1123,25 @@ local function inputPos(input: InputObject): Vector2
 	-- InputObject positions exclude the topbar inset; the map gui ignores it
 	local inset = GuiService:GetGuiInset()
 	return Vector2.new(input.Position.X, input.Position.Y) + inset
+end
+
+-- Is the (inset-relative) press position on a chrome element (title, hint, buttons, legend, GPS chip)? Those take
+-- the press themselves; it must not also drop a waypoint on the map underneath, whatever the engine's input sinking
+-- does across the two ScreenGuis.
+local function overChrome(raw: Vector2): boolean
+	local u = ui
+	if not (u and u.chrome.Enabled) then
+		return false
+	end
+	for _, g in u.blockers do
+		if g.Visible then
+			local p, size = g.AbsolutePosition, g.AbsoluteSize
+			if raw.X >= p.X and raw.X <= p.X + size.X and raw.Y >= p.Y and raw.Y <= p.Y + size.Y then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 local function onTap(at: Vector2)
@@ -1145,6 +1211,9 @@ local function bindInput(u: Ui)
 		end
 		local t = input.UserInputType
 		if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch then
+			if overChrome(Vector2.new(input.Position.X, input.Position.Y)) then
+				return
+			end
 			local p = inputPos(input)
 			presses[input] = { start = p, last = p, t = os.clock(), moved = 0 }
 			pressCount = countPresses()
@@ -1229,6 +1298,116 @@ function MapScreenController.isOpen(): boolean
 	return isOpen
 end
 
+local function isGamepad(): boolean
+	local ok, last = pcall(function()
+		return UserInputService:GetLastInputType()
+	end)
+	return ok and typeof(last) == "EnumItem" and string.sub(last.Name, 1, 7) == "Gamepad"
+end
+
+-- Design canvas of the chrome ScreenGui (inset-relative; touch scale floor Theme.TouchMinScale).
+local function chromeCanvas(u: Ui): (number, number)
+	local s = Kit.uiScale(Theme.TouchMinScale)
+	local abs = u.chrome.AbsoluteSize
+	if s > 0 and abs.X >= 1 and abs.Y >= 1 then
+		return abs.X / s, abs.Y / s
+	end
+	return 1280, 720
+end
+
+-- Legend size / place + hint text + gamepad reticle for the current input type.
+local function applyChrome(u: Ui)
+	local touch = Kit.isTouch()
+	local pad = not touch and isGamepad()
+	local w, h = chromeCanvas(u)
+	local count = #MapScreenController.legendEntries()
+	local lay = MapScreenController.legendLayout(count, w, h, touch)
+	u.legend.Size = UDim2.fromOffset(lay.width, lay.height)
+	u.legend.Position = UDim2.new(0, LEGEND_MARGIN, 1, -lay.bottom)
+	u.legendGrid.CellSize = UDim2.fromOffset(MAP.LEGEND_COLUMN, MAP.LEGEND_ROW)
+	u.legendRows.ScrollingEnabled = lay.scrolls
+	u.legendToggle.Visible = touch
+	u.hint.Text = if touch
+		then "Tap to set a waypoint  •  Pinch to zoom  •  Drag to move"
+		elseif pad then "[A] Set waypoint  •  [LT / RT] Zoom  •  [X] Clear  •  [Y] Find me  •  [B] Close"
+		else "Click to set a waypoint  •  Scroll to zoom  •  Drag to move  •  [M] close"
+	u.reticle.Visible = pad
+end
+
+local function onPad(_name: string, state: Enum.UserInputState, input: InputObject): Enum.ContextActionResult
+	if not isOpen then
+		return Enum.ContextActionResult.Pass
+	end
+	local key = input.KeyCode
+	local ended = state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel
+	if key == Enum.KeyCode.Thumbstick1 then
+		padStick = if ended then Vector2.zero else Vector2.new(input.Position.X, input.Position.Y)
+	elseif key == Enum.KeyCode.Thumbstick2 then
+		padZoom = if ended then 0 else input.Position.Y
+	elseif key == Enum.KeyCode.ButtonR2 then
+		padIn = if ended then 0 else math.clamp(input.Position.Z, 0, 1)
+	elseif key == Enum.KeyCode.ButtonL2 then
+		padOut = if ended then 0 else math.clamp(input.Position.Z, 0, 1)
+	elseif state == Enum.UserInputState.Begin then
+		if key == Enum.KeyCode.ButtonA then
+			-- the reticle sits at the screen center (on your waypoint: clears it, like a second tap)
+			onTap(Vector2.new(vpW / 2, vpH / 2))
+		elseif key == Enum.KeyCode.ButtonX then
+			if MinimapController.getCustomWaypoint() then
+				MinimapController.setCustomWaypoint(nil)
+				pcall(SoundController.play, "Click")
+				accum = math.huge
+			end
+		elseif key == Enum.KeyCode.ButtonY then
+			local p = rootPos()
+			if p then
+				cx, cz = MapScreenController.clampCenter(p.X, p.Z)
+				accum = math.huge
+			end
+		elseif key == Enum.KeyCode.ButtonB or key == MAP.PAD_KEY then
+			task.defer(MapScreenController.close)
+		end
+	end
+	-- sunk: the character / camera / driving binds don't react while the map is up
+	return Enum.ContextActionResult.Sink
+end
+
+local function bindPad()
+	if padBound then
+		return
+	end
+	padBound = true
+	padStick, padZoom, padIn, padOut = Vector2.zero, 0, 0, 0
+	pcall(function()
+		ContextActionService:BindActionAtPriority(
+			ACTION_PAD,
+			onPad,
+			false,
+			PAD_PRIORITY,
+			Enum.KeyCode.Thumbstick1,
+			Enum.KeyCode.Thumbstick2,
+			Enum.KeyCode.ButtonL2,
+			Enum.KeyCode.ButtonR2,
+			Enum.KeyCode.ButtonA,
+			Enum.KeyCode.ButtonB,
+			Enum.KeyCode.ButtonX,
+			Enum.KeyCode.ButtonY,
+			MAP.PAD_KEY
+		)
+	end)
+end
+
+local function unbindPad()
+	if not padBound then
+		return
+	end
+	padBound = false
+	padStick, padZoom, padIn, padOut = Vector2.zero, 0, 0, 0
+	pcall(function()
+		ContextActionService:UnbindAction(ACTION_PAD)
+	end)
+end
+
 function MapScreenController.open()
 	local u = ui
 	if not u or isOpen then
@@ -1241,15 +1420,12 @@ function MapScreenController.open()
 	local lo = limits()
 	scale = lo
 	cx, cz = 0, MapScreenController.fitCenterZ(scale, chromeTop())
-	local touch = Kit.isTouch()
-	u.hint.Text = if touch
-		then "Tap to set a waypoint  •  Pinch to zoom  •  Drag to move"
-		else "Click to set a waypoint  •  Scroll to zoom  •  Drag to move  •  [M] close"
-	u.legend.Visible = not touch
-	u.legendToggle.Visible = touch
+	applyChrome(u)
+	u.legend.Visible = not Kit.isTouch()
 	u.legendToggle.Text = "LEGEND"
 	u.mapGui.Enabled = true
 	u.chrome.Enabled = true
+	bindPad()
 	accum = math.huge
 	routeAccum = math.huge
 	step(0)
@@ -1264,6 +1440,7 @@ function MapScreenController.close()
 	isOpen = false
 	table.clear(presses)
 	pressCount = 0
+	unbindPad()
 	u.mapGui.Enabled = false
 	u.chrome.Enabled = false
 	pcall(SoundController.play, "Click")
@@ -1292,12 +1469,27 @@ function MapScreenController.start()
 			routeAccum = math.huge
 		end
 	end)
+	u.chrome:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		if isOpen then
+			applyChrome(u)
+		end
+	end)
+	pcall(function()
+		UserInputService.LastInputTypeChanged:Connect(function()
+			if isOpen then
+				applyChrome(u)
+			end
+		end)
+	end)
 	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
 		if processed then
 			return
 		end
 		if input.KeyCode == MAP.KEY then
 			MapScreenController.toggle()
+		elseif input.KeyCode == MAP.PAD_KEY then
+			-- opens only: while open the gamepad bind (onPad) owns the button and closes it
+			MapScreenController.open()
 		elseif input.KeyCode == Enum.KeyCode.ButtonB and isOpen then
 			MapScreenController.close()
 		end

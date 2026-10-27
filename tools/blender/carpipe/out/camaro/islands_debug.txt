@@ -1,0 +1,31 @@
+Body         vis=2 faces=   605 area= 128.107 c=[-1.78 -0.96  1.88] why= :: Material | Cube / Cube
+Body         vis=2 faces=   605 area= 128.107 c=[ 1.8  -0.96  1.88] why= :: Material | Cube / Cube
+Body         vis=2 faces=    82 area=  16.818 c=[-1.36  4.99  3.14] why= :: Material | Cube.012 / Cube.012
+Body         vis=2 faces=    82 area=  16.818 c=[1.38 4.99 3.14] why= :: Material | Cube.012 / Cube.012
+WheelFR      vis=2 faces=   330 area=  14.906 c=[2.96 5.08 1.11] why=wheel-cylinder :: None | Circle.002 / Circle.002
+WheelRL      vis=2 faces=   330 area=  14.906 c=[-2.96 -5.08  1.11] why=wheel-cylinder :: None | Circle.001 / Circle.001
+WheelFL      vis=2 faces=   330 area=  14.906 c=[-2.96  5.08  1.11] why=wheel-cylinder :: None | Circle / Circle
+WheelRR      vis=2 faces=   330 area=  14.906 c=[ 2.96 -5.08  1.11] why=wheel-cylinder :: None | Circle.003 / Circle.003
+Body         vis=2 faces=    95 area=  12.539 c=[-3.13 -0.07  1.9 ] why= :: Material | Cube.011 / Cube.011
+Body         vis=2 faces=    95 area=  12.539 c=[ 3.15 -0.07  1.9 ] why= :: Material | Cube.011 / Cube.011
+Trim         vis=2 faces=    12 area=   9.246 c=[0.01 1.47 3.94] why= :: None | Cube.001 / Cube.001
+Trim         vis=2 faces=    18 area=   7.894 c=[ 0.01 -4.74  4.13] why= :: None | Cube.001 / Cube.001
+Trim         vis=2 faces=     9 area=   5.782 c=[-2.56 -1.05  3.69] why= :: None | Cube.001 / Cube.001
+Trim         vis=2 faces=     9 area=   5.782 c=[ 2.57 -1.05  3.69] why= :: None | Cube.001 / Cube.001
+Body         vis=2 faces=    45 area=   5.596 c=[ 1.15 -7.4   3.19] why= :: Material | Cube.013 / Cube.013
+Body         vis=2 faces=    45 area=   5.596 c=[-1.14 -7.4   3.19] why= :: Material | Cube.013 / Cube.013
+Trim         vis=2 faces=    18 area=   4.911 c=[0.01 7.39 2.05] why= :: None | Cube.002 / Cube.002
+Trim         vis=2 faces=    34 area=   4.317 c=[0.01 7.49 1.42] why= :: None | Cube.003 / Cube.003
+Trim         vis=2 faces=    22 area=   3.574 c=[ 0.01 -8.72  1.76] why= :: None | Cube.009 / Cube.009
+Trim         vis=2 faces=    26 area=   0.894 c=[2.41 7.29 2.02] why= :: None | Cylinder.001 / Cylinder.001
+Trim         vis=2 faces=    26 area=   0.894 c=[-2.35  7.29  2.02] why= :: None | Cylinder / Cylinder
+Trim         vis=2 faces=     1 area=   0.352 c=[1.43 7.3  1.27] why= :: None | Cube.010 / Cube.010
+Trim         vis=2 faces=     1 area=   0.352 c=[-1.41  7.3   1.27] why= :: None | Cube.010 / Cube.010
+Trim         vis=2 faces=     1 area=   0.328 c=[ 1.66 -8.82  2.02] why= :: None | Cube.008 / Cube.008
+Trim         vis=2 faces=     1 area=   0.328 c=[-1.64 -8.82  2.02] why= :: None | Cube.008 / Cube.008
+Trim         vis=2 faces=     5 area=   0.300 c=[3.08 1.6  3.33] why= :: None | Cube.007 / Cube.007
+Trim         vis=2 faces=     5 area=   0.300 c=[-3.04  1.44  3.33] why= :: None | Cube.004 / Cube.004
+Trim         vis=2 faces=    10 area=   0.064 c=[-2.89  1.55  3.2 ] why= :: None | Cube.005 / Cube.005
+Trim         vis=2 faces=    10 area=   0.064 c=[2.9  1.65 3.2 ] why= :: None | Cube.006 / Cube.006
+Body         vis=2 faces=     1 area=   0.004 c=[0.04 6.91 2.99] why= :: Material | Cube / Cube
+Body         vis=2 faces=     1 area=   0.004 c=[-0.02  6.91  2.99] why= :: Material | Cube / Cube

@@ -1,0 +1,434 @@
+{
+  "name": "uaz452",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "UAZ-452 Utility Van Lowpoly",
+    "url": "https://opengameart.org/content/uaz-452-utility-van-lowpoly",
+    "download": "https://opengameart.org/sites/default/files/uaz-452_onlymodelandtex.zip",
+    "license": "CC0",
+    "attribution": "UAZ-452 Utility Van Lowpoly by Mehozavr (OpenGameArt.org), CC0"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "uaz452.glb",
+  "dimensions": {
+    "length": 17.0,
+    "width": 8.868,
+    "height": 7.914,
+    "wheelbase": 9.094,
+    "track_front": 5.612,
+    "track_rear": 5.612,
+    "bbox_min": [
+      -4.4439,
+      0.0,
+      -8.5287
+    ],
+    "bbox_max": [
+      4.4245,
+      7.9145,
+      8.4713
+    ]
+  },
+  "wheels": {
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.806,
+        1.4629,
+        -4.5469
+      ],
+      "radius": 1.4629,
+      "width": 0.9506,
+      "part_center": [
+        2.806,
+        1.4629,
+        -4.5469
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 28
+    },
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.806,
+        1.4629,
+        -4.5469
+      ],
+      "radius": 1.4629,
+      "width": 0.9506,
+      "part_center": [
+        -2.806,
+        1.4629,
+        -4.5469
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 28
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.806,
+        1.4629,
+        4.5469
+      ],
+      "radius": 1.4629,
+      "width": 0.9506,
+      "part_center": [
+        2.806,
+        1.4629,
+        4.5469
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 28
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.806,
+        1.4629,
+        4.5469
+      ],
+      "radius": 1.4629,
+      "width": 0.9506,
+      "part_center": [
+        -2.806,
+        1.4629,
+        4.5469
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 28
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.685,
+        2.8492,
+        0.7275
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.685,
+        2.8492,
+        0.7275
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -3.1926,
+          3.3241,
+          -8.33
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          3.1926,
+          3.3241,
+          -8.33
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": true
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -3.1926,
+          4.1155,
+          8.33
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          3.1926,
+          4.1155,
+          8.33
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.6605,
+        0.9497,
+        8.3013
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    2.5326,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "UazMat",
+      "color_srgb": [
+        0.8353,
+        0.6118,
+        0.0
+      ],
+      "textured": true,
+      "metallic": 0.0,
+      "roughness": 0.4000000059604645,
+      "mask_coverage": 0.675
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 611,
+      "bbox_min": [
+        -3.7121,
+        1.0002,
+        -8.3955
+      ],
+      "bbox_max": [
+        3.6927,
+        7.9145,
+        8.162
+      ],
+      "textures": {
+        "normal": "textures/uaz452_Body_normal.png",
+        "metal": "textures/uaz452_Body_metal.png",
+        "base": "textures/uaz452_Body_base.png",
+        "rough": "textures/uaz452_Body_rough.png",
+        "tintmask": "textures/uaz452_Body_tintmask.png",
+        "overlay": "textures/uaz452_Body_overlay.png"
+      }
+    },
+    "Trim": {
+      "tris": 288,
+      "bbox_min": [
+        -4.4439,
+        2.1866,
+        -8.5287
+      ],
+      "bbox_max": [
+        4.4245,
+        6.2915,
+        8.4713
+      ],
+      "textures": {
+        "normal": "textures/uaz452_Trim_normal.png",
+        "metal": "textures/uaz452_Trim_metal.png",
+        "base": "textures/uaz452_Trim_base.png",
+        "rough": "textures/uaz452_Trim_rough.png",
+        "ao": "textures/uaz452_Trim_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 28,
+      "bbox_min": [
+        2.3307,
+        0.0,
+        -6.0098
+      ],
+      "bbox_max": [
+        3.2813,
+        2.9259,
+        -3.084
+      ],
+      "textures": {
+        "normal": "textures/uaz452_Wheel_normal.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
+        "ao": "textures/uaz452_Wheel_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 28,
+      "bbox_min": [
+        -3.2813,
+        0.0,
+        -6.0098
+      ],
+      "bbox_max": [
+        -2.3307,
+        2.9259,
+        -3.084
+      ],
+      "textures": {
+        "normal": "textures/uaz452_Wheel_normal.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
+        "ao": "textures/uaz452_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 28,
+      "bbox_min": [
+        2.3307,
+        0.0,
+        3.084
+      ],
+      "bbox_max": [
+        3.2813,
+        2.9259,
+        6.0098
+      ],
+      "textures": {
+        "normal": "textures/uaz452_Wheel_normal.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
+        "ao": "textures/uaz452_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 28,
+      "bbox_min": [
+        -3.2813,
+        0.0,
+        3.084
+      ],
+      "bbox_max": [
+        -2.3307,
+        2.9259,
+        6.0098
+      ],
+      "textures": {
+        "normal": "textures/uaz452_Wheel_normal.png",
+        "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
+        "ao": "textures/uaz452_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 1014,
+    "total": 1011,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "Y",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.0,
+      "white_lights": 0.0,
+      "deck_height": 0.8,
+      "cabin": 0.255,
+      "mirrors": 0.989
+    },
+    "confidence": 5.044
+  },
+  "scale": {
+    "source_length": 4.37029504776001,
+    "factor": 3.8898975502153643,
+    "target_length": 17.0
+  },
+  "classes": {
+    "Body": {
+      "islands": 6,
+      "faces": 298,
+      "area": 481.236
+    },
+    "Trim": {
+      "islands": 8,
+      "faces": 144,
+      "area": 26.703
+    },
+    "WheelFR": {
+      "islands": 1,
+      "faces": 10,
+      "area": 20.622
+    },
+    "WheelFL": {
+      "islands": 1,
+      "faces": 10,
+      "area": 20.622
+    },
+    "WheelRR": {
+      "islands": 1,
+      "faces": 10,
+      "area": 20.622
+    },
+    "WheelRL": {
+      "islands": 1,
+      "faces": 10,
+      "area": 20.622
+    }
+  },
+  "warnings": []
+}

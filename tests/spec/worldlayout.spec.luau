@@ -140,7 +140,9 @@ return function(t)
 				flyover += 1
 			end
 		end
-		for _, c in { "freeway", "ramp", "highway", "boulevard", "avenue", "street", "rural", "channel", "pier", "runway" } do
+		for _, c in
+			{ "freeway", "ramp", "highway", "boulevard", "avenue", "street", "rural", "channel", "pier", "runway" }
+		do
 			t.ok((classes[c] or 0) > 0, "has class " .. c)
 		end
 		t.ok(bridges >= 5, "bridges over water / the channel: " .. bridges)
@@ -221,9 +223,6 @@ return function(t)
 				if math.abs(y1 - y2) < S.CLEARANCE - 2 then
 					bad += 1
 					first = first or ("%s x %s at (%d, %d) dy %.1f"):format(e1.name, e2.name, px, pz, math.abs(y1 - y2))
-					if _G.WL_VERBOSE then
-						print(("  crossing %s(%s, y %.1f) x %s(%s, y %.1f) at (%d, %d)"):format(e1.name, e1.class, y1, e2.name, e2.class, y2, px, pz))
-					end
 				end
 			end)
 		end
@@ -361,17 +360,49 @@ return function(t)
 			t.near(d, e.width / 2, 1.5, "entrance on the curb of " .. p.id)
 			t.ok(e.layer == 0 and not e.elevated, "POI fronts a ground road " .. p.id)
 			-- no Rockstar names
-			for _, banned in { "Los Santos", "Vinewood", "Vice", "Ammu", "Pay 'n' Spray", "Maze Bank", "Fleeca", "Vespucci", "Del Perro", "Rockford" } do
+			for _, banned in
+				{
+					"Los Santos",
+					"Vinewood",
+					"Vice",
+					"Ammu",
+					"Pay 'n' Spray",
+					"Maze Bank",
+					"Fleeca",
+					"Vespucci",
+					"Del Perro",
+					"Rockford",
+				}
+			do
 				t.ok(not p.name:find(banned, 1, true), "no Rockstar names: " .. p.name)
 			end
 		end
 		for i, a in W.POIs do
 			for j = i + 1, #W.POIs do
 				local b = W.POIs[j]
-				t.ok(not WG.obbOverlap(obbOf(a.cframe, a.size), obbOf(b.cframe, b.size), 0), a.id .. " overlaps " .. b.id)
+				t.ok(
+					not WG.obbOverlap(obbOf(a.cframe, a.size), obbOf(b.cframe, b.size), 0),
+					a.id .. " overlaps " .. b.id
+				)
 			end
 		end
-		for _, k in { "dealership", "gunshop", "bank", "jewelry", "convenience", "gas", "police", "hospital", "customs", "spray", "chop", "armored_depot", "plaza" } do
+		for _, k in
+			{
+				"dealership",
+				"gunshop",
+				"bank",
+				"jewelry",
+				"convenience",
+				"gas",
+				"police",
+				"hospital",
+				"customs",
+				"spray",
+				"chop",
+				"armored_depot",
+				"plaza",
+			}
+		do
 			t.ok((kinds[k] or 0) >= 1, "has POI kind " .. k)
 		end
 		t.ok(kinds.convenience >= 5, "several stores to rob")
@@ -393,7 +424,10 @@ return function(t)
 			local e = W.Edges[p.edge]
 			local front = p.door + p.cframe.LookVector * (e.sidewalk + 14 + 6)
 			local rp, ej, _, d = Q.nearestRoadPoint(front, { ignoreHeight = true, maxDistance = 200 })
-			t.ok(rp ~= nil and W.Edges[ej].name == e.name and d <= e.width / 2, "plot " .. i .. " door faces its street")
+			t.ok(
+				rp ~= nil and W.Edges[ej].name == e.name and d <= e.width / 2,
+				"plot " .. i .. " door faces its street"
+			)
 			t.eq(Q.plotAt(p.cframe.Position + Vector3.new(0, 5, 0)), i, "plotAt finds plot " .. i)
 			for j = i + 1, #W.Plots do
 				local q = W.Plots[j]
@@ -401,7 +435,10 @@ return function(t)
 				t.ok(d >= 1000, ("plots %d and %d only %d apart (raids need a getaway drive)"):format(i, j, d))
 			end
 			for _, poi in W.POIs do
-				t.ok(not WG.obbOverlap(obbOf(p.cframe, p.size), obbOf(poi.cframe, poi.size), 0), "plot overlaps " .. poi.id)
+				t.ok(
+					not WG.obbOverlap(obbOf(p.cframe, p.size), obbOf(poi.cframe, poi.size), 0),
+					"plot overlaps " .. poi.id
+				)
 			end
 		end
 		-- every garage reaches every other garage by road
@@ -564,6 +601,29 @@ return function(t)
 			local r = Q.route(W.Plots[1].door, p.entrance)
 			t.ok(r ~= nil, "POI reachable by road: " .. p.id)
 		end
+	end)
+
+	t.test("deterministic: a fresh build produces identical data", function()
+		local function fingerprint(L)
+			local acc = { #L.Nodes, #L.Edges, #L.Parcels, #L.POIs, #L.Spawns.parking }
+			local sum = 0
+			for _, e in L.Edges do
+				for _, p in e.points do
+					sum += p.X * 0.37 + p.Y * 1.3 + p.Z * 0.71
+				end
+			end
+			for _, p in L.Parcels do
+				local c = p.cframe.Position
+				sum += c.X * 0.13 + c.Z * 0.29 + p.size.X + p.size.Y * 0.5 + p.size.Z
+			end
+			table.insert(acc, math.floor(sum * 1000))
+			return table.concat(acc, ":")
+		end
+		local first = fingerprint(W)
+		H.setMode("server") -- clears the module cache
+		local W2 = H.require("src/shared/Config/WorldLayout")
+		t.ok(W2 ~= W, "rebuilt")
+		t.eq(fingerprint(W2), first, "same layout twice")
 	end)
 
 	t.test("terrain: sea, beach, hills, flat basin, channel", function()

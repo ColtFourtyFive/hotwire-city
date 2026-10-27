@@ -32,12 +32,22 @@ def font(sz, bold=False):
     return ImageFont.load_default()
 
 
-def unit_scale(length, lo, hi):
-    """Guess the import unit factor that brings a length into a plausible real-world range."""
-    for f in (1, 0.01, 0.001, 0.1, 0.0254):
-        if lo <= length * f <= hi:
-            return f
-    return 1
+# nominal real-world length (m) per class, used to guess the import unit (m / dm / cm / mm / inch)
+NOMINAL = {"compact": 4.0, "sedan": 4.8, "luxury_sedan": 5.1, "muscle": 4.9, "sports_coupe": 4.4, "supercar": 4.5,
+           "suv": 4.9, "pickup": 5.6, "van": 5.3, "police_cruiser": 5.2, "police_suv": 5.1, "taxi": 5.2,
+           "bus": 12.0, "ambulance": 6.5, "fire_truck": 10.0, "armored_truck": 6.5, "box_truck": 7.0,
+           "motorcycle": 2.1, "lowrider": 5.3, "limousine": 8.0,
+           "pistol": 0.2, "heavy_pistol": 0.3, "smg": 0.5, "assault_rifle": 0.9, "carbine": 0.85, "shotgun": 1.0,
+           "sniper": 1.2, "minigun": 1.0, "melee": 0.5, "grenade": 0.11}
+
+
+def unit_scale(length, cls):
+    """Pick the unit factor that brings the model's length closest (log-wise) to its class nominal."""
+    import math
+    nom = NOMINAL.get(cls, 1.0)
+    if length <= 0:
+        return 1
+    return min((1, 0.1, 0.01, 0.001, 0.0254), key=lambda f: abs(math.log(length * f / nom)))
 
 
 def cell(meta, d):
@@ -57,11 +67,11 @@ def cell(meta, d):
     an = meta.get("analysis") or {}
     dims = an.get("dims_m") or [0, 0, 0]
     if meta.get("kind") == "vehicle":
-        f = unit_scale(dims[1], 1.6, 25)
+        f = unit_scale(dims[1], meta['class'])
         size = f"{dims[1] * f:.1f}x{dims[0] * f:.1f}x{dims[2] * f:.1f}m" + ("" if f == 1 else f"(x{f:g})")
         wheels = "wheels:SEP" if an.get("wheels_separate") else "wheels:MERGED?"
     else:
-        f = unit_scale(dims[0], 0.07, 2.5)
+        f = unit_scale(dims[0], meta['class'])
         size = f"{dims[0] * f * 100:.0f}cm" + ("" if f == 1 else f"(x{f:g})")
         wheels = ""
     tris = an.get("triangles") or meta.get("faceCount") or 0

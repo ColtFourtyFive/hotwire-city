@@ -729,7 +729,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 local groundParams: RaycastParams? = nil
-local function groundBelow(pos: Vector3): number
+local function groundRay(pos: Vector3): number
 	local params = groundParams
 	if not params then
 		params = RaycastParams.new()
@@ -749,6 +749,11 @@ local function groundBelow(pos: Vector3): number
 	params.FilterDescendantsInstances = exclude
 	local hit = Workspace:Raycast(pos + Vector3.new(0, 4, 0), Vector3.new(0, -60, 0), params)
 	return if hit then hit.Position.Y else pos.Y - 3
+end
+
+local groundFn: (Vector3) -> number = groundRay -- injectable (the headless harness has no raycasts)
+local function groundBelow(pos: Vector3): number
+	return groundFn(pos)
 end
 
 local function randomFlat(): Vector3
@@ -1905,6 +1910,31 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 -- Lifecycle
 -------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Test hooks (harness only)
+-------------------------------------------------------------------------------------------------------------------------
+
+function EffectsController._setGround(fn: ((Vector3) -> number)?)
+	groundFn = fn or groundRay
+end
+
+-- Siren pipeline without the 6 Hz loop: track / untrack a police model, run one update at a phase, read its record.
+EffectsController._sirens = {
+	track = function(inst: Instance)
+		trackPolice(inst)
+	end,
+	untrack = function(inst: Instance)
+		untrackPolice(inst)
+	end,
+	update = function(redPhase: boolean)
+		sirenPhase = redPhase
+		updateSirens()
+	end,
+	record = function(model: Model): any
+		return policeCars[model]
+	end,
+}
 
 function EffectsController.init() end
 

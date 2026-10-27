@@ -129,7 +129,7 @@ def sc_downtown(a, night=False):
     for (arch, sd, x) in [("tower", 4, -290), ("tower", 11, -180), ("tower", 8, -70), ("tower", 2, 40), ("tower", 6, 150)]:
         B = BK.build(arch, sd)
         BK.instantiate(B, col(), loc=(x, -north_lot_y(B.footprint[1]), 0), rot_z=180, night=night)
-    S.ground(col(), -600, -600, 600, 600, "sidewalk", z=0.0)
+    S.ground(col(), -600, -600, 600, 600, "sidewalk", z=-0.05)
     return finish("downtown_night" if night else "downtown_street", (-392, -7, 6.0), (0, 14, 92), 18, a.samples, a.res,
                   night=night, haze_amt=0.6)
 
@@ -156,7 +156,7 @@ def sc_midtown(a, night=False):
         W, D = B.footprint
         BK.instantiate(B, col(), loc=(x + W / 2, -north_lot_y(D), 0), rot_z=180, night=night)
         x += W
-    S.ground(col(), -600, -600, 600, 600, "sidewalk", z=0.0)
+    S.ground(col(), -600, -600, 600, 600, "sidewalk", z=-0.05)
     return finish("midtown_night" if night else "midtown_street", (-205, -30, 6.0), (-40, 60, 48), 20, a.samples, a.res,
                   night=night)
 
@@ -189,7 +189,7 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
     backdrop(xr + 6, 420, ROAD_W / 2 + SIDE_W, fill, seed=seed + 1)
     backdrop(-420, xl - 6, ROAD_W / 2 + SIDE_W, fill, seed=seed + 2)
     backdrop(-420, 420, ROAD_W / 2 + SIDE_W + max(D, 130) + 20, fill + (("warehouse", {}),), seed=seed + 3)
-    S.ground(col(), -700, -700, 700, 700, "sidewalk", z=0.0)
+    S.ground(col(), -700, -700, 700, 700, "sidewalk", z=-0.05)
     return finish(name, cam, target, lens, a.samples, a.res)
 
 
@@ -224,7 +224,7 @@ def sc_deco(a, night=False):
     S.sidewalk_block(c, -320, ROAD_W / 2 - 8, 320, ROAD_W / 2 + SIDE_W - 8)
     S.sidewalk_block(c, -320, -ROAD_W / 2 - 18, 320, -ROAD_W / 2)
     S.ground(c, -900, -ROAD_W / 2 - 110, 900, -ROAD_W / 2 - 18, "sand", z=0.3)
-    S.ground(c, -1600, -4000, 1600, -ROAD_W / 2 - 110, "sea", z=0.0)
+    S.ground(c, -1600, -4000, 1600, -ROAD_W / 2 - 110, "sea", z=-0.05)
     r = random.Random(4)
     for x in range(-300, 320, 34):
         px, py = x + r.uniform(-4, 4), -ROAD_W / 2 - 9 + r.uniform(-3, 3)
@@ -241,7 +241,7 @@ def sc_deco(a, night=False):
         W, D = B.footprint
         BK.instantiate(B, c, loc=(x + W / 2, ROAD_W / 2 + SIDE_W - 8 + D / 2, 0), rot_z=0, night=night)
         x += W + 6
-    S.ground(c, -700, ROAD_W / 2, 700, 700, "sidewalk", z=0.0)
+    S.ground(c, -700, ROAD_W / 2, 700, 700, "sidewalk", z=-0.05)
     return finish("deco_night" if night else "deco_beach", (-215, -50, 7.0), (-20, 60, 30), 22, a.samples, a.res,
                   night=night)
 
@@ -280,27 +280,30 @@ def sc_suburbs(a):
     S.parked_row(c, -300, 300, -rw / 2 + 4, heading=0, seed=21, prob=0.25)
     for xx in (-140, 40, 210):
         S.palm(c, xx, rw / 2 + 6, h=r.uniform(55, 70), seed=xx + 5, kind="fan")
-    S.ground(c, -700, -700, 700, 700, "grass", z=0.0)
+    S.ground(c, -700, -700, 700, 700, "grass", z=-0.05)
     return finish("suburbs_street", (-175, -4, 6.0), (-40, 62, 14), 20, a.samples, a.res)
 
 
 def sc_industrial(a):
     S.reset(a.res)
     S.world("sky_late_afternoon", sun_az=-140.0)
-    avenue(-420, 420, lamps=90, palms=None, seed=31, far_w=0)
+    cam = (-175, -30, 7.0)
+    avenue(-520, 520, lamps=90, palms=None, seed=31, far_w=0, clear=(cam[0], cam[1], 30), no_cars=(-520, -100))
     B = BK.build("warehouse", 1)
     W, D = B.footprint
     BK.instantiate(B, col(), loc=(-W / 2 - 4, north_lot_y(D), 0), rot_z=0)
-    lot_cars(B, -W / 2 - 4, north_lot_y(D), 0, frac=0.7, seed=3)
+    lot_cars(B, -W / 2 - 4, north_lot_y(D), 0, frac=0.5, seed=3)
     B2 = BK.build("warehouse", 4, style="tiltup")
     W2, D2 = B2.footprint
     BK.instantiate(B2, col(), loc=(W2 / 2 + 4, north_lot_y(D2), 0), rot_z=0)
-    lot_cars(B2, W2 / 2 + 4, north_lot_y(D2), 0, frac=0.5, seed=4)
+    lot_cars(B2, W2 / 2 + 4, north_lot_y(D2), 0, frac=0.4, seed=4)
     B3 = BK.build("warehouse", 6)
     W3, D3 = B3.footprint
-    BK.instantiate(B3, col(), loc=(-60, -north_lot_y(D3), 0), rot_z=180)
-    S.ground(col(), -700, -700, 700, 700, "sidewalk", z=0.0)
-    return finish("industrial_warehouse", (-190, -34, 6.5), (-20, 80, 16), 20, a.samples, a.res)
+    BK.instantiate(B3, col(), loc=(-W - 8 - W3 / 2, north_lot_y(D3), 0), rot_z=0)
+    backdrop(-520, 520, ROAD_W / 2 + SIDE_W + 175, (("warehouse", {}), ("warehouse", {"style": "tiltup"})), seed=8)
+    backdrop(W2 + 12, 520, ROAD_W / 2 + SIDE_W, (("warehouse", {}),), seed=9)
+    S.ground(col(), -700, -700, 700, 700, "sidewalk", z=-0.05)
+    return finish("industrial_warehouse", cam, (-70, 110, 16), 26, a.samples, a.res)
 
 
 def sc_mansion(a):
@@ -310,31 +313,36 @@ def sc_mansion(a):
     B = BK.build("mansion", 2)
     W, D = B.footprint
     base = 40.0     # lot grade above the valley road
+    LY = 140.0      # lot centre y
 
     def hz(x, y):
-        # hillside rising to +Y: the lot is a cut terrace at z=base
+        # hillside rising to +Y with gentle ridges; the lot is a cut terrace at z=base
         t = (y + 40) / 160.0
-        z = base * max(0.0, min(1.25, t)) ** 1.4 * 1.0 + 6 * math.sin(x * 0.02) * max(0, t)
-        if -W / 2 - 10 < x < W / 2 + 10 and -D / 2 - 30 < y - 140 < D / 2 + 10:
-            z = min(z, base - B.base_depth) if y - 140 < -D / 2 + 8 else base
+        z = base * max(0.0, min(1.35, t)) ** 1.4 + 7 * math.sin(x * 0.018 + 1.3) * max(0, t) + 3 * math.sin(x * 0.07 + y * 0.05) * max(0, t)
+        dy = y - LY
+        if -W / 2 - 14 < x < W / 2 + 14 and -D / 2 - 30 < dy < D / 2 + 12:
+            z = (base - B.base_depth) if dy < -D / 2 + 8 else base
         return z
-    S.hill(c, -500, -120, 500, 420, hz, nx=80, ny=60, kind="dirt")
-    BK.instantiate(B, c, loc=(0, 140, base), rot_z=0)
+    S.hill(c, -600, -120, 600, 520, hz, nx=110, ny=70, kind="drygrass")
+    BK.instantiate(B, c, loc=(0, LY, base), rot_z=0)
     r = random.Random(7)
-    for k in range(60):
-        x, y = r.uniform(-450, 450), r.uniform(-60, 400)
-        if abs(x) < W / 2 + 6 and 140 - D / 2 - 30 < y < 140 + D / 2 + 6:
+    for k in range(260):
+        x, y = r.uniform(-560, 560), r.uniform(-5, 500)
+        if abs(x) < W / 2 + 16 and LY - D / 2 - 32 < y < LY + D / 2 + 14:
             continue
-        zz = hz(x, y) - 0.5
-        if r.random() < 0.6:
-            at_z(zz, S.bush, c, x, y, w=r.uniform(4, 9), h=r.uniform(3, 6), seed=k, n=160)
+        zz = hz(x, y) - 0.4
+        q = r.random()
+        if q < 0.72:
+            at_z(zz, S.bush, c, x, y, w=r.uniform(4, 10), h=r.uniform(3, 7), seed=k, n=150)
+        elif q < 0.93:
+            at_z(zz, S.tree, c, x, y, h=r.uniform(16, 28), seed=k)
         else:
-            at_z(zz, S.tree, c, x, y, h=r.uniform(16, 26), seed=k)
+            at_z(zz, S.palm, c, x, y, h=r.uniform(40, 60), seed=k, kind="fan")
     for x in (-W / 2 + 4, W / 2 - 4):
-        at_z(base, S.palm, c, x, 140 + D / 2 - 8, h=44, seed=int(x) + 3, kind="fan")
-    S.road(c, -500, -40, 500, -10, axis="x", lanes=False)
+        at_z(base, S.palm, c, x, LY + D / 2 - 8, h=44, seed=int(x) + 3, kind="fan")
+    S.road(c, -600, -40, 600, -10, axis="x", lanes=False, z=0.15)
     S.car(c, 30, -25, heading=0, seed=77, rgb=(0.02, 0.02, 0.025))
-    return finish("hills_mansion", (-95, -60, 18.0), (0, 140, 52), 24, a.samples, a.res, haze_amt=0.45)
+    return finish("hills_mansion", (-70, 18, 24.0), (0, LY - 10, 50), 28, a.samples, a.res, haze_amt=0.45)
 
 
 def sc_block(a, night=False):
@@ -355,7 +363,8 @@ def sc_block(a, night=False):
         S.road(c, x - ROAD_W / 2, (ys[0] - 0.5) * P - ROAD_W / 2, x + ROAD_W / 2, (ys[-1] + 0.5) * P + ROAD_W / 2, axis="y", lanes=True)
     for j in range(len(ys) + 1):
         y = (ys[0] - 0.5 + j) * P
-        S.road(c, (xs[0] - 0.5) * P - ROAD_W / 2, y - ROAD_W / 2, (xs[-1] + 0.5) * P + ROAD_W / 2, y + ROAD_W / 2, axis="x", lanes=True)
+        S.road(c, (xs[0] - 0.5) * P - ROAD_W / 2, y - ROAD_W / 2, (xs[-1] + 0.5) * P + ROAD_W / 2, y + ROAD_W / 2, axis="x",
+               lanes=True, z=0.012)
     r = random.Random(42)
 
     def block(ix, iy, fill):
@@ -419,7 +428,7 @@ def sc_block(a, night=False):
     for k in range(40):
         S.car(c, r.choice([(xs[0] - 0.5 + i) * P for i in range(len(xs) + 1)]) + r.choice([-9, 9]),
               r.uniform((ys[0] - 0.5) * P, (ys[-1] + 0.5) * P), heading=r.choice([90, 270]), seed=k)
-    S.ground(c, -3000, -3000, 3000, 3000, "sidewalk", z=0.0)
+    S.ground(c, -3000, -3000, 3000, 3000, "sidewalk", z=-0.05)
     S.ground(c, -3000, -3000, 3000, (ys[0] - 0.5) * P - ROAD_W / 2 - 40, "sand", z=0.05)
     S.ground(c, -3000, -6000, 3000, (ys[0] - 0.5) * P - ROAD_W / 2 - 200, "sea", z=0.1)
     return finish("block_night" if night else "block_wide", (-760, -640, 230), (60, 260, 20), 26, a.samples, a.res,
@@ -453,7 +462,7 @@ def sc_variants(a, arch):
             lot_cars(B, x + W / 2, y, 0, frac=0.4, seed=B.seed)
         x += W + gap
     avenue(-total / 2 - 80, total / 2 + 80, lamps=80, palms=None, cars=False, far_w=0)
-    S.ground(col(), -3000, -3000, 3000, 3000, "grass" if arch in ("house", "mansion") else "sidewalk", z=0.0)
+    S.ground(col(), -3000, -3000, 3000, 3000, "grass" if arch in ("house", "mansion") else "sidewalk", z=-0.05)
     span = max(total, Hmax * 1.6)
     dist = span * 0.95
     cam = (-total * 0.18, ROAD_W / 2 + SIDE_W - dist, max(14.0, min(Hmax * hf, dist * 0.45)))
