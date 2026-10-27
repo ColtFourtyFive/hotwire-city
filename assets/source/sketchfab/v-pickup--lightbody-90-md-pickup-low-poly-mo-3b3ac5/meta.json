@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "3b3ac59245c44872b06ad85673be9643",
+  "slug": "v-pickup--lightbody-90-md-pickup-low-poly-mo-3b3ac5",
+  "name": "Lightbody '90 MD Pickup - Low poly model",
+  "class": "pickup",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/lightbody-90-md-pickup-low-poly-model-3b3ac59245c44872b06ad85673be9643",
+  "faceCount": 27092,
+  "vertexCount": 16255,
+  "materialCount": 8,
+  "textureCount": 21,
+  "animationCount": 0,
+  "likeCount": 105,
+  "tags": [
+    "truck",
+    "pickup",
+    "chassis",
+    "utility",
+    "pickuptruck",
+    "low-poly",
+    "lowpoly",
+    "commercial-vehicle"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Commercial chassis of Japanese pickup truck.\nThat one is strange workhorse extravaganza of oversized commercial pickup.  \nThe model was created on the basis of a previously made mid-80s pickup truck, and underwent a facelift for the 90s update. Added plastic elements and skirts to protect the bodywork from harsh use. The quality is not the highest, since I did not initially intend to make a bare chassis.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-pickup--lightbody-90-md-pickup-low-poly-mo-3b3ac5/model.glb",
+  "fileBytes": 8529880,
+  "sha256": "b0b1e00d9dcd2503eae5be59c2b3b5aab545da325c0d73fe3f28ea97bde7b3c3",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:05+00:00",
+  "notes": null
+}

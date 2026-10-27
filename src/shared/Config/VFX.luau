@@ -207,7 +207,7 @@ VFX.CONFETTI_COLORS = {
 -- Particle presets
 -------------------------------------------------------------------------------------------------------------------------
 local FIRE_COLOR = { C(0, 255, 255, 235), C(0.2, 255, 214, 90), C(0.55, 255, 120, 30), C(1, 200, 40, 20) }
-local NITRO_COLOR = { C(0, 255, 255, 255), C(0.25, 0, 214, 255), C(0.7, 255, 52, 140), C(1, 120, 40, 255) }
+local NITRO_COLOR = { C(0, 255, 255, 255), C(0.15, 140, 235, 255), C(0.5, 0, 170, 255), C(1, 130, 50, 255) }
 
 VFX.Presets = {
 	-------------------------------------------------------------------------------------------------- wreck / impacts
@@ -497,12 +497,14 @@ VFX.Presets = {
 		emissionDirection = "Back",
 		rotation = { -15, 15 },
 		size = { K(0, 2.6, 0.3), K(1, 0.8) },
+		squash = { K(0, 0.6), K(1, 0.3) },
 		transparency = { K(0, 0), K(0.65, 0.25), K(1, 1) },
 		color = NITRO_COLOR,
 		lightEmission = 1,
 		lightInfluence = 0,
 		brightness = 2,
 		zOffset = 1,
+		orientation = "VelocityParallel", -- flame tips point away from the tailpipe
 		flipbook = { layout = "Grid4x4", mode = "Loop", fps = { 24, 30 }, startRandom = true },
 	},
 	NitroCore = {
@@ -598,8 +600,8 @@ VFX.Beams = {
 		textureMode = "Stretch",
 		textureLength = 1,
 		textureSpeed = 0,
-		width0 = 1.35,
-		width1 = 0.4,
+		width0 = 2,
+		width1 = 0.6,
 		length = 4.5,
 		color = { C(0, 255, 255, 255), C(0.3, 0, 214, 255), C(1, 175, 80, 255) },
 		transparency = { K(0, 0), K(1, 0.15) },

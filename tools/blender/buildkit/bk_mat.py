@@ -118,6 +118,22 @@ def glass(name, tint=(1, 1, 1), dim=0.55, rough=0.05, metallic=0.0, spec=0.6):
     return m
 
 
+def clear(name, tint=(0.85, 0.93, 0.94), alpha=0.35):
+    """See-through glass (balustrades, bus shelters). Roblox: Material=Glass, Transparency ~0.6, Color=tint."""
+    m, nt, bsdf = _new(name)
+    bsdf.inputs["Base Color"].default_value = (*tint, 1)
+    bsdf.inputs["Roughness"].default_value = 0.03
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Alpha"].default_value = alpha
+    bsdf.inputs["Specular IOR Level"].default_value = 0.8
+    try:
+        m.surface_render_method = "BLENDED"
+    except Exception:
+        pass
+    m["roblox"] = {"kind": "clear", "color": list(tint), "transparency": round(1 - alpha, 2), "material": "Glass"}
+    return m
+
+
 def lit(name, strength=4.0):
     """Night windows (WindowsLit object). Hidden by day."""
     m, nt, bsdf = _new(name)

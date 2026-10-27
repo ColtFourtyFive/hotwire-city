@@ -1,0 +1,54 @@
+{
+  "source": "sketchfab",
+  "uid": "9828f80360c644d6981bd6c6cee3fb57",
+  "slug": "v-luxury-sedan--free-2010-lincoln-town-car-9828f8",
+  "name": "[FREE] 2010 Lincoln Town Car",
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Velrifea",
+    "displayName": "Velrifea",
+    "profileUrl": "https://sketchfab.com/Velrifea"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/free-2010-lincoln-town-car-9828f80360c644d6981bd6c6cee3fb57",
+  "faceCount": 28280,
+  "vertexCount": 16036,
+  "materialCount": 16,
+  "textureCount": 2,
+  "animationCount": 0,
+  "likeCount": 60,
+  "tags": [
+    "ford",
+    "luxury",
+    "lincoln",
+    "midpoly",
+    "mediumpoly",
+    "3d",
+    "blender",
+    "vehicle",
+    "lowpoly",
+    "car",
+    "free",
+    "towncar",
+    "velrifea"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "My Discord: Velrifea\n\nMy Insta: Velrifea\n\nThe 2010 Lincoln Town Car is a classic executive full-size, rear-wheel-drive sedan (F-segment sedan) from the third generation (FN145/FN146) in its final facelifted form. It was one of the last classic \"Americans\" built on the robust Ford Panther body-on-frame platform and equipped with a traditional V8 engine. The vehicle symbolized conservative American luxury, featuring monumental styling, an incredibly smooth ride, and a spacious, often six-seat, cabin focused on passenger comfort. The Town Car was especially popular as a chassis for limousines, ta",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-luxury-sedan--free-2010-lincoln-town-car-9828f8/model.glb",
+  "fileBytes": 1418488,
+  "sha256": "4cb7b1b14d73d28809eca0fc6eed9d7dad4b1a4c300c99deb9dfe988430c735e",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:35+00:00",
+  "notes": null
+}

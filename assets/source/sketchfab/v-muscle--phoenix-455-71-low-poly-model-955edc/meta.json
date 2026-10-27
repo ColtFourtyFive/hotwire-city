@@ -1,0 +1,50 @@
+{
+  "source": "sketchfab",
+  "uid": "955edc733c6d44fabc0ad7c246a15896",
+  "slug": "v-muscle--phoenix-455-71-low-poly-model-955edc",
+  "name": "Phoenix 455 '71 - Low poly model",
+  "class": "muscle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/phoenix-455-71-low-poly-model-955edc733c6d44fabc0ad7c246a15896",
+  "faceCount": 25947,
+  "vertexCount": 15656,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 1719,
+  "tags": [
+    "transport",
+    "phoenix",
+    "musclecar",
+    "low-poly",
+    "vehicle",
+    "lowpoly",
+    "racing",
+    "usa",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Low poly model of an American muscle car from the early 70s.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.\n\nYou can also choose authentic period colors from the table that I have compiled for models of this type - take them with a color picker directly from the picture: https://www.behance.net/gallery/217757079/Muscle-cars-color-matching-Game-models",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-muscle--phoenix-455-71-low-poly-model-955edc/model.glb",
+  "fileBytes": 7829032,
+  "sha256": "607ebbf5ae6fa606c076c74c7866398d402da738100b6d741e93fb81c414bda9",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:44+00:00",
+  "notes": null
+}

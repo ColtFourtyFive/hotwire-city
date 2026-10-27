@@ -235,7 +235,7 @@ def render_particles(buf, cam, parts):
         draw_quad(buf, sprite, [x[0] for x in pts], col, 1 - tr, pr.get("lightEmission", 0), pr.get("brightness", 1))
 
 
-def strip(buf, cam, key, points, width, tint, alpha, le=0.0, ground=True, faces=None, tex_len=None):
+def strip(buf, cam, key, points, width, tint, alpha, le=0.0, ground=True, faces=None, tex_len=None, tint_seq=None):
     """Draw a textured ribbon through 3D points (Trail / Beam approximation); texture u runs along the strip."""
     sprite = texture(key)
     sh, sw, _ = sprite.shape
@@ -247,7 +247,8 @@ def strip(buf, cam, key, points, width, tint, alpha, le=0.0, ground=True, faces=
         if seg < 1e-4:
             continue
         d = (b - a) / seg
-        side = np.cross(d, [0, 1, 0]) if ground else np.cross(d, cam.eye - (a + b) / 2)
+        view = cam.eye - (a + b) / 2
+        side = np.cross(d, [0, 1, 0]) if ground else np.cross(d, view / (np.linalg.norm(view) + 1e-9))
         side = side / (np.linalg.norm(side) + 1e-9)
         wa = width[0] + (width[1] - width[0]) * (acc / total) if isinstance(width, tuple) else width
         wb = width[0] + (width[1] - width[0]) * ((acc + seg) / total) if isinstance(width, tuple) else width
@@ -262,12 +263,16 @@ def strip(buf, cam, key, points, width, tint, alpha, le=0.0, ground=True, faces=
             continue
         xa, xb = int(u0 * sw) % sw, int(min(u1, u0 + 1) * sw)
         sub = sprite[:, xa:max(xb, xa + 1)] if xb <= sw else np.concatenate([sprite[:, xa:], sprite[:, :xb - sw]], 1)
-        sub = np.transpose(sub, (1, 0, 2))[::-1] if False else sub
-        # texture u along the strip: rotate so the strip's length maps to sprite x
-        quad = [pts[3][0], pts[0][0], pts[1][0], pts[2][0]]  # tl=(a,-) ... keeps u along a->b
+        # sprite x (u) runs a -> b, sprite y across the strip
         quad = [pts[0][0], pts[1][0], pts[2][0], pts[3][0]]
-        draw_quad(buf, np.ascontiguousarray(np.transpose(sub, (1, 0, 2))[:, ::-1] if False else sub),
-                  [quad[0], quad[1], quad[2], quad[3]], np.asarray(tint) / 255.0, alpha, le)
+        col = np.asarray(tint) / 255.0
+        if tint_seq:
+            mid = (u0 + u1) / 2
+            for (t0, c0), (t1, c1) in zip(tint_seq, tint_seq[1:]):
+                if t0 <= mid <= t1:
+                    f = (mid - t0) / max(t1 - t0, 1e-6)
+                    col = (np.array(c0) * (1 - f) + np.array(c1) * f) / 255.0
+        draw_quad(buf, sub, [quad[0], quad[1], quad[2], quad[3]], col, alpha, le)
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -447,7 +452,18 @@ def main(presets_json, outdir):
            ("NitroCore", lambda tt: (np.array([0, 1.6, 6.3]), np.array([0, 0, 1])), 1.0, None)]
     buf = stream_scene(P, cam3, em3, 0.4, night=True,
                        cars_fn=lambda b: car(b, cam3, (0, 0, 0), (60, 60, 70)), extra=nitro_extra)
-    panels.append(to_img(buf, "Nitro (night): NitroFlame + NitroCore + NitroJet beam"))
+    panels.append(to_img(buf, "Nitro (night, chase cam): NitroFlame + NitroCore"))
+    camn = Cam([-16, 4, 2], [0, 2, 6])
+
+    def nitro_side(buf):
+        ex = np.array([0, 1.6, 6.3])
+        strip(buf, camn, "nitro_jet", [ex, ex + np.array([0, 0, 2.25]), ex + np.array([0, 0, 4.5])], (2.0, 0.6),
+              (255, 255, 255), 1.0, le=1.0, ground=False, tint_seq=[(0, (255, 255, 255)), (0.3, (0, 214, 255)),
+                                                                      (1, (175, 80, 255))])
+
+    buf = stream_scene(P, camn, em3, 0.4, night=True,
+                       cars_fn=lambda b: car(b, camn, (0, 0, 0), (60, 60, 70)), extra=nitro_side)
+    panels.append(to_img(buf, "Nitro (night, side): + NitroJet beam"))
 
     # 4. cash burst
     for t in (0.35, 1.0):
@@ -472,7 +488,7 @@ def main(presets_json, outdir):
     for t in (0.07, 0.22):
         bursts = [("ImpactStar", [0, 3, 0], to_cam, None, {"scale": 0.8}),
                   ("Sparks", [0, 3, 0], up, 14, {"color": [255, 236, 170]}),
-                  ("Shockwave", [0, 3, 0], to_cam, None, {"scale": 0.35, "color": [255, 255, 255]}),
+                  ("Shockwave", [0, 3, 0], to_cam, None, {"scale": 0.28, "color": [255, 255, 255]}),
                   ("Sparkle", [0, 3, 0], up, 8, {"color": [255, 205, 50]})]
         buf = run_burst_scene(P, camb, bursts, t)
         panels.append(to_img(buf, f"Bonk  t={t:.2f}s"))

@@ -1419,6 +1419,9 @@ function MinimapController.mount()
 	buildPois()
 	radar = buildRadar()
 	applyLayout()
+	trackTag("Police", police)
+	trackTag("PoliceHeli", helis)
+	refreshOwners()
 end
 
 function MinimapController.start()
@@ -1450,10 +1453,6 @@ function MinimapController.start()
 	end)
 	local okHidden, value = pcall(HUDController.isHidden)
 	setHidden(okHidden and value == true)
-
-	trackTag("Police", police)
-	trackTag("PoliceHeli", helis)
-	refreshOwners()
 
 	RunService.RenderStepped:Connect(function(dt: number)
 		debug.profilebegin("HC_Minimap")

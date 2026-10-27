@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "606bccade8db412daf90d4a9dd2aabd3",
+  "slug": "v-pickup--ford-f-150-606bcc",
+  "name": "ford f-150",
+  "class": "pickup",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "amogusstrikesback2",
+    "displayName": "amogusstrikesback2",
+    "profileUrl": "https://sketchfab.com/amogusstrikesback2"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/ford-f-150-606bccade8db412daf90d4a9dd2aabd3",
+  "faceCount": 32090,
+  "vertexCount": 18636,
+  "materialCount": 8,
+  "textureCount": 8,
+  "animationCount": 0,
+  "likeCount": 44,
+  "tags": [
+    "track",
+    "ford",
+    "f150",
+    "racing",
+    "car",
+    "asphalt-8",
+    "asphalt8"
+  ],
+  "categories": [
+    "art-abstract",
+    "cars-vehicles"
+  ],
+  "description": "this thing has extreme nitrous but low speed",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-pickup--ford-f-150-606bcc/model.glb",
+  "fileBytes": 3797188,
+  "sha256": "a53e94044e0f1bce42987b696ec5752f9eb49501dc749c26d399b95f01d74d0e",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:58+00:00",
+  "notes": null
+}

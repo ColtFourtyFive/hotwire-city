@@ -51,6 +51,8 @@ def make_material(B, role, night=False):
     if k == "neon":
         m = M.neon(name, spec[1], strength=8.0 if night else 0.0)
         return m
+    if k == "clear":
+        return M.clear(name, *spec[1:])
     if k == "water":
         return M.water(name, *spec[1:])
     raise ValueError(spec)

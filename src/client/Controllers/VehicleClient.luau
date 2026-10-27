@@ -1399,7 +1399,7 @@ local function renderStep(s: Session, dt: number)
 		end
 		local jet = fx.jet
 		if jet then
-			jet.beam.Width0 = 1.35 * flicker
+			jet.beam.Width0 = 2 * flicker
 			jet.a1.Position = jet.a0.Position + Vector3.new(0, 0, 4.5 * (0.75 + math.random() * 0.4))
 		end
 	end

@@ -1,0 +1,48 @@
+{
+  "source": "sketchfab",
+  "uid": "9f30d360cee343efb5a441978ddb57bd",
+  "slug": "v-police-cruiser--2001-crown-victoria-police-interce-9f30d3",
+  "name": "2001 Crown Victoria Police Interceptor Game Prop",
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "haoliu95",
+    "displayName": "8sianDude",
+    "profileUrl": "https://sketchfab.com/haoliu95"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/2001-crown-victoria-police-interceptor-game-prop-9f30d360cee343efb5a441978ddb57bd",
+  "faceCount": 42420,
+  "vertexCount": 23844,
+  "materialCount": 7,
+  "textureCount": 36,
+  "animationCount": 0,
+  "likeCount": 428,
+  "tags": [
+    "police",
+    "sedan",
+    "crown",
+    "victoria",
+    "vic",
+    "cvpi",
+    "p71"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Low Poly CVPI P71 I modelled in Blender for a L4D2 game mod project. Textures were made in Substance Painter.\n\nAddon: https://steamcommunity.com/sharedfiles/filedetails/?id=2776474002\n\nThe CVPI is loosely modelled off the 2001 Ford Crown Victoria. The lightbar is based off the Federal Signal Vector. Proportions are not 100% correct since I literally only have reference images to work with.\n\nMaterials: 2k\nNormal Map: DirectX\n\n*You\u2019re free to use this model in your personal projects or commercial products under CC Attribution License. The least I\u2019m asking is to credit me for modelling this asset",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-police-cruiser--2001-crown-victoria-police-interce-9f30d3/model.glb",
+  "fileBytes": 13620508,
+  "sha256": "e6f2592f50cbc9077f5baae4882bccf375e61cbe05cde46974b634255a7268ca",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:14+00:00",
+  "notes": null
+}

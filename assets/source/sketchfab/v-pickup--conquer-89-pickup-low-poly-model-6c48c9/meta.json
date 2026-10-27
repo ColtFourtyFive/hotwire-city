@@ -1,0 +1,54 @@
+{
+  "source": "sketchfab",
+  "uid": "6c48c94be8974dc7a5932f697c0ba68f",
+  "slug": "v-pickup--conquer-89-pickup-low-poly-model-6c48c9",
+  "name": "Conquer '89 Pickup - Low poly model",
+  "class": "pickup",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/conquer-89-pickup-low-poly-model-6c48c94be8974dc7a5932f697c0ba68f",
+  "faceCount": 21130,
+  "vertexCount": 12708,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 270,
+  "tags": [
+    "automobile",
+    "truck",
+    "suv",
+    "transport",
+    "generic",
+    "pickup",
+    "automotive",
+    "cardesign",
+    "low-poly-model",
+    "pickuptruck",
+    "low-poly",
+    "vehicle",
+    "lowpoly"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "I decided to extend line of light two-door pickups in my collection and used a well-known car from the 90s. The model is based on the proportions of famous light 5door suv, converted into a LUV.\n3.12.2021 Uptade: Improved body geometry, new wheels, textures, interior and much more\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-pickup--conquer-89-pickup-low-poly-model-6c48c9/model.glb",
+  "fileBytes": 7639568,
+  "sha256": "f96c8b1353e0b8ff9b70b3601a1e1118e776c0dacdf10412d08cd7d3783fc81d",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:55+00:00",
+  "notes": null
+}

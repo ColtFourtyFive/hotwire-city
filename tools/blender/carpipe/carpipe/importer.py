@@ -197,7 +197,7 @@ def discover_textures(model_dir: str, explicit: dict | None = None):
             continue
         path = None
         base = re.sub(r"\.\d{3}$", "", mat.name)
-        if base in explicit:
+        if base in explicit and isinstance(explicit[base], str):
             p = os.path.join(model_dir, explicit[base])
             path = p if os.path.exists(p) else None
         if path is None and not explicit.get("_no_fuzzy"):

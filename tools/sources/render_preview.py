@@ -19,14 +19,17 @@ import time
 import bpy
 from mathutils import Matrix, Vector
 
-WHEEL_RE = re.compile(r"wheel|tire|tyre|rim\b|rims|_rim|rim_|whl|disk|disc|brake|roda|колес", re.I)
+WHEEL_RE = re.compile(r"wheel|tire|tyre|\brims?\b|_rims?|rims?_|whl|roda|колес", re.I)
+STEER_RE = re.compile(r"steer|spare", re.I)
+FRONT_RE = re.compile(r"front|head ?lights?|headlamp|grill|hood|bonnet|windshield|windscreen|(?:^|[_\W])f[lr](?:$|[_\W\d])", re.I)
+REAR_RE = re.compile(r"rear|tail ?lights?|brake ?lights?|trunk|\bboot|exhaust|reverse|(?:^|[_\W])r[lr](?:$|[_\W\d])", re.I)
 LOGO_RE = re.compile(r"logo|badge|emblem|brand|decal|sticker|lettering|marque", re.I)
 GLASS_RE = re.compile(r"glass|window|windshield|windscreen|vidrio|стекл", re.I)
 
 
 def parse_args():
     argv = sys.argv[1:]
-    a = {"kind": "vehicle", "size": (720, 405), "samples": 32}
+    a = {"kind": "vehicle", "size": (640, 360), "samples": 24, "cls": ""}
     pos = []
     i = 0
     while i < len(argv):
@@ -34,6 +37,8 @@ def parse_args():
             a["kind"] = argv[i + 1]; i += 2
         elif argv[i] == "--size":
             w, h = argv[i + 1].split("x"); a["size"] = (int(w), int(h)); i += 2
+        elif argv[i] == "--cls":
+            a["cls"] = argv[i + 1]; i += 2
         elif argv[i] == "--samples":
             a["samples"] = int(argv[i + 1]); i += 2
         else:
@@ -51,6 +56,20 @@ def world_bbox(objs):
             mn = Vector(map(min, mn, w))
             mx = Vector(map(max, mx, w))
     return mn, mx
+
+
+def world_verts(objs):
+    import numpy as np
+    out = []
+    for o in objs:
+        me = o.data
+        n = len(me.vertices)
+        co = np.empty(n * 3, dtype=np.float64)
+        me.vertices.foreach_get("co", co)
+        co = co.reshape(n, 3)
+        M = np.array(o.matrix_world)
+        out.append(co @ M[:3, :3].T + M[:3, 3])
+    return np.concatenate(out) if out else np.zeros((0, 3))
 
 
 def mesh_objects():
@@ -90,6 +109,41 @@ def main():
         mn, mx = world_bbox(meshes); dims = mx - mn
         if dims.x > dims.y:
             root.matrix_world = Matrix.Rotation(math.radians(90), 4, "Z") @ root.matrix_world
+        bpy.context.view_layer.update()
+        # front detection: camera sits on -Y, so put the front at -Y
+        mn, mx = world_bbox(meshes); cy = (mn.y + mx.y) / 2; L = max(mx.y - mn.y, 1e-6)
+        fy, ry = [], []
+        for o in meshes:
+            omn, omx = world_bbox([o]); oc = (omn.y + omx.y) / 2 - cy
+            nm = o.name + " " + o.data.name + " " + " ".join(m.name for m in o.data.materials if m)
+            if FRONT_RE.search(nm) and not REAR_RE.search(nm):
+                fy.append(oc)
+            elif REAR_RE.search(nm) and not FRONT_RE.search(nm):
+                ry.append(oc)
+        evidence = "none"
+        flip = False
+        if fy or ry:
+            f = sum(fy) / len(fy) if fy else 0.0
+            r = sum(ry) / len(ry) if ry else 0.0
+            if abs(f - r) > 0.05 * L:
+                flip = f > r
+                evidence = f"names(front={len(fy)},rear={len(ry)})"
+        if evidence == "none":
+            V = world_verts(meshes)
+            H0 = mx.z - mn.z
+            top = V[V[:, 2] > mn.z + 0.85 * H0]
+            if len(top):
+                off = float(top[:, 1].mean() - cy)
+                if abs(off) > 0.04 * L:
+                    # cars: cabin/roof sits toward the rear; motorcycles: screen/bars toward the front
+                    rear_is_pos = off > 0
+                    if a["cls"] == "motorcycle":
+                        rear_is_pos = not rear_is_pos
+                    flip = not rear_is_pos
+                    evidence = f"roof_offset={off / L:+.2f}"
+        if flip:
+            root.matrix_world = Matrix.Rotation(math.radians(180), 4, "Z") @ root.matrix_world
+        stats_front = {"front_evidence": evidence, "flipped": flip}
     else:
         order = sorted(range(3), key=lambda k: -dims[k])  # longest, middle, smallest
         axes = [Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))]
@@ -104,6 +158,16 @@ def main():
         if M.determinant() < 0:
             M = Matrix(((1, 0, 0), (0, -1, 0), (0, 0, 1))) @ M
         root.matrix_world = M.to_4x4() @ root.matrix_world
+        bpy.context.view_layer.update()
+        # upright: the top band (barrel/receiver/stock line) spans more length than the bottom band (grip/mag)
+        V = world_verts(meshes)
+        zmin, zmax = V[:, 2].min(), V[:, 2].max(); hz = zmax - zmin
+        topb = V[V[:, 2] > zmax - 0.3 * hz]; botb = V[V[:, 2] < zmin + 0.3 * hz]
+        ext = lambda b: float(b[:, 0].max() - b[:, 0].min()) if len(b) else 0.0
+        flip = ext(botb) > ext(topb) * 1.15
+        if flip:
+            root.matrix_world = Matrix.Rotation(math.radians(180), 4, "X") @ root.matrix_world
+        stats_front = {"front_evidence": "upright_band", "flipped": bool(flip)}
     bpy.context.view_layer.update()
     mn, mx = world_bbox(meshes)
     # put on the floor, centred
@@ -112,7 +176,8 @@ def main():
     bpy.context.view_layer.update()
     mn, mx = world_bbox(meshes)
     dims = mx - mn
-    stats["dims_m"] = [round(d, 3) for d in dims]  # x=width/len, y, z=height after orientation
+    stats["dims_m"] = [round(d, 3) for d in dims]
+    stats.update(stats_front)  # x=width/len, y, z=height after orientation
 
     # ---------------------------------------------------------------- analysis
     tris = 0
@@ -124,7 +189,7 @@ def main():
         me = o.data
         tris += sum(len(p.vertices) - 2 for p in me.polygons)
         names.append(o.name)
-        if WHEEL_RE.search(o.name) or WHEEL_RE.search(me.name):
+        if (WHEEL_RE.search(o.name) or WHEEL_RE.search(me.name)) and not STEER_RE.search(o.name):
             wheel_named.append(o.name)
         if LOGO_RE.search(o.name) or LOGO_RE.search(me.name):
             logo_named.append(o.name)

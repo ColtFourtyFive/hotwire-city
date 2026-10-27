@@ -1,3 +1,4 @@
+_G.WL_TIMING = true
 local Harness = require("../tests/harness")
 local t0 = os.clock()
 local ok, W = pcall(Harness.require, "src/shared/Config/WorldLayout")

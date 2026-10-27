@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "148c7b6bf06e44c9ae2bb923ff8b4846",
+  "slug": "v-luxury-sedan--mercedes-benz-s-class-w222-148c7b",
+  "name": "Mercedes-Benz S-Class W222",
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Ryan.Qin",
+    "displayName": "Ryan.Qin",
+    "profileUrl": "https://sketchfab.com/Ryan.Qin"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mercedes-benz-s-class-w222-148c7b6bf06e44c9ae2bb923ff8b4846",
+  "faceCount": 35935,
+  "vertexCount": 18809,
+  "materialCount": 10,
+  "textureCount": 51,
+  "animationCount": 0,
+  "likeCount": 4,
+  "tags": [
+    "benz",
+    "substancepainter",
+    "substance",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-luxury-sedan--mercedes-benz-s-class-w222-148c7b/model.glb",
+  "fileBytes": 12111252,
+  "sha256": "a51e0285739617938db500845bf658a2b28595cadcfa38099cc24abe2861c87f",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:22+00:00",
+  "notes": null
+}

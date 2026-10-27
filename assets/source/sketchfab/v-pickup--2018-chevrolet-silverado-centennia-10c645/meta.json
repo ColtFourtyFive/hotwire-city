@@ -1,0 +1,50 @@
+{
+  "source": "sketchfab",
+  "uid": "10c645c6477e4052b4ea91563ea539ce",
+  "slug": "v-pickup--2018-chevrolet-silverado-centennia-10c645",
+  "name": "2018 chevrolet silverado centennial edition",
+  "class": "pickup",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "amogusstrikesback2",
+    "displayName": "amogusstrikesback2",
+    "profileUrl": "https://sketchfab.com/amogusstrikesback2"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/2018-chevrolet-silverado-centennial-edition-10c645c6477e4052b4ea91563ea539ce",
+  "faceCount": 47582,
+  "vertexCount": 27749,
+  "materialCount": 6,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 42,
+  "tags": [
+    "track",
+    "chevrolet",
+    "silverado",
+    "xtreme",
+    "asphalt",
+    "asphaltxtreme",
+    "racing",
+    "car"
+  ],
+  "categories": [
+    "art-abstract",
+    "cars-vehicles"
+  ],
+  "description": "1500 lt z71, one of the few soft update cars i had to scour for",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-pickup--2018-chevrolet-silverado-centennia-10c645/model.glb",
+  "fileBytes": 3756296,
+  "sha256": "270876921e07ad9cbf0f5d7620a4eca1651497e90ad1e872a1db6158acb68616",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:03+00:00",
+  "notes": null
+}

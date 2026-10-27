@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "31f0ac0f03ad42e3bbf236b3ecb2049e",
+  "slug": "v-police-cruiser--murphy-97-cruiser-low-poly-model-31f0ac",
+  "name": "Murphy '97 Cruiser - Low Poly model",
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/murphy-97-cruiser-low-poly-model-31f0ac0f03ad42e3bbf236b3ecb2049e",
+  "faceCount": 17419,
+  "vertexCount": 10842,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 161,
+  "tags": [
+    "police",
+    "sedan",
+    "chase",
+    "generic",
+    "compact",
+    "automotive",
+    "cop",
+    "90s",
+    "low-poly-model",
+    "police-car",
+    "low-poly",
+    "vehicle"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "A low-poly model of a restyled American compact sedan from the late '90s in a police package.\nI decided to make a police car, inspired by the base model used in MW and up until the dawn of PS2 era. I know the car represents full-size police sedan in the game, but due gameplay it looks more like something much smaller. I wanted to simplify the process, so I chose a Murphy '92 as the platform for the restyle, with minimal changes\u2014the hood and headlights.\n\nPS - If that Hommage livery is too exesive, use more nutral from '92 model. All the components are interchangable - there's not to many.\n\nI un",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-police-cruiser--murphy-97-cruiser-low-poly-model-31f0ac/model.glb",
+  "fileBytes": 8799396,
+  "sha256": "12e85e8dcf377900fbc540cc80564923dffc83a163217c847fa9716d42d201e8",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:11+00:00",
+  "notes": null
+}

@@ -7,7 +7,7 @@ import bk_geo as G
 from bk_arch import Building, ATLAS, FRAMES
 
 
-def _glass_wall(B, F, u0, u1, z0, z1, n=-0.6, bay=6.0, cells="lobby0", mullion=0.3):
+def _glass_wall(B, F, u0, u1, z0, z1, n=-0.6, bay=6.0, cells="res", mullion=0.3):
     """Floor-to-ceiling glazing with slim black mullions."""
     fr = B.b("Frames")
     k = max(1, round((u1 - u0) / bay))
@@ -45,7 +45,7 @@ def mansion(seed=0, **kw):
               "Walls3": ("tex", "wood_slats", (0.95, 0.85, 0.75)), "Trim": ("tex", "plaster", (0.97, 0.97, 0.96)),
               "Frames": ("color", FRAMES["black"], 0.35, 0.6), "Glass": ("glass", {"tint": (0.85, 0.9, 0.92), "dim": 0.7,
                                                                                   "rough": 0.03, "metallic": 0.35}),
-              "Clear": ("glass", {"tint": (0.8, 0.9, 0.9), "dim": 0.15, "rough": 0.02, "metallic": 0.6}),
+              "Clear": ("clear",),
               "Roof": ("tex", "roof_gravel", (0.9, 0.9, 0.9)), "Details": ("tex", "metal", (0.65, 0.66, 0.68)),
               "Accent": ("color", (0.12, 0.12, 0.13), 0.5, 0.0), "Site": ("tex", "pavers", (1.0, 0.98, 0.95)),
               "Lawn": ("tex", "grass", (0.85, 1.0, 0.8)), "Water": ("water", (0.04, 0.45, 0.58)),

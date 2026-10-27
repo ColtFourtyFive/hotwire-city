@@ -407,7 +407,7 @@ class Car:
     def find_wheels(self):
         """Detect wheels in the canonical frame. Returns list of dicts (center, radius, width, islands, name)."""
         lo, hi = self.bbox()
-        L, W, H = hi - lo
+        W, L, H = hi - lo  # canonical frame: x = width, y = length, z = height
         ext = self.imax - self.imin
         cen = (self.imax + self.imin) / 2
         named = np.array([bool(kw_match(self.island_name(i), KW_WHEEL)) and
@@ -612,7 +612,7 @@ class Car:
                 role[i] = WHEEL0 + wi
                 why[i] = "wheel-cylinder"
         lo, hi = self.bbox()
-        L, W, H = hi - lo
+        W, L, H = hi - lo  # canonical frame: x = width, y = length, z = height
         for i in range(n):
             if role[i] >= WHEEL0:
                 continue

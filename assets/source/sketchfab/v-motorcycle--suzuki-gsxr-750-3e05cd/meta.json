@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "3e05cd872ef0458ca3d6b0770bb03622",
+  "slug": "v-motorcycle--suzuki-gsxr-750-3e05cd",
+  "name": "Suzuki GSXR 750",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "kaleemullah550",
+    "displayName": "Silyboy",
+    "profileUrl": "https://sketchfab.com/kaleemullah550"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/suzuki-gsxr-750-3e05cd872ef0458ca3d6b0770bb03622",
+  "faceCount": 27095,
+  "vertexCount": 15908,
+  "materialCount": 6,
+  "textureCount": 7,
+  "animationCount": 0,
+  "likeCount": 250,
+  "tags": [
+    "racer",
+    "track",
+    "motorbike",
+    "motorcycle",
+    "suzuki",
+    "breathofthewild",
+    "game",
+    "race",
+    "hyperbike",
+    "heavybike",
+    "gsxr750"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Suzuki revolutionized the sportbike category with the introduction of the original GSX-R750 in 1985. Today, the 2023 GSX-R750 continues Suzuki\u2019s tradition of building Supersport bikes powered by a strong engine carried in a lightweight and nimble chassis.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--suzuki-gsxr-750-3e05cd/model.glb",
+  "fileBytes": 2830760,
+  "sha256": "a2ccd7609aed26d4d1ff67671cfc49f5596a6a21086cb378a589aed9ea087ca8",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:38+00:00",
+  "notes": null
+}

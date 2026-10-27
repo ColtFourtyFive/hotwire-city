@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "38a1fd572beb433fa2d26d8c1070c8fa",
+  "slug": "v-muscle--free-dodge-challenger-srt-38a1fd",
+  "name": "( FREE ) Dodge Challenger SRT",
+  "class": "muscle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Lambo_SC04",
+    "displayName": "SDC PERFORMANCE\u2122\ufe0f",
+    "profileUrl": "https://sketchfab.com/Lambo_SC04"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/free-dodge-challenger-srt-38a1fd572beb433fa2d26d8c1070c8fa",
+  "faceCount": 114022,
+  "vertexCount": 61511,
+  "materialCount": 22,
+  "textureCount": 2,
+  "animationCount": 0,
+  "likeCount": 492,
+  "tags": [
+    "demon",
+    "muscle",
+    "drag",
+    "supercar",
+    "dodge",
+    "challenger",
+    "hypercar",
+    "srt",
+    "dowload",
+    "low",
+    "poly",
+    "car",
+    "free",
+    "sport",
+    "race"
+  ],
+  "categories": [
+    "cars-vehicles",
+    "sports-fitness"
+  ],
+  "description": "**The world's fastest and most powerful Dodge Challenger and the Muscle car.**\n\nThe model was made with a LowPoly design, you can use it for your entire project, download it for free ;)\n\n*We are working on several projects that will appear on sketchfab, all of which will be free, please support; )*",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-muscle--free-dodge-challenger-srt-38a1fd/model.glb",
+  "fileBytes": 6037792,
+  "sha256": "ced3317abbfd333da12aaef9251b0deea3604be962fd3725585ddebdc392ac92",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:52+00:00",
+  "notes": null
+}

@@ -343,10 +343,31 @@ return function(t)
 			g.Parent = lp:FindFirstChild("PlayerGui")
 			return g
 		end
+		-- a police car with its siren on near the player, and two owned garages (yours + a rival's)
+		local cop = H.roblox.Instance.new("Model")
+		cop.Name = "Cop"
+		local copBody = H.roblox.Instance.new("Part")
+		copBody.CFrame = H.roblox.CFrame.new(-260, 3, 180)
+		copBody.Position = Vector3.new(-260, 3, 180) -- Lune parts don't derive Position from CFrame
+		copBody.Parent = cop
+		cop.PrimaryPart = copBody
+		cop:SetAttribute("Siren", true)
+		cop:AddTag("Police")
+		cop.Parent = H.workspace
+		local plots = H.roblox.Instance.new("Folder")
+		plots.Name = "Plots"
+		for i, owner in { [1] = 4242, [8] = 777 } do
+			local plot = H.roblox.Instance.new("Model")
+			plot.Name = "Plot" .. i
+			plot:SetAttribute("OwnerUserId", owner)
+			plot.Parent = plots
+		end
+		plots.Parent = H.workspace
 		local M = H.require("src/client/Controllers/MinimapController")
 		local WP = H.require("src/client/Controllers/WaypointController")
 		local ok, err = pcall(function()
 			M.mount()
+			t.eq(#M.getPolice(), 1, "police car tracked")
 			local function run(frames)
 				for _ = 1, frames do
 					M.step(1 / 30)
@@ -366,6 +387,14 @@ return function(t)
 				end
 			end
 			t.ok(shown >= 1, "route pills drawn")
+			-- blips: the waypoint (sticky), your garage (sticky), the cop; the rival garage is out of range
+			local blips = 0
+			for _, b in radar.Clip.Blips:GetChildren() do
+				if b.Visible then
+					blips += 1
+				end
+			end
+			t.ok(blips >= 3, "waypoint + own garage + police blips, got " .. blips)
 			t.ok(radar.Distance.Visible, "distance pill shown")
 			local before = M.getRemaining()
 			t.ok(before > 0, "remaining distance")
@@ -387,6 +416,8 @@ return function(t)
 		end)
 		-- leave the shared harness player as other specs expect it (Destroy clears the Character ref)
 		char:Destroy()
+		cop:Destroy()
+		plots:Destroy()
 		local gui = lp.PlayerGui:FindFirstChild("HC_Minimap")
 		if gui then
 			gui:Destroy()

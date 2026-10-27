@@ -1,0 +1,58 @@
+{
+  "source": "sketchfab",
+  "uid": "7b3343ad0c0f4cbe94238c734e1b731a",
+  "slug": "v-motorcycle--yamaha-r1-7b3343",
+  "name": "Yamaha R1",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "ejsnowy",
+    "displayName": "ejsnowy",
+    "profileUrl": "https://sketchfab.com/ejsnowy"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/yamaha-r1-7b3343ad0c0f4cbe94238c734e1b731a",
+  "faceCount": 92768,
+  "vertexCount": 54169,
+  "materialCount": 31,
+  "textureCount": 13,
+  "animationCount": 0,
+  "likeCount": 43,
+  "tags": [
+    "bike",
+    "yamaha",
+    "motorbike",
+    "motorcycle",
+    "2020",
+    "r1",
+    "supersport",
+    "sportbike",
+    "r3",
+    "yzf",
+    "r6",
+    "r7",
+    "sport",
+    "r125",
+    "yzf-r1",
+    "yzfr1",
+    "yamahasport"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Yamaha R1 2020 3D model, Full Detail and realistic texturing",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--yamaha-r1-7b3343/model.glb",
+  "fileBytes": 10162272,
+  "sha256": "d6a10f9a495a50a6f130e5550ad323c16269d3b861f6881a593c103001371177",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:42+00:00",
+  "notes": null
+}

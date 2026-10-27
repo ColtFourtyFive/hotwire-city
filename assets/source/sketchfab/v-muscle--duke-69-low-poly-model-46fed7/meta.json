@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "46fed79f600c4fc69e060991f9e3e4f9",
+  "slug": "v-muscle--duke-69-low-poly-model-46fed7",
+  "name": "Duke '69 - Low Poly Model",
+  "class": "muscle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/duke-69-low-poly-model-46fed79f600c4fc69e060991f9e3e4f9",
+  "faceCount": 18555,
+  "vertexCount": 10729,
+  "materialCount": 8,
+  "textureCount": 21,
+  "animationCount": 0,
+  "likeCount": 285,
+  "tags": [
+    "transport",
+    "musclecar",
+    "low-poly",
+    "vehicle",
+    "lowpoly",
+    "racing",
+    "usa",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Low poly model of an American muscle car from the 60s. The model has Unwrapped UVs, a simple interior and engine, but the doors do not open.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.\n\nYou can also choose authentic period colors from the table that I have compiled for models of this type - take them with a color picker directly from the picture: https://www.behance.net/gallery/217757079/Muscle-cars-color-matching-Game-models",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-muscle--duke-69-low-poly-model-46fed7/model.glb",
+  "fileBytes": 6358616,
+  "sha256": "3e4c7e813dc18dd2f638be65eefb88ec793f1294e551ea6b70a773a135e43758",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:08:48+00:00",
+  "notes": null
+}

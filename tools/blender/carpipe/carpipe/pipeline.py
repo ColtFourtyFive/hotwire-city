@@ -49,8 +49,10 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     car.debug_dump(os.path.join(out_dir, "islands_debug.txt"))
     seats = _seats(car)
     exhausts = _exhausts(car)
+    if cfg.get("paint_default") and getattr(car, "paint", None):
+        car.paint["color_srgb"] = [float(c) for c in cfg["paint_default"]]
     lo_b, hi_b = car.bbox()
-    L, W, H = (hi_b - lo_b)
+    W, L, H = (hi_b - lo_b)  # canonical frame: x = width, y = length, z = height
 
     his = optimize.split_roles(car)
     bpy.data.objects.remove(car.obj, do_unlink=True)
@@ -369,7 +371,7 @@ def export_glb(path):
 
 def _seats(car):
     lo, hi = car.bbox()
-    L, W, H = hi - lo
+    W, L, H = hi - lo
     isl = [i for i in range(car.n_isl) if car.irole[i] == INTERIOR and kw_match(car.island_name(i), KW_SEAT)]
     out = {}
     if isl:
@@ -406,7 +408,7 @@ def _seats(car):
 
 def _exhausts(car):
     lo, hi = car.bbox()
-    L, W, H = hi - lo
+    W, L, H = hi - lo
     isl = [i for i in range(car.n_isl) if car.irole[i] in (TRIM,) and
            kw_match(car.island_name(i), [r"exhaust", r"muffler", r"tail_?pipe"]) and car.ic[i, 1] < 0]
     pts = []
