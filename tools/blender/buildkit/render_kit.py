@@ -342,7 +342,10 @@ def sc_mansion(a):
         at_z(base, S.palm, c, x, LY + D / 2 - 8, h=44, seed=int(x) + 3, kind="fan")
     S.road(c, -600, -40, 600, -10, axis="x", lanes=False, z=0.15)
     S.car(c, 30, -25, heading=0, seed=77, rgb=(0.02, 0.02, 0.025))
-    return finish("hills_mansion", (-85, 2, 40.0), (0, LY - 12, 44), 30, a.samples, a.res, haze_amt=0.45)
+    for k in range(120):   # extra chaparral on the near slope
+        x, y = r.uniform(-200, 160), r.uniform(-5, LY - D / 2 - 34)
+        at_z(hz(x, y) - 0.4, S.bush, c, x, y, w=r.uniform(3, 8), h=r.uniform(2.5, 6), seed=1000 + k, n=120)
+    return finish("hills_mansion", (-92, 0, 62.0), (0, LY - 8, 40), 30, a.samples, a.res, haze_amt=0.45)
 
 
 def sc_block(a, night=False):

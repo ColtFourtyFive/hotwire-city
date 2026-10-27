@@ -51,13 +51,13 @@
   "analysis": {
     "import_dims_m": [
       94.3451,
-      1189.2578,
-      102.2588
+      1193.6178,
+      106.018
     ],
     "dims_m": [
-      1189.258,
+      1193.618,
       94.345,
-      102.259
+      106.018
     ],
     "front_evidence": "upright_band",
     "flipped": true,
@@ -78,6 +78,6 @@
     "object_names": [
       "defaultMaterial"
     ],
-    "render_s": 40.0
+    "render_s": 6.5
   }
 }
