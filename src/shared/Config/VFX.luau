@@ -601,14 +601,16 @@ VFX.Presets = {
 	SpeedLines = {
 		texture = "speed_line",
 		kind = "stream",
-		rate = 6, -- per ring attachment (8 of them)
+		rate = 6, -- per ring attachment (8 of them; 6 on touch screens)
 		lifetime = { 0.22, 0.32 },
-		speed = { 120, 160 },
+		-- spawned 28 studs ahead at 0.62 of the screen radius (VehicleClient): at ~85 studs/s a line sweeps to the
+		-- screen edge in ~0.12 s (faster and it would be gone before it faded in)
+		speed = { 75, 95 },
 		spread = { 0, 0 },
 		emissionDirection = "Back",
 		size = { K(0, 0.35), K(1, 0.35) },
 		squash = { K(0, 3), K(1, 3) },
-		transparency = { K(0, 1), K(0.2, 0.45), K(0.8, 0.45), K(1, 1) },
+		transparency = { K(0, 1), K(0.12, 0.45), K(0.8, 0.45), K(1, 1) },
 		color = { C(0, 230, 245, 255), C(1, 230, 245, 255) },
 		lightEmission = 1,
 		lightInfluence = 0,

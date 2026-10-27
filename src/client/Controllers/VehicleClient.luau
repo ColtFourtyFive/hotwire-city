@@ -339,6 +339,8 @@ end
 ----------------------------------------------------------------------------------------------------------------------
 -- Effect math (pure, unit-tested)
 ----------------------------------------------------------------------------------------------------------------------
+VehicleClient.SpeedLineRing = { count = SPEED_LINE_RING, ahead = SPEED_LINE_AHEAD, screen = SPEED_LINE_SCREEN }
+
 -- Tyre smoke for one rear tyre: on only while the car drifts AND that tyre is on the ground; level (rate intensity)
 -- grows with the sideways speed in 0.1 steps.
 function VehicleClient.tyreSmoke(drifting: boolean, grounded: boolean, lateralSpeed: number): (boolean, number)
@@ -384,13 +386,29 @@ function VehicleClient.speedLinePos(
 	return Vector3.new(math.cos(angle) * screen * ahead * tanV * a, math.sin(angle) * screen * ahead * tanV, -ahead)
 end
 
--- Is a point (in a water part's object space) in that water: inside its footprint, at most `above` studs over its
--- top and not far under it.
+-- Is a point (in a water part's object space, Y up) in that water: inside its footprint, at most `above` studs over
+-- its top and not far under it.
 function VehicleClient.inWaterVolume(localPos: Vector3, size: Vector3, above: number): boolean
 	return math.abs(localPos.X) <= size.X / 2
 		and math.abs(localPos.Z) <= size.Z / 2
 		and localPos.Y <= size.Y / 2 + above
 		and localPos.Y >= -size.Y / 2 - 2
+end
+
+-- A water part's object-space point + size re-ordered so the axis nearest world up is Y (cylinder discs lie on
+-- their side: their axis X is the vertical one).
+function VehicleClient.waterLocal(cf: CFrame, size: Vector3, pos: Vector3): (Vector3, Vector3)
+	local p = cf:PointToObjectSpace(pos)
+	local up = cf:VectorToObjectSpace(Vector3.new(0, 1, 0))
+	local ax, ay, az = math.abs(up.X), math.abs(up.Y), math.abs(up.Z)
+	if ax > ay and ax >= az then
+		local sx = if up.X >= 0 then 1 else -1
+		return Vector3.new(p.Y, p.X * sx, p.Z), Vector3.new(size.Y, size.X, size.Z)
+	elseif az > ay then
+		local sz = if up.Z >= 0 then 1 else -1
+		return Vector3.new(p.X, p.Z * sz, p.Y), Vector3.new(size.X, size.Z, size.Y)
+	end
+	return Vector3.new(p.X, if up.Y >= 0 then p.Y else -p.Y, p.Z), size
 end
 
 local function phoneTextBoost(): number
@@ -1139,8 +1157,11 @@ local function inWaterPart(pos: Vector3, radius: number): boolean
 		local part = waterParts[i]
 		if part.Parent == nil then
 			table.remove(waterParts, i)
-		elseif VehicleClient.inWaterVolume(part.CFrame:PointToObjectSpace(pos), part.Size, radius + WATER_ABOVE) then
-			return true
+		else
+			local lp, size = VehicleClient.waterLocal(part.CFrame, part.Size, pos)
+			if VehicleClient.inWaterVolume(lp, size, radius + WATER_ABOVE) then
+				return true
+			end
 		end
 	end
 	return false

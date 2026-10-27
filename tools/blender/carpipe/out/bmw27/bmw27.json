@@ -12,42 +12,42 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "bmw27.glb",
   "dimensions": {
-    "length": 17.5,
-    "width": 16.038,
-    "height": 4.732,
-    "wheelbase": 11.471,
+    "length": 39.905,
+    "width": 23.943,
+    "height": 12.07,
+    "wheelbase": null,
     "track_front": null,
     "track_rear": null,
     "bbox_min": [
-      -9.3235,
-      -0.0089,
-      -10.7796
+      -15.6325,
+      0.0,
+      -12.9159
     ],
     "bbox_max": [
-      6.7147,
-      4.7236,
-      6.7204
+      8.3105,
+      12.0698,
+      26.9891
     ]
   },
   "wheels": {
-    "FL": {
-      "object": "WheelFL",
+    "FR": {
+      "object": "WheelFR",
       "center": [
-        -6.0335,
-        0.6339,
-        -5.7357
+        0.0,
+        1.5953,
+        -0.0
       ],
-      "radius": 0.623,
-      "width": 0.4244,
+      "radius": 1.5953,
+      "width": 1.0856,
       "part_center": [
-        -0.1227,
-        0.6334,
-        -0.1607
+        -2.4267,
+        1.5921,
+        -0.716
       ],
       "attachment_offset": [
-        -5.9108,
-        0.0005,
-        -5.5749
+        2.4267,
+        0.0031,
+        0.716
       ],
       "axle": [
         1,
@@ -56,184 +56,22 @@
       ],
       "steer": true,
       "tris": 900
-    },
-    "ML1": {
-      "object": "WheelML1",
-      "center": [
-        -4.6454,
-        0.6304,
-        -1.7593
-      ],
-      "radius": 0.6231,
-      "width": 0.5276,
-      "part_center": [
-        0.3426,
-        0.6312,
-        -0.1607
-      ],
-      "attachment_offset": [
-        -4.988,
-        -0.0008,
-        -1.5985
-      ],
-      "axle": [
-        1,
-        0,
-        0
-      ],
-      "steer": false,
-      "tris": 900
-    },
-    "ML2": {
-      "object": "WheelML2",
-      "center": [
-        -5.9772,
-        0.6353,
-        -0.9322
-      ],
-      "radius": 0.6231,
-      "width": 0.5276,
-      "part_center": [
-        -0.1213,
-        0.6361,
-        -0.1607
-      ],
-      "attachment_offset": [
-        -5.8559,
-        -0.0008,
-        -0.7715
-      ],
-      "axle": [
-        1,
-        0,
-        0
-      ],
-      "steer": false,
-      "tris": 900
-    },
-    "MR1": {
-      "object": "WheelMR1",
-      "center": [
-        4.6222,
-        0.6164,
-        0.2865
-      ],
-      "radius": 0.6231,
-      "width": 0.5291,
-      "part_center": [
-        0.3426,
-        0.6174,
-        -0.1607
-      ],
-      "attachment_offset": [
-        4.2797,
-        -0.001,
-        0.4473
-      ],
-      "axle": [
-        1,
-        0,
-        0
-      ],
-      "steer": false,
-      "tris": 900
-    },
-    "MR2": {
-      "object": "WheelMR2",
-      "center": [
-        2.1203,
-        0.6164,
-        1.1795
-      ],
-      "radius": 0.6231,
-      "width": 0.5294,
-      "part_center": [
-        0.3426,
-        0.6174,
-        -0.1607
-      ],
-      "attachment_offset": [
-        1.7778,
-        -0.001,
-        1.3402
-      ],
-      "axle": [
-        1,
-        0,
-        0
-      ],
-      "steer": false,
-      "tris": 899
-    },
-    "MR3": {
-      "object": "WheelMR3",
-      "center": [
-        6.2831,
-        0.6149,
-        4.794
-      ],
-      "radius": 0.623,
-      "width": 0.4244,
-      "part_center": [
-        0.5897,
-        0.6159,
-        -0.1607
-      ],
-      "attachment_offset": [
-        5.6933,
-        -0.001,
-        4.9547
-      ],
-      "axle": [
-        1,
-        0,
-        0
-      ],
-      "steer": false,
-      "tris": 900
-    },
-    "RR": {
-      "object": "WheelRR",
-      "center": [
-        3.6304,
-        0.6141,
-        5.7357
-      ],
-      "radius": 0.623,
-      "width": 0.4239,
-      "part_center": [
-        0.3426,
-        0.6134,
-        -0.1607
-      ],
-      "attachment_offset": [
-        3.2879,
-        0.0007,
-        5.8964
-      ],
-      "axle": [
-        1,
-        0,
-        0
-      ],
-      "steer": false,
-      "tris": 900
     }
   },
   "seats": {
     "driver": {
       "position": [
-        -3.0473,
-        1.7037,
-        0.9177
+        -4.5492,
+        4.3451,
+        -0.0
       ],
       "estimated": true
     },
     "passenger": {
       "position": [
-        3.0473,
-        1.7037,
-        0.9177
+        4.5492,
+        4.3451,
+        -0.0
       ],
       "estimated": true
     },
@@ -243,9 +81,9 @@
     "front": [
       {
         "position": [
-          -4.6531,
-          0.5222,
-          -10.7796
+          -3.667,
+          1.3786,
+          -3.0251
         ],
         "direction": [
           0,
@@ -256,9 +94,9 @@
       },
       {
         "position": [
-          5.2325,
-          0.5395,
-          -10.7796
+          0.0107,
+          3.2701,
+          -1.4304
         ],
         "direction": [
           0,
@@ -271,9 +109,9 @@
     "rear": [
       {
         "position": [
-          -4.6506,
-          0.5563,
-          0.472
+          -3.675,
+          1.4803,
+          26.9891
         ],
         "direction": [
           0,
@@ -284,9 +122,9 @@
       },
       {
         "position": [
-          5.3704,
-          0.5008,
-          6.5956
+          8.3105,
+          12.0698,
+          26.9891
         ],
         "direction": [
           0,
@@ -300,40 +138,40 @@
   "exhausts": [
     {
       "position": [
-        -5.4877,
-        0.5708,
-        0.5893
+        -3.661,
+        1.4254,
+        15.3187
       ],
       "estimated": false
     },
     {
       "position": [
-        -5.3244,
-        0.5708,
-        0.6279
+        -5.8104,
+        1.4359,
+        16.1962
       ],
       "estimated": false
     },
     {
       "position": [
-        -3.9723,
-        0.5708,
-        0.6279
+        -5.3921,
+        1.4359,
+        16.2949
       ],
       "estimated": false
     },
     {
       "position": [
-        -3.809,
-        0.5708,
-        0.5893
+        -1.93,
+        1.4359,
+        16.2949
       ],
       "estimated": false
     }
   ],
   "center_of_mass_hint": [
     0.0,
-    1.5144,
+    3.8623,
     -0.0
   ],
   "paint": {
@@ -355,256 +193,107 @@
   },
   "objects": {
     "Body": {
-      "tris": 6996,
+      "tris": 7000,
       "bbox_min": [
-        -6.3715,
-        0.2939,
-        -7.107
+        -8.0819,
+        0.7716,
+        -3.5172
       ],
       "bbox_max": [
-        6.7163,
-        2.5966,
-        6.7201
+        0.7601,
+        6.6288,
+        16.6794
       ],
-      "textures": {
-        "normal": "textures/bmw27_Body_normal.png",
-        "ao": "textures/bmw27_Body_ao.png"
-      }
+      "textures": {}
     },
     "Glass": {
-      "tris": 700,
+      "tris": 504,
       "bbox_min": [
-        -5.9983,
-        0.3599,
-        -6.917
+        -7.1173,
+        0.9443,
+        -3.0251
       ],
       "bbox_max": [
-        6.0082,
-        2.4866,
-        6.5956
+        -0.2047,
+        6.3415,
+        14.5136
       ],
       "textures": {}
     },
     "LightsFront": {
-      "tris": 449,
+      "tris": 450,
       "bbox_min": [
-        -9.3235,
-        0.3599,
-        -10.7796
+        -7.337,
+        0.9443,
+        -3.0251
       ],
       "bbox_max": [
-        6.0082,
-        4.7236,
-        6.5956
+        0.015,
+        3.4972,
+        -1.3833
       ],
-      "textures": {
-        "base": "textures/bmw27_Lights_base.png",
-        "emit": "textures/bmw27_Lights_emit.png",
-        "normal": "textures/bmw27_Lights_normal.png"
-      }
+      "textures": {}
     },
     "LightsRear": {
       "tris": 449,
       "bbox_min": [
-        -6.0111,
-        0.3599,
-        -6.917
+        -15.6325,
+        0.9443,
+        -12.9159
       ],
       "bbox_max": [
-        6.5191,
-        1.6549,
-        6.5956
+        8.3105,
+        12.0698,
+        26.9891
       ],
-      "textures": {
-        "base": "textures/bmw27_Lights_base.png",
-        "emit": "textures/bmw27_Lights_emit.png",
-        "normal": "textures/bmw27_Lights_normal.png"
-      }
+      "textures": {}
     },
     "Trim": {
-      "tris": 2134,
+      "tris": 2509,
       "bbox_min": [
-        -6.033,
-        0.1135,
-        -6.9647
+        -8.0147,
+        0.3,
+        -3.1254
       ],
       "bbox_max": [
-        6.0066,
-        2.472,
-        6.6167
+        0.4403,
+        6.3042,
+        16.2959
       ],
-      "textures": {
-        "rough": "textures/bmw27_Trim_rough.png",
-        "base": "textures/bmw27_Trim_base.png",
-        "metal": "textures/bmw27_Trim_metal.png",
-        "normal": "textures/bmw27_Trim_normal.png",
-        "ao": "textures/bmw27_Trim_ao.png"
-      }
+      "textures": {}
     },
     "Interior": {
-      "tris": 750,
+      "tris": 1500,
       "bbox_min": [
-        -6.2456,
-        0.3058,
-        -6.917
+        -7.7731,
+        0.8058,
+        -3.0251
       ],
       "bbox_max": [
-        6.6884,
-        2.2601,
-        6.5956
+        0.4509,
+        5.7829,
+        15.8418
       ],
-      "textures": {
-        "rough": "textures/bmw27_Interior_rough.png",
-        "base": "textures/bmw27_Interior_base.png",
-        "metal": "textures/bmw27_Interior_metal.png",
-        "normal": "textures/bmw27_Interior_normal.png",
-        "ao": "textures/bmw27_Interior_ao.png"
-      }
+      "textures": {}
     },
-    "WheelFL": {
+    "WheelFR": {
       "tris": 900,
       "bbox_min": [
-        -6.2535,
-        0.0139,
-        -6.917
+        -5.3887,
+        0.0007,
+        -3.0251
       ],
       "bbox_max": [
-        6.0082,
-        1.2528,
-        6.5956
+        0.5352,
+        3.1836,
+        1.5931
       ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
-    },
-    "WheelML1": {
-      "tris": 900,
-      "bbox_min": [
-        -5.3231,
-        0.0105,
-        -6.917
-      ],
-      "bbox_max": [
-        6.0082,
-        1.252,
-        6.5956
-      ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
-    },
-    "WheelML2": {
-      "tris": 900,
-      "bbox_min": [
-        -6.2507,
-        0.0154,
-        -6.917
-      ],
-      "bbox_max": [
-        6.0082,
-        1.2569,
-        6.5956
-      ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
-    },
-    "WheelMR1": {
-      "tris": 900,
-      "bbox_min": [
-        -5.3231,
-        -0.0036,
-        -6.917
-      ],
-      "bbox_max": [
-        6.0082,
-        1.2383,
-        6.5956
-      ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
-    },
-    "WheelMR2": {
-      "tris": 899,
-      "bbox_min": [
-        -5.3231,
-        -0.0036,
-        -6.917
-      ],
-      "bbox_max": [
-        6.0082,
-        1.2384,
-        6.5956
-      ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
-    },
-    "WheelMR3": {
-      "tris": 900,
-      "bbox_min": [
-        -5.3231,
-        -0.005,
-        -6.917
-      ],
-      "bbox_max": [
-        6.5025,
-        1.2368,
-        6.5956
-      ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
-    },
-    "WheelRR": {
-      "tris": 900,
-      "bbox_min": [
-        -5.3231,
-        -0.0075,
-        -6.917
-      ],
-      "bbox_max": [
-        6.0082,
-        1.2344,
-        6.5956
-      ],
-      "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
-        "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
-        "metal": "textures/bmw27_Wheel_metal.png",
-        "ao": "textures/bmw27_Wheel_ao.png"
-      }
+      "textures": {}
     }
   },
   "triangles": {
-    "source": 477366,
-    "total": 17777,
+    "source": 220098,
+    "total": 13312,
     "limits": {
       "car": 18000,
       "body": 7000,
@@ -614,93 +303,63 @@
   "orientation": {
     "length_axis": "X",
     "votes": {
-      "names": -0.379,
-      "red_lights": -2.5,
+      "names": -3.0,
+      "red_lights": 0.0,
       "white_lights": 0.0,
       "deck_height": 0.0,
-      "cabin": 0.328,
+      "cabin": -0.0,
       "mirrors": 0.0
     },
-    "confidence": 2.55
+    "confidence": 3.0
   },
   "scale": {
-    "source_length": 13.180017471313477,
-    "factor": 1.327767587417015,
-    "target_length": 17.5
+    "source_length": 11.736868858337402,
+    "factor": 3.3999698285504047,
+    "target_length": 39.905
   },
   "classes": {
     "Body": {
-      "islands": 20,
-      "faces": 24872,
-      "area": 78.349
+      "islands": 10,
+      "faces": 12436,
+      "area": 256.867
     },
     "Glass": {
-      "islands": 8,
-      "faces": 504,
-      "area": 19.445
+      "islands": 4,
+      "faces": 252,
+      "area": 63.749
     },
     "LightsFront": {
-      "islands": 5,
-      "faces": 1077,
-      "area": 146.586
+      "islands": 2,
+      "faces": 236,
+      "area": 3.419
     },
     "LightsRear": {
-      "islands": 4,
-      "faces": 1076,
-      "area": 0.872
+      "islands": 3,
+      "faces": 841,
+      "area": 957.744
     },
     "Trim": {
-      "islands": 144,
-      "faces": 63189,
-      "area": 33.591
+      "islands": 100,
+      "faces": 69941,
+      "area": 198.708
     },
     "Interior": {
-      "islands": 24,
-      "faces": 4072,
-      "area": 169.344
+      "islands": 12,
+      "faces": 2036,
+      "area": 555.194
     },
     "Discard": {
-      "islands": 136,
-      "faces": 14513,
-      "area": 11.285
+      "islands": 69,
+      "faces": 6448,
+      "area": 34.976
     },
-    "WheelFL": {
-      "islands": 13,
-      "faces": 18769,
-      "area": 5.902
-    },
-    "WheelML1": {
-      "islands": 15,
-      "faces": 18769,
-      "area": 6.833
-    },
-    "WheelML2": {
-      "islands": 15,
-      "faces": 18769,
-      "area": 6.833
-    },
-    "WheelMR1": {
-      "islands": 13,
-      "faces": 18769,
-      "area": 6.833
-    },
-    "WheelMR2": {
+    "WheelFR": {
       "islands": 14,
       "faces": 18769,
-      "area": 6.833
-    },
-    "WheelMR3": {
-      "islands": 13,
-      "faces": 18769,
-      "area": 5.902
-    },
-    "WheelRR": {
-      "islands": 14,
-      "faces": 18769,
-      "area": 5.902
+      "area": 38.699
     }
   },
   "warnings": [
-    "found 7 wheels (expected 4)"
+    "found 1 wheels (expected 4)"
   ]
 }

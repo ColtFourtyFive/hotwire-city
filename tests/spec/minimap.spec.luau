@@ -450,7 +450,10 @@ return function(t)
 				local m = M.touchMetrics(cw, ch, s)
 				local strip = HUD.touchStripLayout(count, cw, ch, m.reserve, Cfg.RADAR.TOUCH_TOP)
 				t.ok(strip.fits, tag .. ": strip fits")
-				t.ok(strip.bottom <= ch / 3 + 1e-6, ("%s: menu bottom %.1f <= third %.1f"):format(tag, strip.bottom, ch / 3))
+				t.ok(
+					strip.bottom <= ch / 3 + 1e-6,
+					("%s: menu bottom %.1f <= third %.1f"):format(tag, strip.bottom, ch / 3)
+				)
 				t.ok(strip.cols * strip.rows >= count, tag .. ": every button placed")
 				t.ok(strip.left >= 12 + m.diameter + Cfg.RADAR.TOUCH_GAP - 1e-6, tag .. ": buttons right of the radar")
 				-- the menu never reaches the top-center cash pill + status stack
@@ -593,7 +596,12 @@ return function(t)
 		M.drawRoute(r, pts, 1, 40, 0, white, nil)
 		t.eq(r.used, 2)
 		local u0, v0 = M.worldToMap(70, 0)
-		t.near(r.cores[1].Position.X.Scale * Cfg.WORLD_SIZE, u0, 1e-3, "head centered between the player and the corner")
+		t.near(
+			r.cores[1].Position.X.Scale * Cfg.WORLD_SIZE,
+			u0,
+			1e-3,
+			"head centered between the player and the corner"
+		)
 		t.near(r.cores[1].Position.Y.Scale * Cfg.WORLD_SIZE, v0, 1e-3)
 		M.moveRouteHead(r, 90, 0, 100, 0)
 		local u1 = M.worldToMap(95, 0)
@@ -662,6 +670,7 @@ return function(t)
 		local root = H.roblox.Instance.new("Part")
 		root.Name = "HumanoidRootPart"
 		root.CFrame = H.roblox.CFrame.new(at)
+		root.Position = at -- Lune parts don't derive Position from CFrame
 		root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
 		root.Parent = char
 		char.Parent = H.workspace
@@ -720,10 +729,11 @@ return function(t)
 			local radar = H.localPlayer.PlayerGui.HC_Minimap.Radar
 			t.ok(radar.Clip.Blips.ZIndex > radar.Clip.Vignette.ZIndex, "blips above the edge vignette")
 			M.step(1 / 60)
-			-- walking: the map follows every frame (it used to step at ~24 Hz)
+			-- running (4 studs a frame, > 1 px: UDim offsets are whole pixels): the map follows every frame (it used to
+			-- step at ~24 Hz)
 			local changes, last = 0, radar.Clip.Spin.World.Position
 			for i = 1, 60 do
-				root.CFrame = H.roblox.CFrame.new(-300 + i, 3, 160)
+				root.CFrame = H.roblox.CFrame.new(-300 + 4 * i, 3, 160)
 				M.step(1 / 60)
 				local p = radar.Clip.Spin.World.Position
 				if p ~= last then

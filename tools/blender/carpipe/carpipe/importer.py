@@ -22,12 +22,33 @@ IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".tga", ".tif", ".tiff", ".webp", ".
 
 
 def _import_blend(path):
+    """Append the objects that are actually rendered in the file's first scene (instanced-collection templates,
+    hidden helpers and excluded collections stay out); fall back to every object if the file has no scene."""
     with bpy.data.libraries.load(path, link=False) as (src, dst):
-        dst.objects = list(src.objects)
+        dst.scenes = list(src.scenes)[:1]
+        if not src.scenes:
+            dst.objects = list(src.objects)
     coll = bpy.context.scene.collection
-    for o in dst.objects:
-        if o is not None and o.name not in coll.objects:
-            coll.objects.link(o)
+    if dst.scenes:
+        sc = dst.scenes[0]
+
+        def excluded(layer_coll, out):
+            for ch in layer_coll.children:
+                if ch.exclude or ch.collection.hide_render:
+                    out.add(ch.collection.name)
+                excluded(ch, out)
+            return out
+
+        bad = excluded(sc.view_layers[0].layer_collection, set()) if sc.view_layers else set()
+        objs = [o for o in sc.objects if not o.hide_render and not any(c.name in bad for c in o.users_collection)]
+        for o in objs:
+            if o.name not in coll.objects:
+                coll.objects.link(o)
+        bpy.data.scenes.remove(sc)
+    else:
+        for o in dst.objects:
+            if o is not None and o.name not in coll.objects:
+                coll.objects.link(o)
 
 
 def _import_via_pymeshlab(path):

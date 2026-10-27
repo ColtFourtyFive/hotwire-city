@@ -789,6 +789,14 @@ return function(t)
 		end
 		local p = VC.speedLinePos(0, 96, 0 / 0, 28, 0.62)
 		t.ok(p.X == p.X, "bad aspect falls back")
+		-- the shipped ring: >= 0.55 out, and a line stays on screen long enough to read (spawn -> edge, mean speed)
+		local ring = VC.SpeedLineRing
+		t.ok(ring.screen >= 0.55 and ring.screen < 0.8, "ring radius")
+		local preset = VFX.Presets.SpeedLines
+		local speed = (preset.speed[1] + preset.speed[2]) / 2
+		local onScreen = ring.ahead * (1 - ring.screen) / speed
+		t.ok(onScreen >= 0.1, ("on screen %.3f s"):format(onScreen))
+		t.ok(preset.lifetime[1] * 0.12 < onScreen, "faded in well before it leaves the screen")
 	end)
 
 	t.test("VehicleClient.inWaterVolume: in the Stunt Park pool, not over or beside it", function()
@@ -799,6 +807,15 @@ return function(t)
 		t.eq(VC.inWaterVolume(Vector3.new(0, 0.7 + above + 0.5, 0), size, above), false, "jumping over it")
 		t.eq(VC.inWaterVolume(Vector3.new(16, 0, 0), size, above), false, "beside it")
 		t.eq(VC.inWaterVolume(Vector3.new(0, -4, 0), size, above), false, "far under it")
+		-- a fountain disc: a cylinder lying on its side (axis X turned to world up)
+		local disc = CFrame.new(5, 2, 5) * CFrame.Angles(0, 0, math.rad(90))
+		local discSize = Vector3.new(0.3, 25, 25)
+		local lp, sz = VC.waterLocal(disc, discSize, Vector3.new(9, 3.5, 2))
+		t.near(sz.Y, 0.3, 1e-6, "the thin axis is the height")
+		t.near(lp.Y, 1.5, 1e-4, "height above the disc centre")
+		t.eq(VC.inWaterVolume(lp, sz, above), true, "in the fountain")
+		lp, sz = VC.waterLocal(CFrame.new(0, 1, 0), size, Vector3.new(3, 2, -4))
+		t.near((lp - Vector3.new(3, 1, -4)).Magnitude, 0, 1e-5, "upright box unchanged")
 	end)
 
 	---------------------------------------------------------------------------------------------------------------

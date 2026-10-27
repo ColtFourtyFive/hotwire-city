@@ -1,438 +1,214 @@
-LightsFront  vis=2 faces=     1 area= 145.713 c=[-4.65  2.99  4.72] why=mat:Emit :: Emit | Light / Plane.003
-Interior     vis=2 faces=   140 area=  32.391 c=[ 4.24 -3.17  0.63] why=mat:Interior :: Interior | Platform.001 / carShell.002 / 1M / Cube.009
-Interior     vis=2 faces=   140 area=  32.391 c=[-4.65  3.52  0.65] why=mat:Interior :: Interior | Platform / carShell / Cube.009
-Interior     vis=1 faces=   552 area=  30.459 c=[-4.65  3.03  1.17] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=   552 area=  30.459 c=[ 4.07 -2.71  1.15] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Body         vis=2 faces=  4660 area=  23.097 c=[-4.65  2.43  1.61] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=  4660 area=  23.097 c=[ 3.87 -2.14  1.59] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=  2324 area=   5.537 c=[ 5.33 -6.25  0.65] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=  2324 area=   5.537 c=[-4.65  6.79  0.67] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=   416 area=   5.398 c=[ 5.   -5.32  1.61] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=   416 area=   5.398 c=[-4.65  5.8   1.62] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Interior     vis=1 faces=   160 area=   5.004 c=[ 3.51 -1.11  1.49] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=   160 area=   5.004 c=[-4.65  1.34  1.51] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=   160 area=   4.730 c=[ 3.68 -1.6   0.99] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=   160 area=   4.730 c=[-4.65  1.86  1.01] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Body         vis=2 faces=  1300 area=   3.746 c=[2.93 0.51 0.94] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=  1300 area=   3.746 c=[-4.65 -0.39  0.96] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Glass        vis=2 faces=    84 area=   3.470 c=[-4.65  4.23  2.06] why=mat:Glass :: Glass | Window / carShell / Plane.001
-Glass        vis=2 faces=    84 area=   3.470 c=[ 4.47 -3.84  2.05] why=mat:Glass :: Glass | Window.001 / carShell.002 / 1M / Plane.001
-WheelMR1     vis=2 faces=  8798 area=   3.432 c=[ 4.61 -0.29  0.62] why=wheel-cylinder :: TireRubber | TireRubber.008 / 1M / Mesh.030
-WheelML1     vis=2 faces=  8798 area=   3.432 c=[-4.63  1.76  0.63] why=wheel-cylinder :: TireRubber | TireRubber / Mesh.030
-WheelMR2     vis=2 faces=  8798 area=   3.432 c=[ 2.13 -1.18  0.62] why=wheel-cylinder :: TireRubber | TireRubber.005 / 1M / Mesh.030
-Trim         vis=2 faces=  8798 area=   3.432 c=[-3.33  0.94  0.64] why=mat:TireRubber :: TireRubber | TireRubber.001 / Tire4 / carShell / Mesh.030
-WheelML2     vis=2 faces=  8798 area=   3.432 c=[-5.97  0.93  0.64] why=wheel-cylinder :: TireRubber | TireRubber.002 / Tire3 / carShell / Mesh.030
-WheelMR3     vis=2 faces=  8798 area=   2.944 c=[ 6.27 -4.79  0.61] why=wheel-cylinder :: TireRubber | TireRubber.006 / 1M / Mesh.030
-WheelRR      vis=2 faces=  8798 area=   2.944 c=[ 3.62 -5.74  0.61] why=wheel-cylinder :: TireRubber | TireRubber.007 / 1M / Mesh.030
-Trim         vis=2 faces=  8798 area=   2.944 c=[-3.21  5.73  0.63] why=mat:TireRubber :: TireRubber | TireRubber.004 / Tire1 / carShell / Mesh.030
-WheelFL      vis=2 faces=  8798 area=   2.944 c=[-6.02  5.74  0.63] why=wheel-cylinder :: TireRubber | TireRubber.003 / Tire2 / carShell / Mesh.030
-WheelMR1     vis=2 faces=  6800 area=   2.741 c=[ 4.71 -0.29  0.62] why=wheel-cylinder :: ChromeMatte | TireRim.008 / 1M / Plane
-WheelML1     vis=2 faces=  6800 area=   2.741 c=[-4.73  1.76  0.63] why=wheel-cylinder :: ChromeMatte | TireRim / Plane
-Trim         vis=2 faces=  6800 area=   2.741 c=[-3.23  0.94  0.63] why=mat:ChromeMatte :: ChromeMatte | TireRim.001 / Tire4 / carShell / Plane
-WheelML2     vis=2 faces=  6800 area=   2.741 c=[-6.07  0.94  0.63] why=wheel-cylinder :: ChromeMatte | TireRim.002 / Tire3 / carShell / Plane
-WheelMR2     vis=2 faces=  6800 area=   2.741 c=[ 2.03 -1.18  0.62] why=wheel-cylinder :: ChromeMatte | TireRim.005 / 1M / Plane
-Interior     vis=1 faces=    96 area=   2.485 c=[ 3.46 -3.26  0.89] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=    96 area=   2.485 c=[-3.89  3.35  0.91] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=    96 area=   2.485 c=[-5.41  3.35  0.91] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=    96 area=   2.485 c=[ 4.9  -2.75  0.89] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=    96 area=   2.438 c=[-5.41  2.73  1.4 ] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=    96 area=   2.438 c=[ 3.25 -2.68  1.38] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=    96 area=   2.438 c=[-3.89  2.73  1.4 ] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=    96 area=   2.438 c=[ 4.69 -2.17  1.38] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Glass        vis=2 faces=    72 area=   2.357 c=[ 3.27 -0.46  2.12] why=mat:Glass :: Glass | Window.001 / carShell.002 / 1M / Plane.001
-Glass        vis=2 faces=    72 area=   2.357 c=[-4.65  0.65  2.14] why=mat:Glass :: Glass | Window / carShell / Plane.001
-WheelRR      vis=2 faces=  6800 area=   2.338 c=[ 3.7  -5.74  0.61] why=wheel-cylinder :: ChromeMatte | TireRim.007 / 1M / Plane
-WheelFL      vis=2 faces=  6800 area=   2.338 c=[-6.11  5.74  0.63] why=wheel-cylinder :: ChromeMatte | TireRim.003 / Tire2 / carShell / Plane
-WheelMR3     vis=2 faces=  6800 area=   2.338 c=[ 6.35 -4.8   0.61] why=wheel-cylinder :: ChromeMatte | TireRim.006 / 1M / Plane
-Trim         vis=2 faces=  6800 area=   2.338 c=[-3.29  5.76  0.63] why=mat:ChromeMatte :: ChromeMatte | TireRim.004 / Tire1 / carShell / Plane
-Trim         vis=2 faces=   123 area=   2.213 c=[-4.65  0.06  0.56] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
-Trim         vis=2 faces=   123 area=   2.213 c=[3.08 0.09 0.54] why=mat:Chrome :: Chrome | exhaust.001 / carShell.002 / 1M / Cylinder.001
-Glass        vis=2 faces=    48 area=   1.948 c=[ 2.79 -2.69  2.08] why=mat:Glass :: Glass | Window.001 / carShell.002 / 1M / Plane.001
-Glass        vis=2 faces=    48 area=   1.948 c=[-3.45  2.58  2.1 ] why=mat:Glass :: Glass | Window / carShell / Plane.001
-Glass        vis=2 faces=    48 area=   1.948 c=[ 5.05 -1.89  2.08] why=mat:Glass :: Glass | Window.001 / carShell.002 / 1M / Plane.001
-Glass        vis=2 faces=    48 area=   1.948 c=[-5.85  2.58  2.1 ] why=mat:Glass :: Glass | Window / carShell / Plane.001
-Trim         vis=2 faces=   312 area=   1.234 c=[2.88 0.64 0.64] why=mat:BlackPlastic :: BlackPlastic | rearDiffuser.001 / carShell.002 / 1M / Cube.011
-Trim         vis=2 faces=   312 area=   1.234 c=[-4.65 -0.52  0.66] why=mat:BlackPlastic :: BlackPlastic | rearDiffuser / carShell / Cube.011
-Trim         vis=2 faces=  4875 area=   1.095 c=[-4.65  6.93  0.49] why=mat:MatteBlack :: MatteBlack | LowerIntake / carShell / Circle.001
-Trim         vis=2 faces=  4875 area=   1.095 c=[ 5.38 -6.38  0.47] why=mat:MatteBlack :: MatteBlack | LowerIntake.001 / carShell.002 / 1M / Circle.001
-Body         vis=2 faces=   440 area=   0.794 c=[-4.65 -0.52  1.46] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=   440 area=   0.794 c=[2.88 0.64 1.44] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Interior     vis=1 faces=   160 area=   0.594 c=[-5.4   2.41  2.07] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=   160 area=   0.594 c=[ 4.57 -1.87  2.06] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=   160 area=   0.594 c=[-3.9   2.41  2.07] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=   160 area=   0.594 c=[ 3.16 -2.37  2.06] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Discard      vis=0 faces=    40 area=   0.572 c=[-4.65 -0.5   1.46] why=mat:MatteBlack hidden :: MatteBlack | plate / carShell / Cube.004
-Discard      vis=0 faces=    40 area=   0.572 c=[2.89 0.61 1.44] why=mat:MatteBlack hidden :: MatteBlack | plate.001 / carShell.002 / 1M / Cube.004
-Interior     vis=1 faces=   160 area=   0.527 c=[-5.25  1.13  2.09] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Interior     vis=1 faces=   160 area=   0.527 c=[ 4.01 -0.71  2.07] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=   160 area=   0.527 c=[ 2.87 -1.12  2.07] why=mat:Interior :: Interior | Interior.001 / carShell.002 / 1M / Mesh.001
-Interior     vis=1 faces=   160 area=   0.527 c=[-4.04  1.13  2.09] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
-Trim         vis=2 faces=    88 area=   0.521 c=[ 6.23 -5.75  0.61] why=mat:MatteBlack :: MatteBlack | lowerIntake.001 / carShell.002 / 1M / Cube.003
-Discard      vis=0 faces=    88 area=   0.521 c=[-5.66  6.62  0.62] why=mat:MatteBlack hidden :: MatteBlack | lowerIntake / carShell / Cube.003
-Trim         vis=2 faces=    88 area=   0.521 c=[-3.64  6.62  0.62] why=mat:MatteBlack :: MatteBlack | lowerIntake / carShell / Cube.003
-Trim         vis=2 faces=    88 area=   0.521 c=[ 4.32 -6.43  0.61] why=mat:MatteBlack :: MatteBlack | lowerIntake.001 / carShell.002 / 1M / Cube.003
-Discard      vis=0 faces=   204 area=   0.440 c=[-5.69  6.44  1.22] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsInterior / carShell / Mesh.045
-Discard      vis=0 faces=   204 area=   0.440 c=[ 6.2  -5.57  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsInterior.001 / carShell.002 / 1M / Mesh.045
-Discard      vis=0 faces=   204 area=   0.440 c=[-3.6   6.44  1.22] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsInterior / carShell / Mesh.045
-Discard      vis=0 faces=   204 area=   0.440 c=[ 4.22 -6.27  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsInterior.001 / carShell.002 / 1M / Mesh.045
-WheelML2     vis=2 faces=   160 area=   0.439 c=[-6.07  0.94  0.63] why=wheel-cylinder :: Brake | brakeAssembly.002 / Brake3 / carShell / Circle.003
-WheelMR1     vis=2 faces=   160 area=   0.439 c=[ 4.71 -0.29  0.62] why=wheel-cylinder :: Brake | brakeAssembly.008 / 1M / Circle.003
-WheelML1     vis=2 faces=   160 area=   0.439 c=[-4.73  1.76  0.63] why=wheel-cylinder :: Brake | brakeAssembly / Circle.003
-WheelMR2     vis=2 faces=   160 area=   0.439 c=[ 2.03 -1.18  0.62] why=wheel-cylinder :: Brake | brakeAssembly.007 / 1M / Circle.003
-Trim         vis=2 faces=   160 area=   0.439 c=[-3.23  0.94  0.63] why=mat:Brake :: Brake | brakeAssembly.001 / Brake4 / carShell / Circle.003
-Trim         vis=2 faces=   128 area=   0.424 c=[-3.97 -0.33  0.57] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.424 c=[-5.32 -0.33  0.57] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.424 c=[3.58 0.69 0.55] why=mat:Chrome :: Chrome | exhaust.001 / carShell.002 / 1M / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.424 c=[2.31 0.24 0.55] why=mat:Chrome :: Chrome | exhaust.001 / carShell.002 / 1M / Cylinder.001
-WheelRR      vis=2 faces=   160 area=   0.423 c=[ 3.63 -5.75  0.61] why=wheel-cylinder :: Brake | brakeAssembly.006 / 1M / Circle.003
-WheelMR3     vis=2 faces=   160 area=   0.423 c=[ 6.33 -4.79  0.61] why=wheel-cylinder :: Brake | brakeAssembly.005 / 1M / Circle.003
-WheelFL      vis=2 faces=   160 area=   0.423 c=[-6.08  5.73  0.63] why=wheel-cylinder :: Brake | brakeAssembly.003 / Brake2 / carShell / Circle.003
-Trim         vis=2 faces=   160 area=   0.423 c=[-3.21  5.75  0.63] why=mat:Brake :: Brake | brakeAssembly.004 / Brake1 / carShell / Circle.003
-Trim         vis=2 faces=   128 area=   0.395 c=[2.16 0.16 0.55] why=mat:Chrome :: Chrome | exhaust.001 / carShell.002 / 1M / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.395 c=[3.74 0.73 0.55] why=mat:Chrome :: Chrome | exhaust.001 / carShell.002 / 1M / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.395 c=[-5.49 -0.32  0.57] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.395 c=[-3.81 -0.32  0.57] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
-Trim         vis=2 faces=   128 area=   0.373 c=[-3.42  2.62  2.05] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=   128 area=   0.373 c=[-5.87  2.62  2.05] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=   128 area=   0.373 c=[ 2.78 -2.73  2.04] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Trim         vis=2 faces=   128 area=   0.373 c=[ 5.09 -1.91  2.04] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Discard      vis=0 faces=   208 area=   0.349 c=[-3.58  6.56  1.19] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsOutline / carShell / Cube.005
-Discard      vis=0 faces=   208 area=   0.349 c=[ 4.25 -6.39  1.17] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsOutline.001 / carShell.002 / 1M / Cube.005
-Discard      vis=0 faces=   208 area=   0.349 c=[-5.71  6.56  1.19] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsOutline / carShell / Cube.005
-Discard      vis=0 faces=   208 area=   0.349 c=[ 6.26 -5.67  1.17] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsOutline.001 / carShell.002 / 1M / Cube.005
-Discard      vis=0 faces=   288 area=   0.334 c=[-5.54  6.47  1.21] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.334 c=[ 4.37 -6.25  1.19] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   288 area=   0.334 c=[-3.75  6.47  1.21] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.334 c=[ 6.07 -5.65  1.19] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   128 area=   0.293 c=[ 4.15 -6.28  1.18] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   128 area=   0.293 c=[-3.52  6.42  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   128 area=   0.293 c=[-5.77  6.42  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   128 area=   0.293 c=[ 6.26 -5.53  1.18] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Trim         vis=2 faces=    34 area=   0.283 c=[-4.65 -0.53  1.48] why=mat:Plate :: Plate | plate / carShell / Cube.004
-Trim         vis=2 faces=    34 area=   0.283 c=[2.88 0.65 1.47] why=mat:Plate :: Plate | plate.001 / carShell.002 / 1M / Cube.004
-Trim         vis=2 faces=    72 area=   0.272 c=[ 2.66 -2.33  2.09] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Trim         vis=2 faces=    72 area=   0.272 c=[-3.44  2.2   2.11] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=    72 area=   0.272 c=[-5.85  2.2   2.11] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=    72 area=   0.272 c=[ 4.93 -1.52  2.09] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-LightsFront  vis=2 faces=   118 area=   0.261 c=[-3.58  6.65  1.23] why=mat:HeadlightGlass :: HeadlightGlass | lightsGlass / carShell / Cube.008
-LightsFront  vis=2 faces=   118 area=   0.261 c=[-5.71  6.65  1.23] why=mat:HeadlightGlass :: HeadlightGlass | lightsGlass / carShell / Cube.008
-LightsRear   vis=2 faces=   118 area=   0.261 c=[ 6.29 -5.77  1.21] why=mat:HeadlightGlass :: HeadlightGlass | lightsGlass.001 / carShell.002 / 1M / Cube.008
-LightsRear   vis=2 faces=   118 area=   0.261 c=[ 4.28 -6.48  1.21] why=mat:HeadlightGlass :: HeadlightGlass | lightsGlass.001 / carShell.002 / 1M / Cube.008
-Discard      vis=0 faces=   288 area=   0.256 c=[ 4.15 -6.29  1.18] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   288 area=   0.256 c=[ 6.26 -5.54  1.18] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   288 area=   0.256 c=[-5.77  6.43  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.256 c=[-3.52  6.43  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Trim         vis=2 faces=   248 area=   0.221 c=[ 5.7  -3.33  1.8 ] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Trim         vis=2 faces=   248 area=   0.221 c=[-5.98  4.17  1.82] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=   248 area=   0.221 c=[-3.32  4.17  1.82] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=   248 area=   0.221 c=[ 3.2  -4.22  1.8 ] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Trim         vis=2 faces=   136 area=   0.207 c=[-4.65  6.92  0.38] why=mat:MatteBlack :: MatteBlack | LowerIntake / carShell / Circle.001
-Discard      vis=0 faces=   136 area=   0.207 c=[ 5.37 -6.37  0.36] why=mat:MatteBlack hidden :: MatteBlack | LowerIntake.001 / carShell.002 / 1M / Circle.001
-Body         vis=2 faces=   568 area=   0.183 c=[-6.17  4.1   1.89] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=   568 area=   0.183 c=[ 5.87 -3.21  1.87] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=   568 area=   0.183 c=[ 2.99 -4.23  1.87] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=   568 area=   0.183 c=[-3.12  4.1   1.89] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-LightsFront  vis=2 faces=   420 area=   0.175 c=[4.03 0.79 1.55] why=mat:Tailight :: Tailight | taillight.001 / carShell.002 / 1M / Cube.016
-LightsFront  vis=2 faces=   420 area=   0.175 c=[1.9  0.04 1.55] why=mat:Tailight :: Tailight | taillight.001 / carShell.002 / 1M / Cube.016
-LightsRear   vis=2 faces=   420 area=   0.175 c=[-3.52 -0.28  1.57] why=mat:Tailight :: Tailight | taillight / carShell / Cube.016
-LightsRear   vis=2 faces=   420 area=   0.175 c=[-5.77 -0.28  1.57] why=mat:Tailight :: Tailight | taillight / carShell / Cube.016
-WheelML1     vis=0 faces=    58 area=   0.145 c=[-4.71  2.09  0.58] why=wheel-cylinder :: Material | Cube / Cube
-WheelML2     vis=2 faces=    58 area=   0.145 c=[-6.05  1.26  0.59] why=wheel-cylinder :: Material | Cube.002 / Brake3 / carShell / Cube
-Trim         vis=2 faces=    58 area=   0.145 c=[-3.24  1.26  0.59] why=obj:Cube.001 / Brake4 / carShell / :: Material | Cube.001 / Brake4 / carShell / Cube
-WheelMR1     vis=2 faces=    58 area=   0.145 c=[ 4.7  -0.62  0.57] why=wheel-cylinder :: Material | Cube.008 / 1M / Cube
-WheelMR2     vis=2 faces=    58 area=   0.145 c=[ 2.04 -1.5   0.57] why=wheel-cylinder :: Material | Cube.007 / 1M / Cube
-Trim         vis=2 faces=    58 area=   0.130 c=[-3.23  6.07  0.59] why=obj:Cube.004 / Brake1 / carShell / :: Material | Cube.004 / Brake1 / carShell / Cube
-WheelRR      vis=2 faces=    58 area=   0.130 c=[ 3.73 -6.06  0.57] why=wheel-cylinder :: Material | Cube.006 / 1M / Cube
-WheelMR3     vis=2 faces=    58 area=   0.130 c=[ 6.41 -5.11  0.57] why=wheel-cylinder :: Material | Cube.005 / 1M / Cube
-WheelFL      vis=2 faces=    58 area=   0.130 c=[-6.16  6.05  0.59] why=wheel-cylinder :: Material | Cube.003 / Brake2 / carShell / Cube
-Body         vis=2 faces=   288 area=   0.099 c=[-4.65  1.36  2.51] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=   288 area=   0.099 c=[ 3.51 -1.13  2.49] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Discard      vis=0 faces=   288 area=   0.084 c=[ 4.17 -6.34  1.18] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   288 area=   0.084 c=[-5.77  6.48  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.084 c=[-3.52  6.48  1.2 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.084 c=[ 6.28 -5.59  1.18] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Trim         vis=2 faces=   180 area=   0.078 c=[-4.94  6.95  1.21] why=mat:Chrome :: Chrome | kidneyChrome / carShell / Cube.001
-Trim         vis=2 faces=   180 area=   0.078 c=[-4.35  6.95  1.21] why=mat:Chrome :: Chrome | kidneyChrome / carShell / Cube.001
-Trim         vis=2 faces=   180 area=   0.078 c=[ 5.66 -6.3   1.2 ] why=mat:Chrome :: Chrome | kidneyChrome.001 / carShell.002 / 1M / Cube.001
-Trim         vis=2 faces=   180 area=   0.078 c=[ 5.1 -6.5  1.2] why=mat:Chrome :: Chrome | kidneyChrome.001 / carShell.002 / 1M / Cube.001
-Body         vis=2 faces=   936 area=   0.068 c=[-6.16  2.63  1.48] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=   936 area=   0.068 c=[-3.14  2.63  1.48] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
-Body         vis=2 faces=   936 area=   0.068 c=[ 2.52 -2.84  1.46] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Body         vis=2 faces=   936 area=   0.068 c=[ 5.36 -1.83  1.46] why=mat:CarShellNew :: CarShellNew | carShell.002 / 1M / Cube.012
-Trim         vis=2 faces=    96 area=   0.061 c=[-6.17  4.88  1.28] why=mat:Chrome :: Chrome | MStreak / carShell / Cube.013
-Trim         vis=2 faces=    96 area=   0.061 c=[-3.13  4.88  1.28] why=mat:Chrome :: Chrome | MStreak / carShell / Cube.013
-Trim         vis=2 faces=    96 area=   0.061 c=[ 6.12 -3.94  1.26] why=mat:Chrome :: Chrome | MStreak.001 / carShell.002 / 1M / Cube.013
-Trim         vis=2 faces=    96 area=   0.061 c=[ 3.26 -4.96  1.26] why=mat:Chrome :: Chrome | MStreak.001 / carShell.002 / 1M / Cube.013
-Discard      vis=0 faces=   216 area=   0.058 c=[-3.65  6.51  1.21] why=mat:ChromeMatte hidden :: ChromeMatte | lightsSeparator / carShell / Mesh.005
-Discard      vis=0 faces=   216 area=   0.058 c=[ 6.17 -5.66  1.19] why=mat:ChromeMatte hidden :: ChromeMatte | lightsSeparator.001 / carShell.002 / 1M / Mesh.005
-Discard      vis=0 faces=   216 area=   0.058 c=[ 4.3  -6.32  1.19] why=mat:ChromeMatte hidden :: ChromeMatte | lightsSeparator.001 / carShell.002 / 1M / Mesh.005
-Trim         vis=2 faces=   216 area=   0.058 c=[-5.64  6.51  1.21] why=mat:ChromeMatte :: ChromeMatte | lightsSeparator / carShell / Mesh.005
-Trim         vis=2 faces=    32 area=   0.050 c=[ 5.86 -3.11  1.87] why=mat:Chrome :: Chrome | SideMirror.001 / carShell.002 / 1M / Cube.000
-Trim         vis=2 faces=    32 area=   0.050 c=[-3.1   4.01  1.89] why=mat:Chrome :: Chrome | SideMirror / carShell / Cube.000
-Trim         vis=2 faces=    32 area=   0.050 c=[-6.2   4.01  1.89] why=mat:Chrome :: Chrome | SideMirror / carShell / Cube.000
-Trim         vis=2 faces=    32 area=   0.050 c=[ 2.94 -4.15  1.87] why=mat:Chrome :: Chrome | SideMirror.001 / carShell.002 / 1M / Cube.000
-Discard      vis=0 faces=   288 area=   0.045 c=[ 4.42 -6.37  1.19] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   288 area=   0.045 c=[-5.54  6.6   1.21] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.045 c=[-3.75  6.6   1.21] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
-Discard      vis=0 faces=   288 area=   0.045 c=[ 6.11 -5.77  1.19] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector.001 / carShell.002 / 1M / Mesh.015
-Discard      vis=0 faces=   184 area=   0.044 c=[-3.31  6.29  1.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=   184 area=   0.044 c=[-5.98  6.29  1.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=   184 area=   0.044 c=[ 6.41 -5.33  1.22] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=   184 area=   0.044 c=[ 3.9  -6.22  1.22] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=    28 area=   0.042 c=[ 4.3  -6.43  1.32] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsLid.001 / carShell.002 / 1M / Cube.010
-Discard      vis=0 faces=    28 area=   0.042 c=[ 6.24 -5.74  1.32] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsLid.001 / carShell.002 / 1M / Cube.010
-Discard      vis=0 faces=    28 area=   0.042 c=[-5.68  6.61  1.34] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsLid / carShell / Cube.010
-Discard      vis=0 faces=    28 area=   0.042 c=[-3.62  6.61  1.34] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsLid / carShell / Cube.010
-Discard      vis=0 faces=   184 area=   0.037 c=[ 3.93 -6.24  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=   184 area=   0.037 c=[-5.96  6.31  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=   184 area=   0.037 c=[ 6.41 -5.36  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=   184 area=   0.037 c=[-3.33  6.31  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.036 c=[-5.99  6.27  1.3 ] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.036 c=[ 3.89 -6.21  1.28] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.036 c=[-3.3   6.27  1.3 ] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.036 c=[ 6.42 -5.31  1.28] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Trim         vis=2 faces=    68 area=   0.034 c=[-4.59  6.96  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[ 5.44 -6.39  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[-4.71  6.96  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[ 5.33 -6.43  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[ 5.28 -6.44  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[ 5.48 -6.37  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[-4.75  6.95  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.034 c=[-4.54  6.95  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[ 5.52 -6.35  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[-4.8   6.95  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[-4.5   6.95  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[ 5.24 -6.45  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[ 5.2  -6.46  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[-4.84  6.94  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[-4.45  6.94  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.033 c=[ 5.56 -6.33  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[ 5.6  -6.31  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[ 5.15 -6.47  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[-4.41  6.93  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[-4.89  6.93  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    72 area=   0.032 c=[ 5.74 -3.3   1.87] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Trim         vis=2 faces=    72 area=   0.032 c=[-6.02  4.15  1.89] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=    72 area=   0.032 c=[-3.28  4.15  1.89] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
-Trim         vis=2 faces=    72 area=   0.032 c=[ 3.15 -4.22  1.87] why=mat:BlackPlastic :: BlackPlastic | trimming.001 / carShell.002 / 1M / Mesh.024
-Trim         vis=2 faces=    68 area=   0.032 c=[ 5.11 -6.47  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[ 5.64 -6.29  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[-4.93  6.93  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[-4.37  6.93  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=   616 area=   0.032 c=[-4.65  6.86  1.41] why=mat:BMWBlack :: BMWBlack | RoundelFront / carShell / Mesh.002
-Trim         vis=2 faces=   616 area=   0.032 c=[ 5.35 -6.32  1.39] why=mat:BMWBlack :: BMWBlack | RoundelFront.001 / carShell.002 / 1M / Mesh.002
-Trim         vis=2 faces=    68 area=   0.032 c=[ 5.68 -6.27  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[-4.97  6.92  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[-4.32  6.92  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.032 c=[ 5.07 -6.48  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[-4.28  6.92  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[ 5.02 -6.49  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[-5.02  6.92  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[ 5.72 -6.25  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[ 4.98 -6.5   1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[ 5.76 -6.23  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[-5.06  6.91  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.031 c=[-4.24  6.91  1.2 ] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Discard      vis=0 faces=     6 area=   0.031 c=[ 6.43 -5.31  1.27] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.031 c=[-3.29  6.27  1.29] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.031 c=[-6.    6.27  1.29] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.031 c=[ 3.88 -6.21  1.27] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Trim         vis=2 faces=    68 area=   0.030 c=[ 5.8  -6.21  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[ 4.94 -6.51  1.18] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[-5.1   6.9   1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[-4.19  6.9   1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[-4.15  6.9   1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[ 5.83 -6.19  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[-5.14  6.9   1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[ 4.9  -6.52  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Discard      vis=0 faces=   184 area=   0.030 c=[-3.34  6.33  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=   184 area=   0.030 c=[-5.95  6.33  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=   184 area=   0.030 c=[ 6.41 -5.38  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=   184 area=   0.030 c=[ 3.94 -6.26  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Trim         vis=2 faces=    68 area=   0.030 c=[-4.11  6.89  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[-5.19  6.89  1.19] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[ 4.86 -6.53  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Trim         vis=2 faces=    68 area=   0.030 c=[ 5.87 -6.17  1.17] why=mat:BlackPlastic :: BlackPlastic | kidneyBars.001 / carShell.002 / 1M / Cube.002
-Discard      vis=0 faces=     6 area=   0.027 c=[ 6.44 -5.31  1.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.027 c=[ 3.87 -6.22  1.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.027 c=[-6.01  6.27  1.28] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.027 c=[-3.28  6.27  1.28] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Trim         vis=2 faces=   616 area=   0.026 c=[2.85 0.72 1.76] why=mat:BMWBlack :: BMWBlack | RoundelBack.001 / carShell.002 / 1M / Mesh.003
-Trim         vis=2 faces=   616 area=   0.026 c=[-4.64 -0.61  1.78] why=mat:BMWBlack :: BMWBlack | RoundelBack / carShell / Mesh.003
-Discard      vis=0 faces=     6 area=   0.024 c=[-6.01  6.27  1.27] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[ 6.44 -5.31  1.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[-3.28  6.27  1.27] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[ 3.87 -6.22  1.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[-3.3   6.29  1.18] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[ 6.43 -5.33  1.16] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[ 3.89 -6.23  1.16] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.024 c=[-5.99  6.29  1.18] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Trim         vis=2 faces=    32 area=   0.022 c=[-5.97 -0.28  0.85] why=mat:MatteBlack :: MatteBlack | carShell.001 / carShell / Cube.006
-Trim         vis=2 faces=    32 area=   0.022 c=[4.21 0.86 0.83] why=mat:MatteBlack :: MatteBlack | carShell.003 / carShell.002 / 1M / Cube.006
-Trim         vis=2 faces=    32 area=   0.022 c=[-3.32 -0.28  0.85] why=mat:MatteBlack :: MatteBlack | carShell.001 / carShell / Cube.006
-Trim         vis=2 faces=    32 area=   0.022 c=[ 1.71 -0.03  0.83] why=mat:MatteBlack :: MatteBlack | carShell.003 / carShell.002 / 1M / Cube.006
-Discard      vis=0 faces=     6 area=   0.022 c=[ 3.86 -6.22  1.25] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.022 c=[ 6.45 -5.31  1.25] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.022 c=[-3.28  6.27  1.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.022 c=[-6.02  6.27  1.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[ 3.86 -6.23  1.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[ 6.45 -5.31  1.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[-6.02  6.28  1.25] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[-3.28  6.28  1.25] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[ 6.44 -5.33  1.17] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[ 3.88 -6.23  1.17] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[-3.29  6.29  1.19] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[-6.    6.29  1.19] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[ 3.86 -6.23  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[ 6.45 -5.31  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[-3.28  6.28  1.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.021 c=[-6.02  6.28  1.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[ 6.45 -5.31  1.22] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[-3.28  6.28  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[-6.02  6.28  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[ 3.87 -6.23  1.22] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[-6.01  6.29  1.2 ] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[-3.28  6.29  1.2 ] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[ 6.44 -5.32  1.18] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[ 3.88 -6.23  1.18] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[ 6.45 -5.31  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[ 3.87 -6.23  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[-3.28  6.28  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.020 c=[-6.02  6.28  1.23] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-WheelMR1     vis=2 faces=  2152 area=   0.019 c=[ 4.82 -0.29  0.62] why=wheel-cylinder :: BMWBlack | TireRoundel.008 / 1M / Mesh.000
-Discard      vis=0 faces=     6 area=   0.019 c=[ 3.87 -6.23  1.2 ] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.019 c=[-6.02  6.28  1.22] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.019 c=[ 6.45 -5.32  1.2 ] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.019 c=[-3.28  6.28  1.22] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.018 c=[ 6.45 -5.32  1.19] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-Discard      vis=0 faces=     6 area=   0.018 c=[-3.28  6.29  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.018 c=[-6.02  6.29  1.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
-Discard      vis=0 faces=     6 area=   0.018 c=[ 3.87 -6.24  1.19] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2.001 / carShell.002 / 1M / Mesh.018
-WheelFL      vis=2 faces=  2152 area=   0.018 c=[-6.19  5.74  0.63] why=wheel-cylinder :: BMWBlack | TireRoundel.003 / Tire2 / carShell / Mesh.000
-Discard      vis=0 faces=  2152 area=   0.018 c=[-3.37  5.78  0.63] why=mat:BMWBlack hidden :: BMWBlack | TireRoundel.004 / Tire1 / carShell / Mesh.000
-WheelMR3     vis=2 faces=  2152 area=   0.018 c=[ 6.44 -4.8   0.61] why=wheel-cylinder :: BMWBlack | TireRoundel.006 / 1M / Mesh.000
-WheelMR2     vis=2 faces=  1640 area=   0.017 c=[ 1.92 -1.18  0.62] why=wheel-cylinder :: BMWBlack | TireRoundel.005 / 1M / Mesh.000
-WheelRR      vis=2 faces=  1640 area=   0.016 c=[ 3.79 -5.74  0.61] why=wheel-cylinder :: BMWBlack | TireRoundel.007 / 1M / Mesh.000
-Trim         vis=2 faces=   616 area=   0.015 c=[-3.12  0.94  0.63] why=mat:BMWBlack :: BMWBlack | TireRoundel.001 / Tire4 / carShell / Mesh.000
-WheelML1     vis=0 faces=   616 area=   0.015 c=[-4.85  1.76  0.63] why=wheel-cylinder :: BMWBlack | TireRoundel / Mesh.000
-WheelML2     vis=2 faces=   616 area=   0.015 c=[-6.18  0.94  0.63] why=wheel-cylinder :: BMWBlack | TireRoundel.002 / Tire3 / carShell / Mesh.000
-Trim         vis=2 faces=  1024 area=   0.012 c=[ 5.35 -6.32  1.39] why=obj:RoundelFront.001 / carShell.00 :: BMWSilver | RoundelFront.001 / carShell.002 / 1M / Mesh.002
-Trim         vis=2 faces=  1024 area=   0.012 c=[-4.65  6.86  1.4 ] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
-WheelML2     vis=0 faces=   112 area=   0.011 c=[-6.15  1.03  0.66] why=wheel-cylinder :: ChromeMatte | TireBolts.002 / Tire3 / carShell / Cylinder
-Trim         vis=2 faces=   112 area=   0.011 c=[-3.15  0.84  0.66] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
-WheelML1     vis=0 faces=   112 area=   0.011 c=[-4.82  1.85  0.66] why=wheel-cylinder :: ChromeMatte | TireBolts / Cylinder
-WheelMR1     vis=0 faces=   112 area=   0.011 c=[ 4.8  -0.38  0.65] why=wheel-cylinder :: ChromeMatte | TireBolts.008 / 1M / Cylinder
-WheelMR2     vis=0 faces=   112 area=   0.011 c=[ 1.95 -1.09  0.65] why=wheel-cylinder :: ChromeMatte | TireBolts.005 / 1M / Cylinder
-WheelMR1     vis=0 faces=   112 area=   0.011 c=[ 4.8  -0.23  0.54] why=wheel-cylinder :: ChromeMatte | TireBolts.008 / 1M / Cylinder
-WheelML2     vis=2 faces=   112 area=   0.011 c=[-6.15  0.99  0.56] why=wheel-cylinder :: ChromeMatte | TireBolts.002 / Tire3 / carShell / Cylinder
-Trim         vis=2 faces=   112 area=   0.011 c=[-3.15  0.88  0.56] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
-WheelMR1     vis=2 faces=   112 area=   0.011 c=[ 4.8  -0.35  0.54] why=wheel-cylinder :: ChromeMatte | TireBolts.008 / 1M / Cylinder
-WheelMR2     vis=0 faces=   112 area=   0.011 c=[ 1.95 -1.23  0.54] why=wheel-cylinder :: ChromeMatte | TireBolts.005 / 1M / Cylinder
-WheelML1     vis=0 faces=   112 area=   0.011 c=[-4.82  1.82  0.55] why=wheel-cylinder :: ChromeMatte | TireBolts / Cylinder
-Trim         vis=2 faces=   112 area=   0.011 c=[-3.15  0.99  0.56] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
-WheelML2     vis=2 faces=   112 area=   0.011 c=[-6.15  0.88  0.56] why=wheel-cylinder :: ChromeMatte | TireBolts.002 / Tire3 / carShell / Cylinder
-WheelML1     vis=0 faces=   112 area=   0.011 c=[-4.82  1.71  0.55] why=wheel-cylinder :: ChromeMatte | TireBolts / Cylinder
-WheelMR2     vis=2 faces=   112 area=   0.011 c=[ 1.95 -1.12  0.54] why=wheel-cylinder :: ChromeMatte | TireBolts.005 / 1M / Cylinder
-Trim         vis=2 faces=   112 area=   0.011 c=[-3.15  0.94  0.73] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
-WheelMR1     vis=2 faces=   112 area=   0.011 c=[ 4.8  -0.29  0.71] why=wheel-cylinder :: ChromeMatte | TireBolts.008 / 1M / Cylinder
-WheelML2     vis=2 faces=   112 area=   0.011 c=[-6.15  0.94  0.73] why=wheel-cylinder :: ChromeMatte | TireBolts.002 / Tire3 / carShell / Cylinder
-WheelMR2     vis=2 faces=   112 area=   0.011 c=[ 1.95 -1.27  0.65] why=wheel-cylinder :: ChromeMatte | TireBolts.005 / 1M / Cylinder
-WheelML1     vis=0 faces=   112 area=   0.011 c=[-4.82  1.76  0.72] why=wheel-cylinder :: ChromeMatte | TireBolts / Cylinder
-Trim         vis=2 faces=   112 area=   0.011 c=[-3.15  1.03  0.66] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
-WheelMR2     vis=0 faces=   112 area=   0.011 c=[ 1.95 -1.18  0.71] why=wheel-cylinder :: ChromeMatte | TireBolts.005 / 1M / Cylinder
-WheelML2     vis=2 faces=   112 area=   0.011 c=[-6.15  0.84  0.66] why=wheel-cylinder :: ChromeMatte | TireBolts.002 / Tire3 / carShell / Cylinder
-WheelML1     vis=0 faces=   112 area=   0.011 c=[-4.82  1.67  0.66] why=wheel-cylinder :: ChromeMatte | TireBolts / Cylinder
-WheelMR1     vis=2 faces=   112 area=   0.011 c=[ 4.8  -0.2   0.65] why=wheel-cylinder :: ChromeMatte | TireBolts.008 / 1M / Cylinder
-Trim         vis=2 faces=  1024 area=   0.010 c=[-4.64 -0.6   1.78] why=obj:RoundelBack / carShell / Mesh. :: BMWSilver | RoundelBack / carShell / Mesh.003
-Trim         vis=2 faces=  1024 area=   0.010 c=[2.85 0.71 1.76] why=obj:RoundelBack.001 / carShell.002 :: BMWSilver | RoundelBack.001 / carShell.002 / 1M / Mesh.003
-WheelFL      vis=2 faces=   112 area=   0.009 c=[-6.17  5.83  0.66] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire2 / carShell / Cylinder
-WheelRR      vis=0 faces=   112 area=   0.009 c=[ 3.77 -5.83  0.59] why=wheel-cylinder :: ChromeMatte | TireBolts.007 / 1M / Cylinder
-WheelMR3     vis=2 faces=   112 area=   0.009 c=[ 6.42 -4.89  0.64] why=wheel-cylinder :: ChromeMatte | TireBolts.006 / 1M / Cylinder
-Discard      vis=0 faces=   112 area=   0.009 c=[-3.33  5.86  0.6 ] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire1 / carShell / Cylinder
-WheelFL      vis=2 faces=   112 area=   0.009 c=[-6.17  5.68  0.56] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire2 / carShell / Cylinder
-WheelRR      vis=0 faces=   112 area=   0.009 c=[ 3.77 -5.68  0.69] why=wheel-cylinder :: ChromeMatte | TireBolts.007 / 1M / Cylinder
-WheelFL      vis=2 faces=   112 area=   0.009 c=[-6.17  5.79  0.56] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire2 / carShell / Cylinder
-WheelRR      vis=0 faces=   112 area=   0.009 c=[ 3.77 -5.79  0.69] why=wheel-cylinder :: ChromeMatte | TireBolts.007 / 1M / Cylinder
-Discard      vis=0 faces=   112 area=   0.009 c=[-3.34  5.83  0.71] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire1 / carShell / Cylinder
-Discard      vis=0 faces=   112 area=   0.009 c=[-3.37  5.72  0.71] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire1 / carShell / Cylinder
-WheelMR3     vis=0 faces=   112 area=   0.009 c=[ 6.42 -4.74  0.54] why=wheel-cylinder :: ChromeMatte | TireBolts.006 / 1M / Cylinder
-Discard      vis=0 faces=   112 area=   0.009 c=[-3.38  5.69  0.6 ] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire1 / carShell / Cylinder
-WheelMR3     vis=0 faces=   112 area=   0.009 c=[ 6.42 -4.85  0.54] why=wheel-cylinder :: ChromeMatte | TireBolts.006 / 1M / Cylinder
-Discard      vis=0 faces=   112 area=   0.009 c=[-3.35  5.78  0.54] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire1 / carShell / Cylinder
-WheelRR      vis=2 faces=   112 area=   0.009 c=[ 3.77 -5.74  0.52] why=wheel-cylinder :: ChromeMatte | TireBolts.007 / 1M / Cylinder
-WheelMR3     vis=2 faces=   112 area=   0.009 c=[ 6.42 -4.8   0.71] why=wheel-cylinder :: ChromeMatte | TireBolts.006 / 1M / Cylinder
-WheelRR      vis=0 faces=   112 area=   0.009 c=[ 3.77 -5.65  0.59] why=wheel-cylinder :: ChromeMatte | TireBolts.007 / 1M / Cylinder
-WheelFL      vis=0 faces=   112 area=   0.009 c=[-6.17  5.74  0.73] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire2 / carShell / Cylinder
-WheelFL      vis=2 faces=   112 area=   0.009 c=[-6.17  5.65  0.66] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire2 / carShell / Cylinder
-WheelMR3     vis=0 faces=   112 area=   0.009 c=[ 6.42 -4.71  0.64] why=wheel-cylinder :: ChromeMatte | TireBolts.006 / 1M / Cylinder
-Discard      vis=0 faces=   104 area=   0.006 c=[ 4.17 -6.35  1.18] why=mat:HeadLightGlass hidden :: HeadLightGlass | lightsBulb.001 / carShell.002 / 1M / Mesh.022
-Discard      vis=0 faces=   104 area=   0.006 c=[-5.77  6.49  1.2 ] why=mat:HeadLightGlass hidden :: HeadLightGlass | lightsBulb / carShell / Mesh.022
-Discard      vis=0 faces=   104 area=   0.006 c=[-3.52  6.49  1.2 ] why=mat:HeadLightGlass hidden :: HeadLightGlass | lightsBulb / carShell / Mesh.022
-Discard      vis=0 faces=   104 area=   0.006 c=[ 6.29 -5.59  1.18] why=mat:HeadLightGlass hidden :: HeadLightGlass | lightsBulb.001 / carShell.002 / 1M / Mesh.022
-Discard      vis=0 faces=    64 area=   0.005 c=[-5.76  6.54  1.2 ] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    64 area=   0.005 c=[-3.53  6.54  1.2 ] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    64 area=   0.005 c=[ 6.29 -5.64  1.18] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Discard      vis=0 faces=    64 area=   0.005 c=[ 4.19 -6.39  1.18] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Trim         vis=2 faces=   512 area=   0.005 c=[-4.65  6.86  1.41] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
-Trim         vis=2 faces=   512 area=   0.005 c=[ 5.35 -6.32  1.39] why=obj:RoundelFront.001 / carShell.00 :: BMWSilver | RoundelFront.001 / carShell.002 / 1M / Mesh.002
-Trim         vis=2 faces=   512 area=   0.004 c=[-4.64 -0.61  1.78] why=obj:RoundelBack / carShell / Mesh. :: BMWSilver | RoundelBack / carShell / Mesh.003
-Trim         vis=2 faces=   512 area=   0.004 c=[2.85 0.72 1.76] why=obj:RoundelBack.001 / carShell.002 :: BMWSilver | RoundelBack.001 / carShell.002 / 1M / Mesh.003
-Discard      vis=0 faces=    64 area=   0.003 c=[-5.55  6.65  1.21] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    64 area=   0.003 c=[-3.75  6.65  1.21] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    64 area=   0.003 c=[ 4.43 -6.42  1.19] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Discard      vis=0 faces=    64 area=   0.003 c=[ 6.13 -5.82  1.19] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Discard      vis=0 faces=    32 area=   0.002 c=[-3.53  6.54  1.2 ] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    32 area=   0.002 c=[ 6.29 -5.64  1.18] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Discard      vis=0 faces=    32 area=   0.002 c=[-5.76  6.54  1.2 ] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    32 area=   0.002 c=[ 4.19 -6.38  1.18] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Trim         vis=2 faces=   512 area=   0.002 c=[-3.12  0.94  0.63] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
-WheelML1     vis=0 faces=   512 area=   0.002 c=[-4.85  1.76  0.63] why=wheel-cylinder :: BMWSilver | TireRoundel / Mesh.000
-WheelMR2     vis=2 faces=   512 area=   0.002 c=[ 1.92 -1.18  0.62] why=wheel-cylinder :: BMWSilver | TireRoundel.005 / 1M / Mesh.000
-WheelML2     vis=2 faces=   512 area=   0.002 c=[-6.18  0.94  0.63] why=wheel-cylinder :: BMWSilver | TireRoundel.002 / Tire3 / carShell / Mesh.000
-Trim         vis=2 faces=    27 area=   0.002 c=[ 5.33 -6.26  1.41] why=obj:RoundelFront.001 / carShell.00 :: BMWSilver | RoundelFront.001 / carShell.002 / 1M / Mesh.002
-Trim         vis=2 faces=    27 area=   0.002 c=[-4.65  6.8   1.43] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
-WheelML2     vis=2 faces=  1024 area=   0.002 c=[-6.17  0.94  0.63] why=wheel-cylinder :: BMWSilver | TireRoundel.002 / Tire3 / carShell / Mesh.000
-WheelML1     vis=0 faces=  1024 area=   0.002 c=[-4.84  1.76  0.63] why=wheel-cylinder :: BMWSilver | TireRoundel / Mesh.000
-Trim         vis=2 faces=  1024 area=   0.002 c=[-3.12  0.94  0.63] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
-WheelRR      vis=2 faces=   512 area=   0.002 c=[ 3.79 -5.74  0.61] why=wheel-cylinder :: BMWSilver | TireRoundel.007 / 1M / Mesh.000
-Trim         vis=2 faces=    25 area=   0.002 c=[ 5.39 -6.27  1.4 ] why=obj:RoundelFront.001 / carShell.00 :: BMWSilver | RoundelFront.001 / carShell.002 / 1M / Mesh.002
-Trim         vis=2 faces=    25 area=   0.002 c=[-4.7   6.82  1.42] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
-Trim         vis=2 faces=   189 area=   0.002 c=[ 5.29 -6.3   1.4 ] why=obj:RoundelFront.001 / carShell.00 :: BMWSilver | RoundelFront.001 / carShell.002 / 1M / Mesh.002
-Trim         vis=2 faces=   189 area=   0.002 c=[-4.6   6.82  1.42] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
-Trim         vis=2 faces=    27 area=   0.002 c=[-4.64 -0.61  1.84] why=obj:RoundelBack / carShell / Mesh. :: BMWWhite | RoundelBack / carShell / Mesh.003
-Trim         vis=2 faces=    27 area=   0.002 c=[2.85 0.72 1.82] why=obj:RoundelBack.001 / carShell.002 :: BMWWhite | RoundelBack.001 / carShell.002 / 1M / Mesh.003
-Trim         vis=2 faces=    25 area=   0.002 c=[2.81 0.7  1.8 ] why=obj:RoundelBack.001 / carShell.002 :: BMWWhite | RoundelBack.001 / carShell.002 / 1M / Mesh.003
-Trim         vis=2 faces=    25 area=   0.002 c=[-4.6  -0.61  1.81] why=obj:RoundelBack / carShell / Mesh. :: BMWWhite | RoundelBack / carShell / Mesh.003
-Trim         vis=2 faces=   189 area=   0.002 c=[-4.69 -0.61  1.82] why=obj:RoundelBack / carShell / Mesh. :: BMWWhite | RoundelBack / carShell / Mesh.003
-Trim         vis=2 faces=   189 area=   0.002 c=[2.89 0.73 1.8 ] why=obj:RoundelBack.001 / carShell.002 :: BMWWhite | RoundelBack.001 / carShell.002 / 1M / Mesh.003
-Discard      vis=0 faces=    32 area=   0.001 c=[ 4.43 -6.42  1.19] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-Discard      vis=0 faces=    32 area=   0.001 c=[-3.75  6.64  1.21] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    32 area=   0.001 c=[-5.55  6.64  1.21] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
-Discard      vis=0 faces=    32 area=   0.001 c=[ 6.13 -5.81  1.19] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes.001 / carShell.002 / 1M / Mesh.004
-WheelMR1     vis=2 faces=    27 area=   0.001 c=[ 4.82 -0.3   0.66] why=wheel-cylinder :: BMWSilver | TireRoundel.008 / 1M / Mesh.000
-WheelML1     vis=0 faces=    27 area=   0.001 c=[-4.84  1.77  0.67] why=wheel-cylinder :: BMWSilver | TireRoundel / Mesh.000
-Trim         vis=2 faces=    27 area=   0.001 c=[-3.12  0.93  0.68] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
-WheelML2     vis=2 faces=    27 area=   0.001 c=[-6.17  0.94  0.68] why=wheel-cylinder :: BMWSilver | TireRoundel.002 / Tire3 / carShell / Mesh.000
-WheelMR2     vis=2 faces=    27 area=   0.001 c=[ 1.92 -1.17  0.66] why=wheel-cylinder :: BMWSilver | TireRoundel.005 / 1M / Mesh.000
-Discard      vis=0 faces=    27 area=   0.001 c=[-3.37  5.79  0.59] why=obj:TireRoundel.004 / Tire1 / carS hidden :: BMWSilver | TireRoundel.004 / Tire1 / carShell / Mesh.000
-WheelMR3     vis=2 faces=    27 area=   0.001 c=[ 6.44 -4.8   0.66] why=wheel-cylinder :: BMWSilver | TireRoundel.006 / 1M / Mesh.000
-WheelFL      vis=2 faces=    27 area=   0.001 c=[-6.19  5.75  0.68] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire2 / carShell / Mesh.000
-WheelRR      vis=2 faces=    27 area=   0.001 c=[ 3.79 -5.75  0.57] why=wheel-cylinder :: BMWSilver | TireRoundel.007 / 1M / Mesh.000
-WheelMR1     vis=2 faces=    25 area=   0.001 c=[ 4.82 -0.26  0.65] why=wheel-cylinder :: BMWSilver | TireRoundel.008 / 1M / Mesh.000
-WheelML1     vis=0 faces=    25 area=   0.001 c=[-4.84  1.73  0.66] why=wheel-cylinder :: BMWSilver | TireRoundel / Mesh.000
-Trim         vis=2 faces=    25 area=   0.001 c=[-3.12  0.96  0.67] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
-WheelMR2     vis=2 faces=    25 area=   0.001 c=[ 1.92 -1.21  0.65] why=wheel-cylinder :: BMWSilver | TireRoundel.005 / 1M / Mesh.000
-WheelML2     vis=2 faces=    25 area=   0.001 c=[-6.18  0.91  0.67] why=wheel-cylinder :: BMWSilver | TireRoundel.002 / Tire3 / carShell / Mesh.000
-WheelML2     vis=2 faces=   189 area=   0.001 c=[-6.17  0.97  0.66] why=wheel-cylinder :: BMWSilver | TireRoundel.002 / Tire3 / carShell / Mesh.000
-WheelMR1     vis=2 faces=   189 area=   0.001 c=[ 4.82 -0.33  0.64] why=wheel-cylinder :: BMWSilver | TireRoundel.008 / 1M / Mesh.000
-WheelMR2     vis=2 faces=   189 area=   0.001 c=[ 1.92 -1.14  0.64] why=wheel-cylinder :: BMWSilver | TireRoundel.005 / 1M / Mesh.000
-Trim         vis=2 faces=   189 area=   0.001 c=[-3.12  0.9   0.66] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
-WheelML1     vis=0 faces=   189 area=   0.001 c=[-4.84  1.8   0.65] why=wheel-cylinder :: BMWSilver | TireRoundel / Mesh.000
-WheelFL      vis=2 faces=   189 area=   0.001 c=[-6.19  5.78  0.66] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire2 / carShell / Mesh.000
-Discard      vis=0 faces=   189 area=   0.001 c=[-3.36  5.82  0.61] why=obj:TireRoundel.004 / Tire1 / carS hidden :: BMWSilver | TireRoundel.004 / Tire1 / carShell / Mesh.000
-WheelRR      vis=2 faces=   189 area=   0.001 c=[ 3.79 -5.78  0.59] why=wheel-cylinder :: BMWSilver | TireRoundel.007 / 1M / Mesh.000
-WheelMR3     vis=2 faces=   189 area=   0.001 c=[ 6.44 -4.83  0.64] why=wheel-cylinder :: BMWSilver | TireRoundel.006 / 1M / Mesh.000
-WheelRR      vis=0 faces=    25 area=   0.001 c=[ 3.79 -5.71  0.58] why=wheel-cylinder :: BMWSilver | TireRoundel.007 / 1M / Mesh.000
-WheelMR3     vis=2 faces=    25 area=   0.001 c=[ 6.44 -4.77  0.65] why=wheel-cylinder :: BMWSilver | TireRoundel.006 / 1M / Mesh.000
-WheelFL      vis=2 faces=    25 area=   0.001 c=[-6.19  5.71  0.67] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire2 / carShell / Mesh.000
-Discard      vis=0 faces=    25 area=   0.001 c=[-3.38  5.75  0.6 ] why=obj:TireRoundel.004 / Tire1 / carS hidden :: BMWSilver | TireRoundel.004 / Tire1 / carShell / Mesh.000
+LightsRear   vis=2 faces=     1 area= 955.445 c=[-3.66 -7.04 12.07] why=mat:Emit :: Emit | Light / Plane.003
+Interior     vis=2 faces=   140 area= 212.385 c=[-3.66 -5.67  1.63] why=mat:Interior :: Interior | Platform / carShell / Cube.009
+Interior     vis=2 faces=   552 area= 199.719 c=[-3.66 -6.93  2.96] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Body         vis=2 faces=  4660 area= 151.447 c=[-3.66 -8.46  4.09] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Body         vis=2 faces=  2324 area=  36.307 c=[-3.66  2.69  1.68] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Body         vis=2 faces=   416 area=  35.397 c=[-3.66  0.16  4.14] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Interior     vis=1 faces=   160 area=  32.814 c=[ -3.66 -11.26   3.83] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Interior     vis=1 faces=   160 area=  31.015 c=[-3.66 -9.93  2.55] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Body         vis=2 faces=  1300 area=  24.564 c=[ -3.66 -15.67   2.43] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Glass        vis=2 faces=    84 area=  22.753 c=[-3.66 -3.85  5.26] why=mat:Glass :: Glass | Window / carShell / Plane.001
+Trim         vis=2 faces=  8798 area=  22.505 c=[ -0.29 -12.29   1.6 ] why=mat:TireRubber :: TireRubber | TireRubber.001 / Tire4 / carShell / Mesh.030
+Trim         vis=2 faces=  8798 area=  22.505 c=[ -7.04 -12.3    1.6 ] why=mat:TireRubber :: TireRubber | TireRubber.004 / Tire3 / carShell / Mesh.030
+WheelFR      vis=2 faces=  8798 area=  19.307 c=[0.02 0.   1.6 ] why=wheel-cylinder :: TireRubber | TireRubber.003 / Tire1 / carShell / Mesh.030
+Trim         vis=2 faces=  8798 area=  19.307 c=[-7.19 -0.    1.6 ] why=mat:TireRubber :: TireRubber | TireRubber.002 / Tire2 / carShell / Mesh.030
+Trim         vis=2 faces=  6800 area=  17.972 c=[ -7.29 -12.29   1.6 ] why=mat:ChromeMatte :: ChromeMatte | TireRim.004 / Tire3 / carShell / Plane
+Trim         vis=2 faces=  6800 area=  17.972 c=[ -0.03 -12.29   1.6 ] why=mat:ChromeMatte :: ChromeMatte | TireRim.001 / Tire4 / carShell / Plane
+Interior     vis=1 faces=    96 area=  16.295 c=[-1.71 -6.11  2.31] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Interior     vis=1 faces=    96 area=  16.295 c=[-5.61 -6.11  2.31] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Interior     vis=1 faces=    96 area=  15.985 c=[-5.61 -7.7   3.56] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Interior     vis=1 faces=    96 area=  15.985 c=[-1.71 -7.7   3.56] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Glass        vis=2 faces=    72 area=  15.455 c=[ -3.66 -13.03   5.44] why=mat:Glass :: Glass | Window / carShell / Plane.001
+WheelFR      vis=2 faces=  6800 area=  15.331 c=[-0.18  0.01  1.6 ] why=wheel-cylinder :: ChromeMatte | TireRim.003 / Tire1 / carShell / Plane
+Trim         vis=2 faces=  6800 area=  15.331 c=[-7.38  0.06  1.6 ] why=mat:ChromeMatte :: ChromeMatte | TireRim.002 / Tire2 / carShell / Plane
+Trim         vis=2 faces=   123 area=  14.513 c=[ -3.66 -14.54   1.41] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
+Glass        vis=2 faces=    48 area=  12.771 c=[-0.6  -8.07  5.34] why=mat:Glass :: Glass | Window / carShell / Plane.001
+Glass        vis=2 faces=    48 area=  12.771 c=[-6.73 -8.07  5.34] why=mat:Glass :: Glass | Window / carShell / Plane.001
+Trim         vis=2 faces=   312 area=   8.092 c=[ -3.66 -16.02   1.67] why=mat:BlackPlastic :: BlackPlastic | rearDiffuser / carShell / Cube.011
+Trim         vis=2 faces=  4875 area=   7.181 c=[-3.67  3.06  1.24] why=mat:MatteBlack :: MatteBlack | LowerIntake / carShell / Circle.001
+Body         vis=2 faces=   440 area=   5.207 c=[ -3.66 -16.02   3.7 ] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Interior     vis=1 faces=   160 area=   3.896 c=[-5.58 -8.53  5.29] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Interior     vis=1 faces=   160 area=   3.896 c=[-1.74 -8.53  5.29] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Discard      vis=0 faces=    40 area=   3.750 c=[ -3.66 -15.95   3.71] why=mat:MatteBlack hidden :: MatteBlack | plate / carShell / Cube.004
+Interior     vis=1 faces=   160 area=   3.455 c=[ -5.21 -11.8    5.32] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Interior     vis=1 faces=   160 area=   3.455 c=[ -2.11 -11.8    5.32] why=mat:Interior :: Interior | Interior / carShell / Mesh.001
+Trim         vis=2 faces=    88 area=   3.419 c=[-1.07  2.27  1.57] why=mat:MatteBlack :: MatteBlack | lowerIntake / carShell / Cube.003
+Trim         vis=2 faces=    88 area=   3.419 c=[-6.25  2.27  1.57] why=mat:MatteBlack :: MatteBlack | lowerIntake / carShell / Cube.003
+Discard      vis=0 faces=   204 area=   2.885 c=[-0.97  1.81  3.1 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsInterior / carShell / Mesh.045
+Discard      vis=0 faces=   204 area=   2.885 c=[-6.34  1.81  3.1 ] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsInterior / carShell / Mesh.045
+Trim         vis=2 faces=   160 area=   2.880 c=[ -7.3  -12.29   1.6 ] why=mat:Brake :: Brake | brakeAssembly.004 / Brake3 / carShell / Circle.003
+Trim         vis=2 faces=   160 area=   2.880 c=[ -0.03 -12.29   1.6 ] why=mat:Brake :: Brake | brakeAssembly.003 / Brake4 / carShell / Circle.003
+Trim         vis=2 faces=   128 area=   2.782 c=[ -1.93 -15.54   1.44] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
+Trim         vis=2 faces=   128 area=   2.782 c=[ -5.39 -15.54   1.44] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
+WheelFR      vis=2 faces=   160 area=   2.775 c=[0.01 0.03 1.6 ] why=wheel-cylinder :: Brake | brakeAssembly.002 / Brake1 / carShell / Circle.003
+Trim         vis=2 faces=   160 area=   2.775 c=[-7.34  0.03  1.6 ] why=mat:Brake :: Brake | brakeAssembly.001 / Brake2 / carShell / Circle.003
+Trim         vis=2 faces=   128 area=   2.593 c=[ -1.51 -15.5    1.44] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
+Trim         vis=2 faces=   128 area=   2.593 c=[ -5.81 -15.5    1.44] why=mat:Chrome :: Chrome | exhaust / carShell / Cylinder.001
+Trim         vis=2 faces=   128 area=   2.448 c=[-0.52 -7.97  5.23] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Trim         vis=2 faces=   128 area=   2.448 c=[-6.8  -7.97  5.23] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Discard      vis=0 faces=   208 area=   2.285 c=[-0.93  2.1   3.03] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsOutline / carShell / Cube.005
+Discard      vis=0 faces=   208 area=   2.285 c=[-6.39  2.1   3.03] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsOutline / carShell / Cube.005
+Discard      vis=0 faces=   288 area=   2.191 c=[-5.96  1.88  3.08] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   288 area=   2.191 c=[-1.35  1.88  3.08] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   128 area=   1.922 c=[-6.53  1.75  3.04] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   128 area=   1.922 c=[-0.78  1.75  3.04] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Trim         vis=2 faces=    34 area=   1.856 c=[ -3.66 -16.05   3.78] why=mat:Plate :: Plate | plate / carShell / Cube.004
+Trim         vis=2 faces=    72 area=   1.781 c=[-0.58 -9.05  5.38] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Trim         vis=2 faces=    72 area=   1.781 c=[-6.74 -9.05  5.38] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+LightsFront  vis=2 faces=   118 area=   1.710 c=[-0.94  2.35  3.11] why=mat:HeadlightGlass :: HeadlightGlass | lightsGlass / carShell / Cube.008
+LightsFront  vis=2 faces=   118 area=   1.710 c=[-6.39  2.35  3.11] why=mat:HeadlightGlass :: HeadlightGlass | lightsGlass / carShell / Cube.008
+Discard      vis=0 faces=   288 area=   1.680 c=[-0.78  1.79  3.05] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   288 area=   1.680 c=[-6.53  1.79  3.05] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Trim         vis=2 faces=   248 area=   1.451 c=[-0.26 -4.02  4.64] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Trim         vis=2 faces=   248 area=   1.451 c=[-7.06 -4.02  4.64] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Trim         vis=2 faces=   136 area=   1.354 c=[-3.66  3.03  0.95] why=mat:MatteBlack :: MatteBlack | LowerIntake / carShell / Circle.001
+Body         vis=2 faces=   568 area=   1.202 c=[ 0.24 -4.19  4.8 ] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Body         vis=2 faces=   568 area=   1.202 c=[-7.56 -4.19  4.8 ] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+LightsRear   vis=2 faces=   420 area=   1.149 c=[ -6.55 -15.4    3.98] why=mat:Tailight :: Tailight | taillight / carShell / Cube.016
+LightsRear   vis=2 faces=   420 area=   1.149 c=[ -0.78 -15.4    3.98] why=mat:Tailight :: Tailight | taillight / carShell / Cube.016
+Trim         vis=2 faces=    58 area=   0.951 c=[ -0.06 -11.46   1.48] why=obj:Cube.003 / Brake4 / carShell / :: Material | Cube.003 / Brake4 / carShell / Cube
+Trim         vis=2 faces=    58 area=   0.951 c=[ -7.26 -11.46   1.48] why=obj:Cube.004 / Brake3 / carShell / :: Material | Cube.004 / Brake3 / carShell / Cube
+Trim         vis=2 faces=    58 area=   0.854 c=[-7.31  0.86  1.47] why=obj:Cube.001 / Brake2 / carShell / :: Material | Cube.001 / Brake2 / carShell / Cube
+WheelFR      vis=2 faces=    58 area=   0.854 c=[-0.24  0.82  1.47] why=wheel-cylinder :: Material | Cube.002 / Brake1 / carShell / Cube
+Body         vis=2 faces=   288 area=   0.648 c=[ -3.66 -11.21   6.41] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Discard      vis=0 faces=   288 area=   0.548 c=[-6.53  1.91  3.06] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   288 area=   0.548 c=[-0.78  1.91  3.06] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Trim         vis=2 faces=   180 area=   0.511 c=[-4.42  3.1   3.08] why=mat:Chrome :: Chrome | kidneyChrome / carShell / Cube.001
+Trim         vis=2 faces=   180 area=   0.511 c=[-2.9   3.1   3.08] why=mat:Chrome :: Chrome | kidneyChrome / carShell / Cube.001
+Body         vis=2 faces=   936 area=   0.446 c=[-7.53 -7.95  3.75] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Body         vis=2 faces=   936 area=   0.446 c=[ 0.21 -7.95  3.75] why=mat:CarShellNew :: CarShellNew | carShell / Cube.012
+Trim         vis=2 faces=    96 area=   0.397 c=[-7.55 -2.19  3.24] why=mat:Chrome :: Chrome | MStreak / carShell / Cube.013
+Trim         vis=2 faces=    96 area=   0.397 c=[ 0.22 -2.19  3.24] why=mat:Chrome :: Chrome | MStreak / carShell / Cube.013
+Discard      vis=0 faces=   216 area=   0.377 c=[-6.2   1.99  3.08] why=mat:ChromeMatte hidden :: ChromeMatte | lightsSeparator / carShell / Mesh.005
+Discard      vis=0 faces=   216 area=   0.377 c=[-1.1   1.99  3.08] why=mat:ChromeMatte hidden :: ChromeMatte | lightsSeparator / carShell / Mesh.005
+Trim         vis=2 faces=    32 area=   0.326 c=[-7.63 -4.43  4.81] why=mat:Chrome :: Chrome | SideMirror / carShell / Cube.000
+Trim         vis=2 faces=    32 area=   0.326 c=[ 0.31 -4.43  4.81] why=mat:Chrome :: Chrome | SideMirror / carShell / Cube.000
+Discard      vis=0 faces=   288 area=   0.293 c=[-1.35  2.21  3.08] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   288 area=   0.293 c=[-5.96  2.21  3.08] why=mat:HeadlightChrome hidden :: HeadlightChrome | lightsReflector / carShell / Mesh.015
+Discard      vis=0 faces=   184 area=   0.287 c=[-0.24  1.41  3.14] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=   184 area=   0.287 c=[-7.06  1.41  3.14] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=    28 area=   0.276 c=[-6.3   2.24  3.39] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsLid / carShell / Cube.010
+Discard      vis=0 faces=    28 area=   0.276 c=[-1.02  2.24  3.39] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsLid / carShell / Cube.010
+Discard      vis=0 faces=   184 area=   0.245 c=[-0.28  1.47  3.13] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=   184 area=   0.245 c=[-7.02  1.47  3.13] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.235 c=[-7.09  1.36  3.31] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.235 c=[-0.22  1.36  3.31] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=    68 area=   0.224 c=[-3.5   3.13  3.02] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.224 c=[-3.82  3.13  3.02] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.221 c=[-3.93  3.12  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.221 c=[-3.39  3.12  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.218 c=[-4.05  3.1   3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.218 c=[-3.28  3.1   3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.215 c=[-4.16  3.09  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.215 c=[-3.16  3.09  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.213 c=[-4.27  3.07  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.213 c=[-3.05  3.07  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    72 area=   0.212 c=[-7.17 -4.07  4.82] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Trim         vis=2 faces=    72 area=   0.212 c=[-0.15 -4.07  4.82] why=mat:BlackPlastic :: BlackPlastic | trimming / carShell / Mesh.024
+Trim         vis=2 faces=    68 area=   0.210 c=[-2.94  3.05  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.210 c=[-4.38  3.05  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.207 c=[-2.83  3.04  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.207 c=[-4.49  3.04  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.205 c=[-4.6   3.02  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.205 c=[-2.72  3.02  3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.202 c=[-4.71  3.    3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.202 c=[-2.61  3.    3.04] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Discard      vis=0 faces=     6 area=   0.201 c=[-0.19  1.36  3.29] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.201 c=[-7.12  1.36  3.29] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=    68 area=   0.200 c=[-2.5   2.99  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.200 c=[-4.82  2.99  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.197 c=[-4.93  2.97  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.197 c=[-2.39  2.97  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Discard      vis=0 faces=   184 area=   0.197 c=[-7.    1.53  3.12] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=   184 area=   0.197 c=[-0.31  1.53  3.12] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=    68 area=   0.195 c=[-5.04  2.96  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Trim         vis=2 faces=    68 area=   0.195 c=[-2.28  2.96  3.03] why=mat:BlackPlastic :: BlackPlastic | kidneyBars / carShell / Cube.002
+Discard      vis=0 faces=     6 area=   0.175 c=[-7.14  1.37  3.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.175 c=[-0.17  1.37  3.26] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=   616 area=   0.169 c=[ -3.64 -16.24   4.53] why=mat:BMWBlack :: BMWBlack | RoundelBack / carShell / Mesh.003
+Discard      vis=0 faces=     6 area=   0.160 c=[-0.16  1.37  3.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.160 c=[-7.15  1.37  3.24] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.154 c=[-0.21  1.43  2.99] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.154 c=[-7.1   1.43  2.99] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=    32 area=   0.145 c=[ -7.06 -15.42   2.14] why=mat:MatteBlack :: MatteBlack | carShell.001 / carShell / Cube.006
+Trim         vis=2 faces=    32 area=   0.145 c=[ -0.27 -15.42   2.14] why=mat:MatteBlack :: MatteBlack | carShell.001 / carShell / Cube.006
+Discard      vis=0 faces=     6 area=   0.144 c=[-7.16  1.38  3.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.144 c=[-0.14  1.38  3.21] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.140 c=[-0.14  1.38  3.19] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.140 c=[-7.16  1.38  3.19] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.138 c=[-0.18  1.42  3.01] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.138 c=[-7.13  1.42  3.01] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.136 c=[-0.15  1.39  3.16] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.136 c=[-7.16  1.39  3.16] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.132 c=[-0.15  1.39  3.14] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.132 c=[-7.16  1.39  3.14] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.130 c=[-0.16  1.42  3.04] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.130 c=[-7.14  1.42  3.04] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.128 c=[-0.15  1.4   3.11] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.128 c=[-7.16  1.4   3.11] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=   552 area=   0.124 c=[-3.65  2.89  3.58] why=obj:RoundelFront / carShell / Mesh :: BMWBlue | RoundelFront / carShell / Mesh.002
+Discard      vis=0 faces=     6 area=   0.124 c=[-7.16  1.41  3.09] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.124 c=[-0.15  1.41  3.09] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.120 c=[-0.15  1.41  3.06] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Discard      vis=0 faces=     6 area=   0.120 c=[-7.16  1.41  3.06] why=mat:HeadlightMatte hidden :: HeadlightMatte | lightsInterior2 / carShell / Mesh.018
+Trim         vis=2 faces=  1128 area=   0.112 c=[  0.26 -12.29   1.6 ] why=mat:BMWBlack :: BMWBlack | TireRoundel.001 / Tire4 / carShell / Mesh.000
+Trim         vis=2 faces=  1128 area=   0.112 c=[ -7.58 -12.29   1.6 ] why=mat:BMWBlack :: BMWBlack | TireRoundel.004 / Tire3 / carShell / Mesh.000
+Trim         vis=2 faces=  1128 area=   0.108 c=[-7.6   0.12  1.6 ] why=mat:BMWBlack :: BMWBlack | TireRoundel.002 / Tire2 / carShell / Mesh.000
+WheelFR      vis=2 faces=  1640 area=   0.106 c=[-0.41  0.01  1.6 ] why=wheel-cylinder :: BMWBlack | TireRoundel.003 / Tire1 / carShell / Mesh.000
+Trim         vis=2 faces=    64 area=   0.084 c=[-3.65  2.89  3.58] why=mat:BMWBlack :: BMWBlack | RoundelFront / carShell / Mesh.002
+Trim         vis=2 faces=  1024 area=   0.080 c=[-3.65  2.88  3.57] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
+Trim         vis=2 faces=   112 area=   0.071 c=[ -7.51 -12.06   1.68] why=mat:ChromeMatte :: ChromeMatte | TireBolts.004 / Tire3 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.071 c=[  0.19 -12.52   1.68] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.071 c=[ -7.51 -12.15   1.4 ] why=mat:ChromeMatte :: ChromeMatte | TireBolts.004 / Tire3 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.071 c=[  0.19 -12.44   1.4 ] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
+Discard      vis=0 faces=   112 area=   0.071 c=[  0.19 -12.06   1.68] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.071 c=[  0.19 -12.15   1.4 ] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
+Discard      vis=0 faces=   112 area=   0.071 c=[ -7.51 -12.44   1.4 ] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire3 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.071 c=[  0.19 -12.29   1.84] why=mat:ChromeMatte :: ChromeMatte | TireBolts.001 / Tire4 / carShell / Cylinder
+Discard      vis=0 faces=   112 area=   0.071 c=[ -7.51 -12.29   1.84] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.004 / Tire3 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.071 c=[ -7.51 -12.52   1.68] why=mat:ChromeMatte :: ChromeMatte | TireBolts.004 / Tire3 / carShell / Cylinder
+Trim         vis=2 faces=  1024 area=   0.064 c=[ -3.64 -16.23   4.53] why=obj:RoundelBack / carShell / Mesh. :: BMWSilver | RoundelBack / carShell / Mesh.003
+Trim         vis=2 faces=   112 area=   0.059 c=[-7.49  0.33  1.67] why=mat:ChromeMatte :: ChromeMatte | TireBolts.002 / Tire2 / carShell / Cylinder
+WheelFR      vis=0 faces=   112 area=   0.059 c=[-0.36  0.24  1.52] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire1 / carShell / Cylinder
+WheelFR      vis=0 faces=   112 area=   0.059 c=[-0.36 -0.13  1.79] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire1 / carShell / Cylinder
+Trim         vis=2 faces=   112 area=   0.059 c=[-7.59 -0.03  1.4 ] why=mat:ChromeMatte :: ChromeMatte | TireBolts.002 / Tire2 / carShell / Cylinder
+WheelFR      vis=0 faces=   112 area=   0.059 c=[-0.36  0.15  1.79] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire1 / carShell / Cylinder
+Discard      vis=0 faces=   112 area=   0.059 c=[-7.51  0.24  1.4 ] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.002 / Tire2 / carShell / Cylinder
+WheelFR      vis=0 faces=   112 area=   0.059 c=[-0.36  0.01  1.35] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire1 / carShell / Cylinder
+Discard      vis=0 faces=   112 area=   0.059 c=[-7.55  0.1   1.84] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.002 / Tire2 / carShell / Cylinder
+WheelFR      vis=0 faces=   112 area=   0.059 c=[-0.36 -0.22  1.52] why=wheel-cylinder :: ChromeMatte | TireBolts.003 / Tire1 / carShell / Cylinder
+Discard      vis=0 faces=   112 area=   0.059 c=[-7.61 -0.12  1.67] why=mat:ChromeMatte hidden :: ChromeMatte | TireBolts.002 / Tire2 / carShell / Cylinder
+Discard      vis=0 faces=   104 area=   0.037 c=[-6.54  1.93  3.05] why=mat:HeadLightGlass hidden :: HeadLightGlass | lightsBulb / carShell / Mesh.022
+Discard      vis=0 faces=   104 area=   0.037 c=[-0.77  1.93  3.05] why=mat:HeadLightGlass hidden :: HeadLightGlass | lightsBulb / carShell / Mesh.022
+Discard      vis=0 faces=    64 area=   0.035 c=[-0.8   2.06  3.04] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Discard      vis=0 faces=    64 area=   0.035 c=[-6.51  2.06  3.04] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Trim         vis=2 faces=   512 area=   0.032 c=[-3.65  2.89  3.58] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
+Trim         vis=2 faces=   512 area=   0.026 c=[ -3.64 -16.24   4.53] why=obj:RoundelBack / carShell / Mesh. :: BMWSilver | RoundelBack / carShell / Mesh.003
+Discard      vis=0 faces=    64 area=   0.019 c=[-1.35  2.33  3.07] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Discard      vis=0 faces=    64 area=   0.019 c=[-5.96  2.33  3.07] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Discard      vis=0 faces=    32 area=   0.015 c=[-6.51  2.05  3.04] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Discard      vis=0 faces=    32 area=   0.015 c=[-0.8   2.05  3.04] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Trim         vis=2 faces=    27 area=   0.014 c=[-3.66  2.74  3.64] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
+Trim         vis=2 faces=  1024 area=   0.013 c=[ -7.57 -12.29   1.6 ] why=obj:TireRoundel.004 / Tire3 / carS :: BMWSilver | TireRoundel.004 / Tire3 / carShell / Mesh.000
+Trim         vis=2 faces=  1024 area=   0.013 c=[  0.25 -12.29   1.6 ] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
+WheelFR      vis=0 faces=   512 area=   0.013 c=[-0.41  0.01  1.6 ] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire1 / carShell / Mesh.000
+Trim         vis=2 faces=    25 area=   0.012 c=[-3.78  2.79  3.62] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
+Trim         vis=2 faces=   189 area=   0.012 c=[-3.53  2.78  3.62] why=obj:RoundelFront / carShell / Mesh :: BMWSilver | RoundelFront / carShell / Mesh.002
+Trim         vis=2 faces=    27 area=   0.012 c=[ -3.64 -16.24   4.67] why=obj:RoundelBack / carShell / Mesh. :: BMWWhite | RoundelBack / carShell / Mesh.003
+Trim         vis=2 faces=  1024 area=   0.011 c=[-7.6   0.12  1.6 ] why=obj:TireRoundel.002 / Tire2 / carS :: BMWSilver | TireRoundel.002 / Tire2 / carShell / Mesh.000
+Trim         vis=2 faces=    25 area=   0.010 c=[ -3.53 -16.24   4.62] why=obj:RoundelBack / carShell / Mesh. :: BMWWhite | RoundelBack / carShell / Mesh.003
+Trim         vis=2 faces=   189 area=   0.010 c=[ -3.76 -16.24   4.62] why=obj:RoundelBack / carShell / Mesh. :: BMWWhite | RoundelBack / carShell / Mesh.003
+Discard      vis=0 faces=    32 area=   0.008 c=[-5.96  2.33  3.07] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Discard      vis=0 faces=    32 area=   0.008 c=[-1.35  2.33  3.07] why=mat:HeadLightAngelEye hidden :: HeadLightAngelEye | lightsAngelEyes / carShell / Mesh.004
+Trim         vis=2 faces=    27 area=   0.007 c=[ -7.57 -12.28   1.71] why=obj:TireRoundel.004 / Tire3 / carS :: BMWSilver | TireRoundel.004 / Tire3 / carShell / Mesh.000
+Trim         vis=2 faces=    27 area=   0.007 c=[  0.25 -12.31   1.71] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
+Trim         vis=2 faces=    27 area=   0.006 c=[-7.59  0.13  1.71] why=obj:TireRoundel.002 / Tire2 / carS :: BMWSilver | TireRoundel.002 / Tire2 / carShell / Mesh.000
+WheelFR      vis=0 faces=    27 area=   0.006 c=[-0.4   0.02  1.49] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire1 / carShell / Mesh.000
+Trim         vis=2 faces=    25 area=   0.006 c=[  0.25 -12.22   1.68] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
+Trim         vis=2 faces=    25 area=   0.006 c=[ -7.57 -12.37   1.68] why=obj:TireRoundel.004 / Tire3 / carS :: BMWSilver | TireRoundel.004 / Tire3 / carShell / Mesh.000
+Trim         vis=2 faces=   189 area=   0.006 c=[ -7.57 -12.2    1.66] why=obj:TireRoundel.004 / Tire3 / carS :: BMWSilver | TireRoundel.004 / Tire3 / carShell / Mesh.000
+Trim         vis=2 faces=   189 area=   0.006 c=[  0.25 -12.39   1.66] why=obj:TireRoundel.001 / Tire4 / carS :: BMWSilver | TireRoundel.001 / Tire4 / carShell / Mesh.000
+Trim         vis=2 faces=   189 area=   0.005 c=[-7.57  0.21  1.66] why=obj:TireRoundel.002 / Tire2 / carS :: BMWSilver | TireRoundel.002 / Tire2 / carShell / Mesh.000
+WheelFR      vis=0 faces=   189 area=   0.005 c=[-0.4   0.1   1.54] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire1 / carShell / Mesh.000
+Trim         vis=2 faces=    25 area=   0.005 c=[-7.62  0.04  1.68] why=obj:TireRoundel.002 / Tire2 / carS :: BMWSilver | TireRoundel.002 / Tire2 / carShell / Mesh.000
+WheelFR      vis=0 faces=    25 area=   0.005 c=[-0.41 -0.07  1.51] why=wheel-cylinder :: BMWSilver | TireRoundel.003 / Tire1 / carShell / Mesh.000

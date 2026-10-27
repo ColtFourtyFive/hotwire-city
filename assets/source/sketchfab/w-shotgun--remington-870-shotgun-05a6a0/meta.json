@@ -49,14 +49,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      0.5849,
-      1.9588,
-      0.3152
+      0.6026,
+      1.9611,
+      0.327
     ],
     "dims_m": [
-      1.959,
-      0.315,
-      0.585
+      1.961,
+      0.327,
+      0.603
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -79,6 +79,6 @@
       "defaultMaterial",
       "defaultMaterial.001"
     ],
-    "render_s": 39.1
+    "render_s": 16.3
   }
 }

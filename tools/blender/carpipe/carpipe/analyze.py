@@ -466,6 +466,8 @@ class Car:
             w["islands"] = sorted(isl)
             w["width"] = float(2 * half_w)
         # name them
+        if len(wheels) == 1:
+            wheels[0]["name"] = "WheelF" + ("L" if wheels[0]["side"] < 0 else "R")
         if len(wheels) >= 2:
             ys = sorted({round(float(w["center"][1]), 3) for w in wheels}, reverse=True)
             front_y = max(w["center"][1] for w in wheels)

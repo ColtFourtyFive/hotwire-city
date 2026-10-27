@@ -1249,8 +1249,15 @@ local function computeRoute(pos: Vector3, id: string, target: Vector3, color: Co
 	lastRouteAt = clock
 	if not ok or not pts then
 		clearRoute()
-		-- remember the miss: slowTick waits retryDelay(failCount) before searching for this target again
-		failCount = if failId == id then failCount + 1 else 1
+		-- remember the miss: slowTick waits retryDelay(failCount) before searching for this target again (the count
+		-- restarts when the target or the player has moved somewhere new since the last miss)
+		local ft, ff = failTarget, failFrom
+		local same = failId == id
+			and ft ~= nil
+			and ff ~= nil
+			and Vector3.new(ft.X - target.X, 0, ft.Z - target.Z).Magnitude <= GPS.TARGET_MOVED
+			and Vector3.new(ff.X - pos.X, 0, ff.Z - pos.Z).Magnitude <= GPS.REROUTE_DISTANCE
+		failCount = if same then failCount + 1 else 1
 		failId, failTarget, failFrom, failAt = id, target, pos, clock
 		return
 	end

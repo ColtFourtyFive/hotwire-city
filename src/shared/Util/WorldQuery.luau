@@ -47,11 +47,11 @@ function WorldQuery.gradeAt(pos: Vector3): number
 	return WorldLayout.gradeAt(xz(pos))
 end
 
--- True below sea level / inside the reservoir (terrain surface under the water line).
+-- True over the sea (natural grade below sea level) or inside the reservoir. The Rust River channel floor is below
+-- sea level too but dry (flood gate), so this uses the uncarved grade, not heightAt.
 function WorldQuery.isWater(pos: Vector3): boolean
 	local x, z = xz(pos)
-	local h = WorldLayout.heightAt(x, z)
-	if h < WorldLayout.SEA_LEVEL then
+	if WorldLayout.gradeAt(x, z) < WorldLayout.SEA_LEVEL then
 		return true
 	end
 	for _, w in WorldLayout.Water do

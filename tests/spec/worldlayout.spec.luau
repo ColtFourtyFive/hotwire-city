@@ -639,5 +639,7 @@ return function(t)
 		t.ok(beach > W.SEA_LEVEL and beach < W.GRADE, "beach slope")
 		t.ok(W.heightAt(1952, 500) < 5, "Rust River channel floor is sunken")
 		t.ok(Q.isWater(Vector3.new(700, 0, 3200)), "Iron Bay channel is water")
+		t.ok(not Q.isWater(Vector3.new(1952, -5, 500)), "the Rust River channel is dry")
+		t.ok(Q.isWater(Vector3.new(3000, 70, -2800)), "the reservoir is water")
 	end)
 end

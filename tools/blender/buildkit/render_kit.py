@@ -84,10 +84,14 @@ def backdrop(x0, x1, y, kinds=(("midtown", {"floors": 3}),), seed=0, rot=0.0, ga
     """Row of filler buildings far behind the hero so the horizon is city, not void."""
     r = random.Random(seed)
     x = x0
-    while x < x1:
+    tries = 0
+    while x < x1 and tries < 60:
+        tries += 1
         arch, kw = kinds[r.randrange(len(kinds))]
         B = BK.build(arch, r.randint(100, 999), **kw)
         W, D = B.footprint
+        if x + W > x1:
+            continue
         BK.instantiate(B, col(), loc=(x + W / 2, y + D / 2 * (1 if rot == 0 else -1), 0), rot_z=rot)
         x += W + gap
 
@@ -437,8 +441,13 @@ def sc_block(a, night=False):
     S.ground(c, -30000, -30000, 30000, ybeach - 200, "sea", z=-0.1)
     for x in range(int((xs[0] - 0.5) * P), int((xs[-1] + 0.5) * P), 46):
         S.palm(c, x + r.uniform(-6, 6), ybeach - 22 + r.uniform(-6, 6), h=r.uniform(40, 56), seed=r.randint(0, 999))
-    return finish("block_night" if night else "block_wide", (-1180, -1220, 420), (120, 330, 30), 30, a.samples, a.res,
-                  night=night, haze_amt=0.65)
+    # mountains behind downtown (the Vinewood-hills backdrop) so the horizon is land, not a table edge
+    S.hill(c, -9000, 2400, 9000, 9000, lambda x, y: max(0.0, (y - 2400) * 0.16 + 260 * math.sin(x * 0.0011 + 0.7)
+                                                          * min(1.0, (y - 2400) / 1500) + 140 * math.sin(x * 0.0031 + y * 0.002)),
+           nx=90, ny=30, kind="drygrass")
+    bpy.context.scene.world.mist_settings.depth = 5200.0
+    return finish("block_night" if night else "block_wide", (-860, -720, 170), (60, 420, 70), 30, a.samples, a.res,
+                  night=night, haze_amt=0.55)
 
 
 VARIANTS = {  # arch: (seeds, extra kw, camera height factor)
