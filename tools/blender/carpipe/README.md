@@ -20,9 +20,11 @@ Requirements: Blender 5.2 as a Python module (`import bpy`), numpy, Pillow and p
 
 ## Output contract
 
-Output goes to `tools/blender/carpipe/out/<name>/`, which contains `<name>.glb`, `<name>.json`, `textures/*.png` and `islands_debug.txt`.
+Output goes to `tools/blender/carpipe/out/<name>/`, which contains `<name>.glb`, `<name>.json`, `textures/*.png` and `islands_debug.txt`. `out/` is gitignored because it is reproducible: run `fetch_models.py` (plus the Sketchfab token for the CC-BY cars), then `build_car.py`.
 
-**Coordinates.** The GLB is +Y up and the car's front faces **−Z**, which is the Roblox `LookVector` and the "built pose" in `CarBuilder.luau`. The origin sits on the ground plane, centred between the wheel contact patches. 1 unit = 1 stud. The default length is 17 studs; set it with `--length` or a per-model `length`.
+**Coordinates.** The GLB is +Y up and the car's front faces **−Z**, which is the Roblox `LookVector` and the "built pose" in `CarBuilder.luau`. The origin sits on the ground plane, centred between the wheel contact patches. 1 unit = 1 stud.
+
+**Scale.** By default the length is `auto`: when the file is plausibly in metres (a 2.8–16 m car with 0.22–0.75 m wheels), carpipe uses real length × **3.4 studs/m**. A 5.0 m sedan becomes 17 studs, next to the ~5.5-stud character, and different cars keep their real proportions. Otherwise the length is 17 studs. You can force a length with `--length` or with a per-model `length`.
 
 **Objects.** The Open Cloud importer turns one object into one MeshPart, so the GLB holds exactly one object, and one material, per role:
 
@@ -125,11 +127,17 @@ With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged.
    - welds;
    - drops crumbs when a part is far over budget;
    - decimates (Blender collapse, symmetric for the body, falling back to pymeshlab quadric decimation when collapse stalls on open boundaries);
+   - removes degenerate and duplicate faces;
+   - flips parts that face *into* the car, judged by ray visibility. Roblox renders single-sided, so those parts would otherwise vanish;
    - sets smooth-by-angle shading;
-   - unwraps a fresh atlas UV, shrinking the islands that face the ground.
+   - unwraps a fresh atlas UV:
+     - smart project at 75° with a 3 px gutter;
+     - aspect correction off, because source textures can be 1467×360;
+     - charts that overlap themselves are found by rasterising and re-unwrapped finer.
 4. **`bake.py`** runs Cycles selected-to-active bakes from the original high-res parts:
-   - base colour, roughness, metallic and emission, through an emission proxy so metallic paint doesn't bake black;
-   - a tangent normal map;
+   - base colour, roughness, metallic and emission, through an emission proxy so metallic paint doesn't bake black.
+     These are baked with flat shading, so rays leave along face normals and sliver triangles don't miss;
+   - a tangent normal map, only where decimation actually removed detail. On undecimated sliver meshes it only added black streaks;
    - AO on the low mesh, multiplied into the Trim, Interior and Wheel colour.
 
    It also builds the paint tint mask: the dominant colour in the body atlas, matched by chroma, with a brightness band.
@@ -148,7 +156,8 @@ With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged.
 
 | Key | What it does |
 |---|---|
-| `length` | Target length in studs. |
+| `length` | Target length in studs, or `"auto"` (default; see Scale). |
+| `studs_per_meter` | Scale factor used by `"auto"` (default 3.4). |
 | `front` / `up` | Override the axes, in the file's Blender axes after import. |
 | `textures` | `{material: image}`. Add `"_no_fuzzy": true` to turn off name matching. |
 | `roles` | `{regex: Role}`, where Role is Body, Body2, Glass, LightsFront, Trim, Interior or Discard. |
@@ -161,19 +170,30 @@ With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged.
 
 ## Test cars
 
-`models.json` and `models_local.json` record the licence and attribution for each car.
+All 11 test cars pass `validate_glb.py`. The output length is `auto` (real metres × 3.4) unless a length is given in the table.
 
-| id | Source | Licence | Notes |
+| id | Source / licence | Input → output tris | Notes |
 |---|---|---|---|
-| carconcept | Khronos glTF Sample Assets | CC-BY 4.0 | 213k → 17.0k tris. Two-tone paint (Body + Body2) and clear-coat. The hardest test. |
-| fairheaven_lt | Sketchfab, Daniel Zhabotinsky | CC-BY 4.0 | Fictional 1980 sedan, a game-ready glTF (19.7k → 13.3k tris). |
-| goblin_supercar | Sketchfab, ollitei | CC-BY 4.0 | 86.6k tris, an atlas body and a clear-coat overlay shell (dropped). Uses the tint-mask route. |
-| fairheaven_cop, canyon_taxi, shvan_van | Sketchfab, Daniel Zhabotinsky | CC-BY 4.0 | Fictional cop cruiser, taxi and van. |
-| musclecar | OpenGameArt, brightretro | CC-BY 3.0 | OBJ with no `.mtl` (textures mapped in `models.json`, material presets). |
-| corrado | OpenGameArt, rohezal | CC0 | One atlas material, centimetre units, length along X. Rebrand before shipping. |
-| uaz452 | OpenGameArt, Mehozavr | CC0 | FBX van, atlas. |
-| camaro | OpenGameArt, Lotnik | CC-BY 3.0 | `.blend`, untextured and unnamed parts. Robustness only. |
-| bmw27 | blender.org benchmark | **unverified** | Collection instances and subdivision. Robustness only, do not ship. |
+| carconcept | Khronos glTF Sample Assets, CC-BY 4.0 | 212,407 → 16,646 | `.glb`. Two-tone paint (Body + Body2), clear-coat, 87 interior parts, steered front wheels (straightened). The hardest test. |
+| fairheaven_lt | Sketchfab, Daniel Zhabotinsky, CC-BY 4.0 | 19,703 → 13,656 | Fictional 1980 sedan. A shared "Lights_and_Glass" material is split by object name and position. Strip paint. |
+| fairheaven_cop | same author, CC-BY 4.0 | 19,499 → 13,131 | Police livery uses the tint-mask route. The lightbar ends up in Glass (see limits). |
+| canyon_taxi | same author, CC-BY 4.0 | 20,026 → 11,651 | Paint is inside an atlas, so it uses the tint-mask route (hue match keeps worn and faded panels). |
+| shvan_van | same author, CC-BY 4.0 | 23,045 → 15,118 | The cargo-box interior is hidden behind panels and is dropped. |
+| goblin_supercar | Sketchfab, ollitei, CC-BY 4.0 | 86,588 → 12,441 | Tiny units (length forced to 15.5). The clear-coat overlay shell is dropped. Atlas body. The lamp units have no names and are found as "seen through glass at the nose and tail". Near-black paint uses the tint-mask route. |
+| musclecar | OpenGameArt, brightretro, CC-BY 3.0 | 5,119 → 5,055 | OBJ with no `.mtl`. Textures are mapped in `models.json` and material presets are applied by name. |
+| corrado | OpenGameArt, rohezal, CC0 | 2,850 → 2,850 | Single atlas, centimetre units, length along X, 1467×360 texture. Sliver triangles mean no normal map is baked. Rebrand before shipping. |
+| uaz452 | OpenGameArt, Mehozavr, CC0 | 1,014 → 1,011 | FBX van, atlas, tint-mask route. |
+| camaro | OpenGameArt, Lotnik, CC-BY 3.0 | 6,124 → 6,096 | `.blend` with mirror and subdivision modifiers, no textures, no names. Front/back confidence is low (0.54). Robustness test only. |
+| bmw27 | blender.org benchmark scene, **licence unverified** | 220,096 → 15,573 | Two cars in one file (`select` keeps one), collection instances, geometry-node badges, a light card and a floor (both dropped). Robustness test only, never ship. |
+
+**Renders** are in `docs/v2/proto/carpipe/`, at 960×540, Cycles CPU, ≤ 64 samples, OIDN:
+
+- per car: `<id>_sheet.png`, a 2×2 of before / after / roles / three paint colours in the golden-hour street;
+- `lineup_street_day.png` and `lineup_street_night.png`: eight converted cars together;
+- `all_cars_after.png`: every car's GLB in the studio;
+- `carconcept_street_night.png`, `carconcept_after_rear.png`.
+
+The street, night and lineup shots use `render_lineup.py`. It emulates the Roblox TintMask route so that recolours of atlas-painted cars show up.
 
 `SOURCING.md` evaluates the options for getting 20+ realistic cars: Sketchfab API, Creator Store and AI image-to-3D. It includes a shortlist of 32 fictional CC-BY cars.
 
@@ -185,3 +205,7 @@ With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged.
 - Lights that are only painted into a texture get **estimated** positions (`estimated: true`).
 - The interior is decimated hard (1.5k tris). That is fine behind tinted glass, but rough close up.
 - Paint in an atlas needs SurfaceAppearance authoring in Studio, because TintMask textures can't be set from scripts.
+- Police lightbars and taxi signs are not their own objects yet. They land in Glass, Lights or Trim depending on their materials. The game's contract wants `SirenRed`/`SirenBlue` parts, so add a `roles` regex per car, or split them out in Studio.
+- Very dense wheels lose a lot at 900 tris each. The BMW27's subdivided 19k-tri wheels come out chunky, with the spokes partly lost. Raise `budget.Wheel` for hero cars; the 18k car limit still has room on most cars.
+- Texel use in the atlases is 25–70%. Smart-project packing beat every re-pack we tried, but dense decimated parts still waste space.
+- Nothing has been imported into Roblox yet. Open Cloud upload, MeshPart import of the four wheels with their node origins, and `CarpipeRig.luau` all still need a real-engine test.

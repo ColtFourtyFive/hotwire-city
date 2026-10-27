@@ -45,5 +45,43 @@
   "sha256": "58a6c327bcb125880fd41340299f70dd9168186115f6f617d9df240584741bde",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:12:55+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      69.3865,
+      93.5517,
+      35.7049
+    ],
+    "dims_m": [
+      93.552,
+      35.705,
+      69.387
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 4,
+    "triangles": 7826,
+    "materials": 3,
+    "material_names": [
+      "MP-5",
+      "MP-5_0",
+      "ground"
+    ],
+    "textures": 6,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "part pile_MP-5_0",
+      "Object_9",
+      "Plane_ground_0",
+      "Icosphere"
+    ],
+    "hidden_helpers": [],
+    "render_s": 20.7
+  }
 }

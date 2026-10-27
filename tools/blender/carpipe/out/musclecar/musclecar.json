@@ -12,37 +12,37 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "musclecar.glb",
   "dimensions": {
-    "length": 17.5,
-    "width": 6.593,
-    "height": 5.31,
-    "wheelbase": 10.178,
-    "track_front": 5.703,
-    "track_rear": 5.703,
+    "length": 16.485,
+    "width": 6.21,
+    "height": 5.002,
+    "wheelbase": 9.588,
+    "track_front": 5.372,
+    "track_rear": 5.372,
     "bbox_min": [
-      -3.2964,
+      -3.1052,
       -0.0,
-      -8.6959
+      -8.1915
     ],
     "bbox_max": [
-      3.2964,
-      5.3102,
-      8.8041
+      3.1052,
+      5.0022,
+      8.2935
     ]
   },
   "wheels": {
     "FL": {
       "object": "WheelFL",
       "center": [
-        -2.8513,
-        1.2272,
-        -5.0891
+        -2.686,
+        1.156,
+        -4.7939
       ],
-      "radius": 1.2272,
-      "width": 0.8901,
+      "radius": 1.156,
+      "width": 0.8385,
       "part_center": [
-        -2.8513,
-        1.2272,
-        -5.0891
+        -2.686,
+        1.156,
+        -4.7939
       ],
       "attachment_offset": [
         0.0,
@@ -60,16 +60,16 @@
     "FR": {
       "object": "WheelFR",
       "center": [
-        2.8513,
-        1.2272,
-        -5.0891
+        2.686,
+        1.156,
+        -4.7939
       ],
-      "radius": 1.2272,
-      "width": 0.8901,
+      "radius": 1.156,
+      "width": 0.8385,
       "part_center": [
-        2.8513,
-        1.2272,
-        -5.0891
+        2.686,
+        1.156,
+        -4.7939
       ],
       "attachment_offset": [
         -0.0,
@@ -87,16 +87,16 @@
     "RL": {
       "object": "WheelRL",
       "center": [
-        -2.8513,
-        1.2272,
-        5.0891
+        -2.686,
+        1.156,
+        4.7939
       ],
-      "radius": 1.2272,
-      "width": 0.8901,
+      "radius": 1.156,
+      "width": 0.8385,
       "part_center": [
-        -2.8513,
-        1.2272,
-        5.0891
+        -2.686,
+        1.156,
+        4.7939
       ],
       "attachment_offset": [
         0.0,
@@ -114,16 +114,16 @@
     "RR": {
       "object": "WheelRR",
       "center": [
-        2.8513,
-        1.2272,
-        5.0891
+        2.686,
+        1.156,
+        4.7939
       ],
-      "radius": 1.2272,
-      "width": 0.8901,
+      "radius": 1.156,
+      "width": 0.8385,
       "part_center": [
-        2.8513,
-        1.2272,
-        5.0891
+        2.686,
+        1.156,
+        4.7939
       ],
       "attachment_offset": [
         -0.0,
@@ -142,17 +142,17 @@
   "seats": {
     "driver": {
       "position": [
-        -1.3715,
-        2.6768,
-        0.8787
+        -1.292,
+        2.8139,
+        1.3564
       ],
       "estimated": false
     },
     "passenger": {
       "position": [
-        1.3715,
-        2.6768,
-        0.9445
+        1.292,
+        2.8139,
+        1.4019
       ],
       "estimated": false
     },
@@ -162,9 +162,9 @@
     "front": [
       {
         "position": [
-          -1.7413,
-          2.1291,
-          -8.1981
+          -1.6403,
+          2.0056,
+          -7.7226
         ],
         "direction": [
           0,
@@ -175,9 +175,9 @@
       },
       {
         "position": [
-          1.7413,
-          2.1291,
-          -8.1981
+          1.6403,
+          2.0056,
+          -7.7226
         ],
         "direction": [
           0,
@@ -190,9 +190,9 @@
     "rear": [
       {
         "position": [
-          -1.9074,
-          3.104,
-          8.5485
+          -1.7967,
+          2.9239,
+          8.0527
         ],
         "direction": [
           0,
@@ -203,9 +203,9 @@
       },
       {
         "position": [
-          1.9074,
-          3.104,
-          8.5485
+          1.7967,
+          2.9239,
+          8.0527
         ],
         "direction": [
           0,
@@ -219,40 +219,40 @@
   "exhausts": [
     {
       "position": [
-        -1.4673,
-        1.6374,
-        8.7024
+        -1.3822,
+        1.5424,
+        8.1977
       ],
       "estimated": false
     },
     {
       "position": [
-        1.4673,
-        1.6374,
-        8.7024
+        1.3822,
+        1.5424,
+        8.1977
       ],
       "estimated": false
     },
     {
       "position": [
-        -1.4673,
-        1.6147,
-        8.7024
+        -1.3822,
+        1.5211,
+        8.1977
       ],
       "estimated": false
     },
     {
       "position": [
-        1.4673,
-        1.6147,
-        8.7024
+        1.3822,
+        1.5211,
+        8.1977
       ],
       "estimated": false
     }
   ],
   "center_of_mass_hint": [
     0.0,
-    1.6993,
+    1.6007,
     -0.0
   ],
   "paint": {
@@ -276,187 +276,178 @@
     "Body": {
       "tris": 1715,
       "bbox_min": [
-        -3.2625,
-        1.3206,
-        -8.61
+        -3.0733,
+        1.244,
+        -8.1107
       ],
       "bbox_max": [
-        3.2625,
-        5.3102,
-        8.6837
+        3.0733,
+        5.0022,
+        8.18
       ],
       "textures": {
-        "normal": "textures/musclecar_Body_normal.png",
         "ao": "textures/musclecar_Body_ao.png"
       }
     },
     "Glass": {
       "tris": 52,
       "bbox_min": [
-        -2.6059,
-        3.731,
-        -2.036
+        -2.4548,
+        3.5146,
+        -1.918
       ],
       "bbox_max": [
-        2.6059,
-        5.1309,
-        6.1438
+        2.4548,
+        4.8333,
+        5.7875
       ],
       "textures": {}
     },
     "LightsFront": {
       "tris": 52,
       "bbox_min": [
-        -2.8027,
-        1.4326,
-        -8.1981
+        -2.6402,
+        1.3495,
+        -7.7226
       ],
       "bbox_max": [
-        2.8027,
-        3.0276,
-        -7.5159
+        2.6402,
+        2.852,
+        -7.08
       ],
       "textures": {
-        "emit": "textures/musclecar_Lights_emit.png",
-        "normal": "textures/musclecar_Lights_normal.png",
-        "base": "textures/musclecar_Lights_base.png"
+        "base": "textures/musclecar_Lights_base.png",
+        "emit": "textures/musclecar_Lights_emit.png"
       }
     },
     "LightsRear": {
       "tris": 8,
       "bbox_min": [
-        -2.4563,
-        2.912,
-        8.5003
+        -2.3139,
+        2.7431,
+        8.0073
       ],
       "bbox_max": [
-        2.4563,
-        3.2119,
-        8.5485
+        2.3139,
+        3.0256,
+        8.0527
       ],
       "textures": {
-        "emit": "textures/musclecar_Lights_emit.png",
-        "normal": "textures/musclecar_Lights_normal.png",
-        "base": "textures/musclecar_Lights_base.png"
+        "base": "textures/musclecar_Lights_base.png",
+        "emit": "textures/musclecar_Lights_emit.png"
       }
     },
     "Trim": {
       "tris": 1272,
       "bbox_min": [
-        -3.2687,
-        1.2216,
-        -8.6959
+        -3.0791,
+        1.1508,
+        -8.1915
       ],
       "bbox_max": [
-        3.2687,
-        5.1778,
-        8.8041
+        3.0791,
+        4.8775,
+        8.2935
       ],
       "textures": {
-        "normal": "textures/musclecar_Trim_normal.png",
-        "metal": "textures/musclecar_Trim_metal.png",
-        "rough": "textures/musclecar_Trim_rough.png",
         "base": "textures/musclecar_Trim_base.png",
+        "rough": "textures/musclecar_Trim_rough.png",
+        "metal": "textures/musclecar_Trim_metal.png",
         "ao": "textures/musclecar_Trim_ao.png"
       }
     },
     "Interior": {
       "tris": 768,
       "bbox_min": [
-        -2.6059,
-        1.4648,
-        -2.987
+        -2.4548,
+        1.3798,
+        -2.8137
       ],
       "bbox_max": [
-        2.6059,
-        5.238,
-        6.2243
+        2.4548,
+        4.9342,
+        5.8633
       ],
       "textures": {
-        "normal": "textures/musclecar_Interior_normal.png",
-        "metal": "textures/musclecar_Interior_metal.png",
-        "rough": "textures/musclecar_Interior_rough.png",
         "base": "textures/musclecar_Interior_base.png",
+        "rough": "textures/musclecar_Interior_rough.png",
+        "metal": "textures/musclecar_Interior_metal.png",
         "ao": "textures/musclecar_Interior_ao.png"
       }
     },
     "WheelFL": {
       "tris": 297,
       "bbox_min": [
-        -3.2964,
+        -3.1052,
         -0.0,
-        -6.3163
+        -5.9499
       ],
       "bbox_max": [
-        -2.4063,
-        2.4545,
-        -3.8619
+        -2.2667,
+        2.3121,
+        -3.6379
       ],
       "textures": {
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "base": "textures/musclecar_Wheel_base.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
     "WheelFR": {
       "tris": 297,
       "bbox_min": [
-        2.4063,
+        2.2667,
         -0.0,
-        -6.3163
+        -5.9499
       ],
       "bbox_max": [
-        3.2964,
-        2.4545,
-        -3.8619
+        3.1052,
+        2.3121,
+        -3.6379
       ],
       "textures": {
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "base": "textures/musclecar_Wheel_base.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
     "WheelRL": {
       "tris": 297,
       "bbox_min": [
-        -3.2964,
+        -3.1052,
         0.0,
-        3.8619
+        3.6379
       ],
       "bbox_max": [
-        -2.4063,
-        2.4545,
-        6.3163
+        -2.2667,
+        2.3121,
+        5.9499
       ],
       "textures": {
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "base": "textures/musclecar_Wheel_base.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
     "WheelRR": {
       "tris": 297,
       "bbox_min": [
-        2.4063,
+        2.2667,
         0.0,
-        3.8619
+        3.6379
       ],
       "bbox_max": [
-        3.2964,
-        2.4545,
-        6.3163
+        3.1052,
+        2.3121,
+        5.9499
       ],
       "textures": {
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "rough": "textures/musclecar_Wheel_rough.png",
         "base": "textures/musclecar_Wheel_base.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "rough": "textures/musclecar_Wheel_rough.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     }
@@ -484,64 +475,64 @@
   },
   "scale": {
     "source_length": 4.848599910736084,
-    "factor": 3.6092893458275173,
-    "target_length": 17.5
+    "factor": 3.3999505637695213,
+    "target_length": 16.485
   },
   "classes": {
     "Body": {
       "islands": 9,
       "faces": 928,
-      "area": 157.261
+      "area": 139.547
     },
     "Glass": {
       "islands": 8,
       "faces": 30,
-      "area": 26.352
+      "area": 23.384
     },
     "LightsFront": {
       "islands": 6,
       "faces": 50,
-      "area": 1.082
+      "area": 0.961
     },
     "LightsRear": {
       "islands": 2,
       "faces": 4,
-      "area": 0.884
+      "area": 0.784
     },
     "Trim": {
       "islands": 69,
       "faces": 801,
-      "area": 164.527
+      "area": 145.995
     },
     "Interior": {
       "islands": 47,
       "faces": 448,
-      "area": 130.008
+      "area": 115.364
     },
     "Discard": {
       "islands": 13,
       "faces": 21,
-      "area": 48.099
+      "area": 42.681
     },
     "WheelFL": {
       "islands": 3,
       "faces": 156,
-      "area": 20.47
+      "area": 18.164
     },
     "WheelFR": {
       "islands": 3,
       "faces": 156,
-      "area": 20.47
+      "area": 18.164
     },
     "WheelRL": {
       "islands": 3,
       "faces": 156,
-      "area": 20.47
+      "area": 18.164
     },
     "WheelRR": {
       "islands": 3,
       "faces": 156,
-      "area": 20.47
+      "area": 18.164
     }
   },
   "warnings": []

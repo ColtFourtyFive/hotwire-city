@@ -7,31 +7,31 @@
     "uploaded": "2026-10-27T15:44:17Z"
   },
   "tile_0_0": {
-    "assetId": 117519932574490,
-    "sha256": "337b2a4db559dd7ed7120016f000b1a6802a3482c7cc6781e21251fbc0f4c481",
+    "assetId": 135922170470653,
+    "sha256": "bf649f7e546bcd9f811d8128c8f692f69482b9a0d9a4660e28c1d695665d6930",
     "file": "assets/minimap/tile_0_0.png",
     "moderation": "Approved",
-    "uploaded": "2026-10-27T15:44:49Z"
+    "uploaded": "2026-10-27T17:04:13Z"
   },
   "tile_0_1": {
-    "assetId": 125804761967084,
-    "sha256": "4e4c9b3a1f959763300dafaa02894b4624beda078f063df82ea5b8b49f56dbec",
+    "assetId": 105033145059125,
+    "sha256": "e338b0293f91f6afd9cef43731e82738dcca3586a63a99a2817c4fdaaaeb1b53",
     "file": "assets/minimap/tile_0_1.png",
     "moderation": "Approved",
-    "uploaded": "2026-10-27T15:44:54Z"
+    "uploaded": "2026-10-27T17:04:18Z"
   },
   "tile_1_0": {
-    "assetId": 84265254994123,
-    "sha256": "dab3567d18e54eb5c4319c049e076555ec51a13617b804d24ee3942f7ead7413",
+    "assetId": 122934829430314,
+    "sha256": "4fb4d7c5766565e221d1e438d3956d1830a52b78f6d06df2b2eec66947fa3b6f",
     "file": "assets/minimap/tile_1_0.png",
     "moderation": "Approved",
-    "uploaded": "2026-10-27T15:44:58Z"
+    "uploaded": "2026-10-27T17:04:23Z"
   },
   "tile_1_1": {
-    "assetId": 71493891656879,
-    "sha256": "06e91b254d01758c737555653b5092d40d6d2ee03c80c864f320682549496530",
+    "assetId": 135277028789790,
+    "sha256": "5f019c7eda069cbb130f520b803c13edfcf9ad214b5712ca9763f716bed14f99",
     "file": "assets/minimap/tile_1_1.png",
     "moderation": "Approved",
-    "uploaded": "2026-10-27T15:45:02Z"
+    "uploaded": "2026-10-27T17:04:27Z"
   }
 }

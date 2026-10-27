@@ -1,0 +1,2 @@
+CC0 (ambientCG): https://ambientcg.com/view?id=Asphalt025C
+Converted by tools/blender/materials/prep_pbr.py

@@ -96,9 +96,7 @@
      "injects-into-services"
     ],
     "requireIds": [],
-    "payloadIds": [
-     576251517412231684
-    ]
+    "payloadIds": []
    }
   ],
   "verdict": "FLAGGED (injects-into-services) - strip all scripts before parenting"

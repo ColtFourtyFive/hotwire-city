@@ -26,7 +26,7 @@ def main(argv=None):
     ap.add_argument("--in", dest="inp", help="model file (.glb .gltf .fbx .obj .blend .usd* .ply .stl .dae .3ds)")
     ap.add_argument("--name", help="output name (default: model id / file stem)")
     ap.add_argument("--out", default=os.path.join(HERE, "out"), help="output root")
-    ap.add_argument("--length", type=float, help="bumper-to-bumper length in studs (default 17)")
+    ap.add_argument("--length", type=float, help="bumper-to-bumper length in studs (default: auto = real metres x 3.4)")
     ap.add_argument("--front", choices=["+x", "-x", "+y", "-y"], help="force the front direction (file axes)")
     ap.add_argument("--up", choices=["+x", "-x", "+y", "-y", "+z", "-z"], help="force the up axis (file axes)")
     ap.add_argument("--config", help="extra JSON config file (same keys as a models.json entry)")

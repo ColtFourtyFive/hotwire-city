@@ -1,0 +1,854 @@
+{
+ "_about": "CC0 PBR sets converted for Roblox MaterialVariant / SurfaceAppearance by tools/blender/materials/prep_pbr.py. Normal maps are OpenGL (+Y), verified against height maps. ColorMap has AO baked in. Part Color multiplies the ColorMap: use white parts for true colour.",
+ "asphalt_clean": {
+  "name": "asphalt_clean",
+  "files": {
+   "color": "assets/materials/asphalt_clean/color.png",
+   "normal": "assets/materials/asphalt_clean/normal.png",
+   "roughness": "assets/materials/asphalt_clean/roughness.png",
+   "metalness": "assets/materials/asphalt_clean/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_AsphaltClean",
+   "BaseMaterial": "Asphalt",
+   "StudsPerTile": 8.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "roads, parking lots (new surface)",
+  "realWorldTileMeters": null,
+  "meanColorSRGB": [
+   0.268,
+   0.266,
+   0.253
+  ],
+  "meanAlbedoLinear": [
+   0.0606,
+   0.0594,
+   0.0539
+  ],
+  "meanRoughness": 0.82,
+  "meanMetalness": 0.0,
+  "source": "https://ambientcg.com/view?id=Asphalt025C",
+  "license": "CC0 (ambientCG)",
+  "checks": {
+   "normal_source": "acg:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.856,
+   "corr_red_vs_height": 0.856,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.856
+   },
+   "roughness_remapped": [
+    0.74,
+    0.95
+   ],
+   "ao_baked": 0.4,
+   "albedo_scaled_to": 0.27,
+   "seam_before": {
+    "color": 0.99,
+    "normal": 1.0,
+    "roughness": 1.27
+   }
+  }
+ },
+ "asphalt_worn": {
+  "name": "asphalt_worn",
+  "files": {
+   "color": "assets/materials/asphalt_worn/color.png",
+   "normal": "assets/materials/asphalt_worn/normal.png",
+   "roughness": "assets/materials/asphalt_worn/roughness.png",
+   "metalness": "assets/materials/asphalt_worn/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_AsphaltWorn",
+   "BaseMaterial": "Asphalt",
+   "StudsPerTile": 10.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "older streets, alleys, industrial lots (cracks)",
+  "realWorldTileMeters": null,
+  "meanColorSRGB": [
+   0.298,
+   0.295,
+   0.28
+  ],
+  "meanAlbedoLinear": [
+   0.0752,
+   0.0734,
+   0.0663
+  ],
+  "meanRoughness": 0.858,
+  "meanMetalness": 0.0,
+  "source": "https://ambientcg.com/view?id=Asphalt026C",
+  "license": "CC0 (ambientCG)",
+  "checks": {
+   "normal_source": "acg:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.893,
+   "corr_red_vs_height": 0.894,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.893
+   },
+   "roughness_remapped": [
+    0.76,
+    0.97
+   ],
+   "ao_baked": 0.4,
+   "albedo_scaled_to": 0.3,
+   "seam_before": {
+    "color": 1.03,
+    "normal": 1.05,
+    "roughness": 1.34
+   }
+  }
+ },
+ "sidewalk_paving": {
+  "name": "sidewalk_paving",
+  "files": {
+   "color": "assets/materials/sidewalk_paving/color.png",
+   "normal": "assets/materials/sidewalk_paving/normal.png",
+   "roughness": "assets/materials/sidewalk_paving/roughness.png",
+   "metalness": "assets/materials/sidewalk_paving/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_SidewalkPaving",
+   "BaseMaterial": "Pavement",
+   "StudsPerTile": 10.0,
+   "MaterialPattern": "Regular"
+  },
+  "use": "sidewalk: big pale concrete slabs with weedy joints",
+  "realWorldTileMeters": [
+   3.0,
+   3.0
+  ],
+  "meanColorSRGB": [
+   0.463,
+   0.444,
+   0.403
+  ],
+  "meanAlbedoLinear": [
+   0.1902,
+   0.1736,
+   0.1438
+  ],
+  "meanRoughness": 0.816,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/large_grey_tiles",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.757,
+   "corr_red_vs_height": 0.728,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.757
+   },
+   "ao_baked": 0.5,
+   "seam_before": {
+    "color": 1.18,
+    "normal": 1.4,
+    "roughness": 1.0
+   }
+  }
+ },
+ "curb_concrete": {
+  "name": "curb_concrete",
+  "files": {
+   "color": "assets/materials/curb_concrete/color.png",
+   "normal": "assets/materials/curb_concrete/normal.png",
+   "roughness": "assets/materials/curb_concrete/roughness.png",
+   "metalness": "assets/materials/curb_concrete/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_CurbConcrete",
+   "BaseMaterial": "Concrete",
+   "StudsPerTile": 8.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "curbs, medians, plinths, barriers",
+  "realWorldTileMeters": [
+   2.0,
+   2.0
+  ],
+  "meanColorSRGB": [
+   0.43,
+   0.39,
+   0.323
+  ],
+  "meanAlbedoLinear": [
+   0.1652,
+   0.1351,
+   0.0924
+  ],
+  "meanRoughness": 0.793,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/concrete_floor_01",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.941,
+   "corr_red_vs_height": 0.929,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.941
+   },
+   "roughness_remapped": [
+    0.72,
+    0.94
+   ],
+   "ao_baked": 0.4,
+   "seam_before": {
+    "color": 1.04,
+    "normal": 0.98,
+    "roughness": 1.36
+   }
+  }
+ },
+ "brick_red": {
+  "name": "brick_red",
+  "files": {
+   "color": "assets/materials/brick_red/color.png",
+   "normal": "assets/materials/brick_red/normal.png",
+   "roughness": "assets/materials/brick_red/roughness.png",
+   "metalness": "assets/materials/brick_red/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_BrickRed",
+   "BaseMaterial": "Brick",
+   "StudsPerTile": 3.3,
+   "MaterialPattern": "Regular"
+  },
+  "use": "midtown walls, lofts, warehouses",
+  "realWorldTileMeters": [
+   1.0,
+   1.0
+  ],
+  "meanColorSRGB": [
+   0.362,
+   0.282,
+   0.254
+  ],
+  "meanAlbedoLinear": [
+   0.1149,
+   0.0713,
+   0.0592
+  ],
+  "meanRoughness": 0.774,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/red_brick_03",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.916,
+   "corr_red_vs_height": 0.839,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.916
+   },
+   "roughness_remapped": [
+    0.72,
+    0.95
+   ],
+   "ao_baked": 0.6,
+   "seam_before": {
+    "color": 1.0,
+    "normal": 0.9,
+    "roughness": 1.78
+   }
+  }
+ },
+ "brick_tan": {
+  "name": "brick_tan",
+  "files": {
+   "color": "assets/materials/brick_tan/color.png",
+   "normal": "assets/materials/brick_tan/normal.png",
+   "roughness": "assets/materials/brick_tan/roughness.png",
+   "metalness": "assets/materials/brick_tan/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_BrickTan",
+   "BaseMaterial": "Brick",
+   "StudsPerTile": 6.7,
+   "MaterialPattern": "Regular"
+  },
+  "use": "older commercial facades",
+  "realWorldTileMeters": [
+   2.0,
+   2.0
+  ],
+  "meanColorSRGB": [
+   0.635,
+   0.529,
+   0.414
+  ],
+  "meanAlbedoLinear": [
+   0.3868,
+   0.2659,
+   0.166
+  ],
+  "meanRoughness": 0.841,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/yellow_brick",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.96,
+   "corr_red_vs_height": 0.942,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.96
+   },
+   "ao_baked": 0.6,
+   "seam_before": {
+    "color": 1.06,
+    "normal": 1.1,
+    "roughness": 0.95
+   }
+  }
+ },
+ "stucco": {
+  "name": "stucco",
+  "files": {
+   "color": "assets/materials/stucco/color.png",
+   "normal": "assets/materials/stucco/normal.png",
+   "roughness": "assets/materials/stucco/roughness.png",
+   "metalness": "assets/materials/stucco/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_Stucco",
+   "BaseMaterial": "Plaster",
+   "StudsPerTile": 8.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "houses, deco hotels; near-white so part Color tints it",
+  "realWorldTileMeters": [
+   7.868050033721374e-08,
+   1.8000000715255737
+  ],
+  "meanColorSRGB": [
+   0.637,
+   0.633,
+   0.622
+  ],
+  "meanAlbedoLinear": [
+   0.3659,
+   0.3614,
+   0.3473
+  ],
+  "meanRoughness": 0.888,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/white_stucco_02",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.92,
+   "corr_red_vs_height": 0.9,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.92
+   },
+   "ao_baked": 0.4,
+   "seam_before": {
+    "color": 0.96,
+    "normal": 1.01,
+    "roughness": 0.96
+   }
+  }
+ },
+ "roof_tiles": {
+  "name": "roof_tiles",
+  "files": {
+   "color": "assets/materials/roof_tiles/color.png",
+   "normal": "assets/materials/roof_tiles/normal.png",
+   "roughness": "assets/materials/roof_tiles/roughness.png",
+   "metalness": "assets/materials/roof_tiles/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_RoofTiles",
+   "BaseMaterial": "Slate",
+   "StudsPerTile": 8.3,
+   "MaterialPattern": "Regular"
+  },
+  "use": "Spanish / mission clay roofs",
+  "realWorldTileMeters": [
+   2.5,
+   2.5
+  ],
+  "meanColorSRGB": [
+   0.504,
+   0.276,
+   0.149
+  ],
+  "meanAlbedoLinear": [
+   0.2498,
+   0.0698,
+   0.022
+  ],
+  "meanRoughness": 0.915,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/clay_roof_tiles_02",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.744,
+   "corr_red_vs_height": 0.81,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.744
+   },
+   "ao_baked": 0.6,
+   "seam_before": {
+    "color": 0.76,
+    "normal": 1.15,
+    "roughness": 0.82
+   }
+  }
+ },
+ "roof_gravel": {
+  "name": "roof_gravel",
+  "files": {
+   "color": "assets/materials/roof_gravel/color.png",
+   "normal": "assets/materials/roof_gravel/normal.png",
+   "roughness": "assets/materials/roof_gravel/roughness.png",
+   "metalness": "assets/materials/roof_gravel/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_RoofGravel",
+   "BaseMaterial": "Pebble",
+   "StudsPerTile": 7.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "flat roofs (ballast gravel)",
+  "realWorldTileMeters": [
+   2.0,
+   2.0
+  ],
+  "meanColorSRGB": [
+   0.565,
+   0.552,
+   0.516
+  ],
+  "meanAlbedoLinear": [
+   0.304,
+   0.2892,
+   0.2507
+  ],
+  "meanRoughness": 0.891,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/gravel_floor_02",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.741,
+   "corr_red_vs_height": 0.761,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.741
+   },
+   "roughness_remapped": [
+    0.78,
+    1.0
+   ],
+   "ao_baked": 0.5,
+   "seam_before": {
+    "color": 0.92,
+    "normal": 0.96,
+    "roughness": 0.91
+   }
+  }
+ },
+ "metal_corrugated": {
+  "name": "metal_corrugated",
+  "files": {
+   "color": "assets/materials/metal_corrugated/color.png",
+   "normal": "assets/materials/metal_corrugated/normal.png",
+   "roughness": "assets/materials/metal_corrugated/roughness.png",
+   "metalness": "assets/materials/metal_corrugated/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_MetalCorrugated",
+   "BaseMaterial": "Metal",
+   "StudsPerTile": 9.0,
+   "MaterialPattern": "Regular"
+  },
+  "use": "sheds, warehouse siding, fences",
+  "realWorldTileMeters": [
+   2.700000047683716,
+   2.700000047683716
+  ],
+  "meanColorSRGB": [
+   0.543,
+   0.541,
+   0.5
+  ],
+  "meanAlbedoLinear": [
+   0.2659,
+   0.2634,
+   0.2238
+  ],
+  "meanRoughness": 0.521,
+  "meanMetalness": 0.852,
+  "source": "https://polyhaven.com/a/corrugated_iron_02",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.632,
+   "corr_red_vs_height": 0.996,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.632
+   },
+   "metal_normalized": true,
+   "metal_albedo_gain": 1.8,
+   "ao_baked": 0.5,
+   "seam_before": {
+    "color": 0.96,
+    "normal": 0.9,
+    "roughness": 0.94
+   }
+  }
+ },
+ "metal_rusty": {
+  "name": "metal_rusty",
+  "files": {
+   "color": "assets/materials/metal_rusty/color.png",
+   "normal": "assets/materials/metal_rusty/normal.png",
+   "roughness": "assets/materials/metal_rusty/roughness.png",
+   "metalness": "assets/materials/metal_rusty/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_MetalRusty",
+   "BaseMaterial": "CorrodedMetal",
+   "StudsPerTile": 8.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "containers, port, scrap, industrial",
+  "realWorldTileMeters": [
+   2.0,
+   2.0
+  ],
+  "meanColorSRGB": [
+   0.358,
+   0.275,
+   0.221
+  ],
+  "meanAlbedoLinear": [
+   0.1221,
+   0.0886,
+   0.0697
+  ],
+  "meanRoughness": 0.703,
+  "meanMetalness": 0.277,
+  "source": "https://polyhaven.com/a/rusty_metal_04",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.657,
+   "corr_red_vs_height": 0.659,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.657
+   },
+   "metal_normalized": true,
+   "metal_albedo_gain": 1.15,
+   "ao_baked": 0.4,
+   "seam_before": {
+    "color": 0.87,
+    "normal": 0.85,
+    "roughness": 0.83
+   }
+  }
+ },
+ "wood_planks": {
+  "name": "wood_planks",
+  "files": {
+   "color": "assets/materials/wood_planks/color.png",
+   "normal": "assets/materials/wood_planks/normal.png",
+   "roughness": "assets/materials/wood_planks/roughness.png",
+   "metalness": "assets/materials/wood_planks/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_WoodPlanks",
+   "BaseMaterial": "WoodPlanks",
+   "StudsPerTile": 6.7,
+   "MaterialPattern": "Regular"
+  },
+  "use": "pier / boardwalk decks, fences",
+  "realWorldTileMeters": [
+   2.0,
+   2.0
+  ],
+  "meanColorSRGB": [
+   0.464,
+   0.374,
+   0.295
+  ],
+  "meanAlbedoLinear": [
+   0.1907,
+   0.1201,
+   0.0734
+  ],
+  "meanRoughness": 0.702,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/wooden_planks",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.651,
+   "corr_red_vs_height": 0.4,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.651
+   },
+   "ao_baked": 0.5,
+   "seam_before": {
+    "color": 0.94,
+    "normal": 0.98,
+    "roughness": 0.95
+   }
+  }
+ },
+ "grass": {
+  "name": "grass",
+  "files": {
+   "color": "assets/materials/grass/color.png",
+   "normal": "assets/materials/grass/normal.png",
+   "roughness": "assets/materials/grass/roughness.png",
+   "metalness": "assets/materials/grass/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_Grass",
+   "BaseMaterial": "Grass",
+   "StudsPerTile": 8.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "lawns, parks, verges (or terrain Grass)",
+  "realWorldTileMeters": null,
+  "meanColorSRGB": [
+   0.263,
+   0.352,
+   0.157
+  ],
+  "meanAlbedoLinear": [
+   0.0583,
+   0.1048,
+   0.0223
+  ],
+  "meanRoughness": 0.906,
+  "meanMetalness": 0.0,
+  "source": "https://ambientcg.com/view?id=Grass001",
+  "license": "CC0 (ambientCG)",
+  "checks": {
+   "normal_source": "acg:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.557,
+   "corr_red_vs_height": 0.562,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.557
+   },
+   "roughness_remapped": [
+    0.82,
+    1.0
+   ],
+   "ao_baked": 0.4,
+   "albedo_scaled_to": 0.33,
+   "seam_before": {
+    "color": 1.08,
+    "normal": 1.15,
+    "roughness": 1.24
+   }
+  }
+ },
+ "sand": {
+  "name": "sand",
+  "files": {
+   "color": "assets/materials/sand/color.png",
+   "normal": "assets/materials/sand/normal.png",
+   "roughness": "assets/materials/sand/roughness.png",
+   "metalness": "assets/materials/sand/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_Sand",
+   "BaseMaterial": "Sand",
+   "StudsPerTile": 10.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "beach (or terrain Sand)",
+  "realWorldTileMeters": null,
+  "meanColorSRGB": [
+   0.676,
+   0.59,
+   0.422
+  ],
+  "meanAlbedoLinear": [
+   0.4151,
+   0.3082,
+   0.149
+  ],
+  "meanRoughness": 0.657,
+  "meanMetalness": 0.0,
+  "source": "https://ambientcg.com/view?id=Ground080",
+  "license": "CC0 (ambientCG)",
+  "checks": {
+   "normal_source": "acg:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.991,
+   "corr_red_vs_height": 0.993,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.991
+   },
+   "ao_baked": 0.4,
+   "seam_before": {
+    "color": 1.14,
+    "normal": 1.04,
+    "roughness": 0.9
+   }
+  }
+ },
+ "rock": {
+  "name": "rock",
+  "files": {
+   "color": "assets/materials/rock/color.png",
+   "normal": "assets/materials/rock/normal.png",
+   "roughness": "assets/materials/rock/roughness.png",
+   "metalness": "assets/materials/rock/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_Rock",
+   "BaseMaterial": "Rock",
+   "StudsPerTile": 10.0,
+   "MaterialPattern": "Organic"
+  },
+  "use": "hills, cliffs, rock outcrops (or terrain Rock)",
+  "realWorldTileMeters": [
+   1.5,
+   1.5
+  ],
+  "meanColorSRGB": [
+   0.492,
+   0.431,
+   0.35
+  ],
+  "meanAlbedoLinear": [
+   0.2123,
+   0.1607,
+   0.104
+  ],
+  "meanRoughness": 0.835,
+  "meanMetalness": 0.0,
+  "source": "https://polyhaven.com/a/rock_08",
+  "license": "CC0 (Poly Haven)",
+  "checks": {
+   "normal_source": "ph:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.909,
+   "corr_red_vs_height": 0.895,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.909
+   },
+   "roughness_remapped": [
+    0.78,
+    0.98
+   ],
+   "ao_baked": 0.5,
+   "seam_before": {
+    "color": 0.97,
+    "normal": 0.9,
+    "roughness": 1.3
+   }
+  }
+ },
+ "terrazzo": {
+  "name": "terrazzo",
+  "files": {
+   "color": "assets/materials/terrazzo/color.png",
+   "normal": "assets/materials/terrazzo/normal.png",
+   "roughness": "assets/materials/terrazzo/roughness.png",
+   "metalness": "assets/materials/terrazzo/metalness.png"
+  },
+  "size": 1024,
+  "materialVariant": {
+   "Name": "HC_Terrazzo",
+   "BaseMaterial": "Marble",
+   "StudsPerTile": 6.0,
+   "MaterialPattern": "Regular"
+  },
+  "use": "lobbies, malls, plazas",
+  "realWorldTileMeters": null,
+  "meanColorSRGB": [
+   0.824,
+   0.802,
+   0.775
+  ],
+  "meanAlbedoLinear": [
+   0.7133,
+   0.6722,
+   0.6335
+  ],
+  "meanRoughness": 0.223,
+  "meanMetalness": 0.0,
+  "source": "https://ambientcg.com/view?id=Terrazzo013",
+  "license": "CC0 (ambientCG)",
+  "checks": {
+   "normal_source": "acg:nor_gl",
+   "normal_detected": "opengl",
+   "corr_green_vs_height": 0.855,
+   "corr_red_vs_height": 0.857,
+   "other_file": {
+    "file": "nor_dx",
+    "detected": "directx",
+    "corr_green_vs_height": -0.855
+   },
+   "seam_before": {
+    "color": 0.64,
+    "normal": 1.01,
+    "roughness": 1.08
+   }
+  }
+ }
+}

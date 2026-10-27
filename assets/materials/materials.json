@@ -1,0 +1,1652 @@
+{
+  "decals": [
+    {
+      "file": "assets/materials/decals/line_white_solid.png",
+      "height": 1024,
+      "name": "line_white_solid",
+      "note": "Solid white line. Texture on the top face of a 0.45-stud-wide marking strip; StudsPerTileV ~ 12.",
+      "sha1": "1a959dbf08d8755e73b2a5d0a7a712704ffd364d",
+      "studsPerTileV": 12,
+      "width": 128
+    },
+    {
+      "file": "assets/materials/decals/line_yellow_solid.png",
+      "height": 1024,
+      "name": "line_yellow_solid",
+      "note": "Solid yellow line (same use).",
+      "sha1": "4f8880cd64d67fb1a67f76e948619dc5ecae7b66",
+      "studsPerTileV": 12,
+      "width": 128
+    },
+    {
+      "file": "assets/materials/decals/line_white_dash.png",
+      "height": 1024,
+      "name": "line_white_dash",
+      "note": "White lane dash: 10 ft dash + 30 ft gap per tile. StudsPerTileV = 42.7 (period).",
+      "sha1": "5c0b8917d8326fb916fa914c8a90298e1fda8242",
+      "studsPerTileV": 42.7,
+      "width": 128
+    },
+    {
+      "file": "assets/materials/decals/line_yellow_dash.png",
+      "height": 1024,
+      "name": "line_yellow_dash",
+      "note": "Yellow centre dash (same period).",
+      "sha1": "abc0d96bd8dc182a21317ebbcbae93edaa48bcea",
+      "studsPerTileV": 42.7,
+      "width": 128
+    },
+    {
+      "file": "assets/materials/decals/line_yellow_double.png",
+      "height": 1024,
+      "name": "line_yellow_double",
+      "note": "Double solid yellow centre line: two 0.45 lines with a 0.45 gap (strip 1.35 studs wide).",
+      "sha1": "1baca1802155afb53cf586577ec876d2b331c7eb",
+      "studsPerTileV": 12,
+      "width": 255
+    },
+    {
+      "file": "assets/materials/decals/stop_line_white.png",
+      "height": 256,
+      "name": "stop_line_white",
+      "note": "Stop bar (full bleed, tile along U). Strip 1.6 studs deep across the lanes.",
+      "sha1": "e5f052785a21257c31881666cebc7dfabf72f034",
+      "studsPerTileU": 12,
+      "width": 1024
+    },
+    {
+      "file": "assets/materials/decals/crosswalk_bars_white.png",
+      "height": 512,
+      "name": "crosswalk_bars_white",
+      "note": "Continental crosswalk: one bar + one gap per tile along U, bars run along V. Strip 10.7 studs long (crossing width); StudsPerTileU = 4.3 (0.6 m bars), StudsPerTileV = 10.7.",
+      "sha1": "48bb57de531f0f66db2dcad9603c5eb09ba5e368",
+      "studsPerTileU": 4.3,
+      "studsPerTileV": 10.7,
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/arrow_straight.png",
+      "height": 1024,
+      "name": "arrow_straight",
+      "note": "White lane arrow (straight), 512x1024; Decal on a 4 x 8 stud area, top = direction of travel.",
+      "sha1": "3139e5f737bbb64975de0202a9b5662eb9a14fd8",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/arrow_left.png",
+      "height": 1024,
+      "name": "arrow_left",
+      "note": "White lane arrow (left), 512x1024; Decal on a 4 x 8 stud area, top = direction of travel.",
+      "sha1": "048eb6a400221f064bea55025414dee61b3bf417",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/arrow_right.png",
+      "height": 1024,
+      "name": "arrow_right",
+      "note": "White lane arrow (right), 512x1024; Decal on a 4 x 8 stud area, top = direction of travel.",
+      "sha1": "2e086ed2883fad1f0736441ac30279481c3df832",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/arrow_straight_left.png",
+      "height": 1024,
+      "name": "arrow_straight_left",
+      "note": "White lane arrow (straight_left), 512x1024; Decal on a 4 x 8 stud area, top = direction of travel.",
+      "sha1": "64e8b9dce4b7512371d090b55329ff6c69871141",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/arrow_straight_right.png",
+      "height": 1024,
+      "name": "arrow_straight_right",
+      "note": "White lane arrow (straight_right), 512x1024; Decal on a 4 x 8 stud area, top = direction of travel.",
+      "sha1": "f22b46f5d6d32124d09ef88d4968172d9eed50e0",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/manhole_round.png",
+      "height": 512,
+      "name": "manhole_round",
+      "note": "Round cast-iron manhole cover, plain (no foundry mark or brand), procedural (Decal, ~2.6 x 2.6 studs).",
+      "sha1": "69e342db1d2608ef3ea68a6d96c2e29a41370d13",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/asphalt_damage_a.png",
+      "height": 300,
+      "name": "asphalt_damage_a",
+      "note": "Torn/patched asphalt patch (1024x300), Decal on roads to break tiling.",
+      "sha1": "83bcadb06e6e802455da094a6a300aab64165b96",
+      "width": 1024
+    },
+    {
+      "file": "assets/materials/decals/asphalt_damage_b.png",
+      "height": 280,
+      "name": "asphalt_damage_b",
+      "note": "Torn/patched asphalt patch (1024x280), Decal on roads to break tiling.",
+      "sha1": "2abe178254da52eaa1d6e208794fcf5c9533005b",
+      "width": 1024
+    },
+    {
+      "file": "assets/materials/decals/crack_network.png",
+      "height": 1024,
+      "name": "crack_network",
+      "note": "Thin asphalt cracks (tileable). Texture over a road with StudsPerTile ~ 24, or Decal.",
+      "sha1": "4a3919389d97ccbb379024823b39c6faff96c905",
+      "width": 1024
+    },
+    {
+      "file": "assets/materials/decals/tar_snakes.png",
+      "height": 1024,
+      "name": "tar_snakes",
+      "note": "Crack-sealant 'tar snakes' (tileable), very LA. Texture with StudsPerTile ~ 30.",
+      "sha1": "6bf3b1ab77ffb5837fd891ecdd596c4a02b1ff96",
+      "width": 1024
+    },
+    {
+      "file": "assets/materials/decals/oil_stain_a.png",
+      "height": 512,
+      "name": "oil_stain_a",
+      "note": "Oil/tyre stain for parking spots, junction stop zones, driveways (Decal ~6 x 6 studs).",
+      "sha1": "dbc1be0ffa16ce6deadee2fca121105f887eb387",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/oil_stain_b.png",
+      "height": 512,
+      "name": "oil_stain_b",
+      "note": "Oil/tyre stain for parking spots, junction stop zones, driveways (Decal ~6 x 6 studs).",
+      "sha1": "a4b8340a6fe94de56af271e41bc2be0fcf7ad225",
+      "width": 512
+    },
+    {
+      "file": "assets/materials/decals/wall_grime_streaks.png",
+      "height": 1024,
+      "name": "wall_grime_streaks",
+      "note": "Rain-streak grime under ledges/windows/AC units (Decal on walls, top edge at the ledge).",
+      "sha1": "6c62d7d9720e92177713bee29505343ccf753831",
+      "width": 512
+    }
+  ],
+  "materials": [
+    {
+      "ao": 0.5,
+      "base": "Asphalt",
+      "blockVariation": 5.41,
+      "color": [
+        104,
+        104,
+        107
+      ],
+      "detail": 1.15,
+      "detailScale": 0.768,
+      "files": {
+        "color": "assets/materials/asphalt/color.png",
+        "normal": "assets/materials/asphalt/normal.png",
+        "roughness": "assets/materials/asphalt/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "asphalt",
+      "look": [
+        80,
+        80,
+        82
+      ],
+      "macro": [
+        0.06,
+        31
+      ],
+      "mapMean": [
+        0.7674,
+        0.7675,
+        0.7675
+      ],
+      "maps": {
+        "color": "asphalt",
+        "normal": "asphalt",
+        "roughness": "asphalt"
+      },
+      "normal": 1.2,
+      "note": "Road asphalt for avenues and streets (fine dark aggregate, soft tone patches; 16-stud tiles). Add the tar_snakes / crack_network decals as Textures on top (24-30 studs per tile) to break it up further.",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.84,
+        1.0
+      ],
+      "sat": 0.4,
+      "seam": {
+        "color": [
+          1.15,
+          1.21
+        ],
+        "normal": [
+          1.22,
+          1.33
+        ],
+        "roughness": [
+          1.12,
+          1.11
+        ]
+      },
+      "sha1": {
+        "color": "e13b759c52c4224f3b25626e06d56656f97acca5",
+        "normal": "8774640e0dce1fd4da062257a9cdd4e38c70c9d7",
+        "roughness": "3c3a440cf2d7269b11e4133c637ce215213225b4"
+      },
+      "source": "ACG/Road012A",
+      "studsPerTile": 16.07,
+      "tile_m": 4.5,
+      "variant": "HC_Asphalt"
+    },
+    {
+      "ao": 0.6,
+      "base": "Asphalt",
+      "blockVariation": 3.02,
+      "color": [
+        179,
+        177,
+        171
+      ],
+      "decrack": [
+        [
+          80,
+          178,
+          0,
+          1024,
+          225,
+          300
+        ],
+        [
+          606,
+          676,
+          50,
+          712,
+          330,
+          610
+        ],
+        [
+          686,
+          848,
+          0,
+          1024,
+          -470,
+          150
+        ],
+        [
+          476,
+          610,
+          820,
+          1104,
+          -250,
+          450
+        ]
+      ],
+      "detail": 1.0,
+      "detailScale": 0.55,
+      "files": {
+        "color": "assets/materials/asphalt_worn/color.png",
+        "normal": "assets/materials/asphalt_worn/normal.png",
+        "roughness": "assets/materials/asphalt_worn/roughness.png"
+      },
+      "flatten": [
+        40.0,
+        0.75
+      ],
+      "hue_remove": 1.0,
+      "key": "asphalt_worn",
+      "look": [
+        98,
+        97,
+        94
+      ],
+      "macro": [
+        0.045,
+        41
+      ],
+      "mapMean": [
+        0.549,
+        0.549,
+        0.5489
+      ],
+      "maps": {
+        "color": "asphalt_worn",
+        "normal": "asphalt_worn",
+        "roughness": "asphalt_worn"
+      },
+      "normal": 1.0,
+      "note": "Worn coarse asphalt for older streets, alleys and lots (baked cracks removed: add crack_network).",
+      "override": false,
+      "pattern": "Organic",
+      "rough": [
+        0.86,
+        1.0
+      ],
+      "sat": 0.4,
+      "seam": {
+        "color": [
+          0.98,
+          1.03
+        ],
+        "normal": [
+          0.98,
+          0.97
+        ],
+        "roughness": [
+          1.23,
+          1.15
+        ]
+      },
+      "sha1": {
+        "color": "673bc4114a1f3492407dd6c271b0e7a726975b57",
+        "normal": "e002df9e276e12ab963d9fa948e4cfadc75c3ae1",
+        "roughness": "69f143e5cdd408989e863972bf52dc249708d647"
+      },
+      "source": "PH/asphalt_02 (baked cracks removed)",
+      "studsPerTile": 14.29,
+      "tile_m": 4.0,
+      "variant": "HC_AsphaltWorn"
+    },
+    {
+      "base": "Asphalt",
+      "color": [
+        104,
+        104,
+        107
+      ],
+      "files": {
+        "color": "assets/materials/asphalt_wet/color.png",
+        "normal": "assets/materials/asphalt/normal.png",
+        "roughness": "assets/materials/asphalt_wet/roughness.png"
+      },
+      "key": "asphalt_wet",
+      "look": [
+        60,
+        60,
+        62
+      ],
+      "mapMean": [
+        0.5686,
+        0.5686,
+        0.5686
+      ],
+      "maps": {
+        "color": "asphalt_wet",
+        "normal": "asphalt",
+        "roughness": "asphalt_wet"
+      },
+      "note": "Night/rain swap for HC_Asphalt: same normal, darker wet colour map (puddles darker still) and a wet roughness map; uses HC_Asphalt's Part.Color, so swapping the override darkens and wets the roads.",
+      "override": false,
+      "pattern": "Organic",
+      "rough": [
+        0.24,
+        1.0
+      ],
+      "seam": {
+        "color": [
+          1.15,
+          1.21
+        ],
+        "normal": [
+          1.22,
+          1.33
+        ],
+        "roughness": [
+          1.12,
+          1.11
+        ]
+      },
+      "sha1": {
+        "color": "ee747fef0ed22cbba6000ee5df4a4add933264cb",
+        "normal": "8774640e0dce1fd4da062257a9cdd4e38c70c9d7",
+        "roughness": "635d666cdd5339e8dc99bd80bc3ce2a5ba3b7681"
+      },
+      "shares_maps": [
+        "normal"
+      ],
+      "source": "ACG/Road012A (wet colour + roughness)",
+      "studsPerTile": 16.07,
+      "tile_m": 4.5,
+      "variant": "HC_AsphaltWet",
+      "wet_dark": 0.75
+    },
+    {
+      "ao": 0.5,
+      "base": "Pavement",
+      "blockVariation": 3.69,
+      "color": [
+        200,
+        197,
+        188
+      ],
+      "detail": 1.0,
+      "detailScale": 0.86,
+      "files": {
+        "color": "assets/materials/sidewalk/color.png",
+        "normal": "assets/materials/sidewalk/normal.png",
+        "roughness": "assets/materials/sidewalk/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "sidewalk",
+      "look": [
+        172,
+        169,
+        162
+      ],
+      "mapMean": [
+        0.8597,
+        0.8597,
+        0.8597
+      ],
+      "maps": {
+        "color": "sidewalk",
+        "normal": "sidewalk",
+        "roughness": "sidewalk"
+      },
+      "normal": 1.0,
+      "note": "US concrete sidewalk: 1.5 m panels with tooled joints and smooth margins (2x2 panels per tile).",
+      "override": true,
+      "pattern": "Regular",
+      "rough": [
+        0.8,
+        1.0
+      ],
+      "sat": 0.3,
+      "seam": {
+        "color": [
+          2.87,
+          2.81
+        ],
+        "normal": [
+          11.95,
+          38.8
+        ],
+        "roughness": [
+          1.88,
+          2.11
+        ]
+      },
+      "sha1": {
+        "color": "dbded45ab6aa2165fb418c2cc1825644cd5dbe12",
+        "normal": "41cb961dc95764c9c4f1cc38b6f76e17602c284a",
+        "roughness": "5c84f85c3ffa274bfdd75b55dc7eeb689fd913f5"
+      },
+      "source": "PH/concrete_floor_worn_001 + procedural joints",
+      "studsPerTile": 10.71,
+      "tile_m": 3.0,
+      "variant": "HC_Sidewalk"
+    },
+    {
+      "ao": 0.5,
+      "base": "Concrete",
+      "blockVariation": 4.89,
+      "color": [
+        186,
+        183,
+        176
+      ],
+      "detail": 0.7,
+      "detailScale": 0.86,
+      "files": {
+        "color": "assets/materials/concrete/color.png",
+        "normal": "assets/materials/concrete/normal.png",
+        "roughness": "assets/materials/concrete/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "concrete",
+      "look": [
+        160,
+        157,
+        151
+      ],
+      "mapMean": [
+        0.8599,
+        0.8599,
+        0.8599
+      ],
+      "maps": {
+        "color": "concrete",
+        "normal": "concrete",
+        "roughness": "concrete"
+      },
+      "normal": 1.0,
+      "note": "Plain cast concrete: curbs, medians, freeway decks and pillars, walls.",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.8,
+        1.0
+      ],
+      "sat": 0.3,
+      "seam": {
+        "color": [
+          1.09,
+          1.15
+        ],
+        "normal": [
+          1.08,
+          1.22
+        ],
+        "roughness": [
+          1.17,
+          1.23
+        ]
+      },
+      "sha1": {
+        "color": "fe888e075eab63c85e3d92c54ea2f30367b29a1d",
+        "normal": "ba7757e9cc516ef2314c727e543447d21f3fe27b",
+        "roughness": "41d65988f699db6b4bdebcfd84bdc5dd1877c5c6"
+      },
+      "source": "ACG/Concrete042A",
+      "studsPerTile": 9.29,
+      "tile_m": 2.6,
+      "variant": "HC_Concrete"
+    },
+    {
+      "ao": 0.0,
+      "base": "Concrete",
+      "blockVariation": 0.82,
+      "color": [
+        220,
+        218,
+        212
+      ],
+      "detail": 0.5,
+      "detailScale": 0.86,
+      "files": {
+        "color": "assets/materials/concrete_modern/color.png",
+        "normal": "assets/materials/concrete_modern/normal.png",
+        "roughness": "assets/materials/concrete_modern/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "concrete_modern",
+      "look": [
+        190,
+        188,
+        183
+      ],
+      "mapMean": [
+        0.8633,
+        0.8633,
+        0.8633
+      ],
+      "maps": {
+        "color": "concrete_modern",
+        "normal": "concrete_modern",
+        "roughness": "concrete_modern"
+      },
+      "normal": 0.9,
+      "note": "Smooth light architectural concrete for modern facades.",
+      "override": false,
+      "pattern": "Organic",
+      "rough": [
+        0.68,
+        1.0
+      ],
+      "sat": 0.3,
+      "seam": {
+        "color": [
+          1.21,
+          0.98
+        ],
+        "normal": [
+          1.11,
+          0.91
+        ],
+        "roughness": [
+          1.67,
+          1.33
+        ]
+      },
+      "sha1": {
+        "color": "ea50c0ca29a9496a542a41294e82a1507fe7ea7d",
+        "normal": "0f07aae55fbdd43a9b0dd6d4f863fdc641a7085a",
+        "roughness": "9e04aef1dcf1fe175b7663385d7d88ef0d9180e1"
+      },
+      "source": "ACG/Concrete034",
+      "studsPerTile": 7.86,
+      "tile_m": 2.2,
+      "variant": "HC_ConcreteModern"
+    },
+    {
+      "ao": 0.6,
+      "base": "Brick",
+      "blockVariation": 5.22,
+      "color": [
+        177,
+        141,
+        124
+      ],
+      "detail": 1.0,
+      "detailScale": 0.697,
+      "files": {
+        "color": "assets/materials/brick_red/color.png",
+        "normal": "assets/materials/brick_red/normal.png",
+        "roughness": "assets/materials/brick_red/roughness.png"
+      },
+      "hue_remove": 0.55,
+      "key": "brick_red",
+      "look": [
+        136,
+        96,
+        76
+      ],
+      "mapMean": [
+        0.7669,
+        0.6796,
+        0.615
+      ],
+      "maps": {
+        "color": "brick_red",
+        "normal": "brick_red",
+        "roughness": "brick_red"
+      },
+      "normal": 1.0,
+      "note": "Red running-bond brick with grey mortar.",
+      "override": true,
+      "pattern": "Regular",
+      "rough": [
+        0.88,
+        1.0
+      ],
+      "sat": 0.85,
+      "seam": {
+        "color": [
+          0.97,
+          1.29
+        ],
+        "normal": [
+          1.16,
+          0.9
+        ],
+        "roughness": [
+          1.13,
+          0.75
+        ]
+      },
+      "sha1": {
+        "color": "92166feae35117a51e6edd412ef893febd36027d",
+        "normal": "9c6e3512c7f58081f56d5ee00608e9bed37f2bed",
+        "roughness": "1eaf1e2718de5a90bccd7196ae6b24505dba135c"
+      },
+      "source": "PH/red_brick",
+      "studsPerTile": 5.0,
+      "tile_m": 1.4,
+      "variant": "HC_BrickRed"
+    },
+    {
+      "ao": 0.6,
+      "base": "Brick",
+      "blockVariation": 2.11,
+      "color": [
+        220,
+        197,
+        171
+      ],
+      "detail": 1.0,
+      "detailScale": 0.77,
+      "files": {
+        "color": "assets/materials/brick_tan/color.png",
+        "normal": "assets/materials/brick_tan/normal.png",
+        "roughness": "assets/materials/brick_tan/roughness.png"
+      },
+      "hue_remove": 0.55,
+      "key": "brick_tan",
+      "look": [
+        182,
+        150,
+        114
+      ],
+      "mapMean": [
+        0.8257,
+        0.7608,
+        0.6671
+      ],
+      "maps": {
+        "color": "brick_tan",
+        "normal": "brick_tan",
+        "roughness": "brick_tan"
+      },
+      "normal": 1.0,
+      "note": "Tan/buff brick, LA mid-century commercial.",
+      "override": false,
+      "pattern": "Regular",
+      "rough": [
+        0.85,
+        1.0
+      ],
+      "sat": 0.85,
+      "seam": {
+        "color": [
+          1.15,
+          0.69
+        ],
+        "normal": [
+          1.47,
+          0.91
+        ],
+        "roughness": [
+          1.12,
+          0.84
+        ]
+      },
+      "sha1": {
+        "color": "584ce6f3b1e0ec1e858abcb0e1d8ffb21e55010a",
+        "normal": "40cdf4ce89604bbd1ca43674aba3b6f68a4a6195",
+        "roughness": "c672f6a64d22443cffb8d9404ecf0178ea3f57b7"
+      },
+      "source": "ACG/Bricks105",
+      "studsPerTile": 8.57,
+      "tile_m": 2.4,
+      "variant": "HC_BrickTan"
+    },
+    {
+      "ao": 0.0,
+      "base": "Plaster",
+      "blockVariation": 1.16,
+      "color": [
+        255,
+        253,
+        244
+      ],
+      "detail": 0.45,
+      "detailScale": 0.86,
+      "files": {
+        "color": "assets/materials/stucco/color.png",
+        "normal": "assets/materials/stucco/normal.png",
+        "roughness": "assets/materials/stucco/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "stucco",
+      "look": [
+        226,
+        222,
+        214
+      ],
+      "mapMean": [
+        0.8787,
+        0.8787,
+        0.8787
+      ],
+      "maps": {
+        "color": "stucco",
+        "normal": "stucco",
+        "roughness": "stucco"
+      },
+      "normal": 0.9,
+      "note": "Fine stucco/plaster, near-white: tint per building with Part.Color (pastels, beige).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.9,
+        0.8
+      ],
+      "sat": 0.0,
+      "seam": {
+        "color": [
+          1.28,
+          0.96
+        ],
+        "normal": [
+          1.23,
+          0.95
+        ],
+        "roughness": [
+          1.2,
+          1.09
+        ]
+      },
+      "sha1": {
+        "color": "e81c270fe5dc44c6e1d18bba4a28a0bd33c06061",
+        "normal": "8438fe968f0138207fae80d0f444ebb6e84a4744",
+        "roughness": "e41a768c2639d6707c5f3da7a3701b1079abd4d5"
+      },
+      "source": "ACG/Plaster001",
+      "studsPerTile": 7.14,
+      "tile_m": 2.0,
+      "variant": "HC_Stucco"
+    },
+    {
+      "ao": 0.7,
+      "base": "ClayRoofTiles",
+      "blockVariation": 12.22,
+      "color": [
+        214,
+        152,
+        132
+      ],
+      "detail": 1.0,
+      "detailScale": 0.596,
+      "files": {
+        "color": "assets/materials/roof_tiles/color.png",
+        "normal": "assets/materials/roof_tiles/normal.png",
+        "roughness": "assets/materials/roof_tiles/roughness.png"
+      },
+      "hue_remove": 0.5,
+      "key": "roof_tiles",
+      "look": [
+        150,
+        86,
+        62
+      ],
+      "mapMean": [
+        0.7022,
+        0.5668,
+        0.4699
+      ],
+      "maps": {
+        "color": "roof_tiles",
+        "normal": "roof_tiles",
+        "roughness": "roof_tiles"
+      },
+      "normal": 1.0,
+      "note": "Terracotta barrel tiles (Spanish/Mission).",
+      "override": true,
+      "pattern": "Regular",
+      "rough": [
+        0.74,
+        1.0
+      ],
+      "sat": 0.85,
+      "seam": {
+        "color": [
+          0.61,
+          5.01
+        ],
+        "normal": [
+          0.52,
+          14.08
+        ],
+        "roughness": [
+          1.14,
+          0.97
+        ]
+      },
+      "sha1": {
+        "color": "cc70f51281b8c25d872dae9f41a95023174bfe31",
+        "normal": "c18da173b81611229cecc98b4455eb1c7a9e7ecc",
+        "roughness": "bc6b9c63c858930c8ff8fc4220a288602428cc2f"
+      },
+      "source": "ACG/RoofingTiles006",
+      "studsPerTile": 11.43,
+      "tile_m": 3.2,
+      "variant": "HC_RoofTiles"
+    },
+    {
+      "ao": 0.6,
+      "base": "Pebble",
+      "blockVariation": 1.61,
+      "color": [
+        221,
+        217,
+        208
+      ],
+      "detail": 0.9,
+      "detailScale": 0.771,
+      "files": {
+        "color": "assets/materials/gravel_roof/color.png",
+        "normal": "assets/materials/gravel_roof/normal.png",
+        "roughness": "assets/materials/gravel_roof/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "gravel_roof",
+      "look": [
+        170,
+        167,
+        160
+      ],
+      "mapMean": [
+        0.7707,
+        0.7707,
+        0.7706
+      ],
+      "maps": {
+        "color": "gravel_roof",
+        "normal": "gravel_roof",
+        "roughness": "gravel_roof"
+      },
+      "normal": 1.0,
+      "note": "Flat-roof gravel ballast (downtown roofs seen from the air).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.92,
+        1.0
+      ],
+      "sat": 0.4,
+      "seam": {
+        "color": [
+          0.82,
+          0.85
+        ],
+        "normal": [
+          0.86,
+          0.91
+        ],
+        "roughness": [
+          0.81,
+          1.08
+        ]
+      },
+      "sha1": {
+        "color": "a914b22fcb04ef960d963b9aec00a148a0bc94be",
+        "normal": "f677d73c27b5f6050a51a7196168a5c3c67045a7",
+        "roughness": "02405dc422174aba0e63eca2319354465e55b8d1"
+      },
+      "source": "ACG/Gravel023",
+      "studsPerTile": 5.36,
+      "tile_m": 1.5,
+      "variant": "HC_GravelRoof"
+    },
+    {
+      "ao": 0.6,
+      "base": "Metal",
+      "blockVariation": 4.08,
+      "color": [
+        190,
+        197,
+        197
+      ],
+      "detail": 1.0,
+      "detailScale": 0.844,
+      "files": {
+        "color": "assets/materials/corrugated_metal/color.png",
+        "metalness": "assets/materials/corrugated_metal/metalness.png",
+        "normal": "assets/materials/corrugated_metal/normal.png",
+        "roughness": "assets/materials/corrugated_metal/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "corrugated_metal",
+      "look": [
+        160,
+        166,
+        166
+      ],
+      "mapMean": [
+        0.8435,
+        0.843,
+        0.8433
+      ],
+      "maps": {
+        "color": "corrugated_metal",
+        "metalness": "corrugated_metal",
+        "normal": "corrugated_metal",
+        "roughness": "corrugated_metal"
+      },
+      "metal": 0.9,
+      "normal": 1.2,
+      "note": "Galvanised corrugated sheet (warehouses, sheds, fences). Not a global Metal override (lamp poles, cars).",
+      "override": false,
+      "pattern": "Regular",
+      "rough": [
+        0.46,
+        1.0
+      ],
+      "sat": 0.5,
+      "seam": {
+        "color": [
+          1.01,
+          1.04
+        ],
+        "normal": [
+          1.95,
+          0.93
+        ],
+        "roughness": [
+          0.83,
+          1.07
+        ]
+      },
+      "sha1": {
+        "color": "4da55efaebe08e115127f9a5401ab0035c61a1a9",
+        "metalness": "cab93e6bffd20c21b1d61cef5f62dcb685957125",
+        "normal": "cb63f1b3ec7a0236e07fd9801ed4dc3e18b0f83b",
+        "roughness": "3d5ed4c284a6a69ce52edce1140184cf3edc3682"
+      },
+      "source": "PH/corrugated_iron",
+      "studsPerTile": 4.0,
+      "tile_m": 1.12,
+      "variant": "HC_CorrugatedMetal"
+    },
+    {
+      "ao": 0.5,
+      "base": "CorrodedMetal",
+      "blockVariation": 11.84,
+      "color": [
+        180,
+        163,
+        155
+      ],
+      "detail": 1.0,
+      "detailScale": 0.765,
+      "files": {
+        "color": "assets/materials/rusty_metal/color.png",
+        "metalness": "assets/materials/rusty_metal/metalness.png",
+        "normal": "assets/materials/rusty_metal/normal.png",
+        "roughness": "assets/materials/rusty_metal/roughness.png"
+      },
+      "hue_remove": 0.35,
+      "key": "rusty_metal",
+      "look": [
+        150,
+        124,
+        92
+      ],
+      "mapMean": [
+        0.8332,
+        0.7591,
+        0.5933
+      ],
+      "maps": {
+        "color": "rusty_metal",
+        "metalness": "rusty_metal",
+        "normal": "rusty_metal",
+        "roughness": "rusty_metal"
+      },
+      "metal": "rust",
+      "normal": 1.0,
+      "note": "Galvanised steel with rust bloom (port, industrial props).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.7,
+        1.0
+      ],
+      "sat": 0.8,
+      "seam": {
+        "color": [
+          1.1,
+          1.33
+        ],
+        "normal": [
+          1.61,
+          1.29
+        ],
+        "roughness": [
+          1.15,
+          1.49
+        ]
+      },
+      "sha1": {
+        "color": "92c0ae5f8f5801c207fc9136a36298743ef17b4e",
+        "metalness": "d26c3433e26f4d54ae99cacb8c6b17d066867caf",
+        "normal": "cf47399821724c1b1cacbf95b75bf434e5659fbf",
+        "roughness": "ae3fde5a0e78963dc4d3271e84e61d26f20be723"
+      },
+      "source": "PH/rusty_metal_02",
+      "studsPerTile": 7.14,
+      "tile_m": 2.0,
+      "variant": "HC_RustyMetal"
+    },
+    {
+      "ao": 0.6,
+      "base": "WoodPlanks",
+      "blockVariation": 13.86,
+      "color": [
+        158,
+        140,
+        122
+      ],
+      "detail": 1.0,
+      "detailScale": 0.654,
+      "files": {
+        "color": "assets/materials/wood_planks/color.png",
+        "normal": "assets/materials/wood_planks/normal.png",
+        "roughness": "assets/materials/wood_planks/roughness.png"
+      },
+      "hue_remove": 0.5,
+      "key": "wood_planks",
+      "look": [
+        112,
+        90,
+        70
+      ],
+      "mapMean": [
+        0.7077,
+        0.6433,
+        0.5753
+      ],
+      "maps": {
+        "color": "wood_planks",
+        "normal": "wood_planks",
+        "roughness": "wood_planks"
+      },
+      "normal": 1.0,
+      "note": "Weathered boardwalk / pier planks.",
+      "override": true,
+      "pattern": "Regular",
+      "rough": [
+        0.84,
+        1.0
+      ],
+      "sat": 0.8,
+      "seam": {
+        "color": [
+          1.59,
+          0.93
+        ],
+        "normal": [
+          1.97,
+          0.9
+        ],
+        "roughness": [
+          1.57,
+          0.92
+        ]
+      },
+      "sha1": {
+        "color": "425075e8d9e0fafc9145b6d4b4b5aa9e25477995",
+        "normal": "c32647e81a55c592be64c20d1fb40247698f59ea",
+        "roughness": "c0821daec2187466efb5b9cc0c0e9c115be979ba"
+      },
+      "source": "PH/weathered_brown_planks",
+      "studsPerTile": 6.43,
+      "tile_m": 1.8,
+      "variant": "HC_WoodPlanks"
+    },
+    {
+      "ao": 0.5,
+      "base": "Grass",
+      "blockVariation": 1.67,
+      "color": [
+        146,
+        161,
+        109
+      ],
+      "detail": 1.0,
+      "detailScale": 0.623,
+      "files": {
+        "color": "assets/materials/grass/color.png",
+        "normal": "assets/materials/grass/normal.png",
+        "roughness": "assets/materials/grass/roughness.png"
+      },
+      "hue_remove": 0.7,
+      "key": "grass",
+      "look": [
+        90,
+        102,
+        56
+      ],
+      "mapMean": [
+        0.6146,
+        0.6324,
+        0.512
+      ],
+      "maps": {
+        "color": "grass",
+        "normal": "grass",
+        "roughness": "grass"
+      },
+      "normal": 1.0,
+      "note": "Mown lawn, slightly dry LA green (parts and terrain).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.92,
+        1.0
+      ],
+      "sat": 0.8,
+      "seam": {
+        "color": [
+          1.1,
+          1.16
+        ],
+        "normal": [
+          1.17,
+          1.19
+        ],
+        "roughness": [
+          1.29,
+          1.3
+        ]
+      },
+      "sha1": {
+        "color": "48491549b8d7cf1afbb88c5c27701b3f4c7a8663",
+        "normal": "5117ec77022057a10e90f84506fd4cc68a1eb41f",
+        "roughness": "03da295a3ecfa3cb5cc3b70195eafae80f2c59b6"
+      },
+      "source": "ACG/Grass004",
+      "studsPerTile": 10.0,
+      "tile_m": 2.8,
+      "variant": "HC_Grass"
+    },
+    {
+      "base": "LeafyGrass",
+      "color": [
+        137,
+        155,
+        105
+      ],
+      "files": {
+        "color": "assets/materials/grass/color.png",
+        "normal": "assets/materials/grass/normal.png",
+        "roughness": "assets/materials/grass/roughness.png"
+      },
+      "key": "grass_leafy",
+      "look": [
+        84,
+        98,
+        54
+      ],
+      "mapMean": [
+        0.6146,
+        0.6324,
+        0.512
+      ],
+      "maps": {
+        "color": "grass",
+        "normal": "grass",
+        "roughness": "grass"
+      },
+      "note": "Same maps as HC_Grass for the LeafyGrass terrain material.",
+      "override": true,
+      "pattern": "Organic",
+      "sha1": {
+        "color": "48491549b8d7cf1afbb88c5c27701b3f4c7a8663",
+        "normal": "5117ec77022057a10e90f84506fd4cc68a1eb41f",
+        "roughness": "03da295a3ecfa3cb5cc3b70195eafae80f2c59b6"
+      },
+      "shares": "grass",
+      "source": "ACG/Grass004",
+      "studsPerTile": 10.0,
+      "variant": "HC_GrassLeafy"
+    },
+    {
+      "ao": 0.5,
+      "base": "Ground",
+      "blockVariation": 5.4,
+      "color": [
+        207,
+        190,
+        158
+      ],
+      "detail": 1.0,
+      "detailScale": 0.71,
+      "files": {
+        "color": "assets/materials/grass_dry/color.png",
+        "normal": "assets/materials/grass_dry/normal.png",
+        "roughness": "assets/materials/grass_dry/roughness.png"
+      },
+      "hue_remove": 0.7,
+      "key": "grass_dry",
+      "look": [
+        152,
+        134,
+        106
+      ],
+      "mapMean": [
+        0.7327,
+        0.7063,
+        0.673
+      ],
+      "maps": {
+        "color": "grass_dry",
+        "normal": "grass_dry",
+        "roughness": "grass_dry"
+      },
+      "normal": 1.0,
+      "note": "Dry grass and dirt for hills and lots (Ground terrain).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.92,
+        1.0
+      ],
+      "sat": 0.8,
+      "seam": {
+        "color": [
+          0.97,
+          0.93
+        ],
+        "normal": [
+          1.05,
+          0.95
+        ],
+        "roughness": [
+          0.99,
+          0.94
+        ]
+      },
+      "sha1": {
+        "color": "7cda696e84a283e8b586c5afac284d4b8d27102c",
+        "normal": "3a203c2409f7facd091dae2ec5883df545f6d172",
+        "roughness": "cefd7ab2599f62fa2445f7c6ee7d2f9dbe392ad5"
+      },
+      "source": "PH/withered_grass",
+      "studsPerTile": 12.14,
+      "tile_m": 3.4,
+      "variant": "HC_DryGrass"
+    },
+    {
+      "ao": 0.3,
+      "base": "Sand",
+      "blockVariation": 0.36,
+      "color": [
+        230,
+        216,
+        183
+      ],
+      "detail": 1.0,
+      "detailScale": 0.86,
+      "files": {
+        "color": "assets/materials/sand/color.png",
+        "normal": "assets/materials/sand/normal.png",
+        "roughness": "assets/materials/sand/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "sand",
+      "look": [
+        198,
+        186,
+        158
+      ],
+      "mapMean": [
+        0.8617,
+        0.8626,
+        0.8619
+      ],
+      "maps": {
+        "color": "sand",
+        "normal": "sand",
+        "roughness": "sand"
+      },
+      "normal": 1.1,
+      "note": "Pale wind-rippled beach sand.",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.93,
+        1.0
+      ],
+      "sat": 0.5,
+      "seam": {
+        "color": [
+          1.04,
+          1.09
+        ],
+        "normal": [
+          1.09,
+          1.1
+        ],
+        "roughness": [
+          1.17,
+          1.29
+        ]
+      },
+      "sha1": {
+        "color": "1eb6f6a706cebd83f1fbe23cb553404de0f28ee0",
+        "normal": "f25407b3232320b3c7452fecd658c05aba2912e6",
+        "roughness": "b43cb12caa9814b2be2bd5faacdf1cf291dadf65"
+      },
+      "source": "ACG/Ground055S",
+      "studsPerTile": 12.14,
+      "tile_m": 3.4,
+      "variant": "HC_Sand"
+    },
+    {
+      "ao": 0.6,
+      "base": "Rock",
+      "blockVariation": 12.08,
+      "color": [
+        190,
+        174,
+        157
+      ],
+      "detail": 1.0,
+      "detailScale": 0.676,
+      "files": {
+        "color": "assets/materials/rock/color.png",
+        "normal": "assets/materials/rock/normal.png",
+        "roughness": "assets/materials/rock/roughness.png"
+      },
+      "hue_remove": 0.6,
+      "key": "rock",
+      "look": [
+        136,
+        116,
+        96
+      ],
+      "mapMean": [
+        0.7159,
+        0.6681,
+        0.6114
+      ],
+      "maps": {
+        "color": "rock",
+        "normal": "rock",
+        "roughness": "rock"
+      },
+      "normal": 1.0,
+      "note": "Tan fractured rock for cliffs and hill cuts (32-stud tiles: big fracture shapes must not repeat up a cliff face).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.86,
+        1.0
+      ],
+      "sat": 0.8,
+      "seam": {
+        "color": [
+          0.87,
+          0.97
+        ],
+        "normal": [
+          1.07,
+          0.94
+        ],
+        "roughness": [
+          0.88,
+          0.96
+        ]
+      },
+      "sha1": {
+        "color": "0c8570b426dd715949e6d6a9497fe939bb95ece1",
+        "normal": "24c19f50eba9e324cccf5c01ff8a7cb171f7ef09",
+        "roughness": "6c37fbdf92f554de86553660095d230fc45648c0"
+      },
+      "source": "PH/rock_face_03",
+      "studsPerTile": 32.14,
+      "tile_m": 9.0,
+      "variant": "HC_Rock"
+    },
+    {
+      "ao": 0.6,
+      "base": "Slate",
+      "blockVariation": 4.03,
+      "color": [
+        202,
+        200,
+        195
+      ],
+      "detail": 1.0,
+      "detailScale": 0.55,
+      "files": {
+        "color": "assets/materials/rock_slate/color.png",
+        "normal": "assets/materials/rock_slate/normal.png",
+        "roughness": "assets/materials/rock_slate/roughness.png"
+      },
+      "hue_remove": 0.6,
+      "key": "rock_slate",
+      "look": [
+        112,
+        110,
+        104
+      ],
+      "mapMean": [
+        0.5546,
+        0.5492,
+        0.5343
+      ],
+      "maps": {
+        "color": "rock_slate",
+        "normal": "rock_slate",
+        "roughness": "rock_slate"
+      },
+      "normal": 1.0,
+      "note": "Grey layered cliff rock for the Slate material (distinct from the tan HC_Rock).",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.84,
+        1.0
+      ],
+      "sat": 0.7,
+      "seam": {
+        "color": [
+          1.34,
+          1.1
+        ],
+        "normal": [
+          1.09,
+          0.98
+        ],
+        "roughness": [
+          1.5,
+          1.27
+        ]
+      },
+      "sha1": {
+        "color": "c8fbf9a833d20a2c837dfaa4b019401cb1c3666c",
+        "normal": "a4c9d34914b617b989e682264f75dffd2446ba96",
+        "roughness": "2d53bae5f67d157400a6d0d6eb088a8ea048a9de"
+      },
+      "source": "ACG/Rock030",
+      "studsPerTile": 21.43,
+      "tile_m": 6.0,
+      "variant": "HC_RockSlate"
+    },
+    {
+      "ao": 0.0,
+      "base": "Marble",
+      "blockVariation": 5.75,
+      "color": [
+        255,
+        250,
+        243
+      ],
+      "detail": 0.85,
+      "detailScale": 0.781,
+      "files": {
+        "color": "assets/materials/terrazzo/color.png",
+        "normal": "assets/materials/terrazzo/normal.png",
+        "roughness": "assets/materials/terrazzo/roughness.png"
+      },
+      "hue_remove": 1.0,
+      "key": "terrazzo",
+      "look": [
+        204,
+        200,
+        194
+      ],
+      "mapMean": [
+        0.7993,
+        0.7992,
+        0.7985
+      ],
+      "maps": {
+        "color": "terrazzo",
+        "normal": "terrazzo",
+        "roughness": "terrazzo"
+      },
+      "normal": 1.0,
+      "note": "White terrazzo for plazas, lobbies, malls and the airport.",
+      "override": true,
+      "pattern": "Organic",
+      "rough": [
+        0.3,
+        1.0
+      ],
+      "sat": 0.5,
+      "seam": {
+        "color": [
+          1.05,
+          1.24
+        ],
+        "normal": [
+          1.06,
+          1.31
+        ],
+        "roughness": [
+          1.2,
+          1.33
+        ]
+      },
+      "sha1": {
+        "color": "33a3bdff3c18b757f1672b286fbf21ab7ba609a2",
+        "normal": "1ffd267408086fbc9bcd51ee1741e77f54b3da0a",
+        "roughness": "9fcdb5838d17585807ba29a45ce9962a233c92ed"
+      },
+      "source": "ACG/Terrazzo005",
+      "studsPerTile": 5.71,
+      "tile_m": 1.6,
+      "variant": "HC_Terrazzo"
+    },
+    {
+      "base": "SmoothPlastic",
+      "blockVariation": 0.76,
+      "color": [
+        118,
+        132,
+        147
+      ],
+      "detailScale": 0.981,
+      "files": {
+        "color": "assets/materials/window_glass/color.png",
+        "metalness": "assets/materials/window_glass/metalness.png",
+        "normal": "assets/materials/window_glass/normal.png",
+        "roughness": "assets/materials/window_glass/roughness.png"
+      },
+      "key": "window_glass",
+      "look": [
+        116,
+        130,
+        144
+      ],
+      "mapMean": [
+        0.9814,
+        0.9814,
+        0.9814
+      ],
+      "maps": {
+        "color": "window_glass",
+        "metalness": "window_glass",
+        "normal": "window_glass",
+        "roughness": "window_glass"
+      },
+      "metal": 1.0,
+      "note": "Opaque mirror-coated facade glass: metalness ~1 + roughness ~0.06, so Part.Color is the reflection tint and the facade shows a lightly blue-grey tinted sky (a dark dielectric only reflects ~4%). Glass has no MaterialService override slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + MaterialVariant=HC_WindowGlass.",
+      "override": false,
+      "pattern": "Regular",
+      "rough": [
+        0.06,
+        1.0
+      ],
+      "seam": {
+        "color": [
+          0.96,
+          0.99
+        ],
+        "normal": [
+          0.64,
+          1.29
+        ],
+        "roughness": [
+          1.01,
+          0.93
+        ]
+      },
+      "sha1": {
+        "color": "2f9b2cc72ff7303f8b1d77feabd13c698e150d30",
+        "metalness": "b67cdf62204444eb81d3f230e7449b18619c5915",
+        "normal": "af41a12a22e9e76af3bb07cce7df8edd561a0147",
+        "roughness": "6720d5b17637fd8bef54c4fb64bde044ba886134"
+      },
+      "source": "procedural",
+      "studsPerTile": 12.14,
+      "tile_m": 3.4,
+      "variant": "HC_WindowGlass"
+    }
+  ],
+  "note": "generated by tools/look/prep_materials.py - do not edit"
+}

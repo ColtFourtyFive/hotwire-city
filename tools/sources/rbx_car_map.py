@@ -16,13 +16,19 @@ docs/v2/sourcing/roblox_car_maps/<id>.json:
 Rules (first match wins, applied to visible BaseParts; Decals follow their parent part):
   1 Wheel_*      descendant of a wheel container (Wheels/FL.., or a part named like a wheel),
                  quadrant by position in the car frame; Fixed/WheelFixed/Caliper/Brake -> WheelStatic_*
-  2 Lights_*     name ~ light|lamp|led|drl|indicator|signal|blinker|brake|reverse|fog|tail|head..,
+  2 Lights_*     name ~ light|lamp|led|drl|indicator|signal|blinker|brake|reverse|fog|tail|head|phare..,
                  or Material=Neon, or has a Light child; subtype by name, then colour/position
-  3 Glass        Material=Glass, or name ~ glass|window|windscreen|windshield, or 0.15<=T<=0.85
-  4 Interior     name ~ interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|mirror_in
-  5 Paint        untextured parts whose Color matches the paint colour (named paint/body parts first,
-                 else the area-dominant chromatic colour)
-  6 Body         everything else visible
+  3 Glass        Material=Glass, or name ~ glass|window|windscreen|vitre (not trim/contour), or 0.15<=T<=0.85 dark
+  4 Plate        name ~ plate|licence|plaque|matricula
+  5 Interior     name ~ interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|siege|volant
+  6 Lights_*     (second pass) saturated red parts in the rear quarter; parts sharing a dedicated lamp texture
+  7 Paint        untextured parts whose Color matches the paint colour (named paint/body/carrosserie/COLOR
+                 parts first, else the area-dominant chromatic colour); PaintBaked when the named body
+                 part is textured (livery in TextureID/SurfaceAppearance)
+  8 Body         everything else visible
+Also: forward vector (seat look vector checked against the long axis, else lamp names, else the
+ThumbnailCamera side), Config/Assets yaw, suggested scale (1 stud = 0.28 m), compact selectors,
+and a security section (flagged scripts, payload asset ids) from rbxm_inspect's Scan data.
 """
 import json
 import math
@@ -87,7 +93,7 @@ REAL_LENGTH_M = {  # approximate real-world overall length of the car each listi
     132078381973405: (4.46, "Toyota Prius XW30 2010"),
     951086064: (4.84, "Nissan Maxima A35 2009"),
     3204824887: (4.57, "Chrysler ME Four-Twelve"),
-    16390639371: (5.04, "Ford Police Interceptor Utility (2016-19 Explorer), City of Clifton livery"),
+    16390639371: (5.05, "Ford Police Interceptor Utility (2020+ Explorer)"),
     10141791793: (6.35, "GMC Sierra 2500 HD AT4 crew cab"),
     71284840505836: (4.90, "1980s panel van"),
     94301391128632: (5.38, "Ford Crown Victoria taxi"),
@@ -536,7 +542,8 @@ def analyze(model_id):
                         elif isinstance(v, str) and re.fullmatch(r"\d{8,17}", v.strip()):
                             payload.add(int(v))
                 lits = s.get("numericLiterals") if isinstance(s.get("numericLiterals"), list) else []
-                payload |= {int(x) for x in lits if len(x) >= 10}
+                # asset ids are 8-16 digits today; longer literals (e.g. 18-digit hashes) are not payloads
+                payload |= {int(x) for x in lits if 10 <= len(x) <= 16}
                 flagged.append({"path": upath[n["id"]], "class": n["class"], "flags": bad, "requireIds": req,
                                 "payloadIds": sorted(payload)})
     for n in nodes:
@@ -606,13 +613,17 @@ def analyze(model_id):
             return
         leaf_by_group = defaultdict(list)
         if i in vis_ids:
-            leaf_by_group[group[i]].append(rel(i))
+            # the container is itself a visible part (e.g. a MeshPart with child parts in other groups):
+            # select it by its own path, not "<path>/<path>"
+            selectors[group[i]].append(rel(i))
         for c in kids[i]:
             part_leaf = c in vis_ids and sum(sub_groups[c].values()) == 1
             if kids[c] and sub_groups[c] and not part_leaf:
                 emit(c)
             elif c in vis_ids:
-                leaf_by_group[group[c]].append(byid[c]["name"] + ("#%s" % upath[c].rsplit("#", 1)[1] if "#" in upath[c].rsplit("/", 1)[-1] else ""))
+                # the child's own path segment (name, plus "#k" only when the name repeats among siblings);
+                # sliced from upath because names may themselves contain "/" or "#"
+                leaf_by_group[group[c]].append(upath[c][len(upath[i]) + 1:])
         for g, names in leaf_by_group.items():
             base = rel(i)
             names = sorted(set(names))

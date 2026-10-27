@@ -20,11 +20,17 @@ TEXSETS = {
     "corrugated": ("corrugated", 1.0, 1.0), "metal_siding": ("metal_siding", 1.0, 1.0), "roof_clay": ("roof_clay", 1.0, 1.0),
     "roof_shingle": ("roof_shingle", 1.0, 1.0), "cmu": ("cmu", 1.0, 0.8), "wood_fence": ("wood_fence", 1.0, 0.8),
     "wood_slats": ("wood_slats", 1.0, 0.8), "marble": ("marble", 0.7, 0.4), "pavers": ("pavers", 1.0, 0.8),
-    "precast": ("precast", 1.0, 0.6), "grass": ("grass", 1.0, 1.0),
+    "precast": ("precast", 1.0, 0.6), "grass": ("grass", 1.0, 1.0), "sand": ("sand", 1.0, 1.0),
 }
 TINTABLE = {"stucco", "brick_painted", "plaster", "metal_siding", "cmu", "precast"}   # grey <key>_tint.png ColorMap
 
 _cache = {}
+
+
+def lin(c):
+    """sRGB (what Roblox Color3 / SurfaceAppearance.Color use, and what the kit's palettes are written in) ->
+    linear (what Blender shader factors expect). JSON keeps the sRGB value."""
+    return tuple(((v + 0.055) / 1.055) ** 2.4 if v > 0.04045 else v / 12.92 for v in c)
 
 
 def img(path, data=False):
@@ -56,7 +62,7 @@ def textured(name, key, tint=(1, 1, 1), rough=1.0, normal=None, metallic=None):
     mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.blend_type = "MULTIPLY"
     mix.inputs[0].default_value = 1.0
     nt.links.new(t_diff.outputs[0], mix.inputs[6])
-    mix.inputs[7].default_value = (*tint, 1.0)
+    mix.inputs[7].default_value = (*lin(tint), 1.0)
     nt.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
     t_r = nt.nodes.new("ShaderNodeTexImage"); t_r.image = img(os.path.join(d, "rough.jpg"), True)
     mr = nt.nodes.new("ShaderNodeMath"); mr.operation = "MULTIPLY"; mr.inputs[1].default_value = rmul * rough
@@ -77,7 +83,7 @@ def textured(name, key, tint=(1, 1, 1), rough=1.0, normal=None, metallic=None):
 def color(name, rgb, rough=0.45, metallic=0.0):
     """Untextured: maps to a MeshPart with plain Color + Material (recolourable at runtime)."""
     m, nt, bsdf = _new(name)
-    bsdf.inputs["Base Color"].default_value = (*rgb, 1)
+    bsdf.inputs["Base Color"].default_value = (*lin(rgb), 1)
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metallic
     m["roblox"] = {"kind": "color", "color": list(rgb), "metallic": metallic, "roughness": rough}
@@ -94,7 +100,7 @@ def atlas(name, file, rough=0.5, metallic=0.0, tint=(1, 1, 1), normal_flat=True,
         bsdf.inputs["Emission Strength"].default_value = emit
     mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.blend_type = "MULTIPLY"
     mix.inputs[0].default_value = 1.0
-    nt.links.new(t.outputs[0], mix.inputs[6]); mix.inputs[7].default_value = (*tint, 1)
+    nt.links.new(t.outputs[0], mix.inputs[6]); mix.inputs[7].default_value = (*lin(tint), 1)
     nt.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metallic
@@ -108,7 +114,8 @@ def glass(name, tint=(1, 1, 1), dim=0.55, rough=0.05, metallic=0.0, spec=0.6):
     t = nt.nodes.new("ShaderNodeTexImage"); t.image = img(os.path.join(GEN, "windows_day.png"))
     mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.blend_type = "MULTIPLY"
     mix.inputs[0].default_value = 1.0
-    nt.links.new(t.outputs[0], mix.inputs[6]); mix.inputs[7].default_value = (tint[0] * dim, tint[1] * dim, tint[2] * dim, 1)
+    tl = lin(tint)
+    nt.links.new(t.outputs[0], mix.inputs[6]); mix.inputs[7].default_value = (tl[0] * dim, tl[1] * dim, tl[2] * dim, 1)
     nt.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metallic
@@ -121,7 +128,7 @@ def glass(name, tint=(1, 1, 1), dim=0.55, rough=0.05, metallic=0.0, spec=0.6):
 def clear(name, tint=(0.85, 0.93, 0.94), alpha=0.35):
     """See-through glass (balustrades, bus shelters). Roblox: Material=Glass, Transparency ~0.6, Color=tint."""
     m, nt, bsdf = _new(name)
-    bsdf.inputs["Base Color"].default_value = (*tint, 1)
+    bsdf.inputs["Base Color"].default_value = (*lin(tint), 1)
     bsdf.inputs["Roughness"].default_value = 0.03
     bsdf.inputs["Metallic"].default_value = 0.0
     bsdf.inputs["Alpha"].default_value = alpha
@@ -169,8 +176,8 @@ def neon(name, rgb, strength=6.0, day_rgb=None):
     """Night-glow tubes / light fixtures (Roblox: Material=Neon at night, SmoothPlastic+day colour by day)."""
     m, nt, bsdf = _new(name)
     day = day_rgb or tuple(min(1.0, c * 0.6 + 0.3) for c in rgb)
-    bsdf.inputs["Base Color"].default_value = (*day, 1)
-    bsdf.inputs["Emission Color"].default_value = (*rgb, 1)
+    bsdf.inputs["Base Color"].default_value = (*lin(day), 1)
+    bsdf.inputs["Emission Color"].default_value = (*lin(rgb), 1)
     bsdf.inputs["Emission Strength"].default_value = strength
     bsdf.inputs["Roughness"].default_value = 0.3
     m["roblox"] = {"kind": "neon", "color": list(rgb), "day_color": list(day)}
@@ -179,7 +186,7 @@ def neon(name, rgb, strength=6.0, day_rgb=None):
 
 def water(name, rgb=(0.05, 0.38, 0.45)):
     m, nt, bsdf = _new(name)
-    bsdf.inputs["Base Color"].default_value = (*rgb, 1)
+    bsdf.inputs["Base Color"].default_value = (*lin(rgb), 1)
     bsdf.inputs["Roughness"].default_value = 0.02
     bsdf.inputs["Specular IOR Level"].default_value = 0.6
     bsdf.inputs["IOR"].default_value = 1.33

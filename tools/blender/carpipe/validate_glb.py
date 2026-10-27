@@ -12,8 +12,8 @@ import os
 import struct
 import sys
 
-REQUIRED = ["Body", "Glass", "Trim", "WheelFL", "WheelFR", "WheelRL", "WheelRR"]
-OPTIONAL = ["Body2", "LightsFront", "LightsRear", "Interior"]
+REQUIRED = ["Body", "WheelFL", "WheelFR", "WheelRL", "WheelRR"]
+OPTIONAL = ["Body2", "Glass", "Trim", "LightsFront", "LightsRear", "Interior"]
 
 
 def read_glb(path):
@@ -57,6 +57,9 @@ def main(path):
     for r in REQUIRED:
         if r not in nodes:
             errors.append(f"missing object {r}")
+    missing_opt = [n for n in ("Glass", "Trim", "LightsFront", "LightsRear", "Interior") if n not in nodes]
+    if missing_opt:
+        notes.append(f"no {missing_opt} (source had none / painted into the body texture)")
     extra = [n for n in nodes if n not in REQUIRED + OPTIONAL]
     if extra:
         notes.append(f"extra objects: {extra}")

@@ -382,9 +382,11 @@ def append_attribution(meta: dict, rel_path: str) -> bool:
     if not ATTRIBUTION.exists():
         ATTRIBUTION.write_text(
             "# Third-party asset attribution\n\n"
-            "Every third-party model shipped or used in Hotwire City is listed here and must also appear "
-            "in the in-game Credits screen. Only CC0 and CC-BY (4.0) assets are allowed; CC-BY requires "
-            "crediting the author as below. Real brand logos/badges are stripped before use.\n\n"
+            "Every third-party model downloaded for Hotwire City is listed here (sourcing candidates "
+            "included). Every model that ships must also appear in the in-game Credits screen; see "
+            "docs/v2/sourcing/PICKS.md for which candidates are picked. Only CC0 and CC-BY (4.0) assets are "
+            "allowed; CC-BY requires crediting the author as below. Real brand logos/badges are stripped "
+            "before use.\n\n"
             "## Sketchfab\n\n"
             "| Model | Author | License | Source | Local | uid |\n"
             "|---|---|---|---|---|---|\n",
@@ -446,7 +448,12 @@ def download(uid: str, slug: str | None = None, cls: str | None = None, kind: st
         conversion = "none"
     else:
         work = out_dir / "_gltf"
-        conversion = gltf_zip_to_glb(data, work, glb_path)
+        try:
+            conversion = gltf_zip_to_glb(data, work, glb_path)
+        finally:
+            # the unpacked archive is only scratch for packing; don't leave a second copy beside model.glb
+            import shutil
+            shutil.rmtree(work, ignore_errors=True)
 
     thumb_rel = None
     if meta.get("thumb"):

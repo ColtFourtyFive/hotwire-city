@@ -1,0 +1,2 @@
+CC0 (Poly Haven): https://polyhaven.com/a/red_brick_03
+Converted by tools/blender/materials/prep_pbr.py

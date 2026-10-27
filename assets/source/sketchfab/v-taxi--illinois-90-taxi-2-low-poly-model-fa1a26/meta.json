@@ -46,5 +46,95 @@
   "sha256": "8ab01e4698d79455cdcc2c06ea3c46263c20dd2c02d374a5655d71e38ee04b9f",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:44+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      5.2685,
+      2.094,
+      1.6721
+    ],
+    "dims_m": [
+      2.094,
+      5.269,
+      1.672
+    ],
+    "front_evidence": "names(front=9,rear=14)",
+    "flipped": true,
+    "mesh_objects": 35,
+    "triangles": 19879,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Illinois90_Bodymat",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "UCB_BOTTOM",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 14,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Illinois90_WheelStock_FL_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_RL_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_RR_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "Illinois90_WheelStock_FL_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_RL_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_RR_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Illinois90_Trunkdoor_Badges_Carbadges_misc_U_0",
+      "Illinois90_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Illinois90_SUSPENSION_UCB_BOTTOM_0",
+      "Illinois90_Body_Illinois90_Bodymat_0",
+      "Illinois90_Bottom_UCB_BOTTOM_0",
+      "Illinois90_Headlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Bumper_front_Illinois90_Bodymat_0",
+      "Illinois90_Body_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Bumper_rear_Illinois90_Bodymat_0",
+      "Illinois90_Taillights_glass_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Reverse_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Hood_Illinois90_Bodymat_0",
+      "Illinois90_Trunkdoor_inner_UCB_BOTTOM_0",
+      "Illinois90_Trunkdoor_Illinois90_Bodymat_0",
+      "Illinois90_Interior_UCB_Interiors_2_0",
+      "Illinois90_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Bumper_rear_inner_UCB_BOTTOM_0",
+      "Illinois90_Bumper_front_inner_UCB_BOTTOM_0",
+      "Illinois90_Rear_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Taxi_AddboxA_UCB_BOTTOM_0",
+      "Illinois90_Bullbar_UCB_BOTTOM_0",
+      "Illinois90_Bullbar_Rear_UCB_BOTTOM_0",
+      "Illinois90_glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "Illinois90_Steering_Wheel_UCB_Interiors_2_0",
+      "Illinois90_Headlights_UCB_Lights_and_Glass_0",
+      "Illinois90_Blinkers_UCB_Lights_and_Glass_0",
+      "Illinois90_Reverse_UCB_Lights_and_Glass_0",
+      "Illinois90_Brakelights_UCB_Lights_and_Glass_0",
+      "Illinois90_WheelStock_FL_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_RL_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_RR_RB1c_Tire_1k_0",
+      "Illinois90_WheelStock_FR_RB1c_Tire_1k_0",
+      "Illinois90_Trunkdoor_Badges_Carbadges_misc_U_0",
+      "Illinois90_Body_Badges_Carbadges_misc_U_0",
+      "Illinois90Taxi2_Numberplate_front_Numberplates_Misk_U_0",
+      "Illinois90Taxi2_Trunkdoor_Numberplates_Numberplates_Misk_U_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 36.0
+  }
 }

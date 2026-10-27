@@ -45,5 +45,82 @@
   "sha256": "3e4c7e813dc18dd2f638be65eefb88ec793f1294e551ea6b70a773a135e43758",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:08:48+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      5.2212,
+      1.9468,
+      1.3749
+    ],
+    "dims_m": [
+      1.947,
+      5.221,
+      1.375
+    ],
+    "front_evidence": "names(front=7,rear=8)",
+    "flipped": true,
+    "mesh_objects": 24,
+    "triangles": 18554,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Duke69_bodymat",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "UCB_BOTTOM_LT",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 14,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Duke69_WhellStock_FL_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_RL_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_RR_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "Duke69_WhellStock_FL_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_RL_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_RR_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Duke69_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Duke69_Body_Duke69_bodymat_0",
+      "Duke69_Bottom_UCB_BOTTOM_LT_0",
+      "Duke69_Suspension_UCB_BOTTOM_LT_0",
+      "Duke69_Interior_UCB_Interiors_2_0",
+      "Duke69_Body_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Duke69_Brakelights_UCB_Lights_and_Glass_0",
+      "Duke69_Trunkdoor_Duke69_bodymat_0",
+      "Duke69_Hood_Duke69_bodymat_0",
+      "Duke69_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Duke69_Rear_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Duke69_Bumper_Front_UCB_BOTTOM_LT_0",
+      "Duke69_Bumper_Rear_UCB_BOTTOM_LT_0",
+      "Duke69_Reverse_UCB_Lights_and_Glass_0",
+      "Duke69_Headlights_Glass_UCB_Lights_and_Glass_0",
+      "Duke69_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Duke69_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "Duke69_Headlights_UCB_Lights_and_Glass_0",
+      "Duke69_Steering_Wheel_UCB_Interiors_2_0",
+      "Duke69_WhellStock_FL_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_RL_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_RR_RB1c_Tire_1k_0",
+      "Duke69_WhellStock_FR_RB1c_Tire_1k_0",
+      "Duke69_Numberplate_rear_Numberplates_Misk_U_0",
+      "Duke69_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "render_s": 38.4
+  }
 }

@@ -47,7 +47,7 @@ def reset(res=(960, 540)):
             break
         except Exception:
             continue
-    s.view_settings.exposure = -0.6
+    s.view_settings.exposure = -0.7
     s.render.image_settings.file_format = "PNG"
     return s
 
@@ -106,7 +106,7 @@ def prep_sky(sky):
 
 
 def world(sky="sky_late_afternoon", sun_az=-55.0, strength=1.0, sun=True, sun_scale=1.0, sun_el=None,
-          sun_tint=(1.0, 0.93, 0.82), sky_gain=1.5):
+          sun_tint=(1.0, 0.93, 0.82), sky_gain=2.2):
     """sun_az: azimuth (deg, from +X towards +Y) of the direction pointing AT the sun.
     The sky is rotated so its painted-out sun sits at sun_az; a Sun lamp replaces it."""
     info = prep_sky(sky)
@@ -197,9 +197,14 @@ def haze(color=(0.62, 0.70, 0.80), amount=0.55, night=False):
     if night:
         gl = ng.nodes.new("CompositorNodeGlare")
         try:
-            gl.glare_type = "BLOOM"
+            gl.glare_type = "BLOOM"          # Blender <= 4.x
         except Exception:
             pass
+        if "Type" in gl.inputs:              # Blender 5.x: the glare type is a menu socket
+            try:
+                gl.inputs["Type"].default_value = "Bloom"
+            except Exception:
+                pass
         for k, v in (("Threshold", 1.0), ("Strength", 0.6), ("Size", 0.6)):
             if k in gl.inputs:
                 try:
@@ -229,12 +234,14 @@ _mats = {}
 def _m(key):
     if key in _mats:
         return _mats[key]
-    T = {"asphalt": lambda: M.textured("Asphalt", "asphalt", tint=(0.78, 0.78, 0.8), rough=1.0),
+    T = {"asphalt": lambda: M.textured("Asphalt", "asphalt", tint=(0.9, 0.9, 0.92), rough=1.0),
          "sidewalk": lambda: M.textured("Sidewalk", "sidewalk", tint=(0.92, 0.93, 0.95)),
          "curb": lambda: M.textured("Curb", "curb", tint=(1.05, 1.05, 1.05)),
-         "grass": lambda: M.textured("Grass", "grass", tint=(0.62, 0.95, 0.42)),
+         "grass": lambda: M.textured("Grass", "grass", tint=(0.8, 0.98, 0.65)),
          "dirt": lambda: M.textured("Dirt", "roof_gravel", tint=(0.75, 0.62, 0.48)),
-         "sand": lambda: M.color("Sand", (0.86, 0.76, 0.58), 0.95),
+         "drygrass": lambda: M.textured("DryGrass", "grass", tint=(0.95, 0.85, 0.55)),
+         "chaparral": lambda: M.textured("Chaparral", "grass", tint=(0.55, 0.56, 0.36)),
+         "sand": lambda: M.textured("Sand", "sand", tint=(1.05, 1.0, 0.92)),
          "sea": lambda: M.water("Sea", (0.04, 0.22, 0.30)),
          "white": lambda: M.paint("PaintWhite", (0.85, 0.85, 0.82), 0.7),
          "yellow": lambda: M.paint("PaintYellow", (0.85, 0.62, 0.08), 0.7),
@@ -305,8 +312,15 @@ def street_strip(col, x0, x1, y_front, side_w=12.0, road_w=44.0, far_side=True, 
 
 def ground(col, x0, y0, x1, y1, kind="grass", z=0.0, tile=None):
     b = G.MeshBuf("Ground_" + kind, tile=tile or {"grass": 20.0, "asphalt": 24.0, "sidewalk": 12.0, "sand": 30.0,
-                                                    "dirt": 20.0, "sea": 60.0, "curb": 8.0}.get(kind, 20))
+                                                    "dirt": 20.0, "sea": 60.0, "curb": 8.0, "drygrass": 30.0, "chaparral": 40.0}.get(kind, 20))
     G.quad(b, (x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z))
+    return G.to_object(b, _m(kind), col, weighted=False)
+
+
+def block(col, x0, y0, z0, x1, y1, z1, kind="drygrass"):
+    """Solid earth block (its sides close gaps between a cut terrain and a flat lot)."""
+    b = G.MeshBuf("Block_" + kind, tile=20.0)
+    G.box(b, x0, y0, z0, x1, y1, z1, skip=("bottom",))
     return G.to_object(b, _m(kind), col, weighted=False)
 
 
@@ -468,9 +482,11 @@ def tree(col, x, y, h=22.0, seed=0, spread=None):
         tip = crown_c + Vector((math.cos(a) * spread * 0.5, math.sin(a) * spread * 0.5, r.uniform(-1, h * 0.15)))
         G.hcylinder(t, fork, tip, 0.45, seg=6)
     G.to_object(t, _m("tree_trunk"), col)
+    lobes = [crown_c + Vector((r.uniform(-0.5, 0.5) * spread, r.uniform(-0.5, 0.5) * spread, r.uniform(-0.1, 0.25) * h))
+             for _ in range(4)]
     for key in ("tree_leaf", "tree_leaf2"):
         lf = G.MeshBuf("Leaves", 4)
-        n = 900
+        n = 1500
         for i in range(n):
             # sample inside a lumpy ellipsoid, biased to the surface
             while True:
@@ -478,8 +494,9 @@ def tree(col, x, y, h=22.0, seed=0, spread=None):
                 if v.length <= 1:
                     break
             v = v.normalized() * (v.length ** 0.35)
-            p = crown_c + Vector((v.x * spread, v.y * spread, v.z * h * 0.34))
-            s = r.uniform(0.9, 1.6)
+            cc = lobes[i % len(lobes)]
+            p = cc + Vector((v.x * spread * 0.62, v.y * spread * 0.62, v.z * h * 0.24))
+            s = r.uniform(0.55, 1.0)
             a = Vector((r.uniform(-1, 1), r.uniform(-1, 1), r.uniform(-0.3, 1))).normalized()
             b = a.cross(Vector((r.uniform(-1, 1), r.uniform(-1, 1), r.uniform(-1, 1)))).normalized()
             G.tri(lf, tuple(p), tuple(p + a * s), tuple(p + b * s))
@@ -595,12 +612,14 @@ def parked_row(col, x0, x1, y, heading=0.0, gap=(3.0, 8.0), seed=0, prob=0.8):
         x += 17 + r.uniform(*gap)
 
 
-def hill(col, x0, y0, x1, y1, z_fn, nx=40, ny=40, kind="dirt"):
-    """Height-field terrain patch for hillside previews."""
+def hill(col, x0, y0, x1, y1, z_fn, nx=40, ny=40, kind="dirt", skip=None):
+    """Height-field terrain patch for hillside previews. skip(x, y) -> True leaves a hole (e.g. under a lot)."""
     b = G.MeshBuf("Hill", 20)
     for i in range(nx):
         for j in range(ny):
             xa, xb = x0 + (x1 - x0) * i / nx, x0 + (x1 - x0) * (i + 1) / nx
             ya, yb = y0 + (y1 - y0) * j / ny, y0 + (y1 - y0) * (j + 1) / ny
+            if skip is not None and skip((xa + xb) / 2, (ya + yb) / 2):
+                continue
             G.quad(b, (xa, ya, z_fn(xa, ya)), (xb, ya, z_fn(xb, ya)), (xb, yb, z_fn(xb, yb)), (xa, yb, z_fn(xa, yb)))
     return G.to_object(b, _m(kind), col, weighted=False, sharp_deg=60)

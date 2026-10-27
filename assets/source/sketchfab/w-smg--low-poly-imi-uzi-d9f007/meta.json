@@ -55,5 +55,63 @@
   "sha256": "60e0f453ce4dc24a6bf66358f1255978b9169eda7b321d7ddc1d7269e24187c2",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:12:52+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      45.5128,
+      4.5723,
+      24.9889
+    ],
+    "dims_m": [
+      45.513,
+      4.572,
+      24.989
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 14,
+    "triangles": 5325,
+    "materials": 13,
+    "material_names": [
+      "Material.001",
+      "Material.002",
+      "Material.005",
+      "Material.006",
+      "Material.015",
+      "Material.021",
+      "Material.025",
+      "Material.028",
+      "Material.029",
+      "Material.032",
+      "Material.033",
+      "Material.034",
+      "material_0"
+    ],
+    "textures": 0,
+    "texture_max_px": 0,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Object_12",
+      "Object_13",
+      "Object_14",
+      "Object_15",
+      "Object_16",
+      "Object_17",
+      "Object_18",
+      "Object_19",
+      "Object_20",
+      "Object_21",
+      "Object_22",
+      "Object_23",
+      "Object_24",
+      "Icosphere"
+    ],
+    "hidden_helpers": [],
+    "render_s": 23.6
+  }
 }

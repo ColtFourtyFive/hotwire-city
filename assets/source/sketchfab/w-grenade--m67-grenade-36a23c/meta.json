@@ -52,14 +52,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      0.0587,
-      0.0638,
-      0.0875
+      0.0596,
+      0.0648,
+      0.0887
     ],
     "dims_m": [
-      0.088,
-      0.059,
-      0.064
+      0.089,
+      0.06,
+      0.065
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -84,6 +84,7 @@
       "safty pin_low_Material.016_0",
       "striker_low_Material.016_0"
     ],
-    "render_s": 52.8
+    "hidden_helpers": [],
+    "render_s": 42.0
   }
 }

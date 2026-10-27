@@ -40,7 +40,7 @@ def house(seed=0, **kw):
               "Accent": ("color", door_rgb, 0.45, 0.0), "Glass": ("glass",),
               "Roof": ("tex", "roof_clay" if roofmat == "clay" else "roof_shingle", (1, 1, 1)),
               "Details": ("tex", "metal", (0.75, 0.76, 0.77)), "Doors": ("tex", "shutter", (1.0, 1.0, 1.0)),
-              "Site": ("tex", "curb", (1.0, 1.0, 1.0)), "Lawn": ("tex", "grass", (0.62, 0.95, 0.42)),
+              "Site": ("tex", "curb", (1.0, 1.0, 1.0)), "Lawn": ("tex", "grass", (0.8, 0.98, 0.65)),
               "Water": ("water", (0.05, 0.42, 0.52)), "Neon": ("neon", (1.0, 0.8, 0.5)), "Grime": ("grime",),
               "WindowsLit": ("lit",)}
     B.lit_ratio = 0.3

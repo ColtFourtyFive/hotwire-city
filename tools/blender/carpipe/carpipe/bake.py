@@ -124,9 +124,24 @@ def bake_selected_to_active(lo, hi_objs, img, btype, extrusion, ray, samples=4, 
     _cycles(samples)
     _target_material(lo, img)
     select_only(list(hi_objs) + [lo], lo)
-    bpy.ops.object.bake(type=btype, use_selected_to_active=True, cage_extrusion=extrusion,
-                        max_ray_distance=ray, margin=margin, margin_type="EXTEND", use_clear=True,
-                        target="IMAGE_TEXTURES", normal_space="TANGENT")
+    # Rays leave the low mesh along its *shading* normals.  On sliver triangles of old game meshes the smoothed
+    # normals swing far from the face and rays miss (black texels), so colour-type bakes use flat shading;
+    # the normal map needs the real (smooth) shading normals.
+    flat = btype != "NORMAL"
+    me = lo.data
+    smooth = np.empty(len(me.polygons), dtype=bool)
+    me.polygons.foreach_get("use_smooth", smooth)
+    if flat:
+        me.polygons.foreach_set("use_smooth", np.zeros(len(me.polygons), dtype=bool))
+        me.update()
+    try:
+        bpy.ops.object.bake(type=btype, use_selected_to_active=True, cage_extrusion=extrusion,
+                            max_ray_distance=ray, margin=margin, margin_type="EXTEND", use_clear=True,
+                            target="IMAGE_TEXTURES", normal_space="TANGENT")
+    finally:
+        if flat:
+            me.polygons.foreach_set("use_smooth", smooth)
+            me.update()
 
 
 def bake_channels(lo, hi_objs, size, outdir, prefix, channels, extrusion, ray):
@@ -198,6 +213,13 @@ def multiply_ao(color_path, ao_path, strength=0.7):
     save_np(c, color_path)
 
 
+def _hue(rgb, mx, mn):
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    dlt = np.maximum(mx - mn, 1e-6)
+    h = np.where(mx == r, ((g - b) / dlt) % 6, np.where(mx == g, (b - r) / dlt + 2, (r - g) / dlt + 4))
+    return (h * 60.0) % 360.0
+
+
 def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     """Build the two recolour textures for a body whose paint lives inside a texture:
       * out_tint:    SurfaceAppearance AlphaMode=TintMask: alpha=1 on paint, paint RGB -> neutral shading
@@ -224,7 +246,10 @@ def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     else:
         best = int(score.argmax())
     sel = key == best
-    paint = np.median(px[sel], axis=0) if sel.any() else px.mean(0)
+    if paint_hint is not None and sel.sum() < 50:
+        paint = np.array(paint_hint, dtype=np.float32)
+    else:
+        paint = np.median(px[sel], axis=0) if sel.any() else px.mean(0)
     # match: chroma-normalised distance + loose brightness band (keeps baked shading variations)
     lum = rgb.mean(-1, keepdims=True) + 1e-4
     plum = paint.mean() + 1e-4
@@ -234,16 +259,30 @@ def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     bright = lum[..., 0] / plum
     pchroma = paint.max() - paint.min()
     if pchroma > 0.12:
-        m = (d < 0.35) & (bright > 0.35) & (bright < 1.8)
-    else:  # achromatic paint: rely on brightness band + low chroma
+        # chromatic paint: hue within +-24 deg, enough saturation, broad value band (keeps worn/faded/lit panels)
+        mx = rgb.max(-1)
+        mn = rgb.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1e-4)
+        hue = _hue(rgb, mx, mn)
+        pmx, pmn = float(paint.max()), float(paint.min())
+        psat = (pmx - pmn) / max(pmx, 1e-4)
+        phue = float(_hue(paint[None, None, :], np.array([[pmx]]), np.array([[pmn]]))[0, 0])
+        dh = np.abs((hue - phue + 180.0) % 360.0 - 180.0)
+        m = (dh < 24.0) & (sat > 0.4 * psat) & (mx > 0.25 * pmx) & (mx < 2.6 * pmx + 0.05)
+        m |= (d < 0.35) & (bright > 0.35) & (bright < 1.8)
+    else:  # achromatic paint: low chroma + brightness band (absolute band for near-black paint)
         cchroma = rgb.max(-1) - rgb.min(-1)
-        m = (cchroma < 0.10) & (bright > 0.7) & (bright < 1.35)
+        if plum < 0.08:
+            m = (cchroma < 0.10) & (lum[..., 0] < max(0.14, plum * 3))
+        else:
+            m = (cchroma < 0.10) & (bright > 0.7) & (bright < 1.35)
     m &= valid
     mf = m.astype(np.float32)
     # soften 1px
     k = mf.copy()
     k[1:-1, 1:-1] = (mf[1:-1, 1:-1] * 4 + mf[:-2, 1:-1] + mf[2:, 1:-1] + mf[1:-1, :-2] + mf[1:-1, 2:]) / 8
-    shade = np.clip(lum[..., 0] / plum, 0, 1.0)
+    # neutral shading kept from the texture; for near-black paint there is no shading to keep -> flat
+    shade = np.clip(lum[..., 0] / plum, 0, 1.0) if plum > 0.08 else np.ones_like(lum[..., 0])
     tint = c.copy()
     for ch in range(3):
         tint[..., ch] = np.where(m, shade, rgb[..., ch])

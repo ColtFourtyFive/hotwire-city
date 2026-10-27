@@ -1,0 +1,423 @@
+{
+  "name": "camaro",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "chevrolet camaro ss",
+    "url": "https://opengameart.org/content/chevrolet-camaro-ss",
+    "download": "https://opengameart.org/sites/default/files/camaro.blend",
+    "license": "CC-BY 3.0",
+    "attribution": "chevrolet camaro ss by Lotnik (OpenGameArt.org), CC-BY 3.0. Real-car likeness: rebrand before shipping."
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "camaro.glb",
+  "dimensions": {
+    "length": 16.0,
+    "width": 6.378,
+    "height": 4.451,
+    "wheelbase": 9.56,
+    "track_front": 5.565,
+    "track_rear": 5.565,
+    "bbox_min": [
+      -3.189,
+      0.0,
+      -7.4923
+    ],
+    "bbox_max": [
+      3.189,
+      4.4505,
+      8.5077
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.7827,
+        1.0605,
+        -4.7799
+      ],
+      "radius": 1.0605,
+      "width": 0.8124,
+      "part_center": [
+        -2.7827,
+        1.0605,
+        -4.7799
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 630
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.7827,
+        1.0605,
+        -4.7799
+      ],
+      "radius": 1.0605,
+      "width": 0.8124,
+      "part_center": [
+        2.7827,
+        1.0605,
+        -4.7799
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 630
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.7827,
+        1.0605,
+        4.7799
+      ],
+      "radius": 1.0605,
+      "width": 0.8124,
+      "part_center": [
+        -2.7827,
+        1.0605,
+        4.7799
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 630
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.7827,
+        1.0605,
+        4.7799
+      ],
+      "radius": 1.0605,
+      "width": 0.8124,
+      "part_center": [
+        2.7827,
+        1.0605,
+        4.7799
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 630
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.2118,
+        1.6022,
+        0.7648
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.2118,
+        1.6022,
+        0.7648
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.2961,
+          1.8692,
+          -7.84
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          2.2961,
+          1.8692,
+          -7.84
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": true
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.2961,
+          2.3143,
+          7.84
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          2.2961,
+          2.3143,
+          7.84
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -1.9134,
+        0.5341,
+        8.3477
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.4242,
+    -0.0
+  ],
+  "paint": {
+    "route": "strip",
+    "primary": {
+      "object": "Body",
+      "material": "Material",
+      "color_srgb": [
+        0.9063,
+        0.9063,
+        0.9063
+      ],
+      "textured": false,
+      "metallic": 0.0,
+      "roughness": 0.5
+    },
+    "secondary": null,
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 3200,
+      "bbox_min": [
+        -3.1643,
+        0.5682,
+        -7.4923
+      ],
+      "bbox_max": [
+        3.1816,
+        4.4505,
+        8.5077
+      ],
+      "textures": {
+        "ao": "textures/camaro_Body_ao.png"
+      }
+    },
+    "Trim": {
+      "tris": 376,
+      "bbox_min": [
+        -3.1043,
+        1.1017,
+        -7.2014
+      ],
+      "bbox_max": [
+        3.139,
+        4.3763,
+        8.3412
+      ],
+      "textures": {
+        "rough": "textures/camaro_Trim_rough.png",
+        "metal": "textures/camaro_Trim_metal.png",
+        "base": "textures/camaro_Trim_base.png",
+        "ao": "textures/camaro_Trim_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 630,
+      "bbox_min": [
+        -3.189,
+        0.0,
+        -5.8462
+      ],
+      "bbox_max": [
+        -2.3765,
+        2.121,
+        -3.7136
+      ],
+      "textures": {
+        "rough": "textures/camaro_Wheel_rough.png",
+        "metal": "textures/camaro_Wheel_metal.png",
+        "base": "textures/camaro_Wheel_base.png",
+        "ao": "textures/camaro_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 630,
+      "bbox_min": [
+        2.3765,
+        0.0,
+        -5.8462
+      ],
+      "bbox_max": [
+        3.189,
+        2.121,
+        -3.7136
+      ],
+      "textures": {
+        "rough": "textures/camaro_Wheel_rough.png",
+        "metal": "textures/camaro_Wheel_metal.png",
+        "base": "textures/camaro_Wheel_base.png",
+        "ao": "textures/camaro_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 630,
+      "bbox_min": [
+        -3.189,
+        0.0,
+        3.7136
+      ],
+      "bbox_max": [
+        -2.3765,
+        2.121,
+        5.8462
+      ],
+      "textures": {
+        "rough": "textures/camaro_Wheel_rough.png",
+        "metal": "textures/camaro_Wheel_metal.png",
+        "base": "textures/camaro_Wheel_base.png",
+        "ao": "textures/camaro_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 630,
+      "bbox_min": [
+        2.3765,
+        0.0,
+        3.7136
+      ],
+      "bbox_max": [
+        3.189,
+        2.121,
+        5.8462
+      ],
+      "textures": {
+        "rough": "textures/camaro_Wheel_rough.png",
+        "metal": "textures/camaro_Wheel_metal.png",
+        "base": "textures/camaro_Wheel_base.png",
+        "ao": "textures/camaro_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 6124,
+    "total": 6096,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 0.0,
+      "red_lights": 0.0,
+      "white_lights": 0.0,
+      "deck_height": -0.098,
+      "cabin": -0.445,
+      "mirrors": 0.0
+    },
+    "confidence": 0.543
+  },
+  "scale": {
+    "source_length": 3.0870548486709595,
+    "factor": 5.182933502748851,
+    "target_length": 16.0
+  },
+  "classes": {
+    "Body": {
+      "islands": 10,
+      "faces": 1656,
+      "area": 288.89
+    },
+    "Trim": {
+      "islands": 17,
+      "faces": 208,
+      "area": 40.201
+    },
+    "WheelFL": {
+      "islands": 1,
+      "faces": 330,
+      "area": 13.204
+    },
+    "WheelFR": {
+      "islands": 1,
+      "faces": 330,
+      "area": 13.204
+    },
+    "WheelRL": {
+      "islands": 1,
+      "faces": 330,
+      "area": 13.204
+    },
+    "WheelRR": {
+      "islands": 1,
+      "faces": 330,
+      "area": 13.204
+    }
+  },
+  "warnings": []
+}

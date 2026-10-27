@@ -16,7 +16,7 @@ def _bays(width, target):
     return n, width / n
 
 
-def segment(B, x0, y0, x1, y1, z0, floors, fh, style, bay, last=False):
+def segment(B, x0, y0, x1, y1, z0, floors, fh, style, bay):
     """One shaft segment (rectangular). Returns top z."""
     z1 = z0 + floors * fh
     Fs = B.facades(x1 - x0, y1 - y0, x0, y0)
@@ -46,7 +46,6 @@ def segment(B, x0, y0, x1, y1, z0, floors, fh, style, bay, last=False):
                 for i in range(n):
                     B.glass(F, i * bw, (i + 1) * bw, zf + sp_h, zf + fh, gn - 0.6, "office")
                 F.box(wa, 0, F.W, gn - 0.6, 0.9, zf, zf + sp_h, skip=("back", "left", "right"))
-        top_cap = 0.6
         # verticals
         for i in range(n + 1):
             u = i * bw
@@ -182,7 +181,7 @@ def tower(seed=0, **kw):
         nf = seg_starts[si + 1] - seg_starts[si]
         if nf <= 0:
             continue
-        z = segment(B, x0, y0, x1, y1, z, nf, fh, style, bay, last=(si == len(seg_starts) - 2)) + 0.2
+        z = segment(B, x0, y0, x1, y1, z, nf, fh, style, bay) + 0.2
         if si < len(seg_starts) - 2:
             sb = r.choice([6.0, 8.0, 10.0])
             if (x1 - x0) - 2 * sb < 24 or (y1 - y0) - 2 * sb < 24:
@@ -190,8 +189,7 @@ def tower(seed=0, **kw):
             # setback terrace: rooftop units on the ledge
             for k in range(2):
                 B.hvac(r.uniform(x0 + 4, x1 - 4), y0 + 2.6, z, w=4, d=2.6, h=2.4)
-            ax = r.choice([0, 1])
-            x0, x1 = (x0 + sb, x1 - sb) if ax or True else (x0, x1)
+            x0, x1 = x0 + sb, x1 - sb
             y0, y1 = y0 + sb, y1 - sb
     top = z + 1.2
     tw, td = x1 - x0, y1 - y0
@@ -203,7 +201,6 @@ def tower(seed=0, **kw):
         F2 = B.facades(tw - 3, td - 3, x0 + 1.5, y0 + 1.5)
         for side, F in F2.items():
             F.wall(B.b("Walls") if style in ("ribbon", "grid") else B.b("Trim"), z, z + 1.5)
-            k = 0
             zz = z + 2.0
             while zz < z + sh - 0.8:
                 F.box(dt, 0, F.W, -0.3, 0.35, zz, zz + 0.45, skip=("back", "left", "right"))
@@ -271,11 +268,10 @@ def tower(seed=0, **kw):
         cooling_tower(B, x0 + 7, y0 + 6, z, w=8, d=6, h=5)
         top = z + 3.0
     if crown in ("mech", "helipad", "slant") and tw > 36:
-        gantry(B, x0 + 2, x1 - 2, y0 + 1.0, z if crown != "mech" else z, h=4.0)
-    for k in range(r.randint(2, 4)):
-        if crown in ("mech", "stepped", "spire"):
-            break
-        B.hvac(r.uniform(x0 + 5, x1 - 5), r.uniform(cy, y1 - 4), z, w=r.choice([4, 6]), d=3, h=2.6)
+        gantry(B, x0 + 2, x1 - 2, y0 + 1.0, z, h=4.0)
+    if crown in ("helipad", "slant"):
+        for k in range(r.randint(2, 4)):
+            B.hvac(r.uniform(x0 + 5, x1 - 5), r.uniform(cy, y1 - 4), z, w=r.choice([4, 6]), d=3, h=2.6)
     B.footprint, B.height = (W, D), top
     B.tags = {"district": "downtown", "floors": floors, "style": style, "crown": crown}
     return B

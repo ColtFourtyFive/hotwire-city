@@ -1,0 +1,597 @@
+{
+  "assets/materials/asphalt/color.png": {
+    "assetId": 112223103107268,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt color",
+    "sha1": "e13b759c52c4224f3b25626e06d56656f97acca5"
+  },
+  "assets/materials/asphalt/normal.png": {
+    "assetId": 82395533791334,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt normal",
+    "sha1": "8774640e0dce1fd4da062257a9cdd4e38c70c9d7"
+  },
+  "assets/materials/asphalt/roughness.png": {
+    "assetId": 121272890641417,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt roughness",
+    "sha1": "3c3a440cf2d7269b11e4133c637ce215213225b4"
+  },
+  "assets/materials/asphalt_wet/color.png": {
+    "assetId": 79911827799879,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt_wet color",
+    "sha1": "ee747fef0ed22cbba6000ee5df4a4add933264cb"
+  },
+  "assets/materials/asphalt_wet/roughness.png": {
+    "assetId": 117195630363033,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt_wet roughness",
+    "sha1": "635d666cdd5339e8dc99bd80bc3ce2a5ba3b7681"
+  },
+  "assets/materials/asphalt_worn/color.png": {
+    "assetId": 129122867914138,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt_worn color",
+    "sha1": "673bc4114a1f3492407dd6c271b0e7a726975b57"
+  },
+  "assets/materials/asphalt_worn/normal.png": {
+    "assetId": 82636250794801,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt_worn normal",
+    "sha1": "e002df9e276e12ab963d9fa948e4cfadc75c3ae1"
+  },
+  "assets/materials/asphalt_worn/roughness.png": {
+    "assetId": 89336615364349,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt_worn roughness",
+    "sha1": "69f143e5cdd408989e863972bf52dc249708d647"
+  },
+  "assets/materials/brick_red/color.png": {
+    "assetId": 130389958232148,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat brick_red color",
+    "sha1": "92166feae35117a51e6edd412ef893febd36027d"
+  },
+  "assets/materials/brick_red/normal.png": {
+    "assetId": 118833929106156,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat brick_red normal",
+    "sha1": "9c6e3512c7f58081f56d5ee00608e9bed37f2bed"
+  },
+  "assets/materials/brick_red/roughness.png": {
+    "assetId": 80026467457562,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat brick_red roughness",
+    "sha1": "1eaf1e2718de5a90bccd7196ae6b24505dba135c"
+  },
+  "assets/materials/brick_tan/color.png": {
+    "assetId": 119510173406235,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat brick_tan color",
+    "sha1": "584ce6f3b1e0ec1e858abcb0e1d8ffb21e55010a"
+  },
+  "assets/materials/brick_tan/normal.png": {
+    "assetId": 83497670939370,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat brick_tan normal",
+    "sha1": "40cdf4ce89604bbd1ca43674aba3b6f68a4a6195"
+  },
+  "assets/materials/brick_tan/roughness.png": {
+    "assetId": 121569179287723,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat brick_tan roughness",
+    "sha1": "c672f6a64d22443cffb8d9404ecf0178ea3f57b7"
+  },
+  "assets/materials/concrete/color.png": {
+    "assetId": 88103143620940,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat concrete color",
+    "sha1": "fe888e075eab63c85e3d92c54ea2f30367b29a1d"
+  },
+  "assets/materials/concrete/normal.png": {
+    "assetId": 108032317587097,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat concrete normal",
+    "sha1": "ba7757e9cc516ef2314c727e543447d21f3fe27b"
+  },
+  "assets/materials/concrete/roughness.png": {
+    "assetId": 108738468113416,
+    "assetType": "Image",
+    "moderation": "Approved",
+    "name": "HC mat concrete roughness",
+    "sha1": "41d65988f699db6b4bdebcfd84bdc5dd1877c5c6"
+  },
+  "assets/materials/concrete_modern/color.png": {
+    "assetId": 116943333841057,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat concrete_modern color",
+    "sha1": "ea50c0ca29a9496a542a41294e82a1507fe7ea7d"
+  },
+  "assets/materials/concrete_modern/normal.png": {
+    "assetId": 128078512570380,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat concrete_modern normal",
+    "sha1": "0f07aae55fbdd43a9b0dd6d4f863fdc641a7085a"
+  },
+  "assets/materials/concrete_modern/roughness.png": {
+    "assetId": 127760521028360,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat concrete_modern roughness",
+    "sha1": "9e04aef1dcf1fe175b7663385d7d88ef0d9180e1"
+  },
+  "assets/materials/corrugated_metal/color.png": {
+    "assetId": 139585554377083,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat corrugated_metal color",
+    "sha1": "4da55efaebe08e115127f9a5401ab0035c61a1a9"
+  },
+  "assets/materials/corrugated_metal/metalness.png": {
+    "assetId": 83264653619688,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat corrugated_metal metalness",
+    "sha1": "cab93e6bffd20c21b1d61cef5f62dcb685957125"
+  },
+  "assets/materials/corrugated_metal/normal.png": {
+    "assetId": 86254278193932,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat corrugated_metal normal",
+    "sha1": "cb63f1b3ec7a0236e07fd9801ed4dc3e18b0f83b"
+  },
+  "assets/materials/corrugated_metal/roughness.png": {
+    "assetId": 138208845857735,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat corrugated_metal roughness",
+    "sha1": "3d5ed4c284a6a69ce52edce1140184cf3edc3682"
+  },
+  "assets/materials/decals/arrow_left.png": {
+    "assetId": 138476430387108,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal arrow_left",
+    "sha1": "048eb6a400221f064bea55025414dee61b3bf417"
+  },
+  "assets/materials/decals/arrow_right.png": {
+    "assetId": 139985337390616,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal arrow_right",
+    "sha1": "2e086ed2883fad1f0736441ac30279481c3df832"
+  },
+  "assets/materials/decals/arrow_straight.png": {
+    "assetId": 137814817858017,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal arrow_straight",
+    "sha1": "3139e5f737bbb64975de0202a9b5662eb9a14fd8"
+  },
+  "assets/materials/decals/arrow_straight_left.png": {
+    "assetId": 81584670920718,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal arrow_straight_left",
+    "sha1": "64e8b9dce4b7512371d090b55329ff6c69871141"
+  },
+  "assets/materials/decals/arrow_straight_right.png": {
+    "assetId": 73659109134315,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal arrow_straight_right",
+    "sha1": "f22b46f5d6d32124d09ef88d4968172d9eed50e0"
+  },
+  "assets/materials/decals/asphalt_damage_a.png": {
+    "assetId": 119157152965634,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal asphalt_damage_a",
+    "sha1": "83bcadb06e6e802455da094a6a300aab64165b96"
+  },
+  "assets/materials/decals/asphalt_damage_b.png": {
+    "assetId": 104288979462464,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal asphalt_damage_b",
+    "sha1": "2abe178254da52eaa1d6e208794fcf5c9533005b"
+  },
+  "assets/materials/decals/crack_network.png": {
+    "assetId": 131283354388863,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal crack_network",
+    "sha1": "4a3919389d97ccbb379024823b39c6faff96c905"
+  },
+  "assets/materials/decals/crosswalk_bars_white.png": {
+    "assetId": 102831471648000,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal crosswalk_bars_white",
+    "sha1": "48bb57de531f0f66db2dcad9603c5eb09ba5e368"
+  },
+  "assets/materials/decals/line_white_dash.png": {
+    "assetId": 138755388050019,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal line_white_dash",
+    "sha1": "5c0b8917d8326fb916fa914c8a90298e1fda8242"
+  },
+  "assets/materials/decals/line_white_solid.png": {
+    "assetId": 77511707989575,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal line_white_solid",
+    "sha1": "1a959dbf08d8755e73b2a5d0a7a712704ffd364d"
+  },
+  "assets/materials/decals/line_yellow_dash.png": {
+    "assetId": 136667409302116,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal line_yellow_dash",
+    "sha1": "abc0d96bd8dc182a21317ebbcbae93edaa48bcea"
+  },
+  "assets/materials/decals/line_yellow_double.png": {
+    "assetId": 106993168199118,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal line_yellow_double",
+    "sha1": "1baca1802155afb53cf586577ec876d2b331c7eb"
+  },
+  "assets/materials/decals/line_yellow_solid.png": {
+    "assetId": 121731869713190,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal line_yellow_solid",
+    "sha1": "4f8880cd64d67fb1a67f76e948619dc5ecae7b66"
+  },
+  "assets/materials/decals/manhole_round.png": {
+    "assetId": 105997865515655,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal manhole_round",
+    "sha1": "69e342db1d2608ef3ea68a6d96c2e29a41370d13"
+  },
+  "assets/materials/decals/oil_stain_a.png": {
+    "assetId": 127073388700985,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal oil_stain_a",
+    "sha1": "dbc1be0ffa16ce6deadee2fca121105f887eb387"
+  },
+  "assets/materials/decals/oil_stain_b.png": {
+    "assetId": 92842659354972,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal oil_stain_b",
+    "sha1": "a4b8340a6fe94de56af271e41bc2be0fcf7ad225"
+  },
+  "assets/materials/decals/stop_line_white.png": {
+    "assetId": 106240517825528,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal stop_line_white",
+    "sha1": "e5f052785a21257c31881666cebc7dfabf72f034"
+  },
+  "assets/materials/decals/tar_snakes.png": {
+    "assetId": 116194143749346,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal tar_snakes",
+    "sha1": "6bf3b1ab77ffb5837fd891ecdd596c4a02b1ff96"
+  },
+  "assets/materials/decals/wall_grime_streaks.png": {
+    "assetId": 104901365216375,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC decal wall_grime_streaks",
+    "sha1": "6c62d7d9720e92177713bee29505343ccf753831"
+  },
+  "assets/materials/grass/color.png": {
+    "assetId": 75296867385240,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat grass color",
+    "sha1": "48491549b8d7cf1afbb88c5c27701b3f4c7a8663"
+  },
+  "assets/materials/grass/normal.png": {
+    "assetId": 126844811194480,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat grass normal",
+    "sha1": "5117ec77022057a10e90f84506fd4cc68a1eb41f"
+  },
+  "assets/materials/grass/roughness.png": {
+    "assetId": 120668241884998,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat grass roughness",
+    "sha1": "03da295a3ecfa3cb5cc3b70195eafae80f2c59b6"
+  },
+  "assets/materials/grass_dry/color.png": {
+    "assetId": 134312871013415,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat grass_dry color",
+    "sha1": "7cda696e84a283e8b586c5afac284d4b8d27102c"
+  },
+  "assets/materials/grass_dry/normal.png": {
+    "assetId": 98703175069894,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat grass_dry normal",
+    "sha1": "3a203c2409f7facd091dae2ec5883df545f6d172"
+  },
+  "assets/materials/grass_dry/roughness.png": {
+    "assetId": 139888354024065,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat grass_dry roughness",
+    "sha1": "cefd7ab2599f62fa2445f7c6ee7d2f9dbe392ad5"
+  },
+  "assets/materials/gravel_roof/color.png": {
+    "assetId": 127455141637614,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat gravel_roof color",
+    "sha1": "a914b22fcb04ef960d963b9aec00a148a0bc94be"
+  },
+  "assets/materials/gravel_roof/normal.png": {
+    "assetId": 135941849676099,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat gravel_roof normal",
+    "sha1": "f677d73c27b5f6050a51a7196168a5c3c67045a7"
+  },
+  "assets/materials/gravel_roof/roughness.png": {
+    "assetId": 82587919945553,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat gravel_roof roughness",
+    "sha1": "02405dc422174aba0e63eca2319354465e55b8d1"
+  },
+  "assets/materials/rock/color.png": {
+    "assetId": 126554197799218,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock color",
+    "sha1": "0c8570b426dd715949e6d6a9497fe939bb95ece1"
+  },
+  "assets/materials/rock/normal.png": {
+    "assetId": 118583349787184,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock normal",
+    "sha1": "24c19f50eba9e324cccf5c01ff8a7cb171f7ef09"
+  },
+  "assets/materials/rock/roughness.png": {
+    "assetId": 82781631164072,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock roughness",
+    "sha1": "6c37fbdf92f554de86553660095d230fc45648c0"
+  },
+  "assets/materials/rock_slate/color.png": {
+    "assetId": 91210253580661,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock_slate color",
+    "sha1": "c8fbf9a833d20a2c837dfaa4b019401cb1c3666c"
+  },
+  "assets/materials/rock_slate/normal.png": {
+    "assetId": 78165355072262,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock_slate normal",
+    "sha1": "a4c9d34914b617b989e682264f75dffd2446ba96"
+  },
+  "assets/materials/rock_slate/roughness.png": {
+    "assetId": 71227972729969,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock_slate roughness",
+    "sha1": "2d53bae5f67d157400a6d0d6eb088a8ea048a9de"
+  },
+  "assets/materials/roof_tiles/color.png": {
+    "assetId": 75493501087088,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat roof_tiles color",
+    "sha1": "cc70f51281b8c25d872dae9f41a95023174bfe31"
+  },
+  "assets/materials/roof_tiles/normal.png": {
+    "assetId": 110333215055924,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat roof_tiles normal",
+    "sha1": "c18da173b81611229cecc98b4455eb1c7a9e7ecc"
+  },
+  "assets/materials/roof_tiles/roughness.png": {
+    "assetId": 92854047635751,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat roof_tiles roughness",
+    "sha1": "bc6b9c63c858930c8ff8fc4220a288602428cc2f"
+  },
+  "assets/materials/rusty_metal/color.png": {
+    "assetId": 121760156100942,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rusty_metal color",
+    "sha1": "92c0ae5f8f5801c207fc9136a36298743ef17b4e"
+  },
+  "assets/materials/rusty_metal/metalness.png": {
+    "assetId": 94311440452052,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rusty_metal metalness",
+    "sha1": "d26c3433e26f4d54ae99cacb8c6b17d066867caf"
+  },
+  "assets/materials/rusty_metal/normal.png": {
+    "assetId": 89843136414455,
+    "assetType": "Image",
+    "moderation": "Approved",
+    "name": "HC mat rusty_metal normal",
+    "sha1": "cf47399821724c1b1cacbf95b75bf434e5659fbf"
+  },
+  "assets/materials/rusty_metal/roughness.png": {
+    "assetId": 74967078007968,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rusty_metal roughness",
+    "sha1": "ae3fde5a0e78963dc4d3271e84e61d26f20be723"
+  },
+  "assets/materials/sand/color.png": {
+    "assetId": 113487495361728,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat sand color",
+    "sha1": "1eb6f6a706cebd83f1fbe23cb553404de0f28ee0"
+  },
+  "assets/materials/sand/normal.png": {
+    "assetId": 121798218902378,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat sand normal",
+    "sha1": "f25407b3232320b3c7452fecd658c05aba2912e6"
+  },
+  "assets/materials/sand/roughness.png": {
+    "assetId": 83198137307610,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat sand roughness",
+    "sha1": "b43cb12caa9814b2be2bd5faacdf1cf291dadf65"
+  },
+  "assets/materials/sidewalk/color.png": {
+    "assetId": 86008103423825,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat sidewalk color",
+    "sha1": "dbded45ab6aa2165fb418c2cc1825644cd5dbe12"
+  },
+  "assets/materials/sidewalk/normal.png": {
+    "assetId": 110858632664595,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat sidewalk normal",
+    "sha1": "41cb961dc95764c9c4f1cc38b6f76e17602c284a"
+  },
+  "assets/materials/sidewalk/roughness.png": {
+    "assetId": 134979087290717,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat sidewalk roughness",
+    "sha1": "5c84f85c3ffa274bfdd75b55dc7eeb689fd913f5"
+  },
+  "assets/materials/stucco/color.png": {
+    "assetId": 75989316793017,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat stucco color",
+    "sha1": "e81c270fe5dc44c6e1d18bba4a28a0bd33c06061"
+  },
+  "assets/materials/stucco/normal.png": {
+    "assetId": 72451504566057,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat stucco normal",
+    "sha1": "8438fe968f0138207fae80d0f444ebb6e84a4744"
+  },
+  "assets/materials/stucco/roughness.png": {
+    "assetId": 71730022657615,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat stucco roughness",
+    "sha1": "e41a768c2639d6707c5f3da7a3701b1079abd4d5"
+  },
+  "assets/materials/terrazzo/color.png": {
+    "assetId": 117333312157689,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat terrazzo color",
+    "sha1": "33a3bdff3c18b757f1672b286fbf21ab7ba609a2"
+  },
+  "assets/materials/terrazzo/normal.png": {
+    "assetId": 72451453239950,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat terrazzo normal",
+    "sha1": "1ffd267408086fbc9bcd51ee1741e77f54b3da0a"
+  },
+  "assets/materials/terrazzo/roughness.png": {
+    "assetId": 112050889134517,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat terrazzo roughness",
+    "sha1": "9fcdb5838d17585807ba29a45ce9962a233c92ed"
+  },
+  "assets/materials/window_glass/color.png": {
+    "assetId": 92834021315347,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat window_glass color",
+    "sha1": "2f9b2cc72ff7303f8b1d77feabd13c698e150d30"
+  },
+  "assets/materials/window_glass/metalness.png": {
+    "assetId": 92418495410749,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat window_glass metalness",
+    "sha1": "b67cdf62204444eb81d3f230e7449b18619c5915"
+  },
+  "assets/materials/window_glass/normal.png": {
+    "assetId": 129830663186003,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat window_glass normal",
+    "sha1": "af41a12a22e9e76af3bb07cce7df8edd561a0147"
+  },
+  "assets/materials/window_glass/roughness.png": {
+    "assetId": 72033955747974,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat window_glass roughness",
+    "sha1": "6720d5b17637fd8bef54c4fb64bde044ba886134"
+  },
+  "assets/materials/wood_planks/color.png": {
+    "assetId": 78080135923172,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat wood_planks color",
+    "sha1": "425075e8d9e0fafc9145b6d4b4b5aa9e25477995"
+  },
+  "assets/materials/wood_planks/normal.png": {
+    "assetId": 93367484573314,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat wood_planks normal",
+    "sha1": "c32647e81a55c592be64c20d1fb40247698f59ea"
+  },
+  "assets/materials/wood_planks/roughness.png": {
+    "assetId": 115688360387359,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat wood_planks roughness",
+    "sha1": "c0821daec2187466efb5b9cc0c0e9c115be979ba"
+  }
+}

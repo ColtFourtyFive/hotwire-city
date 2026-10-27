@@ -386,34 +386,7 @@ return function(t)
 		t.eq(MapBuilder.districtOf(4, 0), "beach")
 	end)
 
-	-- LightingService ----------------------------------------------------------------------------------------
-	t.test("lighting: cycle math", function()
-		local L = LightingService
-		t.near(L.hourAt(0), L.SUNRISE, 1e-6, "sunrise")
-		t.near(L.hourAt(L.DAY_SECONDS / 2), 12, 1e-6, "noon")
-		t.near(L.hourAt(L.DAY_SECONDS), L.SUNSET, 1e-6, "sunset")
-		t.near(L.hourAt(L.DAY_SECONDS + L.NIGHT_SECONDS / 2), 0, 1e-6, "midnight")
-		t.near(L.hourAt(L.CYCLE_SECONDS), L.SUNRISE, 1e-6, "wraps")
-		for _, h in { 0, 3, 6, 9.5, 12, 17.9, 18, 21, 23.5 } do
-			t.near(L.hourAt(L.timeForHour(h)), h, 1e-6, "inverse at " .. h)
-		end
-		t.ok(not L.isNightHour(12), "noon is day")
-		t.ok(L.isNightHour(22), "22h is night")
-		t.ok(L.isNightHour(3), "3h is night")
-		t.ok(not L.isNightHour(7), "7h is day")
-		-- ~4 of 16 minutes are night
-		local nightSecs = 0
-		for s = 0, L.CYCLE_SECONDS - 1 do
-			if L.isNightHour(L.hourAt(s)) then
-				nightSecs += 1
-			end
-		end
-		t.ok(nightSecs >= 230 and nightSecs <= 300, "night seconds per cycle: " .. nightSecs)
-		local noon, midnight = L.lookAt(12), L.lookAt(0)
-		t.ok(noon.brightness > midnight.brightness, "day brighter than night")
-		t.ok(midnight.bloom > noon.bloom, "neon blooms more at night")
-	end)
-
+	-- LightingService (v2 cycle math lives in tests/spec/look.spec.luau) -----------------------------------------
 	t.test("lighting: init + night toggles lamps and glow", function()
 		local L = LightingService
 		local Lighting = H.game:GetService("Lighting")

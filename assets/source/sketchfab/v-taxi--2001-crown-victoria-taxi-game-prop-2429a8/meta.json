@@ -43,5 +43,57 @@
   "sha256": "c67595439490ab12e63de88b684a943a65eaf57ff57d77d9b248dca062a6d6bb",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:41+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      2.6405,
+      6.5166,
+      2.0094
+    ],
+    "dims_m": [
+      2.64,
+      6.517,
+      2.009
+    ],
+    "front_evidence": "roof_offset=+0.08",
+    "flipped": false,
+    "mesh_objects": 8,
+    "triangles": 33866,
+    "materials": 8,
+    "material_names": [
+      "glass",
+      "glass_window",
+      "interior2",
+      "interior_bottom",
+      "main_frame",
+      "plate",
+      "taxi_sign",
+      "wheels_and_parts"
+    ],
+    "textures": 21,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "crown_vic_taxi_wheels_and_parts_0"
+    ],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [
+      "glass",
+      "glass_window"
+    ],
+    "animations": 0,
+    "object_names": [
+      "crown_vic_taxi_main_frame_0",
+      "crown_vic_taxi_interior2_0",
+      "crown_vic_taxi_plate_0",
+      "crown_vic_taxi_glass_0",
+      "crown_vic_taxi_glass_window_0",
+      "crown_vic_taxi_interior_bottom_0",
+      "crown_vic_taxi_wheels_and_parts_0",
+      "taxi_sign_taxi_sign_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 27.7
+  }
 }

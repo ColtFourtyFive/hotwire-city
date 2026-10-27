@@ -2,7 +2,7 @@
 
 **Status:** done for the 11-car shortlist from `docs/v2/evidence/scout_0003_report.md`, plus 6 extras. Built 2026-10-27.
 
-**Sheet:** `docs/v2/sourcing/roblox_cars_sheet.png`. Each car is rebuilt in Blender from the files we downloaded, not screenshotted in Studio. The left image is a 3/4 front view. The right image is an orthographic side view.
+**Sheet:** `docs/v2/sourcing/roblox_cars_sheet.png`. It shows the 11 shortlisted cars, plus the T488 police SUV extra in slot 12. Each car is rebuilt in Blender from the files we downloaded, not screenshotted in Studio. The left image is a 3/4 front view. The right image is an orthographic side view. A **BACKDOOR SCRIPT** tag in red marks infected models.
 
 **Per-car mapping data:** `docs/v2/sourcing/roblox_car_maps/<assetId>.json`. Each file holds every visible part's path, its group, the rule that matched it, the hub positions, and the security findings.
 
@@ -17,7 +17,7 @@
    - **Affected cars:** Tundra, police interceptor, police hatch, box truck, Mercedes, Prius, plus the taxi extra.
    - **Payload IDs to blocklist:** `74145699488273`, `75521726909736`, `95925098868592`, `115188487528112`, `128320524036560`, `130049213376589`, `140312253726156`.
    - **Rule:** never parent an inserted Creator Store model into the DataModel before deleting every `LuaSourceContainer`. See section 4.
-2. **Every shortlisted car has real-brand marks that must be overridden.**
+2. **Every shortlisted car except the box truck has real-brand marks that must be overridden.**
    - Where they are: textures (Ford oval, Jaguar growler, Toyota/Prius badges, a BMW centre cap on the Kia), real police insignia (Michigan State Police, Ohio State Highway Patrol, Police Nationale), real-format plates, and modelled badges.
    - We override them at runtime by retexturing or hiding the specific parts listed below. We never re-upload the third-party mesh.
 3. **Best picks:**
@@ -25,13 +25,14 @@
      - Jaguar `11881862706`: separate doors, bonnet and boot; clean paint split.
      - Kia Sorento `117276253886376`.
      - F-150 `89890547548224`.
-     - Toyota Tundra `126180570128588`: already badged "VELLFIRE", so it is the nearest to parody-ready.
-     - Police hatch `103123587729335`: livery baked in a SurfaceAppearance.
+     - Toyota Tundra `126180570128588`: badged "VELLFIRE" (itself a real Toyota model name), so only one grille word has to be hidden or covered. It has a backdoor.
+     - Police hatch `103123587729335`: livery baked in a SurfaceAppearance. It has a backdoor.
    - **Usable after work:** Nissan Murano `73893179863762`, box truck `131180706902259`, Prius `132078381973405`.
    - **Poor fits:**
      - Patrol `14746413121`: 463k tris.
      - Mercedes `97965573521866`: 422k tris, and a backdoor.
      - Police "interceptor" `113053967699143`: a 2010-era brick-built sedan made of 183 Parts, not an SUV.
+   - **Scout correction:** the Explorer-style police SUV in `scout_0003_cars_sheet.jpg` is `16390639371` ("T488"). It is the right-most car, #1 in insertion order; the report swapped its description with #3. It is mapped here as an extra (§6) and is the actual police-SUV candidate: about 300k tris, no backdoor pattern.
 4. **Wheels are separable on 10 of 11 cars**, so a runtime rig can spin them. The box truck is one 5k-tri mesh with its wheels baked in.
    - On the A-Chassis cars, spinning parts (`Wheels/XX/Parts`) are already split from non-spinning parts (`Wheels/XX/Fixed` or `WheelFixed`).
 5. **Scale:** most cars are within ±15 % of 1 stud = 0.28 m. Each map JSON has `suggested_uniform_scale`.
@@ -71,7 +72,7 @@
 - **Roblox Material** maps to roughness and metalness. Glass, Transparency → alpha; Neon → emission; Reflectance → clear coat.
 
 **Known approximations.**
-- **Unions** (`UnionOperation`) are drawn as their bounding box, because CSG geometry is not decoded. None of the 11 shortlisted cars has a visible union. The GMC extra has 64.
+- **Unions** (`UnionOperation`) are drawn as their bounding box, because CSG geometry is not decoded. None of the 11 shortlisted cars has a visible union. The GMC extra has 64 (62 of them visible).
 - **Top and Bottom decal "up" direction** is inferred: hood text reads correctly from the front. It is not verified in Studio.
 - **Moderated images** (403 "not approved") are skipped: 2 on the Prius and 1 on the interceptor. They would not render in-game either.
 
@@ -85,7 +86,7 @@
 | `117276253886376` | Kia Sorento XM 2011 | 19.84 × 9.17 × 7.58 | ×0.844 | 44 | 29 | 18k | 8/8 | 4 | no |
 | `73893179863762` | Nissan Murano Z50 2005 | 16.69 × 9.06 × 6.41 | ×1.021 | 20 | 16 | 38k | 2/2 | 16 | no |
 | `126180570128588` | 2022 Toyota Tundra CrewMax (badged "VELLFIRE") | 22.08 × 8.76 × 7.27 | ×0.959 | 41 | 35 | 41k | 4/4 | 1 | **YES** |
-| `113053967699143` | brick-built 2000s police sedan (Crown Victoria proportions) | 27.0 × 14.05 × 9.38 | ×0.712 | 183 | 1 | 2k | 8/9 | 13 | **YES** |
+| `113053967699143` | Brick-built 2000s police sedan (Crown Victoria proportions) | 27.0 × 14.05 × 9.38 | ×0.712 | 183 | 1 | 2k | 8/9 | 13 | **YES** |
 | `103123587729335` | Peugeot 308-style Police Nationale hatchback | 19.39 × 9.96 × 7.26 | ×0.783 | 57 | 35 | 29k | 3/3 | 5 | **YES** |
 | `131180706902259` | Isuzu NPR-style 16 ft box truck | 25.59 × 9.14 × 12.24 | ×0.977 | 3 | 1 | 5k | 1/1 | 2 | **YES** |
 | `97965573521866` | Mercedes-AMG GLE 53 4MATIC+ coupe SUV (listed as sedan) | 17.92 × 7.88 × 6.14 | ×0.985 | 107 | 95 | 422k | 1/1 | 25 | **YES** |
@@ -131,11 +132,14 @@ The map JSON gives the shell the structure it needs.
 
 - Paths are relative to the asset's root Model.
 - `#k` means the k-th child with that name, counting in file order. The JSON lists the full explicit paths too.
-- `/**` means every visible descendant.
+- `X/**` means X itself (if it is a visible part) plus every visible descendant.
 - `{a, b}` means alternatives.
+- `{…, +N more}` is a doc summary only: the omitted names are in `groups.*.paths`. 32 of the 258 selectors are cut this way.
+
+**Instance names can contain `/` and `#`.** Imported MeshParts are often named `Meshes/<obj name>`: `Meshes/sorento_Plane.016` (Kia) and `Meshes/Paint (4)` (Jaguar) are each ONE instance, and the police hatch has parts named `#SA` and `#SB`. 276 part, Model or Folder names across the 17 cars contain `/`. Do not split a path on `/` and walk `FindFirstChild`. Match from the parent: a child matches when the remaining path equals its name (plus `#k` when the name repeats among siblings) or starts with that name followed by `/`. Recurse and backtrack. Checked 2026-10-27: with this rule all 258 selectors and all 1,449 `paths` entries in the 17 maps resolve to exactly the listed parts, with no ambiguous match.
 
 Runtime resolution:
-1. Resolve the selectors on the sanitised clone.
+1. Resolve `groups.*.paths` (strip the root name), not the selectors, on the sanitised clone, using the matching rule above.
 2. Check that the resolved count equals `groups.*.count`.
 3. If a count differs, because the asset was updated or sibling order changed, fall back to the rule table above on the live instances.
 
@@ -232,7 +236,7 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
   - **Separate opening doors** (`Misc/FL`, `Misc/FR`), **bonnet** (`Misc/HK`) and **boot** (`Misc/TK`).
   - GT wing and bonnet stripes.
   - At 107k tris it suits hero, garage or dealership use, not dense traffic.
-- **Wheels:** A-Chassis. `Wheels/XX/Parts` holds 7 meshes (tyre, rim layers, centre cap), which spin. `Wheels/XX/WheelFixed` holds the caliper and disc, which stay static. `Misc/Wheel` is the steering wheel and is excluded.
+- **Wheels:** A-Chassis. `Wheels/XX/Parts` holds 7 meshes (tyre, rim layers, centre cap), which spin. `Wheels/XX/WheelFixed` holds 2 caliper meshes, which stay static. `Misc/Wheel` is the steering wheel and is excluded.
 - **Paint:** Twelve `Meshes/Paint*` parts on the body, doors, bonnet and boot, rgb(9,137,207), untextured, so the car is fully recolourable. The bonnet stripes are a separate textured part (`Misc/HK/…Stripes…`).
 - **Glass:** Ten parts: Window*, Glass*, windscreen and the `Red Glass` tail lens.
 - **Lights:** 31 `Light(s).*` MeshParts that share the lights atlas, split by position into 13 front and 18 rear. There are no Neon parts or SpotLights. Brake and indicator areas are regions of the atlas, so each cluster can only switch as a whole.
@@ -350,13 +354,13 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
 
 - **Size:** 22.08 × 8.76 × 7.27 studs. Scale ×0.959, yaw 90.
 - **Front from:** `light-names+long-axis`.
-- **Parts:** 41 visible (41 MeshParts, 35 unique meshes, ~41,886 tris). 18 hidden, 6 decals, 0 SurfaceAppearance, 1 scripts.
-- **Look:** A 2022 Tundra TRD Pro crew cab in sand: 41 parts, 42k tris, about the right scale (×0.96). The grille already reads **"VELLFIRE"** instead of TOYOTA, so it is the closest to parody-ready: only that word changes.
+- **Parts:** 41 visible (41 MeshParts, 35 unique meshes, ~41,886 tris). 18 hidden, 6 decals, 0 SurfaceAppearance, 1 script.
+- **Look:** A 2022 Tundra TRD Pro crew cab in sand: 41 parts, 42k tris, about the right scale (×0.96). The grille reads **"VELLFIRE"** instead of TOYOTA. Vellfire is itself a real Toyota model name, so it is not a parody. Still, it is the smallest de-branding job in the set: one word of grille geometry to hide or cover.
 - **Wheels:** `Wheels/XX/Parts/{Rim, Tire}` spin. There is no static caliper.
 - **Paint:** `Body/COLOR#1`, `Body/COLOR#2`, rgb(211,190,150), recolourable.
 - **Glass:** Two parts. One is Material Glass; the other is a Transparency 0.65 part.
 - **Lights:** `Body/Vehicle_Lights/*`: 14 parts named Left/Right/Light#n, classified by position into 7 head, 6 tail and 1 indicator.
-- **Logos:** The "VELLFIRE" lettering is grille geometry, not a texture. A `Body/LicensePlate` part is present. The dirt decals are fine to keep.
+- **Logos:** The "VELLFIRE" lettering is grille geometry, not a texture. Hide it if it is its own MeshPart (not checked); otherwise cover it with a badge plate of ours. A `Body/LicensePlate` part is present. The dirt decals are fine to keep.
 - **Other:** Front direction comes from the lamp names and the long axis, since there is no seat. **Backdoor:** `CoreSkyboxSystem` at the root (JobId check, payload 95925098868592).
 
 | Group | Parts | Selectors |
@@ -373,17 +377,17 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
 
 ### 5.7 `113053967699143` Police "interceptor" (1.5/5: drop)
 
-`Model`. Depicts: brick-built 2000s police sedan (Crown Victoria proportions).
+`Model`. Depicts: Brick-built 2000s police sedan (Crown Victoria proportions).
 
 - **Size:** 27.0 × 14.05 × 9.38 studs. Scale ×0.712, yaw -180.
 - **Front from:** `seat:VehicleSeat`.
 - **Parts:** 183 visible (0 MeshParts, 1 unique meshes, ~2,504 tris). 2 hidden, 23 decals, 0 SurfaceAppearance, 13 scripts.
-- **Look:** **Not** the Explorer-style SUV the scout described. It is a 2010-era brick build: 183 plain Parts and Wedges, Ball wheels and a single FileMesh ring. Its proportions are blocky and it is 27 studs long (×0.71). Its look comes from decals carrying **real agency insignia**: "POLICE", the Michigan State Police patch and the Ohio State Highway Patrol hood seal.
+- **Look:** **Not** the Explorer-style SUV the scout described; that one is `16390639371` (§6). It is a 2010-era brick build: 183 plain Parts and Wedges, Ball wheels and a single FileMesh ring. Its proportions are blocky and it is 27 studs long (×0.71). Its look comes from decals carrying **real agency insignia**: "POLICE", the Michigan State Police patch and the Ohio State Highway Patrol hood seal.
 - **Wheels:** Four 3×3×3 Ball Parts, found only by the geometry fallback.
 - **Paint:** 101 black parts. The white door panels are separate parts.
 - **Lights:** `Light#1-4` plus a Part-built lightbar.
 - **Logos:** Every insignia decal (28749523, 31161332, 58407478, 58407686, 32563199) would have to go, which would leave a bare brick car.
-- **Other:** **Backdoor:** `BloomDefect/ExtraData/Shifter/PoseLink`. It also holds 170 `Fire` objects. Use the police hatch below or our own cruiser instead.
+- **Other:** **Backdoor:** `BloomDefect/ExtraData/Shifter/PoseLink`. It also holds 170 `Fire` objects. Use the T488 Explorer `16390639371`, the police hatch, or our own cruiser instead.
 
 | Group | Parts | Selectors |
 |---|---|---|
@@ -437,7 +441,7 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
 - **Look:** A convincing Isuzu NPR-style 16 ft box truck with the roll-up door open. It is **one MeshPart** (5k tris) with a 2010-era atlas texture, plus 2 black helper parts. The scale is right (×0.98).
 - **Wheels:** **Not separable.** The wheels are baked into the single mesh, so spinning wheels need our own wheel meshes over hidden baked ones. Use it as a parked prop, or for distant traffic.
 - **Paint:** Baked into the atlas (white). Not recolourable.
-- **Logos:** No legible brand in the atlas.
+- **Logos:** The atlas has a small door badge and a plate, both illegible at game distance. An optional retexture would need our own atlas.
 - **Other:** **Backdoor (different kit):** `MeshPart/DO NOT DELETE/Material` plus a `Credits` GUI. A reversed string attribute holds `game:GetObjects('rbxassetid://75521726909736')` → StarterCharacterScripts.
 
 | Group | Parts | Selectors |
@@ -499,5 +503,51 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
 | Body | 48 | `Body/{Front, Rear, badge, badge_ok, badge_ok.001, block_engine, +42 more}` |
 
 **Hubs** (car frame: x right, y up, z forward; studs, unscaled): FL (-2.52, -1.76, +4.76) r=1.2, FR (+2.52, -1.76, +4.76) r=1.2, RL (-2.52, -1.76, -4.97) r=1.2, RR (+2.52, -1.76, -4.97) r=1.2.
+
+## 6. Extras (downloaded and mapped; not on the required shortlist)
+
+The JSON maps are in `roblox_car_maps/`. Previews are in `assets/source/roblox/<id>/preview_*.png` (git-ignored). Only the T488 is on the sheet.
+
+| Asset | What it really is | L × W × H studs (scale) | Parts / ~tris | Verdict |
+|---|---|---|---|---|
+| `16390639371` "T488" | **The Ford Police Interceptor Utility (2020+ Explorer)** in the scout's police shot. It is the right-most car there; the scout report swapped its ID with `113053967699143`. City of Clifton livery, Whelen/Feniex/Setina lightbar and push bar, full interior with radio and dashcam. | 19.03 × 8.27 × 6.46 (×0.95) | 202 / 305k | **The real police-SUV candidate.** Wheels are separate (A-Chassis); livery baked (`Body/Paint/**` is textured); 69 Neon lightbar parts (`Body/Lightbar/**`), plus `Body/Brakes/**` and a plate model. No backdoor pattern, but 114 scripts (ELS). Too heavy for many units: about 300k tris. Strip the Ford ovals (`4462098086`, `3909259034` atlas), the Whelen/Setina/Feniex wordmarks and the "Clifton" name. |
+| `951086064` Maxima | 2009 Nissan Maxima, blue | 18.02 × 7.49 × 5.54 (×0.96) | 45 / 104k | Good-looking, untextured mid-size sedan. Its paint is named, so it is recolourable. **Suspicious** `ThrottlePatcher` reparents itself to ServerScriptService. |
+| `3204824887` ME412 | Chrysler ME Four-Twelve concept | 19.35 × 9.89 × 5.19 (×0.84) | 18 / 23k | Clean supercar silhouette, flat materials; the Chrysler wing badge is modelled. A "super"-class candidate. |
+| `10141791793` "2020 GMC 2500 AT4" | Actually a **2020 Chevrolet Silverado WT PPV** (`Body/2020 Silverado WT/PPV package`), unmarked black, with Whelen Talon and lightbar | 23.49 × 9.57 × 8.43 (×0.97) | 281 / 367k (62 unions shown as boxes) | Heavy. Unmarked-police flavour. 300 parts exceeds `AssetLibrary.MAX_STORE_PARTS` = 250, so it would be rejected as is. |
+| `71284840505836` Panel van | Low-poly 1980s panel van, light blue-grey, untextured | 19.08 × 6.41 × 7.71 (×0.92) | 15 / 5k | Plain and toy-like up close: background traffic or a parked van only. No textures, no scripts, no backdoor. Front comes from lamp names (no seat). Wheel grouping is uneven (3/2/1/2 parts), so check it by hand. |
+| `94301391128632` Taxi | Crown Victoria-style yellow cab, weathered PS3-era texture, "TAXI" lettering and roof sign | 18.99 × 7.52 × 5.71 (×1.01) | 2 / 3k | It reads well at street distance, and its scale is already right. But the wheels are baked into the body mesh, like the box truck. **Backdoor:** 5 nested TextureConfiguration copies. `112789212430129`, the scout's second taxi, was run through the whole chain on 2026-10-27 as a pipeline check. It has the identical meshes (`1124532428`, `493763466`) and textures, and it is **also infected**: a root `Package` TextureConfiguration loader, payload `115188487528112`. Its map is in `assets/source/roblox/112789212430129/car_map.json`, not in `roblox_car_maps/`. |
+
+## 7. Problems, assumptions and open items
+
+1. **Unions are not decoded.**
+   - `UnionOperation` geometry lives in a separate `AssetId`. Lune's rbx-dom drops that property because the file stores it as a String and the database expects Content. The CSG mesh format is not parsed either.
+   - Unions are drawn as boxes. That does not matter for the shortlist (only the F-150's four invisible `Heat` glow unions), but it affects the GMC extra (64 unions, 62 visible).
+2. **Decal orientation on Top and Bottom faces is inferred.** We tilt the Front frame onto the face, so the image top points to Back. That makes hood text read correctly from the car's front. Side, front and back decals are certain. Top and bottom are not verified in Studio.
+3. **MeshPart `TextureID` alpha is treated as cut-out**, and `Color` is ignored when a TextureID is set. SurfaceAppearance AlphaMode follows the docs. For all 11 cars, the colours and silhouettes in the previews match the scout's Studio shots (`scout_0003_cars_sheet.jpg`, which is low resolution).
+4. **Mesh versions 5.00, 6.00 and 7.00 are only tested synthetically.** Asset delivery served the stored version: 1.00 to 4.01 for every mesh of these 17 cars. Asking for `contentRepresentationPriorityList` with major version 5–7 returned the same v3 file.
+5. **Moderated or archived images.** Eight of 213 referenced textures (209 unique) answer 403. Seven say `Asset is not approved for the requester` (moderated): 3 on the shortlist (Prius 2, interceptor 1) and 4 on the T488. The eighth, `432747975` on the T488, says `Requested asset is archived`. Re-checked 2026-10-27. They will not render in-game either.
+6. **Selectors depend on file order.** `#k` relies on the order in which instances were serialised. That order should survive `LoadAssetAsync`, but this is not verified. The runtime should check the per-group counts and fall back to the rules (§3.1) if they differ.
+7. **The heuristics need a human pass per car before shipping.**
+   - Paint versus black trim on the Patrol.
+   - Lamp sub-types on the Jaguar and Tundra, which come from position only.
+   - Index-only names on the Mercedes.
+   - The JSON lists `rules` per group so every assignment can be audited.
+8. **Licensing.** Creator Store free models carry no explicit licence. `SOURCES_UNLOCKED.md` applies: load the original asset ID at runtime, never re-upload the model or its meshes, and override brands with our own textures. Runtime loading needs Game Settings → Security → "Allow Loading Third Party Assets" (`Config/Assets.luau` header).
+
+## 8. Reproduce
+
+```bash
+# whole chain for the shortlist (cached; about 2–3 min of Cycles per car)
+python3 -I tools/sources/rbx_cars.py run 89890547548224 11881862706 ...
+python3 -I tools/sources/rbx_cars.py map        # re-classify only (all 17)
+python3 -I tools/sources/rbx_cars.py texsheet   # per-car texture contact sheets for logo review
+python3 -I tools/sources/rbx_cars.py sheet      # docs/v2/sourcing/roblox_cars_sheet.png
+# single steps
+python3 -I tools/sources/rbxdl.py <assetId|rbxassetid://…> [--force] [--version N]
+lune run tools/sources/rbxm_inspect.luau assets/source/roblox/<id>/asset.rbxm assets/source/roblox/<id>/tree.json
+python3 -I tools/sources/rbxmesh.py model <id>            # or: convert in.mesh out.glb [--texture t.png]
+python3 -I tools/sources/rbx_to_blender.py <id> [--glb] [--blend] [--samples 32]
+python3 -I tools/sources/rbx_car_map.py <id>
+```
 
 <!-- PER_CAR_END -->

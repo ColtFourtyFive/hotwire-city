@@ -48,5 +48,97 @@
   "sha256": "5e8a54028284f4bf905ad67d37d5d9bf1e2930794a66da724c9732d29ec74b89",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:43+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      4.4083,
+      1.8667,
+      1.3774
+    ],
+    "dims_m": [
+      1.867,
+      4.408,
+      1.377
+    ],
+    "front_evidence": "names(front=12,rear=11)",
+    "flipped": true,
+    "mesh_objects": 33,
+    "triangles": 17927,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "Tozzo98_Bodymat",
+      "UCB_BOTTOM_LT",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 13,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Tozzo98_WheelStock_FL_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_RL_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_RR_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_FR_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_FL_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_FR_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_RL_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "Tozzo98_WheelStock_FL_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_RL_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_RR_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_FR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Tozzo98_Badges_Rear_Carbadges_misc_U_0",
+      "Tozzo98_Badges_Front_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Tozzo98_Interior_UCB_Interiors_2_0",
+      "Tozzo98_Body_Tozzo98_Bodymat_0",
+      "Tozzo98_Rearlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_Brakelights_UCB_Lights_and_Glass_0",
+      "Tozzo98_Glass_Body_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_Headlights_UCB_Lights_and_Glass_0",
+      "Tozzo98_Bottom_UCB_BOTTOM_LT_0",
+      "Tozzo98_Hood_Tozzo98_Bodymat_0",
+      "Tozzo98_BumperTuner_Rear_Tozzo98_Bodymat_0",
+      "Tozzo98_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_Rear_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_Blinkers_UCB_Lights_and_Glass_0",
+      "Tozzo98_Reverse_UCB_Lights_and_Glass_0",
+      "Tozzo98_Suspension_UCB_BOTTOM_LT_0",
+      "Tozzo98_BumperStock_Front_Tozzo98_Bodymat_0",
+      "Tozzo98_BumperStock_Front_Inner_UCB_BOTTOM_LT_0",
+      "Tozzo98_TrimStock_UCB_BOTTOM_LT_0",
+      "Tozzo98_SW_UCB_Interiors_2_0",
+      "Tozzo98_Numberplate_Front_Numberplates_Misk_U_0",
+      "Tozzo98_Badges_Rear_Carbadges_misc_U_0",
+      "Tozzo98_Numberplate_rear_Numberplates_Misk_U_0",
+      "Tozzo98_Badges_Front_Carbadges_misc_U_0",
+      "Tozzo98_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_Headlight_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_Glass_Passanger_UCB_Lights_and_Glass_Transperent_0",
+      "Tozzo98_WheelStock_FL_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_RL_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_RR_RB1c_Tire_1k_0",
+      "Tozzo98_WheelStock_FR_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_FL_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_FR_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_RL_RB1c_Tire_1k_0",
+      "Tozzo98_CaliperStock_RR_RB1c_Tire_1k_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 43.8
+  }
 }

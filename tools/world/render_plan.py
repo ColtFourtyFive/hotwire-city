@@ -532,7 +532,7 @@ def label_districts(img, data, view, scale):
             draw_text(draw, (px, py), d["name"].upper(), f, (255, 255, 255, 235), stroke=(30, 34, 48, 220), sw=int(3 * ss * scale), spacing=int(5 * ss * scale))
     # water labels
     fw = font("InterDisplay-SemiBoldItalic.otf", int(30 * ss * scale)) if os.path.exists("/usr/share/fonts/opentype/inter/InterDisplay-SemiBoldItalic.otf") else f
-    for txt, (x, z) in (("SAPPHIRE  OCEAN", (-5900, 600)), ("IRON  BAY", (2200, 3240)), ("SAPPHIRE  OCEAN", (2600, 4800))):
+    for txt, (x, z) in (("SAPPHIRE  OCEAN", (-5900, 600)), ("IRON  BAY", (2200, 3240)), ("SAPPHIRE  OCEAN", (2600, 4800)), ("RUST  RIVER", (1985, 2160)), ("MESA  RESERVOIR", (3000, -2780))):
         px, py = view.p(x, z)
         if 0 <= px < img.width and 0 <= py < img.height:
             draw_text(draw, (px, py), txt, fw, (200, 228, 244, 220), stroke=(20, 50, 80, 160), sw=int(2 * ss * scale), spacing=int(6 * ss * scale))

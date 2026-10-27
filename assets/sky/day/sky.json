@@ -1,0 +1,88 @@
+{
+ "name": "day",
+ "label": "Clear GTA day (scattered cumulus)",
+ "source": {
+  "hdri": "kloofendal_48d_partly_cloudy_puresky",
+  "res": "2k",
+  "url": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky",
+  "license": "CC0 (Poly Haven)"
+ },
+ "faces": {
+  "SkyboxFt": "assets/sky/day/SkyboxFt.png",
+  "SkyboxBk": "assets/sky/day/SkyboxBk.png",
+  "SkyboxLf": "assets/sky/day/SkyboxLf.png",
+  "SkyboxRt": "assets/sky/day/SkyboxRt.png",
+  "SkyboxUp": "assets/sky/day/SkyboxUp.png",
+  "SkyboxDn": "assets/sky/day/SkyboxDn.png"
+ },
+ "convention": "SkyboxFt=-Z, Bk=+Z, Lf=+X, Rt=-X; Up top=+X; Dn top=-X (Studio job 0005)",
+ "settings": {
+  "hdri": "kloofendal_48d_partly_cloudy_puresky",
+  "label": "Clear GTA day (scattered cumulus)",
+  "key": 0.42,
+  "ev": 0.0,
+  "tonemap": "agx",
+  "sat": 1.0,
+  "sun_az": 235.0,
+  "haze": 0.22,
+  "haze_color": [
+   0.8,
+   0.84,
+   0.88
+  ],
+  "ground": "haze",
+  "clock_hint": 14.5
+ },
+ "yaw_deg": 200.74,
+ "sun": {
+  "in_hdri": true,
+  "painted_out": true,
+  "compass_az": 235.0,
+  "elevation": 47.9,
+  "roblox_dir": [
+   -0.5495,
+   0.7417,
+   0.3847
+  ],
+  "note": "match Lighting:GetSunDirection() at the shipped ClockTime; rerun with --sun-dir if it differs"
+ },
+ "hints": {
+  "horizon_srgb": [
+   167,
+   170,
+   179
+  ],
+  "zenith_srgb": [
+   131,
+   142,
+   163
+  ],
+  "sky_mean_srgb": [
+   163,
+   169,
+   184
+  ],
+  "sun_color_srgb": [
+   254,
+   255,
+   244
+  ],
+  "use": "Atmosphere.Color/Decay ~ horizon; OutdoorAmbient ~ darker sky_mean; Lighting sun tint ~ sun_color",
+  "clock_time_hint": 14.5
+ },
+ "edge_error_0_255": {
+  "Bk-Dn": 0.08,
+  "Bk-Lf": 0.21,
+  "Bk-Rt": 0.18,
+  "Bk-Up": 0.11,
+  "Dn-Ft": 0.03,
+  "Dn-Lf": 0.04,
+  "Dn-Rt": 0.05,
+  "Ft-Lf": 0.26,
+  "Ft-Rt": 0.24,
+  "Ft-Up": 0.39,
+  "Lf-Up": 0.4,
+  "Rt-Up": 0.48
+ },
+ "seconds": 31.3
+}

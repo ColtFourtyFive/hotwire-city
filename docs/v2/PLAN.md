@@ -49,3 +49,26 @@
 - Rebirth becomes **Prestige**.
 - The HOME teleport becomes a phone **"Call a cab"** to your garage: it costs a small fee and is blocked while wanted.
 - The brand accent is Ignition Orange `#FF8A3D`. GTA VI extras (heat badges, 3D minimap) come later.
+
+## Lead decisions from the verified GTA research (2026-10-27)
+
+- **No Pricedown in any form.** That includes pre-rendered PNGs, which are too close to GTA's trade dress. Big messages use Kanit Black (Roblox-owned) per `gta_ui_language` §4.
+- **No GTA names**, for cars or anything else. Rename "Phoenix", "Cheetah" and "Burrito" and any other GTA-owned names before they reach the game. Use our own parody brands.
+- **Third-party models load at runtime only through `AssetService:LoadAssetAsync`.** It needs "Allow Loading Third Party Assets", which is ON, and works for free assets only. `InsertService:LoadAsset` is used only for our own uploads.
+- **Excluded assets:**
+  - "Synty city" re-uploads on the Creator Store (licence risk);
+  - the backdoor re-uploads flagged by scout job 0003 (`75934961104200`, `76401662964478`);
+  - game rips (CoD, L4D, Delta Force, Hum3D);
+  - the 55 Robux catalog vest.
+- **NPC bodies:** only the realistic base bodies (bundles 988–995). No anime-style bodies (979–987). Replace hair 62234425, whose texture returns 404.
+- **Deprecated APIs** are replaced by their `…Async` versions: `CreateHumanoidModelFromDescriptionAsync`, `ApplyDescriptionAsync`, `PlayEmoteAsync`.
+- **Atmosphere.** Haze and Offset still need separating in lighting-lab round 2. Run it once the HDRI sky and the PBR MaterialVariants exist. Until then, keep Density ≤ 0.30 and Haze ≤ 1.2.
+- **Launch audience.** New experiences are visible only to age-checked 16+ players by default. Reaching ages 13–15 needs an ID-verified creator with 2FA, a fee or Plus, and 250 engaged plays within 60 days. This is a user action before launch.
+
+## Lead decisions on the LOOP_V2 open questions (2026-10-27; the user may override)
+
+- **Bank heist:** ships at launch behind a flag, turned on only if it passes QA. Shared heists are the strongest viral moment, so they are worth shipping at launch.
+- **Insurance:** 25% base, as in the user's brief, plus the 7-day payback rule against farming.
+- **Solo heist:** allowed, as a smaller version, so players without friends online can still take part.
+- **Data migration:** `LOOP_V2_ENGINEERING` WP2, the single switchover, supersedes the migration step in `gta_combat.md` (delta D13). Wave B's weapon and armor fields must land in the LOOP_V2 `Types` shape; the C1 integrator reconciles them.
+- **Sequencing:** C1 (loop v2, WP0–WP11 switchover) starts after the Wave B merge, because it touches every system.

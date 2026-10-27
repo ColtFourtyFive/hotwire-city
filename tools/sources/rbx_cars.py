@@ -22,6 +22,7 @@ import rbxdl  # noqa: E402
 SHORTLIST = [89890547548224, 11881862706, 14746413121, 117276253886376, 73893179863762, 126180570128588,
              113053967699143, 103123587729335, 131180706902259, 97965573521866, 132078381973405]
 EXTRAS = [951086064, 3204824887, 16390639371, 10141791793, 71284840505836, 94301391128632]
+SHEET_EXTRAS = [16390639371]  # the real Explorer police SUV from the scout shot (fills the 12th slot)
 SHEET = os.path.join(rbxdl.ROOT, "docs", "v2", "sourcing", "roblox_cars_sheet.png")
 
 
@@ -42,7 +43,10 @@ def run(mid, render=True):
     if render:
         r = subprocess.run([sys.executable, "-I", os.path.join(HERE, "rbx_to_blender.py"), str(mid)],
                            capture_output=True, text=True)
-        print((r.stdout.strip().splitlines() or ["(no output)"])[-1][:300])
+        if r.returncode != 0:
+            print(f"{mid}: render FAILED (exit {r.returncode}): {(r.stderr.strip().splitlines() or [''])[-1][:300]}")
+        else:
+            print((r.stdout.strip().splitlines() or ["(no output)"])[-1][:300])
     import rbx_car_map
     print(rbx_car_map.summary_line(rbx_car_map.analyze(mid)))
     return True
@@ -115,7 +119,8 @@ def sheet(ids, cell=(480, 270)):
         dims = o.get("dims_studs", {})
         cnt = o.get("counts", {})
         sec = " | BACKDOOR SCRIPT" if o.get("security", {}).get("flaggedScripts") else ""
-        title = f"{mid}  {(o.get('depicts') or o.get('name') or '')[:44]}"
+        extra = "" if mid in SHORTLIST else " [extra]"
+        title = f"{mid}  {(o.get('depicts') or o.get('name') or '')[:66]}{extra}"
         sub = (f"{dims.get('length', '?')} x {dims.get('width', '?')} x {dims.get('height', '?')} studs  "
                f"{cnt.get('visibleParts', '?')} visible parts  ~{cnt.get('approxTris', 0) // 1000}k tris  "
                f"scale x{o.get('suggested_uniform_scale')}{sec}")
@@ -142,7 +147,7 @@ def main(argv):
         for mid in ids or SHORTLIST:
             print(texsheet(mid))
     elif cmd == "sheet":
-        print(sheet(ids or SHORTLIST))
+        print(sheet(ids or SHORTLIST + SHEET_EXTRAS))
     else:
         print(__doc__)
         return 1

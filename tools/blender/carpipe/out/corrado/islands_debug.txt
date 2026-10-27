@@ -1,0 +1,7 @@
+Body         vis=2 faces=  2498 area= 306.540 c=[-0.01  0.05  2.46] why= :: 01_-_Default | Line02 / Line02
+WheelRL      vis=2 faces=    72 area=  12.876 c=[-2.98 -4.37  1.07] why=wheel-cylinder :: 01_-_Default | Cylinder04 / Cylinder04
+WheelFR      vis=2 faces=    72 area=  12.876 c=[2.98 4.37 1.07] why=wheel-cylinder :: 01_-_Default | Cylinder01 / Cylinder01
+WheelFL      vis=2 faces=    72 area=  12.876 c=[-2.98  4.37  1.07] why=wheel-cylinder :: 01_-_Default | Cylinder03 / Cylinder03
+WheelRR      vis=2 faces=    72 area=  12.876 c=[ 2.98 -4.37  1.07] why=wheel-cylinder :: 01_-_Default | Cylinder06 / Cylinder06
+Body         vis=2 faces=    32 area=   9.659 c=[-0.01 -4.43  1.09] why= :: 01_-_Default | Cylinder05 / Cylinder05
+Body         vis=2 faces=    32 area=   9.659 c=[-0.01  4.31  1.09] why= :: 01_-_Default | Cylinder02 / Cylinder02

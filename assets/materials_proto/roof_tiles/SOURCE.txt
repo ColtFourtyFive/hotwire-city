@@ -1,0 +1,2 @@
+CC0 (Poly Haven): https://polyhaven.com/a/clay_roof_tiles_02
+Converted by tools/blender/materials/prep_pbr.py
