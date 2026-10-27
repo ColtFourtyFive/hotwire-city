@@ -1,0 +1,46 @@
+{
+  "source": "sketchfab",
+  "uid": "3ab977050c334c13b6abb5de078b4957",
+  "slug": "v-supercar--saba-v12-95-low-poly-model-3ab977",
+  "name": "Saba V12 '95 - Low poly model",
+  "class": "supercar",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/saba-v12-95-low-poly-model-3ab977050c334c13b6abb5de078b4957",
+  "faceCount": 24552,
+  "vertexCount": 15079,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 288,
+  "tags": [
+    "automobile",
+    "supercar",
+    "low-poly",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "An updated model of the Italian sports car. The geometry of the body has been improved, the bottom of the car has been modernized, a new model of the engine, interior, wheels and much more.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-supercar--saba-v12-95-low-poly-model-3ab977/model.glb",
+  "fileBytes": 8172928,
+  "sha256": "b84815f3ba45eadb0a79b4d66b0372fe6763436a3bdaca18febe92b714bb2705",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:09+00:00",
+  "notes": null
+}

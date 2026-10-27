@@ -1,0 +1,54 @@
+{
+  "source": "sketchfab",
+  "uid": "c967ab4abbc54ae4b7933fd81a86c99c",
+  "slug": "v-supercar--cheetah-84-low-poly-model-c967ab",
+  "name": "Cheetah '84 - Low poly Model",
+  "class": "supercar",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/cheetah-84-low-poly-model-c967ab4abbc54ae4b7933fd81a86c99c",
+  "faceCount": 23338,
+  "vertexCount": 14401,
+  "materialCount": 8,
+  "textureCount": 21,
+  "animationCount": 0,
+  "likeCount": 109,
+  "tags": [
+    "automobile",
+    "retro",
+    "wedge",
+    "automotive",
+    "supercar",
+    "italian",
+    "80s",
+    "conceptcar",
+    "retrogaming",
+    "vhs",
+    "retrofuturism",
+    "retrowave",
+    "italian-design"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "A low-poly model of an Italian sports car of the 80s, created as a collective image from mass culture.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-supercar--cheetah-84-low-poly-model-c967ab/model.glb",
+  "fileBytes": 7638480,
+  "sha256": "5287070228ea30caff09829e145e097d86ec46b2af230ecaebc572a3e30c13d3",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:10:12+00:00",
+  "notes": null
+}
