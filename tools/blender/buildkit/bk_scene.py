@@ -106,7 +106,7 @@ def prep_sky(sky):
 
 
 def world(sky="sky_late_afternoon", sun_az=-55.0, strength=1.0, sun=True, sun_scale=1.0, sun_el=None,
-          sun_tint=(1.0, 0.93, 0.82)):
+          sun_tint=(1.0, 0.93, 0.82), sky_gain=1.5):
     """sun_az: azimuth (deg, from +X towards +Y) of the direction pointing AT the sun.
     The sky is rotated so its painted-out sun sits at sun_az; a Sun lamp replaces it."""
     info = prep_sky(sky)
@@ -126,7 +126,7 @@ def world(sky="sky_late_afternoon", sun_az=-55.0, strength=1.0, sun=True, sun_sc
     nt.links.new(mp.outputs[0], env.inputs[0])
     nt.links.new(env.outputs[0], bg.inputs[0])
     nt.links.new(bg.outputs[0], out.inputs[0])
-    bg.inputs[1].default_value = strength
+    bg.inputs[1].default_value = strength * (sky_gain if sun else 1.0)   # GTA-style lifted, blue shadows
     mp.inputs["Rotation"].default_value[2] = math.radians(info["az"] - sun_az)
     w.mist_settings.start, w.mist_settings.depth, w.mist_settings.falloff = 120.0, 2600.0, "LINEAR"
     if sun and info["irradiance"] > 0:

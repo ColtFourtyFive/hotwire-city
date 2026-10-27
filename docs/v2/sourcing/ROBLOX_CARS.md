@@ -96,4 +96,89 @@ Notes on the columns:
 - **Textures** counts images that downloaded and decoded, out of those referenced.
 - **Scale** is the real length ÷ 0.28 ÷ model length. A 17-stud sedan is the city reference (`gta_realism_gap.md` §1).
 
-DATA_TABLE_PLACEHOLDER
+## 3. Proposed runtime mapping spec
+
+The target is the existing **CarBuilder HeroShell contract**, read from `src/shared/Vehicle/CarBuilder.luau` lines 1–40 and not changed here:
+- A procedural `Chassis` holds `WheelFL`… attachments at the hub centres.
+- Visual `Wheel_FL`… parts are driven by `WheelWeld_FL`… C0 from `WheelAnimator`.
+- `Paint` attributes are `primary`, `accent` or `glass`.
+- `Headlight` and `Taillight` lamp parts exist.
+- A store model becomes `AssetLibrary.Hero[key]` (`Config/Assets` `source = "store"`) and is cloned in as `HeroShell`.
+
+Today that shell is one rigid lump: the procedural wheels hide under it, and its paint and lights are inert. The map JSON gives the shell the structure it needs.
+
+### 3.1 Groups (per visible BasePart; a Decal follows its part)
+
+| Group | Becomes | Rule order (first match wins) |
+|---|---|---|
+| `Wheel_FL/FR/RL/RR` | WeldConstraint to the procedural `Wheel_XX`, which is moved to the shell hub (`hubs.XX.center`, radius `hubs.XX.radius`), so the shell wheel spins and steers. | 1. Descendant of a wheel container (`Wheels/FL`… A-Chassis, or a round part named FL/FR/RL/RR). 2. Wheel-ish name: wheel, tire/tyre, rim, hub, rotor, disc, pneu, jante. 3. Geometry: the biggest round part (Ball, Cylinder, or two equal dimensions) low in each corner, plus everything inside its radius. The quadrant comes from the position in the car frame. |
+| `WheelStatic_XX` | WeldConstraint to Chassis at the hub (no spin). Steer-follow can come later. | Under a wheel container but inside `Fixed`, `WheelFixed`, `Caliper` or `Plaquette`. |
+| `Lights_Head` / `Tail` / `Brake` / `Reverse` / `Indicator_L` / `Indicator_R` / `Emergency` | Attribute `Lamp=<kind>`. The light controller toggles Material Neon or brightness. Procedural `Headlight` beams are re-pivoted to the `Lights_Head` centroid. | Name matches light, lamp, led, drl, indicator, signal, brake, reverse, fog, tail, head, phare, feu, clignot, gyro (not headrest); or Material Neon; or a Light child. Saturated red parts in the rear quarter count. So do parts sharing a dedicated lamp texture (≤6 users, ≥30 % already lamps). The subtype comes from the name, then colour or position. |
+| `Glass` | Attribute `Paint=glass`. | Material Glass; or name matches glass, window, windscreen or vitre (not trim, contour or frame); or 0.15 ≤ Transparency ≤ 0.85 with a dark colour. |
+| `Plate` | Our own plate decal replaces the texture. | Name matches plate, licence, plaque or matricula. |
+| `Interior` | Static. Can be dropped for LOD or traffic. | Name matches interior, seat, dash, steer, gauge, needle, speedo, siège or volant. |
+| `Paint` | Attribute `Paint=primary` plus `BaseColor`, so it is recolourable. | Untextured parts whose Color equals the paint colour. The colour comes from parts named paint, body colour, carrosserie or COLOR; if none are named, from the area-dominant chromatic colour. |
+| `PaintBaked` | Static. Recolouring needs our own ColorMap. | The named body part carries a TextureID or SurfaceAppearance, so `Color` does nothing. |
+| `Body` | Static, welded to Chassis. | Everything else that is visible. |
+| *(hidden)* | Dropped. | Transparency ≥ 0.98: A-Chassis wheel balls, axles, seats, downforce parts. |
+
+### 3.2 Selector grammar used in this doc and in `groups.*.selectors`
+
+- Paths are relative to the asset's root Model.
+- `#k` means the k-th child with that name, counting in file order. The JSON lists the full explicit paths too.
+- `/**` means every visible descendant.
+- `{a, b}` means alternatives.
+
+Runtime resolution:
+1. Resolve the selectors on the sanitised clone.
+2. Check that the resolved count equals `groups.*.count`.
+3. If a count differs, because the asset was updated or sibling order changed, fall back to the rule table above on the live instances.
+
+The rules use only Name, Material, Color, Transparency, TextureID and position, all of which Luau can read.
+
+### 3.3 Integration checklist (for the vehicle owner, not done here)
+
+1. **Configure the asset.**
+   - Add a `Config/Assets.Hero` entry: `source="store"`, `fit="length"`, `size = dims_studs.length × suggested_uniform_scale`, `yaw = assetsYaw` (from the JSON).
+   - `AssetLibrary` sanitises store models with a whitelist (`STORE_KEEP` = BasePart, DataModelMesh, SurfaceAppearance, Model, Folder). That already removes every script before parenting, so the backdoors in §4 cannot run (`AssetLibrary.luau:96-122,166`).
+   - **Add `Decal` and `Texture` to `STORE_KEEP`.** Tyre treads, wheel photos (Murano, Patrol, Prius), plates and the interceptor's livery are Decals, and today they would vanish. A Script nested *inside* a Decal (the Prius does this) is still removed, because the whitelist is checked per descendant.
+2. **Ship the groups.** Convert `roblox_car_maps/<id>.json` → `groups.*.paths`, `hubs` and `paint` into a Luau table per car (generated, like `kitgeo.py luau`). Ship those tables, not the JSON.
+3. **Apply them in `applyShell`.**
+   - Tag the parts: `Paint=primary` on `Paint`, `Paint=glass` on `Glass`, `Lamp=*` on lamps.
+   - Weld `Wheel_XX` to the procedural wheel and hide that wheel's cylinder.
+   - Set the `WheelFL`… attachments and `WheelRadius` from `hubs`, times the fit scale.
+   - Weld `WheelStatic_XX` to the Chassis.
+4. **Override brands** using the per-car list in §5. Hide the part, or set our own `TextureID` or SurfaceAppearance. Never re-upload the third-party mesh.
+5. **Watch the budget.** MeshParts cost draw calls; Roblox auto-LODs them. The Patrol (463k tris) and Mercedes (422k) are too heavy for traffic. Use them as hero or garage cars only, or not at all.
+
+## 4. Security: the "TextureConfiguration" backdoor family
+
+All seven infected models carry the same kit:
+- A `Script` named to look like an engine feature: `CoreTextureSystem`, `CoreSkyboxSystem`, `Package`, `PoseTexture`, `PoseLink` or `qTexture`.
+- It hides somewhere a quick look misses:
+  - inside a `BloomEffect` named `BloomDefect`;
+  - inside a wheel `Decal`;
+  - inside the `PAINT` part;
+  - at the model root, under `NumberPose`, `AlignPosition` or `RigidConstraint` chains.
+- A `ModuleScript` named `TextureConfiguration` sits beside it. It is about 9 KB of plausible "texture preset" code with a `Version` attribute holding an asset ID.
+- The loader runs `require(script:WaitForChild("TextureConfiguration", 4):GetAttribute("Version"))` or `.Module.Value`. That is a remote module, so the attacker can change behaviour at any time.
+- The `CoreSkyboxSystem` variant checks `game.JobId` so it stays dormant in Studio.
+- A `LocalScript` sets `script.Parent = nil` and turns off every CoreGui, hiding chat and the menu.
+
+| Asset | Where | Payload IDs found |
+|---|---|---|
+| `97965573521866` Mercedes | `Model/BloomDefect/CoreTextureSystem` (+ LocalScript) | `74145699488273` |
+| `132078381973405` Prius | `Body/Model/PAINT#1/CoreSkyboxSystem`, `Wheels/Wheel#4/Decal/Package` | `115188487528112`, `130049213376589` |
+| `126180570128588` Tundra | `CoreSkyboxSystem` (root) | `95925098868592` |
+| `103123587729335` Police hatch | `PoseTexture` (root) | `140312253726156` |
+| `113053967699143` Police interceptor | `BloomDefect/ExtraData/Shifter/PoseLink` | none visible (obfuscated) |
+| `94301391128632` Taxi (extra) | 5 nested copies under `Object.5240` | `115188487528112`, `128320524036560`, `140312253726156` |
+
+`rbxm_inspect.luau` flags these patterns without writing any source:
+- `require-by-attribute`, `studio-evasion(JobId)`, `self-hide`, `coregui-toggle`;
+- `odd-parent:<class>` (a script under a PostEffect, Light, Decal or Sky);
+- `backdoor-family:TextureConfiguration`.
+
+`rbx_car_map.py` collects the payload IDs from attributes and Values anywhere under a flagged script, and from 10+ digit literals. The scout's Studio inserts were safe because Studio sandboxes inserted scripts and the scout deleted them. A runtime `LoadAssetAsync` path is only safe because `AssetLibrary` strips scripts before parenting. Keep it that way.
+
+PER_CAR_PLACEHOLDER

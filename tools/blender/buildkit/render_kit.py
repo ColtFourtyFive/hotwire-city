@@ -38,7 +38,9 @@ def north_lot_y(D):
 
 
 def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w=40.0, palm_kind="fan", side_w=SIDE_W,
-           no_cars=None):
+           no_cars=None, clear=None):
+    """clear=(x, y, r): keep lamps/palms out of a radius around the camera."""
+    ok = (lambda px, py: clear is None or math.hypot(px - clear[0], py - clear[1]) > clear[2])
     """East-west avenue centred on y=0 with sidewalks both sides (lots start at |y| = ROAD_W/2 + SIDE_W)."""
     c = col()
     S.road(c, x0, -ROAD_W / 2, x1, ROAD_W / 2, axis="x")
@@ -51,11 +53,13 @@ def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w
     k = 0
     while x < x1 - 10:
         for sgn in (-1, 1):
-            if k % 2 == (0 if sgn > 0 else 1):
+            if k % 2 == (0 if sgn > 0 else 1) and ok(x, sgn * (ROAD_W / 2 + 2.0)):
                 S.street_lamp(c, x, sgn * (ROAD_W / 2 + 2.0), facing=(0, -sgn), night=night)
         if palms:
             for sgn in (-1, 1):
-                S.palm(c, x + lamps / 2, sgn * (ROAD_W / 2 + 3.2), h=r.uniform(*palms), seed=r.randint(0, 999), kind=palm_kind)
+                hh, sd = r.uniform(*palms), r.randint(0, 999)
+                if ok(x + lamps / 2, sgn * (ROAD_W / 2 + 3.2)):
+                    S.palm(c, x + lamps / 2, sgn * (ROAD_W / 2 + 3.2), h=hh, seed=sd, kind=palm_kind)
         x += lamps
         k += 1
     if cars:
@@ -104,7 +108,8 @@ def sc_downtown(a, night=False):
         S.night()
     else:
         S.world("sky_late_afternoon", sun_az=-150.0)
-    avenue(-460, 420, night=night, lamps=70, palms=(38, 50), palm_kind="date", seed=3, far_w=0, no_cars=(-460, -330))
+    avenue(-460, 420, night=night, lamps=70, palms=(38, 50), palm_kind="date", seed=3, far_w=0, no_cars=(-460, -330),
+           clear=(-392, -7, 30))
     specs = [("tower", 3, -330), ("tower", 7, -230), ("tower", 1, -120), ("tower", 12, -10), ("tower", 5, 100), ("tower", 9, 210)]
     for (arch, sd, x) in specs:
         B = BK.build(arch, sd)
@@ -123,21 +128,18 @@ def sc_midtown(a, night=False):
         S.night()
     else:
         S.world("sky_late_afternoon", sun_az=-140.0)
-    avenue(-420, 520, night=night, lamps=60, palms=(46, 62), seed=5, far_w=0, no_cars=(-420, -150))
-    x = -150.0
-    seeds = [3, 1, 6, 2, 8, 11, 7, 12]
+    avenue(-520, 520, night=night, lamps=60, palms=(46, 62), seed=5, far_w=0, no_cars=(-520, -150),
+           clear=(-205, -30, 26))
+    x = -330.0
+    seeds = [15, 16, 3, 1, 6, 2, 8, 11, 7, 12]
     for i, sd in enumerate(seeds):
         party = ["left", "right"]
-        if i == 0:
-            party = ["right"]
-        if i == len(seeds) - 1:
-            party = ["left"]
         B = BK.build("midtown", sd, party=party, D=40)
         W, D = B.footprint
         BK.instantiate(B, col(), loc=(x + W / 2, north_lot_y(D), 0), rot_z=0, night=night)
         x += W
-    x = -120.0
-    for i, sd in enumerate([4, 9, 5, 10, 13, 14]):
+    x = -150.0
+    for i, sd in enumerate([4, 9, 5, 10, 13, 14, 17]):
         B = BK.build("midtown", sd, party=["left", "right"], D=40)
         W, D = B.footprint
         BK.instantiate(B, col(), loc=(x + W / 2, -north_lot_y(D), 0), rot_z=180, night=night)
@@ -151,7 +153,8 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
                   cars_frac=0.6):
     S.reset(a.res)
     S.world("sky_late_afternoon", sun_az=sun)
-    avenue(-320, 320, lamps=64, palms=palms, seed=seed + 11, far_w=0)
+    avenue(-320, 320, lamps=64, palms=palms, seed=seed + 11, far_w=0, clear=(cam[0], cam[1], 26),
+           no_cars=(cam[0] - 40, cam[0] + 40))
     B = BK.build(arch, seed, **(kw or {}))
     W, D = B.footprint
     y = north_lot_y(D)

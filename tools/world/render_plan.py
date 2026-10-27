@@ -335,7 +335,8 @@ def render(data, view, opts):
             cx, _, cz = f["pos"]
             rx, rz = f["right"]
             lx, lz = f["look"]
-            for k in range(-3, 4):
+            rows = max(1, int(f["size"][2] / 2 / 30))
+            for k in range(-rows + 1, rows):
                 a = (cx + rx * (f["size"][0] / 2 - 10) + lx * k * 30, cz + rz * (f["size"][0] / 2 - 10) + lz * k * 30)
                 b = (cx - rx * (f["size"][0] / 2 - 10) + lx * k * 30, cz - rz * (f["size"][0] / 2 - 10) + lz * k * 30)
                 cc = [(196, 70, 50), (40, 110, 170), (220, 160, 40), (60, 140, 90)][k % 4]
@@ -513,7 +514,7 @@ def label_districts(img, data, view, scale):
         "downtown": (180, -1060),
         "midtown": (-2350, 120),
         "beach": (-4250, -1550),
-        "hills": (-2300, -2850),
+        "hills": (-3350, -2700),
         "foundry": (2700, -1350),
         "rust": (2900, 2350),
         "southgate": (-700, 2620),

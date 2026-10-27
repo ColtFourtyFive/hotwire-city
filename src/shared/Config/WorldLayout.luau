@@ -2569,7 +2569,19 @@ end
 				end
 			end)
 			if bestT then
-				w.pts[endIdx] = P(p.x + (fx - p.x) * bestT, p.z + (fz - p.z) * bestT)
+				local ex, ez = p.x + (fx - p.x) * bestT, p.z + (fz - p.z) * bestT
+				local clear = true
+				for ri = 2, #RESERVED_AREAS do
+					for step = 1, 4 do
+						local t = step / 4
+						if WorldGen.pointInPoly(RESERVED_AREAS[ri].poly, p.x + (ex - p.x) * t, p.z + (ez - p.z) * t) then
+							clear = false
+						end
+					end
+				end
+				if clear then
+					w.pts[endIdx] = P(ex, ez)
+				end
 			end
 		end
 	end
@@ -3446,7 +3458,7 @@ local POI_DEFS: { PoiDef } = {
 		name = "Hotwire Plaza",
 		kind = "plaza",
 		at = { 320, -100 },
-		size = { 226, 0, 220 },
+		size = { 226, 0, 196 },
 		road = "Crown Boulevard",
 		setback = 0,
 		tags = { "events", "cashRain", "defaultSpawn" },
@@ -3456,7 +3468,7 @@ local POI_DEFS: { PoiDef } = {
 		id = "Dealership",
 		name = "Hotwire Motors",
 		kind = "dealership",
-		at = { -1900, -420 }, -400 },
+		at = { -1900, -420 },
 		size = { 220, 40, 170 },
 		setback = 10,
 		tags = { "showroom" },
@@ -3964,7 +3976,7 @@ local POI_DEFS: { PoiDef } = {
 		id = "Casino",
 		name = "Lucky Seven Casino",
 		kind = "landmark",
-		at = { -2450, -1250 }, -1450 },
+		at = { -2450, -1250 },
 		size = { 200, 120, 160 },
 		setback = 20,
 		tags = { "futureHeist" },
