@@ -336,8 +336,9 @@ def sc_mansion(a):
     def in_lot(x, y):   # the lot brings its own ground: flat deck level + flat apron below the plinth
         return -W / 2 - 4 < x < W / 2 + 4 and LY - D / 2 - 26 < y < LY + D / 2 + 4
     S.hill(c, -600, -120, 600, 520, hz, nx=150, ny=90, kind="drygrass", skip=in_lot)
-    S.ground(c, -W / 2 - 6, LY - D / 2 + 21, W / 2 + 6, LY + D / 2 + 6, "drygrass", z=base - 0.3)
-    S.ground(c, -W / 2 - 6, LY - D / 2 - 28, W / 2 + 6, LY - D / 2 + 21, "drygrass", z=base - B.base_depth - 0.2)
+    apron = base - B.base_depth
+    S.block(c, -W / 2 - 8, LY - D / 2 + 23, apron - 6, W / 2 + 8, LY + D / 2 + 8, base - 0.3)   # behind the plinth face
+    S.block(c, -W / 2 - 8, LY - D / 2 - 30, apron - 6, W / 2 + 8, LY - D / 2 + 21, apron - 0.15)
     BK.instantiate(B, c, loc=(0, LY, base), rot_z=0)
     r = random.Random(7)
     for k in range(420):
@@ -471,31 +472,42 @@ VARIANTS = {  # arch: (seeds, extra kw, camera height factor)
 
 
 def sc_variants(a, arch):
-    """Several seeds of one archetype side by side, elevated 3/4 view: shows the parametric range."""
+    """Several seeds of one archetype, elevated 3/4 view: shows the parametric range. Tall archetypes stand in one
+    row; low ones (lots) are laid out in a 2-3 column grid so they stay large in frame."""
     S.reset(a.res)
     S.world("sky_late_afternoon", sun_az=-135.0)
     seeds, kw, hf = VARIANTS[arch]
     Bs = [BK.build(arch, sd, **kw) for sd in seeds]
     gap = 10.0
-    total = sum(B.footprint[0] for B in Bs) + gap * (len(Bs) - 1)
-    x = -total / 2
     Hmax = max(B.height for B in Bs)
-    Dmax = max(B.footprint[1] for B in Bs)
-    for B in Bs:
-        W, D = B.footprint
-        y = ROAD_W / 2 + SIDE_W + D / 2
-        z = 0.0
-        BK.instantiate(B, col(), loc=(x + W / 2, y, z), rot_z=0)
-        if B.spawns:
-            lot_cars(B, x + W / 2, y, 0, frac=0.4, seed=B.seed)
-        x += W + gap
-    avenue(-total / 2 - 80, total / 2 + 80, lamps=80, palms=None, cars=False, far_w=0)
+    tall = Hmax > 60
+    cols = len(Bs) if tall else (2 if len(Bs) <= 4 else 3)
+    rows = [Bs[i:i + cols] for i in range(0, len(Bs), cols)]
+    Wrow = max(sum(B.footprint[0] for B in row) + gap * (len(row) - 1) for row in rows)
+    y = ROAD_W / 2 + SIDE_W
+    for row in rows:
+        x = -Wrow / 2
+        Drow = max(B.footprint[1] for B in row)
+        for B in row:
+            W, D = B.footprint
+            BK.instantiate(B, col(), loc=(x + W / 2, y + D / 2, 0.0), rot_z=0)
+            if B.spawns:
+                lot_cars(B, x + W / 2, y + D / 2, 0, frac=0.4, seed=B.seed)
+            x += W + gap
+        y += Drow + 24.0
+    depth = y - (ROAD_W / 2 + SIDE_W)
+    avenue(-Wrow / 2 - 120, Wrow / 2 + 120, lamps=80, palms=None, cars=False, far_w=0)
     S.ground(col(), -3000, -3000, 3000, 3000, "grass" if arch in ("house", "mansion") else "sidewalk", z=-0.05)
-    span = max(total, Hmax * 1.6)
-    dist = span * 0.95
-    cam = (-total * 0.18, ROAD_W / 2 + SIDE_W - dist, max(14.0, min(Hmax * hf, dist * 0.45)))
-    tgt = (0.0, ROAD_W / 2 + SIDE_W + Dmax * 0.35, Hmax * 0.35)
-    return finish("variants_" + arch, cam, tgt, 30, a.samples, a.res, haze_amt=0.35)
+    cy = ROAD_W / 2 + SIDE_W + depth * 0.45
+    if tall:
+        dist = max(Wrow, Hmax * 1.6) * 0.95
+        cam = (-Wrow * 0.18, ROAD_W / 2 + SIDE_W - dist, max(14.0, min(Hmax * hf, dist * 0.45)))
+        tgt = (0.0, ROAD_W / 2 + SIDE_W + depth * 0.35, Hmax * 0.35)
+    else:
+        dist = max(Wrow, depth) * 0.95
+        cam = (-Wrow * 0.22, cy - dist * 0.92, dist * 0.55)
+        tgt = (0.0, cy, Hmax * 0.2)
+    return finish("variants_" + arch, cam, tgt, 30, a.samples, a.res, haze_amt=0.3)
 
 
 SCENES = {"downtown": sc_downtown, "midtown": sc_midtown, "strip": sc_strip, "gas": sc_gas, "diner": sc_diner,

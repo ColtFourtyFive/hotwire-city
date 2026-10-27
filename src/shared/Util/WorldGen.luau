@@ -297,9 +297,14 @@ function WorldGen.polyOffsetVar(pts: { P2 }, dOf: (number, number) -> number): {
 		if i > 1 then
 			s += WorldGen.dist(pts[i - 1].x, pts[i - 1].z, pts[i].x, pts[i].z)
 		end
-		local seg = { pts[math.max(1, i - 1)], pts[i], pts[math.min(n, i + 1)] }
-		local one = WorldGen.polyOffset(seg, dOf(i, s))
-		table.insert(out, one[2])
+		local d = dOf(i, s)
+		if i == 1 then
+			table.insert(out, WorldGen.polyOffset({ pts[1], pts[2] }, d)[1])
+		elseif i == n then
+			table.insert(out, WorldGen.polyOffset({ pts[n - 1], pts[n] }, d)[2])
+		else
+			table.insert(out, WorldGen.polyOffset({ pts[i - 1], pts[i], pts[i + 1] }, d)[2])
+		end
 	end
 	return out
 end

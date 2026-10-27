@@ -736,6 +736,17 @@ class Car:
                 # "inner" panels at the nose/tail or under the car are exterior trim, not cabin
                 role[i] = TRIM
                 why[i] += " exterior-inner"
+        # lamp internals and covers on models without light names: anything only seen through "glass" at the
+        # nose/tail below the beltline is a lamp unit, and low glass at the very ends is a lamp cover
+        for i in range(n):
+            at_end = abs(self.ic[i, 1]) > 0.36 * L and self.ic[i, 2] < 0.62 * H
+            if role[i] == INTERIOR and "behind-glass" in why[i] and at_end:
+                role[i] = LIGHT_F
+                why[i] += " lamp-unit"
+            elif role[i] == GLASS and abs(self.ic[i, 1]) > 0.40 * L and self.ic[i, 2] < 0.6 * H and \
+                    not kw_match(self.island_name(i), [r"wind", r"window", r"screen", r"scheibe"]):
+                role[i] = LIGHT_F
+                why[i] += " lamp-cover"
         # front/rear lights
         for i in range(n):
             if role[i] == LIGHT_F:

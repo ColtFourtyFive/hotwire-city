@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-27T17:39:29",
+ "generated": "2026-10-27T18:36:32",
  "units": "studs (1 Blender unit = 1 stud)",
  "axes": "glTF Y-up; building front = +Z in glTF (Blender -Y). Origin = lot bottom-centre at grade.",
  "roblox": {
@@ -1742,11 +1742,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -1837,7 +1837,7 @@
     "json": "glb/strip_00.json",
     "glb_embedded": "glb/strip_00_embedded.glb"
    },
-   "glb_bytes": 178732
+   "glb_bytes": 178652
   },
   {
    "name": "strip_01",
@@ -2106,11 +2106,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -2200,7 +2200,7 @@
     "glb": "glb/strip_01.glb",
     "json": "glb/strip_01.json"
    },
-   "glb_bytes": 124828
+   "glb_bytes": 124748
   },
   {
    "name": "strip_02",
@@ -2549,11 +2549,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -2643,7 +2643,7 @@
     "glb": "glb/strip_02.glb",
     "json": "glb/strip_02.json"
    },
-   "glb_bytes": 212584
+   "glb_bytes": 212504
   },
   {
    "name": "strip_03",
@@ -2968,11 +2968,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -3062,7 +3062,7 @@
     "glb": "glb/strip_03.glb",
     "json": "glb/strip_03.json"
    },
-   "glb_bytes": 209392
+   "glb_bytes": 209312
   },
   {
    "name": "corner_store_00",
@@ -3274,11 +3274,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -3355,7 +3355,7 @@
     "json": "glb/corner_store_00.json",
     "glb_embedded": "glb/corner_store_00_embedded.glb"
    },
-   "glb_bytes": 77420
+   "glb_bytes": 77340
   },
   {
    "name": "corner_store_01",
@@ -3567,11 +3567,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -3647,7 +3647,7 @@
     "glb": "glb/corner_store_01.glb",
     "json": "glb/corner_store_01.json"
    },
-   "glb_bytes": 78288
+   "glb_bytes": 78204
   },
   {
    "name": "corner_store_02",
@@ -3859,11 +3859,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -3939,7 +3939,7 @@
     "glb": "glb/corner_store_02.glb",
     "json": "glb/corner_store_02.json"
    },
-   "glb_bytes": 75416
+   "glb_bytes": 75336
   },
   {
    "name": "corner_store_03",
@@ -4151,11 +4151,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -4231,7 +4231,7 @@
     "glb": "glb/corner_store_03.glb",
     "json": "glb/corner_store_03.json"
    },
-   "glb_bytes": 75164
+   "glb_bytes": 75084
   },
   {
    "name": "gas_00",
@@ -4435,11 +4435,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -4530,7 +4530,7 @@
     "json": "glb/gas_00.json",
     "glb_embedded": "glb/gas_00_embedded.glb"
    },
-   "glb_bytes": 119828
+   "glb_bytes": 119748
   },
   {
    "name": "gas_01",
@@ -4734,11 +4734,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -4828,7 +4828,7 @@
     "glb": "glb/gas_01.glb",
     "json": "glb/gas_01.json"
    },
-   "glb_bytes": 120100
+   "glb_bytes": 120020
   },
   {
    "name": "gas_02",
@@ -5042,11 +5042,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -5136,7 +5136,7 @@
     "glb": "glb/gas_02.glb",
     "json": "glb/gas_02.json"
    },
-   "glb_bytes": 129564
+   "glb_bytes": 129480
   },
   {
    "name": "gas_03",
@@ -5350,11 +5350,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -5444,7 +5444,7 @@
     "glb": "glb/gas_03.glb",
     "json": "glb/gas_03.json"
    },
-   "glb_bytes": 119212
+   "glb_bytes": 119128
   },
   {
    "name": "diner_00",
@@ -5703,11 +5703,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -5788,7 +5788,7 @@
     "json": "glb/diner_00.json",
     "glb_embedded": "glb/diner_00_embedded.glb"
    },
-   "glb_bytes": 155584
+   "glb_bytes": 155504
   },
   {
    "name": "diner_01",
@@ -6057,11 +6057,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -6141,7 +6141,7 @@
     "glb": "glb/diner_01.glb",
     "json": "glb/diner_01.json"
    },
-   "glb_bytes": 160828
+   "glb_bytes": 160748
   },
   {
    "name": "diner_02",
@@ -6410,11 +6410,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -6494,7 +6494,7 @@
     "glb": "glb/diner_02.glb",
     "json": "glb/diner_02.json"
    },
-   "glb_bytes": 160840
+   "glb_bytes": 160760
   },
   {
    "name": "diner_03",
@@ -6753,11 +6753,11 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "pavers",
+      "set": "curb",
       "tint": [
-       0.98,
-       0.98,
-       0.98
+       1.0,
+       1.0,
+       1.0
       ]
      }
     },
@@ -6837,7 +6837,7 @@
     "glb": "glb/diner_03.glb",
     "json": "glb/diner_03.json"
    },
-   "glb_bytes": 155536
+   "glb_bytes": 155452
   },
   {
    "name": "deco_00",
@@ -10321,7 +10321,7 @@
      "night_only": false,
      "material": {
       "kind": "texture",
-      "set": "concrete_board",
+      "set": "concrete",
       "tint": [
        0.92,
        0.9,
@@ -10546,7 +10546,7 @@
     "glb": "glb/mansion_02.glb",
     "json": "glb/mansion_02.json"
    },
-   "glb_bytes": 122796
+   "glb_bytes": 122788
   },
   {
    "name": "mansion_03",

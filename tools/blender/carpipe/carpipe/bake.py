@@ -270,9 +270,12 @@ def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
         dh = np.abs((hue - phue + 180.0) % 360.0 - 180.0)
         m = (dh < 24.0) & (sat > 0.4 * psat) & (mx > 0.25 * pmx) & (mx < 2.6 * pmx + 0.05)
         m |= (d < 0.35) & (bright > 0.35) & (bright < 1.8)
-    else:  # achromatic paint: rely on brightness band + low chroma
+    else:  # achromatic paint: low chroma + brightness band (absolute band for near-black paint)
         cchroma = rgb.max(-1) - rgb.min(-1)
-        m = (cchroma < 0.10) & (bright > 0.7) & (bright < 1.35)
+        if plum < 0.08:
+            m = (cchroma < 0.10) & (lum[..., 0] < max(0.14, plum * 3))
+        else:
+            m = (cchroma < 0.10) & (bright > 0.7) & (bright < 1.35)
     m &= valid
     mf = m.astype(np.float32)
     # soften 1px

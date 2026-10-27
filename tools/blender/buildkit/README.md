@@ -139,3 +139,32 @@ is 2.2x, the view transform is AgX Medium High Contrast and the compositor adds 
 - Textures and HDRIs come from Poly Haven and are CC0. Each texture set's folder has a `SOURCE.txt`.
 - The fonts used for signs are SIL OFL Google Fonts, and are baked into atlases.
 - The brand names are our own parodies: PUMP & GO, QUIK STOP, PACIFIC TRUST and others.
+
+## Budgets (4 seeds per archetype, 40 buildings)
+
+| arch | triangles per building | largest part | parts |
+|---|---|---|---|
+| tower | 5.2k-6.2k | 2.7k | 12 |
+| midtown | 18.6k-28.2k | 10.8k | 11 |
+| deco | 4.2k-7.5k | 3.8k | 13 |
+| strip, store, gas, diner | 1.0k-3.0k | 1.2k | 16-17 |
+| house | 1.1k-1.9k | 0.7k | 15 |
+| warehouse | 2.0k-2.5k | 0.7k | 17 |
+| mansion | 1.5k | 0.6k | 17 |
+
+There are 0 budget violations. A light GLB is 0.1-1.9 MB. The embedded test copies are 11-27 MB.
+
+## Known limitations
+
+- Nothing has been imported into Roblox Studio yet. Three things need checking there:
+  - that the tiling UVs wrap on MeshPart SurfaceAppearances;
+  - which emissive route works for WindowsLit, Sign and Brand;
+  - draw-call cost at 15-17 MeshParts per building on mobile.
+- Draw calls are not reduced yet. The colour-only roles (Accent, Frames, Paint, Neon) could later be merged into one
+  palette-textured part. That would lose runtime recolouring.
+- The tower facade uses square interior cells stretched across two bays. Towers have no chamfered or curved
+  footprints, and no LOD meshes; the engine's automatic LOD is assumed.
+- There is no weathering variation beyond the shared grime atlas, and no unique baked AO.
+- Curved diner glass is faceted, and the deco corners are square, not streamline-rounded.
+- The preview cars, palms and trees are deliberately simple stand-ins, not game assets.
+

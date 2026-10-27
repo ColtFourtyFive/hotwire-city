@@ -313,6 +313,17 @@ def camera(target, L, az_deg=35.0, el_deg=10.0, lens=50, dist_mul=1.0, shift_y=0
     return ob
 
 
+def camera_lookat(pos, target, lens=35):
+    cam = bpy.data.cameras.new("Cam")
+    cam.lens = lens
+    ob = bpy.data.objects.new("Cam", cam)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.location = pos
+    ob.rotation_euler = (Vector(target) - Vector(pos)).to_track_quat("-Z", "Y").to_euler()
+    bpy.context.scene.camera = ob
+    return ob
+
+
 def render_to(path):
     bpy.context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)

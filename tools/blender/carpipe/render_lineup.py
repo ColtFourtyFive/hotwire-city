@@ -35,21 +35,20 @@ def main():
     R.setup_cycles(samples=a.samples, res=tuple(int(x) for x in a.res.split("x")))
     L = 17.0
     lane = L * 0.42
-    # slots: (x, y, heading) ; right lanes drive +Y, left lanes -Y, last ones parked at the right curb
-    slots = [(lane * 0.5, 0.0, 0.0), (lane * 1.5, -L * 1.3, 0.0), (-lane * 0.5, -L * 0.6, math.pi),
-             (lane * 0.5, -L * 2.7, 0.0), (-lane * 1.5, L * 0.9, math.pi), (lane * 1.62, L * 1.25, 0.0),
-             (-lane * 0.5, -L * 2.4, math.pi), (lane * 1.5, -L * 4.0, 0.0)]
-    tgt = (lane * 0.4, -L * 0.9, 2.2)
-    cam = dict(az_deg=24, el_deg=6, lens=32, dist_mul=1.9)
-    cp = R.camera_pos(tgt, L, **cam)
-    R.street(L, night=a.night, keep_clear=(cp.x, cp.y))
+    # right lanes (x > 0) drive +Y towards the camera, left lanes drive away; nearest car ~1.2 L from the lens
+    slots = [(lane * 0.5, -L * 0.3, 0.0), (lane * 1.5, -L * 1.3, 0.0), (-lane * 0.5, -L * 1.25, math.pi),
+             (lane * 1.5, -L * 3.0, 0.0), (lane * 0.5, -L * 2.2, 0.0), (-lane * 1.5, -L * 2.05, math.pi),
+             (-lane * 0.5, -L * 3.4, math.pi), (lane * 0.5, -L * 4.2, 0.0)]
+    cam_pos = (lane * 1.9, L * 1.55, 5.2)
+    cam_tgt = (-lane * 0.15, -L * 1.55, 2.6)
+    R.street(L, night=a.night, keep_clear=(cam_pos[0], cam_pos[1]))
     for car, (x, y, h) in zip(cars, slots):
         glb = os.path.join(HERE, "out", car, car + ".glb")
         if not os.path.exists(glb):
             util.log("missing", glb)
             continue
         R.load_glb(glb, offset=(x, y, 0), rot_z=h, paint=PAINT.get(car), lights_on=a.night)
-    R.camera(tgt, L, **cam)
+    R.camera_lookat(cam_pos, cam_tgt, lens=44)
     out = a.out or os.path.join(REPO, "docs", "v2", "proto", "carpipe",
                                 f"lineup_street_{'night' if a.night else 'day'}.png")
     R.render_to(out)

@@ -20,7 +20,7 @@ Requirements: Blender 5.2 as a Python module (`import bpy`), numpy, Pillow and p
 
 ## Output contract
 
-Output goes to `tools/blender/carpipe/out/<name>/`, which contains `<name>.glb`, `<name>.json`, `textures/*.png` and `islands_debug.txt`.
+Output goes to `tools/blender/carpipe/out/<name>/`, which contains `<name>.glb`, `<name>.json`, `textures/*.png` and `islands_debug.txt`. `out/` is gitignored because it is reproducible: run `fetch_models.py` (plus the Sketchfab token for the CC-BY cars), then `build_car.py`.
 
 **Coordinates.** The GLB is +Y up and the car's front faces **−Z**, which is the Roblox `LookVector` and the "built pose" in `CarBuilder.luau`. The origin sits on the ground plane, centred between the wheel contact patches. 1 unit = 1 stud.
 
@@ -179,7 +179,7 @@ All 11 test cars pass `validate_glb.py`. The output length is `auto` (real metre
 | fairheaven_cop | same author, CC-BY 4.0 | 19,499 → 13,131 | Police livery uses the tint-mask route. The lightbar ends up in Glass (see limits). |
 | canyon_taxi | same author, CC-BY 4.0 | 20,026 → 11,651 | Paint is inside an atlas, so it uses the tint-mask route (hue match keeps worn and faded panels). |
 | shvan_van | same author, CC-BY 4.0 | 23,045 → 15,118 | The cargo-box interior is hidden behind panels and is dropped. |
-| goblin_supercar | Sketchfab, ollitei, CC-BY 4.0 | 86,588 → 12,755 | Tiny units (length forced to 15.5). The clear-coat overlay shell is dropped. Atlas body, lights painted on, so light positions are estimated. |
+| goblin_supercar | Sketchfab, ollitei, CC-BY 4.0 | 86,588 → 12,441 | Tiny units (length forced to 15.5). The clear-coat overlay shell is dropped. Atlas body. The lamp units have no names and are found as "seen through glass at the nose and tail". Near-black paint uses the tint-mask route. |
 | musclecar | OpenGameArt, brightretro, CC-BY 3.0 | 5,119 → 5,055 | OBJ with no `.mtl`. Textures are mapped in `models.json` and material presets are applied by name. |
 | corrado | OpenGameArt, rohezal, CC0 | 2,850 → 2,850 | Single atlas, centimetre units, length along X, 1467×360 texture. Sliver triangles mean no normal map is baked. Rebrand before shipping. |
 | uaz452 | OpenGameArt, Mehozavr, CC0 | 1,014 → 1,011 | FBX van, atlas, tint-mask route. |

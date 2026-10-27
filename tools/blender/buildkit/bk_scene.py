@@ -317,6 +317,13 @@ def ground(col, x0, y0, x1, y1, kind="grass", z=0.0, tile=None):
     return G.to_object(b, _m(kind), col, weighted=False)
 
 
+def block(col, x0, y0, z0, x1, y1, z1, kind="drygrass"):
+    """Solid earth block (its sides close gaps between a cut terrain and a flat lot)."""
+    b = G.MeshBuf("Block_" + kind, tile=20.0)
+    G.box(b, x0, y0, z0, x1, y1, z1, skip=("bottom",))
+    return G.to_object(b, _m(kind), col, weighted=False)
+
+
 def road(col, x0, y0, x1, y1, axis="x", lanes=True, z=0.0):
     """Plain road patch with centre double-yellow and dashed lane lines."""
     ground(col, x0, y0, x1, y1, "asphalt", z)
