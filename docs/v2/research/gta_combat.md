@@ -56,7 +56,7 @@ GTA reference frames from another agent are in the same folder: `ref_gtawiki_Wea
     - Bounties are zero-sum, paid out of the target's own cash, so alt accounts cannot farm them.
 11. **Controls:**
     - GTA over-the-shoulder camera, plus a weapon wheel: hold Tab, hold LB, or tap the weapon icon on mobile.
-    - Mobile and gamepad get GTA "Assisted Aim" style lock-on against NPC cops, but only friction and magnetism against players (Rockstar's own targeting-mode split).
+    - Mobile and gamepad get GTA "Assisted Aim" style lock-on against NPC cops, but only friction and magnetism against players. This NPC/player split is our own design. GTA Online instead separates players into lobbies by targeting mode. *(Corrected in verification.)*
 
 ---
 
@@ -108,7 +108,17 @@ Source: the public age-recommendation endpoint `POST apis.roblox.com/experience-
 | Bad Business (1168263273) | Mild | Blood Light/Unrealistic; Violence Repeated/Mild |
 | Greenville (371263894) | Minimal | — |
 
-Audience: by default, users aged 13 and over can access Minimal, Mild and Moderate experiences. Users under 9 can only access Moderate content with parental consent. Sources: ESRB "What parents need to know about Roblox"; TechCrunch 2024-11-18.
+Audience *(corrected in verification; the 2024 ESRB/TechCrunch model below is superseded)*: Roblox now has three account tiers: **Roblox Kids (5–8)**, **Roblox Select (9–15)** and **standard Roblox (16+)**.
+- Moderate games are eligible for Select and standard Roblox. Minimal and Mild games can also reach Kids.
+- A new game starts in a trial phase visible only to **age-checked users 16+**.
+- It reaches Select (our 13–15 players) only after evaluation. Evaluation needs:
+  - an age-checked creator account, ID-verified (government ID for creators 18+);
+  - 2-Step Verification;
+  - a refundable per-game publishing fee, or an active Plus/Premium subscription at least 2 months old;
+  - **250 unique plays from highly engaged players within 60 days**, plus a safety review.
+- An optional expedited review costs a refundable 50,000 Robux.
+- Sources: <https://create.roblox.com/docs/production/promotion/content-maturity> and <https://create.roblox.com/docs/production/publishing/kids-and-select>, both fetched 2026-10-27.
+- Superseded sources: ESRB "What parents need to know about Roblox" and TechCrunch 2024-11-18.
 
 ### 1.6 Our compliance rules (binding for implementation)
 

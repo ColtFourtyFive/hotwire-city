@@ -4493,134 +4493,191 @@ local function parcelHeight(dist: DistrictDef, use: string, x: number, z: number
 	return math.floor(h0 + (h1 - h0) * f)
 end
 
-local LOT_CLASSES: { [string]: boolean } =
-	{ boulevard = true, avenue = true, street = true, rural = true, highway = true }
+local LOT_CLASSES: { [string]: number } = { boulevard = 1, avenue = 2, street = 3, rural = 4 }
+-- Dense districts build a continuous street wall: lots run corner to corner and reach back to mid-block.
+local FILL: { [string]: boolean } = { downtown = true, midtown = true, beach = true, foundry = true }
+local LOT_GAP: { [string]: number } = {
+	downtown = 2,
+	midtown = 3,
+	beach = 4,
+	foundry = 3,
+	southgate = 8,
+	rust = 18,
+	hills = 40,
+	port = 20,
+	airport = 30,
+	cactus = 10,
+	mesa = 160,
+}
+
+-- Distance from a lot's front face along the inward normal to the next road footprint behind it (capped).
+local function backDistance(fx: number, fz: number, nx: number, nz: number, cap: number): number
+	local d = 8
+	while d < cap do
+		if roadClearance(fx + nx * d, fz + nz * d, 1) then
+			return d
+		end
+		d += 8
+	end
+	return cap
+end
 
 do
 	local seq = 0
+	local order: { number } = {}
 	for ei, e in Edges do
-		if not LOT_CLASSES[e.class] or e.layer ~= 0 or e.bridge then
-			continue
+		if LOT_CLASSES[e.class] and e.layer == 0 and not e.bridge and not e.elevated then
+			table.insert(order, ei)
 		end
-		local pts = edgePts[ei].pts
-		for _, side in { 1, -1 } do
-			local s = nodeRadius(e.a) + 10
-			local sEnd = e.length - nodeRadius(e.b) - 10
-			local k = 0
-			while s < sEnd - 30 do
-				k += 1
-				local px, _, pz, tx, tz = edgeAt(ei, s)
-				local rx, rz = WorldGen.right(tx, tz)
-				local nx, nz = rx * side, rz * side
-				local probeX, probeZ =
-					px + nx * (e.width / 2 + e.sidewalk + 40), pz + nz * (e.width / 2 + e.sidewalk + 40)
-				local did = districtAt(probeX, probeZ)
-				local dist = districtById[did]
-				local rule = dist.lot
-				local h1 = WorldGen.hash(ei * 2 + (if side > 0 then 1 else 0), k, 9001)
-				local h2 = WorldGen.hash(ei, k, 9002 + side)
-				local h3 = WorldGen.hash(ei, k, 9003 + side)
-				local width = rule.width[1] + (rule.width[2] - rule.width[1]) * h1
-				if s + width > sEnd then
-					width = sEnd - s
-					if width < rule.width[1] * 0.75 then
-						break
+	end
+	table.sort(order, function(a: number, b: number): boolean
+		local ra, rb = LOT_CLASSES[Edges[a].class], LOT_CLASSES[Edges[b].class]
+		if ra ~= rb then
+			return ra < rb
+		end
+		return a < b
+	end)
+
+	local function tryPlace(
+		ei: number,
+		did: string,
+		cs: number,
+		side: number,
+		width: number,
+		depth: number,
+		setback: number
+	): boolean
+		local e = Edges[ei]
+		local px, py, pz, tx, tz = edgeAt(ei, cs)
+		local rx, rz = WorldGen.right(tx, tz)
+		local nx, nz = rx * side, rz * side
+		local front = e.width / 2 + e.sidewalk + setback
+		local cx, cz = px + nx * (front + depth / 2), pz + nz * (front + depth / 2)
+		local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2, hd = depth / 2 }
+		if districtAt(cx, cz) ~= did then
+			return false
+		end
+		-- inset copy for the road test (the front face may touch the sidewalk)
+		local inset: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2 - 1.5, hd = depth / 2 - 1.5 }
+		local vx, vz = -tz, tx
+		for i = -2, 2 do
+			for j = -2, 2 do
+				if math.abs(i) == 2 or math.abs(j) == 2 or (i == 0 and j == 0) then
+					local x = cx + tx * inset.hw * i / 2 + vx * inset.hd * j / 2
+					local z = cz + tz * inset.hw * i / 2 + vz * inset.hd * j / 2
+					if roadClearance(x, z, 0.5) then
+						return false
+					end
+					if (math.abs(i) == 2 and math.abs(j) == 2) and not landAtLeast(x, z, 30) then
+						return false
+					end
+					for _, area in NO_LOTS do
+						if WorldGen.pointInPoly(area, x, z) then
+							return false
+						end
 					end
 				end
+			end
+		end
+		if overlapsAny(obb, 1) then
+			return false
+		end
+		local ys = {}
+		for _, c in WorldGen.obbCorners(obb) do
+			table.insert(ys, gradeAt(c.x, c.z))
+		end
+		if math.max(table.unpack(ys)) - math.min(table.unpack(ys)) > 46 then
+			return false
+		end
+		seq += 1
+		local dist = districtById[did]
+		local use = useWeights(dist.lot.uses, WorldGen.hash(seq, ei, 77))
+		local height = parcelHeight(dist, use, cx, cz, WorldGen.hash(seq, 5, 78))
+		local center = Vector3.new(cx, py, cz)
+		insertObb(obb)
+		table.insert(Parcels, {
+			id = #Parcels + 1,
+			district = did,
+			use = use,
+			cframe = CFrame.lookAt(center, center + Vector3.new(-nx, 0, -nz)),
+			size = Vector3.new(width, height, depth),
+			floors = if height > 0 then math.max(1, math.floor(height / S.STOREY)) else 0,
+			edge = ei,
+			style = dist.style,
+			seed = math.floor(WorldGen.hash(seq, 3, 79) * 2 ^ 31),
+		})
+		return true
+	end
+
+	for _, ei in order do
+		local e = Edges[ei]
+		for sideIdx, side in { 1, -1 } do
+			local s0 = nodeRadius(e.a) + 2
+			local s1 = e.length - nodeRadius(e.b) - 2
+			local F = s1 - s0
+			if F < 40 then
+				continue
+			end
+			local mx, _, mz, mtx, mtz = edgeAt(ei, (s0 + s1) / 2)
+			local mrx, mrz = WorldGen.right(mtx, mtz)
+			local probe = e.width / 2 + e.sidewalk + 40
+			local did = districtAt(mx + mrx * side * probe, mz + mrz * side * probe)
+			local dist = districtById[did]
+			local rule = dist.lot
+			if e.class == "rural" and not (did == "hills" or did == "mesa" or did == "cactus") then
+				continue
+			end
+			local gap = LOT_GAP[did] or 6
+			local avg = (rule.width[1] + rule.width[2]) / 2
+			local n = math.max(1, math.floor((F + gap) / (avg + gap) + 0.5))
+			local weights: { number } = {}
+			local wsum = 0
+			for k = 1, n do
+				local r = 0.75 + 0.5 * WorldGen.hash(ei * 2 + sideIdx, k, 9001)
+				weights[k] = r
+				wsum += r
+			end
+			local usable = F - gap * (n - 1)
+			if usable / n < rule.width[1] * 0.55 then
+				continue
+			end
+			local s = s0
+			for k = 1, n do
+				local width = usable * weights[k] / wsum
 				local cs = s + width / 2
-				local py
-				px, py, pz, tx, tz = edgeAt(ei, cs)
-				rx, rz = WorldGen.right(tx, tz)
-				nx, nz = rx * side, rz * side
+				s += width + gap
+				local h2 = WorldGen.hash(ei, k, 9002 + sideIdx)
 				if h2 > rule.density then
-					s += width + 4
 					continue
 				end
+				local h3 = WorldGen.hash(ei, k, 9003 + sideIdx)
 				local setback = rule.setback[1] + (rule.setback[2] - rule.setback[1]) * h3
+				local px, _, pz, tx, tz = edgeAt(ei, cs)
+				local rx, rz = WorldGen.right(tx, tz)
+				local nx, nz = rx * side, rz * side
 				local front = e.width / 2 + e.sidewalk + setback
-				local placed = false
-				for _, depthF in { 1, 0.75, 0.55 } do
-					local depth = (rule.depth[1] + (rule.depth[2] - rule.depth[1]) * h2) * depthF
-					local cx, cz = px + nx * (front + depth / 2), pz + nz * (front + depth / 2)
-					local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2 - 2, hd = depth / 2 }
-					-- checks: district consistent, on land, not in reserved areas, clear of roads and other lots
-					local ok = districtAt(cx, cz) == did
-					if ok then
-						for _, c in WorldGen.obbCorners(obb) do
-							if not landAtLeast(c.x, c.z, 40) then
-								ok = false
-								break
-							end
-							for _, area in NO_LOTS do
-								if WorldGen.pointInPoly(area, c.x, c.z) then
-									ok = false
-									break
-								end
-							end
-							if not ok then
-								break
-							end
-							if roadClearance(c.x, c.z, 2) then
-								ok = false
-								break
-							end
-						end
-					end
-					if ok then
-						-- edge midpoints + center against roads
-						local probes = {
-							{ x = cx, z = cz },
-							{ x = cx - nx * depth / 2, z = cz - nz * depth / 2 },
-							{ x = cx + nx * depth / 2, z = cz + nz * depth / 2 },
-							{ x = cx + tx * width / 2, z = cz + tz * width / 2 },
-							{ x = cx - tx * width / 2, z = cz - tz * width / 2 },
-						}
-						for _, pr in probes do
-							if roadClearance(pr.x, pr.z, 2) then
-								ok = false
-								break
-							end
-						end
-					end
-					if ok and overlapsAny(obb, 3) then
-						ok = false
-					end
-					if ok then
-						-- slope check (hills terrace at most ~45 studs across a lot)
-						local ys = {}
-						for _, c in WorldGen.obbCorners(obb) do
-							table.insert(ys, gradeAt(c.x, c.z))
-						end
-						local mn, mx = math.min(table.unpack(ys)), math.max(table.unpack(ys))
-						if mx - mn > 46 then
-							ok = false
-						end
-					end
-					if ok then
-						seq += 1
-						local use = useWeights(rule.uses, WorldGen.hash(seq, ei, 77))
-						local hr = WorldGen.hash(seq, 5, 78)
-						local height = parcelHeight(dist, use, cx, cz, hr)
-						local center = Vector3.new(cx, py, cz)
-						local look = Vector3.new(-nx, 0, -nz)
-						insertObb(obb)
-						table.insert(Parcels, {
-							id = #Parcels + 1,
-							district = did,
-							use = use,
-							cframe = CFrame.lookAt(center, center + look),
-							size = Vector3.new(width - 4, height, depth),
-							floors = if height > 0 then math.max(1, math.floor(height / S.STOREY)) else 0,
-							edge = ei,
-							style = dist.style,
-							seed = math.floor(WorldGen.hash(seq, 3, 79) * 2 ^ 31),
-						})
-						placed = true
-						break
-					end
+				local back = backDistance(px + nx * front, pz + nz * front, nx, nz, rule.depth[2] * 2 + 60)
+				local base = rule.depth[1] + (rule.depth[2] - rule.depth[1]) * h2
+				local depth
+				if FILL[did] then
+					depth = math.clamp(back / 2 - 3, rule.depth[1] * 0.55, rule.depth[2] * 1.5)
+				else
+					depth = math.min(base, back / 2 - 3)
 				end
-				local _ = placed
-				s += width + 4
+				if depth < rule.depth[1] * 0.45 then
+					continue
+				end
+				local placed = tryPlace(ei, did, cs, side, width, depth, setback)
+					or tryPlace(ei, did, cs, side, width, depth * 0.7, setback)
+					or tryPlace(ei, did, cs, side, width, depth * 0.5, setback)
+				if not placed and width > rule.width[1] * 1.1 then
+					-- corner conflict: keep the half away from the blocked end
+					local half = width * 0.55
+					placed = tryPlace(ei, did, cs + (width - half) / 2, side, half, depth, setback)
+						or tryPlace(ei, did, cs - (width - half) / 2, side, half, depth, setback)
+						or tryPlace(ei, did, cs + (width - half) / 2, side, half, depth * 0.6, setback)
+						or tryPlace(ei, did, cs - (width - half) / 2, side, half, depth * 0.6, setback)
+				end
 			end
 		end
 	end

@@ -77,14 +77,10 @@
   }
  },
  "paint": {
-  "color_rgb255": [
-   117,
-   0,
-   0
-  ],
-  "method": "named paint/body parts",
-  "parts": 2,
-  "sameColourButTextured": 1
+  "color_rgb255": null,
+  "method": "named body part is textured (livery baked; Color does not repaint it)",
+  "parts": 0,
+  "sameColourButTextured": 0
  },
  "security": {
   "flaggedScripts": [
@@ -131,29 +127,18 @@
  },
  "groups": {
   "Body": {
-   "count": 25,
+   "count": 14,
    "rules": {
-    "default": 25
+    "default": 14
    },
    "paths": [
     "LeoRosa44's Car/Body/Body/Avant 1",
     "LeoRosa44's Car/Body/Body/Avant 2",
     "LeoRosa44's Car/Body/Body/Avant 3",
-    "LeoRosa44's Car/Body/Body/Carrosserie",
-    "LeoRosa44's Car/Body/Body/Contours de vitre",
-    "LeoRosa44's Car/Body/Body/Interieur",
-    "LeoRosa44's Car/Body/Body/Interieur 2",
-    "LeoRosa44's Car/Body/Body/Phare",
-    "LeoRosa44's Car/Body/Body/Phare arri\u00e8re",
     "LeoRosa44's Car/Body/Body/R\u00e9troviseurs",
-    "LeoRosa44's Car/Body/Body/Si\u00e8ges",
     "LeoRosa44's Car/Body/Body/Soubassement",
-    "LeoRosa44's Car/Body/Body/Volant",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/Part",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/[UnionOperation] Union",
-    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_52",
-    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_54.003",
-    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_58.001",
     "LeoRosa44's Car/Body/Plaques/Plaque#1/Left/Part",
     "LeoRosa44's Car/Body/Plaques/Plaque#1/PlaqueNumber",
     "LeoRosa44's Car/Body/Plaques/Plaque#1/Right/Part",
@@ -163,86 +148,108 @@
     "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Part"
    ],
    "selectors": [
-    "Body/Body/Carrosserie/**",
-    "Body/Body/{Avant 1, Avant 2, Avant 3, Contours de vitre, Interieur, Interieur 2, +6 more}",
+    "Body/Body/{Avant 1, Avant 2, Avant 3, R\u00e9troviseurs, Soubassement}",
     "Body/Plaques/**",
-    "Body/Emergency/Antennes/**"
+    "Body/Emergency/Antennes/Model#1/**"
    ]
   },
   "Glass": {
-   "count": 4,
+   "count": 5,
    "rules": {
-    "glass: T=0.5": 2,
-    "glass: T=0.85": 1,
-    "glass: name": 1
+    "glass: name": 5
    },
    "paths": [
+    "LeoRosa44's Car/Body/Body/Contours de vitre",
     "LeoRosa44's Car/Body/Body/Vitre de phare arri\u00e8re",
     "LeoRosa44's Car/Body/Body/Vitre de phare avant",
     "LeoRosa44's Car/Body/Body/Vitres",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Glass"
    ],
    "selectors": [
-    "Body/Body/{Vitre de phare arri\u00e8re, Vitre de phare avant, Vitres}",
+    "Body/Body/{Contours de vitre, Vitre de phare arri\u00e8re, Vitre de phare avant, Vitres}",
     "Body/Emergency/Lightbar/Model/Glass"
    ]
   },
-  "Lights_Emergency": {
+  "Interior": {
    "count": 4,
    "rules": {
-    "light: name/light child": 4
+    "interior name": 4
    },
    "paths": [
+    "LeoRosa44's Car/Body/Body/Interieur",
+    "LeoRosa44's Car/Body/Body/Interieur 2",
+    "LeoRosa44's Car/Body/Body/Si\u00e8ges",
+    "LeoRosa44's Car/Body/Body/Volant"
+   ],
+   "selectors": [
+    "Body/Body/{Interieur, Interieur 2, Si\u00e8ges, Volant}"
+   ]
+  },
+  "Lights_Emergency": {
+   "count": 7,
+   "rules": {
+    "light: name/light child": 7
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_52",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_54.003",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_58.001",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Lights#1",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Lights#2",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Support",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Top"
    ],
    "selectors": [
-    "Body/Emergency/Lightbar/Model/{Lights#1, Lights#2, Support, Top}"
+    "Body/Emergency/Lightbar/Model/{Lights#1, Lights#2, Support, Top}",
+    "Body/Emergency/Antennes/Model#2/**"
    ]
   },
   "Lights_Head": {
-   "count": 4,
+   "count": 5,
    "rules": {
-    "light: name/light child": 4
+    "light: name/light child": 5
    },
    "paths": [
+    "LeoRosa44's Car/Body/Body/Phare",
     "LeoRosa44's Car/Body/Lights/HeadLight",
     "LeoRosa44's Car/Body/Lights/HeadLightLeft",
     "LeoRosa44's Car/Body/Lights/LeftF",
     "LeoRosa44's Car/Body/Lights/RightF"
    ],
    "selectors": [
+    "Body/Body/Phare",
     "Body/Lights/HeadLight/**",
     "Body/Lights/HeadLightLeft/**",
     "Body/Lights/{LeftF, RightF}"
    ]
   },
   "Lights_Tail": {
-   "count": 2,
+   "count": 5,
    "rules": {
-    "light: name/light child": 2
+    "light: name/light child": 5
    },
    "paths": [
+    "LeoRosa44's Car/Body/Body/Phare arri\u00e8re",
+    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration",
+    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration 2",
     "LeoRosa44's Car/Body/Lights/LeftB",
     "LeoRosa44's Car/Body/Lights/RightB"
    ],
    "selectors": [
+    "Body/Body/{Phare arri\u00e8re, Phare d\u00e9coration, Phare d\u00e9coration 2}",
     "Body/Lights/{LeftB, RightB}"
    ]
   },
-  "Paint": {
-   "count": 2,
+  "PaintBaked": {
+   "count": 1,
    "rules": {
-    "Color == rgb(117, 0, 0)": 2
+    "named body part with texture/SurfaceAppearance": 1
    },
    "paths": [
-    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration",
-    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration 2"
+    "LeoRosa44's Car/Body/Body/Carrosserie"
    ],
    "selectors": [
-    "Body/Body/{Phare d\u00e9coration, Phare d\u00e9coration 2}"
+    "Body/Body/Carrosserie/**"
    ]
   },
   "WheelStatic_FL": {

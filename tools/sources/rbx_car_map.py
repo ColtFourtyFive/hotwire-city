@@ -54,18 +54,18 @@ BACKDOOR_FLAGS = ("require-by-attribute", "require-tonumber", "self-hide", "core
 
 RE_WHEELCONT = re.compile(r"^(fl|fr|rl|rr|lf|rf|lr|wheel ?fl|wheel ?fr|wheel ?rl|wheel ?rr|wheel_?(fl|fr|rl|rr)|"
                           r"front ?left|front ?right|rear ?left|rear ?right|back ?left|back ?right)$", re.I)
-RE_WHEELNAME = re.compile(r"wheel|tire|tyre|rim\b|rims|hubcap|\bhub\b|rotor|spoke|lugnut|lug nut|disk|disc", re.I)
+RE_WHEELNAME = re.compile(r"wheel|tire|tyre|rim\b|rims|hubcap|\bhub\b|rotor|spoke|lugnut|lug nut|disk|disc|pneu|jante|roue", re.I)
 RE_STEER = re.compile(r"steer|misc", re.I)
 RE_WHEEL_STATIC = re.compile(r"^(fixed|wheelfixed|caliper|calipers|brake ?caliper|knuckle|strut|plaquette|etrier|"
                              r"brake ?pad|pads?)$", re.I)
 RE_LIGHT = re.compile(r"light|lamp|\bled|drl|indicator|signal|blinker|turn|brake|reverse|reversing|fog|beam|"
-                      r"hazard|tail|^head|lightbar|siren|strobe|\bels\b|flasher|marker", re.I)
+                      r"hazard|tail|^head|lightbar|siren|strobe|\bels\b|flasher|marker|phare|^feux?\b|clignot|gyro", re.I)
 RE_NOT_LIGHT = re.compile(r"headrest|headliner|lightweight|highlight", re.I)
 RE_EMERG = re.compile(r"lightbar|siren|strobe|\bels\b|flasher|emergency|wail|lightbar|pushbar ?led|police ?light|"
-                      r"\bblue\b|\bred\b ?led", re.I)
-RE_GLASS = re.compile(r"glass|window|windscreen|windshield|wind ?shield|wndw|sunroof|moonroof", re.I)
+                      r"\bblue\b|\bred\b ?led|gyro|deux ?tons", re.I)
+RE_GLASS = re.compile(r"glass|window|windscreen|windshield|wind ?shield|wndw|sunroof|moonroof|vitre|vidrio|cristal", re.I)
 RE_INTERIOR = re.compile(r"interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|shifter|gear ?stick|"
-                         r"headrest|carpet|^int[_ ]|cabin", re.I)
+                         r"headrest|carpet|^int[_ ]|cabin|si[eè]ge|volant|int[eé]rieur", re.I)
 RE_PAINT = re.compile(r"paint|bodyshell|body ?colou?r|carpaint|^colou?r$|^shell|^body ?panel|carrosserie|carroceria|"
                       r"karosserie|^lack$", re.I)
 RE_BRAND = re.compile(r"logo|badge|emblem|ford|toyota|nissan|kia|jaguar|mercedes|benz|amg|peugeot|chevrolet|"
@@ -356,15 +356,15 @@ def analyze(model_id):
             q = local(p["CFrame"][:3])
             if RE_EMERG.search(joined):
                 sub = "Emergency"
-            elif re.search(r"indicator|signal|blinker|turn|hazard|arrow", joined, re.I):
+            elif re.search(r"indicator|signal|blinker|turn|hazard|arrow|clignot", joined, re.I):
                 sub = "Indicator_" + ("R" if q[0] > 0 else "L")
             elif re.search(r"reverse|reversing|backup", joined, re.I):
                 sub = "Reverse"
             elif re.search(r"brake|stop", joined, re.I):
                 sub = "Brake"
-            elif re.search(r"tail|rear", joined, re.I):
+            elif re.search(r"tail|rear|arri[eè]re", joined, re.I):
                 sub = "Tail"
-            elif re.search(r"head|front|drl|fog|beam|\bhi\b|\blo\b|high|low", joined, re.I):
+            elif re.search(r"head|front|drl|fog|beam|\bhi\b|\blo\b|high|low|avant", joined, re.I):
                 sub = "Head"
             elif col[0] > 0.6 and col[1] > 0.35 and col[2] < 0.25:
                 sub = "Indicator_" + ("R" if q[0] > 0 else "L")
@@ -406,12 +406,18 @@ def analyze(model_id):
     def ckey(c):
         return tuple(round(float(x) * 255) for x in c)
 
-    if named:
+    named_plain = [n for n in named if not has_tex(n)]
+    paint_baked = []
+    if named_plain:
         cnt = Counter()
-        for n in named:
+        for n in named_plain:
             cnt[ckey(n["props"].get("Color", [0, 0, 0]))] += area(n)
         paint_color = cnt.most_common(1)[0][0]
         paint_method = "named paint/body parts"
+    elif named:
+        # the body panel exists but its colour/livery is baked into a texture or SurfaceAppearance
+        paint_baked = named
+        paint_method = "named body part is textured (livery baked; Color does not repaint it)"
     else:
         cnt = Counter()
         for n in rest:
@@ -427,6 +433,9 @@ def analyze(model_id):
         if cnt:
             paint_color = cnt.most_common(1)[0][0]
             paint_method = "area-dominant colour"
+    for n in paint_baked:
+        group[n["id"]] = "PaintBaked"
+        rule[n["id"]] = "named body part with texture/SurfaceAppearance"
     paint_textured = 0
     if paint_color is not None:
         for n in rest:
