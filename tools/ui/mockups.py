@@ -696,12 +696,8 @@ def scene_list(view):
     else:
         x, y, w = r["x"], r["y"], r["w"]
         banner_h = 64
-    banner = sprite("banners.gear", 600 * K, 128 * K)
-    bw_full = w
-    bh_img = banner.height * (bw_full * K / banner.width) / K
-    crop_h = int(banner_h / bh_img * banner.height)
-    b2 = banner.crop((0, (banner.height - crop_h) // 2, banner.width, (banner.height + crop_h) // 2))
-    m.paste(b2, x, y, w, banner_h)
+    # the header is the Accent band (ListMenu.BANNER_ART is off until per-shop key art exists)
+    m.box(x, y, w, banner_h, rgba(C["accent"]))
     m.text(x + w / 2, y + banner_h / 2, "Gear", "Damion-400", 36 if not touch else 30, rgba(C["text"]),
            anchor="mm", stroke=1, stroke_fill=(0, 0, 0, 150))
     if touch:

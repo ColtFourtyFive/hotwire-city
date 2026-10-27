@@ -1360,7 +1360,7 @@ local function applyChrome(u: Ui, reset: boolean?)
 	u.gpsChip.Position = UDim2.fromOffset(left, bottom)
 	u.hint.Position = UDim2.fromOffset(left, bottom + 8)
 	u.hint.Visible = not touch -- touch: the pause footer's Back button owns that row
-	-- legend top-right (touch: under its button)
+	-- legend top-right (touch: shown / hidden by its button in the bottom row)
 	local count = #MapScreenController.legendEntries()
 	local lay = MapScreenController.legendLayout(count, w, h, touch)
 	u.legend.Size = UDim2.fromOffset(lay.width, lay.height)
