@@ -20,7 +20,7 @@ GTA reference frames from another agent are in the same folder: `ref_gtawiki_Wea
    - Comparable crime games are already rated Moderate with repeated/moderate violence: Mad City, ER:LC, Da Hood and Criminality (section 1.5).
    - We answer the questionnaire as Violence = Repeated/Moderate and Blood = None.
 2. **Every gun is hitscan.** The client raycasts and the server validates with lag compensation.
-   - This is the pattern Roblox's own Laser Tag tutorial and Game Security article teach.
+   - Client detection plus server validation is the pattern Roblox's own Laser Tag tutorial teaches. The tutorial validates against *current* positions with tolerances and does **no** rewinding; the position-history rewind is our addition, taken from a DevForum proposal (section 2.1). *(Corrected in verification.)*
    - No FastCast, which is unmaintained, and no projectile physics.
    - Do **not** adopt Roblox's new Server Authority model for v2. It requires `StreamingEnabled=true`, NextGenerationReplication, the Input Action System for player scripts and fixed simulation. Our place runs `StreamingEnabled=false`, and cars are client-owned physics.
 3. **Launch roster: 11 weapons plus 2 gadgets.**

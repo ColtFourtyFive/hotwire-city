@@ -4028,7 +4028,7 @@ for i, def in PLOT_DEFS do
 		setback = 14,
 		road = def.road,
 		classes = { street = true, avenue = true, boulevard = true },
-	})
+	}, def.name)
 	assert(cf and obb, "plot " .. def.name .. " found no frontage")
 	local e = Edges[ei]
 	local look = cf.LookVector

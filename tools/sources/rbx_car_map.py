@@ -226,7 +226,10 @@ def analyze(model_id):
 
     # extents in car frame
     corners = []
-    for lo, hi in boxes.values():
+    re_appendage = re.compile(r"antenn|aerial|whip|flag", re.I)
+    for nid, (lo, hi) in boxes.items():
+        if any(re_appendage.search(a["name"]) for a in [byid[nid]] + ancestors(byid[nid])[:3]):
+            continue  # whip antennas etc. would distort the length used for scaling
         for i in range(8):
             corners.append(local([(lo, hi)[i >> k & 1][k] for k in range(3)]))
     corners = np.array(corners) if corners else np.zeros((1, 3))

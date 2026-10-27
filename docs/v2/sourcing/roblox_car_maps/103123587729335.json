@@ -14,7 +14,7 @@
  "dims_studs": {
   "length": 19.39,
   "width": 9.96,
-  "height": 8.9
+  "height": 7.26
  },
  "real_length_m": 4.25,
  "suggested_uniform_scale": 0.783,
@@ -161,6 +161,12 @@
     "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#2",
     "LeoRosa44's Car/Body/Plaques/Plaque#2/PlaqueNumber",
     "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Part"
+   ],
+   "selectors": [
+    "Body/Body/Carrosserie/**",
+    "Body/Body/{Avant 1, Avant 2, Avant 3, Contours de vitre, Interieur, Interieur 2, +6 more}",
+    "Body/Plaques/**",
+    "Body/Emergency/Antennes/**"
    ]
   },
   "Glass": {
@@ -175,6 +181,10 @@
     "LeoRosa44's Car/Body/Body/Vitre de phare avant",
     "LeoRosa44's Car/Body/Body/Vitres",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Glass"
+   ],
+   "selectors": [
+    "Body/Body/{Vitre de phare arri\u00e8re, Vitre de phare avant, Vitres}",
+    "Body/Emergency/Lightbar/Model/Glass"
    ]
   },
   "Lights_Emergency": {
@@ -187,6 +197,9 @@
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Lights#2",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Support",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Top"
+   ],
+   "selectors": [
+    "Body/Emergency/Lightbar/Model/{Lights#1, Lights#2, Support, Top}"
    ]
   },
   "Lights_Head": {
@@ -199,6 +212,11 @@
     "LeoRosa44's Car/Body/Lights/HeadLightLeft",
     "LeoRosa44's Car/Body/Lights/LeftF",
     "LeoRosa44's Car/Body/Lights/RightF"
+   ],
+   "selectors": [
+    "Body/Lights/HeadLight/**",
+    "Body/Lights/HeadLightLeft/**",
+    "Body/Lights/{LeftF, RightF}"
    ]
   },
   "Lights_Tail": {
@@ -209,6 +227,9 @@
    "paths": [
     "LeoRosa44's Car/Body/Lights/LeftB",
     "LeoRosa44's Car/Body/Lights/RightB"
+   ],
+   "selectors": [
+    "Body/Lights/{LeftB, RightB}"
    ]
   },
   "Paint": {
@@ -219,6 +240,9 @@
    "paths": [
     "LeoRosa44's Car/Body/Body/Phare d\u00e9coration",
     "LeoRosa44's Car/Body/Body/Phare d\u00e9coration 2"
+   ],
+   "selectors": [
+    "Body/Body/{Phare d\u00e9coration, Phare d\u00e9coration 2}"
    ]
   },
   "WheelStatic_FL": {
@@ -228,6 +252,9 @@
    },
    "paths": [
     "LeoRosa44's Car/Wheels/FL/Parts/Plaquette"
+   ],
+   "selectors": [
+    "Wheels/FL/Parts/Plaquette"
    ]
   },
   "WheelStatic_FR": {
@@ -237,6 +264,9 @@
    },
    "paths": [
     "LeoRosa44's Car/Wheels/FR/Parts/Plaquette"
+   ],
+   "selectors": [
+    "Wheels/FR/Parts/Plaquette"
    ]
   },
   "WheelStatic_RL": {
@@ -246,6 +276,9 @@
    },
    "paths": [
     "LeoRosa44's Car/Wheels/RL/Parts/Plaquette"
+   ],
+   "selectors": [
+    "Wheels/RL/Parts/Plaquette"
    ]
   },
   "WheelStatic_RR": {
@@ -255,6 +288,9 @@
    },
    "paths": [
     "LeoRosa44's Car/Wheels/RR/Parts/Plaquette"
+   ],
+   "selectors": [
+    "Wheels/RR/Parts/Plaquette"
    ]
   },
   "Wheel_FL": {
@@ -266,6 +302,9 @@
     "LeoRosa44's Car/Wheels/FL/Parts/Disque",
     "LeoRosa44's Car/Wheels/FL/Parts/Jante",
     "LeoRosa44's Car/Wheels/FL/Parts/Pneu"
+   ],
+   "selectors": [
+    "Wheels/FL/Parts/{Disque, Jante, Pneu}"
    ]
   },
   "Wheel_FR": {
@@ -277,6 +316,9 @@
     "LeoRosa44's Car/Wheels/FR/Parts/Disque",
     "LeoRosa44's Car/Wheels/FR/Parts/Jante",
     "LeoRosa44's Car/Wheels/FR/Parts/Pneu"
+   ],
+   "selectors": [
+    "Wheels/FR/Parts/{Disque, Jante, Pneu}"
    ]
   },
   "Wheel_RL": {
@@ -288,6 +330,9 @@
     "LeoRosa44's Car/Wheels/RL/Parts/Disque",
     "LeoRosa44's Car/Wheels/RL/Parts/Jante",
     "LeoRosa44's Car/Wheels/RL/Parts/Pneu"
+   ],
+   "selectors": [
+    "Wheels/RL/Parts/{Disque, Jante, Pneu}"
    ]
   },
   "Wheel_RR": {
@@ -299,6 +344,9 @@
     "LeoRosa44's Car/Wheels/RR/Parts/Disque",
     "LeoRosa44's Car/Wheels/RR/Parts/Jante",
     "LeoRosa44's Car/Wheels/RR/Parts/Pneu"
+   ],
+   "selectors": [
+    "Wheels/RR/Parts/{Disque, Jante, Pneu}"
    ]
   }
  },
