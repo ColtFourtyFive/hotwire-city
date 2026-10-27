@@ -1,5 +1,8 @@
 --!nocheck
--- VFX library: Config/VFX preset + texture shape, VFXLibrary pure helpers, budget, burst pooling, streams, trails.
+-- VFX library: Config/VFX preset + texture shape, VFXLibrary pure helpers, budget, burst pooling (no live re-look),
+-- attached bursts, streams (priority + rebalance + tier changes), trails; the effect math of VehicleClient /
+-- WheelAnimator (tyre smoke, skid contact, speed-line ring, water parts, headlight picks, hero cones) and
+-- EffectsController's handler -> preset wiring + siren glare lifecycle.
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 
@@ -9,6 +12,8 @@ return function(t)
 	local Color3 = H.roblox.Color3
 	local Instance = H.roblox.Instance
 	local Enum = H.roblox.Enum
+	local CFrame = H.roblox.CFrame
+	local Vector2 = H.roblox.Vector2
 
 	H.setMode("client")
 	local VFX = H.require("src/shared/Config/VFX")
@@ -167,6 +172,9 @@ return function(t)
 		t.ok(hi.maxParticles > mid.maxParticles and mid.maxParticles > lo.maxParticles, "caps decrease")
 		t.ok(hi.rate >= mid.rate and mid.rate >= lo.rate and lo.rate > 0, "rates decrease")
 		t.ok(hi.count >= mid.count and mid.count >= lo.count and lo.count > 0, "counts decrease")
+		t.ok(hi.sizeScale == 1 and mid.sizeScale < 1 and lo.sizeScale <= mid.sizeScale and lo.sizeScale > 0, "sizes")
+		t.ok(VFX.STREAM_SHARE > 0 and VFX.STREAM_SHARE < 1, "streams leave burst headroom")
+		t.ok(VFX.POOL_HARD_CAP >= 8 and VFX.POOL_HARD_CAP <= 16, "pool hard cap")
 		t.ok(VFX.MAX_DISTANCE == 250, "far effects cut at 250 studs")
 		for i = 2, #VFX.GEAR_SHIFTS do
 			t.ok(VFX.GEAR_SHIFTS[i] > VFX.GEAR_SHIFTS[i - 1], "gear shifts ascend")
@@ -176,7 +184,50 @@ return function(t)
 			t.eq(typeof(c), "Color3", mat)
 		end
 		t.ok(#VFX.CONFETTI_COLORS >= 4, "confetti colors")
-		t.ok(VFX.Presets.Confetti.pool >= #VFX.CONFETTI_COLORS, "a confetti slot per color (no live recolor)")
+		-- one confetti event = one burst per palette colour; two overlapping events reuse those looks (no growth)
+		t.ok(VFX.Presets.Confetti.pool >= #VFX.CONFETTI_COLORS, "a confetti slot per palette colour")
+		for name, p in VFX.Presets do
+			if p.tierSize or p.cost then
+				t.eq(p.kind, "stream", name .. ": tierSize / cost are stream fields")
+			end
+			if p.velocityInheritance then
+				t.ok(p.velocityInheritance >= 0 and p.velocityInheritance <= 1, name .. ": velocityInheritance 0..1")
+			end
+		end
+	end)
+
+	-- mean of size^2 over a particle's life (piecewise-linear keys, envelope ignored): its average screen area
+	local function meanArea(keys, scale)
+		local total = 0
+		for i = 2, #keys do
+			local a, b = keys[i - 1].v * scale, keys[i].v * scale
+			total += (a * a + a * b + b * b) / 3 * (keys[i].t - keys[i - 1].t)
+		end
+		return total
+	end
+
+	t.test("VFX: drift smoke fill rate is bounded on phones (size tiers, cost, end size)", function()
+		local p = VFX.Presets.TireSmoke
+		t.eq(p.tierSize, true, "tyre smoke shrinks with the quality tier")
+		t.ok((p.cost or 1) > 1, "big smoke weighs more than a spark in the stream budget")
+		local last = p.size[#p.size]
+		for _, tierName in { "medium", "low" } do
+			local k = VFX.Quality[tierName].sizeScale
+			t.ok((last.v + (last.e or 0)) * k <= 8, tierName .. ": end size (+ envelope) <= 8 studs")
+		end
+		-- v2 shipped ~53.6 studs^2 average per puff on every tier; medium (phones) must stay well under half of it
+		t.ok(meanArea(p.size, VFX.Quality.medium.sizeScale) < 53.6 / 2, "medium mean area")
+		t.ok(meanArea(p.size, 1) < 40, "high mean area")
+	end)
+
+	t.test("VFX: nitro flame and backfire ride the car (no world-space wake behind a boosting car)", function()
+		local flame = VFX.Presets.NitroFlame
+		t.eq(flame.lockedToPart, true, "flame locked to the exhaust")
+		t.ok(flame.orientation == nil or flame.orientation == "FacingCamera", "camera-facing: visible from the chase cam")
+		local back = VFX.Presets.Backfire
+		t.eq(back.velocityInheritance, 1, "the pop keeps the car's velocity")
+		t.eq(back.emissionDirection, "Back", "out of the tailpipe (+Z = car rear) of its exhaust attachment")
+		t.ok(VFX.Presets.NitroCore.lockedToPart == true, "core glow locked too")
 	end)
 
 	---------------------------------------------------------------------------------------------------------------
@@ -208,6 +259,41 @@ return function(t)
 		t.near(Lib.streamRate(30, 1, 1, 0.65, 900, 0), 19.5, 1e-9)
 		t.near(Lib.streamRate(30, 0.8, 0.5, 1, 1000, 1200), 30 * 0.8 * 0.5 * 0.5, 1e-9)
 		t.eq(Lib.streamRate(30, 1, -1, 1, 1000, 0), 0)
+	end)
+
+	t.test("VFXLibrary.streamShares: priority (local car) streams first, the rest share what is left", function()
+		local p, o = Lib.streamShares(1000, 0, 300)
+		t.eq(p, 1)
+		t.eq(o, 1, "under the 60% share: nothing throttled")
+		p, o = Lib.streamShares(1000, 400, 400)
+		t.eq(p, 1, "priority load fits: full rate")
+		t.near(o, 0.5, 1e-9, "others get the 200 left of 600")
+		p, o = Lib.streamShares(1000, 900, 100)
+		t.near(p, 600 / 900, 1e-9, "priority alone over the share: scaled to fit")
+		t.eq(o, VFX.MIN_STREAM_SCALE, "others at the floor")
+		p, o = Lib.streamShares(1000, 0, 0)
+		t.ok(p == 1 and o == 1, "idle")
+	end)
+
+	t.test("VFXLibrary.pickSlot: same look first, then an idle slot, then grow, never re-look live particles", function()
+		local red, blue = Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 0, 255)
+		local slots = {
+			{ scale = 1, color = red, busyUntil = 10, emittedAt = 5 },
+			{ scale = 1, color = blue, busyUntil = 3, emittedAt = 1 },
+		}
+		t.eq(Lib.pickSlot(slots, 1, red, 6, 4), 1, "same look while busy: reused (nothing rewritten)")
+		t.eq(Lib.pickSlot(slots, 0.6, nil, 6, 4), 2, "other look: the idle slot is re-looked")
+		slots[2].busyUntil = 9
+		t.eq(Lib.pickSlot(slots, 0.6, nil, 6, 4), 3, "every slot busy: grow")
+		t.eq(Lib.pickSlot(slots, 0.6, nil, 6, 2), nil, "busy at the cap: skip the burst")
+		t.eq(Lib.pickSlot(slots, 1, red, 5, 4), 3, "same look emitted this very frame: a fresh slot when possible")
+		t.eq(Lib.pickSlot(slots, 1, red, 5, 2), 1, "...else share it")
+		t.eq(Lib.pickSlot({}, 1, nil, 0, 3), 1, "an empty pool builds slot 1")
+		t.eq(Lib.quantizeScale(0.6), 0.6)
+		t.near(Lib.quantizeScale(0.4512), 0.45, 1e-9, "near-equal scales share a look")
+		t.eq(Lib.quantizeScale(0.001), 0.05, "floor")
+		t.eq(Lib.maxSlots(3), 6, "busy pools grow to 2x")
+		t.eq(Lib.maxSlots(8), VFX.POOL_HARD_CAP, "...at most the hard cap")
 	end)
 
 	t.test("VFXLibrary.gearOf / nextGear: upshift pops once, hysteresis on the way down", function()

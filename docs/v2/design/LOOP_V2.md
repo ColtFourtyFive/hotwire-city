@@ -1388,20 +1388,20 @@ Revision 2 re-runs this with the new onboarding (Gold Common), the V2 playtime g
 
 ---
 
-## 9. Data model, migration and systems
+## 9. Data model and systems
 
-### 9.1 `src/shared/Types.luau` (schema version 2)
+### 9.1 `src/shared/Types.luau` (V2 schema)
 
-The DataStore `HotwireCity_v1` and key `p_<userId>` **do not change**: the migration runs in place. Unchanged v1 types (`ContractState`, `NotifyKind`) stay as they are.
+V2 uses a **fresh DataStore `HotwireCity_v2`**, key `p_<userId>`, `SCHEMA_VERSION = 1`, `MIGRATIONS = {}` (§9.3). Unchanged v1 types (`ContractState`, `NotifyKind`) stay as they are.
 
 ```lua
 --!strict
--- Types.luau, schema version 2 (LOOP_V2 §9). Bump DataService.SCHEMA_VERSION to 2 with MIGRATIONS[1].
+-- Types.luau: V2 schema (LOOP_V2 §9). Store HotwireCity_v2, SCHEMA_VERSION 1.
+-- After launch: bump DataService.SCHEMA_VERSION and add a MIGRATIONS step for every change to PlayerData.
 
 local Rarity = require(script.Parent.Config.Rarity)
 
 export type RarityId = Rarity.RarityId
-export type MutationId = Rarity.MutationId -- v1 only: kept for MIGRATIONS[1] and old tests
 export type FinishId = "Stock" | "Gold" | "Chrome" | "Chameleon" | "Galaxy" | "Storm" | "Void" | "Glitch"
 export type TraitId = "Turbo" | "Bulletproof" | "Classic" | "Prototype" | "LowMiles"
 
@@ -1425,19 +1425,20 @@ export type PaintJob = {
 	pearl: string?, -- palette id (Pearl only)
 	rims: string?, -- rim style id
 	tint: number?, -- window tint 0..3
-	underglow: string?, -- palette id (Rep 20 or Neon pass)
+	underglow: string?, -- palette id (Rep 10 or Neon pass)
 	plate: string?, -- filtered custom text (<= 8 chars); nil = generated plate
 }
 
 export type CarOrigin =
 	"starter" | "street" | "traffic" | "dealer" | "hotdrop" | "theft" | "pinkslip" | "trade"
-	| "reward" | "robux" | "season" | "event" | "migrated"
-export type PlaceKind = "slot" | "vault" | "laylow"
-export type CarPlace = { kind: PlaceKind, index: number } -- slot 1..12, vault 1..3, laylow 1
+	| "playtime" | "daily" | "referral" | "code" | "contract" | "robux" | "season" | "event" | "admin"
+export type PlaceKind = "slot" | "vault"
+export type CarPlace = { kind: PlaceKind, index: number } -- slot 1..12, vault 1..3
 export type CarStatus = "ok" | "impounded" | "repair"
+export type TransferKind = "theft" | "trade" | "pinkslip"
 
 export type CarRecord = {
-	uid: string, -- "<firstOwnerUserId>-<seq>": permanent identity, survives theft/trade/pink slip
+	uid: string, -- HttpService:GenerateGUID(false); permanent identity, survives theft/trade/pink slip, never re-minted
 	carId: string,
 	finish: FinishId,
 	trait: TraitId?,
@@ -1448,18 +1449,23 @@ export type CarRecord = {
 	paint: PaintJob,
 	mileage: number, -- studs driven (UI miles = studs / 5700)
 	serial: number?, -- limited edition number (#serial of Cars[carId].limitedCap)
-	bound: boolean?, -- Robux/pass/starter/season: never kept by thieves, traded or staked
+	xferSeq: number, -- +1 on every transfer; checked against HC_LimitedRegistry_v1 for serial cars (§2.9)
+	bound: boolean?, -- Robux/pass/starter pack/season: never kept by thieves, traded or staked
+	noInsurance: boolean?, -- reward-origin cars (playtime, daily, referral, code)
 	origin: CarOrigin,
 	acquiredAt: number, -- unix seconds, current owner
 	firstOwner: number, -- userId
 	owners: number, -- 1 = still with the original owner
 	thefts: number, -- times stolen and kept
 	uncollected: number, -- garage cash waiting at the Collect pad
-	place: CarPlace,
+	place: CarPlace?, -- nil only while the record sits in owedCars
 	status: CarStatus,
 	statusUntil: number?, -- unix: impound free-release time / repair done time
 	tradeLockUntil: number?, -- unix
-	laylow: { fromUserId: number, untilTime: number, insuredValue: number }?, -- only while place.kind == "laylow"
+	sellLockUntil: number?, -- unix (cars kept by theft: +7 d)
+	lastTransfer: { from: number, at: number, kind: TransferKind }?, -- counterparty rule (§2.8)
+	inbound: { from: number, xfer: string }?, -- receiver side, until the giver's save is confirmed (§10.3)
+	frozen: string?, -- "serial" | "admin": can be driven and parked; can't be traded, staked, sold or chopped
 }
 
 export type Stats = {
@@ -1467,26 +1473,31 @@ export type Stats = {
 	busted: number, wasted: number, kills: number, hotDrops: number, robberies: number,
 	trucks: number, heists: number, racesWon: number, pinkSlipsWon: number,
 	bountiesClaimed: number, longestFiveStar: number, mileage: number,
+	thiefPoints: number, -- Top Thief: +1 per kept player car, +2 from the Server Crown holder (§5.8)
 }
 
-export type TheftLedger = {
-	day: number, -- UTC day the counters belong to
-	losses: number, -- cars kept by thieves today
-	insuranceClaims: number,
-	playerCarChops: number, -- as the thief
-	lastLossAt: number, -- unix (Shaken cooldown)
-	pairs: { [string]: number }, -- tostring(otherUserId) -> unix of the last kept theft/claim between the pair; prune > 24 h
-}
+-- Counters reset at 00:00 UTC by TheftRules.rollLedger. Keys are listed in Config/Theft.LEDGER_KEYS:
+-- losses, insuranceClaims, playerCarChops, interceptors, revengePaid, repoPaid, survivalPaid, mostWantedClaims,
+-- jobsPaid, raceWinsPaid, pinkSlipLosses, tradeNetOut, doubleIt, streetSeconds, referralsPaid
+export type DayLedger = { day: number, n: { [string]: number } }
+-- Rolling hour (persisted so a server hop doesn't reset it): evadesPaid, truckBags
+export type HourLedger = { start: number, n: { [string]: number } }
 
-export type Security = { lock: number, alarm: number, door: number } -- lock 0..4 (v1 upgrades.lock), alarm 0..2, door 0..2
+export type Security = { lock: number, alarm: number, door: number } -- lock 0..4, alarm 0..2, door 0..2
 
 export type WeaponState = { ammo: number, tint: string? } -- reserve rounds (gta_combat §13.2); the magazine is runtime-only
 
 export type CombatState = { -- gta_combat §13.2 + LOOP_V2 §4.6
-	rookieSecondsLeft: number,
+	rookieSecondsLeft: number, -- starts at 600 (D12)
 	passivePref: boolean,
 	menace: number,
 	menaceAt: number, -- unix of the last menace change (decay 1 per 10 min)
+}
+
+export type Protection = {
+	starterDone: boolean, -- one-way latch (§2.8)
+	activeSeconds: number, -- lifetime active playtime (input or 30+ studs moved in the last 60 s)
+	lastLossAt: number, -- unix of the last counted loss (Shaken)
 }
 
 export type CrewRef = { id: string, rank: "Leader" | "Officer" | "Member", joinedAt: number }
@@ -1500,31 +1511,35 @@ export type Settings = {
 	aimAssist: boolean, cameraShake: boolean, alwaysShowCash: boolean, radio: boolean, -- v2
 }
 
--- Persisted player profile. Bump DataService schema version + add a migration when changing this.
+-- Persisted player profile (HotwireCity_v2). Bump DataService.SCHEMA_VERSION + add a migration when changing this.
 export type PlayerData = {
-	version: number, -- 2
-	wallet: number, -- at risk (LOOP_V2 §0.4)
+	version: number, -- 1
+	wallet: number, -- at risk (LOOP_V2 §0.4); normally 0 at rest (banked on leave)
 	bank: number, -- safe
 	totalEarned: number,
 	rep: number, -- 1..100
 	repXp: number, -- toward the next Rep level
 	rebirths: number, -- shown as Prestige
 	slotsUnlocked: number, -- 4..10 (pass slots are derived)
-	cars: { [string]: CarRecord }, -- uid -> record: every owned car incl. impounded / repair / laylow
-	owedCars: { CarRecord }, -- waiting for a free slot (replaces v1 exclusives + pendingCars)
-	nextCarSeq: number,
+	cars: { [string]: CarRecord }, -- uid -> record: every owned car incl. impounded / repair / in a lay-low window as victim
+	owedCars: { CarRecord }, -- waiting for a free slot (replaces v1 exclusives + pendingCars); no cap, never dropped
 	discovered: { [string]: boolean },
 	finishIndex: { [string]: { [string]: boolean } }, -- carId -> finish -> owned at least once
 	security: Security,
-	skills: { hotwire: number }, -- v1 upgrades.hotwire (Hotwire Kit)
+	skills: { hotwire: number }, -- Hotwire Kit 0..4
 	weapons: { [string]: WeaponState }, -- gta_combat ids: bat, pistol, microsmg, ...
-	tools: { [string]: boolean }, -- gadgets kept from v1: taser, spikes (+ hackDevice, duffel)
+	tools: { [string]: boolean }, -- taser, spikes, hackDevice, duffel
 	armor: number, -- 0..100, persisted like GTA
 	medkits: number, -- 0..3
+	vouchers: { paint: number }, -- trunk loot (§2.5.1), max 5
 	combat: CombatState,
+	protection: Protection,
 	stats: Stats,
-	theft: TheftLedger,
-	crew: CrewRef?,
+	ledger: DayLedger,
+	hourly: HourLedger,
+	pairs: { [string]: number }, -- "<kind>:<otherUserId>" -> unix; kinds keep, insurance, chop, revenge, repo, interceptor, bounty, mostWanted, race, pinkslip; pruned per kind window (max 7 d)
+	insured: { [string]: { amount: number, until: number } }, -- uid -> insurance paid, clawed back if the uid returns before `until`
+	crew: CrewRef?, -- cache; HC_Crews_v1 roster wins
 	season: SeasonState,
 	daily: { streak: number, lastClaimDay: number },
 	contracts: ContractState,
@@ -1533,19 +1548,17 @@ export type PlayerData = {
 	receipts: { string },
 	lastOnline: number,
 	tutorialDone: boolean,
-	onboarding: { [string]: boolean }, -- beat flags: "gun_gift", "first_bank", "starter_offer", ...
+	onboarding: { [string]: boolean }, -- mission flags: "m1_jack", "m2_order", "gun_gift", "m4_casino", "starter_offer", "wallet_help", ...
 	settings: Settings,
-	mailSeen: { string }, -- last 50 applied mail ids (idempotency)
 	likes: { day: number, given: { [string]: boolean }, received: number },
 	giftedPasses: { [string]: boolean },
 	referralRewarded: boolean,
-	referralsPaid: { day: number, count: number }?,
-	playtime: { day: number, seconds: number, claimed: { [string]: boolean } },
-	retiredCars: { { carId: string, finish: string, reason: string? } }?, -- sanitize-only (unknown ids, dupes)
+	playtime: { day: number, seconds: number, activeSeconds: number, claimed: { [string]: boolean } },
+	retiredCars: { { record: CarRecord, reason: string, at: number } }, -- full records; only an admin retires a car
 }
 
 -- Runtime-only car state for snapshots (never persisted).
-export type CarRuntime = "Parked" | "Out" | "BeingStolen" | "LayLow" | "Missing" | "Impounded" | "Repair"
+export type CarRuntime = "Parked" | "Out" | "BeingStolen" | "LayLow" | "Missing" | "Impounded" | "Repair" | "Lent"
 
 export type CarSnapshot = CarRecord & {
 	runtime: CarRuntime,
@@ -1563,9 +1576,10 @@ export type Snapshot = {
 	discovered: { [string]: boolean }, finishIndex: { [string]: { [string]: boolean } },
 	security: Security, skills: { hotwire: number },
 	weapons: { [string]: WeaponState }, tools: { [string]: boolean }, armor: number, medkits: number,
+	vouchers: { paint: number },
 	stats: Stats,
 	daily: { streak: number, canClaim: boolean, nextDay: number },
-	playtime: { claimed: { [string]: boolean }, sessionSeconds: number },
+	playtime: { claimed: { [string]: boolean }, activeSeconds: number },
 	contracts: ContractState, weekly: WeeklyState, season: SeasonState,
 	garageIncome: number, garageMult: number, G: number,
 	passes: { [string]: boolean },
@@ -1573,7 +1587,8 @@ export type Snapshot = {
 	tutorialDone: boolean, onboarding: { [string]: boolean },
 	settings: Settings,
 	crew: CrewRef?,
-	protection: { rookieSecondsLeft: number, starter: boolean, shakenUntil: number, dayCapped: boolean },
+	protection: { rookieSecondsLeft: number, starterDone: boolean, protectedReason: string?, shakenUntil: number, dayCapped: boolean },
+	limits: { streetSecondsLeft: number, tradeNetOutLeft: number },
 }
 
 export type VehicleKind =
@@ -1584,172 +1599,100 @@ export type VehicleKind =
 	| "Swat" -- 5★ SWAT van
 ```
 
-**Snapshot size.** Up to 15 cars × about 0.6 KB is about 9 KB, which is fine for `DataSnapshot`. Debounce stays at 0.1 s (v1). Street income and XP ticks go out as **attributes** (`Wallet`, `StreetMult`) and through `CarProgress`, not full snapshots.
+**Snapshot size.** Up to 15 cars × about 0.7 KB is about 11 KB, which is fine for `DataSnapshot` when it is rare. The worst-case profile (12 slots + 3 vault + 20 owed cars, full indexes) serializes to under 60 KB, about 1.5% of the 4 MB key limit; a spec asserts under 100 KB (§9.3).
 
-### 9.2 Player attributes (server writes, clients read for the HUD)
+**Hot fields never trigger snapshots.** Wallet ticks, car XP and mileage, ammo per shot, armor per hit and slot `uncollected` change every second. They go through the **quiet** money and progress paths (§9.5): the data is updated, the profile is saved by autosave, and the client hears about it through attributes (`Wallet`, `StreetMult`), `CarProgress` and `AmmoState`, never a full `DataSnapshot`. Spec: 60 street-income ticks fire 0 `DataSnapshot` events. (v1 already did this for garage income, PERF-08.)
+
+### 9.2 Attributes (server writes, clients read)
+
+**Player attributes:**
 
 | Attribute | Source |
 |---|---|
-| `Wallet`, `Bank` (replace v1 `Cash`) | DataService |
-| `StreetMult` | StreetIncomeService |
+| `Wallet`, `Bank` (replace v1 `Cash`), `G` | DataService |
+| `StreetMult`, `StreetCap` (10 / 5 / 1.5 / 1) | StreetIncomeService |
 | `Loaded` | BankingService |
 | `Rep` | RepService |
 | `Wanted` and v1 wanted attributes | WantedService |
-| `Armor`, `InCombat`, `Protected`, `Passive`, `Rookie`, `Bounty`, `Menace` | DamageService (gta_combat) |
-| `Shaken` (unix until) | TheftService |
+| `Armor`, `InCombat`, `Protected`, `Passive`, `Rookie`, `RookieLeft`, `Bounty`, `Menace` | DamageService (gta_combat) |
+| `ProtectedReason` (`starter` / `shaken` / `daycap` / `lastcars` / nil), `Shaken` (unix until) | TheftService |
+| `MoveGraceUntil` (server-only meaning; set on every server teleport, knockback, eject and ragdoll) | CharacterWatchdog consumers |
+| `ServerCrown` | LeaderboardService |
 | `District` | DistrictService |
 | `PartyId` | PartyService |
 | `CrewTag` | CrewService |
 | `IncomePerSec`, `PlotIndex`, `Rebirths`, `Driving`, `Stunned`, `BustProgress` | v1, unchanged |
 
-### 9.3 Migration v1 → v2 (DataService `MIGRATIONS[1]`)
+**Car model attributes** (written by `VehicleService.spawnFromRecord` from `CarStats`, §9.4). VehicleClient and every watchdog read **these**, never the local player's snapshot or `Config/Cars`, so a thief driving an upgraded car gets that car's real stats. Another player's `CarRecord` is never sent to a client.
 
-**Plumbing changes.**
-- `migrate(data)` becomes `migrate(data, ctx)` and `prepare(raw, now)` becomes `prepare(raw, now, userId)`. The migration needs `ctx.userId` for car uids.
-- `makeTemplate()` becomes `makeTemplate(userId)`. The starter car is a `CarRecord` with uid `"<userId>-1"` and `nextCarSeq = 2`.
-- `NO_MERGE` becomes `{ cars = true, owedCars = true }`: never merge template cars into an existing profile, the same lesson as v1 `garage`.
+| Attribute | Meaning |
+|---|---|
+| `TopSpeed`, `Accel`, `Grip`, `NitroTank`, `DamageMult`, `TireMode` | Effective stats of this car |
+| `Finish`, `Bound`, `Level`, `Serial` | Public look and flex |
+| `OwnerUserId`, `Kind` | v1 |
+| *(not replicated)* `Trait` | Hidden until the delivery reveal (§2.5) |
 
-```lua
-local MUTATION_TO_FINISH = { None = "Stock", Gold = "Gold", Diamond = "Chrome", Rainbow = "Chameleon", Galaxy = "Galaxy" }
-local V1_ARMOR_TO_V2 = { [0] = 0, [1] = 2, [2] = 4, [3] = 5 } -- v1 values {1,.8,.6,.4} -> nearest v2 {1,.85,.72,.6,.5,.4}, rounded in the player's favour
+### 9.3 Fresh store, no migration
 
-MIGRATIONS[1] = function(d: any, ctx: { userId: number, now: number }): any
-	local up = if typeof(d.upgrades) == "table" then d.upgrades else {}
-	local function lvl(v: any, max: number): number
-		return math.clamp(nonNegInt(v, 0), 0, max)
-	end
+v1 never reached players (first real-engine run in Studio on 2026-10-27; every product id is 0), so there is nothing to migrate. Revision 1's `MIGRATIONS[1]`, grandfathering, Rep-from-history, welcome gift and "shut down all servers" rule are **deleted**.
 
-	-- 1. money: everything a v1 player had was safe in their garage world -> bank
-	d.bank = math.max(0, finite(d.cash, 0))
-	d.wallet = 0
-	d.cash = nil
+- **Store** `HotwireCity_v2`, key `p_<userId>`, `SCHEMA_VERSION = 1`, `MIGRATIONS = {}`. Anything in `HotwireCity_v1` is Studio test data and is never read.
+- **Plumbing.** `makeTemplate()` becomes `makeTemplate(userId)` (the starter Rustbucket is a `CarRecord` with a GUID uid and `origin = "starter"`; it is not bound), and `prepare(raw, now)` becomes `prepare(raw, now, userId)`.
+- `NO_MERGE = { cars = true, owedCars = true, insured = true, pairs = true, retiredCars = true }`: never merge template entries into an existing profile (the v1 `garage` lesson).
+- **Forward-version guard.** In the claim `UpdateAsync`, if the stored `version > SCHEMA_VERSION`, the transform returns nil (no write) and the player is kicked with "Server updating, please rejoin". An older server can never load or save a newer profile, which makes soft-shutdown publishes safe from now on.
+- **Uids** are `HttpService:GenerateGUID(false)`. There is no `nextCarSeq`, so a profile rollback can't re-mint an existing uid and silently overwrite a car in `cars[uid]`.
 
-	-- 2. player-wide upgrades -> security / skills / per-car tracks
-	d.security = { lock = lvl(up.lock, 3), alarm = 0, door = 0 }
-	d.skills = { hotwire = lvl(up.hotwire, 4) }
-	local nitro, armor = lvl(up.nitro, 4), V1_ARMOR_TO_V2[lvl(up.armor, 3)]
-	d.upgrades = nil
-
-	-- 3. garage slots -> CarRecords (slot order, so uids are stable and readable)
-	d.cars, d.owedCars, d.nextCarSeq = {}, {}, 1
-	local function mint(carId: string, mutation: any, origin: string): any
-		local uid = `{ctx.userId}-{d.nextCarSeq}`
-		d.nextCarSeq += 1
-		local def = Cars.get(carId)
-		return {
-			uid = uid, carId = carId,
-			finish = MUTATION_TO_FINISH[mutation] or "Stock",
-			level = 1, xp = 0,
-			upgrades = { engine = 0, turbo = 0, handling = 0, tires = 0, armor = armor, nitro = nitro, tracker = 0, insurance = 0 },
-			upgradeSpend = 0, -- grandfathered stages add no value (no free resale profit)
-			paint = Paint.defaultFor(def), mileage = 0,
-			bound = if def and def.rarity == "Exclusive" then true else nil,
-			acquiredAt = ctx.now, firstOwner = ctx.userId, owners = 1, thefts = 0,
-			origin = origin, -- "migrated" | "robux" | "reward"
-			uncollected = 0, place = { kind = "slot", index = 0 }, status = "ok", -- owedCars ignore place until delivered
-		}
-	end
-	local keys = {}
-	for k in (if typeof(d.garage) == "table" then d.garage else {}) do
-		table.insert(keys, k)
-	end
-	table.sort(keys, function(a, b) return (tonumber(a) or 99) < (tonumber(b) or 99) end)
-	for _, k in keys do
-		local rec, slot = d.garage[k], tonumber(k)
-		if typeof(rec) == "table" and typeof(rec.carId) == "string" and slot then
-			local car = mint(rec.carId, rec.mutation, "migrated")
-			car.place.index = slot
-			car.uncollected = math.max(0, finite(rec.uncollected, 0))
-			d.cars[car.uid] = car
-		end
-	end
-	d.garage = nil
-
-	-- 4. owed cars: v1 exclusives (Robux, keys "id" or "id#n") + pendingCars (reward cars) -> owedCars
-	for key in (if typeof(d.exclusives) == "table" then d.exclusives else {}) do
-		local carId = string.match(key, "^([^#]+)")
-		if carId and Cars.get(carId) then
-			local car = mint(carId, "None", "robux")
-			car.bound = true
-			table.insert(d.owedCars, car)
-		end
-	end
-	for _, p in (if typeof(d.pendingCars) == "table" then d.pendingCars else {}) do
-		if typeof(p) == "table" and typeof(p.carId) == "string" and Cars.get(p.carId) then
-			table.insert(d.owedCars, mint(p.carId, p.mutation, "reward"))
-		end
-	end
-	d.exclusives, d.pendingCars = nil, nil
-
-	-- 5. tools -> weapons (gta_combat §13.2): bat moves, taser/spikes stay tools; P9 welcome gift (+2 mags)
-	local tools = if typeof(d.tools) == "table" then d.tools else {}
-	d.weapons = { bat = { ammo = 0 }, pistol = { ammo = 24 } }
-	d.tools = { taser = tools.taser == true or nil, spikes = tools.spikes == true or nil }
-	d.onboarding = { gun_gift = true }
-
-	-- 6. Rep from v1 history (never above Rep 15, so v2 unlocks still pace)
-	local s = if typeof(d.stats) == "table" then d.stats else {}
-	local xp = nonNegInt(s.steals, 0) * 50 + nonNegInt(s.playerSteals, 0) * 200 + nonNegInt(s.hotDrops, 0) * 300
-	d.rep, d.repXp = Progression.repFromTotal(math.min(xp, Progression.REP_TOTAL[15]))
-
-	-- 7. protection: v1 had no guns; give everyone a short grace to learn them
-	d.combat = { rookieSecondsLeft = if d.tutorialDone == true then 600 else 1800, passivePref = false, menace = 0, menaceAt = 0 }
-
-	-- everything else (theft, season, weekly, likes, mailSeen, giftedPasses, new stats, new settings)
-	-- is filled by reconcile(makeTemplate(userId)) after migrate; sanitize enforces shapes.
-	return d
-end
-```
-
-**sanitize v2** (extends the v1 rules: finite, non-negative, clamped; unknown ids go to `retiredCars`, never deleted):
+**sanitize** (extends the v1 rules: finite, non-negative, clamped; unknown ids go to `retiredCars` with the full record, never deleted):
 
 | Field | Rule |
 |---|---|
 | `wallet`, `bank` | Finite and ≥ 0 |
 | `rep` | 1..100 |
 | `repXp` | Below `repToNext(rep)`; carry over otherwise |
-| `cars[uid]` | Valid `carId` (else → `retiredCars`). `finish` must be a known `FinishId` (else "Stock"). `level` in 1..cap. `xp` below `xpToNext`. Every upgrade clamped to its track max. `paint` ids must be in the palette (else defaults). `plate` ≤ 8 chars (re-filtered on display). `uid` must match the key. |
-| Place collisions | Two cars in the same slot or vault index: the later `acquiredAt` moves to `owedCars`. A `slot` index above capacity → `owedCars`. |
-| `laylow` | `laylow` with `untilTime` already past → finalise as a slot if one is free, else `owedCars`. **Exception:** if `ctx.now − untilTime > 1 day` and the profile was released mid-window, finalise anyway. |
-| `owedCars` | Capped at 20 (oldest first) |
-| `nextCarSeq` | > the highest seq among uids whose first owner is this user |
-| `theft.pairs` | Prune entries older than 24 h. A new UTC day resets the counters. |
-| `mailSeen` | Capped at 50 |
+| `cars[uid]` | Valid `carId` (else → `retiredCars`, reason "unknown_car"). `finish` must be a known `FinishId` (else "Stock"). `level` in 1..cap. `xp` below `xpToNext`. Every upgrade clamped to its track max. `paint` ids must be in the palette (else defaults). `plate` ≤ 8 chars (re-filtered on display). `uid` must match the key. `xferSeq` ≥ 0. |
+| Place collisions | Two cars in the same slot or vault index: the later `acquiredAt` moves to `owedCars` (with `place = nil`). A `slot` index above capacity → `owedCars`. |
+| `inbound` | Left as is; resolved after load by CarService (§10.3), never by sanitize. |
+| `owedCars` | No cap; never dropped. |
+| `ledger`, `hourly` | A new UTC day / hour resets the counters (`TheftRules.rollLedger`). |
+| `pairs`, `insured` | Prune entries past their window or `until`. |
 | `weapons` | Ids must be in `Config/Weapons`; ammo clamped to `reserveCap` |
 | `armor` | 0..100 |
 | `medkits` | 0..3 |
+| `vouchers.paint` | 0..5 |
+| `protection.activeSeconds` | Finite, ≥ 0; `starterDone` only ever goes false → true |
 
-**Rolling-update safety.**
-- Publish V2 with **"Shut down all servers"**, not a soft migration. A v1 server that loads a v2 profile would let the player play on v1 rules: v1 `reconcile` re-adds a template `garage` and `cash` and drops v2 progress made there.
-- v1 `migrate` already keeps a newer `version`, and v1 `reconcile` never removes keys, so v2 data survives even if one does slip through.
-- Tests (owned by the data workstream) assert:
-  - a v1 profile with 6 cars, mutations, upgrades and exclusives migrates to v2 with identical total income (finish multipliers equal v1 mutation multipliers);
-  - no car is lost;
-  - uids are unique;
-  - running `prepare` twice is a no-op.
+**Tests** (owned by WP1 in the engineering doc):
+- `prepare` on a template is a no-op the second time;
+- a profile with `version = 2` is refused by the claim transform;
+- the serialized worst-case profile (35 cars, full indexes, full ledgers) is under 100 KB;
+- uids from `makeTemplate` are GUID-shaped and unique across 1,000 templates.
 
 ### 9.4 Config and shared modules
 
 | File | Status | Contents |
 |---|---|---|
-| `Config/Economy.luau` | Change | Wallet, bank and LOADED constants; ATM fee; fees (§7.3); `G_MIN`. Tools move to Weapons (gta_combat). Upgrades split per §2.4. |
-| `Config/Rarity.luau` | Change | Add `Finishes` (§2.5) beside `Mutations` (kept for the migration). Add `Traits`. |
+| `Config/Flags.luau` | **New** | Launch tiers (brief §3.13): `HEIST_ENABLED`, `TRADING_ENABLED`, `RACES_ENABLED`, `RACE_PINK_SLIPS_ENABLED`, `SERIALS_ENABLED`, `CREWS_PERSISTENT_ENABLED`, `SEASON_ENABLED`, `CARJACK_PLAYERS_ENABLED`. Checked in each service's `start()` and in its remote handlers; `HC_LiveConfig` may only turn a flag **off** at runtime. |
+| `Config/Economy.luau` | Change | Wallet, bank and LOADED constants; ATM fee; fees (§7.3); `G_MIN`; `WANTED_LOSS_PER_STAR`, `LEAVE_WALLET_FEE`; V2 `PLAYTIME_REWARDS`; `REFERRAL_INVITER_DAILY_CAP = 1`; `PRESTIGE_*`; `DEALER_REP`. Tools move to Weapons (gta_combat). Upgrades split per §2.4. |
+| `Config/Rarity.luau` | Change | `Finishes` (§2.5) and `Traits` replace `Mutations` (removed once every v1 caller is ported). |
 | `Config/Cars.luau` | Change | Optional `limitedCap`, `class` (sedan / sports / super… for orders and sets), `bound` hero flag. The vehicles workstream owns the actual list. |
-| `Config/Upgrades.luau` | New | Tracks, stage effects, price factors, level gates (§2.4); security ladders (§2.7.3) |
+| `Config/Upgrades.luau` | New | Tracks, stage effects, price factors, level gates (§2.4); security ladders (§2.7.3); Hotwire Kit |
 | `Config/Progression.luau` | New | Rep curve and unlock table (§6.1), car XP curve and level caps (§2.3), XP sources, season tiers |
-| `Config/Crime.luau` | New | §3.2 activity table, truck (§3.6), heist (§3.7), jewelry, jobs, wantedMult, party mult |
-| `Config/Theft.luau` | New | §2.7–2.8 constants |
+| `Config/Crime.luau` | New | §3.2 activity table, truck (§3.6), heist (§3.7), jewelry, jobs, wantedMult, party mult, soft-cap multiplier, trunk table |
+| `Config/Theft.luau` | New | §2.7–2.8 constants, street-income constants (§2.2), ledger keys |
 | `Config/Districts.luau` | New | §6.2 table + polygons [world] |
 | `Config/Paint.luau` | New | Palette, paint types, rims, plate rules |
 | `Config/LiveOps.luau` | New | Weekend rotation, Admin Abuse events, weather, clamps |
+| `Config/Onboarding.luau` | New | Missions 1–4 (§1.3): text, objective, target kind, reward |
 | `Config/Monetization.luau` | Change | §8 catalog |
-| `Config/Police.luau` | Change | Heat keys (§3.11 + gta_combat §9.5), district factors |
+| `Config/Police.luau` | Change | `Heat` (additive) + new `HeatFloor` (§3.11), gta_combat §9.5 keys, district factors |
 | `Config/Weapons.luau` | New (gta_combat) | Plus a `rep` field per weapon (§4.1) |
 | `Util/EconomyMath.luau` | Change | `carIncome`, `carValue`, `sellValue`, `chopValue`, `insurance`, `G`, `garageMult` (renamed `playerMultiplier`) |
-| `Util/CarStats.luau` | New | Pure: effective `topSpeed / accel / grip / nitro / damageMult / tireMode` from `CarDef` + `CarRecord`. **VehicleController, the watchdog speed cap and police speed matching all read it.** |
-| `Util/Payout.luau` | New | Pure: §3.1 formula, truck clamp, heist split, bounties |
+| `Util/CarStats.luau` | New | Pure: effective `topSpeed / accel / grip / nitro / damageMult / tireMode` from `CarDef` + `CarRecord`. Written to car model attributes at spawn (§9.2). |
+| `Util/Payout.luau` | New | Pure: §3.1 formula with the breakdown list, soft caps, truck clamp, heist equal split and clamp, bounties, Most Wanted clamp, wanted loss on BUSTED / WASTED / combat-log |
+| `Util/TheftRules.luau` | New | Pure: `canKeep(ctx) -> (ok, reason)` for every §2.8 row, `ownerProtection(ctx) -> reason?` (drives the ×5 cap and `ProtectedReason`), `countsAsLoss`, `insurancePayout`, `rollLedger(ledger, now)`, `prunePairs` |
+| `Util/StreetGate.luau` | New | Pure: `tick(state, sample, now) -> (paying, mult, xp)` over a 60-sample ring buffer: the six gates, fresh-road minutes, stunt events, decay, out-of-car grace, caps |
 | `Util/Progression.luau` | New | Pure: `xpToNext`, `repToNext`, `repFromTotal`, level caps |
-| `Util/Rolls.luau` | Change | `rarity(source, luck, rng, districtLuck?)` allows districtLuck < 1; `finish(boost, rng, weather?)`; `trait(rarity, rng)`; returns probabilities for "1 in X" |
+| `Util/Rolls.luau` | Change | `rarity(source, luck, rng, districtLuck?)` allows districtLuck < 1; `finish(boost, rng, weather?)`; `trait(rarity, rng)`; `trunk(rng)`; returns probabilities for "1 in X" |
 
 ### 9.5 Systems: what changes and what is new
 
@@ -1757,64 +1700,70 @@ end
 
 | System | Changes |
 |---|---|
-| **DataService** | Schema v2, `migrate(data, ctx)`, `makeTemplate(userId)`, sanitize v2. Money API: `addWallet(p, n, reason)`, `addBank(p, n, reason)`, `spend(p, n, reason): boolean` (wallet then bank), `takeWallet(p, fraction, reason): number`, `transferWallet(from, to, n, reason)`. `addCash` stays as an alias of `addBank` during the transition. Every call routes to EconomyTelemetry. `saveNow` unchanged. |
-| **GarageService** | Physical garage only: pads, vault bays, lay-low pad, display cars, collect pad, drive out (`DriveCar(uid)`), Mechanic. Income uses `EconomyMath.carIncome(record)`. Chop moves to ChopShopService. |
-| **TheftService** | Garage raid now ends in lay-low. **Carjack** of `Owned` cars, lay-low window, repo, insurance, §2.8 protections and ledger, interceptor and revenge rewards, mail returns. Signals: `TheftStarted`, `TheftEnded(theft, outcome: "kept" / "repo" / "dropped" / "failed" / "chopped")`. |
-| **VehicleService** | `spawnFromRecord(record, cframe, kind)` with `CarStats`; per-car nitro and armor; bullet damage and tire pops (gta_combat §10.5); a CARJACK prompt on player-driven Owned cars; new kinds; the watchdog uses `CarStats.topSpeed`; drive samples (distance, speed, input) published to StreetIncomeService. |
-| **WantedService** | Evade model (gta_combat), wantedMult, new heat keys, BUSTED economy (§4.4), evade bonus, 5★ Most Wanted trigger and survival payout, flash heat, Lawyer. |
-| **PoliceService** | District factors, response delay. Combat goes in PoliceCombatService (gta_combat). |
+| **DataService** | Store `HotwireCity_v2`, `makeTemplate(userId)`, `prepare(raw, now, userId)`, sanitize v2, forward-version guard. **Money API:** `addWallet(p, n, reason, quiet?)`, `addBank(p, n, reason)`, `spend(p, n, reason): boolean` (wallet then bank), `takeWallet(p, fraction, reason): number`, `transferWallet(from, to, n, reason)`. The `quiet` path updates data and the `Wallet` attribute and never calls `markDirty`. **`addCash` and `spendCash` are deleted**, not aliased: every caller is ported to the wallet or the bank by the §7.2 "Lands in" column, and a spec fails if either name appears under `src/`. New: `isShuttingDown()`, signal `Released(userId, savedOk)` after the final write. `Releasing` handlers receive the `data` table and must mutate it directly (the money API is a no-op once `loaded = false`). Every money call routes to EconomyTelemetry. |
+| **GarageService** | Physical garage only: pads, vault bays, lay-low pad, display cars, collect pad, drive out (`DriveCar(uid)`), Mechanic, delivery reveal and trunk. Income uses `EconomyMath.carIncome(record)` on the quiet path. Chop moves to ChopShopService. |
+| **TheftService** | Garage raid and **carjack** of `Owned` cars, both ending in the lay-low window with the record still in the victim's profile; repo; final transfer through `CarService.transfer`; insurance and clawback records; `TheftRules` for every keep decision; interceptor and revenge rewards; victim-leave finalisation in a `Releasing` handler; shutdown resolves for the victim. No mail. Signals: `TheftStarted`, `TheftEnded(theft, outcome: "kept" / "repo" / "dropped" / "failed" / "chopped" / "cancelled")`. |
+| **VehicleService** | `spawnFromRecord(record, cframe, kind)` writing `CarStats` attributes; per-car nitro and armor; bullet damage and tire pops (gta_combat §10.5); CARJACK prompt (normal and fast-jack) on player-driven Owned cars; scripted traffic stop for onboarding; new kinds; watchdog reads the model's `TopSpeed`; **two flags**: `car.data.tainted` (permanent for that spawned car: no delivery, chop, bag or race finish, v1 rule) and `car.data.pausedUntil` (street income and XP only, 10 s after the last violation); drive samples (distance, speed, input, slip, ground contact, near-miss candidates) published to StreetIncomeService. |
+| **WantedService** | Evade model (gta_combat), wantedMult, `raiseTo(p, n, reason)` + `HeatFloor`, BUSTED economy (§4.4), evade bonus with the hourly soft cap, 5★ Most Wanted trigger and survival payout, hot-ride heat, Lawyer, scripted tutorial chase. |
+| **PoliceService** | District factors, response delay, tutorial units (can't bust or shoot). Combat goes in PoliceCombatService (gta_combat). |
 | **CombatService** | Taser and spikes gadgets only (gta_combat §13.2) |
-| **ShopService** | The gun store (gta_combat) + Rep gates + Hacking Device and Duffel |
-| **RewardsService** | Rewards go to the bank; car rewards minted through CarService; weekly and crew contracts; new stats; streak pause; season XP hooks |
-| **RebirthService** | Prestige rules (§6.3) |
-| **MonetizationService** | §8 catalog, `giftedPasses`, bound-car grants into `owedCars`, refusal rules (lockdown during theft, lose_cops limits) |
+| **ShopService** | The gun store (gta_combat) + Rep gates + Hacking Device, Duffel and Hotwire Kit (`BuySkill`) |
+| **RewardsService** | Rewards go to the bank; V2 playtime table on **active seconds**; reward-origin cars minted through CarService with a 14-day trade lock and `noInsurance`; referral inviter cap 1; weekly and crew contracts; new stats; streak pause; season XP hooks |
+| **RebirthService** | Prestige rules (§6.3): G-scaled cost, keep 3 chosen cars + bound |
+| **MonetizationService** | §8 catalog, `giftedPasses`, bound-car grants into `owedCars`, refusal rules (lockdown during theft, lose_cops limits, Double It eligibility) |
 | **EventService** | Hot Drop interval {600, 900}; Cash Rain, Rush Hour, 2× Cash and Server Luck unchanged; the clock moves to EventClock |
-| **DealershipService** | Restock at the pulse (300 s); mints CarRecords; hero stand; limited sales during events |
-| **StreetSpawnService** | District luck, finish, trait and "1 in X" metadata (car attributes `OneInX`, `Finish`, `Trait`) |
+| **DealershipService** | Restock at the pulse (300 s); mints CarRecords through CarService; `DEALER_REP` purchase gates; hero stand; limited sales during events |
+| **StreetSpawnService** | District luck, finish and trait rolls; `Finish` and `OneInX` attributes; **trait kept server-side** |
+| **TrafficService** | Scripted stop at the plot's signal for Mission 1; player carjack of traffic unchanged |
 | **NPCService** | Muggable peds, clerks, truck guards, heist cameras and guards (gta_combat officer budget) |
-| **LeaderboardService** | §5.6 boards |
-| **AdminService** | `/hc wallet\|bank\|rep\|carlevel\|upgrade\|finish\|truck\|heist\|mostwanted\|liveops\|audit\|mail` (gated as v1) |
-| **PlotService** | Vault bay, lay-low pad, alarm and door levels, garage safe zone, hospital respawn hook (gta_combat) |
+| **LeaderboardService** | §5.6 boards; Server Crown (§5.8) |
+| **AdminService** | `/hc wallet\|bank\|rep\|carlevel\|upgrade\|finish\|truck\|heist\|mostwanted\|liveops\|audit\|freeze\|retire\|restore` (gated as v1) |
+| **PlotService** | Vault bay, lay-low pad, alarm and door levels, garage safe zone, hospital respawn hook (gta_combat), Go Home 10 s channel |
 | **LightingService** | Weather states for LiveOps |
 
 **New systems** (`src/server/Systems/`; ProximityPrompts are server-validated with the `VehicleService.addStealPrompt` hold pattern):
 
 | System | Responsibility | Public API (main) |
 |---|---|---|
-| **EconomyTelemetry** | `LogEconomyEvent` for every flow; anomaly scoring; funnels | `log(p, flow, amount, sku, txType)`, `flag(p, reason)` |
-| **MailService** | Cross-server mailbox `HC_Mail_v1/<userId>` (UpdateAsync append; claim on load; dedupe with `mailSeen`) | `send(userId, item)`, applied in `DataService.Loaded` |
-| **CarService** | Owns CarRecords: mint uid, place/move, remove, transfer between two loaded profiles, deliver owed cars, value and income queries | `mint(p, carId, opts)`, `transfer(fromP, toP, uid, reason)`, `move(p, uid, place)`, `get(p, uid)` |
-| **RepService** | RP, levels, unlock checks | `addRP(p, n, reason)`, `has(p, unlockId)` |
+| **EconomyTelemetry** | `LogEconomyEvent` for every flow (one "Cash" currency, per-drive street logging); anomaly scoring; funnels | `log(p, flow, amount, sku, txType)`, `logDrive(p, amount)`, `flag(p, reason)` |
+| **CarService** | Owns CarRecords: mint (GUID uid), place/move, remove, **transfer** between two loaded profiles with the `inbound` marker and save ordering (§10.3), deliver owed cars, `inbound` resolution on load, insurance clawback on arrival, value and income queries | `mint(p, carId, opts)`, `transfer(fromP, toP, uid, kind, opts)`, `move(p, uid, place)`, `get(p, uid)` |
+| **RepService** | RP, levels, unlock checks, starter-protection latch | `addRP(p, n, reason)`, `has(p, unlockId)` |
 | **DistrictService** | Point → district; mults | `at(pos)`, `payoutMult(pos)`, `luck(pos)` |
-| **StreetIncomeService** | S×, wallet ticks, car XP, mileage, flash heat, LOADED refresh | `getMult(p)`, signal `CarLevelUp(p, uid, level)` |
-| **ModShopService** | Upgrades, security, paint, plates | remotes in §9.6 |
-| **BankingService** | ATMs, garage auto-deposit, LOADED marker, cash bags (drops and pickups) | `deposit(p, viaAtm)`, `dropBag(pos, amount, priorityUserId?)` |
-| **RobberyService** | Stores, ATM hack, jewelry store, NPC and player mugging | prompts and MiniGame sessions |
-| **ChopShopService** | Chop (from GarageService), order board | `orders()`, ChopAttempt handler |
+| **StreetIncomeService** | Runs `StreetGate` per driver: S×, quiet wallet ticks, car XP, mileage, stunt events, hot-ride heat and blip, daily street seconds, LOADED refresh | `getMult(p)`, signal `CarLevelUp(p, uid, level)` |
+| **ModShopService** | Upgrades, security, paint (vouchers), plates | remotes in §9.6 |
+| **BankingService** | ATMs, garage auto-deposit, LOADED marker, cash bags (drops and pickups), leave-time banking and the LOADED leave fee | `deposit(p, viaAtm)`, `dropBag(pos, amount, priorityUserId?)` |
+| **RobberyService** | Stores, ATM hack, jewelry store, NPC and player mugging, `CrimeState` | prompts and MiniGame sessions |
+| **ChopShopService** | Chop (from GarageService), order board, player-car chop rules | `orders()`, ChopAttempt handler |
 | **EventClock** | Pulse and big pulse scheduler, `PulseState` broadcast | `nextPulse()`, signals `Pulse`, `BigPulse` |
-| **ArmoredTruckService** | Truck AI route, guards, crack, bags | `TruckState` |
-| **HeistService** | Lobby, roles, stages, bags, split | `HeistState` |
-| **JailService** | Jail sentence, break-out, impound lot, repair queue | `RetrieveImpound`, `RushRepair` |
+| **ArmoredTruckService** | Truck AI route, guards, crack, bags, per-client bag label inputs | `TruckState` |
+| **HeistService** | Lobby, roles, stages, bags (2 per member), equal split, kit refund and window reopen | `HeistState` |
+| **JailService** | Jail sentence, break-out, impound lot (120 s), repair queue (60 s) | `RetrieveImpound`, `RushRepair` |
 | **PartyService** | Session party, invites, waypoint, friendly-fire flag, party mult | `getParty(p)`, `sameParty(a, b)` |
-| **CrewService** | Persistent crews (`HC_Crews_v1`), roster, tag, weekly RP | `getCrew(p)` |
+| **CrewService** | Persistent crews (`HC_Crews_v1`, `HC_CrewNames_v1`), roster, tag, weekly RP | `getCrew(p)` |
 | **RaceService** | Meets, races, house prizes, pink slips (flagged), time trials | `RaceState` |
-| **TradeService** | Trade sessions, atomic swap (§10.4) | `TradeState` |
-| **SerialService** | Limited minting and registry | `mint(carId)`, `verify(p)` |
+| **TradeService** | Trade sessions, net-out cap, swap via CarService (§10.3) | `TradeState` |
+| **SerialService** | Limited minting and registry (`xferSeq`), freeze-not-retire | `mint(carId)`, `verify(p)` |
 | **SeasonService** | Street Pass | `addSXP(p, n)`, `ClaimSeasonTier` |
-| **LiveOpsService** | Calendar, weekend modifiers, weather, Admin Abuse (MessagingService), live config | `mult(kind)`, `active()` |
+| **LiveOpsService** | Calendar, weekend modifiers, weather, Admin Abuse (MessagingService), live config, flag kill-switches | `mult(kind)`, `active()` |
 | **JobsService** | Phone jobs | `JobAccept`, `JobAbandon` |
+| **OnboardingService** | Contact missions 1–4, scripted first car and chase, help-text gating (wallet help at first LOADED or rookie end) | `MissionState` |
+| **BlipService** | One per-viewer `MapBlips` channel for everything far away: LOADED, hot ride, stolen car pulses, Most Wanted, bag carriers, the truck, party members, revenge targets, Tracker GPS, the Crown | `set(id, kind, getPos, filter)`, `clear(id)` |
+| **CharacterWatchdog** | On-foot speed and teleport checks (§10.1); taints, never rewinds in V2.0 | `isTainted(p)` |
 | (gta_combat) **WeaponService, DamageService, HitboxHistory, PoliceCombatService** | Combat | per gta_combat §13 |
 
-**Boot `ORDER`** (inserted into `src/server/init.server.luau`):
+MailService and the escrow store from revision 1 are **removed**: no V2.0 flow needs a cross-server write (§10.3).
+
+**Boot `ORDER`** (in `src/server/init.server.luau`; a listed module that doesn't exist yet only warns, so the list can land first):
 
 ```
 MapBuilder, AssetLibrary, MapDresser, LightingService,
-DataService, EconomyTelemetry, MailService, MonetizationService, RepService, DistrictService,
-PlotService, VehicleService, CarService, GarageService, StreetIncomeService, BankingService,
+DataService, EconomyTelemetry, MonetizationService, RepService, DistrictService,
+PlotService, VehicleService, CharacterWatchdog, CarService, GarageService, StreetIncomeService, BankingService,
 WantedService, PoliceService, PoliceCombatService, TheftService, JailService,
 DealershipService, StreetSpawnService, TrafficService, NPCService,
 HitboxHistory, DamageService, WeaponService, CombatService,
 EventService, EventClock, ArmoredTruckService, HeistService, RobberyService, ChopShopService, JobsService,
+OnboardingService, BlipService,
 PartyService, CrewService, RaceService, TradeService, SerialService,
 RewardsService, SeasonService, LiveOpsService, RebirthService, ShopService, ModShopService,
 LeaderboardService, AdminService, VehicleFxService
@@ -1823,14 +1772,18 @@ LeaderboardService, AdminService, VehicleFxService
 Back-edges stay lazy requires (SPEC §4).
 
 **Client controllers (new):**
-- PhoneController (apps per UI §5.11), MapController (full map + GPS).
+- PhoneController (apps per UI §5.11, including Jobs › Hot spots), MapController (full map, GPS, `MapBlips`, `CrimeState` icons).
 - WeaponClient, ShoulderCamera, WeaponWheel, CombatHUD, DeathScreenController (gta_combat).
-- RevealController ("1 in X" reveal), StreetHUD (S× + ramp, LOADED).
-- ModShopClient, TradeClient, RaceClient, HeistClient, TruckClient, PartyClient, QuickChatWheel, PhotoModeController, HotwireClient (timing bar).
+- RevealController ("1 in X" reveal and trunk), StreetHUD (S×, ramp, stunt popups, PROTECTED and daily-limit labels, LOADED, rookie pill), PayoutLine (`PayoutBreakdown` under the cash delta), MissionController (objective line, MISSION PASSED).
+- ModShopClient, TradeClient, RaceClient, HeistClient (Invite friend), TruckClient (own bag label), PartyClient (Invite friend), QuickChatWheel, PhotoModeController, HotwireClient (hold bar with the green band).
 
 ### 9.6 Remotes (added to `Shared/Remotes.luau`)
 
-All are validated with `Net.is*`, re-derived from server state, and rate-limited (per second). Most world interactions are **ProximityPrompts** handled server-side, so they need no remote: Hotwire, Carjack, Repo, Recover, Hold Up, Mug, Hack, Deposit, Crack, Cool drill, Grab bag, Smash case, Breach, Break out, Like garage, Race start.
+All are validated with `Net.is*`, re-derived from server state, and rate-limited (per second). Most world interactions are **ProximityPrompts** handled server-side, so they need no remote: Hotwire, Jack (traffic), Carjack, Repo, Recover, Hold Up, Mug, Hack, Deposit, Crack, Cool drill, Grab bag, Smash case, Breach, Break out, Like garage, Race start.
+
+**Hotwire timing needs no remote.** The server already records `PromptButtonHoldBegan` per player; it also listens to `PromptButtonHoldEnded`. When the hold begins it picks the green window and tells only that player (`HotwireWindow`). A release whose server-side hold length falls inside the window (±120 ms plus half the player's ping) completes a **CLEAN** steal; holding to the end fires `Triggered` and completes a normal steal; releasing outside the window does nothing.
+
+**New `Net` helpers:** `Net.isShape(v, spec)` (an exact key allow-list with a validator per key; unknown keys fail), `Net.isArrayOf(v, fn, max)` (a dense array of at most `max` items, each passing `fn`).
 
 **Client → server**
 
@@ -1840,58 +1793,63 @@ All are validated with `Net.is*`, re-derived from server state, and rate-limited
 | `SellCar` (changed) | `(uid: string)` | 2 |
 | `MoveCar` | `(uid: string, kind: "slot" \| "vault", index: number)` | 2 |
 | `CallMechanic` | `(uid: string)` | 0.5 |
+| `GoHome` (changed) | `()` starts a 10 s server channel; damage or movement cancels it | 0.2 |
 | `ModShopBuy` | `(uid: string, track: UpgradeTrack)` | 4 |
 | `BuySecurity` | `(kind: "lock" \| "alarm" \| "door")` | 2 |
-| `ApplyPaint` | `(uid: string, paint: PaintJob)` (server validates every palette id) | 2 |
+| `BuySkill` (replaces v1 `BuyUpgrade`) | `(skill: "hotwire")` | 2 |
+| `ApplyPaint` | `(uid: string, paint: PaintJob)` checked with `Net.isShape`; every palette id validated | 2 |
 | `SetPlate` | `(uid: string, text: string)` | 0.5 |
 | `RetrieveImpound` | `(uid: string)` | 1 |
 | `RushRepair` | `(uid: string)` | 1 |
 | `KillSwitch` | `(uid: string)` | 1 |
+| `CallLawyer` | `()` clears ≤ 2★ when unseen, for cash (K10) | 0.5 |
+| `RookieOptOut` | `()` | 0.2 |
+| `Rebirth` (changed) | `(keepUids: {string})` checked with `Net.isArrayOf(…, 3)` | 0.2 |
 | `MiniGameInput` | `(sessionId: string, step: number, value: number)` | 10 |
 | `SetPassive` | `(on: boolean)` (gta_combat) | 1 |
 | `PartyInvite` / `PartyRespond` / `PartyLeave` / `PartyKick` | `(userId)` / `(inviteId, accept)` / `()` / `(userId)` | 1 / 2 / 1 / 1 |
 | `MapPing` | `(pos: Vector3)` | 2 |
 | `QuickChat` / `Emote` | `(callId: number)` / `(emoteId: string)` | 2 / 2 |
 | `CrewCreate` / `CrewInvite` / `CrewRespond` / `CrewLeave` / `CrewKick` / `CrewPromote` | `(name, tag, emblemId)` / `(userId)` / `(inviteId, accept)` / `()` / `(userId)` / `(userId, rank)` | 0.2 / 1 / 1 / 0.2 / 1 / 1 |
-| `HeistLobby` | `(action: "start" \| "ready" \| "leave" \| "role" \| "split", value: any)` | 2 |
+| `HeistStart` / `HeistReady` / `HeistLeave` / `HeistRole` | `()` / `(ready: boolean)` / `()` / `(role: "driver" \| "hacker" \| "gunman" \| "lookout")` | 0.5 / 2 / 1 / 2 |
 | `RaceChallenge` / `RaceRespond` | `(userId, routeId, stakeUid: string?)` / `(challengeId, accept, stakeUid: string?)` | 0.5 / 1 |
-| `TradeRequest` / `TradeRespond` / `TradeOffer` / `TradeReady` / `TradeConfirm` / `TradeCancel` | `(userId)` / `(tradeId, accept)` / `(tradeId, uids: {string})` / `(tradeId, ready)` / `(tradeId)` / `(tradeId)` | 0.5 / 1 / 3 / 2 / 1 / 1 |
+| `TradeRequest` / `TradeRespond` / `TradeOffer` / `TradeReady` / `TradeConfirm` / `TradeCancel` | `(userId)` / `(tradeId, accept)` / `(tradeId, uids)` with `Net.isArrayOf(uids, isString(64), 4)` / `(tradeId, ready)` / `(tradeId)` / `(tradeId)` | 0.5 / 1 / 3 / 2 / 1 / 1 |
 | `ClaimSeasonTier` | `(tier: number, track: "f" \| "p")` | 2 |
 | `JobAccept` / `JobAbandon` | `(jobId: string)` / `()` | 1 / 1 |
 | `LendCar` (V2.1) | `(uid: string, userId: number?)` | 1 |
 | Combat remotes | gta_combat §13.2 | per that doc |
+
+The "Invite friend" buttons call `SocialService:PromptGameInvite` on the client and need no remote. Double It is a normal developer-product prompt; the server remembers each player's last eligible payout for 30 s and `ProcessReceipt` applies it.
 
 **Server → client**
 
 | Remote | Payload |
 |---|---|
 | `Busted` (changed) | `{ confiscated: number, surrendered: boolean, sentence: number, impoundedUid: string?, impoundFee: number?, bagsLost: number }` |
-| `Wasted` (gta_combat) | Plus `{ hospitalFee: number, droppedCash: number }` |
-| `CarStolenAlert` (changed) | `(thiefName, uid, carId, finish, active, method: "raid" \| "carjack", trackerLevel)` |
-| `Reveal` | `{ carId, finish, trait?, oneInX: number, source: string, uid: string? }` |
+| `Wasted` (gta_combat) | Plus `{ hospitalFee: number, wantedLoss: number, droppedCash: number, impoundedUid: string? }` |
+| `CarStolenAlert` (changed) | `(thiefName, uid, carId, finish, active, method: "raid" \| "carjack", trackerLevel, keepable: boolean)` |
+| `Reveal` | `{ carId, finish, trait?, oneInX: number, scripted: boolean, source: string, uid: string?, trunk: {kind, amount?}? }` |
+| `PayoutBreakdown` | `{ amount: number, base: number, mults: { {label: string, value: number} }, reduced: boolean? }` |
 | `CarProgress` | `(uid, level, xp, leveledUp: boolean)` on level-up, else every 5 s while driving |
+| `StuntEvent` | `(kind: "nearMiss" \| "drift" \| "air", add: number, mult: number)` |
+| `HotwireWindow` | `(promptKey: string, startAt: number, endAt: number)` seconds after hold start, sent only to the holder |
 | `RepProgress` | `(rep, repXp, toNext, unlocks: {string}?)` |
+| `MissionState` | `{ id: string?, title: string?, objective: string?, target: Vector3?, passed: boolean? }` |
 | `PulseState` | `{ nextTruck, nextBigPulse, heistOpenUntil?, nextHotDrop, nextRestock, orders: {Order} }` |
-| `TruckState` | `{ phase, routeId, position?, bags: {{ id, value, carrierUserId? }} }` |
-| `HeistState` | `{ phase, crew, roles, split, objectives, bags, endsAt }` |
-| `BountyState` | `{ {userId, amount, kind: "street" \| "mostWanted", lastPing: Vector3?} }` |
-| `RevengeState` | `{ {userId, untilTime, reason} }` |
+| `CrimeState` | `{ {poiId, kind, open: boolean, reopensAt: number?} }` (full list on join, deltas after) |
+| `MapBlips` (**UnreliableRemoteEvent**) | `{ {id, kind, pos, flags} }` at 2 Hz per viewer, at most 40 entries (§10.1) |
+| `TruckState` | `{ phase, routeId, bagBase, bags: {{ id, carrierUserId? }} }` (positions go through `MapBlips`) |
+| `HeistState` | `{ phase, crew, roles, objectives, bags, endsAt, windowReopened: boolean? }` |
+| `BountyState` | `{ {userId, amount, kind: "street" \| "mostWanted"} }` (positions go through `MapBlips`) |
+| `RevengeState` | `{ {userId, untilTime, reason, pays: boolean} }` |
 | `Invite` | `{ kind: "party" \| "crew" \| "trade" \| "race", id, fromUserId, payload }` |
 | `PartyState` / `CrewState` / `TradeState` / `RaceState` | Session views |
 | `QuickChatRelay` | `(fromUserId, callId)` |
-| `MailApplied` | `{ {id, kind, summary} }` |
 | `LiveOpsState` | `{ modifiers: {[string]: number}, events: {...}, weather: string }` |
 
-### 9.7 Build order (waves)
+### 9.7 Build order
 
-| Wave | Content | Done when |
-|---|---|---|
-| W1 Foundation | Types v2, migration, DataService money API, CarService, EconomyMath / CarStats / Payout / Progression, EconomyTelemetry, MailService, RepService | Lune specs green: migration preserves income, uids are unique, formulas match §2.6 and §3.1 |
-| W2 Casino | StreetIncomeService, ModShopService, vault and lay-low pads, TheftService v2 (carjack, repo, insurance, protections), BankingService (wallet, ATM, LOADED) | A two-client test: carjack → lay-low → repo, and carjack → keep → insurance |
-| W3 Combat | gta_combat C0–C1 + §4 economy hooks, JailService | WASTED and BUSTED economy verified |
-| W4 Crime | RobberyService, ChopShopService, EventClock, ArmoredTruckService, Most Wanted, JobsService, DistrictService | Stage A–B playtest hits §7.4 within ±50% |
-| W5 Crew | PartyService, HeistService, quick chat, jewelry store | 4-player heist end to end |
-| W6 Meta | RaceService, TradeService, SerialService, CrewService, SeasonService, LiveOpsService, leaderboards, monetization catalog | Trade dupe tests, live-config clamp tests |
+Revision 1's six waves are replaced by the dependency-ordered work packages in **`docs/v2/design/LOOP_V2_ENGINEERING.md`**, each with disjoint file ownership and its own specs. In short: contracts and pure rules first (types, remotes, config, `TheftRules`, `StreetGate`, `Payout`), then data and cars, then the casino and theft, then combat economy, crime and events, then social and meta behind flags. The launch build (Nov 19) needs the launch-core packages; the heist, trading, races, serials, persistent crews and the season can ship dark behind `Config/Flags`.
 
 ---
 

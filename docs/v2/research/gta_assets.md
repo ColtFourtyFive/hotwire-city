@@ -28,12 +28,13 @@ Date: 2026-10-27. Binding context: `docs/v2/research/00_LEAD_DIRECTION.md` (grou
 1. **Cars: build the v2 fleet from Daniel Zhabotinsky's Sketchfab library.**
    - It has 100+ downloadable models under CC BY 4.0, and the author's description adds "I unconditionally give you permission to use this model … or implement it into a digital product".
    - Every car is a **fictional brand** ("Fairheaven", "Negotiator", "Phoenix 455", "Kiri"), so GTA-style parody brands come built in. The models literally look like GTA SA/IV traffic.
-   - Two GLBs were opened (Fairheaven LT '80 Cop Cruiser and Kiri '10). Both have **separate `WheelStamp_FL/FR/RL/RR` wheel meshes**, separate hood, trunk, glass, headlight, brakelight and reverse-light meshes, and a body-paint material. They are 13–26k tris, and the textures are a shared "UCB" atlas reused across cars.
-   - The fleet covers sedans, coupes, muscle, sports, supercars, SUVs, pickups, vans, box and tow trucks, police (7 cruisers and 5 interceptors), taxis, an ambulance, a fire-chief wagon and an **armored truck**.
+   - Rename on import: a few names are GTA's own vehicle names (Phoenix = Imponte Phoenix, Cheetah = Grotti Cheetah; Duke is close to Imponte Dukes), and the lead direction rules out GTA names.
+   - Three GLBs were opened (Fairheaven LT '80 Cop Cruiser, Kiri '10 and Shvan '92 Ambulance). All have **separate per-corner wheel meshes**, but the node names differ per model: `WheelStamp_FL/FR/RL/RR` on the Fairheaven, `WheelStock_FL/FR/RL/RR` on the Kiri and Shvan. They also have separate hood, trunk, glass, headlight, brakelight and reverse-light meshes, and a body-paint material. They are 13–26k tris, split over 28–36 meshes (each under Roblox's 20k-per-mesh limit), and the materials are a shared "UCB" set reused across cars.
+   - The fleet covers sedans, coupes, muscle, sports, supercars, SUVs, pickups, vans, box and tow trucks, police (about 8 cruisers/enforcers and 8 interceptors, including the modern Trinity '03 Cop Interceptor and Urban '10 Cop Enforcer), taxis, an ambulance, a fire-chief wagon and an **armored truck**.
    - Gaps are a city bus, a fire engine, a SWAT van, modern super/hyper cars and motorcycles. They are filled below from other CC-BY Sketchfab models and Creator Store IDs.
    - Cost: one Blender import, rename, upload pass (task #8), then attribution in `assets/ATTRIBUTION.md`.
 2. **Creator Store cars are second best.** The realistic free ones are mostly real-brand replicas (Ford, Honda, Toyota), which brings trade-dress risk and logos to strip. Use them only for a few service vehicles that can be loaded by ID today, such as the CodeAta fire truck and the ryteclipse taxi.
-3. **NPCs: Roblox's free "Base Body" bundles (979–995) plus Roblox-made layered clothing (free) are the cleanest realistic pedestrian kit.**
+3. **NPCs: Roblox's free "Base Body" bundles 988–995 plus Roblox-made layered clothing (free) are the cleanest realistic pedestrian kit.** Bundles 979–987 are built on Roblox's "Anime Style" body and head meshes, so keep them out of the crowd (§3.1).
    - Uniforms come from roleplay uniform makers: Pripp and Emergency Response Customs for classic shirts and pants, and verified layered-clothing (LC) tactical kits for SWAT.
    - NPC locomotion: put the **adidas Community / adidas Sports** animation pack IDs into HumanoidDescription. These are catalog avatar animations, so the experience does not need to own them.
 4. **Audio: Pro Sound Effects (PSE, Roblox-licensed) covers sirens, horns, skids, crashes, city and freeway ambience, police radio and helicopters.**
@@ -53,7 +54,7 @@ Date: 2026-10-27. Binding context: `docs/v2/research/00_LEAD_DIRECTION.md` (grou
 
 Credit line: "Model by Daniel Zhabotinsky (sketchfab.com/DanielZhabotinsky), CC BY 4.0".
 
-All are downloadable GLB files with separate wheels, verified on 2 models (see the decision summary). A third model, Shvan '92 Ambulance, has two wheels both named `WheelStock_RL`, so the importer should assign wheels by position, not by name.
+All are downloadable GLB files with separate wheels, verified on 3 models (see the decision summary). One of them, Shvan '92 Ambulance, has two wheels both named `WheelStock_RL`, so the importer should assign wheels by position, not by name.
 
 Contact sheets: `img_gta/assets_cars_sketchfab_daniel_1.jpg` and `_2.jpg`.
 
@@ -64,6 +65,8 @@ Contact sheets: `img_gta/assets_cars_sketchfab_daniel_1.jpg` and `_2.jpg`.
 | Police cruiser | dc81625478a744649b210c7f248b0b6a | Illinois '90 Police cruiser | 19.7k | ![](img_gta/assets/sf_dc81625478.jpg) | 4 |
 | Police cruiser (90s) | 31f0ac0f03ad42e3bbf236b3ecb2049e | Murphy '97 Cruiser | 17.4k | ![](img_gta/assets/sf_31f0ac0f03.jpg) | 4 |
 | Police cruiser | 13de926717214b8a94eaf90b0f0067d6 | Murphy '92 Cop Cruiser | 16.7k | ![](img_gta/assets/sf_13de926717.jpg) | 4 |
+| **Police cruiser (modern)** | 6a5c6c8a75764eea905541fd5b05e9bf | Trinity '03 Cop Interceptor *(added in verification)* | 20.8k | ![](img_gta/assets/sf_6a5c6c8a75.jpg) | 4 |
+| **Police SUV (modern)** | 745830362bb342128ef6509345606ffe | Urban '10 Cop Enforcer *(added in verification)* | 19.6k | ![](img_gta/assets/sf_745830362b.jpg) | 4 |
 | Police interceptor (4★) | 63aa215521334cef9c4d8c4c391252ad | Saba V12 '95 Interceptor | 25.4k | ![](img_gta/assets/sf_63aa215521.jpg) | 4 |
 | Police interceptor | cd19005ea4c5415d834adebdd6c9bb56 | Gallo '99 Interceptor | 24.5k | ![](img_gta/assets/sf_cd19005ea4.jpg) | 4 |
 | Police interceptor | fbd5b96599944932a71fc8c81291253c | Phoenix 455 '71 Interceptor | 26.5k | ![](img_gta/assets/sf_fbd5b96599.jpg) | 4 |
@@ -115,6 +118,8 @@ Notable 3s:
 - RC Shvan.
 - The "Retro Styled" sub-2k models: too low-detail next to the rest.
 
+Naming: rename "Phoenix 455 '71" (and its Interceptor) and "Cheetah '84" on import. Phoenix and Cheetah are GTA vehicle names (Imponte Phoenix, Grotti Cheetah), and the lead direction rules out GTA names. The same applies to mk2design's "Cheetah" in §1.2.
+
 Caveat: the fleet skews 1965–2011, so it reads GTA SA/IV more than GTA V. Pair it with the modern models in §1.2, and with the Roblox Endorsed Sedan, SUV, Sports Car and Supercar that are already curated.
 
 ### 1.2 Other Sketchfab vehicles (CC BY 4.0)
@@ -153,6 +158,7 @@ There are no CC0 cars of note: the Sketchfab `license=cc0` search returns museum
 Contact sheets: `img_gta/assets_cars_creatorstore_1.jpg`, `_2.jpg` and `assets_cars_zoom.jpg`.
 
 Rules for all of them:
+- Load them at runtime with `AssetService:LoadAssetAsync()` after turning on **Allow Loading Third Party Assets** in Experience Settings. `InsertService:LoadAsset` cannot load third-party free models. Loaded models come back sandboxed, so their scripts do not run.
 - Strip every script.
 - Keep the `Body` shell only.
 - Recolor paint parts.
@@ -165,7 +171,7 @@ Rules for all of them:
 | Taxi (classic) | 97528551904169 | Taxi Checker Marathon — Andru7rs **(badge)** | 71.5k / 86 / 0 | $14.99 | ![](img_gta/assets/rbx_97528551904169.jpg) | 4 |
 | Ambulance | 77108240540599 | International Ambulance — LB_xXTY | 50.3k / 60 / 16 | free | ![](img_gta/assets/rbx_77108240540599.jpg) | 4 |
 | Garbage truck | 1961916823 | Garbage Truck — JuriaanT | 18.0k / 21 / 0 | free | ![](img_gta/assets/rbx_1961916823.jpg) | 4 |
-| Van ("Burrito") | 6048783847 | Chevrolet Van — edgarevaristo (30 votes, 88%; debadge) | 43.6k / 51 / 8 | free | ![](img_gta/assets/rbx_6048783847.jpg) | 4 |
+| Van | 6048783847 | Chevrolet Van — edgarevaristo (30 votes, 88%; debadge) | 43.6k / 51 / 8 | free | ![](img_gta/assets/rbx_6048783847.jpg) | 4 |
 | Box truck | 9471929131 | box truck — bilalels1234 (20 votes, 82%) | 36.0k / 81 / 9 | free | ![](img_gta/assets/rbx_9471929131.jpg) | 4 |
 | Muscle | 11657272318 | Muscle car (Prop) — epik_altt | 25.7k / 38 / 0 | free | ![](img_gta/assets/rbx_11657272318.jpg) | 4 |
 | Police sedan | 3505841542 | Crown Victoria Police Car — Ravenhasabird57 (debadge) | 43.2k / 116 / 83 | free | ![](img_gta/assets/rbx_3505841542.jpg) | 4 |
@@ -199,10 +205,10 @@ Notable 3s:
 
 New findings:
 
-- **Animation ownership rule (blocking).** A plain `Animation` asset only plays in an experience owned by the same user or group, or when Roblox owns it.
+- **Animation ownership rule (blocking).** A plain `Animation` asset only plays in an experience owned by the same user or group, when Roblox owns it, or when its owner grants our universe access on the asset's Permissions page (Creator Dashboard). Community uploaders won't do that for us, so treat it as blocking.
   - Every community gun animation pack must therefore be re-published under the Hotwire owner from its KeyframeSequences. Examples: "R15 Gun Animations" 3631707712 by yellowinventor (100 votes, 95%) and "r15 gun animations [ORIGINAL]" 13408250226 by ItsThatSided (29 anims). Both contact-sheet thumbnails show only a rig, so neither is rated. Preview them in Studio first.
   - Plan v2 aim, fire and reload anims as our own uploads, made in-house or retargeted from these. Do not plan them as load-by-ID.
-- **NPC reactions that work without ownership.** Roblox-owned emotes, applied through `HumanoidDescription:SetEmotes` and played with `Humanoid:PlayEmote` (verify on NPCs in Studio):
+- **NPC reactions that work without ownership.** Roblox-owned emotes, applied through `HumanoidDescription:SetEmotes` and played with `Humanoid:PlayEmoteAsync` (`PlayEmote` is deprecated; verify on NPCs in Studio):
   - **Cower** 4940597758 (flee and cower)
   - **Point2** 3576823880
   - **Salute** 3360689775 (cops)
@@ -222,7 +228,7 @@ New findings:
 ## 3. NPC avatars (HumanoidDescription)
 
 How to use these:
-- Apply them through `Players:CreateHumanoidModelFromDescription` or `Humanoid:ApplyDescription`. Public catalog items do **not** need to be owned for NPCs.
+- Apply them through `Players:CreateHumanoidModelFromDescriptionAsync` or `Humanoid:ApplyDescriptionAsync`. The non-Async versions are deprecated. Public catalog items do **not** need to be owned for NPCs.
 - Items can still be taken offsale or deleted, so keep a fallback per slot. Roblox-made items are the safest.
 - Classic `Shirt`/`Pants` (2D) are the cheapest choice for crowds. Layered clothing (LC) looks much better but costs more to load, so use it on hero NPCs (cops, SWAT, gang leaders) and close peds.
 
@@ -230,23 +236,21 @@ Contact sheets: `img_gta/assets_npc_bodies.jpg`, `assets_npc_civ.jpg`, `assets_n
 
 ### 3.1 Bodies and heads (Roblox-made, free)
 
-**Base Body bundles**: realistic proportions, dynamic heads, varied skin tones, and the 2023 Roblox idle and walk set. Part asset IDs come from `catalog.roblox.com/v1/bundles/<id>/details`.
+**Base Body bundles 988–995**: realistic proportions, dynamic heads, varied skin tones, and the 2023 Roblox "Realistic" idle and walk set. Part asset IDs come from `catalog.roblox.com/v1/bundles/<id>/details`. Bundles 979–987 are *not* realistic: their torso and head parts are Roblox's "Anime Style 1" and "Anime Style 2" meshes, with large anime eyes (see Notable 3s below).
 
 | Bundle | Name | Torso / Head / LArm / RArm / LLeg / RLeg | Thumb | R |
 |---|---|---|---|---|
-| 983 | Base Body – Charlie | 11572083496 / 11572085825 / 11572074613 / 11572079320 / 11572076845 / 11572081357 | ![](img_gta/assets/rbxb_983.jpg) | 4 |
-| 985 | Base Body – Parker | 11584241181 / 11584333045 / 11584231502 / 11584238141 / 11584235843 / 11584239464 | ![](img_gta/assets/rbxb_985.jpg) | 4 |
 | 988 | Base Body – Addison | 11702287641 / 11702291006 / 11702279057 / 11702284438 / 11702282072 / 11702286099 | ![](img_gta/assets/rbxb_988.jpg) | 4 |
-| 984 | Base Body – Glenn | shares Charlie parts | ![](img_gta/assets/rbxb_984.jpg) | 4 |
 | 991 | Base Body – Dawson | 11709869073 / 11709871094 / 11709862883 / 11709865568 / 11709864101 / 11709867346 | ![](img_gta/assets/rbxb_991.jpg) | 4 |
 | 573 | Oliver (dynamic head, Rthro anims) | 3963871432 / 12778883791 / 3963861732 / 3963867514 / 3963864909 / 3963869770 | ![](img_gta/assets/rbxb_573.jpg) | 4 |
 | 572 | Summer | 3963485362 / 12853000475 / 3963476651 / 3963481369 / 3963479563 / 3963483107 | ![](img_gta/assets/rbxb_572.jpg) | 4 |
 | 722 | Denny | 6445268819 / 128985581083096 / 6445260402 / 6445263379 / 6445262286 / 6445265102 | ![](img_gta/assets/rbxb_722.jpg) | 4 |
 | 337 | City Life Woman (Rthro) | 2492674027 / 15093243863 / 2492667589 / 2492669375 / 2492671662 / 2492670347 | ![](img_gta/assets/rbxb_337.jpg) | 4 |
 
-The other Base Body variants are 979 Riley, 980 Cameron, 982 Peyton, 986 Devin, 987 Kayden, 989 Harper, 990 Robin, 992 Rene, 993 Andi, 994 Jordan and 995 Billie. They all rate 4; vary them with `HeadColor`/`BodyColors` and hair.
+The other realistic Base Body variants are 989 Harper, 990 Robin, 992 Rene, 993 Andi, 994 Jordan and 995 Billie. They all rate 4; vary them with `HeadColor`/`BodyColors` and hair.
 
 Notable 3s:
+- Anime-style Base Bodies 979 Riley, 980 Cameron, 982 Peyton, 983 Charlie, 984 Glenn, 985 Parker, 986 Devin and 987 Kayden. Their parts are named "Anime Style 1 – Torso/Head" (Charlie: 11572083496 / 11572085825 / 11572074613 / 11572079320 / 11572076845 / 11572081357) and "Anime Style 2" (Parker: 11584241181 / 11584333045 / 11584231502 / 11584238141 / 11584235843 / 11584239464). Moved here in verification.
 - "Realistic Male Body" 52179038679057 (Ryzie).
 - "boy face Latino head" 142347556296633 (VVinner Beauty, badge; beauty-filtered).
 
@@ -265,7 +269,7 @@ Put these in `HumanoidDescription.IdleAnimation`, `WalkAnimation`, `RunAnimation
 | Rthro (356) — Roblox, free | 2510235063 / 2510242378 / 2510238627 / 2510236649 / 2510233257 | fallback | 4 |
 | Bold by e.l.f. (331856) | 16744209868 / 16744219182 / 16744214662 / 16744212581 / 16744207822 | confident walkers (business district) | 4 |
 
-The Run ID for adidas Community was inferred from bundle order: the other six item types were confirmed, the economy API rate-limited the seventh.
+All five adidas Community IDs were confirmed by asset type during verification: Idle 51, Walk 55, Run 53, Jump 52, Fall 50. The adidas and e.l.f. packs cost 300 R$ for players, but NPCs can use them without owning them.
 
 Notable 3: Catwalk Glam (1601900), too stylized for crowds.
 
@@ -314,8 +318,8 @@ Rows marked **Roblox** are Roblox-made and free.
 All are rated 4.
 
 Notable 3s (classic 2D and cheap, for far-LOD crowds):
-- **Roblox** classic jeans: Dark Green Jeans 144076760 and Black Jeans 382537569.
-- TIX Clothing+ "Grey Suit w/ Black Vest" 6554200369 / 6555797786.
+- **Roblox** classic jeans: Dark Green Jeans 144076760 *(already in repo)* and Black Jeans 382537569.
+- TIX Clothing+ "Grey Suit w/ Black Vest" 6554200369 / 6555797786 *(already in repo)*.
 - Stylish Aviators 376526673 (**Roblox**, free, purple lens).
 - Snapback Corduroy Cap 7217158397.
 
@@ -357,7 +361,7 @@ Notes:
 - Avoid real-agency patches (LAPD 7524162448, "FBI SWAT" 4691855775) and use the generic sets. GTA parodies them (LSPD, FIB).
 
 Notable 3s:
-- Police Sergeants Cap 1081392 (Roblox, cartoon).
+- Police Sergeants Cap 1081392 (Roblox, cartoon) *(already in repo)*.
 - Police Riot Helmet 16469532 (Roblox, dated).
 - Tactical Balaclava 4753644287.
 - SWAT Chest Armor 9732082221 (sci-fi look).
@@ -465,7 +469,7 @@ Contact sheet: `img_gta/assets_props_creatorstore.jpg`.
 | Container | 77003885266485 | Shipping Container — B_CaIhoun | 5.6k / 0 | ![](img_gta/assets/rbx_77003885266485.jpg) | 4 |
 | Sail yacht (marina) | 1023383822 | Sail yacht — SheamusOCallaghan | 17.5k / 0 | ![](img_gta/assets/rbx_1023383822.jpg) | 4 |
 | Speedboat (classic) | 15676599201 | Riva Aquarama Classic Yacht — Saykous (real brand, debadge) | 4.0k / 0 | ![](img_gta/assets/rbx_15676599201.jpg) | 4 |
-| Tower crane | 569765324 | (FREE!) Liebherr EC-B Flat-top Tower Crane — CRRAANNNEEEEEEE **(badge)** (debadge) | 28.4k / 0 | ![](img_gta/assets/rbx_569765324.jpg) | 4 |
+| Tower crane | 569765324 | (FREE!) Liebherr EC-B Short Flat top Tower Crane — CRRAANNNEEEEEEE **(badge)** (10 votes, 64%; debadge) | 28.4k / 0 | ![](img_gta/assets/rbx_569765324.jpg) | 4 |
 | Tower crane + shell | 11935041829 | tower crane and unfinished apartment — SolarisTrollino (20 votes, 100%) | 21.5k / 0 | ![](img_gta/assets/rbx_11935041829.jpg) | 4 |
 | Bench | 74128359748221 | Realistic Park Bench [PBR] — Revbuilds | 3.7k / 0, $2.99 | ![](img_gta/assets/rbx_74128359748221.jpg) | 4 |
 | Dumpster | 118336156580063 | Industrial Trash Dumpster PBR — proloxSimba | 18.9k / 0, $2.99 | ![](img_gta/assets/rbx_118336156580063.jpg) | 4 |
@@ -488,6 +492,8 @@ Ratings for audio are made from the publisher's metadata and descriptions only: 
 PSE means "Pro Sound Effects" (user 7462895450), whose uploads are licensed for Roblox use. *Already in repo* means `Config/Sounds.luau` already uses it: Wail 1 and 2 (9119165131 / 9119165140), the skid 9119186024, the peel-out 9113661285, Crash 9118708982, Metal Crash 4 9116546593, Glass 9114590297, Horns 9114402205 / 9114402206, CityAmbience 9112758500, Traffic 9112891352 and the engine loop 80317022777602.
 
 ### 5.1 Engines: per-class loops built with `Sound.LoopRegion` from long PSE takes
+
+`LoopRegion` only takes effect when `Sound.PlaybackRegionsEnabled = true`. The new audio API's `AudioPlayer` has its own `LoopRegion` and `PlaybackRegion`.
 
 | Class | ID | Name | Dur | Loop from | R |
 |---|---|---|---|---|---|
@@ -599,8 +605,11 @@ Contact sheet: `img_gta/assets_sky_polyhaven.jpg`.
 | Dusk | evening_road_01_puresky | ![](img_gta/assets/ph_evening_road_01_puresky.jpg) | 5 |
 | Overcast (rain weather) | overcast_soil_puresky / mud_road_puresky | ![](img_gta/assets/ph_overcast_soil_puresky.jpg) | 5 |
 | Fair-weather cumulus | sunflowers_puresky | ![](img_gta/assets/ph_sunflowers_puresky.jpg) | 5 |
+| **Night, overcast with city glow** *(added in verification)* | kloppenheim_07_puresky | ![](img_gta/assets/ph_kloppenheim_07_puresky.jpg) | 4 |
+| Night, clear *(added in verification)* | qwantani_night_puresky (also kloppenheim_02_puresky) | ![](img_gta/assets/ph_qwantani_night_puresky.jpg) | 4 |
+| Moonrise *(added in verification)* | qwantani_moonrise_puresky | ![](img_gta/assets/ph_qwantani_moonrise_puresky.jpg) | 4 |
 
-For night, Poly Haven has no pure-sky option. `moonless_golf` and `satara_night_no_lamps` both have a ground band, so they rate 3. Use Roblox's procedural night sky plus city light pollution in `Atmosphere`, or crop the upper hemisphere of `satara_night_no_lamps`.
+For night, Poly Haven does have pure-sky HDRIs (corrected in verification): `kloppenheim_07_puresky` (night, overcast, artificial light: city glow on the clouds), `kloppenheim_02_puresky`, `qwantani_night_puresky`, `qwantani_moonrise_puresky` and `qwantani_moon_noon_puresky`, all tagged "night" and "pure skies". Night thumbnails are exposure-boosted, so judge them at game exposure in Studio. Tone down the Milky Way in `qwantani_night` for a lit city. `moonless_golf` and `satara_night_no_lamps` have a ground band and stay at 3.
 
 ---
 
@@ -610,11 +619,12 @@ For night, Poly Haven has no pure-sky option. `moonless_golf` and `satara_night_
   - Credit the author with the title and a licence link in `assets/ATTRIBUTION.md` and on the in-game Credits screen (`SOURCES_UNLOCKED.md`).
   - Strip real logos.
   - The 3 GLBs downloaded for inspection (Fairheaven LT '80 Cop Cruiser, Kiri '10, Shvan '92 Ambulance) are in the scratchpad only. Nothing was uploaded.
+- **Sketchfab Free Standard** (TampaJoey City Props vol. 1): commercial use is allowed, but the asset may not be made available as a stand-alone file. Turn on Asset Privacy (Restricted) before uploading its meshes and images, so other creators can't reuse them.
 - **CC0 (Poly Haven).** No attribution is needed, but credit it anyway. Most models are 20–200k polys and need decimating to Roblox budgets (about 1–5k for props).
 - **Creator Store.**
-  - Load third-party IDs at runtime (`SOURCES_UNLOCKED.md`).
+  - Load third-party IDs at runtime (`SOURCES_UNLOCKED.md`) with `AssetService:LoadAssetAsync()`, with **Allow Loading Third Party Assets** turned on. That setting covers public *free* Store assets only.
   - Strip scripts on insert.
-  - Paid items ($2.99–$14.99) need a purchase by the owning account first.
+  - Paid items ($2.99–$14.99) need a purchase by the owning account first. Only individual accounts can buy on the Creator Store, and dynamic loading of a paid model does not work in a group-owned experience unless the model was inserted before publish.
 - **Real brands.** Ford, Chevrolet, Honda, Peterbilt, Liebherr, Riva, Harley and Kawasaki shapes or names appear on several 4-rated items. They are acceptable as visual bases only after debadging and renaming to parody brands. Prefer the fictional-brand Zhabotinsky and Avanta models for anything the player owns or buys.
 - **Animations.** Third-party `Animation` IDs will not play in our experience unless they are re-uploaded under its owner. Catalog avatar-animation and emote IDs set through `HumanoidDescription` are the exception (§2, §3.2).
 
