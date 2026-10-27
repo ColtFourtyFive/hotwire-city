@@ -107,6 +107,10 @@ def main():
         else:
             continue
         out[shot] = R.render_to(p)
+    for s in ["before_studio", "after_studio", "roles", "street_day"]:  # reuse shots rendered earlier
+        p = os.path.join(a.outdir, f"{a.model}_{s}.png")
+        if s not in out and os.path.exists(p):
+            out[s] = p
     sheet_shots = [s for s in ["before_studio", "after_studio", "roles", "street_day"] if s in out]
     if len(sheet_shots) >= 2:
         labels = {"before_studio": "BEFORE: raw import (source materials)",
