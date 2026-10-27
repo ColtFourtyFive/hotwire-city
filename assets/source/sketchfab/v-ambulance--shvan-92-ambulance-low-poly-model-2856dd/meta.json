@@ -52,14 +52,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      5.0192,
-      2.3494,
-      2.262
+      4.9991,
+      2.2856,
+      2.2447
     ],
     "dims_m": [
-      2.349,
-      5.019,
-      2.262
+      2.286,
+      4.999,
+      2.245
     ],
     "front_evidence": "names(front=8,rear=6)",
     "flipped": true,
@@ -129,6 +129,6 @@
       "Shvan92AMB_Numberplate_rear_Numberplates_Misk_U_0",
       "Shvan92_Body_Badges_Carbadges_misc_U_0"
     ],
-    "render_s": 53.8
+    "render_s": 34.4
   }
 }

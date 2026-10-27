@@ -43,13 +43,13 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      330.8254,
-      641.1295,
-      327.075
+      328.2512,
+      638.7542,
+      327.0749
     ],
     "dims_m": [
-      330.825,
-      641.13,
+      328.251,
+      638.754,
       327.075
     ],
     "front_evidence": "roof_offset=+0.11",
@@ -71,6 +71,6 @@
     "object_names": [
       "Object_2"
     ],
-    "render_s": 48.8
+    "render_s": 27.6
   }
 }

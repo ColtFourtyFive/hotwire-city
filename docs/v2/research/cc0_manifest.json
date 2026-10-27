@@ -4325,10 +4325,11 @@
    "urls": {
     "7z": "https://opengameart.org/sites/default/files/PACK%20V3_0.7z"
    },
-   "triangles": null,
-   "verified": "downloaded (19.7 MB 7z); not extracted, because 7z is unavailable in the container",
-   "note": "5 semi-realistic textured palms; the best CC0 palm source after Objaverse.",
-   "verdict": "LIKELY GOOD"
+   "triangles": 940,
+   "verified": "downloaded, extracted (py7zr) and opened: 5 OBJ+FBX palms (straight, bend, dual, dual_bend, trio = 940/940/1880/1880/2820 tris), 2048 RGBA diffuse with alpha fronds, plus normal, specular and translucency TGA; readme confirms CC0 (Nobiax/Yughues)",
+   "note": "Semi-realistic coconut palms with alpha-card fronds; the best verified CC0 palm (Miami look). Not a tall LA Washingtonia fan palm.",
+   "verdict": "TOP (palm)",
+   "preview_img": "docs/v2/research/img/cc0_palms_nobiax.jpg"
   }
  ],
  "model_objaverse_more_unverified": [

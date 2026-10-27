@@ -174,25 +174,41 @@ def _draco_decode(blob):
     n = len(m.pos)
     m.nrm = np.zeros((n, 3), np.float32)
     m.uv = np.zeros((n, 2), np.float32)
-    # DracoPy exposes generic attributes by unique id (Roblox: 0 pos, 1 normal, 2 uv, 3 tangent, 4 color)
-    try:
-        if getattr(dm, "normals", None) is not None and len(dm.normals):
-            m.nrm = np.asarray(dm.normals, np.float32).reshape(-1, 3)
-        if getattr(dm, "tex_coord", None) is not None and len(dm.tex_coord):
-            m.uv = np.asarray(dm.tex_coord, np.float32).reshape(-1, 2)
-        for att in getattr(dm, "attributes", []) or []:
-            uid = att.get("unique_id") if isinstance(att, dict) else None
-            data = att.get("data") if isinstance(att, dict) else None
+    # DracoPy exposes typed attributes (normals / tex_coord) and, in newer versions, a generic
+    # attribute list keyed by unique id (Roblox: 0 pos, 1 normal, 2 uv, 3 tangent, 4 colour).
+    def fit(arr, comps, dtype):
+        a = np.asarray(arr, dtype)
+        if a.ndim == 2 and a.shape[0] == n and a.shape[1] >= comps:
+            return a[:, :comps].copy()
+        if a.size and a.size % n == 0 and a.size // n >= comps:
+            return a.reshape(n, -1)[:, :comps].copy()
+        raise ValueError(f"attribute size {a.size} does not fit {n} verts")
+    typed = set()
+    for label, getter, comps, dtype, attr in (("normals", lambda: dm.normals, 3, np.float32, "nrm"),
+                                              ("tex_coord", lambda: dm.tex_coord, 2, np.float32, "uv"),
+                                              ("colors", lambda: dm.colors, 4, np.uint8, "col")):
+        try:
+            v = getter()
+            if v is not None and len(v):
+                setattr(m, attr, fit(v, comps, dtype))
+                typed.add(attr)
+        except Exception as e:  # noqa: BLE001
+            m.notes.append(f"draco {label}: {e}")
+    # only fall back to Roblox's unique-id convention for attributes Draco did not type
+    for att in (getattr(dm, "attributes", None) or []) if len(typed) < 2 else []:
+        try:
+            uid = att.get("unique_id") if isinstance(att, dict) else getattr(att, "unique_id", None)
+            data = att.get("data") if isinstance(att, dict) else getattr(att, "data", None)
             if data is None:
                 continue
             if uid == 1:
-                m.nrm = np.asarray(data, np.float32).reshape(-1, 3)
+                m.nrm = fit(data, 3, np.float32)
             elif uid == 2:
-                m.uv = np.asarray(data, np.float32).reshape(-1, 2)
+                m.uv = fit(data, 2, np.float32)
             elif uid == 4:
-                m.col = np.asarray(data, np.uint8).reshape(-1, 4)
-    except Exception as e:  # noqa: BLE001
-        m.notes.append(f"draco attribute read: {e}")
+                m.col = fit(data, 4, np.uint8)
+        except Exception as e:  # noqa: BLE001
+            m.notes.append(f"draco attribute {att!r:.40}: {e}")
     return m
 
 

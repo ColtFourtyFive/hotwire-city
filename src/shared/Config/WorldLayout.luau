@@ -286,8 +286,8 @@ local function inlandHeight(x: number, z: number): number
 		h += math.max(0, base + rough) * edge
 	end
 	-- Red Mesa foothills (north-east)
-	if x > 1500 and z < -1500 then
-		local w = SMOOTH(1500, 2300, x) * SMOOTH(-1500, -2300, z)
+	if x > 1500 and z < -1950 then
+		local w = SMOOTH(1500, 2300, x) * SMOOTH(-1950, -2650, z)
 		local f = 70 + 55 * WorldGen.noise2(x, z, 650, 21) + 22 * WorldGen.noise2(x, z, 230, 22)
 		h = math.max(h, GRADE + math.max(0, f) * w)
 	end
@@ -1136,7 +1136,6 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 		return P(J.x + ex * a + wx * b, J.z + ez * a + wz * b)
 	end
 	local R = 150
-	local ob = o -- branch carriageway offset (same cross-section)
 	local Lb = 300 -- branch carriageways start this far beyond the near carriageway
 	local Lm = 260
 	local Ln = 380
@@ -1150,6 +1149,7 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 	local slice = WorldGen.polySlice(branchCenter, bStart, branchL)
 	local branch = corridor(name, slice, lanes, labels, { yMode = "deck" })
 	local Out, In = branch.fwd, branch.bwd -- fwd = outward (right side = -e side, the "Out" side)
+	local ob = branch.offset -- branch carriageway offset (its own cross-section)
 
 	-- 1. N -> Out (direct, right exit before the junction)
 	do
@@ -1506,6 +1506,8 @@ local harbor = addWay(
 	"Harbor Avenue",
 	"avenue",
 	smooth({
+		{ -1100, -2170 },
+		{ -1100, -1200 },
 		{ -1100, -250 },
 		{ -1100, 650 },
 		{ -1100, 1350 },
@@ -1868,7 +1870,9 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 diamond(H1, liberty, -150, -1800)
+diamond(H1, liberty, -150, 1350, 300)
 diamond(H1, crown, 1650, -250)
+diamond(H1, mission, 1650, 650)
 diamond(H1, crown, -3650, -350)
 diamond(H1, mission, -3650, 660)
 diamond(H1, harbor, -1100, 1350)
@@ -1919,7 +1923,7 @@ local GRIDS: { GridSpec } = {
 		angle = 0,
 		us = { -800, -480, 170, 480, 800, 1120, 1420 },
 		vs = { -1560, -1250, -910, -580, 60, 360, 960, 1190 },
-		clip = poly({ { -1240, -2000 }, { 1600, -2000 }, { 1600, 1290 }, { -1240, 1290 } }),
+		clip = poly({ { -1160, -2160 }, { 2110, -2160 }, { 2110, 1290 }, { -1160, 1290 } }),
 		class = "street",
 		lanes = 2,
 		parking = true,
@@ -2018,7 +2022,7 @@ local GRIDS: { GridSpec } = {
 		angle = 3,
 		us = range(-1900, 2000, 340, 50, 404),
 		vs = range(-640, 760, 250, 30, 405),
-		clip = poly({ { -2540, 1440 }, { 1580, 1440 }, { 1580, 2960 }, { -2340, 2960 }, { -2540, 2200 } }),
+		clip = poly({ { -2540, 1440 }, { 2110, 1440 }, { 2110, 2960 }, { -2340, 2960 }, { -2540, 2200 } }),
 		parking = true,
 		warp = { 55, 1100 },
 		drop = 0.1,
@@ -2360,7 +2364,21 @@ local function cleanGenerated()
 			-- reserved areas
 			for ri, r in RESERVED_AREAS do
 				local bb = areaBoxes[ri]
-				if p.x >= bb[1] and p.x <= bb[3] and p.z >= bb[2] and p.z <= bb[4] and WorldGen.pointInPoly(r.poly, p.x, p.z) then
+				if
+					p.x >= bb[1]
+					and p.x <= bb[3]
+					and p.z >= bb[2]
+					and p.z <= bb[4]
+					and WorldGen.pointInPoly(r.poly, p.x, p.z)
+				then
+					if ri == 1 then
+						-- Rust River: streets may bridge it at a right angle, never run along it
+						local _, cs = WorldGen.polyProject(WorldLayout.Channel.points, p.x, p.z)
+						local _, _, ctx, ctz = WorldGen.polyAt(WorldLayout.Channel.points, cs)
+						if dl > 1e-9 and math.abs(dx * ctx + dz * ctz) < 0.5 then
+							continue
+						end
+					end
 					blocked[k] = true
 					break
 				end
@@ -2447,7 +2465,7 @@ local function cleanGenerated()
 		table.insert(out, w.pts[#w.pts])
 		w.pts = out
 	end
-	-- extend loose ends up to 70 studs onto a ground road they point at
+	-- extend loose ends up to 170 studs onto a ground road they point at
 	local gidx = WorldGen.segIndex(128)
 	for wi, w in kept do
 		if w.layer == 0 and not w.noCross then
@@ -2467,9 +2485,9 @@ local function cleanGenerated()
 				continue
 			end
 			dx, dz = dx / dl, dz / dl
-			local fx, fz = p.x + dx * 70, p.z + dz * 70
+			local fx, fz = p.x + dx * 170, p.z + dz * 170
 			local bestT: number? = nil
-			WorldGen.segQuery(gidx, (p.x + fx) / 2, (p.z + fz) / 2, 36, function(id: number)
+			WorldGen.segQuery(gidx, (p.x + fx) / 2, (p.z + fz) / 2, 86, function(id: number)
 				if gidx.owner[id] == i then
 					return
 				end
