@@ -1,0 +1,1352 @@
+[
+ {
+  "category": "veg_trees_broadleaf",
+  "assetId": "128707014921507",
+  "name": "Realistic Oak Tree",
+  "creator": "Letaij",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 3,
+  "scriptsRemoved": 0,
+  "size": [
+   29,
+   24,
+   30
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Realistic Oak Tree (Letaij) — mature 24-stud oak, dense dark canopy, textured bark, nice shadow. Only 3 parts. *(close2)*"
+ },
+ {
+  "category": "veg_trees_broadleaf",
+  "assetId": "98950444096614",
+  "name": "(PBR) Realistic Oak Trees Pack Free",
+  "creator": "Letaij",
+  "parts": 15,
+  "meshParts": 15,
+  "textures": 21,
+  "scriptsRemoved": 0,
+  "size": [
+   97,
+   44,
+   129
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "(PBR) Realistic Oak Trees Pack (Letaij) — 6 trees, 15 MeshParts, 21 textures (PBR leaves/bark), varied young oaks; best variety. Pack bounds 97×44×129 — split into singles. *(close1)*"
+ },
+ {
+  "category": "veg_trees_broadleaf",
+  "assetId": "16050465137",
+  "name": "Realistic street tree [FREE]",
+  "creator": "Lydnexx",
+  "parts": 8,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   10,
+   32,
+   10
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Realistic street tree (Lydnexx) — slim 32-stud street tree with a tree-pit grate; lighter canopy, fine for sidewalks."
+ },
+ {
+  "category": "veg_trees_broadleaf",
+  "assetId": "139707403949260",
+  "name": "Realistic Street Tree Park City Road Plant Trees",
+  "creator": "Content Deleted - 158552482",
+  "parts": 8,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   10,
+   32,
+   10
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "\"Realistic Street Tree Park City…\" (deleted account) — **identical geometry to 16050465137 + 8 scripts** (backdoor re-upload pattern)."
+ },
+ {
+  "category": "veg_trees_broadleaf",
+  "assetId": "96364607340216",
+  "name": "Realistic Tree Optimized Trees Pine Grass Pack Oak",
+  "creator": "Zetureta502",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   6,
+   16,
+   6
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Realistic Tree Optimized (Zetureta502) — small 16-stud dark tree, 2 parts; filler."
+ },
+ {
+  "category": "veg_trees_conifer_desert",
+  "assetId": "113109119460825",
+  "name": "[PBR] Realistic Red Cedar Pine Tree",
+  "creator": "Letaij",
+  "parts": 42,
+  "meshParts": 42,
+  "textures": 80,
+  "scriptsRemoved": 0,
+  "size": [
+   18,
+   39,
+   17
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "[PBR] Red Cedar Pine Tree (Letaij) — one 39-stud conifer with 80 texture objects (heavy)."
+ },
+ {
+  "category": "veg_trees_conifer_desert",
+  "assetId": "130515502281374",
+  "name": "Ponderosa Pine Tree Pack Realistic Tree Nature",
+  "creator": "Letaij",
+  "parts": 25,
+  "meshParts": 25,
+  "textures": 27,
+  "scriptsRemoved": 0,
+  "size": [
+   28,
+   29,
+   84
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Ponderosa Pine Tree Pack (Letaij) — about 12 PBR conifers with realistic needles and bark, varied heights. Excellent for hillsides and the outskirts. *(close1)*"
+ },
+ {
+  "category": "veg_trees_conifer_desert",
+  "assetId": "73454171742334",
+  "name": "Big Realistic Pine tree",
+  "creator": "StoneSymmetry",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 2,
+  "scriptsRemoved": 0,
+  "size": [
+   32,
+   90,
+   28
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Big Realistic Pine tree (StoneSymmetry) — 90 studs tall, sparse, with **exposed roots floating above the ground** and its pivot offset. Needs fixing."
+ },
+ {
+  "category": "veg_trees_conifer_desert",
+  "assetId": "107812886550854",
+  "name": "Pbr Desert Plants Desert Prefab Cactus Heat",
+  "creator": "TheodoreHyperSilver7",
+  "parts": 26,
+  "meshParts": 20,
+  "textures": 22,
+  "scriptsRemoved": 4,
+  "size": [
+   53,
+   21,
+   52
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "PBR Desert Plants prefab — a cactus garden on a sand slab, with 4 scripts removed. Nice plants, but it comes as a diorama."
+ },
+ {
+  "category": "veg_trees_conifer_desert",
+  "assetId": "16420171681",
+  "name": "desert pack",
+  "creator": "Axlender579",
+  "parts": 13,
+  "meshParts": 13,
+  "textures": 11,
+  "scriptsRemoved": 0,
+  "size": [
+   28,
+   34,
+   53
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "desert pack (Axlender579) — tall saguaros, agave, yucca, prickly pear, tumbleweed and a red boulder. Textured meshes that read like real Mojave scrub. *(close2)*"
+ },
+ {
+  "category": "veg_bushes_hedges_grass",
+  "assetId": "87442220098670",
+  "name": "PBR Bush Shrub Hedge Foliage Plant Realistic Mesh",
+  "creator": "Content Deleted - 158552482",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 3,
+  "scriptsRemoved": 2,
+  "size": [
+   7,
+   6,
+   7
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "PBR Bush (deleted account) — small, neat, round 6-stud shrub. Fine for front yards. 2 scripts removed."
+ },
+ {
+  "category": "veg_bushes_hedges_grass",
+  "assetId": "131155630187030",
+  "name": "Tall Bush Hedge Nature Plant Mesh Realistic Bushes",
+  "creator": "Content Deleted - 158552482",
+  "parts": 6,
+  "meshParts": 6,
+  "textures": 6,
+  "scriptsRemoved": 2,
+  "size": [
+   15,
+   36,
+   15
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Tall Bush Hedge (deleted account) — dense, believable leafy hedge in PBR (6 textures). At 36 studs it is **far too tall for a hedge**; scale it to about 6–8 studs and tile it. 2 scripts removed. *(close1)*"
+ },
+ {
+  "category": "veg_bushes_hedges_grass",
+  "assetId": "122221569536497",
+  "name": "Bushes Shrub Hedge Garden Mesh Low Poly Realistic",
+  "creator": "Cruttch5700",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   24,
+   3,
+   28
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Bushes (Cruttch5700) — a flat, dark, low shrub mass (24×3×28) in a single mesh. Reads as a ground-cover patch. 2 scripts removed."
+ },
+ {
+  "category": "veg_bushes_hedges_grass",
+  "assetId": "3123069623",
+  "name": "Overgrown grass",
+  "creator": "HWO2FATRAXY",
+  "parts": 117,
+  "meshParts": 117,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   40,
+   13,
+   34
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Overgrown grass (HWO2FATRAXY) — 117 individual grass-clump MeshParts, realistic blades. Great for verges and empty lots. Heavy, so use a few clumps. *(close2)*"
+ },
+ {
+  "category": "veg_bushes_hedges_grass",
+  "assetId": "4822789822",
+  "name": "Flower container",
+  "creator": "RainbowPink_2",
+  "parts": 13,
+  "meshParts": 11,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   8,
+   4,
+   5
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Flower container (RainbowPink_2) — a small raised stone planter with toy-like flowers."
+ },
+ {
+  "category": "veg_palms_fan",
+  "assetId": "130498222865089",
+  "name": "California Palm Tree",
+  "creator": "RewqNeveraH",
+  "parts": 6,
+  "meshParts": 6,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   22,
+   85,
+   22
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "California Palm Tree (RewqNeveraH, credited as \"made by @REWQ\") — a true **Washingtonia fan palm**: 85-stud slender trunk with frond-boot bark texture, fan-leaf crown and a dry tan frond skirt. The LA street palm we need. 6 MeshParts, 2 scripts removed. Use this original. *(close1)*"
+ },
+ {
+  "category": "veg_palms_fan",
+  "assetId": "138103637698436",
+  "name": "California Palm Tree",
+  "creator": "RobloxComedy4Fun",
+  "parts": 6,
+  "meshParts": 6,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   22,
+   85,
+   22
+  ],
+  "verdict": null,
+  "flag": "duplicate",
+  "note": "California Palm Tree (RobloxComedy4Fun) — the same mesh re-uploaded, same 2 scripts. Use the original."
+ },
+ {
+  "category": "veg_palms_fan",
+  "assetId": "132940973497273",
+  "name": "Mexican Palm Tree Fun Game Cool New",
+  "creator": "NovaMiner30713",
+  "parts": 4,
+  "meshParts": 4,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   17,
+   17,
+   14
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Mexican Palm (NovaMiner30713) — a 17-stud young fan palm. Nice as a yard or planter palm, but too small for streets. 3 scripts removed."
+ },
+ {
+  "category": "veg_palms_fan",
+  "assetId": "84675437585887",
+  "name": "Palm Tree California Tropical Beach Sand Sunny",
+  "creator": "EllaPrism68575",
+  "parts": 6,
+  "meshParts": 6,
+  "textures": 0,
+  "scriptsRemoved": 4,
+  "size": [
+   22,
+   85,
+   22
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "Palm Tree California Tropical Beach (EllaPrism68575) — the same mesh again, but with **4 scripts against the original's 2** (backdoor pattern)."
+ },
+ {
+  "category": "veg_palms_fan",
+  "assetId": "5296155885",
+  "name": "PalmNormal1",
+  "creator": "BigBoys_999",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   33,
+   76,
+   34
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "PalmNormal1 (BigBoys_999) — a 76-stud date/coconut-style palm with **semi-transparent, low-poly fronds**; looks dated. *(close2, left)*"
+ },
+ {
+  "category": "signs_traffic",
+  "assetId": "9777090830",
+  "name": "Stop Sign (MUTCD compliant)",
+  "creator": "Signmaker123456789",
+  "parts": 6,
+  "meshParts": 1,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   9,
+   0
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Stop Sign \"MUTCD compliant\" (Signmaker123456789): a real-size 2.5-stud octagon MeshPart on a thin 9.5-stud galvanised pole made of unions; crisp, correct US face. Best pick. Its front faces +Z, so rotate per corner. *(close1)*"
+ },
+ {
+  "category": "signs_traffic",
+  "assetId": "9767885480",
+  "name": "Stop Sign",
+  "creator": "Signmaker123456789",
+  "parts": 2,
+  "meshParts": 0,
+  "textures": 2,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   9,
+   0
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Stop Sign (Signmaker123456789): the same creator and size, 2 parts plus decals. Good, but plainer than the MUTCD one."
+ },
+ {
+  "category": "signs_traffic",
+  "assetId": "1759519597",
+  "name": "Realistic Stop Sign Set",
+  "creator": "Vandicoup",
+  "parts": 4,
+  "meshParts": 0,
+  "textures": 4,
+  "scriptsRemoved": 0,
+  "size": [
+   11,
+   15,
+   1
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Realistic Stop Sign Set (Vandicoup): **two** stop signs in one model, an older (darker, bevelled) and a newer (bright) style. They are about 1.5× real size (≈4-stud faces). Good legibility from a car, so scale them about 0.7. *(close2)*"
+ },
+ {
+  "category": "signs_traffic",
+  "assetId": "388944325",
+  "name": "Speed Limit Signs",
+  "creator": "Scuave",
+  "parts": 4,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   0,
+   11,
+   3
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Speed Limit Signs (Scuave): a clean, legible US R2-1 \"SPEED LIMIT 35\" sign on a square post, at a plausible size. It is fixed at 35: the face is a single decal (`146148332`), so other speeds need new decals."
+ },
+ {
+  "category": "signs_traffic",
+  "assetId": "4115946048",
+  "name": "limite de vitesse 35",
+  "creator": "unknown",
+  "parts": 4,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   0,
+   11,
+   3
+  ],
+  "verdict": null,
+  "flag": "duplicate",
+  "note": "\"limite de vitesse 35\": the **same decal (`146148332`) and the same 4-part model** as 388944325. Use the original."
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "125125263118068",
+  "name": "Overhead Highway Sign Road Gantry Exit Text",
+  "creator": "Content Deleted - 158552482",
+  "parts": 29,
+  "meshParts": 2,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   25,
+   30,
+   5
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Overhead Highway Sign (Content Deleted - 158552482): a single-post cantilever with a crisp green guide sign (\"8 / Downtown / Santin Hills\", \"EXIT 1\" tab) and 4 lights. It is 25×30 studs, well proportioned. The best ready-to-use freeway sign; swap the decal text for our destinations. **2 scripts removed, despite the \"No scripts\" description.** *(close2)*"
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "669203168",
+  "name": "US Highway Sign Gantry",
+  "creator": "CountryRoadgeek",
+  "parts": 68,
+  "meshParts": 2,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   36,
+   88
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "US Highway Sign Gantry (CountryRoadgeek): a tubular arch-style gantry (88 studs) with a **blank grey sign panel**. The arch shape reads more European or light-rail than LA freeway. Usable as a frame."
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "9335428697",
+  "name": "Arizona Gantry",
+  "creator": "triggerlancy",
+  "parts": 241,
+  "meshParts": 0,
+  "textures": 2,
+  "scriptsRemoved": 0,
+  "size": [
+   10,
+   48,
+   79
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Arizona Gantry (triggerlancy): a full-span box-truss gantry (79 studs, 48 high, 241 parts) on concrete footings. The structure looks properly real-world, but the **sign panel is a joke placeholder** (\"This gantry is mostly used in Arizona…\"), so replace the decal. The part count is high, so use it only at a few hero spots. *(close1)*"
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "130503679586961",
+  "name": "Highway Exit Sign Road Traffic Street Freeway City",
+  "creator": "Content Deleted - 158552482",
+  "parts": 3,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 2,
+  "size": [
+   4,
+   10,
+   0
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Highway Exit Sign (Content Deleted - 158552482): a small 4.8×10 roadside \"EXIT\" plate on two posts with a SurfaceGui \"XX\" label (decal `459953180`). Simple, low detail. 2 scripts removed."
+ },
+ {
+  "category": "signs_freeway",
+  "assetId": "85561539493986",
+  "name": "Exit Sign Highway Road Traffic Free Signage (emoji title)",
+  "creator": "FallenzGFlashC185425",
+  "parts": 3,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 5,
+  "size": [
+   4,
+   10,
+   0
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "\"🚦 Exit Sign Highway…\" (FallenzGFlashC185425): the **same decal (`459953180`) and the same 3-part model** as 130503679586961, but with **5 scripts against 2**. An emoji-title re-upload; backdoor pattern."
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "82454061017921",
+  "name": "Concrete Jersey Barrier",
+  "creator": "0WowlionPro",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   15,
+   3,
+   2
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Concrete Jersey Barrier (0WowlionPro): one MeshPart, 15×3×2, correct K-rail profile with a flared base and a clean concrete look. Use it for freeway medians and construction. *(close2, right)*"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "71204529991089",
+  "name": "PS1 Chainlink Fence Fences Mesh Psx Retro Wire",
+  "creator": "Droksha9852",
+  "parts": 2,
+  "meshParts": 1,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   11,
+   8,
+   0
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "PS1 Chainlink Fence (Droksha9852): an 11×8 panel with a transparent chain-link texture and round posts. It reads correctly as chain-link (the \"PS1\" style is only in the texture resolution). Tile it for lots and freeway edges. **2 scripts removed despite the \"No scripts\" description.** *(close2, centre)*"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "72836863954838",
+  "name": "Highway Railing Fence Guardrail Road Railings City",
+  "creator": "Norefalu70",
+  "parts": 1,
+  "meshParts": 0,
+  "textures": 2,
+  "scriptsRemoved": 2,
+  "size": [
+   39,
+   4,
+   1
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Highway Railing (Norefalu70): a 39-stud W-beam guardrail on posts. It is **a single part with a texture**, so the rail is flat and the posts are painted on. It reads fine at driving speed but looks flat up close. **2 scripts removed despite the \"No scripts\" description.** *(close2, left)*"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "100583941159955",
+  "name": "Free 10 Wooden Fences - Realistic",
+  "creator": "TheAngelGaming1",
+  "parts": 23,
+  "meshParts": 11,
+  "textures": 11,
+  "scriptsRemoved": 0,
+  "size": [
+   60,
+   6,
+   9
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Free 10 Wooden Fences – Realistic (TheAngelGaming1): ten distinct PBR mesh fences in one pack:"
+ },
+ {
+  "category": "barriers_fences",
+  "assetId": "18660725012",
+  "name": "Realistic Wooden Fence (High Quality)",
+  "creator": "PulsarCrow",
+  "parts": 12,
+  "meshParts": 0,
+  "textures": 78,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   6,
+   11
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Realistic Wooden Fence (High Quality) (PulsarCrow): six uneven planks with a **washed-out, almost white wood texture** across 78 textures, cartoonish. *(`barriers_fences_woodhq`)*"
+ },
+ {
+  "category": "street_utility",
+  "assetId": "109766012790297",
+  "name": "USPS mailbox with a chute for envelopes Classic",
+  "creator": "Xz_Hunt3r3zAquarzS0n",
+  "parts": 31,
+  "meshParts": 0,
+  "textures": 4,
+  "scriptsRemoved": 3,
+  "size": [
+   2,
+   4,
+   2
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "USPS mailbox with a chute (Xz_Hunt3r3zAquarzS0n): a correct blue USPS collection box on legs with the eagle logo decals and the right curved-top shape. Real size (2×4×2). **3 scripts removed**: the title-SEO creator name and the scripts are a backdoor-risk pattern, so keep the stripped copy only. *(close1)*"
+ },
+ {
+  "category": "street_utility",
+  "assetId": "3052779367",
+  "name": "newspaper box",
+  "creator": "BanElectricVehicles",
+  "parts": 10,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   1,
+   3,
+   2
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "newspaper box (BanElectricVehicles): a plain red block with a small sticker; reads like a box, not a vending rack. *(`street_utility_newsbox`)*"
+ },
+ {
+  "category": "street_utility",
+  "assetId": "11339404249",
+  "name": "Parking Meter",
+  "creator": "oceanicwavss",
+  "parts": 24,
+  "meshParts": 0,
+  "textures": 5,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   6,
+   3
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Parking Meter (oceanicwavss): a grey block pay-station with a blue \"P\" panel, European style. **Not a US single-head meter.** Other results were 2014-era or emoji SEO."
+ },
+ {
+  "category": "street_utility",
+  "assetId": "15591157798",
+  "name": "telephone pole pack",
+  "creator": "DerpyRosegaard",
+  "parts": 16,
+  "meshParts": 16,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   33,
+   24,
+   5
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "telephone pole pack (DerpyRosegaard): three wooden utility poles, 24 studs, all MeshParts, with crossarms, insulators, step bolts and one with a pole-top transformer can. A very good LA-alley and suburb match. No scripts."
+ },
+ {
+  "category": "street_utility",
+  "assetId": "129781204415363",
+  "name": "Manhole Cover",
+  "creator": "trokr341",
+  "parts": 21,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   0,
+   6
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Manhole Cover (trokr341): a 6×6 square frame with an orange-rust cross-hatch cover. Too colourful and saturated, and it sits above grade. Better as a decal on the road. *(close2)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "120611959432681",
+  "name": "Realistic Bench Park Street Seat Furniture Benches",
+  "creator": "Content Deleted - 158552482",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   3,
+   4,
+   6
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Realistic Bench (Content Deleted - 158552482): one PBR MeshPart, a classic cast-iron-end park bench with warm wood slats, real size (6.8 long). Reads very well. **2 scripts removed despite the \"No scripts\" description.** *(close1, right)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "17672221759",
+  "name": "Realistic Park Bench",
+  "creator": "1Evynia",
+  "parts": 1,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   3,
+   7
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Realistic Park Bench (1Evynia): a single union, simple slatted bench on black legs. Decent, flatter shading than the mesh one. *(close1, left)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "16963566733",
+  "name": "PBR Bike Rack",
+  "creator": "EnvirobIox",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   5,
+   3,
+   4
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "PBR Bike Rack (EnvirobIox): a single MeshPart, a blue powder-coated grid rack, believable size. No scripts."
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "104284725918712",
+  "name": "Trash Cans Outdoor Park City RP Street Map Prop",
+  "creator": "XZ_WraithvDFrostbite",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   3,
+   3,
+   5
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Trash Cans (XZ_WraithvDFrostbite): two rusty, dented galvanised alley cans with lids. Good for alleys, but **not a city public bin**. **3 scripts removed.** *(close2, right)*"
+ },
+ {
+  "category": "street_furniture",
+  "assetId": "115942669533764",
+  "name": "Bollard Pack V1",
+  "creator": "sirnolag",
+  "parts": 11,
+  "meshParts": 11,
+  "textures": 12,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   3,
+   3
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Bollard Pack V1 (sirnolag): 11 PBR MeshPart bollards, 7 industrial (yellow pipe, hazard-striped, base-plate) and 4 city (white or grey with dark caps). The yellow pipe bollards are exactly what LA gas stations and lots use. The pieces ship packed tightly together, so lay them out yourself. *(close2, left)*"
+ },
+ {
+  "category": "retail_props",
+  "assetId": "129016349900455",
+  "name": "Cash ATM Cash Bank Pin Pad Slot Card Bill RP Decor",
+  "creator": "RobloxModellls",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   7,
+   18,
+   9
+  ],
+  "verdict": 1,
+  "flag": null,
+  "note": "Cash ATM (RobloxModellls): a single MeshPart that renders **untextured white at 7×18×9**, about 3× real size. Unusable as-is. *All other ATM results were 💰-emoji SEO re-uploads, so I skipped them.*"
+ },
+ {
+  "category": "retail_props",
+  "assetId": "9554118875",
+  "name": "realistic vending machine",
+  "creator": "yhealle8",
+  "parts": 3,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   6,
+   4
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "realistic vending machine (yhealle8): a black glass-front snack machine, 2 MeshParts, real size. Plain but believable. It came in facing ±X, so only the side is visible in the lineup."
+ },
+ {
+  "category": "retail_props",
+  "assetId": "8368863281",
+  "name": "Realistic Gas Pump",
+  "creator": "FaIseData",
+  "parts": 118,
+  "meshParts": 0,
+  "textures": 14,
+  "scriptsRemoved": 0,
+  "size": [
+   4,
+   7,
+   2
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Realistic Gas Pump (FaIseData): a 118-part pump with a nozzle, hose and pump number. Good silhouette and real size, but **branded ESSO with German \"Waschstraße\" decals**. That is a real trademark and the wrong locale, so retexture before use. *(close2)*"
+ },
+ {
+  "category": "retail_props",
+  "assetId": "10551450435",
+  "name": "Left 4 Dead ice machine",
+  "creator": "pizzafriday17",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   4,
+   6,
+   6
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "\"Left 4 Dead ice machine\" (pizzafriday17): the shape and \"ICE\" lettering read right, but **the description says \"All credits go to valve\"**. It is a ripped Valve game asset, so it is an IP risk."
+ },
+ {
+  "category": "retail_props",
+  "assetId": "4900193185",
+  "name": "Phone booth (payphone)",
+  "creator": "Robloxisforbab1e5",
+  "parts": 87,
+  "meshParts": 10,
+  "textures": 14,
+  "scriptsRemoved": 0,
+  "size": [
+   3,
+   7,
+   3
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Phone booth (payphone) (Robloxisforbab1e5): an open-front booth with a \"Phone\" Bell-logo header, a lit ring light, a detailed Elcotel-style payphone mesh and a diamond-plate floor. Real size (3×7×3). Very usable. **The Bell logo is a real trademark**, so swap the decal. *(close1)*"
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "5529328916",
+  "name": "Realistic Billboard",
+  "creator": "xvcvc1",
+  "parts": 54,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   34,
+   44,
+   10
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Realistic Billboard (xvcvc1): a small, blank, thin-framed panel on a single pole; looks unfinished."
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "11120580589",
+  "name": "Realistic Billboard",
+  "creator": "High_Definiti0n",
+  "parts": 285,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   95,
+   112,
+   82
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Realistic Billboard (High_Definiti0n): a full-size **L-shaped monopole billboard**, 112 studs high, 285 parts. It has a perforated catwalk with railing, a truss arm, a cylindrical beam, a ladder up the column and a blank white face. It reads exactly like an LA freeway-side billboard. Apply our ad decals to the face. *(close1)*"
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "2980976799",
+  "name": "Billboard",
+  "creator": "Identified_K9",
+  "parts": 54,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   66,
+   55,
+   11
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Billboard (Identified_K9): a blank 66-stud board on a lattice tower with a catwalk. Fine as a background filler."
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "4827295690",
+  "name": "Billboard",
+  "creator": "inp888",
+  "parts": 42,
+  "meshParts": 0,
+  "textures": 6,
+  "scriptsRemoved": 0,
+  "size": [
+   32,
+   48,
+   9
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Billboard, two-sided (inp888): a small 32-stud board with a different image decal on each face (a night-club shot). It is the only one with art, but the art is not ours."
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "13612217686",
+  "name": "Billboard Pack",
+  "creator": "U5Studios",
+  "parts": 60,
+  "meshParts": 56,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   151,
+   82,
+   34
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Billboard Pack (U5Studios): two MeshPart monopole \"V\" boards with catwalks and light rails, blank faces. Lighter on parts (56 MeshParts total) than the 285-part one, so the better choice for repeated roadside boards. It arrived as a Folder; I wrapped it in a Model for the layout. *(close2)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "83471113389608",
+  "name": "Traffic Cone Realistic Traffic Construction Road",
+  "creator": "ShreddCPhoenixT",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   1,
+   1,
+   1
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Traffic Cone (ShreddCPhoenixT): a clean orange MeshPart cone, but **only 1 stud tall** (real ≈2.3 studs), so scale it ×2.3. **3 scripts removed.** *(close2, right)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "136386088614829",
+  "name": "Road Barricade Construction Barrier Roadblock City",
+  "creator": "Content Deleted - 158552482",
+  "parts": 5,
+  "meshParts": 0,
+  "textures": 16,
+  "scriptsRemoved": 2,
+  "size": [
+   5,
+   3,
+   1
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Road Barricade (Content Deleted - 158552482): renders as a **stone-textured trapezoid block**, not a striped barricade. **2 scripts removed despite the \"No scripts\" description.** *(close2, left)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "6693814769",
+  "name": "construction Barricade",
+  "creator": "TheCarsAll",
+  "parts": 64,
+  "meshParts": 4,
+  "textures": 2,
+  "scriptsRemoved": 10,
+  "size": [
+   26,
+   14,
+   17
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "construction Barricade \"xxl\" (TheCarsAll): actually a flatbed trailer with an arrow board plus **two Roblox NPC worker rigs**. **10 scripts removed.** Blocky, and the NPCs are unwanted. *(close1, centre)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "107131356944164",
+  "name": "Scaffolding",
+  "creator": "Wish Game",
+  "parts": 164,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   16,
+   15,
+   5
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Scaffolding (Wish Game): a 16×15 two-bay steel tube frame with cross-bracing and a wood deck. Tiles well. No scripts. *(close1, left)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "119266200526586",
+  "name": "Tower Crane Construction Building Site Towers City",
+  "creator": "Lesomaku610",
+  "parts": 250,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   63,
+   203,
+   177
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Tower Crane (Lesomaku610): a 203-stud yellow lattice tower crane with an operator cab, counter-jib, hook and a hanging I-beam on a base slab. It reads well on a skyline (the jib points at the camera in the lineup). **8 scripts removed despite the \"No scripts\" description.** 250 parts. *(lineup)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "10969289501",
+  "name": "[FREE] Lifeguard Tower By: Weather",
+  "creator": "WeatherMan51",
+  "parts": 83,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   33,
+   17,
+   17
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Lifeguard Tower (WeatherMan51): **an LA-County-style lifeguard tower**: a sky-blue cabin with wrap windows and an antenna on a raised deck, with a railed ramp, cross-braced stilts and footings. The Santa Monica / Venice look exactly. 83 parts, no scripts. *(close1)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "13351773651",
+  "name": "Lifeguard Tower",
+  "creator": "sodafont",
+  "parts": 73,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   7,
+   21,
+   15
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Lifeguard Tower (sodafont): a white lattice ladder-chair with a red pointed roof, European style. Not LA."
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "17739161260",
+  "name": "Beach Umbrella",
+  "creator": "ImATeapot418",
+  "parts": 42,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   12,
+   9,
+   12
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Beach Umbrella (ImATeapot418): a single solid-red umbrella, simple and clean. *(close2, right)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "9017391415",
+  "name": "Beach chair and umbrella",
+  "creator": "mrtrolldos",
+  "parts": 135,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   15,
+   8,
+   42
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Beach chair and umbrella (mrtrolldos): two red/white umbrellas with striped blue and red loungers. Clean, believable, real size. 135 parts, no scripts. *(close2, left)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "82002680152727",
+  "name": "Realistic Dock Wooden Pier Marina Harbor Boat Deck",
+  "creator": "Content Deleted - 158552482",
+  "parts": 36,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 4,
+  "size": [
+   15,
+   11,
+   62
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Realistic Dock (Content Deleted - 158552482): a 62-stud brown plank jetty on posts. Lake-dock scale, not an ocean pier. **4 scripts removed despite the \"No scripts\" description.**"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "18290346289",
+  "name": "Carrier 8.5 Ton RTU Rooftop AC Unit with Gas Heat",
+  "creator": "Teo7472",
+  "parts": 762,
+  "meshParts": 87,
+  "textures": 33,
+  "scriptsRemoved": 57,
+  "size": [
+   16,
+   6,
+   13
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Carrier 8.5 Ton RTU (Teo7472): the smaller sibling with 2 fans, a Carrier badge, coil guard, service panels and gas-heat flue. Excellent. **762 parts and 57 scripts removed**, which is very heavy, so it is a hero-roof prop only. A cheap LOD stand-in is needed for the skyline. *(close1, right)*"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "18336727555",
+  "name": "Carrier 20 Ton Rooftop AC Unit",
+  "creator": "Teo7472",
+  "parts": 319,
+  "meshParts": 68,
+  "textures": 24,
+  "scriptsRemoved": 28,
+  "size": [
+   20,
+   6,
+   21
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Carrier 20 Ton Rooftop AC Unit (Teo7472): an accurate commercial RTU with 4 condenser fans, louvred panels and a curb base. Real size (20×6×21). **319 parts and 28 scripts removed** (fan, sound and economiser logic). Use the stripped copy, or merge it into fewer parts for mass placement. *(close1, left)*"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "74677240725658",
+  "name": "Roblox tv antenna set! rooftop signal boost RP",
+  "creator": "NovaCore9JSparkt1493",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   6,
+   4,
+   6
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "\"Roblox tv antenna set!\" (NovaCore9JSparkt1493): a single white mesh that reads as a satellite dish blob. **3 scripts removed**, and the title is SEO spam."
+ },
+ {
+  "category": "rooftop",
+  "assetId": "7226259248",
+  "name": "Roof Turbine Vent",
+  "creator": "zerg666",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   2,
+   1
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Roof Turbine Vent (zerg666): a tiny (2-stud) chrome whirlybird. Correct shape but low detail; fine as filler. *(close2, right)*"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "14047509152",
+  "name": "Roof Top Vents Pack",
+  "creator": "lowqualityqwerty",
+  "parts": 7,
+  "meshParts": 7,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   82,
+   5,
+   10
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Roof Top Vents Pack (lowqualityqwerty): 7 MeshPart pieces of galvanised duct runs and boxes on stands. Clean and light (7 parts); good roof clutter. It arrived as a Folder; I wrapped it in a Model. *(close2, left)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "122655307130669",
+  "name": "Car Lift garage repair",
+  "creator": "Skyflux1123",
+  "parts": 16,
+  "meshParts": 17,
+  "textures": 0,
+  "scriptsRemoved": 1,
+  "size": [
+   1,
+   12,
+   14
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Car Lift (Skyflux1123): a realistic red **two-post lift**, 12 studs tall. MeshParts with a control box, hydraulic unit, swing arms with pads and a floor crossover. Exactly right for the player garage. **1 script removed** (probably the lift motion). *(close1)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "79571080572612",
+  "name": "Garage Tool Box Boxes Toolbox Shelf Shop Workbench",
+  "creator": "Zephcr3423",
+  "parts": 47,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 6,
+  "size": [
+   5,
+   3,
+   5
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Garage Tool Box (Zephcr3423): a small dark-grey chest with an open lid. **6 scripts removed despite the \"No scripts\" description.**"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "146685916",
+  "name": "Snap-on tool box",
+  "creator": "cmt18",
+  "parts": 21,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   4,
+   10,
+   12
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Snap-on tool box (cmt18): a classic red roll cabinet with 7 drawers and casters. It reads right but is **about 2× oversize (10 studs tall)**, so scale it ×0.5. **\"Snap-on\" is a trademark** (the model is unbranded in the render, but the name isn't). *(close2, right)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "10735214840",
+  "name": "Tire Rack",
+  "creator": "Krisko_BGxd",
+  "parts": 84,
+  "meshParts": 36,
+  "textures": 6,
+  "scriptsRemoved": 0,
+  "size": [
+   11,
+   8,
+   6
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Tire Rack (Krisko_BGxd): a two-tier black/red X-braced rack with rows of street and off-road tyres (36 MeshParts). Very good garage dressing. No scripts. *(close2, left)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "2109264797",
+  "name": "[GREEN LIZARD GARAGE] Mobile Tool Box (TOP+BOTTOM)",
+  "creator": "Green Lizard Garage",
+  "parts": 56,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   5,
+   4,
+   2
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Green Lizard Garage Mobile Tool Box: a bright green top-and-bottom tool chest on casters, real size. Fine, though the colour is loud."
+ }
+]
