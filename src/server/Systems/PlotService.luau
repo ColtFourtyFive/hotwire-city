@@ -2173,10 +2173,27 @@ local function respawnAtHQ(player: Player): boolean
 	return ok and res == true
 end
 
+-- WASTED (gta_combat §7.2): DamageService hands out the nearest hospital once after a downed / plain death.
+local function hospitalSpawn(player: Player): CFrame?
+	local DamageService = sys("DamageService")
+	if not DamageService or typeof(DamageService.consumeHospitalRespawn) ~= "function" then
+		return nil
+	end
+	local ok, cf = pcall(DamageService.consumeHospitalRespawn, player)
+	return if ok and typeof(cf) == "CFrame" then cf else nil
+end
+
 local function onCharacter(player: Player, char: Model)
 	task.defer(function()
 		local root = char:WaitForChild("HumanoidRootPart", 10)
 		if not root or not root:IsA("BasePart") or char.Parent == nil or player.Character ~= char then
+			return
+		end
+		local hospital = hospitalSpawn(player)
+		if hospital then
+			local jitter = Vector3.new(math.random(-30, 30) / 10, 0, math.random(-30, 30) / 10)
+			char:PivotTo(hospital + jitter)
+			root.AssemblyLinearVelocity = Vector3.zero
 			return
 		end
 		if respawnAtHQ(player) then
@@ -2213,6 +2230,10 @@ local function onGoHome(player: Player)
 	local wanted = player:GetAttribute("Wanted")
 	if typeof(wanted) == "number" and wanted > 0 then
 		notify(player, "error", "🚔 Can't go home with the cops on your tail!")
+		return
+	end
+	if player:GetAttribute("InCombat") == true then
+		notify(player, "error", "You can't leave in the middle of a fight.")
 		return
 	end
 	if player:GetAttribute("Stunned") == true then

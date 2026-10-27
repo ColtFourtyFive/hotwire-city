@@ -29,6 +29,7 @@ local Cars = require(Shared.Config.Cars)
 local Economy = require(Shared.Config.Economy)
 local Monetization = require(Shared.Config.Monetization)
 local Rarity = require(Shared.Config.Rarity)
+local Weapons = require(Shared.Config.Weapons)
 local EconomyMath = require(Shared.Util.EconomyMath)
 local Net = require(Shared.Net)
 local Signal = require(Shared.Util.Signal)
@@ -41,8 +42,10 @@ type SlotSnapshot = Types.SlotSnapshot
 -- Tunables -------------------------------------------------------------------------------------------------
 local STORE_NAME = "HotwireCity_v1"
 local KEY_PREFIX = "p_"
-local SCHEMA_VERSION = 1
+local SCHEMA_VERSION = 2 -- v2: weapons / armor / medkits / combat prefs (gta_combat §13.2), additive
 local AUTOSAVE_INTERVAL = 120
+local ROOKIE_SECONDS = 1800 -- new players: 30 min of rookie protection (gta_combat §8)
+local WELCOME_WEAPON = "pistol" -- v1 -> v2: every existing player gets a Kessler P9 with 2 spare magazines
 local LOCK_STALE_SECONDS = 300 -- a lock older than this belongs to a dead server
 local LOCK_RETRY_DELAYS = { 2, 3, 4, 5, 6, 8 } -- waits between attempts while another session holds the lock
 local LOAD_ERROR_RETRIES = 5 -- DataStore errors (not locks) before giving up and kicking
@@ -181,7 +184,20 @@ local function makeTemplate(): PlayerData
 		discovered = { [Economy.STARTER_CAR] = true },
 		upgrades = { lock = 0, hotwire = 0, nitro = 0, armor = 0 },
 		tools = { bat = true },
-		stats = { steals = 0, playerSteals = 0, busted = 0, hotDrops = 0, timesRobbed = 0 },
+		stats = {
+			steals = 0,
+			playerSteals = 0,
+			busted = 0,
+			hotDrops = 0,
+			timesRobbed = 0,
+			wasted = 0,
+			bountiesClaimed = 0,
+		},
+		weapons = { bat = { ammo = 0 } },
+		tintsOwned = {},
+		armor = 0,
+		medkits = 0,
+		combat = { rookieSeconds = ROOKIE_SECONDS, passivePref = false },
 		daily = { streak = 0, lastClaimDay = 0 },
 		codes = {},
 		receipts = {},
@@ -197,7 +213,7 @@ end
 
 -- Template sub-tables that are *content* for new players, not *shape*: never merged into existing data
 -- (merging garage would hand every returning player a free Rustbucket in slot 1).
-local NO_MERGE: { [string]: boolean } = { garage = true }
+local NO_MERGE: { [string]: boolean } = { garage = true, weapons = true }
 
 -- Fill missing keys (and keys of the wrong type) from the template, recursively. Never removes keys.
 local function reconcile(target: { [any]: any }, template: { [any]: any }, depth: number): { [any]: any }
@@ -215,7 +231,22 @@ end
 -- Schema migrations: MIGRATIONS[v] upgrades a profile from version v to v + 1.
 -- When you change Types.PlayerData: bump SCHEMA_VERSION and add a step here. Never delete fields without one.
 local MIGRATIONS: { [number]: (any) -> any } = {
-	-- [1] = function(data) data.newField = data.oldField; data.oldField = nil; return data end,
+	-- v1 -> v2 (combat): additive. The free bat becomes a Weapons entry (tools.bat stays for the v1 Gear Shop list),
+	-- every existing player gets the Kessler P9 + 2 spare magazines as a welcome gift, and veterans start without
+	-- rookie protection (they have played longer than 30 minutes already). Gadgets stay in `tools`.
+	[1] = function(data)
+		local weapons = if typeof(data.weapons) == "table" then data.weapons else {}
+		weapons.bat = weapons.bat or { ammo = 0 }
+		local gift = Weapons.get(WELCOME_WEAPON)
+		if gift and weapons[WELCOME_WEAPON] == nil then
+			weapons[WELCOME_WEAPON] = { ammo = (gift.mag or 0) * (1 + Weapons.FREE_MAGS_ON_BUY) }
+		end
+		data.weapons = weapons
+		if typeof(data.combat) ~= "table" then
+			data.combat = { rookieSeconds = 0, passivePref = false }
+		end
+		return data
+	end,
 }
 
 local function migrate(data: { [string]: any }): { [string]: any }
@@ -319,9 +350,41 @@ local function sanitize(data: { [string]: any }, now: number): { [string]: any }
 			data.stats[k] = nonNegInt(v, 0)
 		end
 	end
-	for _, k in { "steals", "playerSteals", "busted", "hotDrops", "timesRobbed" } do
+	for _, k in { "steals", "playerSteals", "busted", "hotDrops", "timesRobbed", "wasted", "bountiesClaimed" } do
 		data.stats[k] = nonNegInt(data.stats[k], 0)
 	end
+
+	-- v2 combat: known, sellable weapons only (police-only ids are dropped); ammo = magazine + reserve, clamped
+	local weapons = {}
+	if typeof(data.weapons) == "table" then
+		for id, rec in data.weapons do
+			local def = Weapons.get(id)
+			if def and not def.policeOnly and def.id ~= "fists" and typeof(rec) == "table" then
+				local cap = (def.reserveCap or 0) + (def.mag or 0)
+				local tint = rec.tint
+				weapons[id] = {
+					ammo = math.clamp(nonNegInt(rec.ammo, 0), 0, cap),
+					tint = if typeof(tint) == "string" and Weapons.Tints[tint] then tint else nil,
+				}
+			end
+		end
+	end
+	weapons.bat = weapons.bat or { ammo = 0 } -- the Slugger Bat is free and always owned
+	data.weapons = weapons
+	local tints = {}
+	for id in boolMap(data.tintsOwned) do
+		if Weapons.Tints[id] then
+			tints[id] = true
+		end
+	end
+	data.tintsOwned = tints
+	data.armor = math.clamp(nonNegInt(data.armor, 0), 0, 100)
+	data.medkits = math.clamp(nonNegInt(data.medkits, 0), 0, Weapons.MedKit.carry)
+	local combat = if typeof(data.combat) == "table" then data.combat else {}
+	data.combat = {
+		rookieSeconds = math.clamp(finite(combat.rookieSeconds, 0), 0, ROOKIE_SECONDS),
+		passivePref = combat.passivePref == true,
+	}
 
 	data.daily = {
 		streak = nonNegInt(data.daily.streak, 0),
@@ -1050,6 +1113,10 @@ function DataService.buildSnapshot(player: Player): Snapshot
 		upgrades = data.upgrades,
 		tools = data.tools,
 		stats = data.stats,
+		weapons = data.weapons,
+		tintsOwned = data.tintsOwned,
+		armor = data.armor,
+		medkits = data.medkits,
 		daily = daily,
 		playtime = playtime,
 		incomePerSec = incomePerSec,

@@ -20,8 +20,15 @@
 -- busted player (nearest cruiser's side) for BUST_OFFICER_TIME seconds: purely visual.
 --
 -- Public API (docs/SPEC.md §6):
---   isSeen(player): boolean      any unit / the heli currently sees this suspect (WantedService decay)
+--   isSeen(player): boolean      a cruiser's vision cone (100° / 150 studs + 40 studs all round), the heli's 110-stud
+--                                circle or an on-foot officer's cone (PoliceCombatService) has the suspect with line of
+--                                sight (WantedService evade timer; gta_combat §9.4)
 -- Extra public helpers: getUnitCount(player?): number, buildHeli(): Model (harness-compatible builder)
+-- Combat v2 (gta_combat §9, §13.2): getUnits(player): { UnitView }, getHeli(player): Model?, unitRole(unitView),
+--   copsNear(pos, radius): boolean (witnesses), spawnRoadblockCar(cframe): car?, registerBustSource(fn).
+--   Search: while nobody has seen the suspect for SEARCH_AFTER seconds, units route to random points inside
+--   WantedService's search circle around the last known position instead of to the suspect. A cruiser whose model
+--   attribute OfficersOut > 0 holds position (its officers are fighting on foot).
 -- Pure helpers (tests/spec/police.spec.luau, incl. kinematic driving + chase simulations): _steerToward,
 --   _nextWaypoint (grid routing w/ turn feasibility + hysteresis), _drive (control law: corner speed, K-turns,
 --   anti-orbit), _usePursuit, _roadAnchor, _roadLines, _updateStuck, _newStuck, _isRam, _allocateUnits,
@@ -47,6 +54,7 @@ local MapConfig = require(Shared.Config.Map)
 local PoliceConfig = require(Shared.Config.Police)
 local VehicleConfig = require(Shared.Config.Vehicle)
 local Cars = require(Shared.Config.Cars)
+local PoliceAim = require(Shared.Combat.PoliceAim)
 local WantedService = require(script.Parent.WantedService)
 
 local PoliceService = {}
@@ -64,7 +72,11 @@ local BUST_TICK = 0.25
 local MANAGE_TICK = 0.5
 
 local PURSUIT_RANGE = 150 -- pure pursuit when closer than this with line of sight
-local CLOSE_SEE_RANGE = 60 -- a unit this close always "sees" you (sirens, engine noise)
+local CLOSE_SEE_RANGE = PoliceConfig.CLOSE_SEE_RANGE -- a unit this close always "sees" you (sirens, engine noise)
+local CRUISER_CONE = PoliceConfig.CONES.cruiser
+local SEARCH_AFTER = 2 -- seconds unseen before units stop homing on the suspect and search the area
+local SEARCH_REACHED = 25 -- a search point closer than this is done: roll the next one
+local SEARCH_REROLL = 12 -- ...or after this long
 local STEER_FULL_ANGLE = 35
 local TURN_ANGLE = 45 -- aim further off-nose than this: hold the speed down to CORNER_SPEED
 local UTURN_ANGLE = 100 -- aim behind us: K-turn (brake, reverse on opposite lock, drive off)
@@ -131,7 +143,7 @@ local HELI_ALTITUDE = 80
 local HELI_CLEARANCE = 30 -- above the tallest thing below / ahead of it
 local HELI_MAX_SPEED = 95 -- slow and mid cars can't outrun the chopper...
 local HELI_SUSPECT_SPEED = 0.9 -- ...and it flies at 90% of a faster car's top speed (nitro can still outrun it)
-local HELI_SIGHT = 110 -- horizontal radius in which the chopper's searchlight "sees"
+local HELI_SIGHT = PoliceConfig.CONES.heli.range -- horizontal radius in which the chopper's searchlight "sees"
 local MAX_HELIS = 3
 local HELI_SCALE = 1.25
 local HELI_LEAVE_TIME = 5
@@ -174,6 +186,8 @@ type Unit = {
 	lastRubberBand: number,
 	lastVel: Vector3,
 	routeWp: Vector3?, -- committed turn waypoint (routing hysteresis)
+	searchPoint: Vector3?, -- search mode: current random point inside the search circle
+	searchPointAt: number,
 	health: number,
 	speedMult: number,
 	stuck: Stuck,
@@ -215,6 +229,7 @@ type Suspect = {
 	topSpeed: number, -- top speed of the car the suspect drives (0 on foot)
 	safe: boolean,
 	plotIndex: number?,
+	lastSeenAt: number, -- any unit / heli / officer had the suspect in view (search mode after SEARCH_AFTER)
 }
 
 -- STATE -------------------------------------------------------------------------------------------------
@@ -228,6 +243,8 @@ local losParams: RaycastParams? = nil
 local effectsFolder: Instance? = nil
 local spawnArgMode: string? = nil -- "def" | "id" once we know which VehicleService.spawn accepts
 local warnedNoController = false
+local searchRng = Random.new()
+local bustSources: { (Player) -> boolean } = {} -- extra "an officer is right here" checks (on-foot officers)
 
 local systemCache: { [string]: any } = {}
 local function sys(name: string): any
@@ -292,6 +309,11 @@ local function rotateY(v: Vector3, degrees: number): Vector3
 end
 
 -- PURE AI HELPERS (tested) ------------------------------------------------------------------------------
+
+-- Vision cone test (flat), see PoliceAim.inCone.
+function PoliceService._inCone(pos: Vector3, look: Vector3, cone: PoliceConfig.Cone, target: Vector3): boolean
+	return PoliceAim.inCone(pos, look, cone, target)
+end
 
 -- Steering toward a direction. Returns (steer -1..1, signed angle in degrees). Positive = target is to the
 -- right of fwd (SteerFloat +1 = right turn).
@@ -710,6 +732,7 @@ local function getSuspect(player: Player): Suspect
 			topSpeed = 0,
 			safe = false,
 			plotIndex = nil,
+			lastSeenAt = os.clock(),
 		}
 		suspects[player] = st
 	end
@@ -845,10 +868,11 @@ local function markWrecked(unit: Unit, now: number)
 		end
 	end
 	if npc and npc.Parent and hasHumanoid(npc) then
-		if NPCService and typeof(NPCService.ejectComic) == "function" then
+		local eject = NPCService and (NPCService.eject or NPCService.ejectComic)
+		if typeof(eject) == "function" then
 			unit.npc = nil
 			local fling = unit.chassis.AssemblyLinearVelocity * 0.5 + unit.chassis.CFrame.RightVector * 30
-			pcall(NPCService.ejectComic, npc, fling)
+			pcall(eject, npc, fling)
 		end
 	end
 end
@@ -1201,6 +1225,8 @@ local function spawnUnit(st: Suspect, now: number): boolean
 		lastRubberBand = now,
 		lastVel = chassis.AssemblyLinearVelocity,
 		routeWp = nil,
+		searchPoint = nil,
+		searchPointAt = 0,
 		health = VehicleConfig.MAX_HEALTH,
 		speedMult = 1,
 		stuck = PoliceService._newStuck(),
@@ -1421,7 +1447,53 @@ local function think(unit: Unit, st: Suspect, stars: number, now: number)
 	if los then
 		unit.lastLosAt = now
 	end
-	unit.seen = (not st.safe) and dist <= PoliceConfig.SIGHT_RANGE and (los or dist <= CLOSE_SEE_RANGE)
+	-- vision cone (gta_combat §9.4): 100° / 150 studs ahead with line of sight, or within 40 studs all round
+	local inCone = PoliceService._inCone(pos, fwd, CRUISER_CONE, st.pos)
+	unit.seen = (not st.safe) and ((inCone and los) or dist <= CLOSE_SEE_RANGE)
+
+	-- officers out on foot: the cruiser stays where they left it (PoliceCombatService sets OfficersOut)
+	local out = unit.model:GetAttribute("OfficersOut")
+	if typeof(out) == "number" and out > 0 and not st.safe then
+		unit.routeWp = nil
+		applyInput(unit, if fwdSpeed > 2 then -1 elseif fwdSpeed < -2 then 1 else 0, 0, false, false)
+		return
+	end
+
+	-- search mode: nobody has seen the suspect for SEARCH_AFTER seconds -> drive to random points inside the search
+	-- circle around the last known position (WantedService) instead of homing on the real position
+	if not st.safe and not unit.seen and now - st.lastSeenAt > SEARCH_AFTER then
+		local center, radius = nil, nil
+		local okA, c, r = pcall(function()
+			if typeof(WantedService.getSearchArea) == "function" then
+				return WantedService.getSearchArea(st.player)
+			end
+			return nil, nil
+		end)
+		if okA then
+			center, radius = c, r
+		end
+		if typeof(center) == "Vector3" and typeof(radius) == "number" then
+			local sp = unit.searchPoint
+			if sp == nil or flatDist(sp, pos) < SEARCH_REACHED or now - unit.searchPointAt > SEARCH_REROLL then
+				sp = PoliceService._roadAnchor(
+					PoliceAim.searchPoint(center, radius, searchRng:NextNumber(), searchRng:NextNumber())
+				)
+				unit.searchPoint = sp
+				unit.searchPointAt = now
+			end
+			local target = sp :: Vector3
+			local wp, isTurn = PoliceService._nextWaypoint(pos, target, fwd, fwdSpeed, unit.routeWp)
+			unit.routeWp = if isTurn then wp else nil
+			local throttle, steer, handbrake = PoliceService._drive(fwd, fwdSpeed, wp - pos, isTurn, flatDist(wp, pos))
+			if PoliceService._updateStuck(unit.stuck, speed, throttle, steer, AI_TICK, now) then
+				applyInput(unit, unit.stuck.recoverThrottle, unit.stuck.reverseSteer, false, false)
+			else
+				applyInput(unit, throttle * 0.8, steer, handbrake, false)
+			end
+			return
+		end
+	end
+	unit.searchPoint = nil
 
 	local suspectVel = flat(st.vel)
 	local suspectSpeed = suspectVel.Magnitude
@@ -2007,6 +2079,9 @@ local function aiPass(now: number)
 		if heli then
 			heliSight(heli, st)
 		end
+		if stars > 0 and PoliceService.isSeen(player) then
+			st.lastSeenAt = now
+		end
 	end
 end
 
@@ -2020,6 +2095,15 @@ local function bustPass()
 				if u.mode == "chase" and u.chassis.Parent then
 					local p = u.chassis.Position
 					if flatDist(p, st.pos) <= PoliceConfig.BUST_RADIUS and math.abs(p.Y - st.pos.Y) < 10 then
+						near = true
+						break
+					end
+				end
+			end
+			if not near then
+				for _, src in bustSources do
+					local okS, res = pcall(src, player)
+					if okS and res == true then
 						near = true
 						break
 					end
@@ -2234,6 +2318,13 @@ function PoliceService.isSeen(player: Player): boolean
 	if heli and heli.seen then
 		return true
 	end
+	local PoliceCombat = sys("PoliceCombatService")
+	if PoliceCombat and typeof(PoliceCombat.officerSees) == "function" then
+		local okO, sees = pcall(PoliceCombat.officerSees, player)
+		if okO and sees == true then
+			return true
+		end
+	end
 	if st.valid then
 		-- cops chasing someone else still notice a wanted player right next to them
 		for _, u in units do
@@ -2245,6 +2336,117 @@ function PoliceService.isSeen(player: Player): boolean
 		end
 	end
 	return false
+end
+
+-- COMBAT V2 HOOKS ----------------------------------------------------------------------------------------------
+
+export type UnitView = {
+	id: number,
+	model: Model,
+	chassis: BasePart,
+	mode: string,
+	role: number,
+	speed: number,
+	seen: boolean,
+	hasLOS: boolean,
+	car: any,
+}
+
+local function viewOf(u: Unit): UnitView
+	return {
+		id = u.id,
+		model = u.model,
+		chassis = u.chassis,
+		mode = u.mode,
+		role = u.role,
+		speed = u.chassis.AssemblyLinearVelocity.Magnitude,
+		seen = u.seen,
+		hasLOS = u.hasLOS,
+		car = u.car,
+	}
+end
+
+-- Live cruisers chasing `player` (alive, in the world).
+function PoliceService.getUnits(player: Player): { UnitView }
+	local out = {}
+	local st = suspects[player]
+	if not st then
+		return out
+	end
+	for _, u in st.units do
+		if u.alive and u.chassis.Parent then
+			table.insert(out, viewOf(u))
+		end
+	end
+	return out
+end
+
+-- Every live cruiser (any suspect), for witnesses / brandishing.
+function PoliceService.allUnits(): { UnitView }
+	local out = {}
+	for _, u in units do
+		if u.alive and u.chassis.Parent and u.mode ~= "wrecked" then
+			table.insert(out, viewOf(u))
+		end
+	end
+	return out
+end
+
+function PoliceService.getHeli(player: Player): Model?
+	local st = suspects[player]
+	local heli = st and st.heli
+	return if heli then heli.model else nil
+end
+
+-- "chaser" | "flanker" | "interceptor" (role order in the pack).
+function PoliceService.unitRole(view: UnitView): string
+	local k = (view.role - 1) % 3
+	return if k == 0 then "chaser" elseif k == 1 then "flanker" else "interceptor"
+end
+
+-- Any police (cruiser, heli, on-foot officer) within radius of pos: crimes are witnessed / shots are heard.
+function PoliceService.copsNear(pos: Vector3, radius: number): boolean
+	for _, u in units do
+		if u.alive and u.mode ~= "wrecked" and u.chassis.Parent and flatDist(u.chassis.Position, pos) <= radius then
+			return true
+		end
+	end
+	for _, heli in helis do
+		if not heli.leaving and flatDist(heli.pos, pos) <= radius then
+			return true
+		end
+	end
+	local PoliceCombat = sys("PoliceCombatService")
+	if PoliceCombat and typeof(PoliceCombat.officersNear) == "function" then
+		local ok, near = pcall(PoliceCombat.officersNear, pos, radius)
+		return ok and near == true
+	end
+	return false
+end
+
+-- Extra bust-proximity source: fn(player) -> true while an officer (e.g. on foot) is close enough to arrest.
+function PoliceService.registerBustSource(fn: (Player) -> boolean)
+	table.insert(bustSources, fn)
+end
+
+-- A parked, anchored, siren-on cruiser (roadblocks). Not a pursuit unit: PoliceCombatService owns and removes it.
+function PoliceService.spawnRoadblockCar(cframe: CFrame): any
+	local VehicleService = sys("VehicleService")
+	if not VehicleService or typeof(VehicleService.spawn) ~= "function" then
+		return nil
+	end
+	local car = trySpawnCar(VehicleService, cframe)
+	if not car then
+		return nil
+	end
+	local chassis: BasePart = car.chassis
+	chassis.Anchored = true
+	if not CollectionService:HasTag(car.model, "Police") then
+		CollectionService:AddTag(car.model, "Police")
+	end
+	car.model:SetAttribute("Siren", true)
+	car.model:SetAttribute("Roadblock", true)
+	return car
 end
 
 function PoliceService.getUnitCount(player: Player?): number

@@ -23,6 +23,12 @@ Remotes.ServerToClient = {
 	"OpenUI", -- (name: string) ask client to open a menu (e.g. "GearShop" from a ProximityPrompt)
 	"Sound", -- (soundKey: string, worldPosition: Vector3?) play a Config.Sounds sound
 	"VehicleFxState", -- (vehicleId: number, boost: boolean, honk: boolean) a nearby driver's nitro flames / horn (fireNear)
+	-- combat v2 (docs/v2/research/gta_combat.md §10, §13.2)
+	"HitConfirm", -- (kind: "body"|"head"|"armor"|"down", position: Vector3) shooter's hit marker
+	"DamageTaken", -- (fromPosition: Vector3?, amount: number) victim's directional damage arc
+	"Wasted", -- (info: {by: string?, police: boolean, bill: number, hospital: string?}) victim's WASTED shard
+	"AmmoState", -- (weaponId: string, mag: number, reserve: number) authoritative ammo snap
+	"CombatState", -- (state: CombatState) full inventory + protection flags (join, purchase, respawn, bust)
 }
 
 -- RemoteEvents: client -> server (all rate-limited + validated server-side)
@@ -44,6 +50,26 @@ Remotes.ClientToServer = {
 	"RerollContract", -- (contractId: string) free daily swap of one contract
 	"AdminCommand", -- (text: string) only works for admins
 	"VehicleFx", -- (boost: boolean, honk: boolean) driver's cosmetic nitro state change / horn; relayed as VehicleFxState
+	-- combat v2 (every payload re-validated server-side; see Shared/Combat/ShotValidation)
+	"WeaponFire", -- (shots: { ShotPacket }) <= 4 shots per packet, <= 20 packets/s
+	"WeaponReload", -- (weaponId: string)
+	"WeaponEquip", -- (weaponId: string | "none")
+	"WeaponMelee", -- (weaponId: string, aimDir: Vector3)
+	"WeaponAim", -- (aiming: boolean) aim-at-officer (brandish) + police "armed" checks
+	"BuyWeapon", -- (weaponId: string)
+	"BuyAmmo", -- (weaponId: string, full: boolean?) one ammo box, or fill to the reserve cap
+	"BuyArmor", -- (armorId: string)
+	"BuyMedKit", -- ()
+	"UseMedKit", -- ()
+	"SetPassive", -- (on: boolean)
+	"Surrender", -- ()
+	"SetWeaponTint", -- (weaponId: string, tintId: string) buys the tint if needed
+}
+
+-- UnreliableRemoteEvents: server -> client cosmetic traffic (payloads stay under 900 bytes)
+Remotes.Unreliable = {
+	"ShotFx", -- (shooterKey: number, weaponIndex: number, origin: Vector3, endpoints: {Vector3}, kinds: {number})
+	"PoliceShotFx", -- (unitKey: number, weaponIndex: number, origin: Vector3, endpoints: {Vector3}, kinds: {number})
 }
 
 -- RemoteFunctions: client -> server

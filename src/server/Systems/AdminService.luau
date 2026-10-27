@@ -20,6 +20,9 @@
 --   tp <poi>                      teleport to a point of interest (dealership, policehq, chopshop...)
 --   tutorial                      replay the tutorial
 --   save                          force-save your data
+--   weapon <id|all>               give weapons (4 spare magazines)     ammo [id]   fill reserve ammo
+--   armor [0-100]   god [on|off]  stars <0-5>   spawncops [n]   passive [on|off]   rookie off
+--   audit <player>                ShotAudit score + rejection reasons
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -36,6 +39,7 @@ local EconomyMath = require(Shared.Util.EconomyMath)
 local Format = require(Shared.Util.Format)
 local MapLayout = require(Shared.Util.MapLayout)
 local Net = require(Shared.Net)
+local Weapons = require(Shared.Config.Weapons)
 
 local DataService = require(script.Parent.DataService)
 
@@ -559,6 +563,114 @@ command("save", "save", function(player, _args)
 	local ok = DataService.saveNow(player)
 	return ok, if ok then "Saved" else "Save failed (see server output)"
 end)
+
+-- COMBAT QA (gta_combat §13.2) -----------------------------------------------------------------------------------
+
+command("weapon", "weapon <id|all>", function(player, args)
+	local id = args[1] and string.lower(args[1]) or ""
+	local ids: { string } = {}
+	if id == "all" then
+		for _, def in Weapons.List do
+			if not def.policeOnly and def.id ~= "fists" then
+				table.insert(ids, def.id)
+			end
+		end
+	elseif Weapons.get(id) then
+		table.insert(ids, id)
+	else
+		return false, "Unknown weapon '" .. tostring(args[1]) .. "'"
+	end
+	local given = 0
+	for _, wid in ids do
+		local ok, res = callSystem("WeaponService", "giveWeapon", player, wid, 4)
+		if ok and res == true then
+			given += 1
+		end
+	end
+	return true, ("Gave %d weapon(s)"):format(given)
+end)
+
+command("ammo", "ammo [id]", function(player, args)
+	local filled = 0
+	for _, def in Weapons.List do
+		if Weapons.isGun(def) and (args[1] == nil or args[1] == def.id) then
+			local ok, added = callSystem("WeaponService", "addAmmo", player, def.id, 1e6)
+			if ok and typeof(added) == "number" then
+				filled += added
+			end
+		end
+	end
+	return true, ("Added %d rounds"):format(filled)
+end)
+
+command("armor", "armor [0-100]", function(player, args)
+	local n = AdminService._parseAmount(args[1] or "100")
+	if not n or n < 0 or n > 100 then
+		return false, "Usage: armor [0-100]"
+	end
+	local ok = callSystem("DamageService", "setArmor", player, n)
+	return ok, ("Armor %d"):format(n)
+end)
+
+command("god", "god [on|off]", function(player, args)
+	local on = args[1] ~= "off"
+	local ok = callSystem("DamageService", "setGod", player, on)
+	return ok, if on then "God mode on" else "God mode off"
+end)
+
+command("stars", "stars <0-5>", function(player, args)
+	return commands.wanted.run(player, args)
+end)
+
+command("spawncops", "spawncops [stars]", function(player, args)
+	local n = AdminService._parseAmount(args[1] or "3")
+	if not n or n < 1 or n > 5 or n % 1 ~= 0 then
+		return false, "Usage: spawncops [1-5]"
+	end
+	return commands.wanted.run(player, { tostring(n) })
+end)
+
+command("passive", "passive [on|off]", function(player, args)
+	local ok, res, why = callSystem("DamageService", "setPassive", player, args[1] ~= "off")
+	if not ok or res == false then
+		return false, "Passive refused: " .. tostring(why or res)
+	end
+	return true, "Passive " .. (if args[1] ~= "off" then "on" else "off")
+end)
+
+command("rookie", "rookie off", function(player, _args)
+	local ok = callSystem("DamageService", "endRookie", player, "admin")
+	return ok, "Rookie protection ended"
+end)
+
+command("audit", "audit <player>", function(player, args)
+	local target = if args[1] then findPlayer(args[1], player) else player
+	if not target then
+		return false, "No unique player matches '" .. tostring(args[1]) .. "'"
+	end
+	local ok, audit = callSystem("WeaponService", "getAudit", target)
+	if not ok or typeof(audit) ~= "table" then
+		return false, "No audit for " .. target.Name
+	end
+	local parts = {}
+	for reason, n in audit.reasons do
+		table.insert(parts, reason .. "=" .. tostring(n))
+	end
+	table.sort(parts)
+	return true,
+		("%s: score %.1f, dropping=%s, %s"):format(
+			target.Name,
+			audit.score,
+			tostring(os.clock() < audit.dropUntil),
+			if #parts > 0 then table.concat(parts, " ") else "no rejections"
+		)
+end)
+
+-- ShotAudit log sink (WeaponService): one line per escalation; Studio / the server log keep it for review.
+function AdminService.logAudit(player: Player, reason: string, audit: any)
+	local score = if typeof(audit) == "table" then audit.score else 0
+	print(("[ShotAudit] %s (%d): %s, score %.1f"):format(player.Name, player.UserId, tostring(reason), score))
+end
 
 ---------------------------------------------------------------------------------------------------------------
 -- Admin check + dispatch

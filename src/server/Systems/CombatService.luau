@@ -1,17 +1,21 @@
 --!strict
--- CombatService (SPEC §6): cartoon combat tools — Bonk Bat, Zapper ("taser"), Spike Strip ("spikes").
+-- CombatService (SPEC §6, v2 gta_combat §3 / §13.2): the two GADGETS - the Kessler Stun Gun ("taser") and the
+-- Stinger Strip ("spikes") - plus the stun state, police spike strips and the shared melee target picker.
+-- Guns and melee weapons (including the free Slugger Bat that replaced v1's Bonk Bat) are WeaponService's.
 --
--- Tools are Tool instances built from parts (no meshes) and handed out for every owned tool (data.tools; the bat
--- is always owned, the Zapper also comes with the Zapper Pass). Clients detect activation and fire
--- ToolAction(toolId, aim); the server decides everything else: ownership, equipped, per-tool cooldown (Zapper
--- Pass halves the Zapper cooldown), not stunned, range / cone / server raycast, spawn + locked-garage protection.
+-- Gadgets are Tools built from Shared/Combat/WeaponModels (realistic yellow / black polymer, black steel: no neon, no
+-- cartoon colours) and handed out for every owned gadget (data.tools; the Zapper Pass also grants the stun gun and
+-- halves its cooldown). Clients fire ToolAction(toolId, aim); the server decides everything else: ownership,
+-- equipped (the strip deploys from the driver's seat), per-tool cooldown, not stunned, range + server raycast,
+-- DamageService protection (spawn protection, safe zones, passive, rookie, revenge immunity).
 --
--- Mild-rated: nothing takes damage and nobody dies. Hits stun (player attribute Stunned), knock the victim back
--- (Knockback remote, applied by the victim's own client) and pop drivers out of their car (VehicleService.eject).
+-- Stun gun: non-lethal. A hit stuns (player attribute Stunned), knocks the victim back (Knockback remote, applied by
+-- the victim's own client) and drops a driver out of their seat (VehicleService.eject). Assault heat uses the
+-- CrimeRules defense rules. Stinger Strip: dropped behind the player's car; any other car that crosses it gets its
+-- tires deflated (TiresPopped) for SPIKES_POP_TIME. PoliceCombatService drops police strips at 4-star roadblocks.
 --
--- Effects sent (Effect remote, rendered by EffectsController; `sound` is played by the client with the effect):
---   Bonk { position, sound = "Bonk" }        Zap { from, to, hit, sound = "Zap" }
---   TirePop { position, sound = "Poof" }     SpikeDrop { position, sound = "MetalHit" }
+-- Effects sent (Effect remote; ShotFxController renders): TaserShot { from, to, hit }, TireBurst { position },
+-- StripDrop { position }.
 --
 -- All cross-system calls are lazy (required inside functions) so this module also loads in the Lune harness.
 
@@ -28,27 +32,23 @@ local PoliceConfig = require(Shared.Config.Police)
 local MapLayout = require(Shared.Util.MapLayout)
 local Signal = require(Shared.Util.Signal)
 local Trove = require(Shared.Util.Trove)
+local CrimeRules = require(Shared.Combat.CrimeRules)
+local WeaponModels = require(Shared.Combat.WeaponModels)
 
 local CombatService = {}
 
--- Fired after every successful hit: (attacker: Player, victim: Player, toolId: string, ejectedCar: any?)
+-- Fired after every successful gadget hit: (attacker: Player, victim: Player, toolId: string, ejectedCar: any?)
 CombatService.Hit = Signal.new()
 
 -- Tuning (beyond Config/Economy) -----------------------------------------------------------------------------------
-local BAT_RANGE_SLACK = 2 -- lag compensation on top of Economy.BAT_RANGE
-local BAT_MIN_DOT = 0.3 -- "in front" cone (horizontal)
-local BAT_POINT_BLANK = 3 -- closer than this always counts as "in front" (players overlapping)
-local BAT_LOS_HEIGHT = 1.5 -- line-of-sight ray starts this far above the root when there is no Head
-local BAT_UP = 35
-local TASER_KNOCK = 28
-local TASER_UP = 22
-local TASER_SPHERE_RADIUS = 1.25 -- forgiving beam thickness
+local TASER_KNOCK = 16
+local TASER_UP = 10
+local TASER_SPHERE_RADIUS = 1.0 -- probe spread: a little forgiving
 local SPAWN_PROTECTION = 3
 local STUN_IMMUNITY_AFTER = 1 -- after a stun ends you can't be stunned again for this long (no stun-lock)
 local COOLDOWN_TOLERANCE = 0.12 -- network jitter allowance
-local ASSAULT_HEAT_COOLDOWN = 5 -- at most one assault star per attacker per this many seconds
 local EFFECT_RADIUS = 250
-local ZAP_EFFECT_RADIUS = 300
+local TASER_EFFECT_RADIUS = 300
 local SPIKE_BEHIND = 12 -- studs behind the car's center
 local SPIKE_WIDTH = 14 -- across the lane
 local SPIKE_DEPTH = 2.6 -- along the lane
@@ -61,23 +61,11 @@ local MAX_STRIPS_PER_PLAYER = 2
 local MAX_STRIPS = 16
 
 local COLORS = {
-	Wood = Color3.fromRGB(226, 160, 92),
-	WoodDark = Color3.fromRGB(196, 126, 66),
-	Tape = Color3.fromRGB(38, 38, 52),
-	Pink = Color3.fromRGB(255, 52, 140),
-	Cyan = Color3.fromRGB(0, 214, 255),
-	Orange = Color3.fromRGB(255, 140, 30),
-	Purple = Color3.fromRGB(140, 70, 255),
-	Lime = Color3.fromRGB(140, 255, 120),
-	Yellow = Color3.fromRGB(255, 205, 50),
-	Steel = Color3.fromRGB(46, 48, 62),
-	White = Color3.fromRGB(245, 245, 255),
+	Steel = Color3.fromRGB(38, 39, 42),
+	SteelWorn = Color3.fromRGB(70, 72, 76),
+	Rubber = Color3.fromRGB(22, 22, 24),
+	Caution = Color3.fromRGB(214, 176, 44),
 }
-
--- Part cylinders run along local X; these rotate that axis onto Y / Z.
-local ALONG_Y = CFrame.Angles(0, 0, math.rad(90))
-local ALONG_Z = CFrame.Angles(0, math.rad(90), 0)
-local DIAMOND = CFrame.Angles(math.rad(45), 0, math.rad(45))
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests and reuse)
@@ -85,15 +73,11 @@ local DIAMOND = CFrame.Angles(math.rad(45), 0, math.rad(45))
 
 export type Candidate = { key: any, position: Vector3 }
 export type CooldownBook = { [string]: number } -- toolId -> clock time when the tool is ready again
-export type AssaultContext = {
-	attackerInOwnGarage: boolean, -- defending your own garage is never a crime
-	victimInAttackerGarage: boolean, -- a raider inside your garage
-	victimStealingFromAttacker: boolean, -- the victim is driving off with your car
-	victimWanted: number, -- stars; bonking wanted criminals is vigilante justice, not assault
-}
+export type AssaultContext = CrimeRules.AssaultContext
 
 -- Nearest candidate within `range` of origin that lies in front of ANY of `forwards` (horizontal dot > minDot).
 -- Candidates closer than `pointBlank` count regardless of direction. Returns the candidate's key or nil.
+-- (WeaponService's melee uses this too.)
 function CombatService.selectTarget(
 	origin: Vector3,
 	forwards: { Vector3 },
@@ -133,7 +117,7 @@ function CombatService.selectTarget(
 	return best
 end
 
--- Cooldown of a tool for a player (Zapper Pass halves the Zapper cooldown). Unknown tools never become ready.
+-- Cooldown of a tool for a player (Zapper Pass halves the stun gun cooldown). Unknown tools never become ready.
 function CombatService.cooldownFor(toolId: string, hasTaserPass: boolean): number
 	local def = Economy.Tools[toolId]
 	if not def then
@@ -155,16 +139,9 @@ function CombatService.startCooldown(book: CooldownBook, toolId: string, now: nu
 	book[toolId] = now + duration
 end
 
--- SPEC: hitting a player outside your own garage adds `assault` heat unless the victim is stealing from you or wanted.
-function CombatService.shouldAddAssaultHeat(ctx: AssaultContext): boolean
-	if ctx.attackerInOwnGarage or ctx.victimInAttackerGarage then
-		return false
-	end
-	if ctx.victimStealingFromAttacker then
-		return false
-	end
-	return ctx.victimWanted <= 0
-end
+-- v1 rule (now Shared/Combat/CrimeRules): hitting a player outside your own garage is assault unless the victim is
+-- stealing from you, raiding your garage, or wanted.
+CombatService.shouldAddAssaultHeat = CrimeRules.shouldAddAssaultHeat
 
 -- Does the segment p0 -> p1 (strip-local space: X across the strip, Z along the road, Y up from the strip) pass over
 -- the strip footprint (|x| <= halfWidth, |z| <= halfDepth) at a height in [-2, height]? Swept so fast cars that jump
@@ -194,14 +171,8 @@ function CombatService.segmentCrossesStrip(
 	return math.abs(x) <= halfWidth and y >= -2 and y <= height
 end
 
--- Daily contract "defend" (bonk3, docs/integration/DECISIONS.md #6): a hit that ejects the driver of a Stolen car, or
--- of a Loot car while that driver is wanted (>= 1 star), counts, whoever the attacker is.
-function CombatService.countsAsThiefBonk(carKind: any, victimWanted: number): boolean
-	if carKind == "Stolen" then
-		return true
-	end
-	return carKind == "Loot" and victimWanted >= 1
-end
+-- Daily contract "defend" (bonk3): see CrimeRules.countsAsThiefBonk.
+CombatService.countsAsThiefBonk = CrimeRules.countsAsThiefBonk
 
 -- Is `value` (Player, userId number, or nil) the given player?
 function CombatService.isSamePlayer(value: any, player: Player): boolean
@@ -218,68 +189,8 @@ function CombatService.isSamePlayer(value: any, player: Player): boolean
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Geometry builders (pure instance construction — harness compatible)
+-- Builders (pure instance construction — harness compatible)
 -------------------------------------------------------------------------------------------------------------------------
-
-local function newPart(
-	parent: Instance?,
-	name: string,
-	shape: Enum.PartType,
-	size: Vector3,
-	cframe: CFrame,
-	color: Color3,
-	material: Enum.Material?
-): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Shape = shape
-	p.Size = size
-	p.CFrame = cframe
-	p.Color = color
-	p.Material = material or Enum.Material.SmoothPlastic
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.CanCollide = false
-	p.CanTouch = false
-	p.CanQuery = false
-	p.CastShadow = false
-	if parent then
-		p.Parent = parent
-	end
-	return p
-end
-
-local function newWedge(parent: Instance, name: string, size: Vector3, cframe: CFrame, color: Color3): WedgePart
-	local p = Instance.new("WedgePart")
-	p.Name = name
-	p.Size = size
-	p.CFrame = cframe
-	p.Color = color
-	p.Material = Enum.Material.SmoothPlastic
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.CanCollide = false
-	p.CanTouch = false
-	p.CanQuery = false
-	p.CastShadow = false
-	p.Parent = parent
-	return p
-end
-
-local function weldAll(tool: Tool, handle: BasePart)
-	handle.Massless = true
-	handle.Anchored = false
-	for _, d in tool:GetDescendants() do
-		if d:IsA("BasePart") and d ~= handle then
-			d.Massless = true
-			d.Anchored = false
-			local w = Instance.new("WeldConstraint")
-			w.Part0 = handle
-			w.Part1 = d
-			w.Parent = d
-		end
-	end
-end
 
 local function newTool(toolId: string, name: string, tip: string): Tool
 	local tool = Instance.new("Tool")
@@ -292,296 +203,103 @@ local function newTool(toolId: string, name: string, tip: string): Tool
 	return tool
 end
 
--- Bonk Bat: chunky cartoon wooden bat, taped grip, neon band. Bat axis = handle +Y (points up out of the fist).
-local function buildBat(): Tool
-	local tool = newTool("bat", "Bonk Bat", "Bonk thieves out of your cars!")
-	-- hand sits 0.35 below the handle center; bat leans back over the shoulder a little
-	tool.Grip = (CFrame.Angles(math.rad(20), 0, 0) * CFrame.new(0, 0.35, 0)):Inverse()
-
-	local o = CFrame.new()
-	local handle = newPart(tool, "Handle", Enum.PartType.Block, Vector3.new(0.5, 1.7, 0.5), o, COLORS.Tape)
-	handle.Transparency = 1
-	handle.CanTouch = false
-
-	local function y(v: number): CFrame
-		return o * CFrame.new(0, v, 0) * ALONG_Y
-	end
-	newPart(
-		tool,
-		"GripTape",
-		Enum.PartType.Cylinder,
-		Vector3.new(1.7, 0.5, 0.5),
-		y(0),
-		COLORS.Tape,
-		Enum.Material.Fabric
-	)
-	newPart(tool, "TapeBand", Enum.PartType.Cylinder, Vector3.new(0.16, 0.55, 0.55), y(-0.45), COLORS.Pink)
-	newPart(tool, "TapeBand", Enum.PartType.Cylinder, Vector3.new(0.16, 0.55, 0.55), y(0.35), COLORS.Pink)
-	newPart(tool, "Knob", Enum.PartType.Cylinder, Vector3.new(0.24, 0.8, 0.8), y(-0.95), COLORS.Tape)
-	newPart(
-		tool,
-		"Taper",
-		Enum.PartType.Cylinder,
-		Vector3.new(1.0, 0.68, 0.68),
-		y(1.3),
-		COLORS.WoodDark,
-		Enum.Material.Wood
-	)
-	newPart(
-		tool,
-		"Barrel",
-		Enum.PartType.Cylinder,
-		Vector3.new(2.1, 1.02, 1.02),
-		y(2.85),
-		COLORS.Wood,
-		Enum.Material.Wood
-	)
-	newPart(
-		tool,
-		"NeonBand",
-		Enum.PartType.Cylinder,
-		Vector3.new(0.28, 1.06, 1.06),
-		y(2.15),
-		COLORS.Cyan,
-		Enum.Material.Neon
-	)
-	newPart(
-		tool,
-		"Cap",
-		Enum.PartType.Ball,
-		Vector3.new(1.02, 1.02, 1.02),
-		o * CFrame.new(0, 3.88, 0),
-		COLORS.Wood,
-		Enum.Material.Wood
-	)
-
-	-- swing trail (enabled locally by CombatClient during a swing)
-	local a0 = Instance.new("Attachment")
-	a0.Name = "TrailBottom"
-	a0.Position = Vector3.new(0, 1.6, 0)
-	a0.Parent = handle
-	local a1 = Instance.new("Attachment")
-	a1.Name = "TrailTop"
-	a1.Position = Vector3.new(0, 4.3, 0)
-	a1.Parent = handle
-	local trail = Instance.new("Trail")
-	trail.Name = "SwingTrail"
-	trail.Attachment0 = a0
-	trail.Attachment1 = a1
-	trail.Color = ColorSequence.new(COLORS.White, COLORS.Pink)
-	trail.Transparency = NumberSequence.new(0.15, 1)
-	trail.Lifetime = 0.16
-	trail.MinLength = 0
-	trail.FaceCamera = true
-	trail.LightEmission = 0.6
-	trail.Enabled = false
-	trail.Parent = handle
-
-	weldAll(tool, handle)
-	return tool
-end
-
--- Zapper: chunky toy sci-fi blaster (orange body, white barrel, glowing lime coil, pink tip). Forward = handle -Z.
-local function buildZapper(): Tool
-	local tool = newTool("taser", "Zapper", "Zap thieves from range - stuns them and pops them out of cars!")
-	tool.Grip = CFrame.new(0, -0.2, 0)
-
-	local o = CFrame.new()
-	local handle = newPart(
-		tool,
-		"Handle",
-		Enum.PartType.Block,
-		Vector3.new(0.45, 1.15, 0.6),
-		o,
-		COLORS.Purple,
-		Enum.Material.SmoothPlastic
-	)
-	newPart(
-		tool,
-		"Body",
-		Enum.PartType.Block,
-		Vector3.new(0.85, 0.8, 1.9),
-		o * CFrame.new(0, 0.85, -0.55),
-		COLORS.Orange
-	)
-	newPart(
-		tool,
-		"BodyBack",
-		Enum.PartType.Ball,
-		Vector3.new(1.15, 1.15, 1.15),
-		o * CFrame.new(0, 0.88, 0.35),
-		COLORS.Orange
-	)
-	newWedge(tool, "Fin", Vector3.new(0.16, 0.5, 0.9), o * CFrame.new(0, 1.5, 0.05), COLORS.Cyan)
-	newPart(
-		tool,
-		"Barrel",
-		Enum.PartType.Cylinder,
-		Vector3.new(1.5, 0.5, 0.5),
-		o * CFrame.new(0, 0.85, -2.1) * ALONG_Z,
-		COLORS.White
-	)
-	for i, z in { -1.7, -2.05, -2.4 } do
-		newPart(
-			tool,
-			"Coil" .. i,
-			Enum.PartType.Cylinder,
-			Vector3.new(0.13, 0.74, 0.74),
-			o * CFrame.new(0, 0.85, z) * ALONG_Z,
-			COLORS.Lime,
-			Enum.Material.Neon
-		)
-	end
-	local tipPart = newPart(
-		tool,
-		"Tip",
-		Enum.PartType.Ball,
-		Vector3.new(0.62, 0.62, 0.62),
-		o * CFrame.new(0, 0.85, -2.95),
-		COLORS.Pink,
-		Enum.Material.Neon
-	)
-	newPart(tool, "Guard", Enum.PartType.Block, Vector3.new(0.2, 0.12, 0.6), o * CFrame.new(0, 0.2, -0.5), COLORS.Steel)
-	newPart(
-		tool,
-		"Trigger",
-		Enum.PartType.Block,
-		Vector3.new(0.14, 0.32, 0.14),
-		o * CFrame.new(0, 0.36, -0.38),
-		COLORS.Yellow
-	)
-
-	local muzzle = Instance.new("Attachment")
-	muzzle.Name = "Muzzle"
-	muzzle.Position = Vector3.new(0, 0, -0.3)
-	muzzle.Parent = tipPart
-	local glow = Instance.new("PointLight")
-	glow.Name = "Glow"
-	glow.Color = COLORS.Lime
-	glow.Range = 6
-	glow.Brightness = 1.2
-	glow.Shadows = false
-	glow.Parent = tipPart
-
-	weldAll(tool, handle)
-	return tool
-end
-
--- Spike Strip (held): folded hazard case with neon spikes on top.
-local function buildSpikesItem(): Tool
-	local tool = newTool("spikes", "Spike Strip", "Drop behind your car to pop the tires of anyone chasing you!")
-	tool.Grip = CFrame.new(0, 0.3, 0.45)
-
-	local o = CFrame.new()
-	local handle =
-		newPart(tool, "Handle", Enum.PartType.Block, Vector3.new(2.2, 0.55, 1.2), o, COLORS.Steel, Enum.Material.Metal)
-	for _, sx in { -1, 1 } do
-		newPart(
-			tool,
-			"Cap",
-			Enum.PartType.Block,
-			Vector3.new(0.22, 0.66, 1.3),
-			o * CFrame.new(1.15 * sx, 0, 0),
-			COLORS.Yellow
-		)
-		newPart(
-			tool,
-			"Stripe",
-			Enum.PartType.Block,
-			Vector3.new(0.3, 0.04, 1.22),
-			o * CFrame.new(0.58 * sx, 0.295, 0),
-			COLORS.Yellow
-		)
-	end
-	for i, x in { -0.85, -0.3, 0.3, 0.85 } do
-		newPart(
-			tool,
-			"Spike",
-			Enum.PartType.Block,
-			Vector3.new(0.28, 0.28, 0.28),
-			o * CFrame.new(x, 0.42, 0) * DIAMOND,
-			if i % 2 == 0 then COLORS.White else COLORS.Pink,
-			Enum.Material.Neon
-		)
-	end
-	newPart(tool, "Strap", Enum.PartType.Block, Vector3.new(1.0, 0.12, 0.16), o * CFrame.new(0, 0.36, 0.5), COLORS.Tape)
-
-	weldAll(tool, handle)
-	return tool
-end
-
--- Builds a fresh Tool for toolId ("bat" | "taser" | "spikes"), or nil for unknown ids.
+-- Builds a fresh gadget Tool for toolId ("taser" | "spikes"), or nil for anything else (guns, melee: WeaponService).
 function CombatService.buildTool(toolId: string): Tool?
-	if toolId == "bat" then
-		return buildBat()
-	elseif toolId == "taser" then
-		return buildZapper()
-	elseif toolId == "spikes" then
-		return buildSpikesItem()
+	local def = Economy.Tools[toolId]
+	if not def or (toolId ~= "taser" and toolId ~= "spikes") then
+		return nil
 	end
-	return nil
+	local tool = newTool(toolId, def.name, def.description)
+	if toolId == "spikes" then
+		tool.Grip = CFrame.new(0, 0.1, 0.2)
+	end
+	-- the stun gun's probes leave from the Handle's "Muzzle" attachment (the cartridge face)
+	local handle = WeaponModels.assemble(tool, toolId)
+	WeaponModels.weld(tool, handle)
+	return tool
 end
 
--- Builds the dropped spike strip at groundCFrame (position on the road surface, -Z = the dropping car's forward).
--- Returns an anchored Model (PrimaryPart "Base") with an invisible "Trigger" volume for Touched.
+local function stripPart(
+	parent: Instance,
+	name: string,
+	size: Vector3,
+	cf: CFrame,
+	color: Color3,
+	material: Enum.Material
+): Part
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = material
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.CanCollide = false
+	p.CanTouch = false
+	p.CanQuery = false
+	p.CastShadow = false
+	p.Anchored = true
+	p.Parent = parent
+	return p
+end
+
+-- Builds the deployed Stinger Strip at groundCFrame (position on the road surface, -Z = the dropping car's forward).
+-- Returns an anchored Model (PrimaryPart "Base") with an invisible "Trigger" volume for Touched. Black steel bars,
+-- rows of steel spikes, caution end caps.
 function CombatService.buildSpikeStrip(groundCFrame: CFrame): Model
 	local model = Instance.new("Model")
 	model.Name = "SpikeStrip"
-	local base = newPart(
+	local base = stripPart(
 		model,
 		"Base",
-		Enum.PartType.Block,
-		Vector3.new(SPIKE_WIDTH, 0.25, SPIKE_DEPTH),
-		groundCFrame * CFrame.new(0, 0.125, 0),
-		COLORS.Steel,
-		Enum.Material.Metal
+		Vector3.new(SPIKE_WIDTH, 0.2, SPIKE_DEPTH),
+		groundCFrame * CFrame.new(0, 0.1, 0),
+		COLORS.Rubber,
+		Enum.Material.Fabric
 	)
 	for _, sz in { -1, 1 } do
-		newPart(
+		stripPart(
 			model,
 			"Rail",
-			Enum.PartType.Block,
-			Vector3.new(SPIKE_WIDTH, 0.3, 0.25),
-			groundCFrame * CFrame.new(0, 0.15, (SPIKE_DEPTH / 2 - 0.12) * sz),
-			COLORS.Yellow
+			Vector3.new(SPIKE_WIDTH, 0.24, 0.22),
+			groundCFrame * CFrame.new(0, 0.12, (SPIKE_DEPTH / 2 - 0.12) * sz),
+			COLORS.Steel,
+			Enum.Material.Metal
 		)
-		newPart(
+		stripPart(
 			model,
 			"EndCap",
-			Enum.PartType.Block,
-			Vector3.new(0.6, 0.5, SPIKE_DEPTH + 0.3),
-			groundCFrame * CFrame.new((SPIKE_WIDTH / 2 + 0.2) * sz, 0.25, 0),
-			COLORS.Yellow
+			Vector3.new(0.5, 0.36, SPIKE_DEPTH + 0.2),
+			groundCFrame * CFrame.new((SPIKE_WIDTH / 2 + 0.2) * sz, 0.18, 0),
+			COLORS.Caution,
+			Enum.Material.SmoothPlastic
 		)
 	end
-	local n = 9
+	local n = 12
 	for i = 1, n do
-		local x = -SPIKE_WIDTH / 2 + 1 + (i - 1) * (SPIKE_WIDTH - 2) / (n - 1)
-		newPart(
-			model,
-			"Spike",
-			Enum.PartType.Block,
-			Vector3.new(0.75, 0.75, 0.75),
-			groundCFrame * CFrame.new(x, 0.55, 0) * DIAMOND,
-			if i % 2 == 0 then COLORS.White else COLORS.Pink,
-			Enum.Material.Neon
-		)
+		local x = -SPIKE_WIDTH / 2 + 0.7 + (i - 1) * (SPIKE_WIDTH - 1.4) / (n - 1)
+		for _, z in { -0.55, 0.55 } do
+			stripPart(
+				model,
+				"Spike",
+				Vector3.new(0.12, 0.42, 0.12),
+				groundCFrame * CFrame.new(x, 0.38, z) * CFrame.Angles(math.rad(if z < 0 then -18 else 18), 0, 0),
+				COLORS.SteelWorn,
+				Enum.Material.Metal
+			)
+		end
 	end
-	local trigger = newPart(
+	local trigger = stripPart(
 		model,
 		"Trigger",
-		Enum.PartType.Block,
 		Vector3.new(SPIKE_WIDTH + 3, 7, SPIKE_DEPTH + 2.4),
 		groundCFrame * CFrame.new(0, 3.5, 0),
-		COLORS.Steel
+		COLORS.Steel,
+		Enum.Material.SmoothPlastic
 	)
 	trigger.Transparency = 1
 	trigger.CanTouch = true
-	for _, d in model:GetDescendants() do
-		if d:IsA("BasePart") then
-			d.Anchored = true
-		end
-	end
 	model.PrimaryPart = base
 	return model
 end
@@ -593,7 +311,7 @@ end
 type Strip = {
 	model: Model,
 	cframe: CFrame,
-	owner: Player,
+	owner: Player?, -- nil: a police strip
 	ownerCar: Model?,
 	expiresAt: number,
 	popped: { [Model]: boolean },
@@ -606,13 +324,11 @@ local cooldowns: { [Player]: CooldownBook } = {}
 local spawnedAt: { [Player]: number } = {}
 local stunUntil: { [Player]: number } = {}
 local immuneUntil: { [Player]: number } = {}
-local lastAssaultHeat: { [Player]: number } = {}
 local playerTroves: { [Player]: Trove.Trove } = {}
 local strips: { Strip } = {}
 local prevChassisPos: { [Model]: Vector3 } = {}
 
 local zapParams: RaycastParams? = nil
-local batParams: RaycastParams? = nil
 local groundParams: RaycastParams? = nil
 
 -- Lazy system access (require inside functions; see SPEC §4). Cached once a system loaded successfully.
@@ -709,13 +425,13 @@ local function notify(player: Player, kind: string, text: string)
 	end
 end
 
--- Set of tool ids this player owns right now.
+-- Set of gadget ids this player owns right now.
 local function ownedTools(player: Player, data: any): { [string]: boolean }
-	local owned: { [string]: boolean } = { bat = true }
+	local owned: { [string]: boolean } = {}
 	local tools = data and data.tools
 	if typeof(tools) == "table" then
-		for id, v in tools do
-			if v == true and typeof(id) == "string" and Economy.Tools[id] then
+		for _, id in Economy.GadgetOrder do
+			if tools[id] == true then
 				owned[id] = true
 			end
 		end
@@ -735,20 +451,21 @@ local function isEquipped(character: Model, toolId: string): boolean
 	return false
 end
 
-local function equippedToolPart(character: Model, toolId: string, partName: string): BasePart?
+local function equippedMuzzle(character: Model, toolId: string): Vector3?
 	for _, child in character:GetChildren() do
 		if child:IsA("Tool") and child:GetAttribute("ToolId") == toolId then
-			local p = child:FindFirstChild(partName)
-			if p and p:IsA("BasePart") then
-				return p
+			local handle = child:FindFirstChild("Handle")
+			local m = handle and handle:FindFirstChild("Muzzle")
+			if m and m:IsA("Attachment") then
+				return m.WorldPosition
 			end
 		end
 	end
 	return nil
 end
 
--- Is this player currently immune to hits? (spawn protection, stun immunity, own locked garage, dead)
-local function isProtected(victim: Player, now: number): boolean
+-- Is this player currently immune to gadget hits? (dead, spawn protection, stun immunity, DamageService rules)
+local function isProtected(attacker: Player, victim: Player, now: number): boolean
 	local root = getRoot(victim)
 	if not root or not getAliveHumanoid(victim) then
 		return true
@@ -759,19 +476,18 @@ local function isProtected(victim: Player, now: number): boolean
 	if now < (immuneUntil[victim] or -math.huge) then
 		return true
 	end
-	local ok, plotIndex = callSystem("PlotService", "getPlotIndex", victim)
-	if ok and typeof(plotIndex) == "number" then
+	local ok, allowed = callSystem("DamageService", "canDamage", attacker, victim)
+	if ok and allowed == false then
+		return true
+	end
+	local okP, plotIndex = callSystem("PlotService", "getPlotIndex", victim)
+	if okP and typeof(plotIndex) == "number" then
 		local lockedOk, locked = callSystem("PlotService", "isLocked", plotIndex)
 		if lockedOk and locked == true and MapLayout.plotAt(root.Position) == plotIndex then
 			return true
 		end
 	end
 	return false
-end
-
-local function isInOwnGarage(player: Player, position: Vector3): boolean
-	local ok, plotIndex = callSystem("PlotService", "getPlotIndex", player)
-	return ok and typeof(plotIndex) == "number" and MapLayout.plotAt(position) == plotIndex
 end
 
 -- Resolve a raycast hit to the player it belongs to (character part, accessory, or a car with a driver).
@@ -800,7 +516,7 @@ local function fireEffectNear(name: string, position: Vector3, radius: number, d
 	Net.fireNear("Effect", position, radius, name, data)
 end
 
--- Fire an effect to everyone within radius of either endpoint (beams).
+-- Fire an effect to everyone within radius of either endpoint (wires / tracers).
 local function fireEffectNearSegment(name: string, a: Vector3, b: Vector3, radius: number, data: { [string]: any })
 	for _, p in Players:GetPlayers() do
 		local root = getRoot(p)
@@ -814,7 +530,8 @@ end
 -- Stun / hit resolution
 -------------------------------------------------------------------------------------------------------------------------
 
--- Stun a player for `seconds` (player attribute Stunned=true; clients freeze controls). Extra public helper.
+-- Stun a player for `seconds` (player attribute Stunned=true; clients freeze controls). Also used by police tasers and
+-- heavy melee hits.
 function CombatService.stun(victim: Player, seconds: number)
 	if seconds <= 0 or not victim.Parent then
 		return
@@ -861,6 +578,11 @@ local function isStealingFrom(victim: Player, attacker: Player, victimCar: any):
 	return false
 end
 
+local function isInOwnGarage(player: Player, position: Vector3): boolean
+	local ok, plotIndex = callSystem("PlotService", "getPlotIndex", player)
+	return ok and typeof(plotIndex) == "number" and MapLayout.plotAt(position) == plotIndex
+end
+
 type HitOptions = {
 	toolId: string,
 	stunSeconds: number,
@@ -873,7 +595,6 @@ local function applyHit(attacker: Player, victim: Player, opts: HitOptions)
 	if not victimRoot or not attackerRoot then
 		return
 	end
-	local now = os.clock()
 
 	-- read everything we need BEFORE the eject changes vehicle state
 	local car = getDrivingCar(victim)
@@ -881,8 +602,8 @@ local function applyHit(attacker: Player, victim: Player, opts: HitOptions)
 	local defended = car ~= nil and car.kind == "Stolen" and stealingFromAttacker
 	local wanted = victim:GetAttribute("Wanted")
 	local victimWanted = if typeof(wanted) == "number" then wanted else 0
-	local thiefBonk = car ~= nil and CombatService.countsAsThiefBonk(car.kind, victimWanted)
-	local heat = CombatService.shouldAddAssaultHeat({
+	local thiefBonk = car ~= nil and CrimeRules.countsAsThiefBonk(car.kind, victimWanted)
+	local heat = CrimeRules.shouldAddAssaultHeat({
 		attackerInOwnGarage = isInOwnGarage(attacker, attackerRoot.Position),
 		victimInAttackerGarage = isInOwnGarage(attacker, victimRoot.Position),
 		victimStealingFromAttacker = stealingFromAttacker,
@@ -898,130 +619,24 @@ local function applyHit(attacker: Player, victim: Player, opts: HitOptions)
 		ejected = callSystem("VehicleService", "eject", car)
 	end
 	Net.fireClient("Knockback", victim, opts.knockback, opts.stunSeconds)
+	callSystem("DamageService", "markCombat", attacker)
+	callSystem("DamageService", "markCombat", victim)
 
 	if thiefBonk and ejected then
 		callSystem("RewardsService", "progress", attacker, "defend", 1)
 	end
 	if defended then
-		notify(attacker, "success", "THIEF BONKED! Go grab your car back!")
+		notify(attacker, "success", "Thief stunned. Get your car back.")
 	end
-	if heat and now - (lastAssaultHeat[attacker] or -math.huge) >= ASSAULT_HEAT_COOLDOWN then
-		lastAssaultHeat[attacker] = now
-		callSystem("WantedService", "addHeat", attacker, PoliceConfig.Heat.assault, "assault")
+	if heat then
+		callSystem("DamageService", "reportCrime", attacker, "assault", attackerRoot.Position, false)
 	end
 	CombatService.Hit:Fire(attacker, victim, opts.toolId, car)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Tool actions
+-- Gadget actions
 -------------------------------------------------------------------------------------------------------------------------
-
--- Melee line of sight: no bonks through garage walls, glass or buildings. Characters, the effects folder and cars
--- are ignored (a driver is hit through their own car door, you can swing from your own seat, and a garage owner can
--- still bonk a thief over the hood of the display car he is hotwiring).
-local function batLineOfSight(attacker: Player, attackerRoot: BasePart, victim: Player, victimRoot: BasePart): boolean
-	local params = batParams
-	if not params then
-		params = RaycastParams.new()
-		params.FilterType = Enum.RaycastFilterType.Exclude
-		params.IgnoreWater = true
-		params.RespectCanCollide = true -- decorative / trigger volumes never block a swing
-		batParams = params
-	end
-	local exclude: { Instance } = { getEffectsFolder() }
-	for _, p in Players:GetPlayers() do
-		if p.Character then
-			table.insert(exclude, p.Character)
-		end
-	end
-	local vehicles = Workspace:FindFirstChild("Vehicles")
-	if vehicles then
-		table.insert(exclude, vehicles)
-	end
-	for _, model in CollectionService:GetTagged("DisplayCar") do
-		table.insert(exclude, model)
-	end
-	for _, p in { attacker, victim } do
-		local car = getDrivingCar(p)
-		if car and typeof(car.model) == "Instance" then
-			table.insert(exclude, car.model)
-		end
-	end
-	params.FilterDescendantsInstances = exclude
-	local character = attacker.Character
-	local head = character and character:FindFirstChild("Head")
-	local origin = if head and head:IsA("BasePart")
-		then head.Position
-		else attackerRoot.Position + Vector3.new(0, BAT_LOS_HEIGHT, 0)
-	local dir = victimRoot.Position - origin
-	if dir.Magnitude < 0.5 then
-		return true
-	end
-	return Workspace:Raycast(origin, dir, params) == nil
-end
-
-local function doBat(player: Player, root: BasePart, aim: Vector3?)
-	local origin = root.Position
-	local forwards = { root.CFrame.LookVector }
-	if aim then
-		local d = aim - origin
-		if d.Magnitude > 0.5 and d.Magnitude < 500 then
-			table.insert(forwards, d)
-		end
-	end
-	local now = os.clock()
-	local candidates: { Candidate } = {}
-	for _, other in Players:GetPlayers() do
-		if other ~= player then
-			local otherRoot = getRoot(other)
-			if otherRoot and not isProtected(other, now) then
-				table.insert(candidates, { key = other, position = otherRoot.Position })
-			end
-		end
-	end
-	-- nearest valid target in the cone that is not behind a wall (a blocked one falls through to the next nearest)
-	local victim: Player? = nil
-	local victimRoot: BasePart? = nil
-	while #candidates > 0 do
-		local target = CombatService.selectTarget(
-			origin,
-			forwards,
-			candidates,
-			Economy.BAT_RANGE + BAT_RANGE_SLACK,
-			BAT_MIN_DOT,
-			BAT_POINT_BLANK
-		)
-		if not target then
-			return
-		end
-		local p = target :: Player
-		local pRoot = getRoot(p)
-		if pRoot and batLineOfSight(player, root, p, pRoot) then
-			victim, victimRoot = p, pRoot
-			break
-		end
-		for i, c in candidates do
-			if c.key == target then
-				table.remove(candidates, i)
-				break
-			end
-		end
-	end
-	if not victim or not victimRoot then
-		return
-	end
-	local flat = Vector3.new(victimRoot.Position.X - origin.X, 0, victimRoot.Position.Z - origin.Z)
-	local dir = if flat.Magnitude > 0.1
-		then flat.Unit
-		else Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z).Unit
-	applyHit(player, victim, {
-		toolId = "bat",
-		stunSeconds = Economy.BAT_STUN,
-		knockback = dir * Economy.BAT_KNOCKBACK + Vector3.new(0, BAT_UP, 0),
-	})
-	local fxPos = victimRoot.Position + Vector3.new(0, 2.5, 0)
-	fireEffectNear("Bonk", fxPos, EFFECT_RADIUS, { position = fxPos, sound = "Bonk" })
-end
 
 local function getZapParams(exclude: { Instance }): RaycastParams
 	local params = zapParams
@@ -1035,7 +650,7 @@ local function getZapParams(exclude: { Instance }): RaycastParams
 	return params
 end
 
-local function doZap(player: Player, character: Model, root: BasePart, aim: Vector3?)
+local function doTaser(player: Player, character: Model, root: BasePart, aim: Vector3?)
 	local head = character:FindFirstChild("Head")
 	local origin = if head and head:IsA("BasePart") then head.Position else root.Position + Vector3.new(0, 1.5, 0)
 	local dir = root.CFrame.LookVector
@@ -1074,9 +689,8 @@ local function doZap(player: Player, character: Model, root: BasePart, aim: Vect
 	end
 
 	local now = os.clock()
-	local hit = victim ~= nil and victim ~= player and not isProtected(victim, now)
-	local tip = equippedToolPart(character, "taser", "Tip")
-	local fromPos = if tip then tip.Position else origin + dir * 1.5
+	local hit = victim ~= nil and victim ~= player and not isProtected(player, victim, now)
+	local fromPos = equippedMuzzle(character, "taser") or (origin + dir * 1.5)
 	if hit and victim then
 		local victimRoot = getRoot(victim)
 		local flat = Vector3.new(dir.X, 0, dir.Z)
@@ -1090,11 +704,10 @@ local function doZap(player: Player, character: Model, root: BasePart, aim: Vect
 			hitPos = victimRoot.Position
 		end
 	end
-	fireEffectNearSegment("Zap", fromPos, hitPos, ZAP_EFFECT_RADIUS, {
+	fireEffectNearSegment("TaserShot", fromPos, hitPos, TASER_EFFECT_RADIUS, {
 		from = fromPos,
 		to = hitPos,
 		hit = hit,
-		sound = "Zap",
 	})
 end
 
@@ -1129,18 +742,22 @@ local function popTires(strip: Strip, model: Model, chassis: BasePart)
 	if chassis.Anchored or chassis.AssemblyLinearVelocity.Magnitude < SPIKE_MIN_SPEED then
 		return
 	end
+	if strip.owner == nil and CollectionService:HasTag(model, "Police") then
+		return -- police strips never get police cars
+	end
 	strip.popped[model] = true
 	local deadline = Workspace:GetServerTimeNow() + Economy.SPIKES_POP_TIME
 	model:SetAttribute("TiresPopped", deadline)
 	chassis:SetAttribute("TiresPopped", deadline)
 	local pos = chassis.Position
-	fireEffectNear("TirePop", pos, EFFECT_RADIUS, { position = pos, sound = "Poof" })
+	fireEffectNear("TireBurst", pos, EFFECT_RADIUS, { position = pos })
 	local driver = occupantPlayer(model)
 	if driver then
-		notify(driver, "warning", "POP! Your tires got spiked!")
+		notify(driver, "warning", "Your tires are shredded.")
 	end
-	if strip.owner.Parent and driver ~= strip.owner then
-		notify(strip.owner, "success", "Spikes popped a tire!")
+	local owner = strip.owner
+	if owner and owner.Parent and driver ~= owner then
+		notify(owner, "success", "Stinger Strip hit.")
 	end
 end
 
@@ -1180,6 +797,39 @@ local function getGroundParams(): RaycastParams
 	return params
 end
 
+local function placeStrip(groundCFrame: CFrame, owner: Player?, ownerCar: Model?, duration: number): Strip
+	local model = CombatService.buildSpikeStrip(groundCFrame)
+	local trove = Trove.new()
+	trove:Add(model)
+	local strip: Strip = {
+		model = model,
+		cframe = groundCFrame,
+		owner = owner,
+		ownerCar = ownerCar,
+		expiresAt = os.clock() + duration,
+		popped = {},
+		trove = trove,
+	}
+	local trigger = model:FindFirstChild("Trigger")
+	if trigger and trigger:IsA("BasePart") then
+		trove:Connect(trigger.Touched, function(hit: BasePart)
+			if model.Parent then
+				onStripTouched(strip, hit)
+			end
+		end)
+	end
+	model:SetAttribute("OwnerUserId", if owner then owner.UserId else 0)
+	model.Parent = getEffectsFolder()
+	table.insert(strips, strip)
+	strip.timer = task.delay(duration, function()
+		if table.find(strips, strip) then
+			removeStrip(strip)
+		end
+	end)
+	fireEffectNear("StripDrop", groundCFrame.Position, EFFECT_RADIUS, { position = groundCFrame.Position })
+	return strip
+end
+
 local function doSpikes(player: Player, car: any)
 	local chassis: BasePart? = car.chassis
 	local carModel: Model? = car.model
@@ -1210,37 +860,29 @@ local function doSpikes(player: Player, car: any)
 		then ground.Position.Y
 		else behind.Y - (if typeof(rideHeight) == "number" then rideHeight else 2)
 	local pos = Vector3.new(behind.X, groundY, behind.Z)
-	local groundCFrame = CFrame.lookAt(pos, pos + fwd)
+	placeStrip(CFrame.lookAt(pos, pos + fwd), player, carModel, Economy.SPIKES_DURATION)
+end
 
-	local model = CombatService.buildSpikeStrip(groundCFrame)
-	local trove = Trove.new()
-	trove:Add(model)
-	local strip: Strip = {
-		model = model,
-		cframe = groundCFrame,
-		owner = player,
-		ownerCar = carModel,
-		expiresAt = os.clock() + Economy.SPIKES_DURATION,
-		popped = {},
-		trove = trove,
-	}
-	local trigger = model:FindFirstChild("Trigger")
-	if trigger and trigger:IsA("BasePart") then
-		trove:Connect(trigger.Touched, function(hit: BasePart)
-			if model.Parent then
-				onStripTouched(strip, hit)
-			end
-		end)
+-- Police roadblock strip (PoliceCombatService, 4+ stars): `groundCFrame` -Z = toward the oncoming suspect.
+function CombatService.dropPoliceStrip(groundCFrame: CFrame, duration: number?): Model?
+	if #strips >= MAX_STRIPS then
+		removeStrip(strips[1])
 	end
-	model:SetAttribute("OwnerUserId", player.UserId)
-	model.Parent = getEffectsFolder()
-	table.insert(strips, strip)
-	strip.timer = task.delay(Economy.SPIKES_DURATION, function()
-		if table.find(strips, strip) then
-			removeStrip(strip)
+	local params = getGroundParams()
+	local p = groundCFrame.Position
+	local ground = Workspace:Raycast(p + Vector3.new(0, 8, 0), Vector3.new(0, -30, 0), params)
+	local y = if ground then ground.Position.Y else p.Y
+	local cf = CFrame.new(p.X, y, p.Z) * (groundCFrame - groundCFrame.Position)
+	local strip = placeStrip(cf, nil, nil, duration or PoliceConfig.ROADBLOCK_LIFETIME)
+	return strip.model
+end
+
+function CombatService.removePoliceStrip(model: Instance)
+	for _, s in table.clone(strips) do
+		if s.model == model then
+			removeStrip(s)
 		end
-	end)
-	fireEffectNear("SpikeDrop", pos, EFFECT_RADIUS, { position = pos, sound = "MetalHit" })
+	end
 end
 
 -- Swept polling backup for Touched (fast cars, client-owned physics): every SPIKE_POLL seconds while strips exist.
@@ -1281,8 +923,8 @@ local function pollStrips()
 end
 
 local function onToolAction(player: Player, toolId: any, aim: any)
-	-- 1. types
-	if typeof(toolId) ~= "string" or not Economy.Tools[toolId] then
+	-- 1. types (gadgets only; "bat" is a WeaponService melee weapon now)
+	if toolId ~= "taser" and toolId ~= "spikes" then
 		return
 	end
 	if aim ~= nil and not Net.isFiniteVector(aim) then
@@ -1314,6 +956,12 @@ local function onToolAction(player: Player, toolId: any, aim: any)
 	if not isEquipped(character, toolId) and not (toolId == "spikes" and car) then
 		return
 	end
+	if toolId == "taser" then
+		local ok, kind = callSystem("DamageService", "safeZoneKind", player)
+		if ok and typeof(kind) == "string" and kind ~= "garage" then
+			return
+		end
+	end
 	-- 4. cooldown
 	local book = cooldowns[player]
 	if not book then
@@ -1325,15 +973,13 @@ local function onToolAction(player: Player, toolId: any, aim: any)
 		return
 	end
 	if toolId == "spikes" and not car then
-		notify(player, "warning", "Hop in a car to drop spikes!")
+		notify(player, "warning", "Deploy the Stinger Strip from behind the wheel.")
 		return
 	end
 	CombatService.startCooldown(book, toolId, now, CombatService.cooldownFor(toolId, hasPass(player, "taser")))
 
-	if toolId == "bat" then
-		doBat(player, root, aimVec)
-	elseif toolId == "taser" then
-		doZap(player, character, root, aimVec)
+	if toolId == "taser" then
+		doTaser(player, character, root, aimVec)
 	elseif toolId == "spikes" then
 		doSpikes(player, car)
 	end
@@ -1367,8 +1013,8 @@ local function toolsIn(container: Instance?): { Tool }
 	return out
 end
 
--- Ensures the player's Backpack (and StarterGear, so tools persist on respawn) holds exactly one of every owned tool.
--- Removes duplicates and tools the player no longer owns. Safe to call any time (ShopService calls it after BuyTool).
+-- Ensures the player's Backpack holds exactly one of every owned gadget (and drops v1 tools such as the old Bonk
+-- Bat Tool). Safe to call any time (ShopService calls it after BuyTool).
 function CombatService.giveTools(player: Player)
 	if not player.Parent then
 		return
@@ -1395,26 +1041,16 @@ function CombatService.giveTools(player: Player)
 			have[id] = true
 		end
 	end
-	local gear: { [string]: boolean } = {}
+	-- v1 put copies in StarterGear; v2 rebuilds on every spawn instead
 	for _, tool in toolsIn(starterGear) do
-		local id = tool:GetAttribute("ToolId") :: string
-		if not owned[id] or gear[id] then
-			tool:Destroy()
-		else
-			gear[id] = true
-		end
+		tool:Destroy()
 	end
 
-	for _, id in Economy.ToolOrder do
-		if owned[id] then
+	for _, id in Economy.GadgetOrder do
+		if owned[id] and backpack and not have[id] then
 			local template = getTemplate(id)
 			if template then
-				if backpack and not have[id] then
-					template:Clone().Parent = backpack
-				end
-				if starterGear and not gear[id] then
-					template:Clone().Parent = starterGear
-				end
+				template:Clone().Parent = backpack
 			end
 		end
 	end
@@ -1434,7 +1070,6 @@ local function cleanupPlayer(player: Player)
 	spawnedAt[player] = nil
 	stunUntil[player] = nil
 	immuneUntil[player] = nil
-	lastAssaultHeat[player] = nil
 	for i = #strips, 1, -1 do
 		local s = strips[i]
 		if s.owner == player then
@@ -1474,7 +1109,7 @@ local function setupPlayer(player: Player)
 end
 
 function CombatService.init()
-	for _, id in Economy.ToolOrder do
+	for _, id in Economy.GadgetOrder do
 		getTemplate(id)
 	end
 	Net.on("ToolAction", onToolAction, 5)

@@ -331,6 +331,7 @@ export type StealState = {
 	cooldownLeft: number, -- seconds of victim protection left
 	thiefHasPlot: boolean,
 	thiefFreeSlots: number,
+	thiefPassive: boolean?, -- v2: passive mode can't steal player-owned cars (gta_combat §8)
 }
 
 -- Seconds left on a cooldown deadline, rounded UP so "try again in 1s" never shows 0.
@@ -358,6 +359,8 @@ function TheftService._canSteal(s: StealState): (boolean, string, string)
 		return false, "driving", "Hop out of your car first!"
 	elseif s.thiefBusy then
 		return false, "busy", "Finish your current heist first!"
+	elseif s.thiefPassive then
+		return false, "passive", "Passive mode is on: you can't take players' cars."
 	elseif not s.hasCar or not s.slotParked then
 		return false, "gone", "That car isn't there anymore."
 	elseif not s.stealable then
@@ -1239,6 +1242,7 @@ local function gatherState(thief: Player, victim: Player, slot: number): StealSt
 		cooldownLeft = TheftService._cooldownLeft(cooldownUntil[victim.UserId], now),
 		thiefHasPlot = plotIndexOf(thief) ~= nil,
 		thiefFreeSlots = if typeof(free) == "number" then free else 0,
+		thiefPassive = thief:GetAttribute("Passive") == true,
 	}
 end
 

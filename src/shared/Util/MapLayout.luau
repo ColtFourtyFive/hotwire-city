@@ -240,6 +240,102 @@ function MapLayout.hotDropCFrames(): { CFrame }
 	return out
 end
 
+-- Combat POIs (gta_combat §7.2, §5.1, §8). THIN v1-compatible placeholders: sidewalk spots on generic city blocks,
+-- 4 studs inside the curb so nothing spawns inside a lot building. The world-runtime package (MapBuilder v2 /
+-- WorldLayout) reimplements these three functions from WorldLayout; keep their signatures.
+export type NamedSpot = { name: string, cframe: CFrame }
+export type SafeZone = { name: string, kind: string, cframe: CFrame, size: Vector3, plotIndex: number? }
+
+local SIDEWALK_SPOT = (S - MapConfig.ROAD_WIDTH) / 2 - 4 -- 56: block center -> sidewalk walking line
+
+-- Sidewalk spot on block (bx, bz) on the side facing `face` (unit X or Z), looking out at the road.
+local function sidewalkSpot(bx: number, bz: number, face: Vector3): CFrame
+	local c = MapLayout.blockCenter(bx, bz)
+	local p = c + face * SIDEWALK_SPOT + Vector3.new(0, 3, 0)
+	return CFrame.lookAt(p, p + face)
+end
+
+-- Two hospitals (WASTED respawns at the nearest; 30-stud safe plaza each). CFrames are character spawn points.
+function MapLayout.hospitals(): { NamedSpot }
+	return {
+		{ name = "Pillbox Memorial", cframe = sidewalkSpot(-3, -2, Vector3.new(0, 0, 1)) },
+		{ name = "Seaview General", cframe = sidewalkSpot(2, 1, Vector3.new(0, 0, -1)) },
+	}
+end
+
+-- Nearest hospital to a position (where the player went down).
+function MapLayout.hospitalCFrame(pos: Vector3?): (CFrame, string)
+	local list = MapLayout.hospitals()
+	local best = list[1]
+	if pos then
+		local bestD = math.huge
+		for _, h in list do
+			local d = (h.cframe.Position - pos).Magnitude
+			if d < bestD then
+				best, bestD = h, d
+			end
+		end
+	end
+	return best.cframe, best.name
+end
+
+-- FREEDOM ARMS gun stores: GunStoreA downtown, GunStoreB industrial. CFrame = the counter's front (players walk up to
+-- it; ShopService places a fallback counter here when the map has no part tagged "GunStoreCounter").
+function MapLayout.gunStores(): { NamedSpot }
+	return {
+		{ name = "GunStoreA", cframe = sidewalkSpot(1, -1, Vector3.new(1, 0, 0)) },
+		{ name = "GunStoreB", cframe = sidewalkSpot(-3, -4, Vector3.new(0, 0, -1)) },
+	}
+end
+
+-- Safe-zone volumes (no damage in or out, weapons holstered): every garage plot (DamageService applies the own-plot /
+-- locked-garage rule), gun stores, the dealership, spray shops, hospital plazas and the Police HQ release area.
+local safeZoneCache: { SafeZone }? = nil
+function MapLayout.safeZones(): { SafeZone }
+	if safeZoneCache then
+		return safeZoneCache
+	end
+	local zones: { SafeZone } = {}
+	for i = 1, #MapConfig.Plots do
+		local cf, size = MapLayout.plotInteriorZone(i)
+		table.insert(zones, { name = "Plot" .. i, kind = "garage", cframe = cf, size = size, plotIndex = i })
+	end
+	for _, g in MapLayout.gunStores() do
+		table.insert(zones, { name = g.name, kind = "gunstore", cframe = g.cframe, size = Vector3.new(30, 16, 30) })
+	end
+	local dealer = MapLayout.poiCenter("Dealership")
+	table.insert(zones, {
+		name = "Dealership",
+		kind = "dealership",
+		cframe = CFrame.new(dealer + Vector3.new(0, 8, 0)),
+		size = Vector3.new(100, 20, 70),
+	})
+	for i, z in MapLayout.sprayZones() do
+		table.insert(zones, { name = "Spray" .. i, kind = "spray", cframe = z.cframe, size = z.size })
+	end
+	for _, h in MapLayout.hospitals() do
+		table.insert(zones, { name = h.name, kind = "hospital", cframe = h.cframe, size = Vector3.new(60, 20, 60) })
+	end
+	table.insert(zones, {
+		name = "PoliceHQRelease",
+		kind = "release",
+		cframe = MapLayout.bustedReleaseCFrame(),
+		size = Vector3.new(24, 14, 24),
+	})
+	safeZoneCache = zones
+	return zones
+end
+
+-- The safe zone containing pos (first match), or nil.
+function MapLayout.safeZoneAt(pos: Vector3): SafeZone?
+	for _, z in MapLayout.safeZones() do
+		if MapLayout.isInBox(z.cframe, z.size, pos) then
+			return z
+		end
+	end
+	return nil
+end
+
 -- Nearest road-lane CFrame to a world position (used to respawn police / place cars legally).
 function MapLayout.nearestLane(pos: Vector3): CFrame
 	local lineX = math.clamp(math.round(pos.X / S), MapConfig.LINE_MIN, MapConfig.LINE_MAX)
