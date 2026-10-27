@@ -991,15 +991,19 @@ local function isGamepad(): boolean
 	return string.sub(last.Name, 1, 7) == "Gamepad"
 end
 
--- Design canvas (inset-relative) of the radar's ScreenGui at UIScale `scale`.
+-- Design canvas (inset-relative) of the radar's ScreenGui at UIScale `scale` (1280x720 when nothing is measurable,
+-- e.g. headless).
 local function canvasSize(gui: ScreenGui, scale: number): (number, number)
-	local abs = gui.AbsoluteSize
-	if abs.X >= 1 and abs.Y >= 1 then
+	local ok, abs = pcall(function(): Vector2
+		local a = gui.AbsoluteSize
+		if a.X >= 1 and a.Y >= 1 then
+			return a
+		end
+		local cam = Workspace.CurrentCamera
+		return if cam then cam.ViewportSize else Vector2.zero
+	end)
+	if ok and abs.X >= 1 and abs.Y >= 1 then
 		return abs.X / scale, abs.Y / scale
-	end
-	local cam = Workspace.CurrentCamera
-	if cam and cam.ViewportSize.X >= 1 then
-		return cam.ViewportSize.X / scale, cam.ViewportSize.Y / scale
 	end
 	return 1280, 720
 end
@@ -1012,8 +1016,9 @@ local function applyLayout()
 	end
 	touchLayout = Kit.isTouch()
 	padLayout = not touchLayout and isGamepad()
-	local scale = Kit.uiScale()
-	local cw, ch = canvasSize(r.gui, if scale > 0 then scale else 1)
+	local okScale, measured = pcall(Kit.uiScale)
+	local scale = if okScale and typeof(measured) == "number" and measured > 0 then measured else 1
+	local cw, ch = canvasSize(r.gui, scale)
 	local metrics = MinimapController.touchMetrics(cw, ch, scale)
 	diameter = if touchLayout then metrics.diameter else RADAR.DESKTOP_SIZE
 	boost = MinimapController.touchBoost(scale, touchLayout)

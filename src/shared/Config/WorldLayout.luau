@@ -5195,29 +5195,27 @@ local function addRoute(
 end
 
 local depot = poiStop("ArmoredDepot")
-addRoute("armored_a", "Stackhouse Run A (Downtown & Midtown)", "armored", {
+-- Armored trucks (server clock: one every ~5 min) leave the Stackhouse depot and make a short delivery run that
+-- ends at a bank: 2-3 minutes at truck speed (~55 studs/s), so a crew has a real window to intercept.
+addRoute("armored_a", "Stackhouse Run A (Downtown)", "armored", {
 	depot,
 	poiStop("BranchFoundry"),
 	poiStop("Bank"),
+}, 1)
+addRoute("armored_b", "Stackhouse Run B (Midtown & Beach)", "armored", {
 	poiStop("BranchMidtown"),
 	poiStop("Jewelry"),
-	depot,
-}, 1)
-addRoute("armored_b", "Stackhouse Run B (Beach & Southgate)", "armored", {
-	depot,
-	poiStop("BranchSouthgate"),
 	poiStop("BranchBeach"),
-	poiStop("StoreBeach"),
-	poiStop("StoreSouthgate"),
-	depot,
 }, 1)
-addRoute("armored_c", "Stackhouse Run C (Red Mesa)", "armored", {
+addRoute("armored_c", "Stackhouse Run C (Southgate)", "armored", {
 	depot,
 	poiStop("StoreRust"),
-	poiStop("BranchCactus"),
-	poiStop("StoreCactus"),
-	poiStop("GasRust"),
+	poiStop("BranchSouthgate"),
+}, 1)
+addRoute("armored_d", "Stackhouse Run D (Red Mesa)", "armored", {
 	depot,
+	poiStop("GasRust"),
+	poiStop("BranchCactus"),
 }, 1)
 
 local function v(x: number, z: number): Vector3

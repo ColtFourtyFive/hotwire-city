@@ -233,7 +233,7 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
   - **Separate opening doors** (`Misc/FL`, `Misc/FR`), **bonnet** (`Misc/HK`) and **boot** (`Misc/TK`).
   - GT wing and bonnet stripes.
   - At 107k tris it suits hero, garage or dealership use, not dense traffic.
-- **Wheels:** A-Chassis. `Wheels/XX/Parts` holds 7 meshes (tyre, rim layers, centre cap), which spin. `Wheels/XX/WheelFixed` holds the caliper and disc, which stay static. `Misc/Wheel` is the steering wheel and is excluded.
+- **Wheels:** A-Chassis. `Wheels/XX/Parts` holds 7 meshes (tyre, rim layers, centre cap), which spin. `Wheels/XX/WheelFixed` holds 2 caliper meshes, which stay static. `Misc/Wheel` is the steering wheel and is excluded.
 - **Paint:** Twelve `Meshes/Paint*` parts on the body, doors, bonnet and boot, rgb(9,137,207), untextured, so the car is fully recolourable. The bonnet stripes are a separate textured part (`Misc/HK/…Stripes…`).
 - **Glass:** Ten parts: Window*, Glass*, windscreen and the `Red Glass` tail lens.
 - **Lights:** 31 `Light(s).*` MeshParts that share the lights atlas, split by position into 13 front and 18 rear. There are no Neon parts or SpotLights. Brake and indicator areas are regions of the atlas, so each cluster can only switch as a whole.

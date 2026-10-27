@@ -50,5 +50,88 @@
   "sha256": "f96c8b1353e0b8ff9b70b3601a1e1118e776c0dacdf10412d08cd7d3783fc81d",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:08:55+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      5.2181,
+      2.0987,
+      1.8505
+    ],
+    "dims_m": [
+      2.099,
+      5.218,
+      1.85
+    ],
+    "front_evidence": "names(front=8,rear=12)",
+    "flipped": true,
+    "mesh_objects": 29,
+    "triangles": 21129,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "CnqerP89_Bodymat",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "UCB_BOTTOM",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 13,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "CnqerP89_WheelStock_FL_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_RL_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_FR_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "CnqerP89_WheelStock_FL_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_RL_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_FR_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "CnqerP89_Trunkdoor_Badges_Carbadges_misc_U_0",
+      "CnqerP89_Badges_Body_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "CnqerP89_Body_CnqerP89_Bodymat_0",
+      "CnqerP89_front_bumper_UCB_BOTTOM_0",
+      "CnqerP89_hood_CnqerP89_Bodymat_0",
+      "CnqerP89_Rear_glass_UCB_Lights_and_Glass_Transperent_0",
+      "CnqerP89_Bottom_UCB_BOTTOM_0",
+      "CnqerP89_Headlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "CnqerP89_bumper_rear_UCB_BOTTOM_0",
+      "CnqerP89_Glass_Passenger_UCB_Lights_and_Glass_Transperent_0",
+      "CnqerP89_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "CnqerP89_Interior_UCB_Interiors_2_0",
+      "CnqerP89_Trunkdoor_CnqerP89_Bodymat_0",
+      "CnqerP89_Trunk_door_inner_UCB_BOTTOM_0",
+      "CnqerP89_Suspension_UCB_BOTTOM_0",
+      "CnqerP89_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "CnqerP89_Steering_Wheel_UCB_Interiors_2_0",
+      "CnqerP89_Taillights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "CnqerP89_Headlights_UCB_Lights_and_Glass_0",
+      "CnqerP89_Blinkers_UCB_Lights_and_Glass_0",
+      "CnqerP89_Reverse_UCB_Lights_and_Glass_0",
+      "CnqerP89_Brakelights_UCB_Lights_and_Glass_0",
+      "CnqerP89_WheelStock_FL_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_RL_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_FR_RB1c_Tire_1k_0",
+      "CnqerP89_WheelStock_RR_RB1c_Tire_1k_0",
+      "CnqerP89_Trunk_Cover_UCB_BOTTOM_0",
+      "CnqerP89_NP_Stock_Rear_Numberplates_Misk_U_0",
+      "CnqerP89_Trunkdoor_Badges_Carbadges_misc_U_0",
+      "CnqerP89_NP_Stock_Front_Numberplates_Misk_U_0",
+      "CnqerP89_Badges_Body_Carbadges_misc_U_0"
+    ],
+    "render_s": 48.4
+  }
 }
