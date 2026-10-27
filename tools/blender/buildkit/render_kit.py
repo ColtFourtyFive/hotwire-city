@@ -149,7 +149,7 @@ def sc_midtown(a, night=False):
     else:
         S.world("sky_late_afternoon", sun_az=-140.0)
     avenue(-520, 520, night=night, lamps=60, palms=(46, 62), seed=5, far_w=0, no_cars=(-520, -150),
-           clear=(-205, -30, 26))
+           clear=(-205, -30, 50))
     x = -330.0
     seeds = [15, 16, 3, 1, 6, 2, 8, 11, 7, 12]
     for i, sd in enumerate(seeds):
