@@ -70,3 +70,19 @@ they conflict. Job 0011 (`studio/jobs/0011-look-sweep.md`) sweeps the new values
    the engine's orange low sun. The grade is now warm-but-neutral.
 7. **The engine moon** showed as a large disc on the golden-hour horizon. It is now 1.5° (was 6°) and hidden
    (`MoonAngularSize` 0) whenever the engine sun is above −2°.
+
+# Lighting lab, round 4 (real engine, job 0011, partial: paused by the account moderation)
+
+Full report: `docs/v2/evidence/look_0011_partial_report.md`.
+
+1. **Confirmed fixed.**
+   - Overrides: 16/16 active in Edit, Server and Client.
+   - `LightingStyle` is Realistic and `PrioritizeLightingQuality` is true, now that `Technology: "Future"` is in the file.
+   - Day fog density is 0.16; choose 0.16 even though 0.27 does not wall at Level 21.
+2. **The "grey wall" in the v1 overviews was mostly draw distance at low quality, not fog.**
+   - At client quality Automatic, an overview is a flat grey frame even at density 0.01; at QualityLevel 21 the whole city renders.
+   - **Consequence:** phones (low quality) will not draw a distant skyline. Use StreamingEnabled plus **Model.LevelOfDetail = StreamingMesh (SLIM)** on buildings and landmarks, so distant impostors render. Hero landmarks (Pinnacle Tower, the hillside sign, the bridge) get priority. Assigned to the streaming/integration wave.
+3. **Night.** The default variant (exposure +0.8, tint 212/226/255) is a huge improvement and readable. The **night sky texture is still reddish-brown** in every variant; this needs a different or cooler-processed night sky, which the grade alone cannot fix.
+4. **Golden hour** is warm-neutral, not sepia (subtle). The moon is hidden. Keep density 0.18.
+5. **Blue hour** reads as night: its sky has no blue gradient. It needs a blue-hour sky that keeps a gradient with the sun just below the horizon.
+6. **Still to redo after the moderation clears:** step 4, PBR slabs. Texture loads currently return 403.
