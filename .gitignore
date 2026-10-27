@@ -16,3 +16,6 @@ tools/blender/**/_cache/
 assets/source/**
 !assets/source/**/
 !assets/source/**/meta.json
+
+# agent worktrees and local Claude state
+.claude/

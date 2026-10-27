@@ -193,13 +193,14 @@ def fetch(asset_id, force=False, version=None, quiet=True):
             return m
     os.makedirs(d, exist_ok=True)
     url = API_VER.format(id=aid, ver=version) if version else API.format(id=aid)
+    meta_name = f"meta_v{version}.json" if version else "meta.json"  # pinned versions never replace the cache entry
     meta = {"id": aid, "fetched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     try:
         st, body = _api_get(url)
         meta["status"] = st
         if st != 200:
             meta.update(ok=False, error=(body or "")[:300])
-            json.dump(meta, open(os.path.join(d, "meta.json"), "w"), indent=1)
+            json.dump(meta, open(os.path.join(d, meta_name), "w"), indent=1)
             return meta
         j = json.loads(body)
         meta["assetTypeId"] = j.get("assetTypeId")
@@ -217,7 +218,7 @@ def fetch(asset_id, force=False, version=None, quiet=True):
                 meta.update(ok=False, error=f"{errs[0].get('code')}: {errs[0].get('message', '')}"[:300])
             else:
                 meta.update(ok=False, error="no location in response: " + ",".join(sorted(j.keys())))
-            json.dump(meta, open(os.path.join(d, "meta.json"), "w"), indent=1)
+            json.dump(meta, open(os.path.join(d, meta_name), "w"), indent=1)
             return meta
         raw = _cdn_get(loc)
         if len(raw) > MAX_BYTES:
@@ -232,7 +233,7 @@ def fetch(asset_id, force=False, version=None, quiet=True):
                     sha256=hashlib.sha256(data).hexdigest())
     except Exception as e:  # noqa: BLE001
         meta.update(ok=False, error=f"{type(e).__name__}: {str(e)[:200]}")
-    json.dump(meta, open(os.path.join(d, "meta.json"), "w"), indent=1)
+    json.dump(meta, open(os.path.join(d, meta_name), "w"), indent=1)
     if meta.get("ok"):
         meta["path"] = os.path.join(d, meta["file"])
     if not quiet:

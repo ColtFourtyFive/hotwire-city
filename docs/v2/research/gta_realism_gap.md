@@ -650,3 +650,79 @@ Items 1–8 alone won't make v1 look like GTA. The city is still a toy-scale gri
 - Roblox economy asset details. Checked IDs: 16 ProSoundEffects audio (type 3), 81504106 (type 4 Mesh, but the file is a PNG), 62234425 "Brown Hair" (type 41), 19027209, 96678446 and 10476359 (type 8 Hat), and the 13 store props (type 10). Endpoint: `https://economy.roblox.com/v2/assets/{id}/details`
 - Roblox catalog bundles 238 "Man", 239 "Woman" and 337 "City Life Woman" (free, by Roblox), with thumbnails saved to `img_gta/realism_gap_body_bundles_238_239_337.jpg`: https://catalog.roblox.com/v1/bundles/details?bundleIds=238&bundleIds=239&bundleIds=337
 - In-repo: `docs/v2/evidence/v1_real_engine/*`, `docs/v2/evidence/lighting_lab_0002_*`, `studio/jobs/0002-lighting-lab.md`, `docs/v2/research/references.md`, `docs/v2/research/gta_ui_language.md`, `docs/v2/proto/buildkit/_iter/midtown_v1.png`.
+
+---
+
+## Verification
+
+Skeptical pass, 2026-10-27, by a second agent. Code was checked against the current tree. `LightingService`, `MapBuilder`, `PlotService`, `CarBuilder`, `NPCService`, `Assets`, `Sounds` and `SoundController` have not changed since `e4b63ac`, so the line numbers above still hold. Assets were checked through `economy.roblox.com/v2/assets/{id}/details`, `assetdelivery.roblox.com/v2/assetId/{id}` (file contents downloaded and inspected), `catalog.roblox.com/v1/bundles/details`, `thumbnails.roblox.com/v1/bundles/thumbnails` and `api.polyhaven.com/assets`. Roblox docs were fetched live. Errors are already fixed in place above; this table records each one.
+
+**Tally:** 33 CONFIRMED · 9 WRONG (all corrected above) · 6 UNVERIFIABLE (P8, N10, N11 and the three hypotheses at the end).
+
+### Asset IDs
+
+| # | Claim | Verdict | Evidence |
+|---|---|---|---|
+| A1 | 19027209 is "Perfectly Legitimate Business Hat", a Roblox hat from 2009 | CONFIRMED | Type 8, creator Roblox, created 2009-12-09. It is a **Limited** item and not for sale. |
+| A2 | 19027209 is the probable source of the `Hat1…TextureId 81504106` 404 | **WRONG** | Its asset file contains an Accessory named `Fedora` with TextureId 18987684, not 81504106. The culprit is **62234425 "Brown Hair"** (type 41, Roblox, 2011, free), whose Accessory is literally named `Hat1` with MeshId 81504052 and TextureId 81504106. §3.3 rewritten. |
+| A3 | 81504106 is a Mesh, "not an image" | **WRONG** (half) | It is registered as type 4 Mesh, "TX_MaleChunk_Hero", Roblox, 2012. But the file it serves starts with `\x89PNG…IHDR` (71,938 bytes). It is an image registered under the wrong asset type. |
+| A4 | 96678446 and 10476359 are type 8 hats | CONFIRMED | "The Star Chef" (Roblox, 2012, 95 R$) and "Paper Hat" (Roblox, 2009, 95 R$). |
+| A5 | All 16 `91…` sound IDs are type 3 Audio and public domain | CONFIRMED | All 16 are type 3, creator ProSoundEffects, `IsPublicDomain` true. Examples: 9119186024 "Skids Tire Screeches On Dirt Pavement 1", 9119165131 "Siren Wail 1", 9112758500 "City Ambience 3". These are the only `91…` IDs in `src`. |
+| A6 | The 13 `store` props are years-old type 10 models | CONFIRMED | All 13 are type 10 and public domain, created 2016–2024. *Side flag:* 8932663219 and 8932794862 are titled "synty city parking meter" and "synty city payphones" (uploader InuB30). They look like re-uploads of the paid Synty POLYGON City pack, which is a licence risk. Do not carry them into v2. |
+| A7 | The owned meshes were uploaded hours before the run | CONFIRMED | Spot-checked 116305714652232 "HC Bank Truck", 135640370407303, 87897753885346 and 139551179882492. All are type 10, creator illintent1, created 2026-10-27 at about 05:03–05:06 UTC. |
+| A8 | Default R15 animations 507777826 and 507766388 | CONFIRMED | "R15Walk" and "R15Idle", type 24, Roblox, 2016. |
+| A9 | Bundles 238 "Man", 239 "Woman" and 337 "City Life Woman" are free and made by Roblox | CONFIRMED | All are BodyParts bundles at price 0. The thumbnails API returns all three, and they match `img_gta/realism_gap_body_bundles_238_239_337.jpg`. Bundle 238 contains 62234425 Brown Hair (see A2). Bundle 337 also carries Rthro animations. |
+| A10 | Poly Haven slugs (6 sky HDRIs, 9 textures) | CONFIRMED | All 15 exist in `api.polyhaven.com/assets`, including `road_damaged_clean`, `kloppenheim_02_puresky` (tagged night, clear) and `rectangular_facade_tiles_02`. |
+
+### Roblox API and policy claims
+
+| # | Claim | Verdict | Evidence |
+|---|---|---|---|
+| P1 | `Lighting.Ambient` defaults to black and lights sky-occluded areas; `OutdoorAmbient` defaults to 127 | CONFIRMED | [Lighting API](https://create.roblox.com/docs/reference/engine/classes/Lighting.md): "defaults to `[0, 0, 0]`" and "defaults to `[127, 127, 127]`". ShadowSoftness defaults to 0.2, so v1's 0.25 is close to default. |
+| P2 | Atmosphere Offset, Density and Decay wording | CONFIRMED | [Atmosphere API](https://create.roblox.com/docs/reference/engine/classes/Atmosphere.md): Offset: "Increase this value to create a horizon silhouette … or reduce it to blend distant objects into the sky". Decay "Must be used with … Haze and … Glare levels higher than 0". |
+| P3 | Atmosphere defaults are Density 0.395, Color (200,170,108) and Decay (92,60,14) | CONFIRMED | [robloxapi ref](https://robloxapi.github.io/ref-temp/class/Atmosphere.html). Offset, Haze and Glare default to 0. |
+| P4 | `PreloadAsync` is documented as taking "an array of instances" | CONFIRMED | [ContentProvider API](https://create.roblox.com/docs/reference/engine/classes/ContentProvider.md). The docs never mention strings. A non-staff [DevForum answer](https://devforum.roblox.com/t/properly-using-preloadasync/1148953) says strings are treated as image IDs, which supports §3.2's mechanism. |
+| P5 | `AlphaMode.TintMask` tints by `SurfaceAppearance.Color` | CONFIRMED | [AlphaMode](https://create.roblox.com/docs/reference/engine/enums/AlphaMode.md): "Uses the ColorMap alpha channel to control the amount of SurfaceAppearance.Color tinting." |
+| P6 | 1 stud = 0.28 m, and gravity 196.2 ≈ 5.6 g | CONFIRMED | [Units](https://create.roblox.com/docs/physics/units.md): "1 stud = 28 cm". 196.2 studs/s² = 54.936 m/s². The docs give "realistic" gravity as 35 studs/s². |
+| P7 | The SIGGRAPH 2026 SLIM talk describes ACRs and "Not ready – retry later" | CONFIRMED | The PDF resolves (64 pages, S. Makeev). It contains "Not ready - retry later" and "fallback is not an error path. It's part of the content contract", and defines ACRs. |
+| P8 | Only one Sky and one Atmosphere render, and post effects stack | UNVERIFIABLE | The Lighting, Sky, Atmosphere and post-processing docs do not cover this. The fix (adopt or destroy foreign children, then dump `Lighting:GetChildren()`) is right either way. |
+| P9 | The place has template Sky, SunRays, Atmosphere, Bloom and DepthOfField children | CONFIRMED | `lighting_lab_0002_report.md` line 7. Whether DepthOfField is enabled is unknown. |
+| P10 | v1's 16° sun is a "storybook" size | CONFIRMED, with context | The [Sky docs](https://create.roblox.com/docs/reference/engine/classes/Sky.md) give **21** as the default `SunAngularSize`, so v1 is already *smaller* than Roblox's default. The big sun is Roblox's own look; the 9–11 target still stands. |
+
+### Code values and numbers
+
+| # | Claim | Verdict | Evidence or correction |
+|---|---|---|---|
+| N1 | Lighting key tables (§2.2–2.4): tints, saturation +0.24–0.36, contrast, bloom and haze per key | CONFIRMED | `LightingService.luau:100–259` match. The doc omits the pre-dawn (5.6), sunrise (6.6) and afternoon (14.2) keys, which are equally saturated. |
+| N2 | `Ambient` "84–130" | **WRONG** | 104–130 by day; 66, 80 and 84 at night, pre-dawn and blue hour. Fixed. |
+| N3 | Interpolated look at 17.2 (smoothstep t = 0.741) | **WRONG** (one value) | **OutdoorAmbient is (195,129,119), not (198,135,118).** Fixed. Everything else reproduces: Density 0.315, Haze 2.05, Glare 0.65, Color, Decay, Tint, Saturation, Contrast and Exposure. |
+| N4 | 12 + 4 min cycle, start at 16.2, sunset 1.8 real minutes after boot | CONFIRMED | `:27–34`. The streetlights switch on (NIGHT_ON 17.75) after 1.55 min. |
+| N5 | Offset fixed at 0.12 (`:487`), never keyed; `getOrCreate` matches by name (`:337–346`) | CONFIRMED | |
+| N6 | Brown-wall gradient goes from about (225,180,150) to (70,55,48) | CONFIRMED | Pixel samples at the centre column: (227,180,152) at y=5 and (66,53,45) at y=1075. |
+| N7 | Frustum geometry: 914 / 1,273 / about 5,000 studs | CONFIRMED | The arithmetic is right, assuming a −45° pitch and 70° vertical FOV. |
+| N8 | Lab presets `day_clear` 0.32/0.9/0.12 and `golden_hour` 0.36/1.3/0.08 | CONFIRMED | `studio/jobs/0002-lighting-lab.md:137–139`. |
+| N9 | The fog wall is "Haze plus Offset", and "lab limits" include Offset ≥ 0.2 and Haze ≤ 1.0 | **WRONG** | `day_clear` had the *same* Offset (0.12) as v1 and kept the skyline, so Offset is not a variable in the evidence. The lab recommended only Density 0.25–0.30, and no lab preset used Offset ≥ 0.2. Verdict item 2 and §2.2 are fixed. The Offset ≥ 0.15–0.2 targets are now labelled untested. |
+| N10 | Extinction fit L ≲ 300 vs about 1,800 | UNVERIFIABLE | Contrast levels were judged by eye, and Roblox publishes no formula. Treat this as qualitative. |
+| N11 | Lit-to-shadow ratio of about 1.5:1, against GTA's 4–8:1 | UNVERIFIABLE | An estimate with no measurement behind it. Pass criterion 3 in §6 would measure it. |
+| N12 | Asphalt, Pavement, Concrete and Plaster used 0 times and Brick once in MapBuilder; `part()` defaults to SmoothPlastic (`:225`); road (58,61,80); sidewalk (212,212,222) | CONFIRMED | (`flat(ctx, "Concrete", …)` at `:2200` is a part *name*, not a material.) |
+| N13 | 32 `neon()` in MapBuilder and 33 in PlotService | **WRONG** (detail) | MapBuilder has 31 `neon()` calls, 6 direct `Material.Neon` parts and 19 `nightGlow` parts that turn Neon at night. PlotService has 26 calls and 4 direct parts. DealershipService has 5. Neon use is *under*-stated. Fixed. |
+| N14 | "The whole island is 1,640 studs" | **WRONG** (minor) | 1,640 is the road grid (`HALF_EXTENT` 800 + half the road). Sand runs to ±900 and the walls to ±960. Fixed. The 15 s crossing holds at the median `topSpeed` of about 110 studs/s; the full range is 9–25 s. |
+| N15 | Sedan 13.4 × 6.8 × 5.55, wheelbase 8.5, wheel 2.64, ratio 1.97 vs 2.6 | CONFIRMED | `CarBuilder.luau:835–856`. A real sedan's ratio is 4.8/1.85 = 2.59. |
+| N16 | Real-world conversion table (§1) at 3.57 studs/m | CONFIRMED | All 24 rows recomputed; the arithmetic is right. |
+| N17 | StreamingEnabled false, Gravity 196.2, CameraMaxZoom 90, Technology Future | CONFIRMED | `default.project.json:26, 41, 42, 50`. |
+| N18 | 97 owned assets (33 + 41 + 22) | **WRONG** | 33 + 41 + 22 = **96**. The 97th `grep` hit is the comment on `Assets.luau:7`. Fixed everywhere. |
+| N19 | `LOAD_TIMEOUT` is 20 s, and `waitAll` waits 25 or 30 s | CONFIRMED | `Assets.luau:184`; `MapDresser` 25 s, `PlotService:2357` and `DealershipService:1520` 30 s. |
+| N20 | `SoundController` preloads raw strings: 27 non-radio asset IDs | CONFIRMED | `:1000–1012`. That is 29 strings, of which 27 are `rbxassetid` IDs and 2 are `rbxasset://` files. (The author's chat summary said "16", which is wrong; the doc body was right.) |
+| N21 | 10–14 pedestrians, a budget of 40, 24–44 parked cars, 18–36 traffic cars | CONFIRMED | `NPCService.luau:69–81`, `StreetSpawnService.luau:38–40`, `TrafficService.luau:61–62`. The operator counted 26 parked cars. |
+| N22 | UI: FredokaOne, (255,52,140) and (0,214,255), 14 px corners and 3 px strokes; tutorial card 500×110 with `CARD_BOTTOM` 186; "studs away" | CONFIRMED | `Theme.luau:14–33`, `TutorialController.luau:137, 679`, `EventsClient.luau:519`. |
+| N23 | "About 1–1.5 days" for the quick pass (§0 line) | **WRONG** (internal) | The §0 line included the UI (6–10 h), but §5's 1.5-day pass excludes it. Fixed so that §0 matches §5: rows 1, 2, 3, 6, 7 and 8 take 8.5–11.5 h. |
+| N24 | Five of the six operator shots are at night | CONFIRMED | True of `_sheet_job0001.jpg`. But `spawn_dealership.jpg` and `downtown_street.jpg` are the **same frame** (mean pixel difference 1.7/255), and the night `spawn_player_view` exists only on the sheet. Fixed in the evidence list. |
+| N25 | `console.txt` was not committed | CONFIRMED | No copy exists anywhere on disk. |
+
+### Causal claims that remain hypotheses
+
+- **§3.1:** about 170 "content representation" warnings come from first fetches of the 96 new uploads. Plausible, and consistent with P7 and A7. UNVERIFIABLE until `console.txt` lists the IDs.
+- **§3.2:** the 21 type-mismatch warnings come from string preloads. Plausible (P4). UNVERIFIABLE for the same reason.
+- **§2.2:** a template DepthOfField blurs the background. UNVERIFIABLE; needs the `Lighting` dump.
+
+**What to do with this:** the fix order in §5 stands. Lighting comes first, but the operator must A/B test Haze and Offset separately (hold Haze at 0.8 and vary Offset 0.12 → 0.25) before Offset ≥ 0.2 becomes a rule. Note that `references.md` §1.2 still recommends Haze 1–1.8 and Offset about 0.1, which conflicts with this doc. For console hygiene, the change is **replace Brown Hair 62234425**, not the fedora.

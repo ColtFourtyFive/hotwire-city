@@ -406,11 +406,48 @@ def sc_block(a, night=False):
                   night=night, haze_amt=0.65)
 
 
+VARIANTS = {  # arch: (seeds, extra kw, camera height factor)
+    "tower": ([0, 1, 2, 3, 4], {}, 0.9), "midtown": ([0, 1, 2, 3, 4], {}, 0.8), "strip": ([0, 1, 2], {}, 1.4),
+    "corner_store": ([0, 1, 2, 3], {}, 1.4), "gas": ([0, 1, 2], {}, 1.4), "diner": ([0, 1, 2], {}, 1.4),
+    "deco": ([0, 1, 2, 3, 4], {}, 1.0), "house": ([0, 1, 2, 3, 4, 5], {}, 1.6), "warehouse": ([0, 1, 2], {}, 1.4),
+    "mansion": ([0, 1, 3], {}, 1.4)}
+
+
+def sc_variants(a, arch):
+    """Several seeds of one archetype side by side, elevated 3/4 view: shows the parametric range."""
+    S.reset(a.res)
+    S.world("sky_late_afternoon", sun_az=-135.0)
+    seeds, kw, hf = VARIANTS[arch]
+    Bs = [BK.build(arch, sd, **kw) for sd in seeds]
+    gap = 10.0
+    total = sum(B.footprint[0] for B in Bs) + gap * (len(Bs) - 1)
+    x = -total / 2
+    Hmax = max(B.height for B in Bs)
+    Dmax = max(B.footprint[1] for B in Bs)
+    for B in Bs:
+        W, D = B.footprint
+        y = ROAD_W / 2 + SIDE_W + D / 2
+        z = 0.0
+        BK.instantiate(B, col(), loc=(x + W / 2, y, z), rot_z=0)
+        if B.spawns:
+            lot_cars(B, x + W / 2, y, 0, frac=0.4, seed=B.seed)
+        x += W + gap
+    avenue(-total / 2 - 80, total / 2 + 80, lamps=80, palms=None, cars=False, far_w=0)
+    S.ground(col(), -3000, -3000, 3000, 3000, "grass" if arch in ("house", "mansion") else "sidewalk", z=0.0)
+    span = max(total, Hmax * 1.6)
+    dist = span * 0.95
+    cam = (-total * 0.18, ROAD_W / 2 + SIDE_W - dist, max(14.0, min(Hmax * hf, dist * 0.45)))
+    tgt = (0.0, ROAD_W / 2 + SIDE_W + Dmax * 0.35, Hmax * 0.35)
+    return finish("variants_" + arch, cam, tgt, 30, a.samples, a.res, haze_amt=0.35)
+
+
 SCENES = {"downtown": sc_downtown, "midtown": sc_midtown, "strip": sc_strip, "gas": sc_gas, "diner": sc_diner,
           "store": sc_store, "deco": sc_deco, "suburbs": sc_suburbs, "industrial": sc_industrial,
           "mansion": sc_mansion, "block": sc_block,
           "deco_night": lambda a: sc_deco(a, night=True), "downtown_night": lambda a: sc_downtown(a, night=True),
           "block_night": lambda a: sc_block(a, night=True), "midtown_night": lambda a: sc_midtown(a, night=True)}
+for _arch in VARIANTS:
+    SCENES["variants_" + _arch] = (lambda ar: (lambda a: sc_variants(a, ar)))(_arch)
 
 
 def main():

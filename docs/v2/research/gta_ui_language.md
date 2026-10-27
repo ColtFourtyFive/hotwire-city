@@ -134,8 +134,8 @@ The HUD is **sparse and contextual**. Cash, ammo and stars appear only when rele
   - GTA VI's radar (`Radar-GTAVI.png`) is a rounded rectangle with 3D buildings, a **pink** route and a distance readout ("1.86 mi").
 - **Police.**
   - The radar **flashes red and blue while cops can see you**.
-  - When they lose you, the **stars flash** and **blue vision cones** appear on the radar showing where they search. Stay out of the cones until the search is called off.
-  - These are the official in-game tutorial words (gta.wiki, Wanted Level in GTA V).
+  - When they lose you, the **stars flash** and **vision cones** appear on the radar showing where they search. Stay out of the cones until the search is called off.
+  - The tutorial wording is from gta.wiki, Wanted Level in GTA V ("The Radar flashes red and blue when the Cops can see you"; "When out of sight of the Cops, the Wanted Stars will flash and cones will appear on the Radar"). The tutorial does not give the cone colour; *blue* cones are an observation.
 
 ### 2.3 Health, armour and ability bars
 
@@ -216,7 +216,7 @@ Measured from the captures (`Wasted-GTAV-EnhancedVersion`, `Busted-GTAV`, `Waste
 | Property | Wasted | Busted | Mission failed | Mission passed |
 |---|---|---|---|---|
 | Screen grade | grayscale and high contrast, vignette, slow motion | grayscale, slow | grayscale (if death) | normal colour |
-| Band | full width, **17.8% of H**, centre **49% H**, black ≈ **42% opacity** (luma 242→140) | same | same, slightly wider text | same (darker) |
+| Band | full width, but a slight **keystone**: ≈15.5% of H at the left edge widening to ≈23% at the right (17.8% at x≈30% W; mean ≈**19.5%**), centre **48.8% H** (re-measured in verification on all three captures). Black ≈ **42–52% opacity** | same | same, slightly wider text | same (darker) |
 | Title | lowercase Pricedown, **crimson**, measured `#8C1428`–`#B84850` in captures (HUD red `#E03232` is canonical) | lowercase, **blue**, measured ≈`#5890B0` (= `HUD_COLOUR_BLUE #5DB6E5`) | lowercase red | lowercase **yellow/gold** |
 | Title size | text block ≈ **23% of W**, glyph height ≈ **9% of H** | same | ≈ 35% of W | — |
 | Subtitle | mission name under the red word (Death wiki) | — | reason, e.g. "Michael died." in white Chalet ≈ 2% H | mission name, medal, objective checklist, cash |
@@ -362,7 +362,7 @@ Alpha is converted to Roblox `BackgroundTransparency` as `1 − a/255`.
 | `WaypointLight` / `WaypointDark` | `#D2A6F9` / `#522679` | 0 | hover, route outline | (150) / (151) |
 | `Orange` | `#FF8555` | 0 | team or warn | ORANGE (15) |
 | `Purple` | `#8466E2` | 0 | team or epic rarity | PURPLE (21) |
-| `Gold` / `Silver` / `Bronze` / `Platinum` | `#D6B563` / `#969AA1` / `#B48261` / `#A6DDBE` | 0 | medals, VIP tag, legendary rarity | (109) (108) (107) (110) |
+| `Gold` / `Silver` / `Bronze` / `Platinum` | `#D6B563` / `#9699A1` / `#B48261` / `#A6DDBE` | 0 | medals, VIP tag, legendary rarity | (109) (108) (107) (110) |
 | `Freemode` / `FreemodeDark` | `#2D6EB9` / `#16375C` | 0 | multiplayer accents (crew, other players) | (116) (123) |
 | `BlipDefault` | `#9FC9A6` | 0 | generic POI blips | SIMPLEBLIP_DEFAULT (60) |
 | `WastedRed` | `#B3212F` | 0 | big-message wasted (measured crimson) | capture measurement |
@@ -492,7 +492,7 @@ Side-by-side renders are in `img_gta/font_compare_bigmessage.jpg`, `font_compare
   ├─ Flash (Frame 196×140 behind Clip, UIStroke 2 px) ← red/blue alternating 4 Hz while police can see you
   └─ Bars (Frame 192×6, y = +4 below)
   ```
-  The CanvasGroup clips rotated descendants. That is why it is used instead of `ClipsDescendants`, which ignores rotation.
+  *(Corrected in verification.)* Since the 2026 rollout, `ClipsDescendants` clips rotated descendants (`StarterGui.ClipsDescendantsSupportsRotation`, default Enabled; the property is removed on 2026-11-03). Only a *rotated or rounded clipping parent* still needs a CanvasGroup. For V's square, unrotated radar, a plain `Frame` with `ClipsDescendants = true` is enough. It avoids CanvasGroup's extra texture memory and its blank-texture failure on low-end devices. Keep the CanvasGroup only if the radar stays rounded (GTA VI style). Note that CanvasGroup flattening also requires `ZIndexBehavior.Sibling`, which `Kit.screen` already sets.
 - **Zoom.** `pxPerStud = lerp(0.9, 0.35, clamp(speed/120, 0, 1))` (tuning), smoothed. Interiors and the garage use a fixed close zoom.
 - **Edge clamping.** Objective, waypoint and home blips clamp to the clip rectangle edge when out of range (GTA behaviour). Other blips are culled.
 - **Height variant.** If `|Δy| > 8 studs`, swap to the `_up` or `_down` sprite.
