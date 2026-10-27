@@ -909,7 +909,7 @@ The tests (`tests/spec/hud.spec.luau`, `menus.spec.luau`, `leftovers.spec.luau`,
 | L1142–1268 | `bottomReserve`, `layout` | rewrite for the new anchors. `getBottomClearance` returns the bottom-right timer and location stack. `getFeedAnchor` returns above the minimap. `getTopStackBottom` returns the bottom of the top-right block |
 | L1531–1601 | HOME button (🏠, "🚨 HOME", "Lose the cops first!") | **remove the button.** GoHome → Phone › Garage › "Set GPS home" (purple route). Any fast-travel becomes a product decision (GTA has none; a taxi contact is the GTA-native option) |
 | L1765–2015 | `showBusted`: cream "stamp" plate, red 9 px stroke, −8° rotation, "BUSTED!" FredokaOne 118, 🚨 emoji, red/blue edge flashes, white flash, shake, "🚗 IMPOUNDED", "🚔 Released at Police HQ" | `Kit.shard("busted", …)` plus the §5.9 sequence. Same remote and `lostCash` / `carLabel` data |
-| L180–203 | VIP chat tag `[👑 VIP]` gold `#FFCD32` | `[VIP]` in `Gold #D6B563`, no emoji |
+| L110, L2180–2203 | VIP chat tag `[👑 VIP]` gold `#FFCD32` (`VIP_CHAT_TAG`, `installVipChatTag`) | `[VIP]` in `Gold #D6B563`, no emoji |
 | new | — | Minimap, Bars, HelpText, Objective, Location, Ammo, Wheel modules. Split HUDController into `HUD/*.luau` submodules (it is already 2.4k lines) |
 
 ### `src/client/Controllers/MenuController.luau` (3688 lines, 122 emoji)

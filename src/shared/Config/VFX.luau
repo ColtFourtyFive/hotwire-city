@@ -95,7 +95,33 @@ VFX.K = K
 VFX.C = C
 
 -- BEGIN GENERATED TEXTURES (tools/vfx/gen_luau.py from assets/vfx/manifest.json; do not edit by hand)
-VFX.Textures = {} :: { [string]: string }
+VFX.Textures = {
+	backfire_burst = "rbxassetid://76984985572572",
+	cash_bill = "rbxassetid://139544741852293",
+	cash_flutter = "rbxassetid://104344730175189",
+	coin_spin = "rbxassetid://105312686304563",
+	confetti = "rbxassetid://81647794662805",
+	debris_chips = "rbxassetid://92326460960108",
+	dust_puff = "rbxassetid://82416394494633",
+	fire_flipbook = "rbxassetid://128967429912577",
+	glare = "rbxassetid://83452262865374",
+	glow_dot = "rbxassetid://129685408276433",
+	headlight_beam = "rbxassetid://81577505740546",
+	impact_star = "rbxassetid://92452831173719",
+	nitro_jet = "rbxassetid://103514078561994",
+	shockwave_ring = "rbxassetid://89818723554045",
+	skid_mark = "rbxassetid://80732619274146",
+	smoke_flipbook = "rbxassetid://77373203636884",
+	smoke_puff_a = "rbxassetid://111617455268587",
+	smoke_puff_b = "rbxassetid://126794732952388",
+	smoke_puff_c = "rbxassetid://137296444788818",
+	spark_streak = "rbxassetid://97303621128187",
+	sparkle_star = "rbxassetid://86530372677621",
+	speed_line = "rbxassetid://120619575858093",
+	tire_smoke = "rbxassetid://93725101722578",
+	underglow = "rbxassetid://124996636404412",
+	water_splash = "rbxassetid://103314128852444",
+} :: { [string]: string }
 -- END GENERATED TEXTURES
 
 -- Built-in engine textures used when a key has no uploaded id (offline place, moderation pending in a test place).
