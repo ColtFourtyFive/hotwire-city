@@ -1,6 +1,6 @@
 # Job 0004 report: realistic car deep-dive
 
-> **Status: PARTIAL.** 51 assets are analyzed. Garbage truck, police sedan and the yiypoo1024 cars follow. `DONE` comes last.
+> **Status: PARTIAL.** 56 assets are analyzed. All 16 classes are done. The yiypoo1024 cars follow. `DONE` comes last.
 
 ## Method
 
@@ -105,3 +105,15 @@
 - **13791818186 "Impala 64 SS (Lowrider)" (Powering_BaconYT) — 5/5 looks.** The Folder holds **two '64 Impala SS lowriders** (one posed mid-hydraulic-hop, one parked): candy-purple paint, gold/chrome wire wheels, chrome trim, full interiors — pure GTA San Andreas vibe. 403 parts (205 MeshParts), bounds 34.7×15.1×20.9 because of the two cars (each ~20 long). One car has a **pink underglow light** left on. 17 wheel candidates, 4 seats, 31 scripts removed. Chevy badges. Extract one car. Best dedicated lowrider.
 
 #### garbage truck
+- **9186961939 "Waste Management Garbage Truck" (TrashManHugo) — 5/5 looks, IP risk.** Mack TerraPro rear-loader with tri-axle, compactor tailgate, ladders, reflective stripes — superb. Description admits it's **a copy of a Hum3D model** (paid 3D-model store) → **licensing risk**, and it carries the **real "WM" Waste Management logo**. 252 parts (251 MeshParts), 0 scripts, no seats. 28.4×10.7×8.6 studs (correct). 26 wheel candidates. Orientation flipped.
+- **5245087628 "Garbage Truck Realistic" (chips611) — 4/5 looks.** Weathered white Autocar-style **front-loader** with raised forks, photoreal grimy textures — very GTA (looks like a game rip; GTA V's Trashmaster-adjacent). 21 MeshParts, **no named wheels / no seats / 0 scripts** — wheels are fused meshes, not separable. 9.7×15.5×33.6 studs (correct; forks raise height). No brand logo. Good prop.
+
+*(Third candidate 9180335501 "Garbage Truck" is the same uploader's Hum3D copy as above — skipped.)*
+
+#### police sedan (Crown Victoria / Charger)
+- **12444544835 1998 Crown Victoria P71 LAPD (LosAngelesP_D) — 5/5 looks.** Exactly the GTA "Police Cruiser": black-and-white LAPD livery, MX7000 lightbar, roof number "00", push-free classic look, interior with cage. 200 parts (173 MeshParts), 16 textures, 8.9×6.3×20.7 studs (correct). 14 wheel candidates, 5 seats, 65 scripts removed. **Real LAPD seal/"to protect and serve" livery + Ford badges** — reskin for our city. Orientation correct. Best police sedan.
+- **11511132434 "2016 Charger Police Car" (SkanskvarnAccount) — 0/5 (broken).** Only the **lightbar/neon light-strip parts load** (top-level "Lightbar", 28 parts, 11 MeshParts) — the car body is missing (unloaded/removed mesh assets). Front shot kept as evidence of the empty result; rear skipped.
+- **18853303033 2011 Crown Victoria Police Interceptor (Kai_TheCoolGuy122) — 5/5 looks, best for us.** Clean **slick-top, livery-free white P7B** (spotlight, steel wheels, push-bar-less) — a blank canvas for our own police/taxi/civilian paints. 164 parts (123 MeshParts), 20.9×5.9×8.7 studs (correct; length on X). 12 wheel candidates, 4 seats, 37 scripts removed. Ford ovals only. Orientation flipped.
+
+### C. Creator yiypoo1024
+*(`search_asset` has no creator filter, and searching the name only returns spam that mentions it. Instead I searched by model names typical of their catalogue and picked results whose `creatorName` = yiypoo1024. Shortlist cars from them already covered: Sorento 117276253886376, Murano 73893179863762; Mariner 138255866612822 was a 3-part 2/5 in 0003.)*
