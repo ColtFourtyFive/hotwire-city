@@ -250,6 +250,7 @@ Each lives in `src/client/Controllers/<Name>.luau` with `init()`/`start()`. UI b
 - `CarBuilder.applyMutation(model, mutation)` (color/material/sparkles; Rainbow handled client-side by WheelAnimator).
 - Styles: every `CarStyle` in `Config/Cars.luau` must have a distinct, recognizable silhouette (wedges for hoods/windshields, cylinders for wheels, neon lights). Meme cars (hotdog, duck, couch, toilet) must be instantly readable and funny. Hover car: no visible wheels (keep invisible wheel attachments). Tank: treads + turret.
 - Performance: ≤ 40 parts per car.
+- **v2 mesh cars (wave A4).** A def with `vehicle` (Config/Vehicles) is built by `Shared/Vehicle/MeshCar` from its uploaded Model (`Shared/Vehicle/CarTemplates`, loaded by VehicleService at start) on the same contract: wheels are MeshParts `Wheel_FL..` on `WheelWeld_FL..`, `Headlight` / `Taillight` are invisible anchors (Beam SpotLight; BrakeGlow / ReverseGlow PointLights), lightbar lenses are `SirenRed` / `SirenBlue` MeshParts, the Body MeshPart is `Paint="primary"` (Color = paint, TextureID = overlay or livery image). Model attributes add `MeshCar`, `Vehicle`, `Brand`, `RigVersion`. Without a ready template the procedural car is built with `MeshPending` and `CarBuilder.applyMesh` converts it in place later (same Model / Chassis / seat). See `docs/v2/early/vehicles/README.md`.
 
 ### VehicleController
 - `VehicleController.new(model: Model, def: CarDef, opts: { isServer: boolean }) -> Controller`

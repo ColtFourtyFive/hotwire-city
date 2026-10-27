@@ -200,36 +200,34 @@ def sheet(ids, out, cols=5):
 
 
 # ------------------------------------------------------------------------------------------- rigged street render
-def rb_to_bl(p):
-    """Roblox (x right, y up, -z forward) -> Blender canonical used by carpipe (x right, y forward, z up)."""
-    return Vector((p[0], -p[2], p[1]))
+def _rb_matrix(c):
+    """Roblox CFrame components (x, y, z, R00..R22) -> 4x4 (Roblox axes)."""
+    x, y, z, r00, r01, r02, r10, r11, r12, r20, r21, r22 = c
+    return Matrix(((r00, r01, r02, x), (r10, r11, r12, y), (r20, r21, r22, z), (0, 0, 0, 1)))
+
+
+# Roblox (x right, y up, -z forward) -> Blender as imported from the GLB (x right, y = -z, z = y)
+_P = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))
 
 
 def place_rigged(vid, rig, at, heading, paint, lights_on):
-    """Place each GLB object at the CFrame the CarBuilder rig gave the matching MeshPart (rig dump, chassis space,
-    built pose), then move the car to `at` (Blender xy) facing `heading` radians."""
+    """Pose each GLB object with the transform the CarBuilder rig applied to its MeshPart (rig dump: template CFrame
+    in the built pose -> rigged CFrame, wheels steered / spun by WheelAnimator.wheelC0), then move the car to `at`
+    (Blender xy) facing `heading` radians."""
     glb = os.path.join(VEH, vid, vid + ".glb")
     root, objs = R.load_glb(glb)
     runtime_look(objs, vid, roster()[vid], sidecar(vid), paint=paint, lights_on=lights_on)
+    bpy.context.view_layer.update()
     parts = rig["parts"]
     for o in objs:
         if o.type != "MESH":
             continue
-        base = o.name.split(".")[0]
-        key = {"WheelFL": "Wheel_FL", "WheelFR": "Wheel_FR", "WheelRL": "Wheel_RL", "WheelRR": "Wheel_RR"}.get(base,
-                                                                                                            base)
-        p = parts.get(key)
+        p = parts.get(o.name.split(".")[0])
         if not p:
             continue
-        # the rig dump gives the part's bbox centre (Roblox, ground frame). The GLB object's origin is its node
-        # translation (wheel axle / scene origin); move it so its bbox centre lands on the rig's centre.
-        mn = Vector((min(v.co.x for v in o.data.vertices), min(v.co.y for v in o.data.vertices),
-                     min(v.co.z for v in o.data.vertices)))
-        mx = Vector((max(v.co.x for v in o.data.vertices), max(v.co.y for v in o.data.vertices),
-                     max(v.co.z for v in o.data.vertices)))
-        local_c = (mn + mx) / 2  # mesh space (object rotation is identity after import parenting)
-        want = rb_to_bl(p["center"])
-        o.matrix_world = Matrix.Translation(want - o.matrix_world.to_3x3() @ local_c) @ Matrix(o.matrix_world.to_3x3()).to_4x4()
+        t_rb = _rb_matrix(p["rig"]) @ _rb_matrix(p["built"]).inverted()
+        t_bl = _P @ t_rb @ _P.inverted()
+        o.matrix_world = t_bl @ o.matrix_world
     root.location = (at[0], at[1], 0)
     root.rotation_euler = (0, 0, heading)
     return root
