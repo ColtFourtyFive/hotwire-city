@@ -61,8 +61,9 @@ local WORLD_MIN = MinimapConfig.WORLD_MIN
 local WORLD_SIZE = MinimapConfig.WORLD_SIZE
 local ATLAS = MinimapConfig.ATLAS
 local CELLS = MinimapConfig.ATLAS_CELLS :: { [string]: { number } }
-local FIT_SPAN = (MapConfig.BOUNDARY + 50) * 2 -- studs the fit-to-screen view shows (the whole island + surf)
-local CENTER_LIMIT = MapConfig.BOUNDARY + 40
+-- studs the fit-to-screen view shows (the whole island + surf) and how far the view may pan (Config/Minimap, v2 island)
+local FIT_SPAN = (MinimapConfig :: any).FIT_SPAN or (MapConfig.BOUNDARY + 50) * 2
+local CENTER_LIMIT = (MinimapConfig :: any).CENTER_LIMIT or MapConfig.BOUNDARY + 40
 local UPDATE_DT = 1 / 30
 local WHITE = Color3.new(1, 1, 1)
 local C = Theme.Colors
@@ -1187,9 +1188,9 @@ local function onTap(at: Vector2)
 	else
 		wx, wz = MapScreenController.screenToWorld(at.X, at.Y, cx, cz, scale, vpW, vpH)
 	end
-	local lim = MapConfig.BOUNDARY - 10
+	local lim = CENTER_LIMIT - 50
 	wx, wz = math.clamp(wx, -lim, lim), math.clamp(wz, -lim, lim)
-	MinimapController.setCustomWaypoint(Vector3.new(wx, MapConfig.ROAD_Y, wz), label)
+	MinimapController.setCustomWaypoint(Vector3.new(wx, (MinimapConfig :: any).GROUND_Y or MapConfig.ROAD_Y, wz), label)
 	pcall(SoundController.play, "ClickBright")
 	accum = math.huge
 	routeAccum = 0.4 -- show the new route almost immediately (the radar re-routes on its next frame)

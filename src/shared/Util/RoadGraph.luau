@@ -4,7 +4,8 @@
 --   nodes  intersections, bends and dead ends (every place two road segments cross or touch, plus segment ends)
 --   edges  straight road pieces between two nodes, carrying width / class / lanes / one-way / level
 --
--- Source of truth: MapLayout.roadSegments() when the layout provides it (a list of RoadSegment), else the square grid
+-- Source of truth: the v2 world graph (RoadGraph.fromWorld: Config/WorldLayout Nodes / Edges) when MapLayout is the v2
+-- shim; else MapLayout.roadSegments() when the layout provides it (a list of RoadSegment), else the square grid
 -- derived from Config/Map (RoadGraph.gridSegments). A bigger network (curves as polylines, highways, one-way
 -- streets, T-junctions, bridges on another `level`) only needs MapLayout.roadSegments() to describe it: segments are
 -- split wherever they cross or touch, so the layout never has to pre-split anything.
@@ -349,6 +350,11 @@ function RoadGraph.build(segments: { RoadSegment }?): Graph
 		end
 	end
 
+	return RoadGraph._finalize(nodes, nodeLevel, edges)
+end
+
+-- Adjacency, spatial hashes and query scratch for a node / edge list.
+function RoadGraph._finalize(nodes: { Vector3 }, nodeLevel: { number }, edges: { Edge }): Graph
 	-- 3. adjacency + spatial hashes
 	local adj: { { number } } = table.create(#nodes)
 	for i = 1, #nodes do
@@ -405,6 +411,71 @@ function RoadGraph.build(segments: { RoadSegment }?): Graph
 		heapF = {},
 	}
 	return setmetatable(data, Graph)
+end
+
+-- v2 road class -> GPS / minimap class (docs/v2/world/MIGRATION.md §3).
+RoadGraph.WORLD_CLASS = {
+	freeway = "highway",
+	ramp = "highway",
+	highway = "highway",
+	boulevard = "avenue",
+	avenue = "avenue",
+	street = "street",
+	rural = "street",
+	pier = "street",
+	runway = "street",
+	alley = "alley",
+	dirt = "alley",
+	service = "alley",
+	channel = "alley",
+} :: { [string]: RoadClass }
+
+-- The v2 world's explicit road graph (Config/WorldLayout Nodes / Edges): every polyline vertex is a node, every
+-- polyline segment an edge, so ramps join levels exactly where the data says and crossings on different levels
+-- never connect. Same queries / A* as the grid graph.
+function RoadGraph.fromWorld(world: any?): Graph
+	local W = world or require(script.Parent.Parent.Config.WorldLayout) :: any
+	local nodes: { Vector3 } = {}
+	local nodeLevel: { number } = {}
+	local edges: { Edge } = {}
+	for i, n in W.Nodes do
+		nodes[i] = n.pos
+		nodeLevel[i] = 0
+	end
+	for _, e in W.Edges do
+		local pts = e.points
+		local class = RoadGraph.WORLD_CLASS[e.class] or "street"
+		local lanes = math.max(e.lanesF, e.lanesB, 1)
+		local prev = e.a
+		nodeLevel[e.a] = math.max(nodeLevel[e.a], e.layer)
+		nodeLevel[e.b] = math.max(nodeLevel[e.b], e.layer)
+		for k = 2, #pts do
+			local cur: number
+			if k == #pts then
+				cur = e.b
+			else
+				table.insert(nodes, pts[k])
+				table.insert(nodeLevel, e.layer)
+				cur = #nodes
+			end
+			local len = (nodes[cur] - nodes[prev]).Magnitude
+			if len > 1e-3 then
+				table.insert(edges, {
+					a = prev,
+					b = cur,
+					length = len,
+					width = e.width,
+					class = class,
+					oneWay = e.oneWay,
+					lanes = lanes,
+					level = e.layer,
+					name = e.name,
+				})
+			end
+			prev = cur
+		end
+	end
+	return RoadGraph._finalize(nodes, nodeLevel, edges)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -737,7 +808,12 @@ local cached: Graph? = nil
 function RoadGraph.get(): Graph
 	local g = cached
 	if g == nil then
-		g = RoadGraph.build()
+		-- the v2 world when the layout is v2 (MapLayout.WORLD_VERSION), else the layout's segments / the grid
+		if (MapLayout :: any).WORLD_VERSION ~= nil then
+			g = RoadGraph.fromWorld()
+		else
+			g = RoadGraph.build()
+		end
 		cached = g
 	end
 	return g :: Graph

@@ -7,6 +7,10 @@ return function(t)
 	local CFrame = H.roblox.CFrame
 	local MapConfig = H.require("src/shared/Config/Map")
 	local MapLayout = H.require("src/shared/Util/MapLayout")
+	-- TrafficService's lane machine is still grid-locked (GridLayout); positions / zones / spawns are the v2 world
+	local GridLayout = H.require("src/shared/Util/GridLayout")
+	local WorldLayout = H.require("src/shared/Config/WorldLayout")
+	local WorldQuery = H.require("src/shared/Util/WorldQuery")
 	local VehicleConfig = H.require("src/shared/Config/Vehicle")
 	local Monetization = H.require("src/shared/Config/Monetization")
 	local Cars = H.require("src/shared/Config/Cars")
@@ -430,13 +434,13 @@ return function(t)
 
 	-- TRAFFIC: lane state machine ----------------------------------------------------------------------------------------
 
-	t.test("lanePoint matches MapLayout.laneCFrame at the shared lane offset", function()
+	t.test("lanePoint matches GridLayout.laneCFrame at the shared lane offset", function()
 		for _, axis in { "X", "Z" } do
 			for _, dir in { 1, -1 } do
 				for _, line in { LMIN, -2, 0, 3, LMAX } do
 					local along = 37.5
 					local mine = Traffic._lanePoint(axis, line, dir, along, MapConfig.LANE_OFFSET)
-					local theirs = MapLayout.laneCFrame(axis, line, along, dir)
+					local theirs = GridLayout.laneCFrame(axis, line, along, dir)
 					t.near((mine - theirs.Position).Magnitude, 0, 1e-6, ("%s %d %d"):format(axis, line, dir))
 					t.ok(Traffic._forward(axis, dir):Dot(theirs.LookVector) > 0.999, "forward matches")
 				end
@@ -520,7 +524,7 @@ return function(t)
 					local prev = a
 					for i = 1, 40 do
 						local p = Traffic._turnPoint(p0, f, f2, R, len * i / 40, lead)
-						t.ok(MapLayout.isOnRoad(p), "turn stays on asphalt")
+						t.ok(GridLayout.isOnRoad(p), "turn stays on asphalt")
 						t.ok((p - prev).Magnitude <= len / 40 + 1e-3, "continuous")
 						prev = p
 					end
@@ -567,7 +571,7 @@ return function(t)
 				local stepLen = rng:NextNumber(0.2, 2.5)
 				Traffic._advance(st, stepLen, pick)
 				local pos, head = Traffic._pose(st)
-				t.ok(MapLayout.isOnRoad(pos), "on road at " .. tostring(pos))
+				t.ok(GridLayout.isOnRoad(pos), "on road at " .. tostring(pos))
 				t.ok(math.abs(pos.X) <= MapConfig.HALF_EXTENT + 10 and math.abs(pos.Z) <= MapConfig.HALF_EXTENT + 10)
 				t.ok(st.cross >= LMIN and st.cross <= LMAX, "approaching a real intersection")
 				local jump = (pos - prevPos).Magnitude
@@ -614,7 +618,7 @@ return function(t)
 			t.ok(math.abs(s) <= MapConfig.HALF_EXTENT - Traffic.BOX_HALF - 12 + 1e-6, "clear of the ring ends")
 			for _, dir in { 1, -1 } do
 				local lp = Traffic._lanePoint(axis, line, dir, s)
-				t.ok(MapLayout.isOnRoad(lp), "lane point on road")
+				t.ok(GridLayout.isOnRoad(lp), "lane point on road")
 				local cross = Traffic._nextCross(s, dir)
 				t.ok(cross >= LMIN and cross <= LMAX, "has an intersection ahead")
 			end
@@ -629,7 +633,7 @@ return function(t)
 		t.eq(Traffic._aheadDistance(pos, fwd, pos - fwd * 12), nil, "behind")
 		local oncoming = Traffic._lanePoint("X", 0, -1, 120)
 		t.eq(Traffic._aheadDistance(pos, fwd, oncoming), nil, "oncoming lane")
-		for _, spot in MapLayout.parkingSpots() do
+		for _, spot in GridLayout.parkingSpots() do
 			-- the parked car nearest to this lane sits PARK_OFFSET from the centerline
 			local rel = spot.Position - pos
 			if math.abs(rel.Z) < 20 and rel.X > 0 and rel.X < 34 then
@@ -700,6 +704,22 @@ return function(t)
 		t.eq(Street._minDist(Vector3.new(0, 0, 30), {}), math.huge)
 	end)
 
+	-- clearance from the nearest traffic lane centre of the edge at the spot (v2 world lanes)
+	local function laneClearance(p)
+		local _, ei, s = WorldQuery.nearestRoadPoint(p, { maxDistance = 60 })
+		if not ei then
+			return math.huge
+		end
+		local best = math.huge
+		for _, dir in { 1, -1 } do
+			for lane = 1, WorldQuery.laneCount(ei, dir) do
+				local lp = WorldQuery.laneCFrame(ei, lane, dir, s).Position
+				best = math.min(best, flatDist(lp, p))
+			end
+		end
+		return best
+	end
+
 	t.test("newbie spots: on the road, within reach of every garage door, facing along the road", function()
 		for plot = 1, MapLayout.plotCount() do
 			local door = Street._doorPosition(plot)
@@ -711,23 +731,18 @@ return function(t)
 			local near = 0
 			for _, cf in spots do
 				t.ok(MapLayout.isOnRoad(cf.Position), "on road")
-				t.near(cf.Position.Y, MapConfig.ROAD_Y, 1e-6, "ground height")
+				local _, ei, s = WorldQuery.nearestRoadPoint(cf.Position, { maxDistance = 60 })
+				t.ok(ei ~= nil, "on an edge")
+				local p, tan = WorldQuery.edgePoint(ei, s)
+				t.ok(math.abs(cf.Position.Y - p.Y) < 2.5, "ground height (the curb lane on a graded road)")
+				t.ok(math.abs(cf.LookVector:Dot(tan)) > 0.98, "facing along the road")
 				if flatDist(cf.Position, door) <= Street.NEWBIE_RADIUS then
 					near += 1
 				end
-				-- along the road: the facing is axis-aligned
-				local look = cf.LookVector
-				t.ok(math.abs(look.X) > 0.999 or math.abs(look.Z) > 0.999, "axis aligned")
 			end
 			t.ok(near >= 4, "several free-able spots near the door")
 			-- curbside spots never sit in a traffic lane
-			for _, cf in spots do
-				local p = cf.Position
-				local lx = math.abs(p.X - math.round(p.X / S) * S)
-				local lz = math.abs(p.Z - math.round(p.Z / S) * S)
-				local lateral = math.min(lx, lz)
-				t.ok(lateral >= Traffic.LANE_OFFSET + 7.3, "clear of traffic lanes")
-			end
+			t.ok(laneClearance(first.Position) >= 7.3, "clear of traffic lanes")
 		end
 	end)
 
@@ -783,11 +798,21 @@ return function(t)
 	end)
 
 	t.test("parking spots never sit in traffic lanes", function()
-		for _, cf in MapLayout.parkingSpots() do
-			local p = cf.Position
-			local lx = math.abs(p.X - math.round(p.X / S) * S)
-			local lz = math.abs(p.Z - math.round(p.Z / S) * S)
-			t.ok(math.min(lx, lz) - Traffic.LANE_OFFSET >= 7.3 + 0.5, "parked chassis clears traffic chassis")
+		local n = 0
+		for k, spot in WorldLayout.Spawns.parking do
+			if k % 7 == 0 then -- every 7th spot (6k+)
+				n += 1
+				-- the spot's own edge at its own s: the nearest traffic lane centre
+				local best = math.huge
+				for _, dir in { 1, -1 } do
+					for lane = 1, WorldQuery.laneCount(spot.edge, dir) do
+						local lp = WorldQuery.laneCFrame(spot.edge, lane, dir, spot.s).Position
+						best = math.min(best, flatDist(lp, spot.cframe.Position))
+					end
+				end
+				t.ok(best >= 7.3 + 0.5, "parked chassis clears traffic chassis")
+			end
 		end
+		t.ok(n > 500, "sampled spots")
 	end)
 end

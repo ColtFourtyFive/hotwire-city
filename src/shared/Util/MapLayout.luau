@@ -1,67 +1,156 @@
 --!strict
--- Pure geometry derived from Config/Map. Both server and client use this so every system agrees on
--- where roads, plots, parking spots and points of interest are. No instances are created here.
+-- MapLayout (v2 compatibility shim): the v1 API every system calls, answered from the v2 world (Config/WorldLayout +
+-- Util/WorldQuery). Systems keep compiling and behave sensibly while they migrate to WorldQuery one at a time
+-- (docs/v2/world/MIGRATION.md §1, §6). No instances are created here; server and client get the same answers.
+--
+--   plots       plotOrigin = WorldLayout.Plots[i].cframe (ground centre at curb height, LookVector out of the door):
+--               every Config/Map.Garage plot-local offset (slots, drop-off, collect pad, lock button) is unchanged
+--   POIs        poiCenter takes v1 names (SpawnPlaza, Dealership, PoliceHQ, GearShop, SprayShopA/B, ChopShop,
+--               StuntPark, Park, Pier) or any v2 POI / landmark id
+--   zones       the drive-in bays, counters and dealer pads are defined HERE (MapBuilder's World/Places builds them
+--               from these same functions): sprayZones (5), chopZones (4), gearShopCounters / gunStores (5),
+--               dealerPads (8, Hotwire Motors: v1's showroom layout on the v2 POI)
+--   roads       isOnRoad / nearestLane = WorldQuery; laneCFrame / roadCFrame keep the v1 (axis, line, along, dir)
+--               signature and snap the grid point to the nearest real lane heading that way; roadSegments feeds
+--               RoadGraph (which uses RoadGraph.fromWorld for the v2 world)
+--   combat      hospitals / hospitalCFrame / gunStores / safeZones / safeZoneAt (v2/combat's API)
+--   grid        blockCenter / blockAt / lineCoord keep v1's 160-stud cells for the systems not migrated yet
+--               (NPC wandering); CURB_TOP is the city grade + curb (12.6)
 
-local MapConfig = require(script.Parent.Parent.Config.Map)
+local Config = script.Parent.Parent.Config
+local MapConfig = require(Config.Map)
+local WorldLayout = require(Config.WorldLayout)
+local WorldQuery = require(script.Parent.WorldQuery)
 
 local MapLayout = {}
 
+export type Axis = "X" | "Z" -- v1: road runs ALONG this axis ("X" road: z = line*S constant)
+export type NamedSpot = { name: string, cframe: CFrame }
+export type SafeZone = { name: string, kind: string, cframe: CFrame, size: Vector3, plotIndex: number? }
+
 local S = MapConfig.GRID_SPACING
-local CURB_TOP = MapConfig.ROAD_Y + MapConfig.CURB_HEIGHT
+local CURB = WorldLayout.Scale.CURB_HEIGHT
+local GRADE = WorldLayout.GRADE
 
-export type Axis = "X" | "Z" -- road runs ALONG this axis ("X" road: z = line*S constant)
+MapLayout.WORLD_VERSION = WorldLayout.VERSION
+MapLayout.CURB_TOP = GRADE + CURB
+MapLayout.ROAD_Y = GRADE
 
-MapLayout.CURB_TOP = CURB_TOP
+-------------------------------------------------------------------------------------------------------------------------
+-- v1 grid cells (kept for the systems not migrated yet)
+-------------------------------------------------------------------------------------------------------------------------
 
 function MapLayout.lineCoord(line: number): number
 	return line * S
 end
 
--- Center of block (bx, bz) at curb (sidewalk) height.
 function MapLayout.blockCenter(bx: number, bz: number): Vector3
-	return Vector3.new((bx + 0.5) * S, CURB_TOP, (bz + 0.5) * S)
+	return Vector3.new((bx + 0.5) * S, MapLayout.CURB_TOP, (bz + 0.5) * S)
 end
 
--- Which block contains world XZ (may be outside the city).
 function MapLayout.blockAt(pos: Vector3): (number, number)
 	return math.floor(pos.X / S), math.floor(pos.Z / S)
 end
 
--- True if pos is on asphalt (within a road strip, inside the ring road).
+-------------------------------------------------------------------------------------------------------------------------
+-- Roads
+-------------------------------------------------------------------------------------------------------------------------
+
+-- True if pos is on a road surface (curb to curb, within 6 studs of that road's height).
 function MapLayout.isOnRoad(pos: Vector3): boolean
-	local half = MapConfig.ROAD_WIDTH / 2
-	local ext = MapConfig.HALF_EXTENT + half
-	if math.abs(pos.X) > ext or math.abs(pos.Z) > ext then
-		return false
-	end
-	local function near(v: number): boolean
-		local r = v - math.round(v / S) * S
-		return math.abs(r) <= half
-	end
-	return near(pos.X) or near(pos.Z)
+	local on = WorldQuery.isOnRoad(pos)
+	return on
 end
 
--- Plots -------------------------------------------------------------------------------
+-- Nearest legal lane CFrame (outer lane, the direction closest to `heading` when given).
+function MapLayout.nearestLane(pos: Vector3, heading: Vector3?): CFrame
+	local cf = WorldQuery.nearestLane(pos, heading, { maxDistance = 2000, ignoreHeight = true })
+	if cf then
+		return cf
+	end
+	local p = WorldLayout.Spawns.default.Position
+	return CFrame.lookAt(p, p + Vector3.new(1, 0, 0))
+end
+
+-- v1 signature: the grid point (axis, line, along) snapped to the nearest real lane heading +/- along the axis.
+function MapLayout.laneCFrame(axis: Axis, line: number, along: number, dir: number): CFrame
+	local pos = if axis == "X" then Vector3.new(along, GRADE, line * S) else Vector3.new(line * S, GRADE, along)
+	local heading = if axis == "X" then Vector3.new(dir, 0, 0) else Vector3.new(0, 0, dir)
+	return MapLayout.nearestLane(pos, heading)
+end
+
+-- v1 signature: the road centreline point nearest the grid point, facing +/- along the axis.
+function MapLayout.roadCFrame(axis: Axis, line: number, along: number, dir: number): CFrame
+	local pos = if axis == "X" then Vector3.new(along, GRADE, line * S) else Vector3.new(line * S, GRADE, along)
+	local heading = if axis == "X" then Vector3.new(dir, 0, 0) else Vector3.new(0, 0, dir)
+	local p, ei, s = WorldQuery.nearestRoadPoint(pos, { maxDistance = 2000, ignoreHeight = true })
+	if not p or not ei then
+		return CFrame.lookAt(pos, pos + heading)
+	end
+	local _, tan = WorldQuery.edgePoint(ei, s)
+	local look = if tan:Dot(heading) >= 0 then tan else -tan
+	return CFrame.lookAt(p, p + look)
+end
+
+-- Road network for RoadGraph (straight pieces of every edge polyline; level = layer).
+local segCache: { any }? = nil
+function MapLayout.roadSegments(): { any }
+	local c = segCache
+	if c then
+		return c
+	end
+	local out = {}
+	local classMap = {
+		freeway = "highway",
+		ramp = "highway",
+		highway = "highway",
+		boulevard = "avenue",
+		avenue = "avenue",
+		alley = "alley",
+		dirt = "alley",
+		service = "alley",
+		channel = "alley",
+	}
+	for _, e in WorldLayout.Edges do
+		local pts = e.points
+		for k = 1, #pts - 1 do
+			table.insert(out, {
+				a = pts[k],
+				b = pts[k + 1],
+				width = e.width,
+				class = (classMap :: any)[e.class] or "street",
+				oneWay = e.oneWay,
+				lanes = math.max(e.lanesF, e.lanesB, 1),
+				level = e.layer,
+				name = e.name,
+			})
+		end
+	end
+	segCache = out
+	return out
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Plots (v1 plot-local layout on the v2 plot frames)
+-------------------------------------------------------------------------------------------------------------------------
 
 function MapLayout.plotCount(): number
-	return #MapConfig.Plots
+	return #WorldLayout.Plots
 end
 
--- Plot origin: block center at curb height. LookVector (-Z local) points OUT of the front door.
+-- Plot origin: ground centre of the garage footprint at curb height; LookVector points OUT of the front door.
 function MapLayout.plotOrigin(index: number): CFrame
-	local def = MapConfig.Plots[index]
-	assert(def, "bad plot index")
-	local c = MapLayout.blockCenter(def.block.x, def.block.z)
-	return CFrame.lookAt(c, c + def.face)
+	local plot = WorldLayout.Plots[index]
+	assert(plot, "bad plot index")
+	return plot.cframe
 end
 
--- World CFrame from plot-local offset.
 function MapLayout.plotToWorld(index: number, localOffset: Vector3): CFrame
 	return MapLayout.plotOrigin(index) * CFrame.new(localOffset)
 end
 
--- Slot i (1..12) in plot-local space. Slots alternate left/right starting nearest the door.
--- The returned CFrame is on the floor; its LookVector points toward the center aisle.
+-- Slot i (1..12) in plot-local space. Slots alternate left/right starting nearest the door; the CFrame is on the floor
+-- and its LookVector points toward the centre aisle.
 function MapLayout.slotLocal(slot: number): CFrame
 	local G = MapConfig.Garage
 	local row = math.ceil(slot / 2)
@@ -82,14 +171,13 @@ function MapLayout.maxPhysicalSlots(): number
 	return #MapConfig.Garage.SLOT_ZS * 2
 end
 
--- Region helpers: returns (CFrame, Size) of a box in world space.
 function MapLayout.plotDropoffZone(plotIndex: number): (CFrame, Vector3)
 	local G = MapConfig.Garage
 	local size = G.DROPOFF_SIZE
 	return MapLayout.plotToWorld(plotIndex, G.DROPOFF_CENTER + Vector3.new(0, size.Y / 2, 0)), size
 end
 
--- The whole garage interior volume (used for "is this position inside plot N's garage").
+-- The whole garage interior volume ("is this position inside plot N's garage").
 function MapLayout.plotInteriorZone(plotIndex: number): (CFrame, Vector3)
 	local G = MapConfig.Garage
 	local depth = G.BACK_Z - G.FRONT_Z
@@ -103,9 +191,9 @@ function MapLayout.isInBox(boxCFrame: CFrame, boxSize: Vector3, pos: Vector3): b
 	return math.abs(p.X) <= boxSize.X / 2 and math.abs(p.Y) <= boxSize.Y / 2 and math.abs(p.Z) <= boxSize.Z / 2
 end
 
--- Returns the plot index whose garage interior contains pos, or nil.
+-- The plot whose garage interior contains pos, or nil.
 function MapLayout.plotAt(pos: Vector3): number?
-	for i = 1, #MapConfig.Plots do
+	for i = 1, #WorldLayout.Plots do
 		local cf, size = MapLayout.plotInteriorZone(i)
 		if MapLayout.isInBox(cf, size, pos) then
 			return i
@@ -114,68 +202,110 @@ function MapLayout.plotAt(pos: Vector3): number?
 	return nil
 end
 
--- Roads / traffic ------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+-- POIs and their interaction spots (World/Places builds from these)
+-------------------------------------------------------------------------------------------------------------------------
 
--- Base CFrame on a road centerline at road height facing travel direction dir (+1/-1 along axis).
-function MapLayout.roadCFrame(axis: Axis, line: number, along: number, dir: number): CFrame
-	local c = line * S
-	local pos, facing
-	if axis == "X" then
-		pos = Vector3.new(along, MapConfig.ROAD_Y, c)
-		facing = Vector3.new(dir, 0, 0)
-	else
-		pos = Vector3.new(c, MapConfig.ROAD_Y, along)
-		facing = Vector3.new(0, 0, dir)
-	end
-	return CFrame.lookAt(pos, pos + facing)
+local function poisOf(kind: string): { WorldLayout.POI }
+	return WorldQuery.poisOfKind(kind)
 end
 
--- Traffic lane CFrame (right-hand traffic: lane is to the right of the centerline).
-function MapLayout.laneCFrame(axis: Axis, line: number, along: number, dir: number): CFrame
-	return MapLayout.roadCFrame(axis, line, along, dir) * CFrame.new(MapConfig.LANE_OFFSET, 0, 0)
+-- v1 block names -> v2 ids
+local V1_NAMES: { [string]: string } = {
+	SpawnPlaza = "HotwirePlaza",
+	Dealership = "Dealership",
+	PoliceHQ = "PoliceHQ",
+	ChopShop = "ChopShop",
+}
+
+local function plaza(): Vector3
+	local p = WorldQuery.poi("HotwirePlaza")
+	return if p then p.cframe.Position else WorldLayout.Spawns.default.Position
 end
 
--- Every parking spot in the city (deterministic). CFrames are on the road surface facing along the road.
-local parkingCache: { CFrame }? = nil
-function MapLayout.parkingSpots(): { CFrame }
-	if parkingCache then
-		return parkingCache
+-- The kind's POIs, nearest Hotwire Plaza first (v1 had one or two of each near the spawn).
+local function byPlaza(kind: string): { WorldLayout.POI }
+	local list = table.clone(poisOf(kind))
+	local c = plaza()
+	table.sort(list, function(a: WorldLayout.POI, b: WorldLayout.POI): boolean
+		local da = (a.cframe.Position - c).Magnitude
+		local db = (b.cframe.Position - c).Magnitude
+		if da ~= db then
+			return da < db
+		end
+		return a.id < b.id
+	end)
+	return list
+end
+
+-- Centre of a POI at curb height (v1 names or v2 POI / landmark ids).
+function MapLayout.poiCenter(name: string): Vector3
+	local id = V1_NAMES[name]
+	local poi = WorldQuery.poi(id or name)
+	if poi then
+		return poi.cframe.Position + Vector3.new(0, CURB, 0)
 	end
-	local spots = {}
-	for _, axis in { "X", "Z" } :: { Axis } do
-		for line = MapConfig.LINE_MIN, MapConfig.LINE_MAX do
-			for seg = MapConfig.BLOCK_MIN, MapConfig.BLOCK_MAX do
-				local h = (line * 7 + seg * 3 + (if axis == "X" then 1 else 0)) % 3
-				if h == 0 then
-					local mid = (seg + 0.5) * S
-					local flip = ((line + seg) % 2 == 0)
-					local along = mid + (if flip then 38 else -38)
-					local dir = if flip then 1 else -1
-					local cf = MapLayout.roadCFrame(axis, line, along, dir) * CFrame.new(MapConfig.PARK_OFFSET, 0, 0)
-					table.insert(spots, cf)
-				end
+	if name == "GearShop" then
+		return byPlaza("gunshop")[1].cframe.Position + Vector3.new(0, CURB, 0)
+	elseif name == "SprayShopA" or name == "SprayShopB" then
+		local list = byPlaza("spray")
+		return list[if name == "SprayShopA" then 1 else 2].cframe.Position + Vector3.new(0, CURB, 0)
+	elseif name == "StuntPark" then
+		local j = WorldLayout.StuntJumps[1]
+		assert(j, "no stunt jumps")
+		return j.cframe.Position
+	elseif name == "Park" then
+		local l = WorldQuery.landmark("EchoPark")
+		assert(l, "no Echo Park")
+		return l.cframe.Position + Vector3.new(0, CURB, 0)
+	elseif name == "Pier" then
+		for _, e in WorldLayout.Edges do
+			if e.class == "pier" and e.length > 200 then
+				return e.points[#e.points]
 			end
 		end
 	end
-	parkingCache = spots
-	return spots
-end
-
--- Points of interest -------------------------------------------------------------------------
-
-function MapLayout.poiCenter(name: string): Vector3
-	local b = MapConfig.Blocks[name]
-	assert(b, "unknown POI " .. name)
-	return MapLayout.blockCenter(b.x, b.z)
+	local lm = WorldQuery.landmark(name)
+	assert(lm, "unknown POI " .. name)
+	return lm.cframe.Position
 end
 
 function MapLayout.spawnCFrame(): CFrame
-	local c = MapLayout.poiCenter("SpawnPlaza")
-	-- face the Dealership (east)
-	return CFrame.lookAt(c, c + Vector3.new(1, 0, 0))
+	return WorldLayout.Spawns.default
 end
 
--- 8 dealership showroom pads (world CFrames on the showroom floor, cars face -Z / north road).
+-- Drive-in bay of a spray / customs / chop POI: box (0, 13, -D/2 + 30) in the POI frame, size (W - 20, 26, 50); the
+-- bay opens to the street (local -Z).
+MapLayout.BAY_FRONT = 5
+MapLayout.BAY_DEPTH = 50
+function MapLayout.bayBox(poi: WorldLayout.POI): (CFrame, Vector3)
+	local W, D = poi.size.X, poi.size.Z
+	return poi.cframe * CFrame.new(0, 13, -D / 2 + MapLayout.BAY_FRONT + MapLayout.BAY_DEPTH / 2),
+		Vector3.new(W - 20, 26, MapLayout.BAY_DEPTH)
+end
+
+-- Counter frames of a gun shop: (gun counter, gear counter), on the floor 12 in from the lot front, LookVector toward
+-- the door.
+function MapLayout.counterFrames(poi: WorldLayout.POI): (CFrame, CFrame)
+	local D = poi.size.Z
+	local base = poi.cframe * CFrame.new(0, CURB, -D / 2 + 12)
+	return base * CFrame.new(-10, 0, 0), base * CFrame.new(10, 0, 0)
+end
+
+-- Dealer pads of a dealership POI: two rows of four on the front lot, cars facing the street.
+function MapLayout.dealerPadsOf(poi: WorldLayout.POI): { CFrame }
+	local W, D = poi.size.X, poi.size.Z
+	local out: { CFrame } = {}
+	for _, zf in { -D / 2 + 32, -D / 2 + 66 } do
+		for _, xf in { -0.375, -0.125, 0.125, 0.375 } do
+			table.insert(out, poi.cframe * CFrame.new(xf * (W - 20), CURB, zf))
+		end
+	end
+	return out
+end
+
+-- 8 showroom pads of Hotwire Motors: v1's showroom layout (two rows of four, cars facing -Z, the open drive-out)
+-- around the POI centre at curb height, so DealershipService's showroom, dressing and sign stay consistent.
 function MapLayout.dealerPads(): { CFrame }
 	local c = MapLayout.poiCenter("Dealership")
 	local pads = {}
@@ -188,79 +318,116 @@ function MapLayout.dealerPads(): { CFrame }
 	return pads
 end
 
--- Spray shop booths: drive in to clear your wanted level. Returns list of (CFrame, Size) boxes.
--- Each booth sits at the north edge of its block; cars enter from the road at the block's north side.
+-- Spray shop bays (drive in to clear your wanted level): every Fresh Coat, nearest the plaza first.
 function MapLayout.sprayZones(): { { cframe: CFrame, size: Vector3 } }
 	local zones = {}
-	for _, name in { "SprayShopA", "SprayShopB" } do
-		local c = MapLayout.poiCenter(name)
-		local pos = c + Vector3.new(0, 7, -40)
-		table.insert(zones, { cframe = CFrame.new(pos), size = Vector3.new(26, 14, 26) })
+	for _, poi in byPlaza("spray") do
+		local cf, size = MapLayout.bayBox(poi)
+		table.insert(zones, { cframe = cf, size = size })
 	end
 	return zones
 end
 
--- Chop shop: drive any non-owned car in for instant cash. Entrance from the road on the block's south side.
+-- Every chop shop bay (Rusty's, Dockside Salvage, ...).
+function MapLayout.chopZones(): { { cframe: CFrame, size: Vector3 } }
+	local zones = {}
+	for _, poi in byPlaza("chop") do
+		local cf, size = MapLayout.bayBox(poi)
+		table.insert(zones, { cframe = cf, size = size })
+	end
+	return zones
+end
+
+-- v1: the chop shop bay (Rusty's Chop Shop).
 function MapLayout.chopZone(): (CFrame, Vector3)
-	local c = MapLayout.poiCenter("ChopShop")
-	return CFrame.new(c + Vector3.new(0, 7, 40)), Vector3.new(30, 14, 30)
+	local poi = WorldQuery.poi("ChopShop") or byPlaza("chop")[1]
+	return MapLayout.bayBox(poi)
 end
 
--- Gear shop counter (players walk up and open the shop UI).
-function MapLayout.gearShopCounter(): CFrame
-	local c = MapLayout.poiCenter("GearShop")
-	local p = c + Vector3.new(0, 0, 30)
-	return CFrame.lookAt(p, p + Vector3.new(0, 0, 1)) -- faces the south road / sidewalk
-end
-
--- Police spawn points: on the roads around Police HQ.
-function MapLayout.policeSpawns(): { CFrame }
-	local c = MapLayout.poiCenter("PoliceHQ")
-	return {
-		MapLayout.laneCFrame("Z", math.round((c.X - 80) / S), c.Z, 1),
-		MapLayout.laneCFrame("Z", math.round((c.X + 80) / S), c.Z, -1),
-		MapLayout.laneCFrame("X", math.round((c.Z - 80) / S), c.X, -1),
-		MapLayout.laneCFrame("X", math.round((c.Z + 80) / S), c.X, 1),
-	}
-end
-
--- Where a busted player is released (in front of Police HQ, on the sidewalk).
-function MapLayout.bustedReleaseCFrame(): CFrame
-	local c = MapLayout.poiCenter("PoliceHQ")
-	local p = c + Vector3.new(-50, 3, 0)
-	return CFrame.lookAt(p, p + Vector3.new(-1, 0, 0))
-end
-
-function MapLayout.hotDropCFrames(): { CFrame }
+-- Gear counters in every Lock & Load, nearest the plaza first.
+function MapLayout.gearShopCounters(): { CFrame }
 	local out = {}
-	for _, p in MapConfig.HotDropPoints do
-		local pos = Vector3.new(p.X, MapConfig.ROAD_Y, p.Z)
-		table.insert(out, CFrame.lookAt(pos, pos + Vector3.new(1, 0, 0)))
+	for _, poi in byPlaza("gunshop") do
+		local _, gear = MapLayout.counterFrames(poi)
+		table.insert(out, gear)
 	end
 	return out
 end
 
--- Combat POIs (gta_combat §7.2, §5.1, §8). THIN v1-compatible placeholders: sidewalk spots on generic city blocks,
--- 4 studs inside the curb so nothing spawns inside a lot building. The world-runtime package (MapBuilder v2 /
--- WorldLayout) reimplements these three functions from WorldLayout; keep their signatures.
-export type NamedSpot = { name: string, cframe: CFrame }
-export type SafeZone = { name: string, kind: string, cframe: CFrame, size: Vector3, plotIndex: number? }
-
-local SIDEWALK_SPOT = (S - MapConfig.ROAD_WIDTH) / 2 - 4 -- 56: block center -> sidewalk walking line
-
--- Sidewalk spot on block (bx, bz) on the side facing `face` (unit X or Z), looking out at the road.
-local function sidewalkSpot(bx: number, bz: number, face: Vector3): CFrame
-	local c = MapLayout.blockCenter(bx, bz)
-	local p = c + face * SIDEWALK_SPOT + Vector3.new(0, 3, 0)
-	return CFrame.lookAt(p, p + face)
+-- v1: the gear shop counter (the Lock & Load nearest the plaza).
+function MapLayout.gearShopCounter(): CFrame
+	return MapLayout.gearShopCounters()[1]
 end
 
--- Two hospitals (WASTED respawns at the nearest; 30-stud safe plaza each). CFrames are character spawn points.
+-- Police spawn points: the baked station lanes (server), else a lane at every station's entrance (client).
+function MapLayout.policeSpawns(): { CFrame }
+	local out = {}
+	if WorldLayout.hasServerData() then
+		for _, sp in WorldLayout.Spawns.police do
+			table.insert(out, sp.cframe)
+		end
+		return out
+	end
+	for _, poi in poisOf("police") do
+		table.insert(out, MapLayout.nearestLane(poi.entrance))
+	end
+	return out
+end
+
+function MapLayout.bustedReleaseCFrame(): CFrame
+	return WorldLayout.Spawns.bustedRelease
+end
+
+-- Hot drop landing points: the road point nearest each hot-drop zone centre.
+function MapLayout.hotDropCFrames(): { CFrame }
+	local out = {}
+	for _, z in WorldLayout.HotDrops do
+		local c = z.cframe.Position
+		local p, ei, s = WorldQuery.nearestRoadPoint(c, { maxDistance = 600, ignoreHeight = true, layer = 0 })
+		if p and ei then
+			local _, tan = WorldQuery.edgePoint(ei, s)
+			table.insert(out, CFrame.lookAt(p, p + tan))
+		end
+	end
+	return out
+end
+
+-- Curb parking spots (server: the baked 6k+ spots; client: none).
+function MapLayout.parkingSpots(): { CFrame }
+	local out = {}
+	if not WorldLayout.hasServerData() then
+		return out
+	end
+	for _, sp in WorldLayout.Spawns.parking do
+		table.insert(out, sp.cframe)
+	end
+	return out
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Combat (v2/combat API on the v2 world)
+-------------------------------------------------------------------------------------------------------------------------
+
+-- Hospitals (WASTED respawns at the nearest): the baked respawn CFrames, named after the nearest hospital POI.
 function MapLayout.hospitals(): { NamedSpot }
-	return {
-		{ name = "Pillbox Memorial", cframe = sidewalkSpot(-3, -2, Vector3.new(0, 0, 1)) },
-		{ name = "Seaview General", cframe = sidewalkSpot(2, 1, Vector3.new(0, 0, -1)) },
-	}
+	local out: { NamedSpot } = {}
+	local list = poisOf("hospital")
+	for i, cf in WorldLayout.Spawns.hospital do
+		local best, bestD = nil :: WorldLayout.POI?, math.huge
+		for _, poi in list do
+			local d = (poi.cframe.Position - cf.Position).Magnitude
+			if d < bestD then
+				best, bestD = poi, d
+			end
+		end
+		table.insert(out, { name = if best then best.name else ("Hospital " .. i), cframe = cf })
+	end
+	if #out == 0 then
+		for _, poi in list do
+			table.insert(out, { name = poi.name, cframe = CFrame.new(poi.entrance + Vector3.new(0, 3 + CURB, 0)) })
+		end
+	end
+	return out
 end
 
 -- Nearest hospital to a position (where the player went down).
@@ -279,42 +446,39 @@ function MapLayout.hospitalCFrame(pos: Vector3?): (CFrame, string)
 	return best.cframe, best.name
 end
 
--- FREEDOM ARMS gun stores: GunStoreA downtown, GunStoreB industrial. CFrame = the counter's front (players walk up to
--- it; ShopService places a fallback counter here when the map has no part tagged "GunStoreCounter").
+-- Gun stores (Lock & Load): the gun counter's front, where a player walks up (the map tags it "GunStoreCounter").
 function MapLayout.gunStores(): { NamedSpot }
-	return {
-		{ name = "GunStoreA", cframe = sidewalkSpot(1, -1, Vector3.new(1, 0, 0)) },
-		{ name = "GunStoreB", cframe = sidewalkSpot(-3, -4, Vector3.new(0, 0, -1)) },
-	}
+	local out: { NamedSpot } = {}
+	for _, poi in byPlaza("gunshop") do
+		local gun = MapLayout.counterFrames(poi)
+		local front = gun * CFrame.new(0, 3, -3)
+		table.insert(out, { name = poi.id, cframe = front })
+	end
+	return out
 end
 
--- Safe-zone volumes (no damage in or out, weapons holstered): every garage plot (DamageService applies the own-plot /
--- locked-garage rule), gun stores, the dealership, spray shops, hospital plazas and the Police HQ release area.
-local safeZoneCache: { SafeZone }? = nil
+-- Safe zones (no damage in or out, weapons holstered): garages, gun stores, dealerships and hospitals (the data's
+-- SafeZones), spray bays and the busted-release steps.
+local safeCache: { SafeZone }? = nil
 function MapLayout.safeZones(): { SafeZone }
-	if safeZoneCache then
-		return safeZoneCache
+	local c = safeCache
+	if c then
+		return c
 	end
 	local zones: { SafeZone } = {}
-	for i = 1, #MapConfig.Plots do
+	for i = 1, #WorldLayout.Plots do
 		local cf, size = MapLayout.plotInteriorZone(i)
 		table.insert(zones, { name = "Plot" .. i, kind = "garage", cframe = cf, size = size, plotIndex = i })
 	end
 	for _, g in MapLayout.gunStores() do
 		table.insert(zones, { name = g.name, kind = "gunstore", cframe = g.cframe, size = Vector3.new(30, 16, 30) })
 	end
-	local dealer = MapLayout.poiCenter("Dealership")
-	table.insert(zones, {
-		name = "Dealership",
-		kind = "dealership",
-		cframe = CFrame.new(dealer + Vector3.new(0, 8, 0)),
-		size = Vector3.new(100, 20, 70),
-	})
+	for _, z in WorldLayout.SafeZones do
+		local kind = if string.find(z.id, "Hospital", 1, true) then "hospital" else "dealership"
+		table.insert(zones, { name = z.name, kind = kind, cframe = z.cframe, size = z.size })
+	end
 	for i, z in MapLayout.sprayZones() do
 		table.insert(zones, { name = "Spray" .. i, kind = "spray", cframe = z.cframe, size = z.size })
-	end
-	for _, h in MapLayout.hospitals() do
-		table.insert(zones, { name = h.name, kind = "hospital", cframe = h.cframe, size = Vector3.new(60, 20, 60) })
 	end
 	table.insert(zones, {
 		name = "PoliceHQRelease",
@@ -322,11 +486,10 @@ function MapLayout.safeZones(): { SafeZone }
 		cframe = MapLayout.bustedReleaseCFrame(),
 		size = Vector3.new(24, 14, 24),
 	})
-	safeZoneCache = zones
+	safeCache = zones
 	return zones
 end
 
--- The safe zone containing pos (first match), or nil.
 function MapLayout.safeZoneAt(pos: Vector3): SafeZone?
 	for _, z in MapLayout.safeZones() do
 		if MapLayout.isInBox(z.cframe, z.size, pos) then
@@ -334,23 +497,6 @@ function MapLayout.safeZoneAt(pos: Vector3): SafeZone?
 		end
 	end
 	return nil
-end
-
--- Nearest road-lane CFrame to a world position (used to respawn police / place cars legally).
-function MapLayout.nearestLane(pos: Vector3): CFrame
-	local lineX = math.clamp(math.round(pos.X / S), MapConfig.LINE_MIN, MapConfig.LINE_MAX)
-	local lineZ = math.clamp(math.round(pos.Z / S), MapConfig.LINE_MIN, MapConfig.LINE_MAX)
-	local dx = math.abs(pos.X - lineX * S)
-	local dz = math.abs(pos.Z - lineZ * S)
-	local lim = MapConfig.HALF_EXTENT
-	if dx < dz then
-		-- closest road runs along Z at x = lineX*S
-		local along = math.clamp(pos.Z, -lim, lim)
-		return MapLayout.laneCFrame("Z", lineX, along, 1)
-	else
-		local along = math.clamp(pos.X, -lim, lim)
-		return MapLayout.laneCFrame("X", lineZ, along, 1)
-	end
 end
 
 return MapLayout

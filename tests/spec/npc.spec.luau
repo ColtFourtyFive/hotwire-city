@@ -11,6 +11,9 @@ return function(t)
 	local CFrame = H.roblox.CFrame
 	local Instance = H.roblox.Instance
 	local MapLayout = H.require("src/shared/Util/MapLayout")
+	-- NPC sidewalk wandering is still grid-locked (GridLayout); shops / plaza / zones are the v2 world (MapLayout)
+	local GridLayout = H.require("src/shared/Util/GridLayout")
+	local WorldQuery = H.require("src/shared/Util/WorldQuery")
 	local MapConfig = H.require("src/shared/Config/Map")
 	local Cars = H.require("src/shared/Config/Cars")
 	local CarBuilder = H.require("src/shared/Vehicle/CarBuilder")
@@ -22,7 +25,7 @@ return function(t)
 	local S = MapConfig.GRID_SPACING
 	local BLOCK_HALF = (S - MapConfig.ROAD_WIDTH) / 2
 	local LOT_HALF = BLOCK_HALF - MapConfig.SIDEWALK_WIDTH
-	local CURB_TOP = MapLayout.CURB_TOP
+	local CURB_TOP = GridLayout.CURB_TOP
 
 	local function flatDist(a, b)
 		return math.sqrt((a.X - b.X) ^ 2 + (a.Z - b.Z) ^ 2)
@@ -177,7 +180,7 @@ return function(t)
 		for bx = MapConfig.BLOCK_MIN, MapConfig.BLOCK_MAX do
 			for bz = MapConfig.BLOCK_MIN, MapConfig.BLOCK_MAX do
 				local ring, perSide = NPC._sidewalkRing(bx, bz)
-				local c = MapLayout.blockCenter(bx, bz)
+				local c = GridLayout.blockCenter(bx, bz)
 				t.eq(#ring, perSide * 4, "4 sides")
 				for k = 0, 3 do
 					local corner = ring[k * perSide + 1]
@@ -191,7 +194,7 @@ return function(t)
 						local p = a:Lerp(b, k / 8)
 						local where = ("block %d,%d point %d"):format(bx, bz, i)
 						t.near(p.Y, CURB_TOP, 1e-6, where .. " at curb height")
-						t.ok(not MapLayout.isOnRoad(p), where .. " off the road")
+						t.ok(not GridLayout.isOnRoad(p), where .. " off the road")
 						local off = math.max(math.abs(p.X - c.X), math.abs(p.Z - c.Z))
 						t.ok(off > LOT_HALF and off < BLOCK_HALF, where .. " inside the sidewalk band")
 						local up = p + Vector3.new(0, 2, 0)
@@ -207,9 +210,9 @@ return function(t)
 	end)
 
 	t.test("flee targets are clamped onto the block", function()
-		local c = MapLayout.blockCenter(1, 2)
+		local c = GridLayout.blockCenter(1, 2)
 		local p = NPC._clampToBlock(c + Vector3.new(80, 5, -200), 1, 2)
-		t.ok(not MapLayout.isOnRoad(p), "never into the road")
+		t.ok(not GridLayout.isOnRoad(p), "never into the road")
 		t.near(p.Y, CURB_TOP, 1e-6)
 		t.near(p.X - c.X, BLOCK_HALF - 1.5, 1e-6)
 		local inside = NPC._clampToBlock(c + Vector3.new(10, 0, 10), 1, 2)
@@ -338,14 +341,17 @@ return function(t)
 		for _, pad in MapLayout.dealerPads() do
 			t.ok(flatDist(pad.Position, spots.dealer.Position) > 11, "clear of dealer pad")
 		end
-		t.eq(MapLayout.blockAt(spots.dealer.Position), MapConfig.Blocks.Dealership.x)
+		local function inFootprint(id, pos)
+			local poi = WorldQuery.poi(id)
+			local lp = poi.cframe:PointToObjectSpace(pos)
+			return math.abs(lp.X) <= poi.size.X / 2 and math.abs(lp.Z) <= poi.size.Z / 2
+		end
+		t.ok(inFootprint("Dealership", spots.dealer.Position), "salesman on the dealership lot")
 		for name, cf in spots do
 			t.ok(not MapLayout.isOnRoad(cf.Position), name .. " off the road")
-			t.ok(cf.Position.Y >= CURB_TOP - 1e-6, name .. " on the block")
+			t.ok(cf.Position.Y >= MapLayout.CURB_TOP - 1e-6, name .. " at or above curb height")
 		end
-		local plaza = MapConfig.Blocks.SpawnPlaza
-		local bx, bz = MapLayout.blockAt(spots.cart.Position)
-		t.ok(bx == plaza.x and bz == plaza.z, "cart on the plaza")
+		t.ok(inFootprint("HotwirePlaza", spots.cart.Position), "cart on the plaza")
 		t.ok(flatDist(spots.cart.Position, MapLayout.spawnCFrame().Position) > 20, "clear of the spawn")
 		t.ok(spots.hotdog.LookVector:Dot(spots.cart.LookVector) > 0.99, "vendor faces the cart's front")
 		t.ok((spots.hotdog.Position - spots.cart.Position):Dot(spots.cart.LookVector) < -2, "vendor behind the cart")

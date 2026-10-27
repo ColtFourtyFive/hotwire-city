@@ -1,187 +1,182 @@
 --!nocheck
--- Export the city's top-down geometry for tools/minimap/render_map.py.
+-- Export the v2 world's top-down geometry for tools/minimap/render_map.py.
 --
---   lune run tools/minimap/export.luau <out.json>
+--   lune run tools/minimap/export.luau <out.json> [step=32]
 --
--- Everything comes from the real builders (headless, via tests/harness), so the map image always matches the game:
---   roads     RoadGraph edges of the current layout (MapLayout.roadSegments() or the Config/Map grid): a, b, width,
---             class (highway / avenue / street / alley), level
---   parts     every BasePart MapBuilder.build() makes outside asset slots: name, material, color, top/bottom Y and the
---             8 box corners projected to XZ (the renderer takes the convex hull) or a ball center + radius;
---             Lot parts carry their Zone / Poi / PlotIndex attributes
---   slots     dressed asset slots (Buildings: kit footprint boxes, Props: role + position) - the same boxes the
---             AssetLibrary meshes are fitted into
---   garages   the 8 player garage footprints (Config/Map.Garage in plot space)
---   terrain   MapBuilder.buildTerrain FillBlock ops (park grass, seabed sand, water)
---   pois      Config/Map.Blocks centers
+-- Everything comes from the baked world (Config/WorldLayout through the test harness), so the map image always
+-- matches what MapBuilder builds and what the GPS routes on:
+--   roads      every edge polyline (x, z), width, class, layer, elevated / sunken, bridge spans
+--   parcels    lot footprints (4 corners), use, height, district, tower flag
+--   pois       POI footprints, kind, id;  plots: garage footprints + door
+--   landmarks  footprints of the structural landmarks;  paths, rails
+--   districts  polygons, ids, names, colours
+--   terrain    a height grid (every `step` studs) from Util/WorldTerrain + the water level per sample (sea / reservoir)
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
-local Harness = require("../../tests/harness")
+local H = require("../../tests/harness")
+H.setMode("server")
 
-local out = process.args[1] or "build/minimap_geometry.json"
+local out = process.args[1] or "build/minimap/geometry.json"
+local STEP = tonumber(process.args[2] or "32")
 
-local MapBuilder = Harness.require("src/server/Systems/MapBuilder")
-local MapLayout = Harness.require("src/shared/Util/MapLayout")
-local MapConfig = Harness.require("src/shared/Config/Map")
-local RoadGraph = Harness.require("src/shared/Util/RoadGraph")
-local Vector3 = Harness.roblox.Vector3
+local W = H.require("src/shared/Config/WorldLayout")
+local WT = H.require("src/shared/Util/WorldTerrain")
 
-local function r2(v)
-	return math.floor(v * 100 + 0.5) / 100
+local function r1(v)
+	return math.floor(v * 10 + 0.5) / 10
 end
 
-local function corners(cf, size)
+local function corners(cf, sx, sz)
 	local pts = {}
-	for _, sx in { -0.5, 0.5 } do
-		for _, sy in { -0.5, 0.5 } do
-			for _, sz in { -0.5, 0.5 } do
-				local p = cf * Vector3.new(size.X * sx, size.Y * sy, size.Z * sz)
-				table.insert(pts, { r2(p.X), r2(p.Z) })
-			end
-		end
+	for _, c in { { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } } do
+		local p = cf * H.roblox.Vector3.new(sx / 2 * c[1], 0, sz / 2 * c[2])
+		table.insert(pts, { r1(p.X), r1(p.Z) })
 	end
 	return pts
 end
 
-local function yRange(cf, size)
-	local lo, hi = math.huge, -math.huge
-	for _, sx in { -0.5, 0.5 } do
-		for _, sy in { -0.5, 0.5 } do
-			for _, sz in { -0.5, 0.5 } do
-				local y = (cf * Vector3.new(size.X * sx, size.Y * sy, size.Z * sz)).Y
-				lo = math.min(lo, y)
-				hi = math.max(hi, y)
+local roads = {}
+for ei, e in W.Edges do
+	local pts = {}
+	for _, p in e.points do
+		table.insert(pts, { r1(p.X), r1(p.Z), r1(p.Y) })
+	end
+	table.insert(roads, {
+		id = ei,
+		pts = pts,
+		width = e.width,
+		sidewalk = e.sidewalk,
+		class = e.class,
+		layer = e.layer,
+		elevated = e.elevated,
+		sunken = e.sunken,
+		oneWay = e.oneWay,
+		median = e.median,
+		spans = e.spans,
+		name = e.name,
+	})
+end
+
+local parcels = {}
+for _, p in W.Parcels do
+	table.insert(parcels, {
+		c = corners(p.cframe, p.size.X, p.size.Z),
+		use = p.use,
+		h = p.size.Y,
+		district = p.district,
+		tower = p.tower or false,
+	})
+end
+
+local pois = {}
+for _, p in W.POIs do
+	table.insert(pois, {
+		id = p.id,
+		kind = p.kind,
+		c = corners(p.cframe, p.size.X, p.size.Z),
+		h = p.size.Y,
+		center = { r1(p.cframe.Position.X), r1(p.cframe.Position.Z) },
+	})
+end
+
+local plots = {}
+for _, p in W.Plots do
+	table.insert(plots, {
+		index = p.index,
+		c = corners(p.cframe, p.size.X, p.size.Z),
+		door = { r1(p.door.X), r1(p.door.Z) },
+	})
+end
+
+local landmarks = {}
+for _, l in W.Landmarks do
+	table.insert(landmarks, { id = l.id, kind = l.kind, c = corners(l.cframe, l.size.X, l.size.Z) })
+end
+
+local paths = {}
+for _, p in W.Paths do
+	local pts = {}
+	for _, q in p.points do
+		table.insert(pts, { r1(q.X), r1(q.Z) })
+	end
+	table.insert(paths, { kind = p.kind, width = p.width, pts = pts })
+end
+local rails = {}
+for _, r in W.Rails do
+	local pts = {}
+	for _, q in r.points do
+		table.insert(pts, { r1(q.X), r1(q.Z) })
+	end
+	table.insert(rails, { tracks = r.tracks, spacing = r.spacing or 0, pts = pts })
+end
+
+local districts = {}
+for _, d in W.Districts do
+	local poly = {}
+	for _, p in d.polygon do
+		table.insert(poly, { r1(p.X), r1(p.Z) })
+	end
+	table.insert(districts, { id = d.id, name = d.name, color = d.color, poly = poly })
+end
+
+-- terrain grid
+local B = W.Bounds
+local x0, z0 = math.floor(B.min.X / STEP) * STEP, math.floor(B.min.Z / STEP) * STEP
+local nx = math.floor((B.max.X - x0) / STEP) + 1
+local nz = math.floor((B.max.Z - z0) / STEP) + 1
+local heights, water = table.create(nx * nz), table.create(nx * nz)
+local t0 = os.clock()
+for j = 0, nz - 1 do
+	local z = z0 + j * STEP
+	for i = 0, nx - 1 do
+		local x = x0 + i * STEP
+		local h, wl
+		if not WT.landAtLeast(x, z, -1150) then
+			h, wl = -58, 0
+		else
+			h = WT.heightAt(x, z)
+			wl = -9999
+			if h < 0 and not WT.landAtLeast(x, z, 0) then
+				wl = 0
+			end
+			local wet, level = WT.inWater(x, z)
+			if wet and h < level then
+				wl = level
 			end
 		end
+		heights[j * nx + i + 1] = r1(h)
+		water[j * nx + i + 1] = wl
 	end
-	return r2(lo), r2(hi)
 end
 
-local folder = MapBuilder.build(Harness.workspace)
-table.clear(Harness.terrainOps)
-MapBuilder.buildTerrain(Harness.workspace:FindFirstChildOfClass("Terrain"))
-
--- slots -----------------------------------------------------------------------------------------------------------
-local inSlot = {}
-local slots = {}
-for _, m in MapBuilder.slots(folder) do
-	local boxes = {}
-	for _, b in MapBuilder.slotBoxes(m) do
-		local lo, hi = yRange(b.cframe, b.size)
-		table.insert(boxes, { hull = corners(b.cframe, b.size), bottom = lo, top = hi })
-	end
-	local pivot = m:GetPivot().Position
-	table.insert(slots, {
-		category = m:GetAttribute("Category"),
-		role = m:GetAttribute("Role"),
-		fit = m:GetAttribute("Fit"),
-		pos = { r2(pivot.X), r2(pivot.Z) },
-		boxes = boxes,
+fs.writeDir(out:match("^(.*)/[^/]+$") or ".")
+fs.writeFile(
+	out,
+	serde.encode("json", {
+		version = W.VERSION,
+		hash = W.HASH,
+		bounds = { B.min.X, B.min.Z, B.max.X, B.max.Z },
+		play = { B.playMinX, B.playMinZ, B.playMaxX, B.playMaxZ },
+		roads = roads,
+		parcels = parcels,
+		pois = pois,
+		plots = plots,
+		landmarks = landmarks,
+		paths = paths,
+		rails = rails,
+		districts = districts,
+		terrain = { x0 = x0, z0 = z0, step = STEP, nx = nx, nz = nz, h = heights, water = water },
 	})
-	for _, d in m:GetDescendants() do
-		inSlot[d] = true
-	end
-end
-
--- parts -----------------------------------------------------------------------------------------------------------
-local parts = {}
-for _, d in folder:GetDescendants() do
-	if d:IsA("BasePart") and not inSlot[d] and d.Transparency < 0.95 then
-		local cf, size = d.CFrame, d.Size
-		local entry = {
-			name = d.Name,
-			material = d.Material.Name,
-			color = {
-				math.floor(d.Color.R * 255 + 0.5),
-				math.floor(d.Color.G * 255 + 0.5),
-				math.floor(d.Color.B * 255 + 0.5),
-			},
-			shape = if d:IsA("Part") then d.Shape.Name else d.ClassName,
-		}
-		local lo, hi = yRange(cf, size)
-		entry.bottom, entry.top = lo, hi
-		if d:IsA("Part") and d.Shape.Name == "Ball" then
-			entry.center = { r2(cf.Position.X), r2(cf.Position.Z) }
-			entry.centerY = r2(cf.Position.Y)
-			entry.radius = r2(math.min(size.X, size.Y, size.Z) / 2)
-		else
-			entry.hull = corners(cf, size)
-		end
-		if d.Name == "Lot" then
-			entry.zone = d:GetAttribute("Zone")
-			entry.poi = d:GetAttribute("Poi")
-			entry.plot = d:GetAttribute("PlotIndex")
-			entry.block = { d:GetAttribute("BlockX"), d:GetAttribute("BlockZ") }
-		end
-		table.insert(parts, entry)
-	end
-end
-
--- garages ---------------------------------------------------------------------------------------------------------
-local G = MapConfig.Garage
-local garages = {}
-for i = 1, MapLayout.plotCount() do
-	local depth = G.BACK_Z - G.FRONT_Z
-	local cf = MapLayout.plotToWorld(i, Vector3.new(0, G.WALL_HEIGHT / 2, (G.BACK_Z + G.FRONT_Z) / 2))
-	local size = Vector3.new(G.HALF_WIDTH * 2, G.WALL_HEIGHT, depth)
-	local door = MapLayout.plotToWorld(i, Vector3.new(0, 0, G.FRONT_Z)).Position
-	table.insert(garages, { index = i, hull = corners(cf, size), door = { r2(door.X), r2(door.Z) } })
-end
-
--- roads -----------------------------------------------------------------------------------------------------------
-local graph = RoadGraph.build()
-local roads = {}
-for _, e in graph.edges do
-	local a, b = graph.nodes[e.a], graph.nodes[e.b]
-	table.insert(roads, {
-		a = { r2(a.X), r2(a.Z) },
-		b = { r2(b.X), r2(b.Z) },
-		width = e.width,
-		class = e.class,
-		level = e.level,
-		oneWay = e.oneWay,
-	})
-end
-local nodes = {}
-for i, p in graph.nodes do
-	table.insert(nodes, { r2(p.X), r2(p.Z), #graph.adj[i] })
-end
-
--- terrain ---------------------------------------------------------------------------------------------------------
-local terrain = {}
-for _, op in Harness.terrainOps do
-	if op[1] == "FillBlock" then
-		local lo, hi = yRange(op[2], op[3])
-		table.insert(terrain, { material = op[4].Name, hull = corners(op[2], op[3]), bottom = lo, top = hi })
-	end
-end
-
--- POIs ------------------------------------------------------------------------------------------------------------
-local pois = {}
-for name in MapConfig.Blocks do
-	local c = MapLayout.poiCenter(name)
-	pois[name] = { r2(c.X), r2(c.Z) }
-end
-
-local data = {
-	config = {
-		gridSpacing = MapConfig.GRID_SPACING,
-		roadWidth = MapConfig.ROAD_WIDTH,
-		halfExtent = MapConfig.HALF_EXTENT,
-		sandExtent = MapConfig.SAND_EXTENT,
-		boundary = MapConfig.BOUNDARY,
-		roadY = MapConfig.ROAD_Y,
-		curbTop = MapLayout.CURB_TOP,
-		waterLevel = MapConfig.WATER_LEVEL,
-	},
-	roads = roads,
-	nodes = nodes,
-	parts = parts,
-	slots = slots,
-	garages = garages,
-	terrain = terrain,
-	pois = pois,
-}
-fs.writeFile(out, serde.encode("json", data))
-print(("minimap export: %d roads, %d parts, %d slots, %d garages -> %s"):format(#roads, #parts, #slots, #garages, out))
+)
+print(
+	("minimap export: %d roads, %d parcels, %d pois, terrain %dx%d (%.1f s) -> %s"):format(
+		#roads,
+		#parcels,
+		#pois,
+		nx,
+		nz,
+		os.clock() - t0,
+		out
+	)
+)

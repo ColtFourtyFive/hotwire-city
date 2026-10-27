@@ -78,7 +78,7 @@ return function(t)
 				t.near(got.Z, want.Z, 1e-3, ("plot %d pad %d Z"):format(i, slot))
 				t.near(
 					got.Y,
-					MapLayout.CURB_TOP + PlotService.FLOOR_LIFT + PlotService.PAD_THICKNESS / 2,
+					MapLayout.plotOrigin(i).Position.Y + PlotService.FLOOR_LIFT + PlotService.PAD_THICKNESS / 2,
 					1e-3,
 					"pad Y"
 				)

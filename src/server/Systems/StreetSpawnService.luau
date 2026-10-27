@@ -27,6 +27,8 @@ local Cars = require(Shared.Config.Cars)
 local MapConfig = require(Shared.Config.Map)
 local Rarity = require(Shared.Config.Rarity)
 local MapLayout = require(Shared.Util.MapLayout)
+local WorldLayout = require(Shared.Config.WorldLayout)
+local WorldQuery = require(Shared.Util.WorldQuery)
 local Net = require(Shared.Net)
 local Rolls = require(Shared.Util.Rolls)
 local VehicleService = require(script.Parent.VehicleService)
@@ -189,15 +191,20 @@ function StreetSpawnService._newbieSpots(plotIndex: number): { CFrame }
 			table.insert(bucket, { cf = cf, d = d })
 		end
 	end
-	-- curbside on the plot's side of the road it faces; right-hand parking so the car faces along `travel`
-	local origin = MapLayout.plotOrigin(plotIndex)
-	local face = plotFace(plotIndex)
-	local travel = face:Cross(Vector3.yAxis) -- travelling this way, the plot side of the road is on the right
-	local center = origin.Position + face * (MapConfig.GRID_SPACING / 2)
-	local curb = Vector3.new(center.X, MapConfig.ROAD_Y, center.Z) - face * MapConfig.PARK_OFFSET
-	for _, off in StreetSpawnService.CURBSIDE_OFFSETS do
-		local p = curb + travel * off
-		table.insert(front, { cf = CFrame.lookAt(p, p + travel), d = flatDist(p, door) })
+	-- curbside beside the driveway: the plot's baked curb spot (v2 world) and steps along the curb from it
+	local plot = WorldLayout.Plots[plotIndex]
+	if plot then
+		local base = plot.curbSpot
+		for k = 0, 5 do
+			-- one car length + gap (24) at a time, away from the driveway
+			local p = (base * CFrame.new(0, 0, -24 * k)).Position
+			local _, ei, s = WorldQuery.nearestRoadPoint(p, { maxDistance = 40 })
+			if ei and WorldQuery.isOnRoad(p) then
+				local _, tan = WorldQuery.edgePoint(ei, s)
+				local look = if tan:Dot(base.LookVector) >= 0 then tan else -tan
+				table.insert(front, { cf = CFrame.lookAt(p, p + look), d = flatDist(p, door) })
+			end
+		end
 	end
 	local function byDist(x: { cf: CFrame, d: number }, y: { cf: CFrame, d: number }): boolean
 		return x.d < y.d

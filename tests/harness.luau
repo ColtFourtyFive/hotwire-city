@@ -123,6 +123,15 @@ for _, m in { "FillBlock", "FillBall", "FillCylinder", "FillWedge", "FillRegion"
 		table.insert(Harness.terrainOps, { m, ... })
 	end)
 end
+-- voxel writes are counted, not kept (MapBuilder v2 writes thousands of chunks)
+Harness.voxelWrites = 0
+pcall(roblox.implementMethod, "Terrain", "WriteVoxels", function()
+	Harness.voxelWrites += 1
+end)
+pcall(roblox.implementMethod, "Terrain", "Clear", function()
+	table.clear(Harness.terrainOps)
+	Harness.voxelWrites = 0
+end)
 pcall(roblox.implementMethod, "Instance", "WaitForChild", function(self, name)
 	return self:FindFirstChild(name)
 end)
@@ -467,8 +476,27 @@ local ReplicatedStorageShim = setmetatable({}, {
 	end,
 })
 
+-- ServerScriptService.Server = the src/server tree (e.g. Config/WorldLayout's server-only data); anything else is magic.
+local sssMagic = magic("ServerScriptService")
+local ServerScriptServiceShim = setmetatable({}, {
+	__index = function(_, k)
+		if k == "Server" then
+			return serverNode
+		elseif k == "WaitForChild" or k == "FindFirstChild" then
+			return function(_, name)
+				if name == "Server" then
+					return serverNode
+				end
+				return nil
+			end
+		end
+		return sssMagic[k]
+	end,
+})
+
 local services = {
 	ReplicatedStorage = ReplicatedStorageShim,
+	ServerScriptService = ServerScriptServiceShim,
 	CollectionService = CollectionServiceShim,
 	RunService = RunServiceShim,
 	Players = PlayersShim,

@@ -292,3 +292,26 @@ For each `Parcel`, build within its `cframe` and `size`, with the front facing t
 3. **TrafficService + RoadGraph.fromWorld + PoliceService routing.** These are the biggest grid dependencies.
 4. **StreetSpawn, NPC, Events, Dealership, Shop, Wanted/Vehicle zones, Tutorial / Waypoint.**
 5. **Delete the shim and the old specs.** `tests/spec/maplayout.spec.luau`, `map.spec.luau` and similar test the grid.
+
+## 7. Status after the world runtime (A1)
+
+- **MapBuilder v2 is live.** `src/server/Systems/MapBuilder.luau` + `src/server/Systems/World/*` render the baked
+  world (39,657 parts, `WORLD_SPEC.md` §9). Tags other systems use are unchanged: `Road`, `StreetLight`, `NightGlow`,
+  `Billboard`, `SignalHead`, `GunStoreCounter`, `GearShopCounter`, `DealerPad`, `LeaderboardBoard`, `FerrisWheel`.
+  `Map/Buildings` is created empty for BuildingService (A3).
+- **The shim answers from v2.** `Util/MapLayout.luau` keeps every v1 name and returns v2 data: plots
+  (`plotOrigin` = `Plots[i].cframe`, so `Config/Map.Garage` offsets still work), POIs, hospitals, gun stores, safe
+  zones, dealer pads and showroom, parking (`Spawns.parking`), lanes and `laneCFrame` on real edges, police spawns,
+  the spawn plaza. `RoadGraph.get()` is `RoadGraph.fromWorld()`, so the GPS and the minimap route on the v2 network.
+  `tests/spec/maplayout.spec.luau` checks every `MapLayout.<name>` used in `src/` against v2 data.
+- **Grid-locked code is explicit.** Police patrol math, the v1 traffic grid and NPC sidewalk loops still need grid
+  coordinates; they now import `Util/GridLayout.luau` (the old grid math under its own name) instead of reading
+  grid answers out of the shim. Migrating them to WorldQuery lanes removes `GridLayout`.
+- **Terrain bake.** Runtime terrain is the default (36–41 s of background compute, spawn area first). To bake: in
+  Studio, run `require(game.ServerScriptService.Server.Systems.MapBuilder).buildTerrain(workspace.Terrain)` from the
+  command bar and save the place. The call stamps `Terrain.WorldTerrainHash = WorldLayout.HASH`;
+  `MapBuilder.start()` skips runtime terrain while that stamp matches, and writes it again after any world change.
+- **Streaming.** Cells, the persistent skeleton and predictive `RequestStreamAroundAsync` are in place;
+  `StreamingEnabled` stays off until the vehicle package is ready for it.
+- **Minimap.** `tools/minimap/build.py` renders 4 × 4 tiles of the v2 island (13,312 studs square) from
+  `tools/minimap/export.luau` and writes the uploaded ids into `Config/Minimap.luau`.

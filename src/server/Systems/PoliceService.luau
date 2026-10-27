@@ -50,6 +50,7 @@ local Shared = ReplicatedStorage.Shared
 local Net = require(Shared.Net)
 local Trove = require(Shared.Util.Trove)
 local MapLayout = require(Shared.Util.MapLayout)
+local GridLayout = require(Shared.Util.GridLayout) -- grid-locked road helpers until Police moves to WorldQuery
 local MapConfig = require(Shared.Config.Map)
 local PoliceConfig = require(Shared.Config.Police)
 local VehicleConfig = require(Shared.Config.Vehicle)
@@ -633,10 +634,10 @@ end
 
 -- Lane CFrame nearest p, facing (along its road) toward `towards`.
 function PoliceService._orientedLane(p: Vector3, towards: Vector3): CFrame
-	local lane = MapLayout.nearestLane(p)
+	local lane = GridLayout.nearestLane(p)
 	local look = lane.LookVector
 	local lp = lane.Position
-	local axis: MapLayout.Axis = if math.abs(look.X) > 0.5 then "X" else "Z"
+	local axis: GridLayout.Axis = if math.abs(look.X) > 0.5 then "X" else "Z"
 	local line, along, delta
 	if axis == "X" then
 		line = math.round(lp.Z / S)
@@ -647,7 +648,7 @@ function PoliceService._orientedLane(p: Vector3, towards: Vector3): CFrame
 		along = lp.Z
 		delta = towards.Z - along
 	end
-	return MapLayout.laneCFrame(axis, line, along, if delta >= 0 then 1 else -1)
+	return GridLayout.laneCFrame(axis, line, along, if delta >= 0 then 1 else -1)
 end
 
 -- Candidate spawn points around the suspect, best first: straight behind them, then fanning out, ahead last.
@@ -1544,7 +1545,7 @@ local function think(unit: Unit, st: Suspect, stars: number, now: number)
 			local sRight = Vector3.new(-suspectVel.Z, 0, suspectVel.X) / suspectSpeed
 			pred += sRight * FLANK_OFFSET * flankSide * math.clamp((dist - 15) / 40, 0, 1)
 		end
-		if not MapLayout.isOnRoad(pred) and MapLayout.isOnRoad(st.pos) then
+		if not GridLayout.isOnRoad(pred) and GridLayout.isOnRoad(st.pos) then
 			pred = PoliceService._roadAnchor(pred)
 		end
 		if flatDist(pred, st.pos) > 4 and not hasLineOfSight(pos + UP3, pred + UP3) then
@@ -1871,7 +1872,7 @@ end
 local function groundUnder(p: Vector3, fallbackY: number): Vector3
 	local y
 	if math.abs(p.X) <= EXT + ROAD_HALF and math.abs(p.Z) <= EXT + ROAD_HALF then
-		y = if MapLayout.isOnRoad(p) then MapConfig.ROAD_Y else MapLayout.CURB_TOP
+		y = if GridLayout.isOnRoad(p) then MapConfig.ROAD_Y else GridLayout.CURB_TOP
 	else
 		y = fallbackY
 	end

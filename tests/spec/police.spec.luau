@@ -6,6 +6,8 @@ return function(t)
 	local Vector3 = H.roblox.Vector3
 	local CFrame = H.roblox.CFrame
 	local MapLayout = H.require("src/shared/Util/MapLayout")
+	-- PoliceService's road helpers are still grid-locked (GridLayout) until police routing moves to WorldQuery
+	local GridLayout = H.require("src/shared/Util/GridLayout")
 	local MapConfig = H.require("src/shared/Config/Map")
 	local PoliceConfig = H.require("src/shared/Config/Police")
 	local Economy = H.require("src/shared/Config/Economy")
@@ -25,7 +27,7 @@ return function(t)
 		local n = math.max(1, math.ceil(d / 2))
 		for i = 0, n do
 			local p = a:Lerp(b, i / n)
-			if not MapLayout.isOnRoad(p) then
+			if not GridLayout.isOnRoad(p) then
 				return false, p
 			end
 		end
@@ -106,7 +108,7 @@ return function(t)
 		for _ = 1, 400 do
 			local p = Vector3.new(rng:NextNumber(-950, 950), 0, rng:NextNumber(-950, 950))
 			local a = Police._roadAnchor(p)
-			t.ok(MapLayout.isOnRoad(a), "anchor off road for " .. tostring(p))
+			t.ok(GridLayout.isOnRoad(a), "anchor off road for " .. tostring(p))
 			local cx = math.clamp(p.X, -800, 800)
 			local cz = math.clamp(p.Z, -800, 800)
 			t.ok(flatDist(a, Vector3.new(cx, 0, cz)) <= S / 2 + 1, "anchor too far for " .. tostring(p))
@@ -147,7 +149,7 @@ return function(t)
 			local pos = start
 			local arrived = false
 			local length = 0
-			local firstLegOffRoad = not MapLayout.isOnRoad(start)
+			local firstLegOffRoad = not GridLayout.isOnRoad(start)
 			for hop = 1, 8 do
 				local wp, isTurn = Police._nextWaypoint(pos, target, fwd)
 				if not (hop == 1 and firstLegOffRoad) then
@@ -162,7 +164,7 @@ return function(t)
 						)
 					)
 				else
-					t.ok(MapLayout.isOnRoad(wp), "off-road start must hop onto a road")
+					t.ok(GridLayout.isOnRoad(wp), "off-road start must hop onto a road")
 				end
 				length += flatDist(pos, wp)
 				if fwd and flatDist(pos, wp) > 0.5 then
@@ -190,7 +192,7 @@ return function(t)
 		local pos = Vector3.new(80, 0.6, 70) -- middle of a block, nearest edge is the z=160 road side? no: z=0 edge is 70 away
 		local wp, isTurn = Police._nextWaypoint(pos, Vector3.new(-600, 0, -600))
 		t.eq(isTurn, true)
-		t.ok(MapLayout.isOnRoad(wp))
+		t.ok(GridLayout.isOnRoad(wp))
 		t.ok(flatDist(wp, pos) <= 80, "short hop")
 	end)
 
@@ -421,7 +423,7 @@ return function(t)
 		local function los(a, b)
 			local n = math.max(1, math.ceil((a - b).Magnitude / 4))
 			for i = 0, n do
-				if not MapLayout.isOnRoad(a:Lerp(b, i / n)) then
+				if not GridLayout.isOnRoad(a:Lerp(b, i / n)) then
 					return false
 				end
 			end
@@ -445,7 +447,7 @@ return function(t)
 				along = simRng:NextInteger(-4, 4) * S + 80,
 				lastJ = nil,
 			}
-			local spos = MapLayout.laneCFrame(sus.axis, sus.line, sus.along, sus.dir).Position
+			local spos = GridLayout.laneCFrame(sus.axis, sus.line, sus.along, sus.dir).Position
 			local start = Police._orientedLane(
 				spos + Vector3.new(simRng:NextNumber(-250, 250), 0, simRng:NextNumber(-250, 250)),
 				spos
@@ -479,7 +481,7 @@ return function(t)
 				if math.abs(sus.along) > 790 then
 					sus.dir = -sus.dir
 				end
-				local scf = MapLayout.laneCFrame(sus.axis, sus.line, sus.along, sus.dir)
+				local scf = GridLayout.laneCFrame(sus.axis, sus.line, sus.along, sus.dir)
 				spos, svel = scf.Position, scf.LookVector * suspectSpeed
 				-- cop AI at AI_TICK
 				acc += dt
@@ -492,7 +494,7 @@ return function(t)
 					if Police._usePursuit(L, dist, math.abs(angS), c.v) then
 						keep = nil
 						local pred = spos + svel * math.clamp(dist / 60, 0.3, 1.5)
-						if not MapLayout.isOnRoad(pred) and MapLayout.isOnRoad(spos) then
+						if not GridLayout.isOnRoad(pred) and GridLayout.isOnRoad(spos) then
 							pred = Police._roadAnchor(pred)
 						end
 						if flatDist(pred, spos) > 4 and not los(c.pos, pred) then
@@ -588,7 +590,7 @@ return function(t)
 			local p = Vector3.new(rng:NextNumber(-800, 800), 0, rng:NextNumber(-800, 800))
 			local suspect = Vector3.new(rng:NextNumber(-800, 800), 0, rng:NextNumber(-800, 800))
 			local lane = Police._orientedLane(p, suspect)
-			t.ok(MapLayout.isOnRoad(lane.Position), "lane off road")
+			t.ok(GridLayout.isOnRoad(lane.Position), "lane off road")
 			local look = lane.LookVector
 			local axisDelta = if math.abs(look.X) > 0.5
 				then (suspect.X - lane.Position.X) * look.X

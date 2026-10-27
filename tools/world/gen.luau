@@ -11,8 +11,9 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local Harness = require("../../tests/harness")
 
--- Phase 1 builds the road network (returns WorldLayout with a private `_ctx`); phase 2 adds everything placed on it.
-local PHASES = { "tools/world/gen/WorldLayout.luau", "tools/world/gen/Places.luau" }
+-- Phase 1 builds the road network (returns WorldLayout with a private `_ctx`); phase 2 places POIs, plots, lots,
+-- landmarks, zones and jumps (private `_ctx2`); phase 3 adds spawns, routing, routes, roadblocks, streetscape, stats.
+local PHASES = { "tools/world/gen/WorldLayout.luau", "tools/world/gen/Places.luau", "tools/world/gen/Routes.luau" }
 
 local function requireNode(node)
 	local path = rawget(node, "__path")
@@ -40,6 +41,8 @@ return function()
 	end
 	local W = load(PHASES[1])()
 	load(PHASES[2])()(W)
+	load(PHASES[3])()(W)
 	W._ctx = nil
+	W._ctx2 = nil
 	return W
 end
