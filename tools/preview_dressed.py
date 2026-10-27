@@ -15,7 +15,6 @@
 """
 import argparse
 import json
-import math
 import os
 import subprocess
 import sys
@@ -34,11 +33,18 @@ TMP = "/tmp/claude-0"
 # (eye, target, fov) street-level close-ups; ortho views take (direction, center, span)
 VIEWS = {
     "top": ("ortho", (0.0001, -1, 0.0002), (0, 0, 0), 1960, (1600, 1600)),
-    "iso_sw": ("ortho", (0.62, -0.62, -0.48), (-40, 30, 40), 1900, (1800, 1100)),
-    "iso_ne": ("ortho", (-0.6, -0.56, 0.58), (40, 30, -40), 1900, (1800, 1100)),
-    "downtown": ("persp", (-215, 9, 128), (-40, 70, -60), 68, (1600, 1000)),
-    "beach": ("persp", (520, 7, 846), (180, 14, 780), 62, (1600, 1000)),
-    "plaza": ("persp", (-10, 7, 128), (-135, 16, 60), 64, (1600, 1000)),
+    "iso_sw": ("ortho", (0.62, -0.62, -0.48), (0, 30, 0), 2380, (1800, 1150)),
+    "iso_ne": ("ortho", (-0.6, -0.56, 0.58), (0, 30, 0), 2380, (1800, 1150)),
+    "downtown": ("persp", (-166, 12, 262), (-150, 75, -120), 70, (1600, 1000)),
+    "beach": ("persp", (849, 9, 610), (790, 14, 80), 64, (1600, 1000)),
+    "plaza": ("persp", (-16, 8, 80), (-128, 19, 80), 66, (1600, 1000)),
+}
+# extra QA cameras (render on request with --views): shop ring, docks, suburbs
+EXTRA_VIEWS = {
+    "shops": ("persp", (472, 8, -40), (575, 14, 240), 68, (1600, 1000)),
+    "docks": ("persp", (-330, 9, -806), (60, 16, -740), 66, (1600, 1000)),
+    "suburbs": ("persp", (-648, 8, -230), (-690, 12, 260), 68, (1600, 1000)),
+    "midtown": ("persp", (330, 9, -150), (320, 30, 300), 68, (1600, 1000)),
 }
 HI_RES_RADIUS = 260
 
@@ -47,10 +53,6 @@ def cf_matrix(c):
     pos = np.array(c[0:3], dtype=float)
     rot = np.array([[c[3], c[4], c[5]], [c[6], c[7], c[8]], [c[9], c[10], c[11]]], dtype=float)
     return pos, rot
-
-
-def lerp_color(a, b, t):
-    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
 class Scene:
@@ -94,8 +96,12 @@ class Scene:
                 continue
             pos, rot = cf_matrix(s["cframe"])
             faces = 500
-            if cam_pos is not None and np.linalg.norm(pos - cam_pos) < HI_RES_RADIUS:
-                faces = 1600
+            if cam_pos is not None:
+                dist = np.linalg.norm(pos - cam_pos)
+                if dist < HI_RES_RADIUS:
+                    faces = 3000
+                elif dist < HI_RES_RADIUS * 2:
+                    faces = 1200
             mesh = self.kit.preview(s["category"], s["key"], faces)
             d = self.kit.def_of(s["category"], s["key"])
             k = (s["fit"] or d["size"]) / d["size"]
@@ -215,6 +221,7 @@ def main():
     ap.add_argument("--views", default=",".join(VIEWS))
     ap.add_argument("--fallback", action="store_true")
     ap.add_argument("--ss", type=int, default=2)
+    ap.add_argument("--scale", type=float, default=1.0, help="output size multiplier (quick looks: 0.5)")
     args = ap.parse_args()
 
     src = args.json
@@ -238,8 +245,9 @@ def main():
     print(f"scene batches {time.time() - t0:.1f}s")
     prefix = "dressed_fallback_" if args.fallback else "dressed_"
     for name in args.views.split(","):
-        view = VIEWS[name]
+        view = VIEWS.get(name) or EXTRA_VIEWS[name]
         cam, (W, H), cam_pos = make_camera(view)
+        W, H = int(W * args.scale), int(H * args.scale)
         t0 = time.time()
         batches = list(base)
         sb = scene.slot_batch(cam_pos)

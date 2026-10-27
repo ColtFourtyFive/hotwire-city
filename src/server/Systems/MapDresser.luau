@@ -1,8 +1,9 @@
 --!strict
--- MapDresser: swaps MapBuilder's procedural placeholders for the art kit (docs/ART_PASS.md, AP2).
+-- MapDresser: swaps procedural placeholders for the art kit (docs/ART_PASS.md, AP2).
 --
 -- start() puts the billboard ads up right away (images don't depend on mesh loading), then waits for
--- AssetLibrary.waitAll(25) and dresses every AssetSlot under Workspace.Map:
+-- AssetLibrary.waitAll(25) and dresses every AssetSlot in Workspace (Workspace.Map first, then any other system's
+-- slots), and keeps dressing slots tagged later (rebuilt garages, ...) plus slots whose template loads late:
 --   * resolves the slot's Role to a Config/Assets key (variant groups such as "palm_tree" pick a variant from the
 --     slot position, so every server shows the same city),
 --   * clones the template onto the slot's ground CFrame (slot pivot, plus the optional Yaw attribute),
@@ -10,11 +11,16 @@
 --   * Buildings collide + can be queried (AssetLibrary leaves templates non-colliding); props never collide and small
 --     props cast no shadow,
 --   * removes the placeholder only after the clone is parented in its place.
--- Slots whose template is missing keep their procedural placeholder (and get dressed if the template turns up late).
--- Work is spread over frames (YIELD_EVERY clones per frame) so boot doesn't hitch.
+-- Slots whose template is missing keep their procedural placeholder. A slot with attribute NoDress = true (a system
+-- that dresses its own slots) or Dressed = true is left alone. Work is spread over frames (YIELD_EVERY clones per
+-- frame) so boot doesn't hitch.
 --
--- Public: MapDresser.isDone(), MapDresser.Done (Signal(dressedCount)), MapDresser.dressSlot(slot) / dressAll(root)
--- for other systems that tag their own slots, plus the pure helpers resolve() / adFor() (used by tools/dump.luau).
+-- Billboards: every BasePart tagged "Billboard" gets a Decal on its Front (and Back when AdBack = true) with an
+-- Assets.billboardAds() image picked from the board position; a board that already carries a Decal is skipped, and a
+-- preset AdImage attribute is used instead of the pick. The fallback SurfaceGui text on those faces is hidden.
+--
+-- Public: isDone(), Done (Signal(dressedCount)), dressSlot(slot), dressAll(root, yieldEvery?), applyBillboards(root),
+-- plus the pure helpers resolve() / adFor() / hash() (also used by tools/dump.luau for the previews).
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,7 +35,7 @@ MapDresser.TAG_SLOT = "AssetSlot"
 MapDresser.TAG_BILLBOARD = "Billboard"
 MapDresser.WAIT_TIMEOUT = 25
 MapDresser.YIELD_EVERY = 40
--- Props whose dressed size stays under this (studs, largest dimension) cast no shadow.
+-- Props whose dressed size stays under this (studs, along their fit dimension) cast no shadow.
 MapDresser.SMALL_PROP = 12
 
 MapDresser.Done = Signal.new() -- (dressedCount: number)
@@ -52,7 +58,7 @@ local source: Source? = nil
 
 local function getSource(): Source
 	if not source then
-		local AssetLibrary = require(script.Parent.AssetLibrary) :: any -- lazy: AssetLibrary is later in boot order
+		local AssetLibrary = require(script.Parent.AssetLibrary) :: any -- lazy: keeps boot order flexible
 		source = {
 			get = AssetLibrary.get,
 			clone = AssetLibrary.clone,
@@ -61,7 +67,7 @@ local function getSource(): Source
 	return source :: Source
 end
 
--- Tests swap the template source (the harness has no InsertService).
+-- Tests swap the template source (the harness has no InsertService). nil restores AssetLibrary.
 function MapDresser._setSource(s: Source?)
 	source = s
 end
@@ -103,8 +109,12 @@ function MapDresser.resolve(slot: Instance): (string?, string?)
 	return nil, nil
 end
 
--- Ad image (Content string) for a billboard board: deterministic per board position.
+-- Ad image (Content string) for a billboard board: its preset AdImage, else a deterministic pick by position.
 function MapDresser.adFor(board: BasePart, ads: { string }): string?
+	local preset = board:GetAttribute("AdImage")
+	if type(preset) == "string" and preset ~= "" then
+		return preset
+	end
 	if #ads == 0 then
 		return nil
 	end
@@ -131,7 +141,7 @@ end
 
 -- Dresses one slot. Returns the placed clone, or nil when the slot keeps its placeholder.
 function MapDresser.dressSlot(slot: Model): Model?
-	if not slot.Parent or slot:GetAttribute("Dressed") == true then
+	if not slot.Parent or slot:GetAttribute("Dressed") == true or slot:GetAttribute("NoDress") == true then
 		return nil
 	end
 	local category, key = MapDresser.resolve(slot)
@@ -175,11 +185,6 @@ function MapDresser.dressSlot(slot: Model): Model?
 	clone.Name = slot.Name
 	clone:SetAttribute("SlotRole", slot:GetAttribute("Role"))
 	clone:SetAttribute("Dressed", true)
-	for _, t in slot:GetTags() do
-		if t ~= MapDresser.TAG_SLOT then
-			clone:AddTag(t)
-		end
-	end
 
 	-- the placeholder goes only once the clone stands in its place
 	local parent = slot.Parent
@@ -194,40 +199,47 @@ function MapDresser.dressSlot(slot: Model): Model?
 	return clone
 end
 
--- Puts ad decals on every Billboard board under root (Front, plus Back when AdBack is set) and hides their
--- fallback text on those faces.
+local function applyBoard(board: BasePart, ads: { string }): boolean
+	if board:FindFirstChildWhichIsA("Decal") then
+		return false -- already dressed (by us, or by the system that owns the board)
+	end
+	local image = MapDresser.adFor(board, ads)
+	if not image then
+		return false
+	end
+	local faces = { Enum.NormalId.Front }
+	if board:GetAttribute("AdBack") == true then
+		table.insert(faces, Enum.NormalId.Back)
+	end
+	for _, face in faces do
+		local decal = Instance.new("Decal")
+		decal.Name = "Ad" .. face.Name
+		decal.Face = face
+		decal.Texture = image
+		decal.Parent = board
+		local gui = board:FindFirstChild("SignGui_" .. face.Name)
+		if gui and gui:IsA("SurfaceGui") then
+			gui.Enabled = false
+		end
+	end
+	board.Color = Color3.new(1, 1, 1)
+	board:SetAttribute("AdImage", image)
+	return true
+end
+
+-- Ad decals on every Billboard board under root. Returns how many boards got one.
 function MapDresser.applyBillboards(root: Instance): number
 	local ads = Assets.billboardAds()
 	local count = 0
 	for _, board in CollectionService:GetTagged(MapDresser.TAG_BILLBOARD) do
-		if board:IsA("BasePart") and board:IsDescendantOf(root) and not board:FindFirstChild("AdFront") then
-			local image = MapDresser.adFor(board, ads)
-			if image then
-				local faces = { Enum.NormalId.Front }
-				if board:GetAttribute("AdBack") == true then
-					table.insert(faces, Enum.NormalId.Back)
-				end
-				for _, face in faces do
-					local decal = Instance.new("Decal")
-					decal.Name = "Ad" .. face.Name
-					decal.Face = face
-					decal.Texture = image
-					decal.Parent = board
-					local gui = board:FindFirstChild("SignGui_" .. face.Name)
-					if gui and gui:IsA("SurfaceGui") then
-						gui.Enabled = false
-					end
-				end
-				board.Color = Color3.new(1, 1, 1)
-				board:SetAttribute("AdImage", image)
-				count += 1
-			end
+		if board:IsA("BasePart") and board:IsDescendantOf(root) and applyBoard(board, ads) then
+			count += 1
 		end
 	end
 	return count
 end
 
--- Dresses every slot under root, yielding every YIELD_EVERY clones. Returns the number dressed.
+-- Dresses every slot under root, yielding every `yieldEvery` clones (0 = never). Returns the number dressed.
 function MapDresser.dressAll(root: Instance, yieldEvery: number?): number
 	local slots = {}
 	for _, d in root:GetDescendants() do
@@ -259,48 +271,53 @@ function MapDresser.dressedCount(): number
 	return dressedCount
 end
 
-local function mapRoot(): Instance?
-	local map = Workspace:FindFirstChild("Map")
-	if map then
-		return map
-	end
-	local ok, MapBuilder = pcall(require, script.Parent.MapBuilder)
-	if ok and MapBuilder then
-		return (MapBuilder :: any).getMapFolder()
-	end
-	return nil
-end
-
 function MapDresser.start()
-	local root = mapRoot()
-	if not root then
-		warn("[MapDresser] no Workspace.Map; nothing to dress")
-		done = true
-		MapDresser.Done:Fire(0)
-		return
-	end
-	MapDresser.applyBillboards(root)
+	-- ads first: images load independently of the mesh templates
+	MapDresser.applyBillboards(Workspace)
+	CollectionService:GetInstanceAddedSignal(MapDresser.TAG_BILLBOARD):Connect(function(inst: Instance)
+		task.defer(function()
+			if inst.Parent and inst:IsA("BasePart") and inst:IsDescendantOf(Workspace) then
+				applyBoard(inst, Assets.billboardAds())
+			end
+		end)
+	end)
 
 	local AssetLibrary = require(script.Parent.AssetLibrary) :: any
 	AssetLibrary.waitAll(MapDresser.WAIT_TIMEOUT)
-	local n = MapDresser.dressAll(root)
+	local n = 0
+	local map = Workspace:FindFirstChild("Map")
+	if map then
+		n += MapDresser.dressAll(map)
+	end
+	n += MapDresser.dressAll(Workspace)
 	done = true
 	MapDresser.Done:Fire(n)
 
-	-- late templates (loaded after the timeout): dress the slots still waiting for them
+	-- slots tagged later (e.g. rebuilt garages): deferred, so their builder finishes parenting first
+	CollectionService:GetInstanceAddedSignal(MapDresser.TAG_SLOT):Connect(function(inst: Instance)
+		task.defer(function()
+			if inst.Parent and inst:IsA("Model") and inst:IsDescendantOf(Workspace) then
+				local ok, err = pcall(MapDresser.dressSlot, inst)
+				if not ok then
+					warn("[MapDresser] late slot failed: " .. tostring(err))
+				end
+			end
+		end)
+	end)
+	-- templates that finish loading after the wait: dress the slots still waiting for them
 	AssetLibrary.Ready:Connect(function(category: string, key: string)
 		task.defer(function()
-			if not root.Parent then
-				return
-			end
-			local waiting = 0
-			for _, d in root:GetDescendants() do
-				if d:IsA("Model") and d:HasTag(MapDresser.TAG_SLOT) and d.Parent then
+			local dressed = 0
+			for _, d in CollectionService:GetTagged(MapDresser.TAG_SLOT) do
+				if d:IsA("Model") and d.Parent and d:IsDescendantOf(Workspace) then
 					local cat, k = MapDresser.resolve(d)
-					if cat == category and k == key and MapDresser.dressSlot(d) then
-						waiting += 1
-						if waiting % MapDresser.YIELD_EVERY == 0 then
-							task.wait()
+					if cat == category and k == key then
+						local ok, clone = pcall(MapDresser.dressSlot, d)
+						if ok and clone then
+							dressed += 1
+							if dressed % MapDresser.YIELD_EVERY == 0 then
+								task.wait()
+							end
 						end
 					end
 				end

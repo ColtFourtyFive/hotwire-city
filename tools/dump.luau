@@ -88,7 +88,7 @@ elseif kind == "mapslots" then
 	local slotOf = {}
 	local slots = {}
 	for i, m in MapBuilder.slots(folder) do
-		local category, key = MapDresser.resolve(m)
+		local _, key = MapDresser.resolve(m)
 		local boxes = {}
 		for _, b in MapBuilder.slotBoxes(m) do
 			table.insert(boxes, { cframe = { b.cframe:GetComponents() }, size = { b.size.X, b.size.Y, b.size.Z } })
@@ -133,6 +133,22 @@ elseif kind == "mapslots" then
 				slot = slotOf[d] or 0,
 				nightGlow = d:HasTag("NightGlow"),
 			})
+		end
+	end
+	local mapPartCount = #parts
+	-- garages (PlotService) for context in the preview; skipped quietly if PlotService can't build headlessly
+	local okPlots, PlotService = pcall(Harness.require, "src/server/Systems/PlotService")
+	if okPlots and PlotService and PlotService.buildGarageModel then
+		for i = 1, 8 do
+			local ok, model = pcall(PlotService.buildGarageModel, i)
+			if ok and model then
+				for _, p in Harness.dumpParts(model) do
+					p.slot = 0
+					p.garage = true
+					table.insert(parts, p)
+				end
+				model:Destroy()
+			end
 		end
 	end
 	local ads = Assets.billboardAds()
@@ -181,15 +197,12 @@ elseif kind == "mapslots" then
 			slotParts += 1
 		end
 	end
+	local garageParts = #parts - mapPartCount
 	print(
-		("map parts: %d (%d in placeholders, %d remain dressed); slots: %d buildings, %d props; boards %d"):format(
-			#parts,
-			slotParts,
-			#parts - slotParts,
-			nb,
-			np,
-			#boards
-		)
+		(
+			"map parts: %d (%d in placeholders, %d remain dressed); slots: %d buildings, %d props; boards %d; "
+			.. "+%d garage parts (context)"
+		):format(mapPartCount, slotParts, mapPartCount - slotParts, nb, np, #boards, garageParts)
 	)
 	fs.writeFile(
 		out,

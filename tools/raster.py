@@ -162,6 +162,29 @@ def _raster(x, y, z, W, H):
             pix_all.append((py[ii, jj].astype(np.int64)) * W + px[ii, jj].astype(np.int64))
             dep_all.append(d[ii, jj].astype(np.float32))
             tri_all.append(s[ii])
+    # huge leftovers (screen-filling ground faces right in front of a perspective camera): one at a time over
+    # their bbox clipped to the screen
+    for t in order[ext > 128]:
+        bx0, by0 = max(int(x0[t]), 0), max(int(y0[t]), 0)
+        bx1, by1 = min(int(np.ceil(x[t].max())) + 1, W), min(int(np.ceil(y[t].max())) + 1, H)
+        if bx1 <= bx0 or by1 <= by0:
+            continue
+        gx, gy = np.meshgrid(np.arange(bx0, bx1) + 0.5, np.arange(by0, by1) + 0.5)
+        px, py = gx.ravel(), gy.ravel()
+        (ax, bx_, cx), (ay, by_, cy) = x[t], y[t]
+        den = (by_ - cy) * (ax - cx) + (cx - bx_) * (ay - cy)
+        if abs(den) < 1e-12:
+            continue
+        w0 = ((by_ - cy) * (px - cx) + (cx - bx_) * (py - cy)) / den
+        w1 = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / den
+        w2 = 1 - w0 - w1
+        ins = (w0 >= -1e-6) & (w1 >= -1e-6) & (w2 >= -1e-6)
+        if not ins.any():
+            continue
+        d = w0 * z[t, 0] + w1 * z[t, 1] + w2 * z[t, 2]
+        pix_all.append(py[ins].astype(np.int64) * W + px[ins].astype(np.int64))
+        dep_all.append(d[ins].astype(np.float32))
+        tri_all.append(np.full(int(ins.sum()), t, dtype=np.int64))
     if not pix_all:
         return np.zeros(0, np.int64), np.zeros(0, np.float32), np.zeros(0, np.int64)
     return np.concatenate(pix_all), np.concatenate(dep_all), np.concatenate(tri_all)
@@ -222,6 +245,9 @@ def render(batches, cam, W, H, ss=2, haze=None, outline=True, background=None):
     c, src = _subdivide(cam, c, src, Ws, Hs)
     x, y = _project(cam, c, Ws, Hs)
     z = -c[..., 2]  # distance along view
+    persp = cam.span is None
+    if persp:
+        z = -1.0 / np.maximum(z, 1e-3)  # 1/z is affine in screen space: perspective-correct depth test
 
     opaque = alpha[src] >= 0.999
     img = sky(Ws, Hs) if background is None else np.broadcast_to(np.array(background, np.float32), (Hs, Ws, 3)).copy()
@@ -246,6 +272,9 @@ def render(batches, cam, W, H, ss=2, haze=None, outline=True, background=None):
         a = alpha[s][:, None]
         flat[p] = flat[p] * (1 - a) + shaded[s] * a
 
+    if persp:
+        finite = np.isfinite(depth)
+        depth[finite] = -1.0 / np.minimum(depth[finite], -1e-9)
     if haze is not None:
         dist = depth.reshape(Hs, Ws)
         hz = np.clip((dist - haze[0]) / (haze[1] - haze[0]), 0, 0.75)

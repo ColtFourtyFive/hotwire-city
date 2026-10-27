@@ -230,8 +230,8 @@ def garage_views(scene, out, W=900, H=560):
     imgs.append(label(raster.render(scene.batches(hide_names=hide), cam, W, H, ss=2, background=(30, 34, 52)),
                       "Dollhouse cut-away (roof + front wall hidden)"))
     # 2) loot corner + couch from the owner spawn
-    cam = raster.Camera.persp(P((-4, 9, 12)), P((9, 3.5, 44)), fov=62)
-    imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2), "Hangout: loot corner (max tier) + couch"))
+    cam = raster.Camera.persp(P((0, 9.5, 17)), P((1, 3, 44)), fov=74)
+    imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2), "Hangout: couch, collect pad, loot corner (max tier)"))
     # 3) toward the door: lifts, workbench, shelf, posters
     cam = raster.Camera.persp(P((0, 12, 30)), P((0, 7, -42)), fov=70)
     imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2), "Toward the door: lift corner, shelf, posters"))
@@ -241,9 +241,9 @@ def garage_views(scene, out, W=900, H=560):
     rows = [imgs[0:2], imgs[2:4]]
     # 5) loot tiers 0..4
     tiers = []
-    tw, th = (2 * W) // 5, 300
+    tw, th = (2 * W) // 5, 330
     for t in range(5):
-        cam = raster.Camera.persp(P((3, 8.5, 31)), P((11, 3, 45)), fov=55)
+        cam = raster.Camera.persp(P((6.75, 7.5, 27)), P((6.75, 2.5, 44.5)), fov=88)
         names = ["base", "100/s", "1k/s", "10k/s", "100k/s"]
         tiers.append(label(raster.render(scene.batches(max_tier=t, cars=False), cam, tw, th, ss=2),
                            f"Loot tier {t} ({names[t]})"))
@@ -261,8 +261,8 @@ def dealer_views(scene, out, W=900, H=560):
     imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2, haze=(250, 1200)), "From the north road (drive-out side)"))
     cam = raster.Camera.ortho(np.array([0.75, -0.9, 0.85]), P((-30, 10, 0)), 300)
     imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2), "Aerial (NW)"))
-    cam = raster.Camera.persp(P((-8, 7, -44)), P((0, 8, 40)), fov=72)
-    imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2), "Inside: pads, restock sign, back corners"))
+    cam = raster.Camera.persp(P((10, 9, -2)), P((-26, 5, 40)), fov=70)
+    imgs.append(label(raster.render(scene.batches(), cam, W, H, ss=2), "Inside: back-left corner (palm, hot dog stand), ad frieze"))
     sheet([imgs[0:2], imgs[2:4]], out, scene.dump.get("title"))
 
 

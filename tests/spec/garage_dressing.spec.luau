@@ -266,11 +266,7 @@ return function(t)
 		local tiers = PlotService._lootTierModels(m)
 		t.eq(#tiers, #PlotService.LOOT_TIERS, "tier models")
 		local function visibleLoot()
-			local n = 0
-			for _, s in slotsOf(m, "LootSlot") do
-				n += 1
-			end
-			return n
+			return #slotsOf(m, "LootSlot")
 		end
 		local last = -1
 		for tier = 0, #PlotService.LOOT_TIERS do
@@ -463,6 +459,97 @@ return function(t)
 			local front = it.min.X < signMax.X and it.max.X > signMin.X and it.max.Z < signMin.Z and it.min.Z > -60
 			local tall = it.min.Y < signMax.Y and it.max.Y > signMin.Y
 			t.ok(not (front and tall), it.name .. " hides the restock sign")
+		end
+	end)
+
+	t.test("turntable rims: chase brightens, rarity tints, empty dims", function()
+		H.setMode("client")
+		local DC = H.require("src/client/Controllers/DealershipClient")
+		H.setMode("server")
+		local base = R.Color3.fromRGB(255, 52, 140)
+		local gold = R.Color3.fromRGB(255, 200, 40)
+		local function lum(c)
+			return c.R + c.G + c.B
+		end
+		local lo, hi = math.huge, -math.huge
+		for k = 0, 40 do
+			local col = DC._rimColor(base, nil, false, k * 0.05, 1)
+			lo, hi = math.min(lo, lum(col)), math.max(hi, lum(col))
+		end
+		t.ok(hi - lo > 0.2, "chase pulses")
+		t.ok(lo >= lum(base) - 1e-6, "never darker than the brand color")
+		local tinted = DC._rimColor(base, gold, false, 0, 1)
+		t.ok(math.abs(tinted.G - gold.G) < 0.3 and tinted.G > base.G, "rarity tint")
+		t.ok(lum(DC._rimColor(base, gold, true, 0, 1)) < lum(gold) * 0.5, "empty pad dims")
+		-- neighbors are out of phase (a chase, not a blink)
+		local a, b = DC._rimColor(base, nil, false, 0.3, 1), DC._rimColor(base, nil, false, 0.3, 3)
+		t.ok(math.abs(lum(a) - lum(b)) > 1e-3, "phase offset per pad")
+	end)
+
+	t.test("MapDresser.dressAll dresses the garage + showroom slots (fake templates)", function()
+		local okReq, MapDresser = pcall(H.require, "src/server/Systems/MapDresser")
+		if not okReq or typeof(MapDresser) ~= "table" or not MapDresser._setSource or not MapDresser.dressAll then
+			return -- MapDresser not available in this tree: nothing to check
+		end
+		local templates = {}
+		local function template(cat, key)
+			local def = Assets[cat] and Assets[cat][key]
+			if not def then
+				return nil
+			end
+			local id = cat .. "/" .. key
+			if not templates[id] then
+				local tm = R.Instance.new("Model")
+				tm.Name = key
+				local root = R.Instance.new("Part")
+				root.Name = "AssetRoot"
+				root.Size = Vector3.one
+				root.CFrame = R.CFrame.new()
+				root.Parent = tm
+				local body = R.Instance.new("Part")
+				body.Name = "Body"
+				body.Size = Vector3.new(def.size, def.size, def.size)
+				body.CFrame = R.CFrame.new(0, def.size / 2, 0)
+				body.Parent = tm
+				tm.PrimaryPart = root
+				templates[id] = tm
+			end
+			return templates[id]
+		end
+		MapDresser._setSource({
+			get = template,
+			clone = function(cat, key)
+				local tm = template(cat, key)
+				return tm and tm:Clone()
+			end,
+		})
+		local garage = PlotService.buildGarageModel(5) -- fresh: dressing replaces the slots
+		local ok, err = pcall(function()
+			for _, root in { garage.Dressing, select(2, dealerDressing()) } do
+				local want = {}
+				for _, slot in slotsOf(root, "AssetSlot") do
+					want[slot.Name] = { pivot = slot.WorldPivot, role = slot:GetAttribute("Role") }
+				end
+				local n = MapDresser.dressAll(root, 0)
+				local expected = 0
+				for _ in want do
+					expected += 1
+				end
+				t.eq(n, expected, root.Name .. ": every slot dressed")
+				t.eq(#slotsOf(root, "AssetSlot"), 0, root.Name .. ": no placeholder left")
+				for name, w in want do
+					local clone = root:FindFirstChild(name)
+					t.ok(clone and clone:GetAttribute("Dressed") == true, name .. " clone in place")
+					t.ok((clone:GetPivot().Position - w.pivot.Position).Magnitude < 1e-3, name .. " stands on its slot")
+					t.ok(clone:GetPivot().LookVector:Dot(w.pivot.LookVector) > 0.999, name .. " faces like its slot")
+				end
+			end
+			-- loot is PlotService's: MapDresser leaves it alone
+			t.ok(#slotsOf(garage.Loot, "LootSlot") >= 1, "loot slots untouched")
+		end)
+		MapDresser._setSource(nil)
+		if not ok then
+			error(err, 0)
 		end
 	end)
 end

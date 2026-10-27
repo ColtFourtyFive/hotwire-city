@@ -466,10 +466,11 @@ local function onBackWall(name: string, role: string, fit: number, x: number, y:
 	return spotAt(name, role, fit, Vector3.new(x, y, IN_BZ - d / 2 - WALL_GAP), -Vector3.zAxis, tier)
 end
 
--- Where every kit prop of plot `index` stands (plot-local). Pure + deterministic: odd plots put the car lift in the
--- front-left corner, even plots front-right; every third plot runs a second lift in the other corner (its tool chest
--- and barrels move to the side wall, the tire stack to the back corner). The shelf always stands right of the door
--- (the lock button owns the left), the workbench beside the lift; the loot corner flanks the collect pad.
+-- Where every kit prop of plot `index` stands (plot-local). Pure + deterministic. Left/right as seen from inside,
+-- facing the door: odd plots put the car lift in the front-left (-X) corner, even plots front-right; every third plot
+-- runs a second lift in the other corner (its tool chest and barrels move to the side wall, the tire stack to the back
+-- corner). The shelf always stands right of the door (the lock button owns the left), the workbench beside the lift;
+-- the loot corner flanks the collect pad.
 function PlotService._dressLayout(index: number): { DressSpot }
 	local side = if index % 2 == 1 then -1 else 1 -- lift corner
 	local other = -side
@@ -1506,13 +1507,13 @@ function PlotService.buildGarageModel(index: number): Model
 		local parent: Instance = if spot.tier == nil
 			then dressing
 			elseif spot.tier == 0 then loot
-			else tierModels[spot.tier]
+			else tierModels[spot.tier] or loot
 		slotModel(parent, spot, origin, accent)
 	end
 	-- a warm glow over the pile once the trophy shows up
 	local glowAt = G.COLLECT_CENTER + Vector3.new(16, 7, 2)
 	local glow = makePart(
-		tierModels[3],
+		tierModels[math.min(3, #tierModels)] or loot,
 		"LootGlow",
 		Vector3.new(0.4, 0.4, 0.4),
 		L(glowAt.X, glowAt.Y, glowAt.Z),
@@ -1527,7 +1528,7 @@ function PlotService.buildGarageModel(index: number): Model
 	glowLight.Parent = glow
 	model:SetAttribute("LootTier", #PlotService.LOOT_TIERS)
 
-	-- ad posters inside the front wall + the city logo over the owner sign (front) and on its back
+	-- two different ad posters inside the front wall, either side of the door (deterministic per plot)
 	local ads = Assets.billboardAds()
 	if #ads > 0 then
 		local first = ((index - 1) * 3) % #ads + 1
@@ -1752,6 +1753,29 @@ local function dressLoot(role: string?)
 		for _, slot in st.lootSlots do
 			if role == nil or slot:GetAttribute("Role") == role then
 				dressLootSlot(slot)
+			end
+		end
+	end
+end
+
+-- Hand each garage's wall-prop slots to MapDresser (docs/ART_PASS.md AP2: dressAll(root) is its entry point for
+-- systems that tag their own slots). `lateOnly` waits for the first full pass so boot doesn't dress piecemeal.
+local wallPassDone = false
+local function dressWallProps(lateOnly: boolean)
+	if lateOnly and not wallPassDone then
+		return
+	end
+	wallPassDone = true
+	local MapDresser = sys("MapDresser")
+	if not MapDresser or typeof(MapDresser.dressAll) ~= "function" then
+		return
+	end
+	for _, st in plots do
+		local dressing = st.model:FindFirstChild("Dressing")
+		if dressing then
+			local ok, err = pcall(MapDresser.dressAll, dressing)
+			if not ok then
+				warn("[PlotService] wall props: " .. tostring(err))
 			end
 		end
 	end
@@ -2311,10 +2335,19 @@ function PlotService.start()
 		ready:Connect(function(cat: string, key: string)
 			if cat == "Props" then
 				dressLoot(key)
+				dressWallProps(true)
 			end
 		end)
 	end
 	dressLoot(nil)
+	-- Wall props: MapDresser's public dressAll on each garage's Dressing folder once the kit has loaded (idempotent:
+	-- a dressed slot is replaced by its clone, so a MapDresser pass over all of Workspace finds nothing left here).
+	task.spawn(function()
+		if AssetLibrary and typeof(AssetLibrary.waitAll) == "function" then
+			pcall(AssetLibrary.waitAll, 30)
+		end
+		dressWallProps(false)
+	end)
 
 	local handled: { [Player]: boolean } = {}
 	local function onPlayer(player: Player)

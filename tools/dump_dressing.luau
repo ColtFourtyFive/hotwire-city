@@ -15,7 +15,6 @@ local Harness = require("../tests/harness")
 local roblox = Harness.roblox
 local Instance = roblox.Instance
 local CFrame = roblox.CFrame
-local Vector3 = roblox.Vector3
 
 local args = process.args
 local kind = args[1]

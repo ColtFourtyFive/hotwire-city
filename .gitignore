@@ -6,3 +6,4 @@ roblox.yml.bak
 build/
 *.rbxlx
 *.rbxl
+__pycache__/

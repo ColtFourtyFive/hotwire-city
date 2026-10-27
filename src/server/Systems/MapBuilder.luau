@@ -191,26 +191,6 @@ local AD_TEXTS = {
 	"VROOM VITAMINS",
 	"GARAGE GOALS",
 }
-local SHOP_NAMES = {
-	"PIZZA",
-	"DONUTS",
-	"TACOS",
-	"BURGERS",
-	"ARCADE",
-	"COFFEE",
-	"SUSHI",
-	"GYM",
-	"COMICS",
-	"TOYS",
-	"NOODLES",
-	"BOBA",
-	"DINER",
-	"MUSIC",
-	"FRIES",
-	"HOT DOGS",
-	"SNEAKERS",
-	"PETS",
-}
 
 ---------------------------------------------------------------------------------------------------------------
 -- Instance helpers
@@ -624,6 +604,7 @@ local OVERHANG: { [string]: { { number } } } = {
 	billboard = { { 0, -0.055, 0.27, 0.64, 0, 0.5 }, { 0, 0, 1, 1, 0.5, 1 } },
 	palm_tree = { { 0, 0, 0.6, 0.6, 0, 0.25 }, { 0, 0, 1, 1, 0.25, 1 } },
 	tree = { { 0, 0, 0.6, 0.6, 0, 0.25 }, { 0, 0, 1, 1, 0.25, 1 } },
+	beach_umbrella = { { 0, 0, 0.2, 0.2, 0, 0.7 }, { 0, 0, 1, 1, 0.7, 1 } },
 }
 
 local function kitDef(category: string, key: string): Assets.AssetDef?
@@ -1059,13 +1040,15 @@ local function streetLight(ctx: Ctx, pole: Vector3, outward: Vector3)
 	local m = propSlot(ctx.props, "StreetLamp", "street_lamp", ground, LAMP_FIT)
 	local base = Vector3.new(pole.X, CURB_TOP, pole.Z)
 	part(m, "LightPole", Vector3.new(0.7, 15, 0.7), CFrame.new(base + Vector3.new(0, 7.5, 0)), C.pole)
-	local headPos = base + outward * (4.4 * k) + Vector3.new(0, 15.2 * k, 0)
+	local headPos = base + outward * (4.4 * k) + Vector3.new(0, 14.2 * k, 0)
 	deco(m, "LampArm", Vector3.new(0.5, 0.5, 4.6 * k), CFrame.lookAt(headPos - outward * 2.2 * k, headPos), C.pole)
 	deco(m, "LampHead", Vector3.new(2.6, 1, 3), CFrame.lookAt(headPos, headPos + outward), C.pole)
-	local bulb = ball(ctx.props, "LampBulb", 1.3, base + outward * (5.1 * k) + Vector3.new(0, 14.1 * k, 0), C.lampDay, {
-		collide = false,
-		shadow = false,
-	})
+	-- the bulb peeks out under the kit lamp's globe (globe bottom ~13 studs up, 4.4 out from the pole)
+	local bulb =
+		ball(ctx.props, "LampBulb", 1.2, base + outward * (4.4 * k) + Vector3.new(0, 12.75 * k, 0), C.lampDay, {
+			collide = false,
+			shadow = false,
+		})
 	nightGlow(bulb, C.lampNight)
 	tag(bulb, MapBuilder.TAG_STREET_LIGHT)
 	-- PERF: short-range, shadowless; ~100 lamps city-wide (mobile budget, see ART_PASS.md)
@@ -1632,6 +1615,20 @@ local function hedge(ctx: Ctx, o: Vector3, x0: number, z0: number, x1: number, z
 	)
 end
 
+-- White picket fence along the lot edge on `side` from along-coordinate a0 to a1 (decor: never collides).
+local function picketFence(ctx: Ctx, o: Vector3, side: string, a0: number, a1: number)
+	if a1 - a0 < 2 then
+		return
+	end
+	local sd = SIDES[side]
+	local c = sd.normal * (LOT_HALF - 0.8) + sd.along * ((a0 + a1) / 2)
+	local len = a1 - a0
+	local size = if sd.along.X ~= 0 then Vector3.new(len, 2.2, 0.35) else Vector3.new(0.35, 2.2, len)
+	part(ctx.blocks, "PicketFence", size, CFrame.new(at(o, c.X, c.Z) + Vector3.new(0, 1.1, 0)), C.white, {
+		collide = false,
+	})
+end
+
 -- Roadside pylon sign (Americana): pole + lit board facing `dir`.
 local function pylonSign(ctx: Ctx, pos: Vector3, dir: Vector3, text: string, color: Color3)
 	local h = 15
@@ -1803,11 +1800,56 @@ local function fillDowntown(ctx: Ctx, rng: Random, bx: number, bz: number, o: Ve
 			ball(ctx.blocks, "Shrub", 7, at(o, cx, cz) + Vector3.new(0, 2.4, 0), C.leafB, { collide = false })
 		end
 		if i == 2 then
-			-- newspaper box at the plaza's sidewalk edge
+			-- newspaper box or trash can at the plaza's sidewalk edge
 			local sd = SIDES[Q.sides[1]]
 			local np = sd.normal * (LOT_HALF - 1.5) + sd.along * (if sd.along.X ~= 0 then cx else cz)
-			newspaperBox(ctx.props, groundAt(at(o, np.X, np.Z), sd.normal))
+			if (bx + bz) % 2 == 0 then
+				newspaperBox(ctx.props, groundAt(at(o, np.X, np.Z), sd.normal))
+			else
+				trashCan(ctx.props, groundAt(at(o, np.X, np.Z), sd.normal))
+			end
 		end
+	end
+end
+
+-- Flat-roof kit buildings that can carry a rooftop ad: { roof height / H, board depth from the front / D }.
+local ROOF_AD: { [string]: { number } } = {
+	convenience_store = { 1.0, 0.45 },
+	pizza_shop = { 1.0, 0.5 },
+	office_block = { 0.94, 0.55 },
+}
+
+-- Rooftop billboard (tag "Billboard", 16:9 like the ad art) on posts sunk into the roof; lives outside the slot.
+local function rooftopAd(ctx: Ctx, rng: Random, role: string, origin: CFrame, dims: Vector3)
+	local roof = ROOF_AD[role]
+	if not roof then
+		return
+	end
+	local bw = math.min(dims.X * 0.8, 30)
+	local bh = bw * 9 / 16
+	local roofY = dims.Y * roof[1]
+	local z = -dims.Z / 2 + dims.Z * roof[2]
+	local ad = adText(ctx)
+	local board = sign(
+		ctx.props,
+		"Billboard",
+		ad,
+		Vector3.new(bw, bh, 0.8),
+		origin * CFrame.new(0, roofY + 3 + bh / 2, z),
+		C.white,
+		pick(rng, SHOP),
+		{ glow = pick(rng, NEON), maxDistance = 500 }
+	)
+	tag(board, MapBuilder.TAG_BILLBOARD)
+	board:SetAttribute("AdText", ad)
+	for _, sx in { -1, 1 } do
+		part(
+			ctx.props,
+			"BillboardPost",
+			Vector3.new(0.8, 7, 0.8),
+			origin * CFrame.new(sx * bw * 0.35, roofY - 0.5, z + 0.6),
+			C.metal
+		)
 	end
 end
 
@@ -1816,10 +1858,10 @@ end
 local MID_ROLES =
 	{ "apartment_balcony", "brick_loft", "office_block", "apartment_balcony", "brick_loft", "convenience_store" }
 local MID_MAX: { [string]: number } = {
-	apartment_balcony = 1.3,
-	brick_loft = 1.35,
-	office_block = 1.1,
-	convenience_store = 1.3,
+	apartment_balcony = 1.4,
+	brick_loft = 1.5,
+	office_block = 1.12,
+	convenience_store = 1.4,
 }
 
 local function pocketPark(ctx: Ctx, rng: Random, o: Vector3, side: string, busStopHere: boolean)
@@ -1869,7 +1911,10 @@ local function fillMidtown(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vec
 		local dims = KIT_DIMS[role] * scale
 		local sgn = if rng:NextNumber() < 0.5 then -1 else 1
 		local along = sgn * (BUILD_HALF - dims.X / 2 - 1)
-		frontBuilding(ctx, rng, o, role, side, along, scale, 1)
+		local _, _, origin = frontBuilding(ctx, rng, o, role, side, along, scale, 1)
+		if rng:NextNumber() < 0.5 then
+			rooftopAd(ctx, rng, role, origin, dims)
+		end
 		-- the rest of the half along the street: a parking lot
 		local free = 100 - dims.X - 4
 		if free >= 22 then
@@ -1908,14 +1953,17 @@ local SHOP_PLAN: { [string]: { string } } = {
 	["2,3"] = { "corner", "convenience_store" },
 }
 
-local SHOP_MAX: { [string]: number } = { diner = 1.3, pizza_shop = 1.3, donut_shop = 1.45, convenience_store = 1.3 }
+local SHOP_MAX: { [string]: number } = { diner = 1.5, pizza_shop = 1.5, donut_shop = 1.6, convenience_store = 1.45 }
 local QUAD_KEYS = { "NW", "NE", "SE", "SW" }
 
 -- Shop on a corner quadrant facing one street, parking beside it along that street, pylon sign at the corner.
 local function cornerShop(ctx: Ctx, rng: Random, o: Vector3, role: string, q: string, side: string)
-	local scale = fitScale(role, 50, 44, SHOP_MAX[role] or 1.3)
+	local scale = fitScale(role, 56, 48, SHOP_MAX[role] or 1.3)
 	local dims = KIT_DIMS[role] * scale
-	frontBuilding(ctx, rng, o, role, side, quadAlong(q, side, dims.X), scale, 2)
+	local _, _, origin = frontBuilding(ctx, rng, o, role, side, quadAlong(q, side, dims.X), scale, 2)
+	if rng:NextNumber() < 0.6 then
+		rooftopAd(ctx, rng, role, origin, dims)
+	end
 	local sd = SIDES[side]
 	local Q = QUADRANTS[q]
 	local sgn = if sd.along.X ~= 0 then Q.x else Q.z
@@ -1953,7 +2001,7 @@ local function fillShops(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vecto
 		end
 	elseif kind == "gas" then
 		local side = QUADRANTS[q].sides[rng:NextInteger(1, 2)]
-		local scale = fitScale("gas_station", 66, 66, 1.08)
+		local scale = fitScale("gas_station", 70, 70, 1.15)
 		local dims = KIT_DIMS.gas_station * scale
 		frontBuilding(ctx, rng, o, "gas_station", side, quadAlong(q, side, dims.X), scale, 2)
 		local sd = SIDES[side]
@@ -1968,7 +2016,7 @@ local function fillShops(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vecto
 		local bp = bn * 36
 			+ Vector3.new(oq.x, 0, oq.z) * 22 * (if bn.X ~= 0 then Vector3.new(0, 0, 1) else Vector3.new(1, 0, 0))
 		billboardProp(ctx, groundAt(at(o, bp.X, bp.Z), bn), 34, true)
-		local tp = Vector3.new(oq.x, 0, oq.z) * 22 - bn * 14
+		local tp = Vector3.new(oq.x * 38, 0, oq.z * 4)
 		roundTree(ctx.props, at(o, tp.X, tp.Z), rand(rng, 18, 22), rng)
 	else -- parking
 		parkingLot(ctx, o, 0, -14, 96, 68, true)
@@ -1991,17 +2039,40 @@ local function fillSuburbs(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vec
 	for i = 1, count do
 		local side = sides[i]
 		local role = if not double and (bz + bx) % 3 == 0 then "beach_villa" else "suburban_house"
-		local scale = if role == "beach_villa" then 1.1 else 1.35
+		local scale = if role == "beach_villa" then 1.3 else 1.6
 		local along = (if i == 1 then 1 else -1) * rand(rng, 8, 16)
-		local _, dims = frontBuilding(ctx, rng, o, role, side, along, scale, 12)
+		local _, dims = frontBuilding(ctx, rng, o, role, side, along, scale, 10)
 		local sd = SIDES[side]
 		local alongX = sd.along.X ~= 0
 		-- driveway beside the house, down to the street
 		local dw = sd.normal * (BUILD_HALF - 6) + sd.along * (along + dims.X / 2 + 5)
 		flat(ctx, "Driveway", o, dw.X, dw.Z, if alongX then 8 else 14, if alongX then 14 else 8, rgb(206, 204, 210))
+		-- picket fence along the front lawn, open at the driveway; mailbox by the gap
+		local da = along + dims.X / 2 + 5
+		picketFence(ctx, o, side, -48, da - 6)
+		picketFence(ctx, o, side, da + 6, 48)
 		if i == 1 and (bx + bz) % 2 == 0 then
-			local mp = sd.normal * (LOT_HALF - 1.5) + sd.along * (along + dims.X / 2 + 11)
+			local mp = sd.normal * (LOT_HALF - 2.5) + sd.along * math.min(da + 4.6, 46)
 			mailbox(ctx.props, groundAt(at(o, mp.X, mp.Z), sd.normal))
+		elseif i == 1 then
+			-- a round bush by the porch
+			local bp = sd.normal * 44 + sd.along * (along - dims.X / 4)
+			bush(ctx.props, at(o, bp.X, bp.Z), 5, rng)
+		end
+		-- garage at the top of the driveway (procedural: it stays in the dressed city)
+		if da + 6 <= 48 then
+			local gp = sd.normal * 31 + sd.along * (da + 0.8)
+			local gcf = CFrame.lookAt(at(o, gp.X, gp.Z), at(o, gp.X, gp.Z) + sd.normal)
+			local wall = pick(rng, PASTEL)
+			part(ctx.blocks, "HouseGarage", Vector3.new(8.6, 8, 12), gcf * CFrame.new(0, 4, 0), wall)
+			part(
+				ctx.blocks,
+				"HouseGarageRoof",
+				Vector3.new(9.2, 0.8, 12.8),
+				gcf * CFrame.new(0, 8.4, 0),
+				pick(rng, ROOF)
+			)
+			deco(ctx.blocks, "GarageDoor", Vector3.new(7, 6, 0.3), gcf * CFrame.new(0, 3.2, -6.05), C.white)
 		end
 		-- front-yard shade tree on the far side from the driveway (every other house)
 		if (bx + bz + i) % 2 == 1 or double then
@@ -2010,10 +2081,31 @@ local function fillSuburbs(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vec
 			roundTree(ctx.props, at(o, tp.X, tp.Z), rand(rng, 16, 21), rng)
 		end
 		if not double then
-			local back = -sd.normal * 18 + sd.along * along
+			local back = -sd.normal * 25 + sd.along * along
 			pool(ctx, o, back.X, back.Z, if alongX then 18 else 10, if alongX then 10 else 18)
 			local c = -sd.normal * 49
 			hedge(ctx, o, c.X - sd.along.X * 44, c.Z - sd.along.Z * 44, c.X + sd.along.X * 44, c.Z + sd.along.Z * 44)
+			-- backyard: garden shed + vegetable rows
+			local sp = -sd.normal * 40 + sd.along * -32
+			local scf = CFrame.lookAt(at(o, sp.X, sp.Z), at(o, sp.X, sp.Z) + sd.normal)
+			part(ctx.blocks, "Shed", Vector3.new(7, 5, 6), scf * CFrame.new(0, 2.5, 0), C.wood, {
+				material = Enum.Material.WoodPlanks,
+			})
+			wedge(ctx.blocks, "ShedRoof", Vector3.new(7.6, 2.4, 6.6), scf * CFrame.new(0, 6.2, 0), rgb(150, 70, 60))
+			for r = 0, 2 do
+				local gp = -sd.normal * (34 + r * 4) + sd.along * 34
+				flat(
+					ctx,
+					"VeggieRow",
+					o,
+					gp.X,
+					gp.Z,
+					if alongX then 14 else 2,
+					if alongX then 2 else 14,
+					({ rgb(120, 200, 90), rgb(240, 120, 60), rgb(200, 220, 80) })[r + 1],
+					0.6
+				)
+			end
 		end
 	end
 end
@@ -2025,7 +2117,7 @@ local function fillBeachfront(ctx: Ctx, rng: Random, bx: number, bz: number, o: 
 	local idx = if side == "E" then bz else bx
 	local hotel = idx % 2 == 0
 	local role = if hotel then "hotel_beach" else "beach_villa"
-	local scale = if hotel then 1.25 else 1.15
+	local scale = if hotel then 1.45 else 1.35
 	local along = if hotel then -18 else 16
 	local _, dims = frontBuilding(ctx, rng, o, role, side, along, scale, 10)
 	local sd = SIDES[side]
@@ -2044,12 +2136,71 @@ end
 
 local CONTAINER_COLORS = { rgb(220, 90, 50), rgb(40, 120, 200), rgb(60, 170, 90), rgb(240, 190, 50), rgb(170, 60, 70) }
 
-local function fillDocks(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vector3)
+-- Procedural container stack (background bulk; same bounds as the kit container): `levels` high, long axis along dir.
+local function containerStack(ctx: Ctx, o: Vector3, x: number, z: number, dir: Vector3, levels: number, rng: Random)
+	local size = KIT_DIMS.shipping_container
+	local base = groundAt(at(o, x, z), dir)
+	for k = 0, levels - 1 do
+		local col = pick(rng, CONTAINER_COLORS)
+		part(ctx.blocks, "ContainerStack", size, base * CFrame.new(0, size.Y * (k + 0.5), 0), col, {
+			material = Enum.Material.CorrodedMetal,
+		})
+		deco(
+			ctx.blocks,
+			"ContainerStripe",
+			Vector3.new(size.X + 0.1, 0.6, size.Z + 0.1),
+			base * CFrame.new(0, size.Y * (k + 0.85), 0),
+			col:Lerp(C.white, 0.35)
+		)
+	end
+end
+
+-- Gantry crane over a container row (procedural landmark of the docks).
+local function gantry(ctx: Ctx, o: Vector3, x0: number, x1: number, z: number)
+	local h = 26
+	local yellow = rgb(255, 196, 40)
+	for _, x in { x0, x1 } do
+		for _, dz in { -9, 9 } do
+			part(
+				ctx.blocks,
+				"GantryLeg",
+				Vector3.new(1.6, h, 1.6),
+				CFrame.new(at(o, x, z + dz) + Vector3.new(0, h / 2, 0)),
+				yellow
+			)
+		end
+		part(
+			ctx.blocks,
+			"GantryTie",
+			Vector3.new(1.4, 1.4, 19.6),
+			CFrame.new(at(o, x, z) + Vector3.new(0, h - 0.7, 0)),
+			yellow
+		)
+	end
+	for _, dz in { -9, 9 } do
+		part(
+			ctx.blocks,
+			"GantryBeam",
+			Vector3.new(x1 - x0 + 1.6, 2, 1.6),
+			CFrame.new(at(o, (x0 + x1) / 2, z + dz) + Vector3.new(0, h + 1, 0)),
+			yellow
+		)
+	end
+	part(
+		ctx.blocks,
+		"GantryCab",
+		Vector3.new(5, 3, 19),
+		CFrame.new(at(o, (x0 + x1) / 2 + 6, z) + Vector3.new(0, h + 1, 0)),
+		C.dark
+	)
+end
+
+local function fillDocks(ctx: Ctx, rng: Random, bx: number, _bz: number, o: Vector3)
 	local yard = bx == -3 or bx == 0
 	flat(ctx, "Concrete", o, 0, 0, 100, 100, rgb(176, 178, 186), 0.08)
 	if not yard then
-		local along = if bx % 2 == 0 then -16 else 16
-		local scale = 1.1
+		local along = if bx % 2 == 0 then -12 else 12
+		local scale = 1.3
 		local _, dims = frontBuilding(ctx, rng, o, "warehouse", "N", along, scale, 3)
 		-- loading yard behind (south)
 		local yz = 30
@@ -2057,6 +2208,7 @@ local function fillDocks(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vecto
 		shippingContainer(ctx.props, groundAt(at(o, x0 - 18, yz), Vector3.new(1, 0, 0)), pick(rng, CONTAINER_COLORS))
 		dumpster(ctx.props, groundAt(at(o, x0 + 6, 44), Vector3.new(0, 0, -1)))
 		oilBarrels(ctx.props, groundAt(at(o, x0 + 20, 40), Vector3.new(0, 0, -1)))
+		containerStack(ctx, o, x0 - 18, 41, Vector3.new(1, 0, 0), 2, rng)
 		local _ = dims
 	else
 		-- container yard: rows of containers, a crate stack
@@ -2069,6 +2221,10 @@ local function fillDocks(ctx: Ctx, rng: Random, bx: number, bz: number, o: Vecto
 			)
 		end
 		crateStack(ctx.props, groundAt(at(o, 30, -32), Vector3.new(0, 0, -1)))
+		gantry(ctx, o, -40, 8, -26)
+		for i = 0, 3 do
+			containerStack(ctx, o, -38 + i * 11, -2, Vector3.new(0, 0, -1), 1 + (i + bx) % 3, rng)
+		end
 		if bx == -3 then
 			waterTower(ctx.props, groundAt(at(o, 24, 22), Vector3.new(0, 0, 1)), 60)
 		else
@@ -2154,8 +2310,8 @@ local function buildRoads(ctx: Ctx)
 			end
 		end
 	end
-	-- crosswalks at downtown intersections
-	local R = MapConfig.DOWNTOWN_RADIUS
+	-- crosswalks at downtown + midtown intersections
+	local R = MapConfig.DOWNTOWN_RADIUS + 1
 	for i = -R, R do
 		for j = -R, R do
 			local ic = Vector3.new(i * S, MARK_Y, j * S)
@@ -2286,11 +2442,15 @@ local function buildBlockBase(ctx: Ctx, bx: number, bz: number, origin: Vector3,
 	if plot or poi == "Pier" or poi == "ChopShop" or poi == "StuntPark" then
 		return -- PlotService dresses the garage blocks; the corner POIs light themselves
 	end
-	-- one street lamp per block (alternating N/S vs W/E sides so every road gets some), avoiding curb cuts
+	-- one street lamp per block (alternating N/S vs W/E sides so every road gets some), avoiding curb cuts; the
+	-- outer ring gets one on every other block (the prop budget goes to beach palms there)
 	local order = if (bx + bz) % 2 == 0 then { "N", "S", "W", "E" } else { "W", "E", "N", "S" }
 	local first = if (bx * 3 + bz) % 2 == 0 then 34 else -34
-	local placed = false
+	local placed = district == "beach" and not poi and (bx + bz) % 2 ~= 0
 	for _, sideName in order do
+		if placed then
+			break
+		end
 		local side = SIDES[sideName]
 		for _, off in { first, -first } do
 			local blocked = false
@@ -2306,12 +2466,9 @@ local function buildBlockBase(ctx: Ctx, bx: number, bz: number, origin: Vector3,
 				break
 			end
 		end
-		if placed then
-			break
-		end
 	end
 	-- hydrant on the sidewalk of some blocks
-	if (bx * 3 + bz * 5) % 10 == 0 then
+	if (bx * 3 + bz * 5) % 14 == 0 then
 		local sideName = if bz % 2 == 0 then "S" else "N"
 		local side = SIDES[sideName]
 		local g = origin + side.normal * (BLOCK_HALF - 2.5) + side.along * (if bx % 2 == 0 then 18 else -18)
@@ -2439,7 +2596,7 @@ local function buildSpawnPlaza(ctx: Ctx, f: Folder, o: Vector3)
 	end
 
 	-- the big logo sign behind the fountain (Images.logo_hotwire_city on both faces; text fallback underneath)
-	local signPos = Vector3.new(o.X - 47, o.Y + 22, o.Z)
+	local signPos = Vector3.new(o.X - 47, o.Y + 30, o.Z)
 	local logoCf = facing(signPos, Vector3.new(1, 0, 0))
 	local logo = part(f, "WelcomeSign", Vector3.new(34, 19, 1.4), logoCf, rgb(18, 18, 36))
 	addImage(logo, Enum.NormalId.Front, Assets.Images.logo_hotwire_city, 900)
@@ -2447,7 +2604,7 @@ local function buildSpawnPlaza(ctx: Ctx, f: Folder, o: Vector3)
 	logo:SetAttribute("Image", Assets.Images.logo_hotwire_city)
 	neon(f, "WelcomeSignGlow", Vector3.new(35.6, 20.6, 0.6), logoCf * CFrame.new(0, 0, 0.2), C.pink)
 	for _, sz in { -12, 12 } do
-		part(f, "SignPost", Vector3.new(1.4, 12.5, 1.4), L(o, -47, 6.25, sz), C.metal)
+		part(f, "SignPost", Vector3.new(1.4, 20.5, 1.4), L(o, -47, 10.25, sz), C.metal)
 	end
 
 	-- corner planters (grass beds, see buildTerrain) with palms
@@ -2732,7 +2889,7 @@ local function buildSprayShop(
 	frontBuilding(ctx, rng, o, backRole, "S", 0, scale, 1)
 end
 
-local function buildChopShop(ctx: Ctx, f: Folder, o: Vector3, zoneCf: CFrame, zoneSize: Vector3)
+local function buildChopShop(_ctx: Ctx, f: Folder, o: Vector3, zoneCf: CFrame, zoneSize: Vector3)
 	local rng = Random.new(MapBuilder.SEED + 31)
 	local zc = zoneCf.Position
 	local hx = zoneSize.X / 2 + 3
@@ -2973,15 +3130,15 @@ local function buildStuntPark(_ctx: Ctx, f: Folder, o: Vector3)
 		}
 	)
 	-- cones around the pool, barriers along the east run-off
-	for _, c in { { -24, -44 }, { -24, -16 }, { 10, -44 }, { 10, -16 } } do
+	for _, c in { { -24, -45 }, { -24, -15 }, { -10, -45 }, { -10, -15 } } do
 		trafficCone(f, CFrame.new(o.X + c[1], o.Y, o.Z + c[2]))
 	end
-	for _, z in { -40, -30, -20, 0 } do
+	for _, z in { -30, -20, -10, 0 } do
 		roadBarrier(f, groundAt(Vector3.new(o.X + 47, 0, o.Z + z), Vector3.new(-1, 0, 0)))
 	end
 end
 
-local function buildPark(ctx: Ctx, f: Folder, o: Vector3)
+local function buildPark(_ctx: Ctx, f: Folder, o: Vector3)
 	local rng = Random.new(MapBuilder.SEED + 41)
 	-- pond (the lawn itself is Terrain grass, see buildTerrain)
 	cyl(f, "PondRim", 0.3, 43, L(o, 12, 0, 8), rgb(214, 200, 168), { shadow = false })
@@ -3004,9 +3161,9 @@ local function buildPark(ctx: Ctx, f: Folder, o: Vector3)
 			{ -46, -46 },
 			{ -22, -45 },
 			{ -46, -12 },
-			{ 46, -16 },
+			{ 46, -20 },
 			{ -46, 18 },
-			{ 46, 14 },
+			{ 46, 18 },
 			{ -30, 46 },
 			{ 8, 46 },
 		}
@@ -3029,7 +3186,7 @@ local function buildPark(ctx: Ctx, f: Folder, o: Vector3)
 	cyl(f, "GazeboRoof", 1.2, 16, L(g, 0, 10.6, 0), rgb(200, 80, 90))
 	cyl(f, "GazeboRoofTop", 2, 8, L(g, 0, 12.2, 0), rgb(200, 80, 90))
 	-- flower beds, rocks by the ponds, bushes
-	for i, fb in { { -20, -38 }, { 24, -20 }, { -42, -24 }, { -42, 30 } } do
+	for i, fb in { { -8, -40 }, { 24, -20 }, { -42, -24 }, { -42, 30 } } do
 		flowerBed(
 			f,
 			facing(Vector3.new(o.X + fb[1], o.Y, o.Z + fb[2]), Vector3.new(0, 0, -1)),
@@ -3039,9 +3196,6 @@ local function buildPark(ctx: Ctx, f: Folder, o: Vector3)
 	end
 	for _, r in { { 35, 2 }, { 10, 32 }, { -26, 31 } } do
 		rock(f, Vector3.new(o.X + r[1], o.Y, o.Z + r[2]), rand(rng, 4.5, 7), rng)
-	end
-	for _, bp in { { -46, 0 }, { 30, -22 } } do
-		bush(f, Vector3.new(o.X + bp[1], o.Y, o.Z + bp[2]), 6, rng)
 	end
 	-- playground slide
 	part(f, "SlideTower", Vector3.new(5, 7, 5), L(o, 32, 3.5, 30), C.yellow)
@@ -3061,7 +3215,7 @@ local function buildPark(ctx: Ctx, f: Folder, o: Vector3)
 	)
 	part(f, "SignPost", Vector3.new(0.8, 4, 0.8), L(o, 40, 2, -LOT_HALF + 1.2), C.wood)
 	-- bus stop on the east edge (faces the road)
-	busStop(f, facing(Vector3.new(o.X + LOT_HALF - 4.6, o.Y, o.Z - 6), Vector3.new(1, 0, 0)))
+	busStop(f, facing(Vector3.new(o.X + LOT_HALF - 4.6, o.Y, o.Z - 1), Vector3.new(1, 0, 0)))
 end
 
 local function buildFerrisWheel(f: Instance, hub: Vector3, axle: Vector3)
@@ -3361,18 +3515,46 @@ local function buildBeach(ctx: Ctx)
 	local function nearPier(p: Vector3, margin: number): boolean
 		return p.Z * pierSideZ > EXT and math.abs(p.X - pierX) < margin
 	end
+	-- beach furniture spots (side, along); palms keep clear of them
+	type Spot = { side: string, a: number }
+	local SHACKS: { Spot } = { { side = "S", a = -260 }, { side = "E", a = 300 } }
+	local TOWERS: { Spot } =
+		{ { side = "N", a = -300 }, { side = "S", a = 240 }, { side = "E", a = -260 }, { side = "W", a = 240 } }
+	local UMBRELLAS: { Spot } = {
+		{ side = "S", a = -380 },
+		{ side = "S", a = 60 },
+		{ side = "S", a = 420 },
+		{ side = "E", a = -330 },
+		{ side = "E", a = 90 },
+		{ side = "E", a = 560 },
+	}
+	local COURTS: { Spot } =
+		{ { side = "S", a = -120 }, { side = "E", a = -110 }, { side = "W", a = -100 }, { side = "N", a = 120 } }
+	local function reserved(side: string, a: number): boolean
+		for _, list in { SHACKS, TOWERS, UMBRELLAS, COURTS, { { side = "W", a = -420 } } } do
+			for _, r in list do
+				if r.side == side and math.abs(r.a - a) < 34 then
+					return true
+				end
+			end
+		end
+		return false
+	end
 	for _, side in { "N", "S", "W", "E" } do
-		for _, a in { -720, -360, 0, 360, 720 } do
-			local p = beachPoint(side, a + rand(rng, -30, 30), PROMENADE_OUT + 14)
-			if not nearPier(p, 44) then
+		for _, a0 in { -720, -480, -240, 0, 240, 480, 720 } do
+			local a = a0 + rand(rng, -30, 30)
+			if reserved(side, a) then
+				a = a0 + (if a > a0 then -36 else 36)
+			end
+			local p = beachPoint(side, a, PROMENADE_OUT + 14)
+			if not nearPier(p, 44) and not reserved(side, a) then
 				palm(ctx.props, p, rand(rng, 20, 28), rng)
 			end
 		end
 	end
 	local umbrellaColors = { C.pink, C.cyan, C.yellow, C.orange, C.lime, C.purple }
-	local spots = { { "S", -380 }, { "S", 60 }, { "S", 420 }, { "E", -330 }, { "E", 90 }, { "E", 560 } }
-	for k, s in spots do
-		local g, n = beachPoint(s[1], s[2], PROMENADE_OUT + 32)
+	for k, s in UMBRELLAS do
+		local g, n = beachPoint(s.side, s.a, PROMENADE_OUT + 32)
 		beachUmbrella(ctx.props, g, umbrellaColors[k % #umbrellaColors + 1], rng)
 		local along = Vector3.new(n.Z, 0, -n.X)
 		local cp = g + along * 6 - n * 1
@@ -3385,16 +3567,45 @@ local function buildBeach(ctx: Ctx)
 			pick(rng, umbrellaColors)
 		)
 	end
-	for _, s in { { "N", -300 }, { "S", 240 }, { "E", -260 }, { "W", 240 } } do
-		local g, n = beachPoint(s[1], s[2], PROMENADE_OUT + 36)
+	for _, s in TOWERS do
+		local g, n = beachPoint(s.side, s.a, PROMENADE_OUT + 36)
 		lifeguardTower(ctx.props, CFrame.lookAt(g, g + n))
 	end
-	for _, s in { { "S", -260 }, { "E", 300 } } do
-		local g, n = beachPoint(s[1], s[2], PROMENADE_OUT + 24)
+	for _, s in SHACKS do
+		local g, n = beachPoint(s.side, s.a, PROMENADE_OUT + 24)
 		buildingSlot(f, rng, "surf_shack", CFrame.lookAt(g, g - n), 1.1)
 		local along = Vector3.new(n.Z, 0, -n.X)
 		local rp = g + along * 16
 		surfboardRack(ctx.props, CFrame.lookAt(rp, rp - n), rng)
+	end
+	-- beach volleyball courts (lines, posts, net) and a sandcastle on the sunny sides
+	for _, s in COURTS do
+		local g, n = beachPoint(s.side, s.a, PROMENADE_OUT + 30)
+		local court = CFrame.lookAt(g, g + n)
+		for _, l in { { 0, -5, 18, 0.5 }, { 0, 5, 18, 0.5 }, { -9, 0, 0.5, 10 }, { 9, 0, 0.5, 10 } } do
+			deco(f, "CourtLine", Vector3.new(l[3], 0.1, l[4]), court * CFrame.new(l[1], 0.05, l[2]), C.white)
+		end
+		for _, z in { -6, 6 } do
+			deco(f, "NetPost", Vector3.new(0.4, 8, 0.4), court * CFrame.new(0, 4, z), C.white)
+		end
+		deco(f, "Net", Vector3.new(0.15, 2.4, 12), court * CFrame.new(0, 6.4, 0), rgb(240, 240, 250))
+	end
+	for _, s in { { side = "S", a = 180 }, { side = "E", a = 200 } } do
+		local g = beachPoint(s.side, s.a, PROMENADE_OUT + 44)
+		cyl(f, "Sandcastle", 2, 9, CFrame.new(g + Vector3.new(0, 1, 0)), C.sandDeep, { collide = false })
+		for k = 0, 3 do
+			local a = k * math.pi / 2
+			cyl(
+				f,
+				"SandTower",
+				3.2,
+				2.2,
+				CFrame.new(g + Vector3.new(math.cos(a) * 3.4, 3.6, math.sin(a) * 3.4)),
+				C.sand,
+				{ collide = false }
+			)
+		end
+		ball(f, "SandDome", 4, g + Vector3.new(0, 3, 0), C.sand, { collide = false })
 	end
 	local rg = beachPoint("W", -420, PROMENADE_OUT + 26)
 	surfboardRack(ctx.props, CFrame.lookAt(rg, rg + Vector3.new(1, 0, 0)), rng)

@@ -530,6 +530,14 @@ local function updateRims(t: number, camPos: Vector3)
 	end
 	for part, board in padBoards do
 		local rim = board.rim
+		if not rim then -- the rim may replicate after its turntable
+			local found = part:FindFirstChild("Rim" .. board.index)
+			if found and found:IsA("BasePart") then
+				rim = found
+				board.rim = found
+				board.rimBase = found.Color
+			end
+		end
 		if rim and rim.Parent and (part.Position - camPos).Magnitude <= DealershipClient.RIM_RANGE then
 			local empty = part:GetAttribute("Empty") == true
 			rim.Color = DealershipClient._rimColor(board.rimBase, tintAt[board.index], empty, t, board.index)

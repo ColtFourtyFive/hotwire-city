@@ -266,7 +266,9 @@ return function(t)
 			t.ok(m:HasTag("AssetSlot"), "building tagged AssetSlot")
 			t.eq(m:GetAttribute("Category"), "Buildings")
 		end
-		t.ok(#folder.Buildings:GetChildren() > 200, "enough buildings: " .. #folder.Buildings:GetChildren())
+		-- the art pass trades many small procedural boxes for fewer, bigger kit buildings (budget: 110 slots)
+		local n = #folder.Buildings:GetChildren()
+		t.ok(n >= 80 and n <= MapBuilder.BUILDING_SLOT_BUDGET, "lot buildings: " .. n)
 	end)
 
 	t.test("spawn plaza: SpawnLocation + leaderboards", function()
@@ -350,11 +352,9 @@ return function(t)
 				end
 			end
 		end
-		t.ok(lamps >= 300, "street lights: " .. lamps)
-		t.ok(
-			lights >= lamps * 0.25 and lights <= lamps * 0.42,
-			("about every third lamp has a light (%d/%d)"):format(lights, lamps)
-		)
+		-- one kit lamp per block (every other block on the outer ring), each bulb lit at night; mobile cap ~110
+		t.ok(lamps >= 70, "street lights: " .. lamps)
+		t.ok(lights >= lamps * 0.9 and lights <= 110, ("lamp bulbs carry a light (%d/%d)"):format(lights, lamps))
 		local glows = 0
 		for _, p in CollectionService:GetTagged("NightGlow") do
 			if p:IsDescendantOf(folder) then
@@ -365,7 +365,7 @@ return function(t)
 				t.ok(H.roblox.Enum.Material[p:GetAttribute("DayMaterial")] ~= nil, "day material valid")
 			end
 		end
-		t.ok(glows > 500, "night glow parts: " .. glows)
+		t.ok(glows > 300, "night glow parts: " .. glows)
 	end)
 
 	t.test("every POI is built", function()

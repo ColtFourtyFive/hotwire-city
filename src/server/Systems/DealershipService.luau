@@ -18,7 +18,8 @@
 --  * A big countdown sign ("NEW STOCK IN m:ss") stands behind the back row.
 --  * Art pass dressing (buildDressing, Workspace.Dealership.Dressing): a car_showroom "flagship" backdrop on the back
 --    half of the roof, palms, a hot dog stand and a bench in the back corners (AssetSlots for MapDresser), Hotwire
---    Motors / Gold Rush banners and logo flags (Decals). Nothing touches the pads, aisle, drive-out or restock sign.
+--    Motors / Gold Rush rooftop billboards + window banners and logo flags (Decals). Nothing touches the pads, aisle,
+--    drive-out or restock sign.
 --
 -- Pure helpers (_price, _stealHold, _stealHeat, _holdOk, _padRestockAt, _rollStock, ...) and the harness-compatible
 -- builders (buildShowroom, buildDisplay) are exposed for tests / tools.
@@ -749,30 +750,38 @@ function DealershipService.buildDressing(parent: Instance, floorY: number?, opts
 	local bn = at(30, 0, 41)
 	assetSlot(model, "Bench", "Props", "bench", 8, CFrame.lookAt(bn, bn + north))
 
-	-- ad frieze along the top of the west glass (faces the spawn plaza; art on both faces)
 	local images = Assets.Images
 	local bw, bh = 13, 7.3 -- the ad art is 16:9
-	for i, z in { -34.85, -11.5, 11.5, 34.35 } do
-		local p = at(-50.45, 16 - 0.2 - bh / 2, z)
-		local b = deco(model, "Banner", Vector3.new(bw, bh, 0.2), CFrame.lookAt(p, p + Vector3.new(-1, 0, 0)), NAVY)
+	-- rooftop billboards on the canopy edge, flanking the north (road) and west (spawn plaza) signs; the drive-out and
+	-- the glass stay clear (hero shells reach ~15 studs, and the cars are the shop window)
+	local roofBoards = {
+		{ pos = Vector3.new(-42, 0, -47.6), face = north },
+		{ pos = Vector3.new(42, 0, -47.6), face = north },
+		{ pos = Vector3.new(-51.5, 0, -38.5), face = Vector3.new(-1, 0, 0) },
+		{ pos = Vector3.new(-51.5, 0, 38.5), face = Vector3.new(-1, 0, 0) },
+	}
+	for i, rb in roofBoards do
+		local p = at(rb.pos.X, DealershipService.ROOF_Y + 0.3 + bh / 2, rb.pos.Z)
+		local cf = CFrame.lookAt(p, p + rb.face)
+		local b = deco(model, "RoofBanner", Vector3.new(bw, bh, 0.3), cf, NAVY)
 		decal(b, Enum.NormalId.Front, if i % 2 == 1 then images.ad_hotwire_motors else images.ad_gold_rush)
 		decal(b, Enum.NormalId.Back, if i % 2 == 1 then images.ad_gold_rush else images.ad_hotwire_motors)
-	end
-	-- rooftop billboards flanking the north sign (the drive-out below stays clear up to the canopy: hero shells
-	-- reach 15 studs)
-	for i, sx in { -1, 1 } do
-		local p = at(sx * 42, DealershipService.ROOF_Y + 0.3 + bh / 2, -47.6)
-		local b = deco(model, "RoofBanner", Vector3.new(bw, bh, 0.3), CFrame.lookAt(p, p + north), NAVY)
-		decal(b, Enum.NormalId.Front, if i == 1 then images.ad_hotwire_motors else images.ad_gold_rush)
-		decal(b, Enum.NormalId.Back, if i == 1 then images.ad_gold_rush else images.ad_hotwire_motors)
 		deco(
 			model,
 			"RoofBannerBase",
 			Vector3.new(bw + 0.6, 0.3, 1.2),
-			CFrame.new(p - Vector3.new(0, bh / 2 + 0.15, 0)),
-			if i == 1 then PINK else CYAN,
+			cf * CFrame.new(0, -bh / 2 - 0.15, 0),
+			if i % 2 == 1 then PINK else CYAN,
 			{ Material = Enum.Material.Neon }
 		)
+	end
+	-- two window banners high on the outer west glass panels (beside the pad rows, so the cars stay in view)
+	local gw, gh = 10.4, 5.85
+	for i, z in { -36, 36 } do
+		local p = at(-50.45, 16 - 0.2 - gh / 2, z)
+		local b = deco(model, "Banner", Vector3.new(gw, gh, 0.2), CFrame.lookAt(p, p + Vector3.new(-1, 0, 0)), NAVY)
+		decal(b, Enum.NormalId.Front, if i == 1 then images.ad_gold_rush else images.ad_hotwire_motors)
+		decal(b, Enum.NormalId.Back, if i == 1 then images.ad_hotwire_motors else images.ad_gold_rush)
 	end
 
 	-- logo flags on the four lot corners (outside the pillar line, inside the lot)
@@ -1458,7 +1467,8 @@ function DealershipService.init()
 			break
 		end
 	end
-	local okDress, errDress = pcall(DealershipService.buildDressing, f, floorYs[1], { backdrop = not mapBackdrop })
+	-- (on the lot floor = curb height, like MapBuilder's showroom shell; floorYs are the pad tops)
+	local okDress, errDress = pcall(DealershipService.buildDressing, f, nil, { backdrop = not mapBackdrop })
 	if not okDress then
 		warn("[DealershipService] showroom dressing failed: " .. tostring(errDress))
 	end
@@ -1497,6 +1507,31 @@ function DealershipService.start()
 	if not okFirst then
 		warn("[DealershipService] initial stock failed: " .. tostring(errFirst))
 	end
+	-- Showroom dressing: MapDresser's public dressAll on our Dressing model once the kit has loaded, then again for
+	-- each late template (idempotent: a dressed slot is replaced by its clone).
+	task.spawn(function()
+		local AssetLibrary = sys("AssetLibrary")
+		if AssetLibrary and typeof(AssetLibrary.waitAll) == "function" then
+			pcall(AssetLibrary.waitAll, 30)
+		end
+		local function dress()
+			local MapDresser = sys("MapDresser")
+			local dressing = folder and folder:FindFirstChild("Dressing")
+			if dressing and MapDresser and typeof(MapDresser.dressAll) == "function" then
+				local ok, err = pcall(MapDresser.dressAll, dressing)
+				if not ok then
+					warn("[DealershipService] dressing: " .. tostring(err))
+				end
+			end
+		end
+		dress()
+		local ready = AssetLibrary and AssetLibrary.Ready
+		if ready and typeof(ready.Connect) == "function" then
+			ready:Connect(function()
+				dress()
+			end)
+		end
+	end)
 	while true do
 		task.wait(0.25)
 		local ok, err = pcall(function()
