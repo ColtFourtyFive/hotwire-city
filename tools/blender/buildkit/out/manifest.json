@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-27T16:38:03",
+ "generated": "2026-10-27T17:39:29",
  "units": "studs (1 Blender unit = 1 stud)",
  "axes": "glTF Y-up; building front = +Z in glTF (Blender -Y). Origin = lot bottom-centre at grade.",
  "roblox": {
@@ -29,7 +29,7 @@
     "style": "curtain",
     "crown": "spire"
    },
-   "total_tris": 5468,
+   "total_tris": 5470,
    "max_part_tris": 2668,
    "spawns": [],
    "parts": {
@@ -176,7 +176,7 @@
     },
     "tower_00_WindowsLit": {
      "role": "WindowsLit",
-     "tris": 404,
+     "tris": 406,
      "night_only": true,
      "material": {
       "kind": "lit",
@@ -190,7 +190,7 @@
     "json": "glb/tower_00.json",
     "glb_embedded": "glb/tower_00_embedded.glb"
    },
-   "glb_bytes": 386508
+   "glb_bytes": 386648
   },
   {
    "name": "tower_01",
@@ -208,7 +208,7 @@
     "style": "grid",
     "crown": "slant"
    },
-   "total_tris": 5376,
+   "total_tris": 5206,
    "max_part_tris": 1580,
    "spawns": [],
    "parts": {
@@ -316,7 +316,7 @@
     },
     "tower_01_Details": {
      "role": "Details",
-     "tris": 528,
+     "tris": 360,
      "night_only": false,
      "material": {
       "kind": "texture",
@@ -369,7 +369,7 @@
     },
     "tower_01_WindowsLit": {
      "role": "WindowsLit",
-     "tris": 512,
+     "tris": 510,
      "night_only": true,
      "material": {
       "kind": "lit",
@@ -382,7 +382,7 @@
     "glb": "glb/tower_01.glb",
     "json": "glb/tower_01.json"
    },
-   "glb_bytes": 377016
+   "glb_bytes": 368060
   },
   {
    "name": "tower_02",
@@ -574,7 +574,7 @@
     "glb": "glb/tower_02.glb",
     "json": "glb/tower_02.json"
    },
-   "glb_bytes": 434008
+   "glb_bytes": 433944
   },
   {
    "name": "tower_03",
@@ -1758,9 +1758,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -1787,9 +1787,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -2122,9 +2122,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -2151,9 +2151,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -2565,9 +2565,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -2594,9 +2594,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -2643,7 +2643,7 @@
     "glb": "glb/strip_02.glb",
     "json": "glb/strip_02.json"
    },
-   "glb_bytes": 212588
+   "glb_bytes": 212584
   },
   {
    "name": "strip_03",
@@ -2984,9 +2984,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -3013,9 +3013,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -3062,7 +3062,7 @@
     "glb": "glb/strip_03.glb",
     "json": "glb/strip_03.json"
    },
-   "glb_bytes": 209396
+   "glb_bytes": 209392
   },
   {
    "name": "corner_store_00",
@@ -3290,9 +3290,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -3583,9 +3583,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -3875,9 +3875,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -4167,9 +4167,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -4451,9 +4451,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -4480,9 +4480,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -4750,9 +4750,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -4779,9 +4779,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -4828,7 +4828,7 @@
     "glb": "glb/gas_01.glb",
     "json": "glb/gas_01.json"
    },
-   "glb_bytes": 120104
+   "glb_bytes": 120100
   },
   {
    "name": "gas_02",
@@ -5058,9 +5058,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -5087,9 +5087,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -5366,9 +5366,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -5395,9 +5395,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -5719,9 +5719,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -5748,9 +5748,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -6073,9 +6073,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -6102,9 +6102,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -6426,9 +6426,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -6455,9 +6455,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -6769,9 +6769,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.85,
-       0.85,
-       0.87
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -6798,9 +6798,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -6854,7 +6854,7 @@
     "floors": 3,
     "accent": "lemon"
    },
-   "total_tris": 6002,
+   "total_tris": 6000,
    "max_part_tris": 2980,
    "spawns": [],
    "parts": {
@@ -6866,9 +6866,9 @@
       "kind": "texture",
       "set": "stucco",
       "tint": [
-       0.959,
-       0.931,
-       0.804
+       0.8014999999999999,
+       0.9219999999999999,
+       0.8460000000000001
       ]
      }
     },
@@ -6907,9 +6907,9 @@
      "material": {
       "kind": "color",
       "color": [
-       0.9695,
-       0.9205,
-       0.692
+       0.9763999999999999,
+       0.9136000000000001,
+       0.6184
       ],
       "metallic": 0.0,
       "roughness": 0.6
@@ -6922,9 +6922,9 @@
      "material": {
       "kind": "color",
       "color": [
-       0.92,
-       0.92,
-       0.9
+       0.62,
+       0.64,
+       0.66
       ],
       "metallic": 0.3,
       "roughness": 0.35
@@ -7026,7 +7026,7 @@
     },
     "deco_00_WindowsLit": {
      "role": "WindowsLit",
-     "tris": 42,
+     "tris": 40,
      "night_only": true,
      "material": {
       "kind": "lit",
@@ -7040,7 +7040,7 @@
     "json": "glb/deco_00.json",
     "glb_embedded": "glb/deco_00_embedded.glb"
    },
-   "glb_bytes": 423356
+   "glb_bytes": 423340
   },
   {
    "name": "deco_01",
@@ -7069,9 +7069,9 @@
       "kind": "texture",
       "set": "stucco",
       "tint": [
-       0.893,
-       0.8679999999999999,
-       0.9060000000000001
+       0.7925,
+       0.8859999999999999,
+       0.927
       ]
      }
     },
@@ -7110,9 +7110,9 @@
      "material": {
       "kind": "color",
       "color": [
-       0.8265,
-       0.7839999999999999,
-       0.913
+       0.7828,
+       0.7288,
+       0.9176
       ],
       "metallic": 0.0,
       "roughness": 0.6
@@ -7312,9 +7312,9 @@
      "material": {
       "kind": "color",
       "color": [
-       0.9564999999999999,
-       0.758,
-       0.77
+       0.9588,
+       0.6936,
+       0.724
       ],
       "metallic": 0.0,
       "roughness": 0.6
@@ -7514,9 +7514,9 @@
      "material": {
       "kind": "color",
       "color": [
-       0.6575,
-       0.888,
-       0.887
+       0.554,
+       0.8696,
+       0.8824
       ],
       "metallic": 0.0,
       "roughness": 0.6
@@ -7823,9 +7823,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -8064,9 +8064,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -8289,9 +8289,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -8338,7 +8338,7 @@
     "glb": "glb/house_02.glb",
     "json": "glb/house_02.json"
    },
-   "glb_bytes": 146900
+   "glb_bytes": 146896
   },
   {
    "name": "house_03",
@@ -8514,9 +8514,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -8794,9 +8794,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.8,
-       0.8,
-       0.82
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -8859,7 +8859,7 @@
     "json": "glb/warehouse_00.json",
     "glb_embedded": "glb/warehouse_00_embedded.glb"
    },
-   "glb_bytes": 155388
+   "glb_bytes": 155392
   },
   {
    "name": "warehouse_01",
@@ -9090,9 +9090,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.8,
-       0.8,
-       0.82
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -9154,7 +9154,7 @@
     "glb": "glb/warehouse_01.glb",
     "json": "glb/warehouse_01.json"
    },
-   "glb_bytes": 181712
+   "glb_bytes": 181716
   },
   {
    "name": "warehouse_02",
@@ -9385,9 +9385,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.8,
-       0.8,
-       0.82
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -9449,7 +9449,7 @@
     "glb": "glb/warehouse_02.glb",
     "json": "glb/warehouse_02.json"
    },
-   "glb_bytes": 172956
+   "glb_bytes": 172960
   },
   {
    "name": "warehouse_03",
@@ -9680,9 +9680,9 @@
       "kind": "texture",
       "set": "asphalt",
       "tint": [
-       0.8,
-       0.8,
-       0.82
+       0.92,
+       0.92,
+       0.94
       ]
      }
     },
@@ -9744,7 +9744,7 @@
     "glb": "glb/warehouse_03.glb",
     "json": "glb/warehouse_03.json"
    },
-   "glb_bytes": 170920
+   "glb_bytes": 170924
   },
   {
    "name": "mansion_00",
@@ -9947,9 +9947,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -10215,9 +10215,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -10279,7 +10279,7 @@
     "glb": "glb/mansion_01.glb",
     "json": "glb/mansion_01.json"
    },
-   "glb_bytes": 119028
+   "glb_bytes": 119024
   },
   {
    "name": "mansion_02",
@@ -10482,9 +10482,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },
@@ -10749,9 +10749,9 @@
       "kind": "texture",
       "set": "grass",
       "tint": [
-       0.62,
-       0.95,
-       0.42
+       0.8,
+       0.98,
+       0.65
       ]
      }
     },

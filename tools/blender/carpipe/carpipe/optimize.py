@@ -3,6 +3,7 @@ and unwrap a fresh atlas UV for baking."""
 from __future__ import annotations
 
 import math
+import os
 import time
 
 import bmesh
@@ -228,6 +229,10 @@ def atlas_uv(objs, margin=0.004, angle=60.0):
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin, area_weight=0.0,
                              correct_aspect=True, scale_to_bounds=False)
+    if os.environ.get("CARPIPE_UVDEBUG"):
+        bpy.ops.object.mode_set(mode="OBJECT")
+        log("after smart_project", [round(uv_utilisation(o), 3) for o in objs], [o.data.uv_layers.active.name for o in objs])
+        bpy.ops.object.mode_set(mode="EDIT")
     _weight_islands(objs)
     t0 = time.time()
     try:

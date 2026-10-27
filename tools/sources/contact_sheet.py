@@ -50,6 +50,13 @@ def unit_scale(length, cls):
     return min((1, 0.1, 0.01, 0.001, 0.0254), key=lambda f: abs(math.log(length * f / nom)))
 
 
+def scale_flag(length_m, cls):
+    """' scale?' when even the best unit guess is more than 2x off the class nominal (non-unit export scale,
+    stray helper objects or an exploded view) - the size shown is then not trustworthy."""
+    nom = NOMINAL.get(cls, 1.0)
+    return "" if length_m > 0 and 0.5 <= length_m / nom <= 2.0 else " scale?"
+
+
 def cell(meta, d):
     im = Image.new("RGB", (CW, CH + LH), (22, 22, 24))
     p = d / "preview.png"
@@ -75,11 +82,12 @@ def cell(meta, d):
     dims = an.get("dims_m") or [0, 0, 0]
     if meta.get("kind") == "vehicle":
         f = unit_scale(dims[1], meta['class'])
-        size = f"{dims[1] * f:.1f}x{dims[0] * f:.1f}x{dims[2] * f:.1f}m" + ("" if f == 1 else f"(x{f:g})")
+        size = f"{dims[1] * f:.1f}x{dims[0] * f:.1f}x{dims[2] * f:.1f}m" + ("" if f == 1 else f"(x{f:g})") + \
+            scale_flag(dims[1] * f, meta['class'])
         wheels = "wheels:SEP" if an.get("wheels_separate") else "wheels:MERGED?"
     else:
         f = unit_scale(dims[0], meta['class'])
-        size = f"{dims[0] * f * 100:.0f}cm" + ("" if f == 1 else f"(x{f:g})")
+        size = f"{dims[0] * f * 100:.0f}cm" + ("" if f == 1 else f"(x{f:g})") + scale_flag(dims[0] * f, meta['class'])
         wheels = ""
     tris = an.get("triangles") or meta.get("faceCount") or 0
     lic = {"by": "CC-BY", "cc0": "CC0"}.get(meta["license"]["slug"], meta["license"]["slug"])

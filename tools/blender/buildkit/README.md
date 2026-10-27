@@ -59,6 +59,9 @@ edge to edge, so the city's sidewalk meets the facade.
 | Grime | alpha dirt decals: rising damp, rain streaks, rust leaks, soot | RGBA atlas `grime.png` | SurfaceAppearance `AlphaMode=Transparency`, `CastShadow=false` |
 | WindowsLit | about 30-55% of the window quads, duplicated 0.03 studs proud with `windows_lit.png` | night only | `Transparency=1` by day. At night, show it with `Material=Neon` and a warm `Color`, or with the SurfaceAppearance emissive mask if the engine has it |
 
+Colours in the specs and JSON are **sRGB**. That is what `Color3` and `SurfaceAppearance.Color` use, so they can be
+copied straight across. The Cycles previews linearise them (`bk_mat.lin`), so what you see is what Roblox should show.
+
 `UV tile_studs` in the JSON gives the studs per texture repeat for each role. Tiling roles use world-space box UVs,
 so texel density is the same on every building. That is why one shared SurfaceAppearance per texture set works
 city-wide.
@@ -91,6 +94,31 @@ city-wide.
 
 The axes go from Blender to glTF. In Roblox, a building's front faces -Z after a yaw of 180 degrees, which is the
 same rule as the car kit.
+
+## Renders (`render_kit.py`, written to `docs/v2/proto/buildkit/`)
+
+**Street level, late afternoon**
+
+- `downtown_street`
+- `midtown_street`
+- `strip_mall`
+- `gas_station`
+- `diner`
+- `corner_store`
+- `deco_beach`
+- `suburbs_street`
+- `industrial_warehouse`
+- `hills_mansion`
+
+**Wide shot:** `block_wide`, a district sampler of 35 blocks with the beach, the hills and the skyline.
+
+**Night:** `deco_night` and `downtown_night`. Both use WindowsLit, Neon, backlit signs and sodium street lights.
+
+**Parametric range:** `variants_<arch>` puts 3-6 seeds of each archetype side by side.
+
+The preview lighting is a Poly Haven pure-sky HDRI with the sun removed, plus a Sun lamp matched to it. The sky fill
+is 2.2x, the view transform is AgX Medium High Contrast and the compositor adds mist-pass haze. The scene props
+(palms, trees, bushes, lamps, cars, terrain) exist only in the previews.
 
 ## Files
 
