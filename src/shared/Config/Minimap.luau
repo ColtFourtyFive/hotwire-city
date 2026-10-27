@@ -14,8 +14,8 @@ Minimap.WORLD_SIZE = 2048
 Minimap.TILE_COUNT = 2
 Minimap.TILE_PIXELS = 1024
 Minimap.TILES = {
-	{ "rbxassetid://117519932574490", "rbxassetid://125804761967084" },
-	{ "rbxassetid://84265254994123", "rbxassetid://71493891656879" },
+	{ "rbxassetid://135922170470653", "rbxassetid://105033145059125" },
+	{ "rbxassetid://122934829430314", "rbxassetid://135277028789790" },
 }
 -- Blip atlas (tools/minimap/icons.py): name -> { x, y, w, h } in atlas pixels.
 Minimap.ATLAS = "rbxassetid://120282250823159"

@@ -21,17 +21,17 @@
     "uploaded": "2026-10-27T17:04:18Z"
   },
   "tile_1_0": {
-    "assetId": 84265254994123,
-    "sha256": "dab3567d18e54eb5c4319c049e076555ec51a13617b804d24ee3942f7ead7413",
+    "assetId": 122934829430314,
+    "sha256": "4fb4d7c5766565e221d1e438d3956d1830a52b78f6d06df2b2eec66947fa3b6f",
     "file": "assets/minimap/tile_1_0.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T15:44:58Z"
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T17:04:23Z"
   },
   "tile_1_1": {
-    "assetId": 71493891656879,
-    "sha256": "06e91b254d01758c737555653b5092d40d6d2ee03c80c864f320682549496530",
+    "assetId": 135277028789790,
+    "sha256": "5f019c7eda069cbb130f520b803c13edfcf9ad214b5712ca9763f716bed14f99",
     "file": "assets/minimap/tile_1_1.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T15:45:02Z"
+    "moderation": "Reviewing",
+    "uploaded": "2026-10-27T17:04:27Z"
   }
 }
