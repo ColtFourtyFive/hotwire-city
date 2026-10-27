@@ -995,26 +995,34 @@ local KIND_MISS, KIND_WORLD, KIND_BODY, KIND_METAL = 0, 1, 2, 3
 
 type PendingHit = { target: Target, part: BasePart, x: Vector3, raw: number }
 
--- Distant gunfire (gta_combat §11.6): players beyond the ShotFx radius (FX_RADIUS..DISTANT_RADIUS) hear a quiet,
+-- Who hears a shot only as a distant tail (pure, tested): beyond the ShotFx radius of every relayed point (those
+-- listeners got ShotFx) and within DISTANT_RADIUS of the muzzle.
+function WeaponService._isDistantListener(pos: Vector3, origin: Vector3, fxPoints: { Vector3 }): boolean
+	local near2 = Weapons.FX_RADIUS * Weapons.FX_RADIUS
+	for _, pt in fxPoints do
+		local d = pos - pt
+		if d.X * d.X + d.Y * d.Y + d.Z * d.Z <= near2 then
+			return false
+		end
+	end
+	local o = pos - origin
+	return o.X * o.X + o.Y * o.Y + o.Z * o.Z <= WeaponService.DISTANT_RADIUS * WeaponService.DISTANT_RADIUS
+end
+
+-- Distant gunfire (gta_combat §11.6): players beyond the ShotFx radius (up to DISTANT_RADIUS) hear a quiet,
 -- low-passed tail, at most once per DISTANT_INTERVAL per shooter (`DistantShot(origin, weaponIndex)`, unreliable).
-local function relayDistant(inv: Inv, origin: Vector3, weaponId: string, now: number)
+local function relayDistant(inv: Inv, origin: Vector3, fxPoints: { Vector3 }, weaponId: string, now: number)
 	if now < inv.distantReadyAt then
 		return
 	end
 	inv.distantReadyAt = now + WeaponService.DISTANT_INTERVAL
-	local near2 = Weapons.FX_RADIUS * Weapons.FX_RADIUS
-	local far2 = WeaponService.DISTANT_RADIUS * WeaponService.DISTANT_RADIUS
 	local index = Weapons.Index[weaponId] or 0
 	for _, p in Players:GetPlayers() do
 		if p ~= inv.player then
 			local char = p.Character
 			local root = char and char:FindFirstChild("HumanoidRootPart")
-			if root and root:IsA("BasePart") then
-				local d = root.Position - origin
-				local d2 = d.X * d.X + d.Y * d.Y + d.Z * d.Z
-				if d2 > near2 and d2 <= far2 then
-					fireClientUnreliable("DistantShot", p, origin, index)
-				end
+			if root and root:IsA("BasePart") and WeaponService._isDistantListener(root.Position, origin, fxPoints) then
+				fireClientUnreliable("DistantShot", p, origin, index)
 			end
 		end
 	end
@@ -1146,7 +1154,7 @@ local function processShot(inv: Inv, raw: any, now: number, tNow: number, ping: 
 		endpoints,
 		kinds
 	)
-	relayDistant(inv, shot.o, shot.w, now)
+	relayDistant(inv, shot.o, fxPoints, shot.w, now)
 	if #shot.h == 0 then
 		return
 	end

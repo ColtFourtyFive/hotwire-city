@@ -5,7 +5,9 @@
 --    store zone (MapLayout gunstore box), on death / respawn or on entering a car.
 --  * List menu, top-left at (SAFE, SAFE), 300 wide: header band (Accent + Damion title), MenuHighlight subheader
 --    (TITLE ... 3/12), 28 px rows (selected = white bg / black text, prices right in Kanit), description box, key
---    hints. Touch: the menu sits bottom-left with 40 px rows and a BACK button.
+--    hints. Touch (gta_ui_language §7): a full-width bottom sheet, SHEET_HEIGHT of the screen: the list on the left
+--    half (subheader with a BACK button, 3-4 rows of 40 px), the preview (or the description) on the right half. The
+--    thumbstick, stars, cash and weapon button stay clear.
 --  * Menus: categories -> weapons (BUY / OWNED -> weapon page: magazine, fill ammo, tints), Ammunition, Body Armor,
 --    Med Kit, Weapon Tints. Preview panel to the right: turntable model (ViewportFrame), Damage / Fire Rate /
 --    Accuracy / Range / Clip bars and the price.
@@ -40,7 +42,8 @@ GunShopUI.WIDTH = 300
 GunShopUI.ROW_H = 28
 GunShopUI.ROW_H_TOUCH = 40
 GunShopUI.MAX_ROWS = 10
-GunShopUI.MAX_ROWS_TOUCH = 6
+GunShopUI.MAX_ROWS_TOUCH = 4
+GunShopUI.SHEET_HEIGHT = 0.4 -- touch: the sheet's share of the screen height
 GunShopUI.LAYER = 20
 GunShopUI.STORE_NAME = "Freedom Arms"
 
@@ -258,6 +261,7 @@ type RowView = { button: TextButton, label: TextLabel, value: TextLabel }
 type StatView = { holder: Frame, fill: Frame }
 type View = {
 	gui: ScreenGui,
+	sheet: Frame, -- touch only: the bottom sheet that holds the menu and the preview
 	menu: Frame,
 	header: Frame,
 	cash: TextLabel,
@@ -270,6 +274,7 @@ type View = {
 	hints: TextLabel,
 	back: TextButton,
 	preview: Frame,
+	previewLayout: UIListLayout,
 	viewport: ViewportFrame,
 	previewModel: WeaponPreview.Preview,
 	previewName: TextLabel,
@@ -296,8 +301,24 @@ local function rowHeight(): number
 	return if touch() then GunShopUI.ROW_H_TOUCH else GunShopUI.ROW_H
 end
 
+-- Rows that fit the touch sheet (pure, tested): SHEET_HEIGHT of the design canvas minus the sheet padding (16) and
+-- the subheader (24), at ROW_H_TOUCH each; 3 on a short phone up to MAX_ROWS_TOUCH.
+function GunShopUI._touchRows(canvasHeight: number): number
+	local inner = canvasHeight * GunShopUI.SHEET_HEIGHT - 16 - 24
+	return math.clamp(math.floor(inner / GunShopUI.ROW_H_TOUCH), 3, GunShopUI.MAX_ROWS_TOUCH)
+end
+
 local function maxRows(): number
-	return if touch() then GunShopUI.MAX_ROWS_TOUCH else GunShopUI.MAX_ROWS
+	if not touch() then
+		return GunShopUI.MAX_ROWS
+	end
+	local v = view
+	if not v then
+		return GunShopUI.MAX_ROWS_TOUCH
+	end
+	local sc = v.gui:FindFirstChildOfClass("UIScale")
+	local scale = if sc and sc.Scale > 0 then sc.Scale else 1
+	return GunShopUI._touchRows(v.gui.AbsoluteSize.Y / scale)
 end
 
 local function lazy(name: string): any
@@ -360,7 +381,7 @@ local function build(): View
 	Kit.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
 	local header = Kit.new("Frame", {
 		Name = "Header",
-		Size = UDim2.fromOffset(W, 64),
+		Size = UDim2.new(1, 0, 0, 64),
 		BackgroundColor3 = Style.Colors.Accent,
 		BorderSizePixel = 0,
 		LayoutOrder = 1,
@@ -398,7 +419,7 @@ local function build(): View
 	})
 	local sub = Kit.new("Frame", {
 		Name = "Subheader",
-		Size = UDim2.fromOffset(W, 24),
+		Size = UDim2.new(1, 0, 0, 24),
 		BackgroundColor3 = Style.Colors.MenuHighlight,
 		BorderSizePixel = 0,
 		LayoutOrder = 2,
@@ -442,7 +463,7 @@ local function build(): View
 	local rowsFrame = Kit.new("Frame", {
 		Name = "Rows",
 		BackgroundTransparency = 1,
-		Size = UDim2.fromOffset(W, 0),
+		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 3,
 		Parent = menu,
@@ -452,7 +473,7 @@ local function build(): View
 	for i = 1, math.max(GunShopUI.MAX_ROWS, GunShopUI.MAX_ROWS_TOUCH) do
 		local b = Kit.new("TextButton", {
 			Name = "Row" .. i,
-			Size = UDim2.fromOffset(W, GunShopUI.ROW_H),
+			Size = UDim2.new(1, 0, 0, GunShopUI.ROW_H),
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = Style.Transparency.Row,
 			BorderSizePixel = 0,
@@ -500,7 +521,7 @@ local function build(): View
 	end
 	local descBox = Kit.new("Frame", {
 		Name = "Description",
-		Size = UDim2.fromOffset(W, 0),
+		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Style.Colors.Panel,
 		BackgroundTransparency = Style.Transparency.Panel,
@@ -527,7 +548,7 @@ local function build(): View
 	Kit.new("UITextSizeConstraint", { MaxTextSize = 13, Parent = description })
 	local hints = label(menu, {
 		Name = "Hints",
-		Size = UDim2.fromOffset(W, 20),
+		Size = UDim2.new(1, 0, 0, 20),
 		LayoutOrder = 5,
 		FontFace = Style.font("Body"),
 		TextSize = 12,
@@ -535,7 +556,27 @@ local function build(): View
 		Text = "Enter  Select     Backspace  Back     W / S  Move",
 	})
 
-	-- preview panel
+	-- touch bottom sheet (layout() moves the menu, the description and the preview into it)
+	local sheet = Kit.new("Frame", {
+		Name = "Sheet",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.fromScale(1, GunShopUI.SHEET_HEIGHT),
+		BackgroundColor3 = Style.Colors.Panel,
+		BackgroundTransparency = Style.Transparency.Panel,
+		BorderSizePixel = 0,
+		Visible = false,
+		Parent = gui,
+	}) :: Frame
+	Kit.new("UIPadding", {
+		PaddingTop = UDim.new(0, 8),
+		PaddingBottom = UDim.new(0, 8),
+		PaddingLeft = UDim.new(0, 12),
+		PaddingRight = UDim.new(0, 12),
+		Parent = sheet,
+	})
+
+	-- preview panel: the model, then an info column (name, stat bars, price); side by side in the touch sheet
 	local preview = Kit.new("Frame", {
 		Name = "Preview",
 		Position = UDim2.fromOffset(Style.SAFE + W + 12, Style.SAFE),
@@ -547,7 +588,8 @@ local function build(): View
 		Visible = false,
 		Parent = gui,
 	}) :: Frame
-	Kit.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = preview })
+	local previewLayout =
+		Kit.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = preview }) :: UIListLayout
 	Kit.new("UIPadding", {
 		PaddingTop = UDim.new(0, 8),
 		PaddingBottom = UDim.new(0, 10),
@@ -562,7 +604,16 @@ local function build(): View
 		LayoutOrder = 1,
 		Parent = preview,
 	}) :: ViewportFrame
-	local previewName = label(preview, {
+	local info = Kit.new("Frame", {
+		Name = "Info",
+		Size = UDim2.fromOffset(256, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		LayoutOrder = 2,
+		Parent = preview,
+	}) :: Frame
+	Kit.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = info })
+	local previewName = label(info, {
 		Name = "Name",
 		Size = UDim2.fromOffset(256, 24),
 		FontFace = Style.font("Condensed"),
@@ -577,7 +628,7 @@ local function build(): View
 			Size = UDim2.fromOffset(256, 18),
 			BackgroundTransparency = 1,
 			LayoutOrder = 2 + i,
-			Parent = preview,
+			Parent = info,
 		})
 		label(holder, {
 			Size = UDim2.fromOffset(90, 18),
@@ -602,7 +653,7 @@ local function build(): View
 		}) :: Frame
 		stats[i] = { holder = holder :: Frame, fill = fill }
 	end
-	local previewPrice = label(preview, {
+	local previewPrice = label(info, {
 		Name = "Price",
 		Size = UDim2.fromOffset(256, 28),
 		FontFace = Style.font("Numeric"),
@@ -612,6 +663,7 @@ local function build(): View
 	})
 	return {
 		gui = gui,
+		sheet = sheet,
 		menu = menu,
 		header = header,
 		cash = cash,
@@ -624,6 +676,7 @@ local function build(): View
 		hints = hints,
 		back = back,
 		preview = preview,
+		previewLayout = previewLayout,
 		viewport = viewport,
 		previewModel = WeaponPreview.new(viewport, false),
 		previewName = previewName,
@@ -632,23 +685,66 @@ local function build(): View
 	}
 end
 
+-- The ScreenGui's UIScale also shrinks scale-sized frames: a full-width sheet is 1 / scale wide (pure, tested).
+function GunShopUI._sheetSize(uiScale: number, heightShare: number): UDim2
+	local s = if uiScale > 0 then uiScale else 1
+	return UDim2.fromScale(1 / s, heightShare / s)
+end
+
+local function uiScaleOf(gui: ScreenGui): number
+	local s = gui:FindFirstChildOfClass("UIScale")
+	return if s and s.Scale > 0 then s.Scale else 1
+end
+
 local function layout(v: View)
 	local t = touch()
-	if t then
-		v.menu.AnchorPoint = Vector2.new(0, 1)
-		v.menu.Position = UDim2.new(0, Style.SAFE, 1, -Style.SAFE)
-		v.preview.AnchorPoint = Vector2.new(1, 0)
-		v.preview.Position = UDim2.new(1, -Style.SAFE, 0, Style.SAFE + 60)
-	else
-		v.menu.AnchorPoint = Vector2.new(0, 0)
-		v.menu.Position = UDim2.fromOffset(Style.SAFE, Style.SAFE)
-		v.preview.AnchorPoint = Vector2.new(0, 0)
-		v.preview.Position = UDim2.fromOffset(Style.SAFE + GunShopUI.WIDTH + 12, Style.SAFE)
-	end
+	local W = GunShopUI.WIDTH
 	v.hints.Visible = not t
 	v.back.Visible = t
+	v.header.Visible = not t -- the HUD's cash stays visible above the sheet
+	v.sheet.Visible = t
+	if t then
+		v.sheet.Size = GunShopUI._sheetSize(uiScaleOf(v.gui), GunShopUI.SHEET_HEIGHT)
+		v.menu.Parent = v.sheet
+		v.menu.AnchorPoint = Vector2.zero
+		v.menu.Position = UDim2.new()
+		v.menu.AutomaticSize = Enum.AutomaticSize.None
+		v.menu.Size = UDim2.new(0.5, -8, 1, 0)
+		v.descBox.Parent = v.sheet
+		v.descBox.AnchorPoint = Vector2.new(1, 0)
+		v.descBox.Position = UDim2.fromScale(1, 0)
+		v.descBox.Size = UDim2.new(0.5, -8, 0, 0)
+		v.preview.Parent = v.sheet
+		v.preview.AnchorPoint = Vector2.new(1, 0)
+		v.preview.Position = UDim2.fromScale(1, 0)
+		v.preview.AutomaticSize = Enum.AutomaticSize.None
+		v.preview.Size = UDim2.new(0.5, -8, 1, 0)
+		v.preview.BackgroundTransparency = 1 -- the sheet is the panel
+		v.previewLayout.FillDirection = Enum.FillDirection.Horizontal
+		v.previewLayout.Padding = UDim.new(0, 12)
+		v.viewport.Size = UDim2.fromOffset(150, 110)
+	else
+		v.menu.Parent = v.gui
+		v.menu.AnchorPoint = Vector2.zero
+		v.menu.Position = UDim2.fromOffset(Style.SAFE, Style.SAFE)
+		v.menu.Size = UDim2.fromOffset(W, 0)
+		v.menu.AutomaticSize = Enum.AutomaticSize.Y
+		v.descBox.Parent = v.menu
+		v.descBox.AnchorPoint = Vector2.zero
+		v.descBox.Position = UDim2.new()
+		v.descBox.Size = UDim2.fromScale(1, 0)
+		v.preview.Parent = v.gui
+		v.preview.AnchorPoint = Vector2.zero
+		v.preview.Position = UDim2.fromOffset(Style.SAFE + W + 12, Style.SAFE)
+		v.preview.Size = UDim2.fromOffset(280, 0)
+		v.preview.AutomaticSize = Enum.AutomaticSize.Y
+		v.preview.BackgroundTransparency = Style.Transparency.Panel
+		v.previewLayout.FillDirection = Enum.FillDirection.Vertical
+		v.previewLayout.Padding = UDim.new(0, 0)
+		v.viewport.Size = UDim2.fromOffset(256, 120)
+	end
 	for _, r in v.rows do
-		r.button.Size = UDim2.fromOffset(GunShopUI.WIDTH, rowHeight())
+		r.button.Size = UDim2.new(1, 0, 0, rowHeight())
 	end
 end
 
@@ -692,11 +788,12 @@ function GunShopUI._render()
 	local row = m.rows[selected]
 	local desc = if row then row.description else nil
 	v.description.Text = desc or ""
-	v.descBox.Visible = desc ~= nil and desc ~= ""
 	-- preview
 	local wid = if row then row.weapon else nil
 	local def = if wid then Weapons.get(wid) else nil
 	v.preview.Visible = def ~= nil
+	-- touch: the description shares the sheet's right half with the preview, which wins
+	v.descBox.Visible = desc ~= nil and desc ~= "" and not (touch() and def ~= nil)
 	if def then
 		local owned = ctx.owned[def.id]
 		local tint = if row and row.action == "tint" and row.arg2 then row.arg2 elseif owned then owned.tint else nil
@@ -845,8 +942,18 @@ end
 function GunShopUI.open()
 	local v = view
 	if not v then
-		v = build()
-		view = v
+		local built = build()
+		v = built
+		view = built
+		-- a rotation / input switch changes the UIScale: the touch sheet's size compensates for it
+		local sc = built.gui:FindFirstChildOfClass("UIScale")
+		if sc then
+			sc:GetPropertyChangedSignal("Scale"):Connect(function()
+				if isOpenFlag then
+					layout(built)
+				end
+			end)
+		end
 	end
 	local vv = v :: View
 	layout(vv)

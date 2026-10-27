@@ -18,8 +18,11 @@
 --    is skipped. A station change retunes the label at once but starts its track only after RADIO_TUNE_DELAY without
 --    another press (each start streams a 2-3 min track: mashing the buttons must not download one per press).
 --    RadioChanged(station?, title?) drives the DrivingUI label.
---  * Settings: snapshot settings.sfx / settings.music drive two SoundGroups (HC_SFX, HC_Music); ambience counts as
---    "music". setEnabled / setVolume let other controllers (e.g. Settings menu previews) override locally.
+--  * Settings: snapshot settings.sfx / settings.music drive the SoundGroups (HC_SFX, HC_Music, and HC_UI for UI
+--    one-shots, which follows sfx but is never muffled); ambience counts as "music". setEnabled / setVolume let other
+--    controllers (e.g. Settings menu previews) override locally.
+--  * Gunfire: playGunshot (shot / tail / mech layers by distance; tails skip the one-shot cull) and
+--    playDistantGunshot (the DistantShot remote: a quiet low-passed tail from the shot's direction, up to 1200 studs).
 --  * start(): ContentProvider:PreloadAsync of every Config/Sounds id except the radio tracks (pcall, background; the
 --    music streams on demand instead of costing every phone ~10 long downloads at boot).
 
@@ -170,6 +173,9 @@ end
 
 local sfxGroup: SoundGroup? = nil
 local musicGroup: SoundGroup? = nil
+-- UI one-shots (clicks, hit ticks, the WASTED / BUSTED stings) have their own group (gta_ui_language §5.16): the
+-- death / weapon-wheel muffle sits on HC_SFX and must never dull them. It follows the sfx setting.
+local uiGroup: SoundGroup? = nil
 local uiFolder: Folder? = nil
 local worldAnchor: Part? = nil
 local enabled = { sfx = true, music = true }
@@ -181,24 +187,35 @@ type WorldEntry = { attachment: Attachment, sound: Sound, startedAt: number }
 local uiPools: { [string]: { PoolEntry } } = {}
 local worldPool: { WorldEntry } = {}
 
+local function findOrMakeGroup(name: string): SoundGroup
+	local g = SoundService:FindFirstChild(name)
+	if g and g:IsA("SoundGroup") then
+		return g
+	end
+	local made = Instance.new("SoundGroup")
+	made.Name = name
+	made.Parent = SoundService
+	return made
+end
+
 local function ensureGroups()
-	if sfxGroup and sfxGroup.Parent and musicGroup and musicGroup.Parent then
+	if
+		sfxGroup
+		and sfxGroup.Parent
+		and musicGroup
+		and musicGroup.Parent
+		and uiGroup
+		and uiGroup.Parent
+		and uiFolder
+		and uiFolder.Parent
+	then
 		return
 	end
-	local sfx = SoundService:FindFirstChild("HC_SFX")
-	if not (sfx and sfx:IsA("SoundGroup")) then
-		sfx = Instance.new("SoundGroup")
-		sfx.Name = "HC_SFX"
-		sfx.Parent = SoundService
-	end
-	local music = SoundService:FindFirstChild("HC_Music")
-	if not (music and music:IsA("SoundGroup")) then
-		music = Instance.new("SoundGroup")
-		music.Name = "HC_Music"
-		music.Parent = SoundService
-	end
-	sfxGroup = sfx :: SoundGroup
-	musicGroup = music :: SoundGroup
+	sfxGroup = findOrMakeGroup("HC_SFX")
+	musicGroup = findOrMakeGroup("HC_Music")
+	local ui = findOrMakeGroup("HC_UI")
+	uiGroup = ui
+	ui.Volume = if enabled.sfx then volumes.sfx else 0 -- the UI group follows the sfx setting
 	local folder = SoundService:FindFirstChild("HC_UISounds")
 	if not (folder and folder:IsA("Folder")) then
 		folder = Instance.new("Folder")
@@ -241,6 +258,10 @@ local function applyGroupVolumes()
 	local music = musicGroup :: SoundGroup
 	sfx.Volume = if enabled.sfx then volumes.sfx else 0
 	music.Volume = if enabled.music then volumes.music else 0
+	local ui = uiGroup
+	if ui then
+		ui.Volume = sfx.Volume
+	end
 end
 
 -- Configure a Sound instance for a def (shared by all pools). start / stop = PlaybackRegion (one transient out of a
@@ -322,7 +343,7 @@ local function playUI(key: string, def: SoundDef): Sound
 	if not entry.sound.Parent then
 		entry.sound.Parent = uiFolder
 	end
-	configure(entry.sound, def, sfxGroup)
+	configure(entry.sound, def, uiGroup)
 	entry.sound.Looped = false
 	entry.sound.PlaybackSpeed = variedPitch(def)
 	entry.sound.TimePosition = 0
@@ -331,9 +352,10 @@ local function playUI(key: string, def: SoundDef): Sound
 	return entry.sound
 end
 
-local function playWorld(def: SoundDef, position: Vector3): Sound?
+-- force: skip the distance cull (gun tails are meant to carry across the city).
+local function playWorld(def: SoundDef, position: Vector3, force: boolean?): Sound?
 	local cam = Workspace.CurrentCamera
-	if cam and (cam.CFrame.Position - position).Magnitude > WORLD_CULL_DISTANCE then
+	if not force and cam and (cam.CFrame.Position - position).Magnitude > WORLD_CULL_DISTANCE then
 		return nil
 	end
 	ensureGroups()
@@ -411,6 +433,8 @@ SoundController.GUN_LOWPASS_FROM = 250 -- ...low-passed beyond this
 SoundController.GUN_FAR = 600 -- beyond this only a single quiet distant tail
 SoundController.GUN_MECH_RANGE = 30
 SoundController.GUN_DUCK_RANGE = 80
+SoundController.GUN_DISTANT_MAX = 1200 -- distant tails (DistantShot) are heard up to this far
+SoundController.GUN_DISTANT_EMIT = 150 -- ...emitted at most this far away, on the line to the shot (keeps direction)
 
 local roundRobin: { [string]: number } = {}
 local duckUntil = 0
@@ -441,12 +465,33 @@ function SoundController.gunLayers(d: number): (boolean, boolean, boolean, boole
 		false
 end
 
+-- Distant-tail volume multiplier for a listener `d` studs away (pure, tested): 0.3 up to GUN_FAR, falling with
+-- distance to half that at GUN_DISTANT_MAX, 0 beyond.
+function SoundController.distantVolume(d: number): number
+	if d > SoundController.GUN_DISTANT_MAX then
+		return 0
+	end
+	return 0.3 * math.clamp(SoundController.GUN_FAR / math.max(d, 1), 0.5, 1)
+end
+
+-- Where a distant tail is emitted (pure, tested): the shot itself when close, else GUN_DISTANT_EMIT studs from the
+-- listener toward it (the pooled emitters' roll-off would silence the real position; the direction is kept).
+function SoundController.distantEmitPoint(listener: Vector3, origin: Vector3): Vector3
+	local off = origin - listener
+	local d = off.Magnitude
+	if d <= SoundController.GUN_DISTANT_EMIT or d < 1e-3 then
+		return origin
+	end
+	return listener + off / d * SoundController.GUN_DISTANT_EMIT
+end
+
 local function listenerPosition(): Vector3?
 	local cam = Workspace.CurrentCamera
 	return if cam then cam.CFrame.Position else nil
 end
 
-local function playLayer(key: string?, position: Vector3, volumeMult: number, lowpass: boolean)
+-- force: skip the distance cull (tails).
+local function playLayer(key: string?, position: Vector3, volumeMult: number, lowpass: boolean, force: boolean?)
 	if not key then
 		return
 	end
@@ -454,7 +499,7 @@ local function playLayer(key: string?, position: Vector3, volumeMult: number, lo
 	if not def or not enabled.sfx then
 		return
 	end
-	local s = playWorld(def, position)
+	local s = playWorld(def, position, force)
 	if not s then
 		return
 	end
@@ -480,6 +525,16 @@ function SoundController.duckRadio(seconds: number, factor: number)
 	music.Volume = (if enabled.music then volumes.music else 0) * duckFactor
 end
 
+-- Only the quiet, low-passed tail of a far-away shot (beyond GUN_FAR, or relayed as DistantShot).
+local function playDistantTail(weaponSounds: any, position: Vector3, listener: Vector3?, d: number)
+	local mult = SoundController.distantVolume(d)
+	if mult <= 0 then
+		return
+	end
+	local at = if listener then SoundController.distantEmitPoint(listener, position) else position
+	playLayer(SoundController.pickVariant(weaponSounds.tail or {}), at, mult, true, true)
+end
+
 -- One gunshot heard at `position`. weaponSounds = Config/Weapons def.sounds.
 function SoundController.playGunshot(weaponSounds: any, position: Vector3)
 	if typeof(weaponSounds) ~= "table" or typeof(position) ~= "Vector3" then
@@ -489,14 +544,15 @@ function SoundController.playGunshot(weaponSounds: any, position: Vector3)
 	local d = if listener then (listener - position).Magnitude else 0
 	local shot, tail, lowpass, mech, distantOnly = SoundController.gunLayers(d)
 	if distantOnly then
-		playLayer(SoundController.pickVariant(weaponSounds.tail or {}), position, 0.3, true)
+		playDistantTail(weaponSounds, position, listener, d)
 		return
 	end
 	if shot then
 		playLayer(SoundController.pickVariant(weaponSounds.shot or {}), position, 1, false)
 	end
 	if tail then
-		playLayer(SoundController.pickVariant(weaponSounds.tail or {}), position, 0.8, lowpass)
+		-- tails carry past the one-shot cull distance
+		playLayer(SoundController.pickVariant(weaponSounds.tail or {}), position, 0.8, lowpass, true)
 	end
 	if mech and weaponSounds.mech and #weaponSounds.mech > 0 then
 		local key = SoundController.pickVariant(weaponSounds.mech)
@@ -509,14 +565,24 @@ function SoundController.playGunshot(weaponSounds: any, position: Vector3)
 	end
 end
 
+-- A gunshot far beyond the ShotFx radius (the DistantShot remote, gta_combat §11.6): only its distant tail, quiet
+-- and low-passed, from the shot's direction. Nothing beyond GUN_DISTANT_MAX.
+function SoundController.playDistantGunshot(weaponSounds: any, origin: Vector3)
+	if typeof(weaponSounds) ~= "table" or typeof(origin) ~= "Vector3" or not enabled.sfx then
+		return
+	end
+	local listener = listenerPosition()
+	local d = if listener then (listener - origin).Magnitude else SoundController.GUN_FAR
+	playDistantTail(weaponSounds, origin, listener, math.max(d, SoundController.GUN_FAR))
+end
+
 local WHIZ = { "Whiz1", "Whiz2", "Whiz3" }
 function SoundController.playWhiz(position: Vector3)
 	playLayer(SoundController.pickVariant(WHIZ), position, 1, false)
 end
 
 -- Muffle the SFX group (death / arrest grade, weapon wheel). nil clears that reason's muffle; with several reasons
--- active the strongest (most negative) gains win. UI sounds stay crisp only when they use their own group (B2's UI
--- SoundGroup); v1 UI sounds share HC_SFX and are muffled too.
+-- active the strongest (most negative) gains win. UI one-shots play through HC_UI and stay crisp.
 local muffleEq: EqualizerSoundEffect? = nil
 local muffles: { [string]: { high: number, mid: number } } = {}
 function SoundController.setMuffle(highGain: number?, midGain: number?, reason: string?)

@@ -122,6 +122,123 @@ return function(t)
 		H.setMode("server")
 	end)
 
+	t.test("SoundController: distant tails fade with range and are emitted toward the shot", function()
+		H.setMode("client")
+		local S = H.require("src/client/Controllers/SoundController")
+		t.near(S.distantVolume(S.GUN_FAR), 0.3, 1e-9)
+		t.ok(S.distantVolume(S.GUN_DISTANT_MAX) < S.distantVolume(S.GUN_FAR), "quieter further out")
+		t.ok(S.distantVolume(S.GUN_DISTANT_MAX) > 0, "still audible at the edge")
+		t.eq(S.distantVolume(S.GUN_DISTANT_MAX + 1), 0, "nothing beyond")
+		local listener = V3.new(0, 0, 0)
+		local origin = V3.new(1000, 0, 0)
+		local at = S.distantEmitPoint(listener, origin)
+		t.near((at - listener).Magnitude, S.GUN_DISTANT_EMIT, 1e-6, "emitted close enough to be heard")
+		t.ok(at.X > 0 and math.abs(at.Z) < 1e-9, "from the shot's direction")
+		local near = V3.new(50, 0, 0)
+		t.eq(S.distantEmitPoint(listener, near), near, "close shots stay where they are")
+		H.setMode("server")
+	end)
+
+	t.test("ShotFxController: one impact-sound budget per shooter (8 / s)", function()
+		H.setMode("client")
+		local FX = H.require("src/client/Controllers/ShotFxController")
+		local b = { tokens = FX.IMPACT_SOUNDS_PER_S, at = 0 }
+		local n = 0
+		for _ = 1, 20 do
+			if FX._takeImpactSound(b, 0) then
+				n += 1
+			end
+		end
+		t.eq(n, FX.IMPACT_SOUNDS_PER_S, "a burst plays at most the bucket")
+		t.eq(FX._takeImpactSound(b, 0.5 / FX.IMPACT_SOUNDS_PER_S), false, "half a token is not a sound")
+		t.eq(FX._takeImpactSound(b, 1.01 / FX.IMPACT_SOUNDS_PER_S), true, "refills at the rate")
+		H.setMode("server")
+	end)
+
+	t.test(
+		"WeaponClient: stale presses never fire, flick switching, aim pose, touch cluster clear of the HUD",
+		function()
+			H.setMode("client")
+			local WC = H.require("src/client/Controllers/WeaponClient")
+			local AimAssist = H.require("src/shared/Combat/AimAssist")
+			-- a click is buffered for PRESS_WINDOW only
+			t.eq(WC._pressValid(10, 10.05), true)
+			t.eq(
+				WC._pressValid(10, 10 + WC.PRESS_WINDOW + 0.01),
+				false,
+				"a click made unarmed never fires the gun drawn later"
+			)
+			t.eq(WC._pressValid(-math.huge, 10), false, "no press")
+			t.eq(WC._pressValid(11, 10), false)
+			-- flicks: one quick swipe past FLICK_DEG switches; a slow drag never does
+			local acc, side = WC._flickStep(0, AimAssist.FLICK_DEG + 1, 1 / 60)
+			t.eq(side, 1)
+			t.eq(acc, 0, "reset after a flick")
+			_, side = WC._flickStep(0, -(AimAssist.FLICK_DEG + 1), 1 / 60)
+			t.eq(side, -1)
+			acc = 0
+			local flicked = false
+			for _ = 1, 60 do
+				local s
+				acc, s = WC._flickStep(acc, AimAssist.FLICK_DEG * 0.1, 0.25)
+				flicked = flicked or s ~= 0
+			end
+			t.ok(not flicked, "a slow pan is not a flick")
+			-- the aim point other clients pose a character toward
+			local head = V3.new(0, 5, 0)
+			local level = WC._aimTarget(head, V3.new(0, 0, -1), 0, 60)
+			t.near((level - V3.new(0, 5, -60)).Magnitude, 0, 1e-6)
+			local up = WC._aimTarget(head, V3.new(0, 0.5, -1), 30, 60)
+			t.near(up.Y - head.Y, 60 * math.sin(math.rad(30)), 1e-6, "pitch from the attribute, not the look vector")
+			t.ok(WC._aimTarget(head, V3.new(0, 0, -1), 89, 60).Y < head.Y + 60, "clamped below straight up")
+			-- touch cluster on a phone's safe canvas (~1172 x 460 design px): no overlaps, all below the weapon button
+			-- (y 124..168) and the ammo readout
+			local W, Hh = 1172, 460
+			local L = WC.TOUCH_LAYOUT
+			local sizes = {
+				fire = WC.FIRE_BUTTON,
+				aim = WC.AIM_BUTTON,
+				reload = WC.RELOAD_BUTTON,
+				swap = WC.SWAP_BUTTON,
+				surrender = WC.SURRENDER_BUTTON,
+			}
+			local rects = {}
+			for name, size in sizes do
+				local pos = L[name]
+				local right = pos.X.Scale * W + pos.X.Offset -- anchor (1, 1)
+				local bottom = pos.Y.Scale * Hh + pos.Y.Offset
+				rects[name] = { x0 = right - size, x1 = right, y0 = bottom - size, y1 = bottom }
+				t.ok(bottom - size > 168 + 8, name .. " sits below the weapon button")
+				t.ok(right - size > W * 0.5, name .. " stays on the right half (thumbstick side is left)")
+			end
+			for a, ra in rects do
+				for b, rb in rects do
+					if a < b then
+						local overlap = ra.x0 < rb.x1 and rb.x0 < ra.x1 and ra.y0 < rb.y1 and rb.y0 < ra.y1
+						t.ok(not overlap, a .. " overlaps " .. b)
+					end
+				end
+			end
+			H.setMode("server")
+		end
+	)
+
+	t.test("GunShopUI: the touch sheet compensates for the screen UIScale", function()
+		H.setMode("client")
+		local Shop = H.require("src/client/Controllers/GunShopUI")
+		local s = Shop._sheetSize(0.72, Shop.SHEET_HEIGHT)
+		t.near(s.X.Scale * 0.72, 1, 1e-5, "full width after scaling") -- UDim is float32
+		t.near(s.Y.Scale * 0.72, Shop.SHEET_HEIGHT, 1e-5, "40 % of the height after scaling")
+		t.eq(Shop._sheetSize(0, 0.4).X.Scale, 1, "a missing scale counts as 1")
+		for _, h in { 400, 460, 490, 541, 720 } do
+			local rows = Shop._touchRows(h)
+			t.ok(rows >= 3 and rows <= Shop.MAX_ROWS_TOUCH, "row count in range")
+			t.ok(rows * Shop.ROW_H_TOUCH + 24 <= h * Shop.SHEET_HEIGHT - 16, "rows + subheader fit the sheet at " .. h)
+		end
+		t.eq(Shop._touchRows(720), Shop.MAX_ROWS_TOUCH, "tall screens get the full list")
+		H.setMode("server")
+	end)
+
 	t.test("ShotFxController: closest point on a tracer, impacts never red", function()
 		H.setMode("client")
 		local FX = H.require("src/client/Controllers/ShotFxController")

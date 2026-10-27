@@ -17,12 +17,14 @@
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
+local Trove = require(Shared:WaitForChild("Util"):WaitForChild("Trove"))
 local Weapons = require(Shared:WaitForChild("Config"):WaitForChild("Weapons"))
 local Economy = require(Shared:WaitForChild("Config"):WaitForChild("Economy"))
 
@@ -845,23 +847,41 @@ function WeaponWheel.start()
 	player.CharacterAdded:Connect(function()
 		WeaponWheel.close(false)
 	end)
+	-- per-character connections live in a Trove cleaned when the character goes, so old bodies are never kept alive
+	local charTrove = Trove.new()
 	local function watchSeat(char: Model)
+		charTrove:Clean()
 		local hum = char:WaitForChild("Humanoid", 10)
+		if player.Character ~= char then
+			return -- replaced while we waited
+		end
 		if hum and hum:IsA("Humanoid") then
-			hum.Seated:Connect(function(active: boolean)
+			charTrove:Connect(hum.Seated, function(active: boolean)
 				if active then
 					WeaponWheel.close(false)
 				end
 			end)
-			hum.Died:Connect(function()
+			charTrove:Connect(hum.Died, function()
 				WeaponWheel.close(false)
 			end)
 		end
 	end
 	player.CharacterAdded:Connect(watchSeat)
+	player.CharacterRemoving:Connect(function()
+		charTrove:Clean()
+	end)
 	if player.Character then
 		task.spawn(watchSeat, player.Character)
 	end
+	-- Tab is ours (gta_ui_language §8: no CoreGui leaderboard). The CoreGui may not be registered yet at boot: retry.
+	task.spawn(function()
+		for _ = 1, 10 do
+			if pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.PlayerList, false) then
+				return
+			end
+			task.wait(1)
+		end
+	end)
 end
 
 return WeaponWheel

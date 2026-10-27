@@ -67,6 +67,8 @@ WeaponClient.FACE_AFTER_SHOT = 0.6
 WeaponClient.FIRE_BUTTON = 110
 WeaponClient.AIM_BUTTON = 80
 WeaponClient.RELOAD_BUTTON = 56
+WeaponClient.SWAP_BUTTON = 48
+WeaponClient.SURRENDER_BUTTON = 84
 WeaponClient.PRESS_WINDOW = 0.2 -- a click / tap is buffered this long, then forgotten
 WeaponClient.ASSIST_SCAN = 0.1 -- aim-assist candidate rescan interval (10 Hz)
 WeaponClient.FLICK_DECAY = 0.15 -- seconds: look input older than this no longer adds up to a flick
@@ -1156,8 +1158,8 @@ local function buildTouchUI()
 	local fire = circleButton(gui, "Fire", "FIRE", WeaponClient.FIRE_BUTTON, L.fire)
 	local aim = circleButton(gui, "Aim", "AIM", WeaponClient.AIM_BUTTON, L.aim)
 	local reload = circleButton(gui, "Reload", "RELOAD", WeaponClient.RELOAD_BUTTON, L.reload)
-	local swap = circleButton(gui, "Swap", "SWAP", 48, L.swap)
-	local surrender = circleButton(gui, "Surrender", "SURRENDER", 84, L.surrender)
+	local swap = circleButton(gui, "Swap", "SWAP", WeaponClient.SWAP_BUTTON, L.swap)
+	local surrender = circleButton(gui, "Surrender", "SURRENDER", WeaponClient.SURRENDER_BUTTON, L.surrender)
 	local weapon = Kit.new("TextButton", {
 		Name = "WeaponButton",
 		AnchorPoint = Vector2.new(1, 0),
@@ -1401,11 +1403,7 @@ function WeaponClient.start()
 			refreshTouchUI()
 			-- a gun in hand with the camera let go (the death / arrest screen just finished): take it back, unless we
 			-- just asked to holster and the Tool hasn't left yet
-			if
-				Weapons.isGun(equippedDef())
-				and not ShoulderCamera.isEngaged()
-				and now - holsterRequestedAt > 1
-			then
+			if Weapons.isGun(equippedDef()) and not ShoulderCamera.isEngaged() and now - holsterRequestedAt > 1 then
 				refreshEngagement()
 			end
 		end

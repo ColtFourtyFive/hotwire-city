@@ -646,7 +646,14 @@ local function taser(o: Officer, sc: Suspect, info: SuspectInfo, now: number)
 		local push = if dir.Magnitude > 0.1 then dir.Unit * 10 else Vector3.zero
 		pcall(Net.fireClient, "Knockback", sc.player, push + Vector3.new(0, 6, 0), Police.TASER_STUN)
 	end
-	pcall(Net.fireNear, "Effect", origin, 250, "TaserShot", { from = origin, to = info.pos, hit = okS and landed == true })
+	pcall(
+		Net.fireNear,
+		"Effect",
+		origin,
+		250,
+		"TaserShot",
+		{ from = origin, to = info.pos, hit = okS and landed == true }
+	)
 end
 
 -- OFFICER THINK ---------------------------------------------------------------------------------------------------------
