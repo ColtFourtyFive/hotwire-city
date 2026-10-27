@@ -230,9 +230,9 @@ def _m(key):
     if key in _mats:
         return _mats[key]
     T = {"asphalt": lambda: M.textured("Asphalt", "asphalt", tint=(0.78, 0.78, 0.8), rough=1.0),
-         "sidewalk": lambda: M.textured("Sidewalk", "sidewalk", tint=(1.0, 0.98, 0.95)),
+         "sidewalk": lambda: M.textured("Sidewalk", "sidewalk", tint=(0.92, 0.93, 0.95)),
          "curb": lambda: M.textured("Curb", "curb", tint=(1.05, 1.05, 1.05)),
-         "grass": lambda: M.textured("Grass", "grass", tint=(0.85, 0.95, 0.75)),
+         "grass": lambda: M.textured("Grass", "grass", tint=(0.62, 0.95, 0.42)),
          "dirt": lambda: M.textured("Dirt", "roof_gravel", tint=(0.75, 0.62, 0.48)),
          "sand": lambda: M.color("Sand", (0.86, 0.76, 0.58), 0.95),
          "sea": lambda: M.water("Sea", (0.04, 0.22, 0.30)),

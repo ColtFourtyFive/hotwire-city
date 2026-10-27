@@ -3,10 +3,10 @@
  "name": "TruckProp",
  "depicts": "Isuzu NPR-style 16 ft box truck",
  "forward": {
-  "method": "default(-Z)",
+  "method": "long-axis(-)",
   "lookVector": [
-   0.0,
-   0.0,
+   -0.0,
+   -0.0,
    -1.0
   ]
  },

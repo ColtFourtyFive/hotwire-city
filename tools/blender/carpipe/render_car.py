@@ -27,10 +27,11 @@ PAINTS = [(0.62, 0.04, 0.05), (0.05, 0.06, 0.07), (0.80, 0.80, 0.78)]
 
 
 def load_before(path, cfg):
+    """Raw import with the source materials, only oriented/grounded/scaled (call BEFORE building the stage)."""
     importer.import_any(path, cfg)
     objs = importer.flatten(subsurf_cap=cfg.get("subsurf_cap", 1))
     mdir = os.path.dirname(os.path.abspath(path))
-    for d in {mdir, os.path.dirname(mdir)}:
+    for d in (mdir, os.path.dirname(mdir)):
         importer.discover_textures(d, cfg.get("textures"))
     car = analyze.Car(cfg)
     car.build(objs)
@@ -65,8 +66,8 @@ def main():
         R.setup_cycles(samples=a.samples)
         p = os.path.join(a.outdir, f"{a.model}_{shot}.png")
         if shot == "before_studio":
-            R.studio(L)
             load_before(src, cfg)
+            R.studio(L)
             R.camera(tgt, L, az_deg=35, el_deg=9)
         elif shot in ("after_studio", "after_rear", "roles"):
             R.studio(L)

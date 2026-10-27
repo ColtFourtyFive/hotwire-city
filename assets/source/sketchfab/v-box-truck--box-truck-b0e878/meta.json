@@ -41,5 +41,41 @@
   "sha256": "22634f54d318ef3e0e12017190dada1262b200388b5f049ad9459cc7528a1536",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:06:56+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      15.5873,
+      38.8248,
+      17.2428
+    ],
+    "dims_m": [
+      15.587,
+      38.825,
+      17.243
+    ],
+    "front_evidence": "roof_offset=-0.14",
+    "flipped": true,
+    "mesh_objects": 2,
+    "triangles": 31357,
+    "materials": 2,
+    "material_names": [
+      "TruckMt",
+      "glassmt"
+    ],
+    "textures": 3,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [
+      "glassmt"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Truck_TruckMt_0",
+      "Truck_glassmt_0"
+    ],
+    "render_s": 39.8
+  }
 }

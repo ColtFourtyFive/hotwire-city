@@ -222,6 +222,8 @@ def studio(L=17.0):
         lt.data.energy = energy
         lt.data.size = size
         lt.rotation_euler = (Vector((0, 0, L * 0.12)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
+        lt.visible_camera = False
+        lt.visible_glossy = True
 
 
 def street(L=17.0, night=False):

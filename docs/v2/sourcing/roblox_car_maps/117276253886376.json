@@ -3,17 +3,17 @@
  "name": "2011 Kia Sorento EX",
  "depicts": "Kia Sorento XM 2011",
  "forward": {
-  "method": "light-names",
+  "method": "light-names+long-axis",
   "lookVector": [
-   0.002,
-   0.0,
+   -0.0,
+   -0.0,
    -1.0
   ]
  },
  "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
  "dims_studs": {
-  "length": 19.85,
-  "width": 9.19,
+  "length": 19.84,
+  "width": 9.17,
   "height": 7.58
  },
  "real_length_m": 4.69,
@@ -37,9 +37,9 @@
  "hubs": {
   "FL": {
    "center": [
-    -3.398,
+    -3.386,
     -1.855,
-    5.99
+    5.997
    ],
    "radius": 1.573,
    "width": 1.21,
@@ -47,9 +47,9 @@
   },
   "FR": {
    "center": [
-    3.379,
+    3.39,
     -1.82,
-    5.989
+    5.982
    ],
    "radius": 1.534,
    "width": 1.18,
@@ -57,9 +57,9 @@
   },
   "RL": {
    "center": [
-    -3.316,
+    -3.327,
     -2.155,
-    -5.477
+    -5.47
    ],
    "radius": 1.552,
    "width": 1.194,
@@ -67,9 +67,9 @@
   },
   "RR": {
    "center": [
-    3.353,
+    3.342,
     -2.169,
-    -5.454
+    -5.46
    ],
    "radius": 1.579,
    "width": 1.215,
@@ -78,13 +78,13 @@
  },
  "paint": {
   "color_rgb255": [
-   17,
-   17,
-   17
+   248,
+   248,
+   248
   ],
   "method": "named paint/body parts",
-  "parts": 7,
-  "sameColourButTextured": 1
+  "parts": 3,
+  "sameColourButTextured": 2
  },
  "security": {
   "flaggedScripts": [],
@@ -102,23 +102,27 @@
  },
  "groups": {
   "Body": {
-   "count": 12,
+   "count": 16,
    "rules": {
-    "default": 12
+    "default": 16
    },
    "paths": [
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.001",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.003",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.004",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.005",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.007",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.008",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.010",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.011",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.012",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.013",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.014",
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.015",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.016",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.017",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.018",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.019",
-    "2011 Kia Sorento EX/Body/Model/paint#1",
-    "2011 Kia Sorento EX/Body/Model/paint#2"
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.019"
    ]
   },
   "Glass": {
@@ -135,18 +139,14 @@
    ]
   },
   "Paint": {
-   "count": 7,
+   "count": 3,
    "rules": {
-    "Color == rgb(17, 17, 17)": 7
+    "Color == rgb(248, 248, 248)": 3
    },
    "paths": [
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.001",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.003",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.004",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.008",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.010",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.012",
-    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.015"
+    "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.017",
+    "2011 Kia Sorento EX/Body/Model/paint#1",
+    "2011 Kia Sorento EX/Body/Model/paint#2"
    ]
   },
   "WheelStatic_FL": {

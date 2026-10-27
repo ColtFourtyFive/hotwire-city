@@ -36,8 +36,10 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     importer.import_any(model_path, cfg)
     objs = importer.flatten(subsurf_cap=cfg.get("subsurf_cap", 1))
     mdir = os.path.dirname(os.path.abspath(model_path))
-    for d in {mdir, os.path.dirname(mdir)}:
+    for d in (mdir, os.path.dirname(mdir)):
         importer.discover_textures(d, cfg.get("textures"))
+    if os.path.splitext(model_path)[1].lower() in (".obj", ".fbx", ".dae", ".3ds", ".stl", ".ply") or cfg.get("presets"):
+        importer.fix_underspecified_materials()
     car = analyze.Car(cfg)
     car.build(objs)
     tris_in = int(sum(car.lt - 2))

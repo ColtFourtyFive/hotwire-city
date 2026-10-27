@@ -50,5 +50,42 @@
   "sha256": "5891efe582251ca14ca1a6d8f671fe6513b6af1801cb9d0c4f699753ea74adef",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:11:08+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      1.2301,
+      13.3806,
+      3.77
+    ],
+    "dims_m": [
+      13.381,
+      1.23,
+      3.77
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 6,
+    "triangles": 18732,
+    "materials": 1,
+    "material_names": [
+      "AK_mat"
+    ],
+    "textures": 3,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "AK_AK_mat_0",
+      "Bend_AK_mat_0",
+      "bolt_AK_mat_0",
+      "mag_AK_mat_0",
+      "mag_release_AK_mat_0",
+      "trigger_AK_mat_0"
+    ],
+    "render_s": 35.6
+  }
 }

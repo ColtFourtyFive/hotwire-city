@@ -184,7 +184,7 @@ def discover_textures(model_dir: str, explicit: dict | None = None):
         for f in files:
             if f.lower().endswith(IMG_EXT):
                 imgs.append(os.path.join(root, f))
-    if not imgs:
+    if not imgs and not explicit:
         return 0
     keys = {norm_name(os.path.splitext(os.path.basename(p))[0]): p for p in imgs}
     n = 0
@@ -219,4 +219,46 @@ def discover_textures(model_dir: str, explicit: dict | None = None):
         bc.default_value = (1, 1, 1, 1)
         log(f"texture auto-discovered: {mat.name} <- {os.path.relpath(path, model_dir)}")
         n += 1
+    return n
+
+
+# presets for materials that arrive under-specified (OBJ without .mtl, FBX from old tools): name -> (rgb sRGB, metal, rough)
+PRESETS = [
+    (r"chrome|polished|mirror_?metal", ((0.92, 0.92, 0.92), 1.0, 0.12)),
+    (r"alloy|_rim|rims?_|^rim|wheel_?metal|hub", ((0.75, 0.75, 0.76), 0.9, 0.3)),
+    (r"tyre|tire|rubber|reifen", ((0.06, 0.06, 0.06), 0.0, 0.85)),
+    (r"black|plastic|matte|underside|under|chassis|grill", ((0.05, 0.05, 0.05), 0.0, 0.6)),
+    (r"interior|seat|leather|dash", ((0.12, 0.11, 0.10), 0.0, 0.7)),
+    (r"glass|window|windshield", ((0.08, 0.1, 0.11), 0.0, 0.05)),
+    (r"head_?light|front_?light", ((0.95, 0.95, 0.95), 0.0, 0.1)),
+    (r"rear_?light|tail_?light|brake_?light", ((0.7, 0.03, 0.02), 0.0, 0.2)),
+    (r"exhaust|metal|steel", ((0.6, 0.6, 0.6), 1.0, 0.35)),
+]
+
+
+def fix_underspecified_materials():
+    """OBJ files without .mtl (and some FBX) give every material the same default grey; use the material NAME to
+    pick plausible PBR values.  Only touches unlinked inputs still at importer defaults."""
+    n = 0
+    for mat in bpy.data.materials:
+        b = _principled(mat)
+        if b is None:
+            continue
+        bc = b.inputs["Base Color"]
+        k = norm_name(re.sub(r"\.\d{3}$", "", mat.name))
+        for rx, (rgb, met, rough) in PRESETS:
+            if re.search(rx, k):
+                if not bc.is_linked:
+                    c = tuple(bc.default_value)[:3]
+                    if max(abs(c[0] - c[1]), abs(c[1] - c[2])) < 0.02 and 0.55 < c[0] < 0.95:  # default grey
+                        from .util import srgb_to_lin
+                        bc.default_value = tuple(srgb_to_lin(rgb)) + (1,)
+                if not b.inputs["Metallic"].is_linked and b.inputs["Metallic"].default_value == 0.0:
+                    b.inputs["Metallic"].default_value = met
+                if not b.inputs["Roughness"].is_linked and abs(b.inputs["Roughness"].default_value - 0.5) < 0.51:
+                    b.inputs["Roughness"].default_value = rough
+                n += 1
+                break
+    if n:
+        log(f"material presets applied to {n} under-specified materials")
     return n

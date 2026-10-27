@@ -210,6 +210,7 @@ def atlas_uv(objs, margin=0.004, angle=60.0):
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin, area_weight=0.0,
                              correct_aspect=True, scale_to_bounds=False)
+    _weight_islands(objs)
     t0 = time.time()
     try:
         bpy.ops.uv.pack_islands(udim_source="CLOSEST_UDIM", rotate=True, margin_method="FRACTION", margin=margin,
@@ -218,6 +219,35 @@ def atlas_uv(objs, margin=0.004, angle=60.0):
         bpy.ops.uv.pack_islands(rotate=True, margin=margin)
     bpy.ops.object.mode_set(mode="OBJECT")
     log(f"atlas uv {[o.name for o in objs]} packed in {time.time() - t0:.1f}s")
+
+
+def _weight_islands(objs, down=0.3):
+    """Shrink UV islands that face the ground (underbody, insides of arches) so visible parts get the texels.
+    Runs in edit mode; pack_islands afterwards keeps these relative scales."""
+    from bpy_extras import bmesh_utils
+    for o in objs:
+        bm = bmesh.from_edit_mesh(o.data)
+        uvl = bm.loops.layers.uv.active
+        if uvl is None:
+            continue
+        for isl in bmesh_utils.bmesh_linked_uv_islands(bm, uvl):
+            nz = 0.0
+            ar = 0.0
+            for f in isl:
+                a = f.calc_area()
+                nz += f.normal.z * a
+                ar += a
+            if ar <= 0 or nz / ar > -0.5:
+                continue
+            pts = [l[uvl].uv.copy() for f in isl for l in f.loops]
+            cx = sum(p.x for p in pts) / len(pts)
+            cy = sum(p.y for p in pts) / len(pts)
+            for f in isl:
+                for l in f.loops:
+                    uv = l[uvl].uv
+                    uv.x = cx + (uv.x - cx) * down
+                    uv.y = cy + (uv.y - cy) * down
+        bmesh.update_edit_mesh(o.data)
 
 
 def keep_only_uv(ob, name="atlas"):

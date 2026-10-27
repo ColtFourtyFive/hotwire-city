@@ -552,30 +552,9 @@ def build(model_id, keep_hidden=False):
 
 
 def find_forward(seats, tree):
-    """-> (forward unit vector in Roblox world, method string)"""
-    pref = sorted(seats, key=lambda s: (s["class"] != "VehicleSeat", "drive" not in s["name"].lower()))
-    for s in pref:
-        cf = s["props"]["CFrame"]
-        look = -np.array([cf[5], cf[8], cf[11]], float)
-        look[1] = 0
-        if np.linalg.norm(look) > 0.5:
-            return look / np.linalg.norm(look), f"seat:{s['name']}"
-    heads, tails = [], []
-    for n in tree["nodes"]:
-        nm = n["name"].lower()
-        cf = n["props"].get("CFrame")
-        if not cf or n["class"] not in PART_CLASSES:
-            continue
-        if "headlight" in nm or nm.startswith("head") or "front" in nm:
-            heads.append(cf[:3])
-        elif "tail" in nm or "brake" in nm or "rear" in nm or "reverse" in nm:
-            tails.append(cf[:3])
-    if heads and tails:
-        v = np.mean(heads, 0) - np.mean(tails, 0)
-        v[1] = 0
-        if np.linalg.norm(v) > 0.5:
-            return v / np.linalg.norm(v), "light-names"
-    return np.array([0, 0, -1.0]), "default(-Z)"
+    """-> (forward unit vector in Roblox world, method string); shared with rbx_car_map."""
+    import rbx_car_map
+    return rbx_car_map.find_forward(tree["nodes"])
 
 
 def world_bbox(objs):

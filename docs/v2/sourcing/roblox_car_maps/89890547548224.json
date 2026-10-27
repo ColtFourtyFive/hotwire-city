@@ -78,13 +78,13 @@
  },
  "paint": {
   "color_rgb255": [
-   163,
-   162,
-   165
+   196,
+   40,
+   28
   ],
   "method": "named paint/body parts",
   "parts": 1,
-  "sameColourButTextured": 4
+  "sameColourButTextured": 0
  },
  "security": {
   "flaggedScripts": [],
@@ -117,10 +117,10 @@
     "default": 6
    },
    "paths": [
+    "Ford F-150 XLT Supercrew/Body/Chrome",
     "Ford F-150 XLT Supercrew/Body/MeshPart#2",
     "Ford F-150 XLT Supercrew/Body/MeshPart#3",
     "Ford F-150 XLT Supercrew/Body/MeshPart#4",
-    "Ford F-150 XLT Supercrew/Body/Model/Paint",
     "Ford F-150 XLT Supercrew/Body/Texture",
     "Ford F-150 XLT Supercrew/Body/Underbody"
    ]
@@ -137,10 +137,10 @@
   "Paint": {
    "count": 1,
    "rules": {
-    "Color == rgb(163, 162, 165)": 1
+    "Color == rgb(196, 40, 28)": 1
    },
    "paths": [
-    "Ford F-150 XLT Supercrew/Body/Chrome"
+    "Ford F-150 XLT Supercrew/Body/Model/Paint"
    ]
   },
   "WheelStatic_FL": {

@@ -3,10 +3,10 @@
  "name": "Panal Van (Model made by Gutzow)",
  "depicts": "1980s panel van",
  "forward": {
-  "method": "default(-Z)",
+  "method": "light-names+long-axis",
   "lookVector": [
-   0.0,
-   0.0,
+   -0.0,
+   -0.0,
    -1.0
   ]
  },

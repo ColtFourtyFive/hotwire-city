@@ -65,7 +65,7 @@ RE_EMERG = re.compile(r"lightbar|siren|strobe|\bels\b|flasher|emergency|wail|lig
 RE_GLASS = re.compile(r"glass|window|windscreen|windshield|wind ?shield|wndw|sunroof|moonroof", re.I)
 RE_INTERIOR = re.compile(r"interior|seat|dash|steer|gauge|needle|speedo|tach|console|pedal|shifter|gear ?stick|"
                          r"headrest|carpet|^int[_ ]|cabin", re.I)
-RE_PAINT = re.compile(r"paint|^body$|bodyshell|body ?color|bodycolou?r|carpaint|^color$|^colour$|^shell", re.I)
+RE_PAINT = re.compile(r"paint|bodyshell|body ?colou?r|carpaint|^colou?r$|^shell|^body ?panel", re.I)
 RE_BRAND = re.compile(r"logo|badge|emblem|ford|toyota|nissan|kia|jaguar|mercedes|benz|amg|peugeot|chevrolet|"
                       r"chevy|gmc|chrysler|prius|patrol|murano|sorento|tundra|isuzu|lexus|bmw|audi|honda|"
                       r"plate|license|licence", re.I)
@@ -105,31 +105,63 @@ def saturation(c):
     return 0.0 if mx < 1e-6 else (mx - mn) / mx
 
 
+def _vis_aabb(nodes):
+    lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
+    for n in nodes:
+        p = n["props"]
+        if n["class"] not in PART_CLASSES or "CFrame" not in p or "Size" not in p:
+            continue
+        if float(p.get("Transparency", 0) or 0) >= 0.98:
+            continue
+        R = cf_rot(p["CFrame"])
+        half = np.abs(R) @ (np.array(p["Size"], float) / 2)
+        c = np.array(p["CFrame"][:3], float)
+        lo, hi = np.minimum(lo, c - half), np.maximum(hi, c + half)
+    return lo, hi
+
+
 def find_forward(nodes):
+    """-> (unit forward vector in Roblox world (y = 0), method). Seat look vectors are only trusted
+    when they run along the long horizontal axis of the visible geometry."""
+    lo, hi = _vis_aabb(nodes)
+    ext = hi - lo if np.isfinite(lo).all() else np.array([1.0, 1.0, 1.0])
+    long_axis = np.array([1.0, 0, 0]) if ext[0] > ext[2] else np.array([0, 0, 1.0])
+    elong = max(ext[0], ext[2]) / max(min(ext[0], ext[2]), 1e-6)
     seats = [n for n in nodes if n["class"] in ("VehicleSeat", "Seat") and n["props"].get("CFrame")]
     seats.sort(key=lambda s: (s["class"] != "VehicleSeat", "drive" not in s["name"].lower()))
     for s in seats:
         cf = s["props"]["CFrame"]
         look = -np.array([cf[5], cf[8], cf[11]], float)
         look[1] = 0
-        if np.linalg.norm(look) > 0.5:
-            return look / np.linalg.norm(look), f"seat:{s['name']}"
+        if np.linalg.norm(look) < 0.5:
+            continue
+        look /= np.linalg.norm(look)
+        if elong < 1.3 or abs(look @ long_axis) > 0.85:
+            return look, f"seat:{s['name']}"
     heads, tails = [], []
     for n in nodes:
         nm = n["name"].lower()
-        cf = n["props"].get("CFrame")
+        p = n["props"]
+        cf = p.get("CFrame")
         if not cf or n["class"] not in PART_CLASSES:
             continue
+        col = p.get("Color", [0, 0, 0])
         if "headlight" in nm or nm.startswith("head") or "front" in nm:
             heads.append(cf[:3])
-        elif "tail" in nm or "brake" in nm or "rear" in nm or "reverse" in nm:
+        elif "tail" in nm or "brake" in nm or "rear" in nm or "reverse" in nm or (
+                (p.get("Material") == "Neon" or "light" in nm) and col[0] > 0.5 and col[1] < 0.25 and col[2] < 0.25):
             tails.append(cf[:3])
-    if heads and tails:
-        v = np.mean(heads, 0) - np.mean(tails, 0)
-        v[1] = 0
+    ctr = (lo + hi) / 2 if np.isfinite(lo).all() else np.zeros(3)
+    if heads or tails:
+        h = np.mean(heads, 0) if heads else ctr
+        t = np.mean(tails, 0) if tails else ctr
+        v = (h - t) * np.array([1, 0, 1.0])
         if np.linalg.norm(v) > 0.5:
-            return v / np.linalg.norm(v), "light-names"
-    return np.array([0, 0, -1.0]), "default(-Z)"
+            v = v / np.linalg.norm(v)
+            if elong >= 1.3:  # snap to the long axis
+                v = long_axis * np.sign(v @ long_axis or 1)
+            return v, "light-names" + ("+long-axis" if elong >= 1.3 else "")
+    return -long_axis, "long-axis(-)"
 
 
 def analyze(model_id):

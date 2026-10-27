@@ -48,7 +48,7 @@ def mansion(seed=0, **kw):
               "Clear": ("clear",),
               "Roof": ("tex", "roof_gravel", (0.9, 0.9, 0.9)), "Details": ("tex", "metal", (0.65, 0.66, 0.68)),
               "Accent": ("color", (0.12, 0.12, 0.13), 0.5, 0.0), "Site": ("tex", "pavers", (1.0, 0.98, 0.95)),
-              "Lawn": ("tex", "grass", (0.85, 1.0, 0.8)), "Water": ("water", (0.04, 0.45, 0.58)),
+              "Lawn": ("tex", "grass", (0.62, 0.95, 0.42)), "Water": ("water", (0.04, 0.45, 0.58)),
               "Doors": ("tex", "wood_fence", (0.6, 0.5, 0.42)), "Neon": ("neon", (1.0, 0.82, 0.55)),
               "Grime": ("grime",), "WindowsLit": ("lit",)}
     B.lit_ratio = 0.55

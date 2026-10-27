@@ -3,10 +3,10 @@
  "name": "Model",
  "depicts": "Ford Crown Victoria taxi",
  "forward": {
-  "method": "default(-Z)",
+  "method": "long-axis(-)",
   "lookVector": [
-   0.0,
-   0.0,
+   -0.0,
+   -0.0,
    -1.0
   ]
  },

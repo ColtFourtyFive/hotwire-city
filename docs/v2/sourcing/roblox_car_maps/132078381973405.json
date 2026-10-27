@@ -3,21 +3,21 @@
  "name": "2010 Toyota Prius",
  "depicts": "Toyota Prius XW30 2010",
  "forward": {
-  "method": "light-names",
+  "method": "light-names+long-axis",
   "lookVector": [
-   -0.0389,
    0.0,
-   0.9992
+   0.0,
+   1.0
   ]
  },
  "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
  "dims_studs": {
-  "length": 16.24,
-  "width": 7.91,
+  "length": 16.04,
+  "width": 7.44,
   "height": 5.93
  },
  "real_length_m": 4.46,
- "suggested_uniform_scale": 0.981,
+ "suggested_uniform_scale": 0.993,
  "counts": {
   "instances": 133,
   "baseParts": 96,
@@ -37,9 +37,9 @@
  "hubs": {
   "FL": {
    "center": [
-    -2.703,
+    -2.521,
     -1.763,
-    4.654
+    4.756
    ],
    "radius": 1.2,
    "width": 2.4,
@@ -47,9 +47,9 @@
   },
   "FR": {
    "center": [
-    2.33,
+    2.517,
     -1.763,
-    4.85
+    4.756
    ],
    "radius": 1.2,
    "width": 2.4,
@@ -57,9 +57,9 @@
   },
   "RL": {
    "center": [
-    -2.324,
+    -2.52,
     -1.763,
-    -5.066
+    -4.971
    ],
    "radius": 1.2,
    "width": 2.4,
@@ -67,9 +67,9 @@
   },
   "RR": {
    "center": [
-    2.712,
+    2.521,
     -1.763,
-    -4.871
+    -4.973
    ],
    "radius": 1.2,
    "width": 2.4,
@@ -78,13 +78,13 @@
  },
  "paint": {
   "color_rgb255": [
-   163,
-   162,
-   165
+   159,
+   161,
+   172
   ],
   "method": "named paint/body parts",
-  "parts": 3,
-  "sameColourButTextured": 38
+  "parts": 11,
+  "sameColourButTextured": 0
  },
  "security": {
   "flaggedScripts": [
@@ -127,23 +127,12 @@
  },
  "groups": {
   "Body": {
-   "count": 56,
+   "count": 48,
    "rules": {
-    "default": 56
+    "default": 48
    },
    "paths": [
     "2010 Toyota Prius/Body/Front",
-    "2010 Toyota Prius/Body/Model/PAINT#1",
-    "2010 Toyota Prius/Body/Model/PAINT#10",
-    "2010 Toyota Prius/Body/Model/PAINT#11",
-    "2010 Toyota Prius/Body/Model/PAINT#2",
-    "2010 Toyota Prius/Body/Model/PAINT#3",
-    "2010 Toyota Prius/Body/Model/PAINT#4",
-    "2010 Toyota Prius/Body/Model/PAINT#5",
-    "2010 Toyota Prius/Body/Model/PAINT#6",
-    "2010 Toyota Prius/Body/Model/PAINT#7",
-    "2010 Toyota Prius/Body/Model/PAINT#8",
-    "2010 Toyota Prius/Body/Model/PAINT#9",
     "2010 Toyota Prius/Body/Rear",
     "2010 Toyota Prius/Body/badge",
     "2010 Toyota Prius/Body/badge_ok",
@@ -154,6 +143,7 @@
     "2010 Toyota Prius/Body/boot_ok.003",
     "2010 Toyota Prius/Body/boot_ok.004",
     "2010 Toyota Prius/Body/boot_ok.006",
+    "2010 Toyota Prius/Body/bottom",
     "2010 Toyota Prius/Body/bottom.001",
     "2010 Toyota Prius/Body/bump_front_ok",
     "2010 Toyota Prius/Body/bump_front_ok.001",
@@ -162,6 +152,7 @@
     "2010 Toyota Prius/Body/door_lf_ok.001",
     "2010 Toyota Prius/Body/door_lf_ok.002",
     "2010 Toyota Prius/Body/door_lf_ok.004",
+    "2010 Toyota Prius/Body/door_lf_ok.005",
     "2010 Toyota Prius/Body/door_lf_ok.006",
     "2010 Toyota Prius/Body/door_lr_ok.001",
     "2010 Toyota Prius/Body/door_lr_ok.002",
@@ -169,6 +160,7 @@
     "2010 Toyota Prius/Body/door_lr_ok.005",
     "2010 Toyota Prius/Body/door_rf_ok.001",
     "2010 Toyota Prius/Body/door_rf_ok.002",
+    "2010 Toyota Prius/Body/door_rf_ok.005",
     "2010 Toyota Prius/Body/door_rf_ok.006",
     "2010 Toyota Prius/Body/door_rr_ok.001",
     "2010 Toyota Prius/Body/door_rr_ok.002",
@@ -265,14 +257,22 @@
    ]
   },
   "Paint": {
-   "count": 3,
+   "count": 11,
    "rules": {
-    "Color == rgb(163, 162, 165)": 3
+    "Color == rgb(159, 161, 172)": 11
    },
    "paths": [
-    "2010 Toyota Prius/Body/bottom",
-    "2010 Toyota Prius/Body/door_lf_ok.005",
-    "2010 Toyota Prius/Body/door_rf_ok.005"
+    "2010 Toyota Prius/Body/Model/PAINT#1",
+    "2010 Toyota Prius/Body/Model/PAINT#10",
+    "2010 Toyota Prius/Body/Model/PAINT#11",
+    "2010 Toyota Prius/Body/Model/PAINT#2",
+    "2010 Toyota Prius/Body/Model/PAINT#3",
+    "2010 Toyota Prius/Body/Model/PAINT#4",
+    "2010 Toyota Prius/Body/Model/PAINT#5",
+    "2010 Toyota Prius/Body/Model/PAINT#6",
+    "2010 Toyota Prius/Body/Model/PAINT#7",
+    "2010 Toyota Prius/Body/Model/PAINT#8",
+    "2010 Toyota Prius/Body/Model/PAINT#9"
    ]
   },
   "Wheel_FL": {

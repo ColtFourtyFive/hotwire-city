@@ -33,8 +33,8 @@ def segment(B, x0, y0, x1, y1, z0, floors, fh, style, bay, last=False):
                     ua, ub = i * bw, min(F.W, (i + room) * bw)
                     B.glass(F, ua, ub, zf + spand, zf + fh, gn, "office")
                     F.quad(gl, ua, ub, zf, zf + spand, gn, uv=ATLAS["windows"]["spandrel"])
-                F.box(fr, 0, F.W, gn, 0.25, zf - 0.22, zf + 0.22, skip=("back", "left", "right"))
-                F.box(fr, 0, F.W, gn, 0.12, zf + spand - 0.15, zf + spand + 0.15, skip=("back", "left", "right"))
+                F.box(fr, 0, F.W, gn, 0.18, zf - 0.18, zf + 0.18, skip=("back", "left", "right"))
+                F.box(fr, 0, F.W, gn, 0.05, zf + spand - 0.1, zf + spand + 0.1, skip=("back", "left", "right"))
             elif style == "ribbon":
                 sb, st = 1.6, 3.0          # spandrel band below / above the floor line
                 for i in range(0, n, room):
@@ -60,8 +60,8 @@ def segment(B, x0, y0, x1, y1, z0, floors, fh, style, bay, last=False):
                 else:
                     F.box(ac, u - 0.22, u + 0.22, gn, 2.1, z0, z1, skip=("back",))
             else:
-                w = 0.55 if i not in (0, n) else 0.8
-                F.box(fr, max(0, u - w / 2), min(F.W, u + w / 2), gn, 0.32, z0, z1, skip=("back",))
+                w = 0.4 if i not in (0, n) else 0.9
+                F.box(fr, max(0, u - w / 2), min(F.W, u + w / 2), gn, 0.22, z0, z1, skip=("back",))
         if style == "ribbon":
             for i in range(1, n):
                 if i % room == 0:
@@ -113,12 +113,13 @@ def tower(seed=0, **kw):
     gtint = GLASS_TINTS[kw.get("glass", r.choice(list(GLASS_TINTS)))]
     panel, ptint = PANELS[r.randrange(len(PANELS))] if style in ("ribbon", "grid") else ("concrete", (0.9, 0.9, 0.9))
     stone = kw.get("stone", r.choice(["granite", "marble", "granite"]))
-    frame = FRAMES[kw.get("frame", r.choice(["silver", "black", "bronze", "silver"]))]
+    frame = {"silver": (0.42, 0.44, 0.46), "black": (0.05, 0.05, 0.055), "bronze": (0.2, 0.15, 0.1),
+             "graphite": (0.16, 0.17, 0.18)}[kw.get("frame", r.choice(["silver", "black", "bronze", "graphite"]))]
     accent = kw.get("accent_rgb", (0.55, 0.57, 0.6) if r.random() < 0.6 else frame)
     B.spec = {"Walls": ("tex", panel, ptint), "Walls2": ("tex", stone, (0.95, 0.95, 0.95)),
               "Trim": ("tex", "concrete", (0.92, 0.92, 0.9)), "Frames": ("color", frame, 0.3, 0.85),
               "Accent": ("color", accent, 0.35, 0.85),
-              "Glass": ("glass", {"tint": gtint, "dim": 0.62, "rough": 0.04, "metallic": 0.55}),
+              "Glass": ("glass", {"tint": gtint, "dim": 0.5, "rough": 0.03, "metallic": 0.7}),
               "Roof": ("tex", "roof_gravel", (0.95, 0.95, 0.95)), "Details": ("tex", "metal", (0.62, 0.64, 0.66)),
               "Brand": ("atlas", "brands.png", 0.4, 0.2), "Sign": ("atlas", "signs.png"), "Grime": ("grime",),
               "Neon": ("neon", (1.0, 0.15, 0.1)), "WindowsLit": ("lit",), "Site": ("tex", "pavers", (0.95, 0.95, 0.95))}
