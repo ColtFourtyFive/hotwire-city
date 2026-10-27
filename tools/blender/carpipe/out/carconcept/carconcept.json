@@ -109,7 +109,7 @@
         0
       ],
       "steer": false,
-      "tris": 900
+      "tris": 884
     },
     "RR": {
       "object": "WheelRR",
@@ -136,23 +136,23 @@
         0
       ],
       "steer": false,
-      "tris": 900
+      "tris": 898
     }
   },
   "seats": {
     "driver": {
       "position": [
-        -0.0968,
-        1.529,
-        -1.8548
+        -1.7297,
+        1.6548,
+        0.5441
       ],
       "estimated": false
     },
     "passenger": {
       "position": [
-        0.6048,
-        1.1071,
-        -1.939
+        1.7291,
+        1.6551,
+        0.544
       ],
       "estimated": false
     },
@@ -191,7 +191,7 @@
       {
         "position": [
           -1.9566,
-          3.3005,
+          3.3006,
           5.9771
         ],
         "direction": [
@@ -261,7 +261,7 @@
   },
   "objects": {
     "Body": {
-      "tris": 5704,
+      "tris": 5700,
       "bbox_min": [
         -3.976,
         0.368,
@@ -344,7 +344,7 @@
       }
     },
     "Trim": {
-      "tris": 2462,
+      "tris": 2136,
       "bbox_min": [
         -3.5946,
         -1.4457,
@@ -356,10 +356,10 @@
         6.8244
       ],
       "textures": {
-        "normal": "textures/carconcept_Trim_normal.png",
         "metal": "textures/carconcept_Trim_metal.png",
         "base": "textures/carconcept_Trim_base.png",
         "rough": "textures/carconcept_Trim_rough.png",
+        "normal": "textures/carconcept_Trim_normal.png",
         "ao": "textures/carconcept_Trim_ao.png"
       }
     },
@@ -376,10 +376,10 @@
         6.6036
       ],
       "textures": {
-        "normal": "textures/carconcept_Interior_normal.png",
         "metal": "textures/carconcept_Interior_metal.png",
         "base": "textures/carconcept_Interior_base.png",
         "rough": "textures/carconcept_Interior_rough.png",
+        "normal": "textures/carconcept_Interior_normal.png",
         "ao": "textures/carconcept_Interior_ao.png"
       }
     },
@@ -396,9 +396,9 @@
         -3.4519
       ],
       "textures": {
-        "base": "textures/carconcept_Wheel_base.png",
-        "metal": "textures/carconcept_Wheel_metal.png",
         "normal": "textures/carconcept_Wheel_normal.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "base": "textures/carconcept_Wheel_base.png",
         "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
@@ -416,15 +416,15 @@
         -3.4344
       ],
       "textures": {
-        "base": "textures/carconcept_Wheel_base.png",
-        "metal": "textures/carconcept_Wheel_metal.png",
         "normal": "textures/carconcept_Wheel_normal.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "base": "textures/carconcept_Wheel_base.png",
         "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
     "WheelRL": {
-      "tris": 900,
+      "tris": 884,
       "bbox_min": [
         -3.8346,
         0.0135,
@@ -436,15 +436,15 @@
         6.0517
       ],
       "textures": {
-        "base": "textures/carconcept_Wheel_base.png",
-        "metal": "textures/carconcept_Wheel_metal.png",
         "normal": "textures/carconcept_Wheel_normal.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "base": "textures/carconcept_Wheel_base.png",
         "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
     "WheelRR": {
-      "tris": 900,
+      "tris": 898,
       "bbox_min": [
         2.8592,
         -0.0114,
@@ -456,9 +456,9 @@
         6.0515
       ],
       "textures": {
-        "base": "textures/carconcept_Wheel_base.png",
-        "metal": "textures/carconcept_Wheel_metal.png",
         "normal": "textures/carconcept_Wheel_normal.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "base": "textures/carconcept_Wheel_base.png",
         "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
@@ -466,7 +466,7 @@
   },
   "triangles": {
     "source": 212407,
-    "total": 16994,
+    "total": 16646,
     "limits": {
       "car": 18000,
       "body": 5704,
