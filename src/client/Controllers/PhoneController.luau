@@ -782,6 +782,10 @@ local function ensurePhone(): any
 	end)
 	phone.Closed:Connect(function()
 		currentApp = nil
+		local hud = lazy("HUDController")
+		if hud and typeof(hud.setPhoneOpen) == "function" then
+			pcall(hud.setPhoneOpen, false)
+		end
 	end)
 	return phone
 end
@@ -796,6 +800,10 @@ function PhoneController.open()
 		pcall(menu.closePause)
 	end
 	p:open()
+	local hud = lazy("HUDController")
+	if hud and typeof(hud.setPhoneOpen) == "function" then
+		pcall(hud.setPhoneOpen, true)
+	end
 	refreshBadges()
 	playSound("Whoosh")
 end

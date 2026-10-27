@@ -1619,6 +1619,14 @@ function HUDController.releaseCash()
 end
 
 -- Tutorial focus: hides the touch phone / map buttons for the first steps.
+-- The phone sits over the bottom-right location lines: hide them while it is up (GTA does the same).
+function HUDController.setPhoneOpen(on: boolean)
+	local u = ui
+	if u then
+		u.location.Visible = not on
+	end
+end
+
 function HUDController.setFocusMode(on: boolean)
 	focusMode = on == true
 	refreshButtons()

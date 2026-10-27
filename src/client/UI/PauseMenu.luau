@@ -112,19 +112,48 @@ function PauseMenu:_build()
 		Parent = gui,
 	})
 	self.root = root
-	Kit.text(self.title, "condensed", if touch then 28 else 34, {
+	-- title: the game's lock-up (Kanit "HOTWIRE" + Damion "City" in Ignition Orange) like GTA's logo, else plain
+	local titleSize = if touch then 28 else 34
+	local title = Kit.new("Frame", {
 		Name = "Title",
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(F.left, F.tabs - 0.012),
 		Size = UDim2.new(0.5, 0, 0, 44),
-		TextXAlignment = Enum.TextXAlignment.Left,
+		BackgroundTransparency = 1,
 		Parent = root,
 	})
-	-- top-right player block
+	Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Bottom).Parent =
+		title
+	local word, tail = string.match(self.title, "^(%S+)%s+(%S+)$")
+	if string.upper(self.title) == "HOTWIRE CITY" and word and tail then
+		Kit.text(string.upper(word), "display", titleSize, {
+			Name = "Word",
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.fromOffset(0, titleSize + 6),
+			LayoutOrder = 1,
+			Parent = title,
+		})
+		Kit.script(tail:sub(1, 1):upper() .. tail:sub(2):lower(), titleSize, {
+			Name = "Script",
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.fromOffset(0, titleSize + 10),
+			TextColor3 = C.Accent,
+			LayoutOrder = 2,
+			Parent = title,
+		})
+	else
+		Kit.text(self.title, "condensed", titleSize, {
+			Name = "Text",
+			Size = UDim2.fromScale(1, 1),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = title,
+		})
+	end
+	-- top-right player block (touch: left of the close button)
 	local info = Kit.new("Frame", {
 		Name = "Info",
 		AnchorPoint = Vector2.new(1, 1),
-		Position = UDim2.fromScale(F.right, F.tabs - 0.012),
+		Position = UDim2.new(F.right, if touch then -60 else 0, F.tabs - 0.012, 0),
 		Size = UDim2.fromOffset(320, 48),
 		BackgroundTransparency = 1,
 		Parent = root,
