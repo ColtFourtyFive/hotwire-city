@@ -29,12 +29,6 @@ type P2 = WorldGen.P2
 type P3 = WorldGen.P3
 
 local WorldLayout = {}
-local _t0 = os.clock()
-local function _T(label: string)
-	if _G.WL_TIMING then
-		print(("%7.3f  %s"):format(os.clock() - _t0, label))
-	end
-end
 
 WorldLayout.VERSION = 2
 
@@ -1369,7 +1363,6 @@ local function corridorTail(c: Corridor, len: number, name: string, class: RoadC
 	return addWay(name, class, tail, o)
 end
 
-_T("4a. Freeways")
 -------------------------------------------------------------------------------------------------------------------------
 -- 4a. Freeways: H1 Ring (elevated), H2 Port Expressway (Iron Bay Bridge), H9 Sunwood Canyon -> Coast Highway
 -------------------------------------------------------------------------------------------------------------------------
@@ -1444,7 +1437,6 @@ do
 end
 local H9end = corridorTail(H9, 170, "H9 Sunwood Freeway", "highway", { lanes = 2, median = 6, yMode = "ground" })
 
-_T("4b. Arterials")
 -------------------------------------------------------------------------------------------------------------------------
 -- 4b. Arterials (boulevards / avenues), rural highways, hill roads, port, airport, pier, channel
 -------------------------------------------------------------------------------------------------------------------------
@@ -1922,7 +1914,6 @@ diamond(H1, mission, -3650, 660)
 diamond(H1, harbor, -1100, 1350)
 diamond(H1, airportBlvd, -2700, 1350)
 
-_T("4d. District street grids")
 -------------------------------------------------------------------------------------------------------------------------
 -- 4d. District street grids (generated)
 -------------------------------------------------------------------------------------------------------------------------
@@ -2319,7 +2310,6 @@ for _, g in GRIDS do
 	generateGrid(g)
 end
 
-_T("4e. Clean generated")
 -------------------------------------------------------------------------------------------------------------------------
 -- 4e. Clean generated streets: cut them where they would run into low ramps, freeway piers or reserved areas,
 --     drop pieces that duplicate a nearby parallel arterial, extend loose ends onto the road they nearly reach.
@@ -2606,7 +2596,6 @@ end
 end
 cleanGenerated()
 
-_T("5. Vertical alignment")
 -------------------------------------------------------------------------------------------------------------------------
 -- 5. Vertical alignment: heights per vertex (ground ways follow the terrain grade-limited and pinned to the roads
 --    they join; elevated ways use their profiles)
@@ -2838,7 +2827,6 @@ for _, w in order do
 	alignWay(w)
 end
 
-_T("6. Compile the graph")
 -------------------------------------------------------------------------------------------------------------------------
 -- 6. Compile the graph
 -------------------------------------------------------------------------------------------------------------------------
@@ -2903,7 +2891,6 @@ do
 	gnodes, gedges = WorldGen.compact(gnodes, gedges)
 end
 
-_T("7. Exported road graph")
 -------------------------------------------------------------------------------------------------------------------------
 -- 7. Exported road graph
 -------------------------------------------------------------------------------------------------------------------------
@@ -3021,7 +3008,6 @@ end
 WorldLayout.Nodes = Nodes
 WorldLayout.Edges = Edges
 
-_T("8. Intersections")
 -------------------------------------------------------------------------------------------------------------------------
 -- 8. Intersections + traffic control
 -------------------------------------------------------------------------------------------------------------------------
@@ -3282,7 +3268,6 @@ local function nodeRadius(nodeId: number): number
 	return 0
 end
 
-_T("10. POIs")
 -------------------------------------------------------------------------------------------------------------------------
 -- 10. POIs, plots, landmarks (placed by "address": nearest frontage of an allowed road class)
 -------------------------------------------------------------------------------------------------------------------------
@@ -3425,9 +3410,6 @@ local function placeOnFrontage(
 				local entrance = Vector3.new(px + nx * curb, py, pz + nz * curb)
 				local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = w / 2, hd = d / 2 }
 				local clear, why = footprintClear(obb)
-				if _G.WL_DEBUG_PLACE == label then
-					print(label, Edges[ei].name, math.floor(s), side, math.floor(cx), math.floor(cz), why)
-				end
 				if firstCf == nil then
 					firstCf, firstEntrance, firstEdge, firstObb = cf, entrance, ei, obb
 					firstWhy = why
@@ -4440,7 +4422,6 @@ WorldLayout.RestrictedZones = {
 	zone("rz_port", "Iron Bay Container Terminal", 600, 4150, { 3200, 200, 500 }, "1 star on entry after the gate"),
 }
 
-_T("12. Parcels")
 -------------------------------------------------------------------------------------------------------------------------
 -- 12. Parcels (lots): frontage subdivision of every street in built-up districts
 -------------------------------------------------------------------------------------------------------------------------
@@ -4838,7 +4819,6 @@ end
 
 WorldLayout.Parcels = Parcels
 
-_T("13. Spawns")
 -------------------------------------------------------------------------------------------------------------------------
 -- 13. Spawns
 -------------------------------------------------------------------------------------------------------------------------
@@ -4978,7 +4958,6 @@ WorldLayout.Spawns = {
 	end)(),
 }
 
-_T("14. Routes")
 -------------------------------------------------------------------------------------------------------------------------
 -- 14. Routes (on the graph): armored trucks, races
 -------------------------------------------------------------------------------------------------------------------------
@@ -5184,7 +5163,6 @@ addRoute(
 
 WorldLayout.Routes = Routes
 
-_T("15. Rails")
 -------------------------------------------------------------------------------------------------------------------------
 -- 15. Rails, pedestrian paths, bridges, level crossings
 -------------------------------------------------------------------------------------------------------------------------
@@ -5273,7 +5251,6 @@ for _, rail in WorldLayout.Rails do
 end
 WorldLayout.LevelCrossings = LevelCrossings
 
-_T("16. Districts export")
 -------------------------------------------------------------------------------------------------------------------------
 -- 16. Districts export + stats
 -------------------------------------------------------------------------------------------------------------------------

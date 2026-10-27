@@ -80,6 +80,18 @@ def at_z(z, fn, *args, **kw):
             ob.location.z += z
 
 
+def backdrop(x0, x1, y, kinds=(("midtown", {"floors": 3}),), seed=0, rot=0.0, gap=6.0):
+    """Row of filler buildings far behind the hero so the horizon is city, not void."""
+    r = random.Random(seed)
+    x = x0
+    while x < x1:
+        arch, kw = kinds[r.randrange(len(kinds))]
+        B = BK.build(arch, r.randint(100, 999), **kw)
+        W, D = B.footprint
+        BK.instantiate(B, col(), loc=(x + W / 2, y + D / 2 * (1 if rot == 0 else -1), 0), rot_z=rot)
+        x += W + gap
+
+
 def lot_cars(B, x, y, rot, frac=0.6, seed=0):
     r = random.Random(seed)
     cr, sr = math.cos(math.radians(rot)), math.sin(math.radians(rot))
@@ -172,6 +184,11 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
             xl = x - Wn / 2
         BK.instantiate(Bn, col(), loc=(x, north_lot_y(Dn), 0), rot_z=0)
         lot_cars(Bn, x, north_lot_y(Dn), 0, frac=0.5, seed=ns + 7)
+    # fill the rest of the frontage + a second row behind so the horizon reads as city
+    fill = (("midtown", {"floors": 2, "D": 40}), ("midtown", {"floors": 3, "D": 40}), ("corner_store", {}), ("strip", {"units": 3}))
+    backdrop(xr + 6, 420, ROAD_W / 2 + SIDE_W, fill, seed=seed + 1)
+    backdrop(-420, xl - 6, ROAD_W / 2 + SIDE_W, fill, seed=seed + 2)
+    backdrop(-420, 420, ROAD_W / 2 + SIDE_W + max(D, 130) + 20, fill + (("warehouse", {}),), seed=seed + 3)
     S.ground(col(), -700, -700, 700, 700, "sidewalk", z=0.0)
     return finish(name, cam, target, lens, a.samples, a.res)
 

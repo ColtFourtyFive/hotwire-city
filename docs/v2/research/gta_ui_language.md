@@ -20,7 +20,8 @@ Evidence images are in `docs/v2/research/img_gta/`:
    - The notification feed stacks above the minimap.
    - The vehicle, district and street name show in a script font at bottom-right.
    - The whole left icon-button column, the top-centre cash pill and the bottom-centre HOME button are deleted.
-2. **Fonts. Pricedown is not usable.** Its Typodermic licence lists "games" as needing a separate licence.
+2. **Fonts. Pricedown is not usable as a font.** Its Typodermic licence lists "games" as needing a separate licence: EULA v260817 §4.3 forbids embedding, and §4.5 forbids reusable glyph sheets, so it cannot be used for live text or a digit atlas.
+   - *(Corrected in verification.)* EULA §2.2 does allow **fixed, pre-rendered artwork** in distributed products. Static PNGs of fixed words ("wasted", "busted", "mission passed", the wordmark) appear to be permitted. That is a decision for the lead; see the Verification section.
    - Closest legal match, chosen by rendering side by side: **Kanit Black** (Roblox-owned Creator Store font `12187373592`, weight 900 confirmed). Used for big messages, cash and ammo.
    - **Oswald** (built-in) stands in for Chalet Comprime: titles, tabs and labels.
    - **Montserrat** (built-in) stands in for Chalet London: help text, subtitles, feed and menu rows.
@@ -35,7 +36,7 @@ Evidence images are in `docs/v2/research/img_gta/`:
    - green `#72CC72` for pickups and +cash;
    - purple `#A44CF2` for the player waypoint.
    - One brand accent, **Ignition Orange `#FF8A3D`**, is used sparingly. Pink and cyan are deleted.
-4. **Big messages.** Wasted, busted and passed are a full-width translucent black band, **17.8% of screen height, centred at 49%**. The title is lowercase heavy type with no outline: **wasted** in crimson `#B3212F`, **busted** in blue `#5DB6E5`, **passed/delivered** in yellow `#F0C850`. On wasted and busted the screen goes grayscale (ColorCorrection Saturation −1), the camera drifts slowly, and the audio is muffled. No stamps, shakes, confetti or Back-easing pops.
+4. **Big messages.** Wasted, busted and passed are a full-width translucent black band, **≈19.5% of screen height on average, centred at 48.8%**. The band is a slight keystone, ≈15.5% H at the left edge and ≈23% at the right; see the Verification section. The title is lowercase heavy type with no outline: **wasted** in crimson `#B3212F`, **busted** in blue `#5DB6E5`, **passed/delivered** in yellow `#F0C850`. On wasted and busted the screen goes grayscale (ColorCorrection Saturation −1), the camera drifts slowly, and the audio is muffled. No stamps, shakes, confetti or Back-easing pops.
 5. **Menus.** All v1 modal "Kit.window" cards are replaced by three containers:
    - (a) a **pause menu** with tabs (MAP / JOBS / GARAGE / STATS / STORE / SETTINGS);
    - (b) GTA "interaction menu" **list menus** at shops and the garage;
@@ -578,8 +579,8 @@ Side-by-side renders are in `img_gta/font_compare_bigmessage.jpg`, `font_compare
 
 ### 5.9 Big message shard (`HC_Shard`)
 
-- **Band.** Frame full width, AnchorPoint (0.5, 0.5), position (0.5, 0.49), Size Y `0.178` scale, black.
-  - BackgroundTransparency **0.58** for wasted, busted and failed.
+- **Band.** Frame full width, AnchorPoint (0.5, 0.5), position (0.5, 0.488), Size Y `0.195` scale, black. For the exact GTA keystone, use instead a full-width ImageLabel with a trapezoid alpha sprite, 0.155 H on the left and 0.23 H on the right.
+  - BackgroundTransparency **≈0.5** for wasted, busted and failed (re-measured at 0.48–0.58).
   - **0.45** for passed and delivered.
 - **Title.** TextLabel lowercase, Kanit Heavy, `TextScaled` with UITextSizeConstraint MaxTextSize 110. Size (0.5, 0.62 of band). No stroke.
 - **Subtitle.** Montserrat Medium 18 `Text`, centred under the title, inside the band.
@@ -645,7 +646,7 @@ GTA VI card layout.
 ### 5.11 Phone (`HC_Phone`)
 
 - **Shell.** 9-slice ImageLabel (our own parody handset art), AnchorPoint (1, 1), position `(W − 36, H + 0)`, size **176×330**. It slides up to `H − 16` over 0.25 s Quint Out, and down on close.
-- **Open.** `↑` (PC), D-pad up (pad), or the phone button (touch).
+- **Open.** D-pad up (pad) or the phone button (touch). On PC, GTA's `↑` is a problem: Roblox's default PlayerModule binds `↑` to move forward, which is why the corrected spec drops it. Use a free key, for example `B`, and confirm it in Studio.
 - **Screen** (inner Frame, CanvasGroup **not** needed):
   - status row Oswald 12 (signal, `ddd HH:MM` from `Lighting.ClockTime`, battery);
   - title bar `Accent` bg, Oswald SemiBold 16, black text;
@@ -740,21 +741,21 @@ These come from `original_brief.md`.
 | Event | Roblox candidate assets |
 |---|---|
 | wasted | `9120704346` + `9125404320` |
-| busted | `9125404320` + radio `9112851363` |
-| delivered / passed | `1840078221` |
-| help beep | `139804904213958` |
+| busted | `9125404320` + radio (none yet; see below) |
+| delivered / passed | `1840078221` (8 s; trim with `PlaybackRegion`) |
+| help beep | `139804904213958` (a 1 s click) |
 | feed / text | — |
 | photo | `9113678227` |
-| dispatcher | `9112851363` |
+| dispatcher | none yet (`9112851363` is not a police dispatcher; see below) |
 
-- The candidates are Creator Store, licensed APM or ProSoundEffects audio, found via `toolbox-service/v1/marketplace/3`. **Audition all of them in Studio.**
-  - `9120704346` is *"Whoosh Deep Booming Blast Reversed At Tail 1"*.
-  - `9125404320` is *"Boom Impact Deep Distant Thumping Hits"*.
-  - `9112851363` is *"Radio Light Chatter 1"*.
-  - `1840078221` is *"Building Success (sting)"*.
-  - `139804904213958` is *"ui_menu_click_03"*.
-  - `9113678227` is *"Camera Shutter 1"*.
-- No feed or text chime was found yet. Phone vibrate candidates: `120446204561335`, `538449705`.
+- The candidates were found on the Creator Store via `toolbox-service/v1/marketplace/3`. Four are licensed ProSoundEffects or APM audio; `139804904213958` and `538449705` are free public user uploads. **Audition all of them in Studio.** Re-checked in verification:
+  - `9120704346` is *"Whoosh Deep Booming Blast Reversed At Tail 1"* (ProSoundEffects, 3 s).
+  - `9125404320` is *"Boom Impact Deep Distant Thumping Hits"* (ProSoundEffects, 3 s).
+  - `9112851363` is *"Radio Light Chatter 1"* (ProSoundEffects). It is a **56 s loop of landing-craft interior radio with engine whine**, a poor match for a police dispatcher; keep looking.
+  - `1840078221` is *"Building Success (sting)"* (APMOfficial, 8 s).
+  - `139804904213958` is *"ui_menu_click_03"* (Vicktor2012, a user upload, 1 s).
+  - `9113678227` is *"Camera Shutter 1"* (ProSoundEffects, 1 s).
+- No feed or text chime was found yet. Phone vibrate candidate: `538449705` (miamipaid, 2 s). `120446204561335` was **removed**: it is a 3 min 53 s pop song ("Phone Vibrates" by Stevie Horn, DistrokidOfficial), not a sound effect.
 - Put the world SFX in a `World` SoundGroup and the UI in a `UI` SoundGroup, so the muffle effects never touch UI sounds.
 
 ### 5.17 Camera spec
@@ -766,7 +767,7 @@ These are tuning starting points for a new `CameraController`. It runs at `Rende
 | On foot | 11–13 studs (3 distances: 9 / 12 / 16) | pivot at HRP +2.4 | +1.2 studs right | **60** | position spring ω≈12; yaw from the mouse, no lag | Roblox default 70 is too wide and "kid-game" |
 | Aim | 6 | +2.2 | +2.4 right (swap with `V`) | **45** | ω≈20 | white 4 px dot reticle, turns `Red` over a hostile |
 | Vehicle chase | **2.4 × car length** (≈ 22–28 studs) | **0.35 × distance** | 0 | **62 → 76** with speed (keep VehicleClient's FOV kick but rebase) | yaw follows heading with a critically damped spring ω≈3.5 (flank visible in turns); look target 0.6 × car length ahead × speed factor | no roll. Auto-recentre 1.5 s after free-look. `V` cycles near/mid/far/hood. `C` looks behind |
-| Cinematic (hold `R` in car, or the button on touch) | shot list: low side track, high chase, roadside fixed pan, front 3/4 reverse track; cut every 3–5 s | — | — | 40–55 | — | letterbox: two black Frames at 11% H, HUD hidden |
+| Cinematic (hold a free key in the car, or the button on touch; **not `R`**, which `VehicleClient.luau` L1117 binds to radio-previous) | shot list: low side track, high chase, roadside fixed pan, front 3/4 reverse track; cut every 3–5 s | — | — | 40–55 | — | letterbox: two black Frames at 11% H, HUD hidden |
 | Death / busted | slow detach drift | — | 6° dutch | −10 over 5 s | — | see §5.9 |
 | Rare reveal | 3 s orbit at 18 studs, FOV 45 | — | — | 45 | — | with shard |
 
@@ -794,7 +795,7 @@ All of them are white on transparent (tinted with `ImageColor3`) unless a colour
 | **Spinner ring** | 1 | 128×128 | loading and pause saves |
 | **Contact portraits** | 6–10 | 128×128 | Mechanic, Lawyer, Fence, Bonus, Garage Security, Crew. Rendered headshots of our NPCs |
 | **Interaction-menu header banners** | 6 | 600×128 | Garage, Dealership, Gear, Spray, Chop, Store. Painterly, brand gradient |
-| **Loading illustrations** | 6–8 | 1920×1080 (upload ≤ 4096) | painted key art panels; also used for the thumbnail and icon |
+| **Loading illustrations** | 6–8 | 1920×1080 (uploads may be up to 8000², but 4K rendering is announced only for MeshPart, SurfaceAppearance, Texture, Decal and MaterialVariant, **not UI ImageLabels**; check in Studio whether a 1920-wide ImageLabel shows at full resolution, otherwise split it into 1024 tiles) | painted key art panels; also used for the thumbnail and icon |
 | **Wordmark** | 1 | 1024×256 | "HOTWIRE CITY" custom lettering; may be heavy lowercase in the Pricedown spirit, but **drawn ourselves or from Kanit/Sarpanch outlines** (OFL permits outlines) |
 
 The **blip set** covers:
@@ -860,6 +861,16 @@ The tests (`tests/spec/hud.spec.luau`, `menus.spec.luau`, `leftovers.spec.luau`,
 - `Notif.kindStyle`, `formatCashDelta`, `bannerHold`, `pickStolenCar`, `toastAnchor`;
 - `Kit.screen`.
 
+*(Added in verification.)* The tests also call:
+- **helpers tied to elements this spec deletes:** `HUD.touchMenuGrid`, `HUD.gridFit`, `HUD.homeState`, `HUD.MENU`, `HUD.MENU_TOP_ROW`, `HUD.menuNameCandidates`;
+- **other HUD helpers:** `HUD.vipChatPrefix`, `cashTrend`, `rebirthReady`, `playtimeClaimable`, `gearAffordable`, `countGarage`, `countDiscovered`, `resetAllowed`;
+- **Tutorial helpers:** `Tut.shouldRun`, `hintFor`, `keyFor`, `pickNearest`, `loadingScreenUp`;
+- **Notification helpers:** `Notif.alertSubtitle`, `trimOldest`, `carLabel`;
+- **the `Menu.open`/`close`/`toggle`/`Opened`/`Closed` API**;
+- **all `MinimapController` / `MapScreenController` pure helpers** (`tests/spec/minimap.spec.luau`).
+
+These must survive, even as dead code, or the tests need a separate, approved change.
+
 **Keep those functions and signatures** (or move them to `src/shared/Util` with re-exports) and replace the view layers.
 
 ### `src/client/UI/Theme.luau` (53 lines): rewrite
@@ -882,7 +893,7 @@ The tests (`tests/spec/hud.spec.luau`, `menus.spec.luau`, `leftovers.spec.luau`,
 | L166–180 | `Kit.panel` | rounded 14, 3 px stroke and white→grey gradient → flat `Panel` (black at 0.27), no corner, no stroke, no gradient |
 | L183–197 | `Kit.juice` | hover 1.06, press 0.92, Back pop → **delete**. Replace with `Kit.rowHover` (bg/text invert) plus a click sound |
 | L200–227 | `Kit.button` | chunky 180×52, double stroke, gradient → replace with `Kit.menuRow`, `Kit.tab`, `Kit.keycap`, `Kit.instructionButton` |
-| L230–258 | `Kit.iconButton` | emoji icon tile → **delete** (only HUD menu column used it) |
+| L230–258 | `Kit.iconButton` | emoji icon tile → **delete after migration**. It is used by the HUD menu column (`HUDController` L634) **and** by the touch driving buttons (`VehicleClient.luau` L356), so first rebuild those as §7 flat circles |
 | L261–292 | `Kit.progressBar` | pill with stroke and gradient → flat track plus fill, no corner, height param |
 | L296–357 | `Kit.window` | pink header, red X modal → **delete after migration**. Menus become Pause tabs, list menus and phone apps |
 | L359–380 | `Kit.open` / `Kit.close` | scale 0.7→1 Back → fade plus 8 px slide, 0.2 s |
@@ -890,7 +901,7 @@ The tests (`tests/spec/hud.spec.luau`, `menus.spec.luau`, `leftovers.spec.luau`,
 | L408–412 | `Kit.pop` | delete. Stars get their own 1.25→1 tween |
 | new | — | `Kit.key(name)` (`<mark>` key-cap rich text), `Kit.blip(name)` (sprite-sheet ImageLabel), `Kit.shard(kind, title, subtitle, rows)` |
 
-### `src/client/Controllers/HUDController.luau` (2395 lines): rebuild the view
+### `src/client/Controllers/HUDController.luau` (2395 lines when written; 2432 after an edit at 16:04 UTC, so line references after about L600 are now 2–37 lines too low, e.g. `showBusted` is at L1802): rebuild the view
 
 | Lines | Today | Change |
 |---|---|---|
@@ -945,6 +956,25 @@ The tests (`tests/spec/hud.spec.luau`, `menus.spec.luau`, `leftovers.spec.luau`,
 | L1177–1265 | `coinBurst` | delete |
 | L1270–1455 | `offlineEarnings` modal ("💤 WHILE YOU WERE AWAY", god rays, count-up, COLLECT) | email/text plus feed plus cash delta. Keep `holdCash`/`releaseCash` if a Claim action stays in Messages |
 | L1557–1890 | `carStolenAlert`: 4-frame red vignette pulse, alarm loop, "🚨 THIEF IS STEALING YOUR CAR!" banner | feed card from contact "Garage Security", phone ring, flashing `Red` blip on the car, **red GPS route**, help text "Your car is being stolen. Hold ↑ for the phone, or chase the thief." No full-screen vignette |
+
+### `src/client/Controllers/MinimapController.luau` (1464 lines) and `MapScreenController.luau` (1118 lines): restyle, do not rebuild *(added in verification)*
+
+§5.1 treats the minimap as new, but most of it already exists and is tested (`tests/spec/minimap.spec.luau`):
+- a camera-rotating radar over the `tools/minimap/build.py` tiles (`assets/minimap/`, 2×2 tiles of 1024²);
+- a pooled blip atlas with rim clamping;
+- speed zoom;
+- RoadGraph A* GPS with reroute;
+- a red/blue wanted bezel and a search circle;
+- touch placement at top-left;
+- the fullscreen map on `M`.
+
+The v2 work is a **restyle**:
+- the circular CanvasGroup becomes the V rectangle: a plain Frame with `ClipsDescendants`, see §5.1;
+- the §3 palette and V blips;
+- the 50/25/25 bars under the radar;
+- police cones in place of the search circle.
+
+Keep its public API and its pure helpers.
 
 ### Also affected (outside the named files, same rules)
 

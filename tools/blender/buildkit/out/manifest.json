@@ -1,0 +1,10819 @@
+{
+ "generated": "2026-10-27T16:38:03",
+ "units": "studs (1 Blender unit = 1 stud)",
+ "axes": "glTF Y-up; building front = +Z in glTF (Blender -Y). Origin = lot bottom-centre at grade.",
+ "roblox": {
+  "part_tri_limit": 20000,
+  "split_at": 19500,
+  "max_texture_px": 1024,
+  "night": "parts with night_only=true (WindowsLit) are hidden by day; role Neon switches to Material=Neon at night; Sign/Brand may use SurfaceAppearance emissive if available",
+  "tint": "material.tint -> SurfaceAppearance.Color (texture sets marked tintable are grey bases)"
+ },
+ "texture_library": "texlib/texlib.json",
+ "count": 40,
+ "violations": [],
+ "buildings": [
+  {
+   "name": "tower_00",
+   "archetype": "tower",
+   "seed": 0,
+   "footprint": [
+    56,
+    72
+   ],
+   "height": 394.6,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "downtown",
+    "floors": 24,
+    "style": "curtain",
+    "crown": "spire"
+   },
+   "total_tris": 5468,
+   "max_part_tris": 2668,
+   "spawns": [],
+   "parts": {
+    "tower_00_Walls2": {
+     "role": "Walls2",
+     "tris": 474,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "granite",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_00_Trim": {
+     "role": "Trim",
+     "tris": 130,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "concrete",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "tower_00_Accent": {
+     "role": "Accent",
+     "tris": 82,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.16,
+       0.17,
+       0.18
+      ],
+      "metallic": 0.85,
+      "roughness": 0.35
+     }
+    },
+    "tower_00_Frames": {
+     "role": "Frames",
+     "tris": 2668,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.16,
+       0.17,
+       0.18
+      ],
+      "metallic": 0.85,
+      "roughness": 0.3
+     }
+    },
+    "tower_00_Glass": {
+     "role": "Glass",
+     "tris": 1464,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.66,
+       0.7,
+       0.74
+      ],
+      "roughness": 0.03,
+      "metallic": 0.7
+     }
+    },
+    "tower_00_Roof": {
+     "role": "Roof",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_00_Details": {
+     "role": "Details",
+     "tris": 192,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "tower_00_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.4,
+      "metallic": 0.2
+     }
+    },
+    "tower_00_Neon": {
+     "role": "Neon",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.9,
+       0.78
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8400000000000001,
+       0.768
+      ]
+     }
+    },
+    "tower_00_Grime": {
+     "role": "Grime",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "tower_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 404,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 11,
+   "files": {
+    "glb": "glb/tower_00.glb",
+    "json": "glb/tower_00.json",
+    "glb_embedded": "glb/tower_00_embedded.glb"
+   },
+   "glb_bytes": 386508
+  },
+  {
+   "name": "tower_01",
+   "archetype": "tower",
+   "seed": 1,
+   "footprint": [
+    56,
+    72
+   ],
+   "height": 297.4,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "downtown",
+    "floors": 22,
+    "style": "grid",
+    "crown": "slant"
+   },
+   "total_tris": 5376,
+   "max_part_tris": 1580,
+   "spawns": [],
+   "parts": {
+    "tower_01_Walls": {
+     "role": "Walls",
+     "tris": 1036,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "precast",
+      "tint": [
+       0.9,
+       0.88,
+       0.84
+      ]
+     }
+    },
+    "tower_01_Walls2": {
+     "role": "Walls2",
+     "tris": 468,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "granite",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_01_Trim": {
+     "role": "Trim",
+     "tris": 120,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "concrete",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "tower_01_Accent": {
+     "role": "Accent",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.55,
+       0.57,
+       0.6
+      ],
+      "metallic": 0.85,
+      "roughness": 0.35
+     }
+    },
+    "tower_01_Frames": {
+     "role": "Frames",
+     "tris": 1580,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.85,
+      "roughness": 0.3
+     }
+    },
+    "tower_01_Glass": {
+     "role": "Glass",
+     "tris": 1078,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.55,
+       0.72,
+       0.86
+      ],
+      "roughness": 0.03,
+      "metallic": 0.7
+     }
+    },
+    "tower_01_Roof": {
+     "role": "Roof",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_01_Details": {
+     "role": "Details",
+     "tris": 528,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "tower_01_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.4,
+      "metallic": 0.2
+     }
+    },
+    "tower_01_Neon": {
+     "role": "Neon",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.9,
+       0.78
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8400000000000001,
+       0.768
+      ]
+     }
+    },
+    "tower_01_Grime": {
+     "role": "Grime",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "tower_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 512,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 12,
+   "files": {
+    "glb": "glb/tower_01.glb",
+    "json": "glb/tower_01.json"
+   },
+   "glb_bytes": 377016
+  },
+  {
+   "name": "tower_02",
+   "archetype": "tower",
+   "seed": 2,
+   "footprint": [
+    80,
+    56
+   ],
+   "height": 394.8,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "downtown",
+    "floors": 24,
+    "style": "grid",
+    "crown": "spire"
+   },
+   "total_tris": 6192,
+   "max_part_tris": 1900,
+   "spawns": [],
+   "parts": {
+    "tower_02_Walls": {
+     "role": "Walls",
+     "tris": 1468,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "granite",
+      "tint": [
+       0.85,
+       0.82,
+       0.78
+      ]
+     }
+    },
+    "tower_02_Walls2": {
+     "role": "Walls2",
+     "tris": 234,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "marble",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_02_Trim": {
+     "role": "Trim",
+     "tris": 162,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "concrete",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "tower_02_Accent": {
+     "role": "Accent",
+     "tris": 82,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.42,
+       0.44,
+       0.46
+      ],
+      "metallic": 0.85,
+      "roughness": 0.35
+     }
+    },
+    "tower_02_Frames": {
+     "role": "Frames",
+     "tris": 1900,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.42,
+       0.44,
+       0.46
+      ],
+      "metallic": 0.85,
+      "roughness": 0.3
+     }
+    },
+    "tower_02_Glass": {
+     "role": "Glass",
+     "tris": 1304,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.78,
+       0.82,
+       0.86
+      ],
+      "roughness": 0.03,
+      "metallic": 0.7
+     }
+    },
+    "tower_02_Roof": {
+     "role": "Roof",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_02_Details": {
+     "role": "Details",
+     "tris": 360,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "tower_02_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.4,
+      "metallic": 0.2
+     }
+    },
+    "tower_02_Neon": {
+     "role": "Neon",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.9,
+       0.78
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8400000000000001,
+       0.768
+      ]
+     }
+    },
+    "tower_02_Grime": {
+     "role": "Grime",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "tower_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 618,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 12,
+   "files": {
+    "glb": "glb/tower_02.glb",
+    "json": "glb/tower_02.json"
+   },
+   "glb_bytes": 434008
+  },
+  {
+   "name": "tower_03",
+   "archetype": "tower",
+   "seed": 3,
+   "footprint": [
+    56,
+    56
+   ],
+   "height": 314.6,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "downtown",
+    "floors": 23,
+    "style": "grid",
+    "crown": "mech"
+   },
+   "total_tris": 5294,
+   "max_part_tris": 1500,
+   "spawns": [],
+   "parts": {
+    "tower_03_Walls": {
+     "role": "Walls",
+     "tris": 1048,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "concrete",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "tower_03_Walls2": {
+     "role": "Walls2",
+     "tris": 392,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "marble",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_03_Trim": {
+     "role": "Trim",
+     "tris": 144,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "concrete",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "tower_03_Accent": {
+     "role": "Accent",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.55,
+       0.57,
+       0.6
+      ],
+      "metallic": 0.85,
+      "roughness": 0.35
+     }
+    },
+    "tower_03_Frames": {
+     "role": "Frames",
+     "tris": 1500,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.85,
+      "roughness": 0.3
+     }
+    },
+    "tower_03_Glass": {
+     "role": "Glass",
+     "tris": 1056,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.55,
+       0.8,
+       0.74
+      ],
+      "roughness": 0.03,
+      "metallic": 0.7
+     }
+    },
+    "tower_03_Roof": {
+     "role": "Roof",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "tower_03_Details": {
+     "role": "Details",
+     "tris": 600,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "tower_03_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.4,
+      "metallic": 0.2
+     }
+    },
+    "tower_03_Neon": {
+     "role": "Neon",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.9,
+       0.78
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8400000000000001,
+       0.768
+      ]
+     }
+    },
+    "tower_03_Grime": {
+     "role": "Grime",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "tower_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 486,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 12,
+   "files": {
+    "glb": "glb/tower_03.glb",
+    "json": "glb/tower_03.json"
+   },
+   "glb_bytes": 373948
+  },
+  {
+   "name": "midtown_00",
+   "archetype": "midtown",
+   "seed": 0,
+   "footprint": [
+    44,
+    34
+   ],
+   "height": 115.5,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "midtown",
+    "floors": 8,
+    "wall": "stucco"
+   },
+   "total_tris": 21880,
+   "max_part_tris": 7748,
+   "spawns": [],
+   "parts": {
+    "midtown_00_Walls": {
+     "role": "Walls",
+     "tris": 1394,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.93,
+       0.84,
+       0.68
+      ]
+     }
+    },
+    "midtown_00_Trim": {
+     "role": "Trim",
+     "tris": 6966,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.91,
+       0.86
+      ]
+     }
+    },
+    "midtown_00_Frames": {
+     "role": "Frames",
+     "tris": 7748,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "midtown_00_Glass": {
+     "role": "Glass",
+     "tris": 312,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "midtown_00_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_00_Details": {
+     "role": "Details",
+     "tris": 5150,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.55,
+       0.57,
+       0.6
+      ]
+     }
+    },
+    "midtown_00_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "midtown_00_Awning": {
+     "role": "Awning",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_00_Sign": {
+     "role": "Sign",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_00_Grime": {
+     "role": "Grime",
+     "tris": 128,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "midtown_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 126,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 11,
+   "files": {
+    "glb": "glb/midtown_00.glb",
+    "json": "glb/midtown_00.json",
+    "glb_embedded": "glb/midtown_00_embedded.glb"
+   },
+   "glb_bytes": 1471448
+  },
+  {
+   "name": "midtown_01",
+   "archetype": "midtown",
+   "seed": 1,
+   "footprint": [
+    40,
+    42
+   ],
+   "height": 91.5,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "midtown",
+    "floors": 6,
+    "wall": "brick_red"
+   },
+   "total_tris": 18642,
+   "max_part_tris": 7772,
+   "spawns": [],
+   "parts": {
+    "midtown_01_Walls": {
+     "role": "Walls",
+     "tris": 994,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "brick_red",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_01_Trim": {
+     "role": "Trim",
+     "tris": 7772,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.96,
+       0.95,
+       0.92
+      ]
+     }
+    },
+    "midtown_01_Frames": {
+     "role": "Frames",
+     "tris": 5804,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.22,
+       0.16,
+       0.11
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "midtown_01_Glass": {
+     "role": "Glass",
+     "tris": 232,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "midtown_01_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_01_Details": {
+     "role": "Details",
+     "tris": 3548,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.55,
+       0.57,
+       0.6
+      ]
+     }
+    },
+    "midtown_01_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "midtown_01_Awning": {
+     "role": "Awning",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_01_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_01_Grime": {
+     "role": "Grime",
+     "tris": 132,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "midtown_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 118,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 11,
+   "files": {
+    "glb": "glb/midtown_01.glb",
+    "json": "glb/midtown_01.json"
+   },
+   "glb_bytes": 1272296
+  },
+  {
+   "name": "midtown_02",
+   "archetype": "midtown",
+   "seed": 2,
+   "footprint": [
+    44,
+    42
+   ],
+   "height": 115.5,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "midtown",
+    "floors": 8,
+    "wall": "brick_tan"
+   },
+   "total_tris": 25686,
+   "max_part_tris": 10812,
+   "spawns": [],
+   "parts": {
+    "midtown_02_Walls": {
+     "role": "Walls",
+     "tris": 1442,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "brick_tan",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_02_Trim": {
+     "role": "Trim",
+     "tris": 10812,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.96,
+       0.95,
+       0.92
+      ]
+     }
+    },
+    "midtown_02_Frames": {
+     "role": "Frames",
+     "tris": 8548,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.06,
+       0.2,
+       0.14
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "midtown_02_Glass": {
+     "role": "Glass",
+     "tris": 344,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "midtown_02_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_02_Details": {
+     "role": "Details",
+     "tris": 4172,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.55,
+       0.57,
+       0.6
+      ]
+     }
+    },
+    "midtown_02_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "midtown_02_Awning": {
+     "role": "Awning",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_02_Sign": {
+     "role": "Sign",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_02_Grime": {
+     "role": "Grime",
+     "tris": 188,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "midtown_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 124,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 11,
+   "files": {
+    "glb": "glb/midtown_02.glb",
+    "json": "glb/midtown_02.json"
+   },
+   "glb_bytes": 1764732
+  },
+  {
+   "name": "midtown_03",
+   "archetype": "midtown",
+   "seed": 3,
+   "footprint": [
+    44,
+    34
+   ],
+   "height": 115.5,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "midtown",
+    "floors": 8,
+    "wall": "brick_red"
+   },
+   "total_tris": 28192,
+   "max_part_tris": 10812,
+   "spawns": [],
+   "parts": {
+    "midtown_03_Walls": {
+     "role": "Walls",
+     "tris": 1394,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "brick_red",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_03_Trim": {
+     "role": "Trim",
+     "tris": 10812,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.96,
+       0.95,
+       0.92
+      ]
+     }
+    },
+    "midtown_03_Frames": {
+     "role": "Frames",
+     "tris": 7748,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.22,
+       0.16,
+       0.11
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "midtown_03_Glass": {
+     "role": "Glass",
+     "tris": 312,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "midtown_03_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "midtown_03_Details": {
+     "role": "Details",
+     "tris": 7584,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.55,
+       0.57,
+       0.6
+      ]
+     }
+    },
+    "midtown_03_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "midtown_03_Awning": {
+     "role": "Awning",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_03_Sign": {
+     "role": "Sign",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "midtown_03_Grime": {
+     "role": "Grime",
+     "tris": 150,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "midtown_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 136,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 11,
+   "files": {
+    "glb": "glb/midtown_03.glb",
+    "json": "glb/midtown_03.json"
+   },
+   "glb_bytes": 1911004
+  },
+  {
+   "name": "strip_00",
+   "archetype": "strip",
+   "seed": 0,
+   "footprint": [
+    144.0,
+    124.0
+   ],
+   "height": 30.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "units": 5,
+    "canopy": "mansard",
+    "building": [
+     120.0,
+     44.0
+    ]
+   },
+   "total_tris": 2512,
+   "max_part_tris": 932,
+   "spawns": [
+    [
+     -60.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -50.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -40.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -30.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -20.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -10.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     0.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     10.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     20.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     30.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     40.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     50.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     60.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -60.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -50.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -40.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -30.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -20.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -10.0,
+     -5.0,
+     90.0
+    ],
+    [
+     0.0,
+     -5.0,
+     90.0
+    ],
+    [
+     10.0,
+     -5.0,
+     90.0
+    ],
+    [
+     20.0,
+     -5.0,
+     90.0
+    ],
+    [
+     30.0,
+     -5.0,
+     90.0
+    ],
+    [
+     40.0,
+     -5.0,
+     90.0
+    ],
+    [
+     50.0,
+     -5.0,
+     90.0
+    ],
+    [
+     60.0,
+     -5.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "strip_00_Walls": {
+     "role": "Walls",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.93,
+       0.9,
+       0.82
+      ]
+     }
+    },
+    "strip_00_Trim": {
+     "role": "Trim",
+     "tris": 450,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "strip_00_Frames": {
+     "role": "Frames",
+     "tris": 932,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "strip_00_Glass": {
+     "role": "Glass",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "strip_00_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_00_Roof2": {
+     "role": "Roof2",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_00_Details": {
+     "role": "Details",
+     "tris": 516,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "strip_00_Doors": {
+     "role": "Doors",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "strip_00_Sign": {
+     "role": "Sign",
+     "tris": 26,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_00_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_00_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "strip_00_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "strip_00_Paint": {
+     "role": "Paint",
+     "tris": 56,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "strip_00_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "strip_00_Neon": {
+     "role": "Neon",
+     "tris": 188,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "strip_00_Grime": {
+     "role": "Grime",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "strip_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 40,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/strip_00.glb",
+    "json": "glb/strip_00.json",
+    "glb_embedded": "glb/strip_00_embedded.glb"
+   },
+   "glb_bytes": 178732
+  },
+  {
+   "name": "strip_01",
+   "archetype": "strip",
+   "seed": 1,
+   "footprint": [
+    108.0,
+    130.0
+   ],
+   "height": 30.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "units": 3,
+    "canopy": "mansard",
+    "building": [
+     84.0,
+     50.0
+    ]
+   },
+   "total_tris": 1664,
+   "max_part_tris": 564,
+   "spawns": [
+    [
+     -45.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     -35.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     -25.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     -15.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     -5.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     5.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     15.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     25.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     35.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     45.0,
+     -47.0,
+     -90.0
+    ],
+    [
+     -45.0,
+     -8.0,
+     90.0
+    ],
+    [
+     -35.0,
+     -8.0,
+     90.0
+    ],
+    [
+     -25.0,
+     -8.0,
+     90.0
+    ],
+    [
+     -15.0,
+     -8.0,
+     90.0
+    ],
+    [
+     -5.0,
+     -8.0,
+     90.0
+    ],
+    [
+     5.0,
+     -8.0,
+     90.0
+    ],
+    [
+     15.0,
+     -8.0,
+     90.0
+    ],
+    [
+     25.0,
+     -8.0,
+     90.0
+    ],
+    [
+     35.0,
+     -8.0,
+     90.0
+    ],
+    [
+     45.0,
+     -8.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "strip_01_Walls": {
+     "role": "Walls",
+     "tris": 132,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.93,
+       0.9,
+       0.82
+      ]
+     }
+    },
+    "strip_01_Trim": {
+     "role": "Trim",
+     "tris": 350,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "strip_01_Frames": {
+     "role": "Frames",
+     "tris": 564,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.22,
+       0.16,
+       0.11
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "strip_01_Glass": {
+     "role": "Glass",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "strip_01_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_01_Roof2": {
+     "role": "Roof2",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_01_Details": {
+     "role": "Details",
+     "tris": 324,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "strip_01_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "strip_01_Sign": {
+     "role": "Sign",
+     "tris": 18,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_01_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_01_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "strip_01_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "strip_01_Paint": {
+     "role": "Paint",
+     "tris": 44,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "strip_01_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "strip_01_Neon": {
+     "role": "Neon",
+     "tris": 124,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "strip_01_Grime": {
+     "role": "Grime",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "strip_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 24,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/strip_01.glb",
+    "json": "glb/strip_01.json"
+   },
+   "glb_bytes": 124828
+  },
+  {
+   "name": "strip_02",
+   "archetype": "strip",
+   "seed": 2,
+   "footprint": [
+    192.0,
+    124.0
+   ],
+   "height": 30.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "units": 6,
+    "canopy": "mansard",
+    "building": [
+     168.0,
+     44.0
+    ]
+   },
+   "total_tris": 3032,
+   "max_part_tris": 1116,
+   "spawns": [
+    [
+     -85.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -75.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -65.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -55.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -45.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -35.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -25.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -15.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -5.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     5.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     15.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     25.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     35.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     45.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     55.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     65.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     75.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     85.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -85.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -75.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -65.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -55.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -45.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -35.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -25.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -15.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -5.0,
+     -5.0,
+     90.0
+    ],
+    [
+     5.0,
+     -5.0,
+     90.0
+    ],
+    [
+     15.0,
+     -5.0,
+     90.0
+    ],
+    [
+     25.0,
+     -5.0,
+     90.0
+    ],
+    [
+     35.0,
+     -5.0,
+     90.0
+    ],
+    [
+     45.0,
+     -5.0,
+     90.0
+    ],
+    [
+     55.0,
+     -5.0,
+     90.0
+    ],
+    [
+     65.0,
+     -5.0,
+     90.0
+    ],
+    [
+     75.0,
+     -5.0,
+     90.0
+    ],
+    [
+     85.0,
+     -5.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "strip_02_Walls": {
+     "role": "Walls",
+     "tris": 204,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.86,
+       0.77,
+       0.62
+      ]
+     }
+    },
+    "strip_02_Trim": {
+     "role": "Trim",
+     "tris": 584,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "strip_02_Frames": {
+     "role": "Frames",
+     "tris": 1116,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "strip_02_Glass": {
+     "role": "Glass",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "strip_02_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_02_Roof2": {
+     "role": "Roof2",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_02_Details": {
+     "role": "Details",
+     "tris": 612,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "strip_02_Doors": {
+     "role": "Doors",
+     "tris": 60,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "strip_02_Sign": {
+     "role": "Sign",
+     "tris": 28,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_02_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_02_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "strip_02_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "strip_02_Paint": {
+     "role": "Paint",
+     "tris": 76,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "strip_02_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "strip_02_Neon": {
+     "role": "Neon",
+     "tris": 220,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "strip_02_Grime": {
+     "role": "Grime",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "strip_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 48,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/strip_02.glb",
+    "json": "glb/strip_02.json"
+   },
+   "glb_bytes": 212588
+  },
+  {
+   "name": "strip_03",
+   "archetype": "strip",
+   "seed": 3,
+   "footprint": [
+    180.0,
+    124.0
+   ],
+   "height": 30.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "units": 6,
+    "canopy": "flat",
+    "building": [
+     156.0,
+     44.0
+    ]
+   },
+   "total_tris": 2996,
+   "max_part_tris": 1116,
+   "spawns": [
+    [
+     -80.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -70.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -60.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -50.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -40.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -30.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -20.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -10.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     0.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     10.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     20.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     30.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     40.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     50.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     60.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     70.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     80.0,
+     -44.0,
+     -90.0
+    ],
+    [
+     -80.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -70.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -60.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -50.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -40.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -30.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -20.0,
+     -5.0,
+     90.0
+    ],
+    [
+     -10.0,
+     -5.0,
+     90.0
+    ],
+    [
+     0.0,
+     -5.0,
+     90.0
+    ],
+    [
+     10.0,
+     -5.0,
+     90.0
+    ],
+    [
+     20.0,
+     -5.0,
+     90.0
+    ],
+    [
+     30.0,
+     -5.0,
+     90.0
+    ],
+    [
+     40.0,
+     -5.0,
+     90.0
+    ],
+    [
+     50.0,
+     -5.0,
+     90.0
+    ],
+    [
+     60.0,
+     -5.0,
+     90.0
+    ],
+    [
+     70.0,
+     -5.0,
+     90.0
+    ],
+    [
+     80.0,
+     -5.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "strip_03_Walls": {
+     "role": "Walls",
+     "tris": 198,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.86,
+       0.77,
+       0.62
+      ]
+     }
+    },
+    "strip_03_Trim": {
+     "role": "Trim",
+     "tris": 560,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "strip_03_Frames": {
+     "role": "Frames",
+     "tris": 1116,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "strip_03_Glass": {
+     "role": "Glass",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "strip_03_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "strip_03_Details": {
+     "role": "Details",
+     "tris": 612,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "strip_03_Doors": {
+     "role": "Doors",
+     "tris": 60,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "strip_03_Sign": {
+     "role": "Sign",
+     "tris": 28,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_03_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "strip_03_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "strip_03_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "strip_03_Paint": {
+     "role": "Paint",
+     "tris": 72,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "strip_03_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "strip_03_Neon": {
+     "role": "Neon",
+     "tris": 220,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "strip_03_Grime": {
+     "role": "Grime",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "strip_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 48,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 16,
+   "files": {
+    "glb": "glb/strip_03.glb",
+    "json": "glb/strip_03.json"
+   },
+   "glb_bytes": 209396
+  },
+  {
+   "name": "corner_store_00",
+   "archetype": "corner_store",
+   "seed": 0,
+   "footprint": [
+    70.0,
+    86.0
+   ],
+   "height": 17.8,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     50.0,
+     36.0
+    ]
+   },
+   "total_tris": 1050,
+   "max_part_tris": 380,
+   "spawns": [
+    [
+     -25.0,
+     -12.0,
+     90.0
+    ],
+    [
+     -15.0,
+     -12.0,
+     90.0
+    ],
+    [
+     -5.0,
+     -12.0,
+     90.0
+    ],
+    [
+     5.0,
+     -12.0,
+     90.0
+    ],
+    [
+     15.0,
+     -12.0,
+     90.0
+    ],
+    [
+     25.0,
+     -12.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "corner_store_00_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.93,
+       0.9,
+       0.82
+      ]
+     }
+    },
+    "corner_store_00_Walls2": {
+     "role": "Walls2",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.93,
+       0.9,
+       0.82
+      ]
+     }
+    },
+    "corner_store_00_Trim": {
+     "role": "Trim",
+     "tris": 174,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "corner_store_00_Accent": {
+     "role": "Accent",
+     "tris": 176,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.75,
+       0.1
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "corner_store_00_Frames": {
+     "role": "Frames",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "corner_store_00_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_00_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "corner_store_00_Details": {
+     "role": "Details",
+     "tris": 380,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "corner_store_00_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "corner_store_00_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_00_Brand": {
+     "role": "Brand",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_00_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "corner_store_00_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "corner_store_00_Paint": {
+     "role": "Paint",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "corner_store_00_Neon": {
+     "role": "Neon",
+     "tris": 52,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "corner_store_00_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "corner_store_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/corner_store_00.glb",
+    "json": "glb/corner_store_00.json",
+    "glb_embedded": "glb/corner_store_00_embedded.glb"
+   },
+   "glb_bytes": 77420
+  },
+  {
+   "name": "corner_store_01",
+   "archetype": "corner_store",
+   "seed": 1,
+   "footprint": [
+    70.0,
+    90.0
+   ],
+   "height": 17.8,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     50.0,
+     40.0
+    ]
+   },
+   "total_tris": 1062,
+   "max_part_tris": 380,
+   "spawns": [
+    [
+     -25.0,
+     -14.0,
+     90.0
+    ],
+    [
+     -15.0,
+     -14.0,
+     90.0
+    ],
+    [
+     -5.0,
+     -14.0,
+     90.0
+    ],
+    [
+     5.0,
+     -14.0,
+     90.0
+    ],
+    [
+     15.0,
+     -14.0,
+     90.0
+    ],
+    [
+     25.0,
+     -14.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "corner_store_01_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.78,
+       0.78,
+       0.76
+      ]
+     }
+    },
+    "corner_store_01_Walls2": {
+     "role": "Walls2",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.78,
+       0.78,
+       0.76
+      ]
+     }
+    },
+    "corner_store_01_Trim": {
+     "role": "Trim",
+     "tris": 174,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "corner_store_01_Accent": {
+     "role": "Accent",
+     "tris": 176,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.75,
+       0.1
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "corner_store_01_Frames": {
+     "role": "Frames",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "corner_store_01_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_01_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "corner_store_01_Details": {
+     "role": "Details",
+     "tris": 380,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "corner_store_01_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "corner_store_01_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_01_Brand": {
+     "role": "Brand",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_01_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "corner_store_01_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "corner_store_01_Paint": {
+     "role": "Paint",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "corner_store_01_Neon": {
+     "role": "Neon",
+     "tris": 52,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "corner_store_01_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "corner_store_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/corner_store_01.glb",
+    "json": "glb/corner_store_01.json"
+   },
+   "glb_bytes": 78288
+  },
+  {
+   "name": "corner_store_02",
+   "archetype": "corner_store",
+   "seed": 2,
+   "footprint": [
+    64.0,
+    86.0
+   ],
+   "height": 17.8,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     44.0,
+     36.0
+    ]
+   },
+   "total_tris": 1008,
+   "max_part_tris": 380,
+   "spawns": [
+    [
+     -25.0,
+     -12.0,
+     90.0
+    ],
+    [
+     -15.0,
+     -12.0,
+     90.0
+    ],
+    [
+     -5.0,
+     -12.0,
+     90.0
+    ],
+    [
+     5.0,
+     -12.0,
+     90.0
+    ],
+    [
+     15.0,
+     -12.0,
+     90.0
+    ],
+    [
+     25.0,
+     -12.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "corner_store_02_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.95,
+       0.95,
+       0.93
+      ]
+     }
+    },
+    "corner_store_02_Walls2": {
+     "role": "Walls2",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.95,
+       0.95,
+       0.93
+      ]
+     }
+    },
+    "corner_store_02_Trim": {
+     "role": "Trim",
+     "tris": 174,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "corner_store_02_Accent": {
+     "role": "Accent",
+     "tris": 154,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.75,
+       0.1
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "corner_store_02_Frames": {
+     "role": "Frames",
+     "tris": 160,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "corner_store_02_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_02_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "corner_store_02_Details": {
+     "role": "Details",
+     "tris": 380,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "corner_store_02_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "corner_store_02_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_02_Brand": {
+     "role": "Brand",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_02_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "corner_store_02_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "corner_store_02_Paint": {
+     "role": "Paint",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "corner_store_02_Neon": {
+     "role": "Neon",
+     "tris": 52,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "corner_store_02_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "corner_store_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/corner_store_02.glb",
+    "json": "glb/corner_store_02.json"
+   },
+   "glb_bytes": 75416
+  },
+  {
+   "name": "corner_store_03",
+   "archetype": "corner_store",
+   "seed": 3,
+   "footprint": [
+    64.0,
+    86.0
+   ],
+   "height": 17.8,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     44.0,
+     36.0
+    ]
+   },
+   "total_tris": 1008,
+   "max_part_tris": 380,
+   "spawns": [
+    [
+     -25.0,
+     -12.0,
+     90.0
+    ],
+    [
+     -15.0,
+     -12.0,
+     90.0
+    ],
+    [
+     -5.0,
+     -12.0,
+     90.0
+    ],
+    [
+     5.0,
+     -12.0,
+     90.0
+    ],
+    [
+     15.0,
+     -12.0,
+     90.0
+    ],
+    [
+     25.0,
+     -12.0,
+     90.0
+    ]
+   ],
+   "parts": {
+    "corner_store_03_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.78,
+       0.78,
+       0.76
+      ]
+     }
+    },
+    "corner_store_03_Walls2": {
+     "role": "Walls2",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.78,
+       0.78,
+       0.76
+      ]
+     }
+    },
+    "corner_store_03_Trim": {
+     "role": "Trim",
+     "tris": 174,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "corner_store_03_Accent": {
+     "role": "Accent",
+     "tris": 154,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.75,
+       0.1
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "corner_store_03_Frames": {
+     "role": "Frames",
+     "tris": 160,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "corner_store_03_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_03_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "corner_store_03_Details": {
+     "role": "Details",
+     "tris": 380,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "corner_store_03_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "corner_store_03_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_03_Brand": {
+     "role": "Brand",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "corner_store_03_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "corner_store_03_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "corner_store_03_Paint": {
+     "role": "Paint",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "corner_store_03_Neon": {
+     "role": "Neon",
+     "tris": 52,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8819999999999999,
+       0.8400000000000001
+      ]
+     }
+    },
+    "corner_store_03_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "corner_store_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/corner_store_03.glb",
+    "json": "glb/corner_store_03.json"
+   },
+   "glb_bytes": 75164
+  },
+  {
+   "name": "gas_00",
+   "archetype": "gas",
+   "seed": 0,
+   "footprint": [
+    150.0,
+    120.0
+   ],
+   "height": 26.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "brand": "PUMP & GO",
+    "pumps": 6
+   },
+   "total_tris": 1702,
+   "max_part_tris": 512,
+   "spawns": [
+    [
+     5.0,
+     31.5,
+     -90.0
+    ],
+    [
+     15.0,
+     31.5,
+     -90.0
+    ],
+    [
+     25.0,
+     31.5,
+     -90.0
+    ],
+    [
+     35.0,
+     31.5,
+     -90.0
+    ],
+    [
+     45.0,
+     31.5,
+     -90.0
+    ],
+    [
+     55.0,
+     31.5,
+     -90.0
+    ],
+    [
+     65.0,
+     31.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "gas_00_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.93,
+       0.9,
+       0.82
+      ]
+     }
+    },
+    "gas_00_Walls2": {
+     "role": "Walls2",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_00_Trim": {
+     "role": "Trim",
+     "tris": 208,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_00_Accent": {
+     "role": "Accent",
+     "tris": 426,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.06,
+       0.27,
+       0.63
+      ],
+      "metallic": 0.2,
+      "roughness": 0.4
+     }
+    },
+    "gas_00_Frames": {
+     "role": "Frames",
+     "tris": 190,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "gas_00_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "gas_00_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "gas_00_Details": {
+     "role": "Details",
+     "tris": 512,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "gas_00_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "gas_00_Brand": {
+     "role": "Brand",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "gas_00_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "gas_00_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "gas_00_Paint": {
+     "role": "Paint",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "gas_00_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "gas_00_Neon": {
+     "role": "Neon",
+     "tris": 204,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       1.0,
+       0.97
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8999999999999999,
+       0.8819999999999999
+      ]
+     }
+    },
+    "gas_00_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "gas_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/gas_00.glb",
+    "json": "glb/gas_00.json",
+    "glb_embedded": "glb/gas_00_embedded.glb"
+   },
+   "glb_bytes": 119828
+  },
+  {
+   "name": "gas_01",
+   "archetype": "gas",
+   "seed": 1,
+   "footprint": [
+    150.0,
+    130.0
+   ],
+   "height": 26.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "brand": "PUMP & GO",
+    "pumps": 6
+   },
+   "total_tris": 1702,
+   "max_part_tris": 512,
+   "spawns": [
+    [
+     -65.0,
+     36.5,
+     -90.0
+    ],
+    [
+     -55.0,
+     36.5,
+     -90.0
+    ],
+    [
+     -45.0,
+     36.5,
+     -90.0
+    ],
+    [
+     -35.0,
+     36.5,
+     -90.0
+    ],
+    [
+     -25.0,
+     36.5,
+     -90.0
+    ],
+    [
+     -15.0,
+     36.5,
+     -90.0
+    ],
+    [
+     -5.0,
+     36.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "gas_01_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.95,
+       0.95,
+       0.93
+      ]
+     }
+    },
+    "gas_01_Walls2": {
+     "role": "Walls2",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_01_Trim": {
+     "role": "Trim",
+     "tris": 208,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_01_Accent": {
+     "role": "Accent",
+     "tris": 426,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.06,
+       0.27,
+       0.63
+      ],
+      "metallic": 0.2,
+      "roughness": 0.4
+     }
+    },
+    "gas_01_Frames": {
+     "role": "Frames",
+     "tris": 190,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "gas_01_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "gas_01_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "gas_01_Details": {
+     "role": "Details",
+     "tris": 512,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "gas_01_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "gas_01_Brand": {
+     "role": "Brand",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "gas_01_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "gas_01_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "gas_01_Paint": {
+     "role": "Paint",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "gas_01_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "gas_01_Neon": {
+     "role": "Neon",
+     "tris": 204,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       1.0,
+       0.97
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8999999999999999,
+       0.8819999999999999
+      ]
+     }
+    },
+    "gas_01_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "gas_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/gas_01.glb",
+    "json": "glb/gas_01.json"
+   },
+   "glb_bytes": 120104
+  },
+  {
+   "name": "gas_02",
+   "archetype": "gas",
+   "seed": 2,
+   "footprint": [
+    160.0,
+    120.0
+   ],
+   "height": 26.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "brand": "PUMP & GO",
+    "pumps": 8
+   },
+   "total_tris": 1850,
+   "max_part_tris": 552,
+   "spawns": [
+    [
+     -8.0,
+     35.5,
+     -90.0
+    ],
+    [
+     2.0,
+     35.5,
+     -90.0
+    ],
+    [
+     12.0,
+     35.5,
+     -90.0
+    ],
+    [
+     22.0,
+     35.5,
+     -90.0
+    ],
+    [
+     32.0,
+     35.5,
+     -90.0
+    ],
+    [
+     42.0,
+     35.5,
+     -90.0
+    ],
+    [
+     52.0,
+     35.5,
+     -90.0
+    ],
+    [
+     62.0,
+     35.5,
+     -90.0
+    ],
+    [
+     72.0,
+     35.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "gas_02_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.78,
+       0.78,
+       0.76
+      ]
+     }
+    },
+    "gas_02_Walls2": {
+     "role": "Walls2",
+     "tris": 58,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_02_Trim": {
+     "role": "Trim",
+     "tris": 242,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_02_Accent": {
+     "role": "Accent",
+     "tris": 472,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.06,
+       0.27,
+       0.63
+      ],
+      "metallic": 0.2,
+      "roughness": 0.4
+     }
+    },
+    "gas_02_Frames": {
+     "role": "Frames",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "gas_02_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "gas_02_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "gas_02_Details": {
+     "role": "Details",
+     "tris": 552,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "gas_02_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "gas_02_Brand": {
+     "role": "Brand",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "gas_02_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "gas_02_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "gas_02_Paint": {
+     "role": "Paint",
+     "tris": 20,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "gas_02_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "gas_02_Neon": {
+     "role": "Neon",
+     "tris": 228,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       1.0,
+       0.97
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8999999999999999,
+       0.8819999999999999
+      ]
+     }
+    },
+    "gas_02_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "gas_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/gas_02.glb",
+    "json": "glb/gas_02.json"
+   },
+   "glb_bytes": 129564
+  },
+  {
+   "name": "gas_03",
+   "archetype": "gas",
+   "seed": 3,
+   "footprint": [
+    160.0,
+    120.0
+   ],
+   "height": 26.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "brand": "PUMP & GO",
+    "pumps": 6
+   },
+   "total_tris": 1676,
+   "max_part_tris": 512,
+   "spawns": [
+    [
+     -69.0,
+     31.5,
+     -90.0
+    ],
+    [
+     -59.0,
+     31.5,
+     -90.0
+    ],
+    [
+     -49.0,
+     31.5,
+     -90.0
+    ],
+    [
+     -39.0,
+     31.5,
+     -90.0
+    ],
+    [
+     -29.0,
+     31.5,
+     -90.0
+    ],
+    [
+     -19.0,
+     31.5,
+     -90.0
+    ],
+    [
+     -9.0,
+     31.5,
+     -90.0
+    ],
+    [
+     1.0,
+     31.5,
+     -90.0
+    ],
+    [
+     11.0,
+     31.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "gas_03_Walls": {
+     "role": "Walls",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.93,
+       0.9,
+       0.82
+      ]
+     }
+    },
+    "gas_03_Walls2": {
+     "role": "Walls2",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.92,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_03_Trim": {
+     "role": "Trim",
+     "tris": 232,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "gas_03_Accent": {
+     "role": "Accent",
+     "tris": 382,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.06,
+       0.27,
+       0.63
+      ],
+      "metallic": 0.2,
+      "roughness": 0.4
+     }
+    },
+    "gas_03_Frames": {
+     "role": "Frames",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "gas_03_Glass": {
+     "role": "Glass",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "gas_03_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.75,
+       0.75
+      ]
+     }
+    },
+    "gas_03_Details": {
+     "role": "Details",
+     "tris": 512,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "gas_03_Doors": {
+     "role": "Doors",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.8,
+       0.8,
+       0.8
+      ]
+     }
+    },
+    "gas_03_Brand": {
+     "role": "Brand",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "gas_03_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "gas_03_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "gas_03_Paint": {
+     "role": "Paint",
+     "tris": 20,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "gas_03_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "gas_03_Neon": {
+     "role": "Neon",
+     "tris": 204,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       1.0,
+       0.97
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.8999999999999999,
+       0.8819999999999999
+      ]
+     }
+    },
+    "gas_03_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "gas_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/gas_03.glb",
+    "json": "glb/gas_03.json"
+   },
+   "glb_bytes": 119212
+  },
+  {
+   "name": "diner_00",
+   "archetype": "diner",
+   "seed": 0,
+   "footprint": [
+    104.0,
+    94.0
+   ],
+   "height": 31.4,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     64.0,
+     28.0
+    ]
+   },
+   "total_tris": 2822,
+   "max_part_tris": 1172,
+   "spawns": [
+    [
+     -40.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -30.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -20.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -10.0,
+     -12.5,
+     90.0
+    ],
+    [
+     0.0,
+     -12.5,
+     90.0
+    ],
+    [
+     10.0,
+     -12.5,
+     90.0
+    ],
+    [
+     20.0,
+     -12.5,
+     90.0
+    ],
+    [
+     30.0,
+     -12.5,
+     90.0
+    ],
+    [
+     40.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -40.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -30.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -20.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -10.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     0.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     10.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     20.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     30.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     40.0,
+     -31.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "diner_00_Walls": {
+     "role": "Walls",
+     "tris": 1172,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.78,
+       0.79,
+       0.8
+      ],
+      "metallic": 1.0,
+      "roughness": 0.22
+     }
+    },
+    "diner_00_Walls2": {
+     "role": "Walls2",
+     "tris": 70,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "diner_00_Trim": {
+     "role": "Trim",
+     "tris": 216,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "diner_00_Accent": {
+     "role": "Accent",
+     "tris": 132,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.72,
+       0.06,
+       0.08
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "diner_00_Frames": {
+     "role": "Frames",
+     "tris": 602,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.8,
+       0.8,
+       0.82
+      ],
+      "metallic": 1.0,
+      "roughness": 0.15
+     }
+    },
+    "diner_00_Glass": {
+     "role": "Glass",
+     "tris": 74,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "diner_00_Roof": {
+     "role": "Roof",
+     "tris": 18,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "diner_00_Details": {
+     "role": "Details",
+     "tris": 240,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "diner_00_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_00_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_00_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "diner_00_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "diner_00_Paint": {
+     "role": "Paint",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "diner_00_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "diner_00_Neon": {
+     "role": "Neon",
+     "tris": 164,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.2,
+       0.25
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.42,
+       0.44999999999999996
+      ]
+     }
+    },
+    "diner_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 74,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 16,
+   "files": {
+    "glb": "glb/diner_00.glb",
+    "json": "glb/diner_00.json",
+    "glb_embedded": "glb/diner_00_embedded.glb"
+   },
+   "glb_bytes": 155584
+  },
+  {
+   "name": "diner_01",
+   "archetype": "diner",
+   "seed": 1,
+   "footprint": [
+    112.0,
+    94.0
+   ],
+   "height": 31.4,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     72.0,
+     28.0
+    ]
+   },
+   "total_tris": 2898,
+   "max_part_tris": 1172,
+   "spawns": [
+    [
+     -45.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -35.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -25.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -15.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -5.0,
+     -12.5,
+     90.0
+    ],
+    [
+     5.0,
+     -12.5,
+     90.0
+    ],
+    [
+     15.0,
+     -12.5,
+     90.0
+    ],
+    [
+     25.0,
+     -12.5,
+     90.0
+    ],
+    [
+     35.0,
+     -12.5,
+     90.0
+    ],
+    [
+     45.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -45.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -35.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -25.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -15.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -5.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     5.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     15.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     25.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     35.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     45.0,
+     -31.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "diner_01_Walls": {
+     "role": "Walls",
+     "tris": 1172,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.78,
+       0.79,
+       0.8
+      ],
+      "metallic": 1.0,
+      "roughness": 0.22
+     }
+    },
+    "diner_01_Walls2": {
+     "role": "Walls2",
+     "tris": 70,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "diner_01_Trim": {
+     "role": "Trim",
+     "tris": 240,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "diner_01_Accent": {
+     "role": "Accent",
+     "tris": 132,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.72,
+       0.06,
+       0.08
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "diner_01_Frames": {
+     "role": "Frames",
+     "tris": 634,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.8,
+       0.8,
+       0.82
+      ],
+      "metallic": 1.0,
+      "roughness": 0.15
+     }
+    },
+    "diner_01_Glass": {
+     "role": "Glass",
+     "tris": 82,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "diner_01_Roof": {
+     "role": "Roof",
+     "tris": 18,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "diner_01_Details": {
+     "role": "Details",
+     "tris": 240,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "diner_01_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_01_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_01_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "diner_01_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "diner_01_Paint": {
+     "role": "Paint",
+     "tris": 44,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "diner_01_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "diner_01_Neon": {
+     "role": "Neon",
+     "tris": 164,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.2,
+       0.25
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.42,
+       0.44999999999999996
+      ]
+     }
+    },
+    "diner_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 82,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 16,
+   "files": {
+    "glb": "glb/diner_01.glb",
+    "json": "glb/diner_01.json"
+   },
+   "glb_bytes": 160828
+  },
+  {
+   "name": "diner_02",
+   "archetype": "diner",
+   "seed": 2,
+   "footprint": [
+    112.0,
+    94.0
+   ],
+   "height": 31.4,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     72.0,
+     28.0
+    ]
+   },
+   "total_tris": 2898,
+   "max_part_tris": 1172,
+   "spawns": [
+    [
+     -45.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -35.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -25.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -15.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -5.0,
+     -12.5,
+     90.0
+    ],
+    [
+     5.0,
+     -12.5,
+     90.0
+    ],
+    [
+     15.0,
+     -12.5,
+     90.0
+    ],
+    [
+     25.0,
+     -12.5,
+     90.0
+    ],
+    [
+     35.0,
+     -12.5,
+     90.0
+    ],
+    [
+     45.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -45.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -35.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -25.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -15.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -5.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     5.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     15.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     25.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     35.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     45.0,
+     -31.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "diner_02_Walls": {
+     "role": "Walls",
+     "tris": 1172,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.78,
+       0.79,
+       0.8
+      ],
+      "metallic": 1.0,
+      "roughness": 0.22
+     }
+    },
+    "diner_02_Walls2": {
+     "role": "Walls2",
+     "tris": 70,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "diner_02_Trim": {
+     "role": "Trim",
+     "tris": 240,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "diner_02_Accent": {
+     "role": "Accent",
+     "tris": 132,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.35,
+       0.55
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "diner_02_Frames": {
+     "role": "Frames",
+     "tris": 634,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.8,
+       0.8,
+       0.82
+      ],
+      "metallic": 1.0,
+      "roughness": 0.15
+     }
+    },
+    "diner_02_Glass": {
+     "role": "Glass",
+     "tris": 82,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "diner_02_Roof": {
+     "role": "Roof",
+     "tris": 18,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "diner_02_Details": {
+     "role": "Details",
+     "tris": 240,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "diner_02_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_02_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_02_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "diner_02_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "diner_02_Paint": {
+     "role": "Paint",
+     "tris": 44,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "diner_02_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "diner_02_Neon": {
+     "role": "Neon",
+     "tris": 164,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       0.2,
+       0.9,
+       1.0
+      ],
+      "day_color": [
+       0.42,
+       0.8400000000000001,
+       0.8999999999999999
+      ]
+     }
+    },
+    "diner_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 82,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 16,
+   "files": {
+    "glb": "glb/diner_02.glb",
+    "json": "glb/diner_02.json"
+   },
+   "glb_bytes": 160840
+  },
+  {
+   "name": "diner_03",
+   "archetype": "diner",
+   "seed": 3,
+   "footprint": [
+    104.0,
+    94.0
+   ],
+   "height": 31.4,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "commercial",
+    "building": [
+     64.0,
+     28.0
+    ]
+   },
+   "total_tris": 2822,
+   "max_part_tris": 1172,
+   "spawns": [
+    [
+     -40.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -30.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -20.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -10.0,
+     -12.5,
+     90.0
+    ],
+    [
+     0.0,
+     -12.5,
+     90.0
+    ],
+    [
+     10.0,
+     -12.5,
+     90.0
+    ],
+    [
+     20.0,
+     -12.5,
+     90.0
+    ],
+    [
+     30.0,
+     -12.5,
+     90.0
+    ],
+    [
+     40.0,
+     -12.5,
+     90.0
+    ],
+    [
+     -40.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -30.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -20.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     -10.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     0.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     10.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     20.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     30.0,
+     -31.5,
+     -90.0
+    ],
+    [
+     40.0,
+     -31.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "diner_03_Walls": {
+     "role": "Walls",
+     "tris": 1172,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.78,
+       0.79,
+       0.8
+      ],
+      "metallic": 1.0,
+      "roughness": 0.22
+     }
+    },
+    "diner_03_Walls2": {
+     "role": "Walls2",
+     "tris": 70,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "diner_03_Trim": {
+     "role": "Trim",
+     "tris": 216,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.93,
+       0.92,
+       0.9
+      ]
+     }
+    },
+    "diner_03_Accent": {
+     "role": "Accent",
+     "tris": 132,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.35,
+       0.55
+      ],
+      "metallic": 0.1,
+      "roughness": 0.35
+     }
+    },
+    "diner_03_Frames": {
+     "role": "Frames",
+     "tris": 602,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.8,
+       0.8,
+       0.82
+      ],
+      "metallic": 1.0,
+      "roughness": 0.15
+     }
+    },
+    "diner_03_Glass": {
+     "role": "Glass",
+     "tris": 74,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "diner_03_Roof": {
+     "role": "Roof",
+     "tris": 18,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "diner_03_Details": {
+     "role": "Details",
+     "tris": 240,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.62,
+       0.64,
+       0.66
+      ]
+     }
+    },
+    "diner_03_Sign": {
+     "role": "Sign",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "signs.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_03_Brand": {
+     "role": "Brand",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "diner_03_Site": {
+     "role": "Site",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       0.98,
+       0.98,
+       0.98
+      ]
+     }
+    },
+    "diner_03_Asphalt": {
+     "role": "Asphalt",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.85,
+       0.85,
+       0.87
+      ]
+     }
+    },
+    "diner_03_Paint": {
+     "role": "Paint",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9,
+       0.9,
+       0.86
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "diner_03_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "diner_03_Neon": {
+     "role": "Neon",
+     "tris": 164,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       0.2,
+       0.9,
+       1.0
+      ],
+      "day_color": [
+       0.42,
+       0.8400000000000001,
+       0.8999999999999999
+      ]
+     }
+    },
+    "diner_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 74,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 16,
+   "files": {
+    "glb": "glb/diner_03.glb",
+    "json": "glb/diner_03.json"
+   },
+   "glb_bytes": 155536
+  },
+  {
+   "name": "deco_00",
+   "archetype": "deco",
+   "seed": 0,
+   "footprint": [
+    66.0,
+    60.0
+   ],
+   "height": 51.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "beach",
+    "floors": 3,
+    "accent": "lemon"
+   },
+   "total_tris": 6002,
+   "max_part_tris": 2980,
+   "spawns": [],
+   "parts": {
+    "deco_00_Walls": {
+     "role": "Walls",
+     "tris": 466,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.959,
+       0.931,
+       0.804
+      ]
+     }
+    },
+    "deco_00_Walls2": {
+     "role": "Walls2",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "deco_00_Trim": {
+     "role": "Trim",
+     "tris": 1180,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.96,
+       0.93
+      ]
+     }
+    },
+    "deco_00_Accent": {
+     "role": "Accent",
+     "tris": 614,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9695,
+       0.9205,
+       0.692
+      ],
+      "metallic": 0.0,
+      "roughness": 0.6
+     }
+    },
+    "deco_00_Frames": {
+     "role": "Frames",
+     "tris": 2980,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.3,
+      "roughness": 0.35
+     }
+    },
+    "deco_00_Glass": {
+     "role": "Glass",
+     "tris": 150,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "deco_00_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "deco_00_Details": {
+     "role": "Details",
+     "tris": 398,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.7,
+       0.72,
+       0.74
+      ]
+     }
+    },
+    "deco_00_Awning": {
+     "role": "Awning",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "deco_00_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.35,
+      "metallic": 0.0
+     }
+    },
+    "deco_00_Neon": {
+     "role": "Neon",
+     "tris": 66,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.85,
+       0.2
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.81,
+       0.42
+      ]
+     }
+    },
+    "deco_00_Grime": {
+     "role": "Grime",
+     "tris": 30,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "deco_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 42,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 13,
+   "files": {
+    "glb": "glb/deco_00.glb",
+    "json": "glb/deco_00.json",
+    "glb_embedded": "glb/deco_00_embedded.glb"
+   },
+   "glb_bytes": 423356
+  },
+  {
+   "name": "deco_01",
+   "archetype": "deco",
+   "seed": 1,
+   "footprint": [
+    80.0,
+    66.0
+   ],
+   "height": 39.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "beach",
+    "floors": 2,
+    "accent": "lavender"
+   },
+   "total_tris": 5616,
+   "max_part_tris": 2840,
+   "spawns": [],
+   "parts": {
+    "deco_01_Walls": {
+     "role": "Walls",
+     "tris": 430,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.893,
+       0.8679999999999999,
+       0.9060000000000001
+      ]
+     }
+    },
+    "deco_01_Walls2": {
+     "role": "Walls2",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "deco_01_Trim": {
+     "role": "Trim",
+     "tris": 1136,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.96,
+       0.93
+      ]
+     }
+    },
+    "deco_01_Accent": {
+     "role": "Accent",
+     "tris": 434,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.8265,
+       0.7839999999999999,
+       0.913
+      ],
+      "metallic": 0.0,
+      "roughness": 0.6
+     }
+    },
+    "deco_01_Frames": {
+     "role": "Frames",
+     "tris": 2840,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.3,
+      "roughness": 0.35
+     }
+    },
+    "deco_01_Glass": {
+     "role": "Glass",
+     "tris": 136,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "deco_01_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "deco_01_Details": {
+     "role": "Details",
+     "tris": 378,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.7,
+       0.72,
+       0.74
+      ]
+     }
+    },
+    "deco_01_Awning": {
+     "role": "Awning",
+     "tris": 64,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "deco_01_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.35,
+      "metallic": 0.0
+     }
+    },
+    "deco_01_Neon": {
+     "role": "Neon",
+     "tris": 66,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       0.6,
+       0.35,
+       1.0
+      ],
+      "day_color": [
+       0.6599999999999999,
+       0.51,
+       0.8999999999999999
+      ]
+     }
+    },
+    "deco_01_Grime": {
+     "role": "Grime",
+     "tris": 28,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "deco_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 60,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 13,
+   "files": {
+    "glb": "glb/deco_01.glb",
+    "json": "glb/deco_01.json"
+   },
+   "glb_bytes": 398612
+  },
+  {
+   "name": "deco_02",
+   "archetype": "deco",
+   "seed": 2,
+   "footprint": [
+    66.0,
+    60.0
+   ],
+   "height": 63.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "beach",
+    "floors": 4,
+    "accent": "pink"
+   },
+   "total_tris": 7500,
+   "max_part_tris": 3800,
+   "spawns": [],
+   "parts": {
+    "deco_02_Walls": {
+     "role": "Walls",
+     "tris": 586,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.96,
+       0.95,
+       0.91
+      ]
+     }
+    },
+    "deco_02_Walls2": {
+     "role": "Walls2",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "deco_02_Trim": {
+     "role": "Trim",
+     "tris": 1492,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.96,
+       0.93
+      ]
+     }
+    },
+    "deco_02_Accent": {
+     "role": "Accent",
+     "tris": 794,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.9564999999999999,
+       0.758,
+       0.77
+      ],
+      "metallic": 0.0,
+      "roughness": 0.6
+     }
+    },
+    "deco_02_Frames": {
+     "role": "Frames",
+     "tris": 3800,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.3,
+      "roughness": 0.35
+     }
+    },
+    "deco_02_Glass": {
+     "role": "Glass",
+     "tris": 192,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "deco_02_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "deco_02_Details": {
+     "role": "Details",
+     "tris": 398,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.7,
+       0.72,
+       0.74
+      ]
+     }
+    },
+    "deco_02_Awning": {
+     "role": "Awning",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "deco_02_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.35,
+      "metallic": 0.0
+     }
+    },
+    "deco_02_Neon": {
+     "role": "Neon",
+     "tris": 66,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.2,
+       0.55
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.42,
+       0.63
+      ]
+     }
+    },
+    "deco_02_Grime": {
+     "role": "Grime",
+     "tris": 42,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "deco_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 54,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 13,
+   "files": {
+    "glb": "glb/deco_02.glb",
+    "json": "glb/deco_02.json"
+   },
+   "glb_bytes": 527908
+  },
+  {
+   "name": "deco_03",
+   "archetype": "deco",
+   "seed": 3,
+   "footprint": [
+    60.0,
+    60.0
+   ],
+   "height": 39.0,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "beach",
+    "floors": 2,
+    "accent": "aqua"
+   },
+   "total_tris": 4150,
+   "max_part_tris": 2020,
+   "spawns": [],
+   "parts": {
+    "deco_03_Walls": {
+     "role": "Walls",
+     "tris": 330,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.96,
+       0.95,
+       0.91
+      ]
+     }
+    },
+    "deco_03_Walls2": {
+     "role": "Walls2",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "terrazzo",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "deco_03_Trim": {
+     "role": "Trim",
+     "tris": 820,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.96,
+       0.93
+      ]
+     }
+    },
+    "deco_03_Accent": {
+     "role": "Accent",
+     "tris": 434,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.6575,
+       0.888,
+       0.887
+      ],
+      "metallic": 0.0,
+      "roughness": 0.6
+     }
+    },
+    "deco_03_Frames": {
+     "role": "Frames",
+     "tris": 2020,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.3,
+      "roughness": 0.35
+     }
+    },
+    "deco_03_Glass": {
+     "role": "Glass",
+     "tris": 104,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "deco_03_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_tar",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "deco_03_Details": {
+     "role": "Details",
+     "tris": 236,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.7,
+       0.72,
+       0.74
+      ]
+     }
+    },
+    "deco_03_Awning": {
+     "role": "Awning",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "awnings.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "deco_03_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.35,
+      "metallic": 0.0
+     }
+    },
+    "deco_03_Neon": {
+     "role": "Neon",
+     "tris": 66,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       0.1,
+       0.9,
+       1.0
+      ],
+      "day_color": [
+       0.36,
+       0.8400000000000001,
+       0.8999999999999999
+      ]
+     }
+    },
+    "deco_03_Grime": {
+     "role": "Grime",
+     "tris": 26,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "deco_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 38,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 13,
+   "files": {
+    "glb": "glb/deco_03.glb",
+    "json": "glb/deco_03.json"
+   },
+   "glb_bytes": 297492
+  },
+  {
+   "name": "house_00",
+   "archetype": "house",
+   "seed": 0,
+   "footprint": [
+    60.0,
+    110.0
+   ],
+   "height": 18.05,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "suburbs",
+    "style": "spanish",
+    "floors": 1,
+    "roof": "clay",
+    "surrounds": true,
+    "shutters": false,
+    "pool": true
+   },
+   "total_tris": 1130,
+   "max_part_tris": 408,
+   "spawns": [],
+   "parts": {
+    "house_00_Walls": {
+     "role": "Walls",
+     "tris": 94,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.86,
+       0.77,
+       0.62
+      ]
+     }
+    },
+    "house_00_Walls2": {
+     "role": "Walls2",
+     "tris": 50,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.88,
+       0.85,
+       0.8
+      ]
+     }
+    },
+    "house_00_Trim": {
+     "role": "Trim",
+     "tris": 408,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.95,
+       0.94,
+       0.91
+      ]
+     }
+    },
+    "house_00_Accent": {
+     "role": "Accent",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.3,
+       0.17,
+       0.09
+      ],
+      "metallic": 0.0,
+      "roughness": 0.45
+     }
+    },
+    "house_00_Frames": {
+     "role": "Frames",
+     "tris": 280,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.0,
+      "roughness": 0.4
+     }
+    },
+    "house_00_Glass": {
+     "role": "Glass",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "house_00_Roof": {
+     "role": "Roof",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "house_00_Details": {
+     "role": "Details",
+     "tris": 136,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.76,
+       0.77
+      ]
+     }
+    },
+    "house_00_Doors": {
+     "role": "Doors",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_00_Site": {
+     "role": "Site",
+     "tris": 26,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_00_Lawn": {
+     "role": "Lawn",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "house_00_Water": {
+     "role": "Water",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "water",
+      "color": [
+       0.05,
+       0.42,
+       0.52
+      ],
+      "transparency": 0.25,
+      "material": "Glass"
+     }
+    },
+    "house_00_Neon": {
+     "role": "Neon",
+     "tris": 36,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.8,
+       0.5
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.78,
+       0.6
+      ]
+     }
+    },
+    "house_00_Grime": {
+     "role": "Grime",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "house_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 4,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 15,
+   "files": {
+    "glb": "glb/house_00.glb",
+    "json": "glb/house_00.json",
+    "glb_embedded": "glb/house_00_embedded.glb"
+   },
+   "glb_bytes": 92932
+  },
+  {
+   "name": "house_01",
+   "archetype": "house",
+   "seed": 1,
+   "footprint": [
+    64.0,
+    104.0
+   ],
+   "height": 18.77,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "suburbs",
+    "style": "spanish",
+    "floors": 1,
+    "roof": "clay",
+    "surrounds": true,
+    "shutters": false
+   },
+   "total_tris": 1118,
+   "max_part_tris": 398,
+   "spawns": [],
+   "parts": {
+    "house_01_Walls": {
+     "role": "Walls",
+     "tris": 96,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.95,
+       0.95,
+       0.93
+      ]
+     }
+    },
+    "house_01_Walls2": {
+     "role": "Walls2",
+     "tris": 50,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.88,
+       0.85,
+       0.8
+      ]
+     }
+    },
+    "house_01_Trim": {
+     "role": "Trim",
+     "tris": 398,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.95,
+       0.94,
+       0.91
+      ]
+     }
+    },
+    "house_01_Accent": {
+     "role": "Accent",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.08,
+       0.25,
+       0.28
+      ],
+      "metallic": 0.0,
+      "roughness": 0.45
+     }
+    },
+    "house_01_Frames": {
+     "role": "Frames",
+     "tris": 280,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.0,
+      "roughness": 0.4
+     }
+    },
+    "house_01_Glass": {
+     "role": "Glass",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "house_01_Roof": {
+     "role": "Roof",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "house_01_Details": {
+     "role": "Details",
+     "tris": 136,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.76,
+       0.77
+      ]
+     }
+    },
+    "house_01_Doors": {
+     "role": "Doors",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_01_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_01_Lawn": {
+     "role": "Lawn",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "house_01_Neon": {
+     "role": "Neon",
+     "tris": 36,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.8,
+       0.5
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.78,
+       0.6
+      ]
+     }
+    },
+    "house_01_Grime": {
+     "role": "Grime",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "house_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 10,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 14,
+   "files": {
+    "glb": "glb/house_01.glb",
+    "json": "glb/house_01.json"
+   },
+   "glb_bytes": 90912
+  },
+  {
+   "name": "house_02",
+   "archetype": "house",
+   "seed": 2,
+   "footprint": [
+    60.0,
+    104.0
+   ],
+   "height": 29.05,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "suburbs",
+    "style": "spanish",
+    "floors": 2,
+    "roof": "clay",
+    "surrounds": true,
+    "shutters": false
+   },
+   "total_tris": 1914,
+   "max_part_tris": 746,
+   "spawns": [],
+   "parts": {
+    "house_02_Walls": {
+     "role": "Walls",
+     "tris": 176,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.95,
+       0.86,
+       0.6
+      ]
+     }
+    },
+    "house_02_Walls2": {
+     "role": "Walls2",
+     "tris": 50,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.88,
+       0.85,
+       0.8
+      ]
+     }
+    },
+    "house_02_Trim": {
+     "role": "Trim",
+     "tris": 746,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.95,
+       0.94,
+       0.91
+      ]
+     }
+    },
+    "house_02_Accent": {
+     "role": "Accent",
+     "tris": 34,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.2,
+       0.24,
+       0.16
+      ],
+      "metallic": 0.0,
+      "roughness": 0.45
+     }
+    },
+    "house_02_Frames": {
+     "role": "Frames",
+     "tris": 630,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.0,
+      "roughness": 0.4
+     }
+    },
+    "house_02_Glass": {
+     "role": "Glass",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "house_02_Roof": {
+     "role": "Roof",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "house_02_Details": {
+     "role": "Details",
+     "tris": 136,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.76,
+       0.77
+      ]
+     }
+    },
+    "house_02_Doors": {
+     "role": "Doors",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_02_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_02_Lawn": {
+     "role": "Lawn",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "house_02_Neon": {
+     "role": "Neon",
+     "tris": 36,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.8,
+       0.5
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.78,
+       0.6
+      ]
+     }
+    },
+    "house_02_Grime": {
+     "role": "Grime",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "house_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 4,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 14,
+   "files": {
+    "glb": "glb/house_02.glb",
+    "json": "glb/house_02.json"
+   },
+   "glb_bytes": 146900
+  },
+  {
+   "name": "house_03",
+   "archetype": "house",
+   "seed": 3,
+   "footprint": [
+    70.0,
+    110.0
+   ],
+   "height": 30.13,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "suburbs",
+    "style": "spanish",
+    "floors": 2,
+    "roof": "clay",
+    "surrounds": true,
+    "shutters": false
+   },
+   "total_tris": 1949,
+   "max_part_tris": 734,
+   "spawns": [],
+   "parts": {
+    "house_03_Walls": {
+     "role": "Walls",
+     "tris": 168,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.58,
+       0.62,
+       0.64
+      ]
+     }
+    },
+    "house_03_Walls2": {
+     "role": "Walls2",
+     "tris": 50,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.88,
+       0.85,
+       0.8
+      ]
+     }
+    },
+    "house_03_Trim": {
+     "role": "Trim",
+     "tris": 734,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.95,
+       0.94,
+       0.91
+      ]
+     }
+    },
+    "house_03_Accent": {
+     "role": "Accent",
+     "tris": 34,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.45,
+       0.07,
+       0.06
+      ],
+      "metallic": 0.0,
+      "roughness": 0.45
+     }
+    },
+    "house_03_Frames": {
+     "role": "Frames",
+     "tris": 630,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.92,
+       0.9
+      ],
+      "metallic": 0.0,
+      "roughness": 0.4
+     }
+    },
+    "house_03_Glass": {
+     "role": "Glass",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       1,
+       1,
+       1
+      ],
+      "roughness": 0.05,
+      "metallic": 0.0
+     }
+    },
+    "house_03_Roof": {
+     "role": "Roof",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_clay",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "house_03_Details": {
+     "role": "Details",
+     "tris": 185,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.75,
+       0.76,
+       0.77
+      ]
+     }
+    },
+    "house_03_Doors": {
+     "role": "Doors",
+     "tris": 32,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_03_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       1.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "house_03_Lawn": {
+     "role": "Lawn",
+     "tris": 6,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "house_03_Neon": {
+     "role": "Neon",
+     "tris": 36,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.8,
+       0.5
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.78,
+       0.6
+      ]
+     }
+    },
+    "house_03_Grime": {
+     "role": "Grime",
+     "tris": 14,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "house_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 8,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 14,
+   "files": {
+    "glb": "glb/house_03.glb",
+    "json": "glb/house_03.json"
+   },
+   "glb_bytes": 148340
+  },
+  {
+   "name": "warehouse_00",
+   "archetype": "warehouse",
+   "seed": 0,
+   "footprint": [
+    140.0,
+    156.0
+   ],
+   "height": 39.62,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "industrial",
+    "style": "metal",
+    "docks": 3,
+    "building": [
+     110.0,
+     70.0,
+     34.0
+    ]
+   },
+   "total_tris": 2002,
+   "max_part_tris": 478,
+   "spawns": [
+    [
+     -60.95,
+     -62.5,
+     -90.0
+    ],
+    [
+     -50.95,
+     -62.5,
+     -90.0
+    ],
+    [
+     -40.95,
+     -62.5,
+     -90.0
+    ],
+    [
+     -30.95,
+     -62.5,
+     -90.0
+    ],
+    [
+     -20.95,
+     -62.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "warehouse_00_Walls": {
+     "role": "Walls",
+     "tris": 92,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal_siding",
+      "tint": [
+       0.7,
+       0.76,
+       0.66
+      ]
+     }
+    },
+    "warehouse_00_Walls2": {
+     "role": "Walls2",
+     "tris": 108,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.82,
+       0.8,
+       0.77
+      ]
+     }
+    },
+    "warehouse_00_Trim": {
+     "role": "Trim",
+     "tris": 478,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.85,
+       0.85,
+       0.83
+      ],
+      "metallic": 0.5,
+      "roughness": 0.45
+     }
+    },
+    "warehouse_00_Accent": {
+     "role": "Accent",
+     "tris": 54,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.72,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "warehouse_00_Frames": {
+     "role": "Frames",
+     "tris": 412,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "warehouse_00_Glass": {
+     "role": "Glass",
+     "tris": 52,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.7,
+       0.8,
+       0.85
+      ],
+      "roughness": 0.05,
+      "metallic": 0.3
+     }
+    },
+    "warehouse_00_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "corrugated",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "warehouse_00_Roof2": {
+     "role": "Roof2",
+     "tris": 206,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.08,
+       0.08,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9
+     }
+    },
+    "warehouse_00_Details": {
+     "role": "Details",
+     "tris": 316,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.6,
+       0.62,
+       0.64
+      ]
+     }
+    },
+    "warehouse_00_Doors": {
+     "role": "Doors",
+     "tris": 20,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.85,
+       0.85,
+       0.85
+      ]
+     }
+    },
+    "warehouse_00_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "warehouse_00_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "warehouse_00_Asphalt": {
+     "role": "Asphalt",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.8,
+       0.8,
+       0.82
+      ]
+     }
+    },
+    "warehouse_00_Paint": {
+     "role": "Paint",
+     "tris": 20,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.88,
+       0.5
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "warehouse_00_Neon": {
+     "role": "Neon",
+     "tris": 156,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.85,
+       0.6
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.81,
+       0.6599999999999999
+      ]
+     }
+    },
+    "warehouse_00_Grime": {
+     "role": "Grime",
+     "tris": 34,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "warehouse_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 32,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/warehouse_00.glb",
+    "json": "glb/warehouse_00.json",
+    "glb_embedded": "glb/warehouse_00_embedded.glb"
+   },
+   "glb_bytes": 155388
+  },
+  {
+   "name": "warehouse_01",
+   "archetype": "warehouse",
+   "seed": 1,
+   "footprint": [
+    180.0,
+    156.0
+   ],
+   "height": 35.62,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "industrial",
+    "style": "metal",
+    "docks": 5,
+    "building": [
+     150.0,
+     70.0,
+     30.0
+    ]
+   },
+   "total_tris": 2378,
+   "max_part_tris": 526,
+   "spawns": [
+    [
+     -78.39,
+     -62.5,
+     -90.0
+    ],
+    [
+     -68.39,
+     -62.5,
+     -90.0
+    ],
+    [
+     -58.39,
+     -62.5,
+     -90.0
+    ],
+    [
+     -48.39,
+     -62.5,
+     -90.0
+    ],
+    [
+     -38.39,
+     -62.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "warehouse_01_Walls": {
+     "role": "Walls",
+     "tris": 112,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal_siding",
+      "tint": [
+       0.93,
+       0.93,
+       0.91
+      ]
+     }
+    },
+    "warehouse_01_Walls2": {
+     "role": "Walls2",
+     "tris": 108,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.82,
+       0.8,
+       0.77
+      ]
+     }
+    },
+    "warehouse_01_Trim": {
+     "role": "Trim",
+     "tris": 526,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.55,
+       0.08,
+       0.06
+      ],
+      "metallic": 0.5,
+      "roughness": 0.45
+     }
+    },
+    "warehouse_01_Accent": {
+     "role": "Accent",
+     "tris": 54,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.72,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "warehouse_01_Frames": {
+     "role": "Frames",
+     "tris": 416,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "warehouse_01_Glass": {
+     "role": "Glass",
+     "tris": 60,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.7,
+       0.8,
+       0.85
+      ],
+      "roughness": 0.05,
+      "metallic": 0.3
+     }
+    },
+    "warehouse_01_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "corrugated",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "warehouse_01_Roof2": {
+     "role": "Roof2",
+     "tris": 326,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.08,
+       0.08,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9
+     }
+    },
+    "warehouse_01_Details": {
+     "role": "Details",
+     "tris": 404,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.6,
+       0.62,
+       0.64
+      ]
+     }
+    },
+    "warehouse_01_Doors": {
+     "role": "Doors",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.85,
+       0.85,
+       0.85
+      ]
+     }
+    },
+    "warehouse_01_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "warehouse_01_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "warehouse_01_Asphalt": {
+     "role": "Asphalt",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.8,
+       0.8,
+       0.82
+      ]
+     }
+    },
+    "warehouse_01_Paint": {
+     "role": "Paint",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.88,
+       0.5
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "warehouse_01_Neon": {
+     "role": "Neon",
+     "tris": 228,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.85,
+       0.6
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.81,
+       0.6599999999999999
+      ]
+     }
+    },
+    "warehouse_01_Grime": {
+     "role": "Grime",
+     "tris": 42,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "warehouse_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 32,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/warehouse_01.glb",
+    "json": "glb/warehouse_01.json"
+   },
+   "glb_bytes": 181712
+  },
+  {
+   "name": "warehouse_02",
+   "archetype": "warehouse",
+   "seed": 2,
+   "footprint": [
+    140.0,
+    166.0
+   ],
+   "height": 38.6,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "industrial",
+    "style": "tiltup",
+    "docks": 3,
+    "building": [
+     110.0,
+     80.0,
+     38.0
+    ]
+   },
+   "total_tris": 2460,
+   "max_part_tris": 680,
+   "spawns": [
+    [
+     -60.08,
+     -67.5,
+     -90.0
+    ],
+    [
+     -50.08,
+     -67.5,
+     -90.0
+    ],
+    [
+     -40.08,
+     -67.5,
+     -90.0
+    ],
+    [
+     -30.08,
+     -67.5,
+     -90.0
+    ],
+    [
+     -20.08,
+     -67.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "warehouse_02_Walls": {
+     "role": "Walls",
+     "tris": 102,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "precast",
+      "tint": [
+       0.7,
+       0.45,
+       0.32
+      ]
+     }
+    },
+    "warehouse_02_Walls2": {
+     "role": "Walls2",
+     "tris": 70,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.82,
+       0.8,
+       0.77
+      ]
+     }
+    },
+    "warehouse_02_Trim": {
+     "role": "Trim",
+     "tris": 438,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.15,
+       0.15,
+       0.16
+      ],
+      "metallic": 0.5,
+      "roughness": 0.45
+     }
+    },
+    "warehouse_02_Accent": {
+     "role": "Accent",
+     "tris": 54,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.72,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "warehouse_02_Frames": {
+     "role": "Frames",
+     "tris": 488,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "warehouse_02_Glass": {
+     "role": "Glass",
+     "tris": 40,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.7,
+       0.8,
+       0.85
+      ],
+      "roughness": 0.05,
+      "metallic": 0.3
+     }
+    },
+    "warehouse_02_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    "warehouse_02_Roof2": {
+     "role": "Roof2",
+     "tris": 306,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.08,
+       0.08,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9
+     }
+    },
+    "warehouse_02_Details": {
+     "role": "Details",
+     "tris": 680,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.6,
+       0.62,
+       0.64
+      ]
+     }
+    },
+    "warehouse_02_Doors": {
+     "role": "Doors",
+     "tris": 20,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.85,
+       0.85,
+       0.85
+      ]
+     }
+    },
+    "warehouse_02_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "warehouse_02_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "warehouse_02_Asphalt": {
+     "role": "Asphalt",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.8,
+       0.8,
+       0.82
+      ]
+     }
+    },
+    "warehouse_02_Paint": {
+     "role": "Paint",
+     "tris": 20,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.88,
+       0.5
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "warehouse_02_Neon": {
+     "role": "Neon",
+     "tris": 156,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.85,
+       0.6
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.81,
+       0.6599999999999999
+      ]
+     }
+    },
+    "warehouse_02_Grime": {
+     "role": "Grime",
+     "tris": 34,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "warehouse_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 32,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/warehouse_02.glb",
+    "json": "glb/warehouse_02.json"
+   },
+   "glb_bytes": 172956
+  },
+  {
+   "name": "warehouse_03",
+   "archetype": "warehouse",
+   "seed": 3,
+   "footprint": [
+    160.0,
+    166.0
+   ],
+   "height": 36.03,
+   "base_depth": 0.0,
+   "tags": {
+    "district": "industrial",
+    "style": "metal",
+    "docks": 4,
+    "building": [
+     130.0,
+     80.0,
+     30.0
+    ]
+   },
+   "total_tris": 2224,
+   "max_part_tris": 518,
+   "spawns": [
+    [
+     -68.59,
+     -67.5,
+     -90.0
+    ],
+    [
+     -58.59,
+     -67.5,
+     -90.0
+    ],
+    [
+     -48.59,
+     -67.5,
+     -90.0
+    ],
+    [
+     -38.59,
+     -67.5,
+     -90.0
+    ],
+    [
+     -28.59,
+     -67.5,
+     -90.0
+    ]
+   ],
+   "parts": {
+    "warehouse_03_Walls": {
+     "role": "Walls",
+     "tris": 106,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal_siding",
+      "tint": [
+       0.7,
+       0.76,
+       0.66
+      ]
+     }
+    },
+    "warehouse_03_Walls2": {
+     "role": "Walls2",
+     "tris": 108,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "cmu",
+      "tint": [
+       0.82,
+       0.8,
+       0.77
+      ]
+     }
+    },
+    "warehouse_03_Trim": {
+     "role": "Trim",
+     "tris": 518,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.15,
+       0.15,
+       0.16
+      ],
+      "metallic": 0.5,
+      "roughness": 0.45
+     }
+    },
+    "warehouse_03_Accent": {
+     "role": "Accent",
+     "tris": 54,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.95,
+       0.72,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "warehouse_03_Frames": {
+     "role": "Frames",
+     "tris": 412,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.62,
+       0.64,
+       0.66
+      ],
+      "metallic": 0.8,
+      "roughness": 0.3
+     }
+    },
+    "warehouse_03_Glass": {
+     "role": "Glass",
+     "tris": 60,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.7,
+       0.8,
+       0.85
+      ],
+      "roughness": 0.05,
+      "metallic": 0.3
+     }
+    },
+    "warehouse_03_Roof": {
+     "role": "Roof",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "corrugated",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "warehouse_03_Roof2": {
+     "role": "Roof2",
+     "tris": 266,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.08,
+       0.08,
+       0.08
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9
+     }
+    },
+    "warehouse_03_Details": {
+     "role": "Details",
+     "tris": 372,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.6,
+       0.62,
+       0.64
+      ]
+     }
+    },
+    "warehouse_03_Doors": {
+     "role": "Doors",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "shutter",
+      "tint": [
+       0.85,
+       0.85,
+       0.85
+      ]
+     }
+    },
+    "warehouse_03_Brand": {
+     "role": "Brand",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "atlas",
+      "file": "brands.png",
+      "roughness": 0.5,
+      "metallic": 0.0
+     }
+    },
+    "warehouse_03_Site": {
+     "role": "Site",
+     "tris": 12,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "curb",
+      "tint": [
+       0.95,
+       0.95,
+       0.95
+      ]
+     }
+    },
+    "warehouse_03_Asphalt": {
+     "role": "Asphalt",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "asphalt",
+      "tint": [
+       0.8,
+       0.8,
+       0.82
+      ]
+     }
+    },
+    "warehouse_03_Paint": {
+     "role": "Paint",
+     "tris": 22,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.92,
+       0.88,
+       0.5
+      ],
+      "metallic": 0.0,
+      "roughness": 0.7
+     }
+    },
+    "warehouse_03_Neon": {
+     "role": "Neon",
+     "tris": 192,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.85,
+       0.6
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.81,
+       0.6599999999999999
+      ]
+     }
+    },
+    "warehouse_03_Grime": {
+     "role": "Grime",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "warehouse_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 32,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/warehouse_03.glb",
+    "json": "glb/warehouse_03.json"
+   },
+   "glb_bytes": 170920
+  },
+  {
+   "name": "mansion_00",
+   "archetype": "mansion",
+   "seed": 0,
+   "footprint": [
+    140.0,
+    120.0
+   ],
+   "height": 27.6,
+   "base_depth": 16.0,
+   "tags": {
+    "district": "hills",
+    "base_depth": 16.0,
+    "cantilever": 1,
+    "slats": true
+   },
+   "total_tris": 1454,
+   "max_part_tris": 568,
+   "spawns": [],
+   "parts": {
+    "mansion_00_Walls": {
+     "role": "Walls",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.96,
+       0.96,
+       0.94
+      ]
+     }
+    },
+    "mansion_00_Walls2": {
+     "role": "Walls2",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "granite",
+      "tint": [
+       0.92,
+       0.9,
+       0.86
+      ]
+     }
+    },
+    "mansion_00_Walls3": {
+     "role": "Walls3",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_slats",
+      "tint": [
+       0.95,
+       0.85,
+       0.75
+      ]
+     }
+    },
+    "mansion_00_Trim": {
+     "role": "Trim",
+     "tris": 58,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.97,
+       0.96
+      ]
+     }
+    },
+    "mansion_00_Accent": {
+     "role": "Accent",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.12,
+       0.12,
+       0.13
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "mansion_00_Frames": {
+     "role": "Frames",
+     "tris": 568,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.6,
+      "roughness": 0.35
+     }
+    },
+    "mansion_00_Glass": {
+     "role": "Glass",
+     "tris": 50,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.85,
+       0.9,
+       0.92
+      ],
+      "roughness": 0.03,
+      "metallic": 0.35
+     }
+    },
+    "mansion_00_Clear": {
+     "role": "Clear",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "clear",
+      "color": [
+       0.85,
+       0.93,
+       0.94
+      ],
+      "transparency": 0.65,
+      "material": "Glass"
+     }
+    },
+    "mansion_00_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "mansion_00_Details": {
+     "role": "Details",
+     "tris": 140,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.65,
+       0.66,
+       0.68
+      ]
+     }
+    },
+    "mansion_00_Doors": {
+     "role": "Doors",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_fence",
+      "tint": [
+       0.6,
+       0.5,
+       0.42
+      ]
+     }
+    },
+    "mansion_00_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       1.0,
+       0.98,
+       0.95
+      ]
+     }
+    },
+    "mansion_00_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "mansion_00_Water": {
+     "role": "Water",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "water",
+      "color": [
+       0.04,
+       0.45,
+       0.58
+      ],
+      "transparency": 0.25,
+      "material": "Glass"
+     }
+    },
+    "mansion_00_Neon": {
+     "role": "Neon",
+     "tris": 280,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.82,
+       0.55
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.7919999999999999,
+       0.63
+      ]
+     }
+    },
+    "mansion_00_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "mansion_00_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 24,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/mansion_00.glb",
+    "json": "glb/mansion_00.json",
+    "glb_embedded": "glb/mansion_00_embedded.glb"
+   },
+   "glb_bytes": 116208
+  },
+  {
+   "name": "mansion_01",
+   "archetype": "mansion",
+   "seed": 1,
+   "footprint": [
+    130.0,
+    120.0
+   ],
+   "height": 27.6,
+   "base_depth": 20.0,
+   "tags": {
+    "district": "hills",
+    "base_depth": 20.0,
+    "cantilever": -1,
+    "slats": true
+   },
+   "total_tris": 1490,
+   "max_part_tris": 598,
+   "spawns": [],
+   "parts": {
+    "mansion_01_Walls": {
+     "role": "Walls",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.96,
+       0.96,
+       0.94
+      ]
+     }
+    },
+    "mansion_01_Walls2": {
+     "role": "Walls2",
+     "tris": 36,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "marble",
+      "tint": [
+       0.92,
+       0.9,
+       0.86
+      ]
+     }
+    },
+    "mansion_01_Walls3": {
+     "role": "Walls3",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_slats",
+      "tint": [
+       0.95,
+       0.85,
+       0.75
+      ]
+     }
+    },
+    "mansion_01_Trim": {
+     "role": "Trim",
+     "tris": 58,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.97,
+       0.96
+      ]
+     }
+    },
+    "mansion_01_Accent": {
+     "role": "Accent",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.12,
+       0.12,
+       0.13
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "mansion_01_Frames": {
+     "role": "Frames",
+     "tris": 598,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.6,
+      "roughness": 0.35
+     }
+    },
+    "mansion_01_Glass": {
+     "role": "Glass",
+     "tris": 56,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.85,
+       0.9,
+       0.92
+      ],
+      "roughness": 0.03,
+      "metallic": 0.35
+     }
+    },
+    "mansion_01_Clear": {
+     "role": "Clear",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "clear",
+      "color": [
+       0.85,
+       0.93,
+       0.94
+      ],
+      "transparency": 0.65,
+      "material": "Glass"
+     }
+    },
+    "mansion_01_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "mansion_01_Details": {
+     "role": "Details",
+     "tris": 140,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.65,
+       0.66,
+       0.68
+      ]
+     }
+    },
+    "mansion_01_Doors": {
+     "role": "Doors",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_fence",
+      "tint": [
+       0.6,
+       0.5,
+       0.42
+      ]
+     }
+    },
+    "mansion_01_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       1.0,
+       0.98,
+       0.95
+      ]
+     }
+    },
+    "mansion_01_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "mansion_01_Water": {
+     "role": "Water",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "water",
+      "color": [
+       0.04,
+       0.45,
+       0.58
+      ],
+      "transparency": 0.25,
+      "material": "Glass"
+     }
+    },
+    "mansion_01_Neon": {
+     "role": "Neon",
+     "tris": 280,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.82,
+       0.55
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.7919999999999999,
+       0.63
+      ]
+     }
+    },
+    "mansion_01_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "mansion_01_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 26,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/mansion_01.glb",
+    "json": "glb/mansion_01.json"
+   },
+   "glb_bytes": 119028
+  },
+  {
+   "name": "mansion_02",
+   "archetype": "mansion",
+   "seed": 2,
+   "footprint": [
+    140.0,
+    120.0
+   ],
+   "height": 27.6,
+   "base_depth": 12.0,
+   "tags": {
+    "district": "hills",
+    "base_depth": 12.0,
+    "cantilever": -1,
+    "slats": true
+   },
+   "total_tris": 1544,
+   "max_part_tris": 618,
+   "spawns": [],
+   "parts": {
+    "mansion_02_Walls": {
+     "role": "Walls",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.96,
+       0.96,
+       0.94
+      ]
+     }
+    },
+    "mansion_02_Walls2": {
+     "role": "Walls2",
+     "tris": 36,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "concrete_board",
+      "tint": [
+       0.92,
+       0.9,
+       0.86
+      ]
+     }
+    },
+    "mansion_02_Walls3": {
+     "role": "Walls3",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_slats",
+      "tint": [
+       0.95,
+       0.85,
+       0.75
+      ]
+     }
+    },
+    "mansion_02_Trim": {
+     "role": "Trim",
+     "tris": 58,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.97,
+       0.96
+      ]
+     }
+    },
+    "mansion_02_Accent": {
+     "role": "Accent",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.12,
+       0.12,
+       0.13
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "mansion_02_Frames": {
+     "role": "Frames",
+     "tris": 618,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.6,
+      "roughness": 0.35
+     }
+    },
+    "mansion_02_Glass": {
+     "role": "Glass",
+     "tris": 60,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.85,
+       0.9,
+       0.92
+      ],
+      "roughness": 0.03,
+      "metallic": 0.35
+     }
+    },
+    "mansion_02_Clear": {
+     "role": "Clear",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "clear",
+      "color": [
+       0.85,
+       0.93,
+       0.94
+      ],
+      "transparency": 0.65,
+      "material": "Glass"
+     }
+    },
+    "mansion_02_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "mansion_02_Details": {
+     "role": "Details",
+     "tris": 140,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.65,
+       0.66,
+       0.68
+      ]
+     }
+    },
+    "mansion_02_Doors": {
+     "role": "Doors",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_fence",
+      "tint": [
+       0.6,
+       0.5,
+       0.42
+      ]
+     }
+    },
+    "mansion_02_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       1.0,
+       0.98,
+       0.95
+      ]
+     }
+    },
+    "mansion_02_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "mansion_02_Water": {
+     "role": "Water",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "water",
+      "color": [
+       0.04,
+       0.45,
+       0.58
+      ],
+      "transparency": 0.25,
+      "material": "Glass"
+     }
+    },
+    "mansion_02_Neon": {
+     "role": "Neon",
+     "tris": 300,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.82,
+       0.55
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.7919999999999999,
+       0.63
+      ]
+     }
+    },
+    "mansion_02_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "mansion_02_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 36,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/mansion_02.glb",
+    "json": "glb/mansion_02.json"
+   },
+   "glb_bytes": 122796
+  },
+  {
+   "name": "mansion_03",
+   "archetype": "mansion",
+   "seed": 3,
+   "footprint": [
+    140.0,
+    110.0
+   ],
+   "height": 27.6,
+   "base_depth": 20.0,
+   "tags": {
+    "district": "hills",
+    "base_depth": 20.0,
+    "cantilever": 1,
+    "slats": true
+   },
+   "total_tris": 1456,
+   "max_part_tris": 568,
+   "spawns": [],
+   "parts": {
+    "mansion_03_Walls": {
+     "role": "Walls",
+     "tris": 48,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "stucco",
+      "tint": [
+       0.96,
+       0.96,
+       0.94
+      ]
+     }
+    },
+    "mansion_03_Walls2": {
+     "role": "Walls2",
+     "tris": 38,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "marble",
+      "tint": [
+       0.92,
+       0.9,
+       0.86
+      ]
+     }
+    },
+    "mansion_03_Walls3": {
+     "role": "Walls3",
+     "tris": 180,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_slats",
+      "tint": [
+       0.95,
+       0.85,
+       0.75
+      ]
+     }
+    },
+    "mansion_03_Trim": {
+     "role": "Trim",
+     "tris": 58,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "plaster",
+      "tint": [
+       0.97,
+       0.97,
+       0.96
+      ]
+     }
+    },
+    "mansion_03_Accent": {
+     "role": "Accent",
+     "tris": 10,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.12,
+       0.12,
+       0.13
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5
+     }
+    },
+    "mansion_03_Frames": {
+     "role": "Frames",
+     "tris": 568,
+     "night_only": false,
+     "material": {
+      "kind": "color",
+      "color": [
+       0.05,
+       0.05,
+       0.055
+      ],
+      "metallic": 0.6,
+      "roughness": 0.35
+     }
+    },
+    "mansion_03_Glass": {
+     "role": "Glass",
+     "tris": 50,
+     "night_only": false,
+     "material": {
+      "kind": "glass",
+      "file": "windows_day.png",
+      "tint": [
+       0.85,
+       0.9,
+       0.92
+      ],
+      "roughness": 0.03,
+      "metallic": 0.35
+     }
+    },
+    "mansion_03_Clear": {
+     "role": "Clear",
+     "tris": 24,
+     "night_only": false,
+     "material": {
+      "kind": "clear",
+      "color": [
+       0.85,
+       0.93,
+       0.94
+      ],
+      "transparency": 0.65,
+      "material": "Glass"
+     }
+    },
+    "mansion_03_Roof": {
+     "role": "Roof",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "roof_gravel",
+      "tint": [
+       0.9,
+       0.9,
+       0.9
+      ]
+     }
+    },
+    "mansion_03_Details": {
+     "role": "Details",
+     "tris": 140,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "metal",
+      "tint": [
+       0.65,
+       0.66,
+       0.68
+      ]
+     }
+    },
+    "mansion_03_Doors": {
+     "role": "Doors",
+     "tris": 4,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "wood_fence",
+      "tint": [
+       0.6,
+       0.5,
+       0.42
+      ]
+     }
+    },
+    "mansion_03_Site": {
+     "role": "Site",
+     "tris": 16,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "pavers",
+      "tint": [
+       1.0,
+       0.98,
+       0.95
+      ]
+     }
+    },
+    "mansion_03_Lawn": {
+     "role": "Lawn",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "texture",
+      "set": "grass",
+      "tint": [
+       0.62,
+       0.95,
+       0.42
+      ]
+     }
+    },
+    "mansion_03_Water": {
+     "role": "Water",
+     "tris": 2,
+     "night_only": false,
+     "material": {
+      "kind": "water",
+      "color": [
+       0.04,
+       0.45,
+       0.58
+      ],
+      "transparency": 0.25,
+      "material": "Glass"
+     }
+    },
+    "mansion_03_Neon": {
+     "role": "Neon",
+     "tris": 280,
+     "night_only": false,
+     "material": {
+      "kind": "neon",
+      "color": [
+       1.0,
+       0.82,
+       0.55
+      ],
+      "day_color": [
+       0.8999999999999999,
+       0.7919999999999999,
+       0.63
+      ]
+     }
+    },
+    "mansion_03_Grime": {
+     "role": "Grime",
+     "tris": 8,
+     "night_only": false,
+     "material": {
+      "kind": "decal",
+      "file": "grime.png",
+      "alpha": "Transparency"
+     }
+    },
+    "mansion_03_WindowsLit": {
+     "role": "WindowsLit",
+     "tris": 26,
+     "night_only": true,
+     "material": {
+      "kind": "lit",
+      "file": "windows_lit.png"
+     }
+    }
+   },
+   "n_parts": 17,
+   "files": {
+    "glb": "glb/mansion_03.glb",
+    "json": "glb/mansion_03.json"
+   },
+   "glb_bytes": 116620
+  }
+ ]
+}

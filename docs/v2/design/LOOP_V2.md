@@ -1,12 +1,13 @@
 # Hotwire City V2: Loop, Systems and Economy Design (LOOP_V2)
 
-- **Status:** V2 design baseline, 2026-10-27. Written by the lead game designer for the V2 build waves (task #9).
+- **Status:** V2 design baseline, **revision 2**, 2026-10-27. Written by the lead game designer for the V2 build waves (task #9). Revision 2 applies the economy, fun and engineering critiques; every point is accepted, modified or rejected with a reason in the **Critique log** at the end of this document.
+- **Implementation breakdown:** `docs/v2/design/LOOP_V2_ENGINEERING.md` (work packages, file ownership, remotes, data fields, tests). Where the two disagree on a number or rule, this document wins; on file ownership and build order, the engineering document wins.
 - **Binding inputs:** `docs/v2/research/00_LEAD_DIRECTION.md` and `docs/v2/research/original_brief.md`. If this document conflicts with them, they win.
 - **Built on:** v1 code and contracts: `docs/SPEC.md`, `docs/integration/DECISIONS.md`, `src/server/Systems/*`, `src/shared/Config/*`, `src/shared/Types.luau`.
 - **Sibling documents:**
   - `docs/v2/research/gta_combat.md` owns weapon stats, the damage model, police combat AI and shot netcode. This document owns the economy and progression layer on top (§4.0 lists the deltas).
   - `docs/v2/research/gta_ui_language.md` owns HUD, phone and menu presentation.
-  - `docs/v2/world/` (not written yet) owns geography. Anything here that needs a map position is marked **[world]**.
+  - `docs/v2/world/` owns geography (so far only `plan*.png`; the gameplay layer shows 8 garage plots, traffic signals, Hot Drop spots, stunt jumps, armored routes and race routes). Anything here that needs a map position is marked **[world]**.
 - **Constraints:** max 8 players per server, one garage plot each. Mobile first. Moderate 13+: guns, no blood, WASTED and BUSTED.
 
 **Conventions**
@@ -24,7 +25,7 @@ You spawn in your own garage in a sun-baked coastal city.
 - **Steal and park.** Steal a car off the street, outrun the cops and park it at home, where it earns money every second. **The garage is a bank.**
 - **Drive for the multiplier.** Take one of your cars out and it earns **3× to 10×** as much while you drive it. The money goes into your **wallet**, and anyone can take a wallet or a car. **The street is a casino.**
 - **Build up your cars.** Every car has its own level, upgrades, paint, finish and mileage, and whoever steals it keeps all of that, subject to fair-play protections.
-- **Stack cash.** Rob stores, ATMs and people. Every 5 minutes the server rushes an armored truck; every 30 minutes a crew of 2–4 runs a bank heist. Wanted stars multiply payouts up to 3×, and at 5★ the whole server hunts you for a bounty.
+- **Stack cash.** Rob stores, ATMs and people. Every 5 minutes the server rushes an armored truck; every 30 minutes a crew of up to 4 (or one brave solo player) runs a bank heist. Wanted stars multiply payouts up to 3×, and at 5★ the whole server hunts you for a bounty.
 - **Spend it.** Buy guns, upgrade cars, push into richer districts, prestige, race for pink slips, trade, flex.
 - **Lose and come back.** When you lose a car you get insurance, a 5-minute window to take it back, and a revenge mark on the thief.
 
@@ -34,7 +35,8 @@ You spawn in your own garage in a sun-baked coastal city.
    - **Bank** is safe.
    - **Wallet** is at risk.
    - A **parked car** is safe while the garage is locked or the car is in the vault.
-   - A **driven car** is at risk.
+   - A **driven car** is at risk. A driven car that a thief could not keep (bound, or its owner is protected) earns at most **×5** on the street (§2.8). Protection and the full casino rate never stack.
+   - Dying while wanted costs at least as much as being busted, and leaving the server never costs less than staying (§4.3, §10.3).
    - Every source in §7.2 says where its money lands.
 3. **Loss is never total.**
    - Insurance, a repo window, vault bays, daily loss caps and a revenge mark.
@@ -45,14 +47,18 @@ You spawn in your own garage in a sun-baked coastal city.
 6. **Designed for 8.** Every event works with 1 to 8 players in one server.
 7. **Mobile first.** Every interaction is a ProximityPrompt hold or one big button. No action needs more than 2 taps. Aim assist on touch and gamepad.
 8. **Honest monetization.** Robux buys speed, convenience and style. It never buys power over another player (§8).
+9. **Show the rules.** Every multiplier on a payout is itemised on screen (§3.1), every protection that stops a theft is named on the prompt (§2.8), and every robbable spot shows whether it is open (§3.13). A hidden rule reads as a bug to a 12-year-old.
+10. **Caps soften, they don't zero.** Repeatable PvE sources drop to ×0.25 after their cap instead of paying $0. Hard caps stay only on minted PvP-adjacent sources (§10.2).
 
 ### 0.3 Decisions this document makes (open questions from the brief, §3.13)
 
 | Question | Decision |
 |---|---|
-| PvP model | Open PvP everywhere except safe zones, with 30-minute rookie protection, Passive mode, Menace and bounties (gta_combat §8). Car theft has its own protections (§2.8). |
+| PvP model | Open PvP everywhere except safe zones, with **10-minute** rookie protection (the brief's number; delta D12 against gta_combat's 30), Passive mode, Menace and bounties (gta_combat §8). Car theft has its own, longer protections (§2.8). |
 | Player cops at launch | **No.** AI police only in V2.0. Revisit in V2.x. |
-| Crew betrayal | **Off.** Heist splits are enforced by the server. Players outside the crew can still steal dropped bags, so the drama comes from rivals. |
+| Crew betrayal | **Off.** Heist splits are **equal** and enforced by the server; there is no leader-set split. Players outside the crew can still steal dropped bags, so the drama comes from rivals. |
+| Solo play | Every activity works solo, including a reduced solo bank heist (§3.7). Crews earn more per heist through the party bonus, not through exclusive access. |
+| Player data | **Fresh DataStore `HotwireCity_v2`, no v1 migration.** v1 never shipped to players (first real-engine run was in Studio on 2026-10-27; every product id is 0), so no profile needs carrying over (§9.3). |
 | Shared crew garage | **No shared ownership** in V2.0, to avoid scams and ownership bugs. V2.1 adds "Car Keys" lending inside a party (§5.3). |
 | Cash wagers on races | **Off.** Policy risk: cash can be bought with Robux. House-funded prizes only. Pink slips ship behind `RACE_PINK_SLIPS_ENABLED`, pending policy sign-off (§5.4). |
 | Cash in trades | **No.** Trades are cars only (§5.5). |
@@ -71,13 +77,16 @@ You spawn in your own garage in a sun-baked coastal city.
 | **G** | `G = max(G_MIN, Σ carIncome(c) over owned cars with place slot or vault) × (1 + REBIRTH_INCOME_BONUS × rebirths)`, with `G_MIN = 5` and `REBIRTH_INCOME_BONUS = 0.5` (v1). It counts parked, driven, impounded and in-repair cars, so taking your best car out does not shrink your crime payouts. It excludes passes, events, friends, group and index bonuses. |
 | **carIncome(c)** | `Cars[c.carId].income × Finish[c.finish].mult × (1 + 0.03 × (c.level − 1)) × Trait[c.trait].incomeMult` |
 | **Garage income** | `carIncome × garageMult`, where `garageMult` is v1 `EconomyMath.playerMultiplier` (rebirth, friends, group, index, 2× Garage Cash pass, 2× Cash event). Only parked cars earn it. |
-| **S× (street multiplier)** | §2.2. From ×3 to ×10 while driving an owned car. |
+| **S× (street multiplier)** | §2.2. From ×3 to ×10 while driving an owned car; at most ×5 on a protected drive. |
+| **Protected drive** | A drive in a car that a thief could not keep right now: a bound car, or any car while its owner has starter protection, the last-2-cars floor, the daily loss shield or Shaken (§2.8). S× is capped at ×5 and the HUD reads "PROTECTED · ×5 MAX". |
 | **wantedMult** | By stars 0–5: `{1.0, 1.2, 1.5, 2.0, 2.5, 3.0}` |
-| **LOADED** | `wallet ≥ max(5,000, 300 s × G)`. While LOADED you show on every minimap, cannot take a cab home, and drop 20% of your wallet if a player WASTES you. |
-| **Pulse / Big Pulse** | The server clock. Every 300 s: armored truck, order-board refresh and dealership restock. Every 1,800 s: the bank-heist window. |
+| **Wanted loss** | `WANTED_LOSS_PER_STAR × stars` = 7% of the wallet per star. Taken on BUSTED (halved on surrender), on WASTED while wanted, and on combat-logging (§4.3–4.4). |
+| **LOADED** | `wallet ≥ max(5,000, 300 s × G)`. While LOADED you show on every minimap, cannot take a cab home, drop 20% of your wallet if a player WASTES you, and pay a 10% fee if you leave the server before banking (§10.3). |
+| **Pulse / Big Pulse** | The server clock. Every 300 s: armored truck, order-board refresh and dealership restock. Every 1,800 s: the bank-heist window (open 600 s). |
 | **Vault bay** | An unstealable parking bay inside the garage (§2.1). |
-| **Lay-low bay** | A pad outside the thief's garage door where a stolen player car waits 300 s before ownership transfers. During that time it can be **repo'd** (§2.7). |
-| **Bound car** | A car bought with Robux or from a pass, the starter pack or a season. It cannot be kept by a thief, traded or staked (§2.8). |
+| **Lay-low bay** | A pad outside the thief's garage door where a stolen player car waits 300 s. **The car record stays in the victim's profile until the window ends**; then it transfers once. During the window the car can be **repo'd** (§2.7.4). |
+| **Bound car** | A car bought with Robux or from a pass, the starter pack or a season. It cannot be kept by a thief, traded or staked, and it earns at most ×5 on the street (§2.8). |
+| **Server Crown** | The richest player in a server of 3 or more (§5.8). A status target; it mints nothing. |
 | **Rep / RP** | Account level 1–100 and its XP (§6.1). |
 | **Car level / XP** | Per-car progression (§2.3). |
 | **Finish / Trait** | A car's rolled rarity layer, replacing v1 "mutation" (§2.5). |
@@ -89,14 +98,14 @@ You spawn in your own garage in a sun-baked coastal city.
 ### 1.1 The 30-second loop (unchanged spine from v1)
 
 ```
-find a car -> HOTWIRE (hold + timing tap) -> stars + siren -> ESCAPE (break LOS, evade timer) -> GARAGE drop-off
+find a car -> HOTWIRE (hold, release in the green) or JACK a driver -> stars + siren -> ESCAPE (break LOS, evade timer) -> GARAGE drop-off
       ^                                                                                                 |
       |                                         park = income every second (bank)                       |
       +-------- or take an owned car out: STREET xN income into the wallet (casino) <-------------------+
 ```
 
 The loop adds three decision points that v1 lacked:
-1. **Park or drive?** A parked car earns ×1 and is safe. Driving it earns ×3–×10 and exposes it to carjacking.
+1. **Park or drive?** A parked car earns ×1 and is safe. Driving it earns ×3–×10 and exposes it to carjacking. Driving *well* (near-misses, drifts, jumps) climbs the multiplier fastest, and a hot multiplier puts your car on everyone's map.
 2. **Bank now or push on?** The wallet grows with every crime and every second of driving. LOADED makes you visible to the whole server.
 3. **Lie low or push the stars?** wantedMult raises payouts up to 3×, and police lethality and the 5★ server hunt rise with it.
 

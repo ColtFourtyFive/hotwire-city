@@ -1,7 +1,7 @@
 {
  "assetId": 113053967699143,
  "name": "Model",
- "depicts": "brick-built 2000s police sedan (Crown Victoria proportions)",
+ "depicts": "Brick-built 2000s police sedan (Crown Victoria proportions)",
  "forward": {
   "method": "seat:VehicleSeat",
   "lookVector": [
