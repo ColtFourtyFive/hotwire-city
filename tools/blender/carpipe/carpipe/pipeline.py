@@ -126,7 +126,7 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
         groups.append(("Wheel", [n for n in wheel_names if n in lows], cfg["tex_wheel"]))
     for gname, members, size in groups:
         objs = [lows[m] for m in members]
-        optimize.atlas_uv(objs, margin=0.006 if size >= 512 else 0.012)
+        optimize.atlas_uv(objs, margin=3.0 / size, angle=75.0)  # ~3 px gutter; 75 deg = fewer, bigger islands
     if cfg["bake"]:
         for gname, members, size in groups:
             if gname == "Body":
