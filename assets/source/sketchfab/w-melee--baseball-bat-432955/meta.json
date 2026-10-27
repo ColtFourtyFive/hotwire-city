@@ -1,0 +1,44 @@
+{
+  "source": "sketchfab",
+  "uid": "432955b77985433eab60e359ef4bab73",
+  "slug": "w-melee--baseball-bat-432955",
+  "name": "Baseball bat",
+  "class": "melee",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Nirduk",
+    "displayName": "Nirduk",
+    "profileUrl": "https://sketchfab.com/Nirduk"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/baseball-bat-432955b77985433eab60e359ef4bab73",
+  "faceCount": 7280,
+  "vertexCount": 2197,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 70,
+  "tags": [
+    "substancepainter",
+    "maya"
+  ],
+  "categories": [
+    "sports-fitness",
+    "weapons-military"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-melee--baseball-bat-432955/model.glb",
+  "fileBytes": 2136212,
+  "sha256": "60e0f891212acf58e0079a63817a6f9a0518dbdec8309849884a230b1cd28f42",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:46+00:00",
+  "notes": null
+}

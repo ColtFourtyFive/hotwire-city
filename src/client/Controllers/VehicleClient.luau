@@ -107,6 +107,7 @@ local TOUCH_CLUSTER_LEFT = 256
 local SURFACE_SAMPLE = 0.2 -- s between ground-material rays (dust / spray)
 local DUST_MIN_SPEED = 14
 local SPRAY_MIN_SPEED = 8
+local SPLASH_MIN_SPEED = 25
 local BACKFIRE_COOLDOWN = 0.6
 local SPARK_PROBE = 4 -- studs past the bumper the crash ray looks for the contact point
 local SPEED_LINE_RING = 8
@@ -1373,6 +1374,10 @@ local function renderStep(s: Session, dt: number)
 	local sprayOn = s.fxWater and c.speed > SPRAY_MIN_SPEED
 	if sprayOn ~= s.fxSprayOn and fx.spray then
 		s.fxSprayOn = sprayOn
+		if sprayOn and c.speed > SPLASH_MIN_SPEED then
+			-- hitting the water fast: one big crown splash on entry
+			VFXLibrary.burst("WaterSplash", s.chassis.Position, { scale = 1.5, count = 3 })
+		end
 		VFXLibrary.setStream(fx.spray, sprayOn, math.clamp(frac + 0.3, 0.5, 1.3))
 	end
 	-- nitro: flame + core streams, jet beam + light flicker

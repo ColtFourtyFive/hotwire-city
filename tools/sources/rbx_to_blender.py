@@ -78,6 +78,10 @@ def reset_scene():
 
 def mesh_from_arrays(name, pos, faces, uv=None, nrm=None, smooth=True):
     me = bpy.data.meshes.new(name)
+    pos = np.nan_to_num(np.asarray(pos, np.float32), nan=0.0, posinf=0.0, neginf=0.0)
+    faces = np.asarray(faces, np.int64).reshape(-1, 3)
+    good = (faces[:, 0] != faces[:, 1]) & (faces[:, 1] != faces[:, 2]) & (faces[:, 0] != faces[:, 2])
+    faces = faces[good]  # degenerate triangles crash custom-normal assignment
     nv, nf = len(pos), len(faces)
     me.vertices.add(nv)
     me.vertices.foreach_set("co", np.asarray(pos, np.float32).ravel())
@@ -93,8 +97,9 @@ def mesh_from_arrays(name, pos, faces, uv=None, nrm=None, smooth=True):
         lay.data.foreach_set("uv", luv.ravel())
     if smooth:
         me.polygons.foreach_set("use_smooth", np.ones(nf, dtype=bool))
-    if nrm is not None and len(nrm) == nv:
-        n = np.asarray(nrm, np.float32)
+    me.validate(clean_customdata=False)
+    if nrm is not None and len(nrm) == nv and len(me.polygons) == nf:
+        n = np.nan_to_num(np.asarray(nrm, np.float32), nan=0.0)
         ln = np.linalg.norm(n, axis=1, keepdims=True)
         ok = ln[:, 0] > 1e-6
         n[ok] /= ln[ok]
@@ -103,7 +108,6 @@ def mesh_from_arrays(name, pos, faces, uv=None, nrm=None, smooth=True):
             me.normals_split_custom_set_from_vertices([tuple(v) for v in n])
         except Exception:  # noqa: BLE001
             pass
-    me.validate(clean_customdata=False)
     return me
 
 

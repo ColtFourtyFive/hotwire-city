@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "8f008c3e18934707a834cde8c72364f5",
+  "slug": "w-minigun--m134-handheld-minigun-8f008c",
+  "name": "M134 handheld (Minigun)",
+  "class": "minigun",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "boriseviav",
+    "displayName": "Alexander_Borisevich",
+    "profileUrl": "https://sketchfab.com/boriseviav"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/m134-handheld-minigun-8f008c3e18934707a834cde8c72364f5",
+  "faceCount": 15836,
+  "vertexCount": 8156,
+  "materialCount": 1,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 345,
+  "tags": [
+    "minigun",
+    "m134",
+    "game",
+    "weapons"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "Handheld version of M134 or Minigun.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-minigun--m134-handheld-minigun-8f008c/model.glb",
+  "fileBytes": 3821120,
+  "sha256": "c0dffc48528e5a1a18c20c93e5b2bf1cb904a2a87cdce6d325bb6f6feedc4631",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:05+00:00",
+  "notes": null
+}

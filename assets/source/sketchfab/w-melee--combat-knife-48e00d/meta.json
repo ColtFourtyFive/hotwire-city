@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "48e00da7aeb94530a5d0e0c3d58ca274",
+  "slug": "w-melee--combat-knife-48e00d",
+  "name": "Combat Knife",
+  "class": "melee",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "San.Dro",
+    "displayName": "OverLord",
+    "profileUrl": "https://sketchfab.com/San.Dro"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/combat-knife-48e00da7aeb94530a5d0e0c3d58ca274",
+  "faceCount": 1200,
+  "vertexCount": 622,
+  "materialCount": 3,
+  "textureCount": 15,
+  "animationCount": 0,
+  "likeCount": 95,
+  "tags": [
+    "melee",
+    "combat",
+    "downloadable",
+    "knife",
+    "military",
+    "download"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "Low poly combat knife\nGame ready",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-melee--combat-knife-48e00d/model.glb",
+  "fileBytes": 4899428,
+  "sha256": "c526282b8f2ca2215c82aee2b56433a1af88ad08dc28961b81f86e09142b517b",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:59+00:00",
+  "notes": null
+}

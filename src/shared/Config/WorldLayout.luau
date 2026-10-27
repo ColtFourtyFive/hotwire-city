@@ -346,6 +346,33 @@ local function shore(x: number, z: number): (number, CoastKind)
 	return d1, WorldLayout.Coast[i1].kind
 end
 
+-- Memoized signed shore distance at the center of a 32-stud cell. The distance is 1-Lipschitz, so a point in the
+-- cell is within 23 studs (half diagonal) of this value: callers use it to skip the exact test far from the coast.
+local SHORE_CELL = 32
+local SHORE_SLACK = SHORE_CELL * 0.7072
+local shoreMemo: { [number]: number } = {}
+local function shoreCoarse(x: number, z: number): number
+	local cx, cz = math.floor(x / SHORE_CELL), math.floor(z / SHORE_CELL)
+	local key = WorldGen.cellKey(cx, cz)
+	local v = shoreMemo[key]
+	if v == nil then
+		v = shore((cx + 0.5) * SHORE_CELL, (cz + 0.5) * SHORE_CELL)
+		shoreMemo[key] = v
+	end
+	return v :: number
+end
+
+-- shore(x, z) >= m, using the coarse memo when it is conclusive.
+local function landAtLeast(x: number, z: number, m: number): boolean
+	local c = shoreCoarse(x, z)
+	if c - SHORE_SLACK >= m then
+		return true
+	elseif c + SHORE_SLACK < m then
+		return false
+	end
+	return (shore(x, z)) >= m
+end
+
 local function inWater(x: number, z: number): (boolean, number)
 	for _, w in WorldLayout.Water do
 		if WorldGen.pointInPoly(w.points, x, z) then
@@ -357,6 +384,9 @@ end
 
 -- Smooth ground grade (shoreline + hills, no channel / reservoir carve): what roads and lots sit on.
 local function gradeAt(x: number, z: number): number
+	if shoreCoarse(x, z) - SHORE_SLACK >= 300 then
+		return inlandHeight(x, z) -- deep inland: no shoreline shaping (widest band is 300)
+	end
 	local d, kind = shore(x, z)
 	if d <= 0 then
 		-- seabed
@@ -2376,7 +2406,7 @@ local function cleanGenerated()
 			end
 			-- off land
 			if not blocked[k] then
-				if shore(p.x, p.z) < 60 then
+				if not landAtLeast(p.x, p.z, 60) then
 					blocked[k] = true
 				end
 			end
@@ -2758,14 +2788,15 @@ for i, n in gnodes do
 end
 
 local function overWaterOrChannel(x: number, z: number): boolean
-	local sd = shore(x, z)
-	if sd < 0 then
+	if not landAtLeast(x, z, 0) then
 		return true
 	end
 	local ch = WorldLayout.Channel
+	if x < 1800 or x > 2300 or z < ch.startOpenAt then
+		return false
+	end
 	local d = WorldGen.polyProject(ch.points, x, z)
-	local _, cz = WorldGen.polyAt(ch.points, select(2, WorldGen.polyProject(ch.points, x, z)))
-	return d < ch.floorHalfWidth + ch.wallRun and cz > ch.startOpenAt
+	return d < ch.floorHalfWidth + ch.wallRun
 end
 
 for i, e in gedges do
@@ -4336,8 +4367,7 @@ do
 					local ok = districtAt(cx, cz) == did
 					if ok then
 						for _, c in WorldGen.obbCorners(obb) do
-							local sd = shore(c.x, c.z)
-							if sd < 40 then
+							if not landAtLeast(c.x, c.z, 40) then
 								ok = false
 								break
 							end
@@ -4425,7 +4455,7 @@ do
 		local ux, uz = cf.RightVector.X, cf.RightVector.Z
 		local obb: WorldGen.OBB = { cx = x, cz = z, ux = ux, uz = uz, hw = w / 2, hd = d / 2 }
 		for _, c in WorldGen.obbCorners(obb) do
-			if roadClearance(c.x, c.z, 2) or shore(c.x, c.z) < 30 then
+			if roadClearance(c.x, c.z, 2) or not landAtLeast(c.x, c.z, 30) then
 				return
 			end
 		end
@@ -4476,12 +4506,38 @@ export type TrafficEdge = { edge: number, weight: number }
 
 local parking: { ParkingSpot } = {}
 do
-	local avoid: { Vector3 } = {}
+	-- driveways / entrances stay clear (spatial hash of points, 34-stud radius)
+	local avoidCells: { [number]: { { number } } } = {}
+	local function avoidAdd(p: Vector3)
+		local key = WorldGen.cellKey(math.floor(p.X / 64), math.floor(p.Z / 64))
+		local list = avoidCells[key]
+		if not list then
+			list = {}
+			avoidCells[key] = list
+		end
+		table.insert(list, { p.X, p.Z })
+	end
+	local function nearAvoid(x: number, z: number): boolean
+		local cx, cz = math.floor(x / 64), math.floor(z / 64)
+		for dx = -1, 1 do
+			for dz = -1, 1 do
+				local list = avoidCells[WorldGen.cellKey(cx + dx, cz + dz)]
+				if list then
+					for _, q in list do
+						if (q[1] - x) ^ 2 + (q[2] - z) ^ 2 < 34 * 34 then
+							return true
+						end
+					end
+				end
+			end
+		end
+		return false
+	end
 	for _, p in POIs do
-		table.insert(avoid, p.entrance)
+		avoidAdd(p.entrance)
 	end
 	for _, p in Plots do
-		table.insert(avoid, p.door)
+		avoidAdd(p.door)
 	end
 	for ei, e in Edges do
 		if not e.parking or e.layer ~= 0 or e.bridge then
@@ -4503,16 +4559,11 @@ do
 				if side < 0 and not e.oneWay then
 					fx, fz = -tx, -tz
 				end
-				local pos = Vector3.new(px + rx * laneSide * side, py, pz + rz * laneSide * side)
-				local clear = true
-				for _, a in avoid do
-					if (Vector3.new(a.X, 0, a.Z) - Vector3.new(pos.X, 0, pos.Z)).Magnitude < 34 then
-						clear = false
-						break
-					end
-				end
+				local sx, sz = px + rx * laneSide * side, pz + rz * laneSide * side
+				local clear = not nearAvoid(sx, sz)
 				if clear and WorldGen.hash(ei, k, if side > 0 then 31 else 32) < 0.86 then
-					local did = districtAt(pos.X, pos.Z)
+					local pos = Vector3.new(sx, py, sz)
+					local did = districtAt(sx, sz)
 					table.insert(parking, {
 						cframe = CFrame.lookAt(pos, pos + Vector3.new(fx, 0, fz)),
 						edge = ei,

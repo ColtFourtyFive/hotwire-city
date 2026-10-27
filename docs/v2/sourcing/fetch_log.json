@@ -778,5 +778,155 @@
   "mb": 1.2,
   "license": "by",
   "conversion": "none"
+ },
+ "360c6276282e48109fcca66f31004d81": {
+  "status": "ok",
+  "slug": "w-heavy-pistol--revolver-357-magnum-360c62",
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "name": "Revolver .357 Magnum",
+  "mb": 3.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "3b81c991e9c84236a5c03895f9ca0aa3": {
+  "status": "ok",
+  "slug": "w-heavy-pistol--357-python-revolver-rigged-game-re-3b81c9",
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "name": "357 Python Revolver (Rigged/Game Ready)",
+  "mb": 4.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "432955b77985433eab60e359ef4bab73": {
+  "status": "ok",
+  "slug": "w-melee--baseball-bat-432955",
+  "class": "melee",
+  "kind": "weapon",
+  "name": "Baseball bat",
+  "mb": 2.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "672bafb0f7ea41848f38a5adeeee804b": {
+  "status": "ok",
+  "slug": "w-melee--alluminum-carbon-fiber-bat-672baf",
+  "class": "melee",
+  "kind": "weapon",
+  "name": "Alluminum/Carbon Fiber Bat",
+  "mb": 2.3,
+  "license": "by",
+  "conversion": "none"
+ },
+ "36593001f0164a50a2039d9ef1e511ff": {
+  "status": "ok",
+  "slug": "w-melee--m9-bayonet-default-365930",
+  "class": "melee",
+  "kind": "weapon",
+  "name": "M9 Bayonet (Default)",
+  "mb": 3.5,
+  "license": "by",
+  "conversion": "none"
+ },
+ "48e00da7aeb94530a5d0e0c3d58ca274": {
+  "status": "ok",
+  "slug": "w-melee--combat-knife-48e00d",
+  "class": "melee",
+  "kind": "weapon",
+  "name": "Combat Knife",
+  "mb": 4.9,
+  "license": "by",
+  "conversion": "none"
+ },
+ "eed0c95de51b4895a48c5729582732cc": {
+  "status": "ok",
+  "slug": "w-minigun--low-poly-m134-minigun-eed0c9",
+  "class": "minigun",
+  "kind": "weapon",
+  "name": "Low-Poly M134 Minigun",
+  "mb": 2.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "8f008c3e18934707a834cde8c72364f5": {
+  "status": "ok",
+  "slug": "w-minigun--m134-handheld-minigun-8f008c",
+  "class": "minigun",
+  "kind": "weapon",
+  "name": "M134 handheld (Minigun)",
+  "mb": 3.8,
+  "license": "by",
+  "conversion": "none"
+ },
+ "60efc54ac59e47d18bdff94b2f5144ff": {
+  "status": "ok",
+  "slug": "w-pistol--low-poly-g17-60efc5",
+  "class": "pistol",
+  "kind": "weapon",
+  "name": "Low-Poly G17",
+  "mb": 0.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "859943889553467eaa0203400117c595": {
+  "status": "ok",
+  "slug": "w-pistol--low-poly-beretta-92fs-859943",
+  "class": "pistol",
+  "kind": "weapon",
+  "name": "Low-Poly Beretta 92fs",
+  "mb": 0.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "e3412d9803f04bdaa97ad9b68ed665d7": {
+  "status": "ok",
+  "slug": "w-pistol--g19-pistol-game-ready-free-version-e3412d",
+  "class": "pistol",
+  "kind": "weapon",
+  "name": "G19 Pistol, Game Ready, Free version",
+  "mb": 4.3,
+  "license": "by",
+  "conversion": "none"
+ },
+ "43bc09f5aace4346a8a2b6e1580fc03f": {
+  "status": "ok",
+  "slug": "w-pistol--9mm-pistol-43bc09",
+  "class": "pistol",
+  "kind": "weapon",
+  "name": "9mm Pistol",
+  "mb": 4.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "8766498ce778479aa03c3b6078937510": {
+  "status": "ok",
+  "slug": "w-shotgun--low-poly-remington-870-876649",
+  "class": "shotgun",
+  "kind": "weapon",
+  "name": "Low-Poly Remington 870",
+  "mb": 0.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "c0551a6b841145f7a8e59e9304728f1f": {
+  "status": "ok",
+  "slug": "w-shotgun--low-poly-mossberg-590-c0551a",
+  "class": "shotgun",
+  "kind": "weapon",
+  "name": "Low-Poly Mossberg 590",
+  "mb": 0.5,
+  "license": "by",
+  "conversion": "none"
+ },
+ "6db0ad4764d14eee8f063eea3600071b": {
+  "status": "ok",
+  "slug": "w-shotgun--remington-870-shotgun-6db0ad",
+  "class": "shotgun",
+  "kind": "weapon",
+  "name": "Remington 870 Shotgun",
+  "mb": 2.9,
+  "license": "by",
+  "conversion": "none"
  }
 }

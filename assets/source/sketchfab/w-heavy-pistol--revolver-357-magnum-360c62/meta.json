@@ -1,0 +1,47 @@
+{
+  "source": "sketchfab",
+  "uid": "360c6276282e48109fcca66f31004d81",
+  "slug": "w-heavy-pistol--revolver-357-magnum-360c62",
+  "name": "Revolver .357 Magnum",
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Artem.Goyko",
+    "displayName": "Artem Goyko",
+    "profileUrl": "https://sketchfab.com/Artem.Goyko"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/revolver-357-magnum-360c6276282e48109fcca66f31004d81",
+  "faceCount": 4826,
+  "vertexCount": 2500,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 333,
+  "tags": [
+    "revolver",
+    "357-magnum",
+    "substancepainter",
+    "substance",
+    "weapon",
+    "gun"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-heavy-pistol--revolver-357-magnum-360c62/model.glb",
+  "fileBytes": 3133108,
+  "sha256": "24364ccf54952a9f0b71054b35d0a2461ea6380f37e648cf5c951a51bdf8555b",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:40+00:00",
+  "notes": null
+}

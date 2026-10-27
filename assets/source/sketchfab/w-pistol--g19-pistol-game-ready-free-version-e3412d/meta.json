@@ -1,0 +1,48 @@
+{
+  "source": "sketchfab",
+  "uid": "e3412d9803f04bdaa97ad9b68ed665d7",
+  "slug": "w-pistol--g19-pistol-game-ready-free-version-e3412d",
+  "name": "G19 Pistol, Game Ready, Free version",
+  "class": "pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Rotuma",
+    "displayName": "Rotuma",
+    "profileUrl": "https://sketchfab.com/Rotuma"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/g19-pistol-game-ready-free-version-e3412d9803f04bdaa97ad9b68ed665d7",
+  "faceCount": 20382,
+  "vertexCount": 10327,
+  "materialCount": 2,
+  "textureCount": 9,
+  "animationCount": 0,
+  "likeCount": 436,
+  "tags": [
+    "handgun",
+    "realistic",
+    "pistol",
+    "weapon",
+    "gameasset",
+    "gun",
+    "gameready"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "Includes Display model as well as just the standard assembly of the gun and bullet. This is the free version, it's the same as the paid. Just if you want to support me :) - https://sketchfab.com/3d-models/g19-pistol-game-ready-72f9121e248840aaa67fc453e08baaa7\n\n9K Tris for the pistol, 2K Textures. 512x512 for the bullet. Ready to be used and animated in a game or such.\n\n![](https://cdna.artstation.com/p/assets/images/images/078/259/890/large/nathan-nilsen-untitled-main-camera-4.jpg?1721650599)\n\n![](https://cdna.artstation.com/p/assets/images/images/078/250/064/large/nathan-nilsen-untitled-main-",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-pistol--g19-pistol-game-ready-free-version-e3412d/model.glb",
+  "fileBytes": 4305672,
+  "sha256": "0b5f4d5b429c92a02b69b20cbb0ae39f154d1a0612fd431730807be459adc2a1",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:16+00:00",
+  "notes": null
+}

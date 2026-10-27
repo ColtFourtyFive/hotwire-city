@@ -1,0 +1,56 @@
+{
+  "source": "sketchfab",
+  "uid": "c0551a6b841145f7a8e59e9304728f1f",
+  "slug": "w-shotgun--low-poly-mossberg-590-c0551a",
+  "name": "Low-Poly Mossberg 590",
+  "class": "shotgun",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-mossberg-590-c0551a6b841145f7a8e59e9304728f1f",
+  "faceCount": 2552,
+  "vertexCount": 1438,
+  "materialCount": 10,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 163,
+  "tags": [
+    "pump",
+    "action",
+    "500",
+    "america",
+    "american",
+    "shot",
+    "mossberg",
+    "590",
+    "moss",
+    "weapon",
+    "poly",
+    "usa",
+    "shotgun",
+    "gun"
+  ],
+  "categories": [
+    "electronics-gadgets",
+    "science-technology"
+  ],
+  "description": "Remodelled",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-shotgun--low-poly-mossberg-590-c0551a/model.glb",
+  "fileBytes": 459684,
+  "sha256": "1eb3033d1d5dc8e3bc4d6361f6f003abee509722779b6e7d8caa8b8a1be005fc",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:33+00:00",
+  "notes": null
+}

@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "8766498ce778479aa03c3b6078937510",
+  "slug": "w-shotgun--low-poly-remington-870-876649",
+  "name": "Low-Poly Remington 870",
+  "class": "shotgun",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-remington-870-8766498ce778479aa03c3b6078937510",
+  "faceCount": 1444,
+  "vertexCount": 800,
+  "materialCount": 5,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 196,
+  "tags": [
+    "grip",
+    "pump",
+    "action",
+    "shot",
+    "870",
+    "remington",
+    "12gauge",
+    "pisol",
+    "low",
+    "poly",
+    "shotgun",
+    "gun"
+  ],
+  "categories": [
+    "electronics-gadgets"
+  ],
+  "description": "The Remington 870 is a pump action shotgun. It was introduced in 1950 and has since been a favorite among civillians, police forces and militaries around the world.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-shotgun--low-poly-remington-870-876649/model.glb",
+  "fileBytes": 94500,
+  "sha256": "5902df91fbde4a75f3409f6ad8c8994ea9bd65b7bdc68465777727730f5ec324",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:29+00:00",
+  "notes": null
+}

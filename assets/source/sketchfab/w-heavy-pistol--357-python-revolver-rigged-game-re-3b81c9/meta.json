@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "3b81c991e9c84236a5c03895f9ca0aa3",
+  "slug": "w-heavy-pistol--357-python-revolver-rigged-game-re-3b81c9",
+  "name": "357 Python Revolver (Rigged/Game Ready)",
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "InfuriatingScholar",
+    "displayName": "Erai",
+    "profileUrl": "https://sketchfab.com/InfuriatingScholar"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/357-python-revolver-riggedgame-ready-3b81c991e9c84236a5c03895f9ca0aa3",
+  "faceCount": 18680,
+  "vertexCount": 9433,
+  "materialCount": 3,
+  "textureCount": 13,
+  "animationCount": 1,
+  "likeCount": 302,
+  "tags": [
+    "revolver",
+    "freemodel",
+    "coltpython",
+    "weapons",
+    "blender",
+    "colt",
+    "rigged",
+    "guns"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "This is a Rigged Python Revolver.\nAll the bullets and Shells and the speedLoader are rigged so it can be used in reload animation.\n\n2K Textures.\n\nIf you need anything (additional format or texture variety) or there is a problem, let me know.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-heavy-pistol--357-python-revolver-rigged-game-re-3b81c9/model.glb",
+  "fileBytes": 4418512,
+  "sha256": "e3097230954f2006ea51273a552d59aa93fbeb582bc505fd4d866d6d47fccbb1",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:43+00:00",
+  "notes": null
+}

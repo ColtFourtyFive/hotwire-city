@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "6db0ad4764d14eee8f063eea3600071b",
+  "slug": "w-shotgun--remington-870-shotgun-6db0ad",
+  "name": "Remington 870 Shotgun",
+  "class": "shotgun",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "milinam2002",
+    "displayName": "Andrei Milin",
+    "profileUrl": "https://sketchfab.com/milinam2002"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/remington-870-shotgun-6db0ad4764d14eee8f063eea3600071b",
+  "faceCount": 6202,
+  "vertexCount": 3256,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 426,
+  "tags": [
+    "police",
+    "remington",
+    "swat",
+    "remington870",
+    "policeweapon",
+    "fpsweapon",
+    "weapon",
+    "lowpoly",
+    "shotgun",
+    "gun",
+    "gameready"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "The Remington Model 870 is a pump-action shotgun manufactured by Remington Arms Company, LLC. It is widely used by the public for shooting sports, hunting and self-defense, as well as by law enforcement and military organizations worldwide.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-shotgun--remington-870-shotgun-6db0ad/model.glb",
+  "fileBytes": 2917268,
+  "sha256": "13a84a665d7c2b1c146cd1c665d081fc88f4124cea5371ff1414363a704729b8",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:36+00:00",
+  "notes": null
+}

@@ -1,0 +1,44 @@
+{
+  "source": "sketchfab",
+  "uid": "43bc09f5aace4346a8a2b6e1580fc03f",
+  "slug": "w-pistol--9mm-pistol-43bc09",
+  "name": "9mm Pistol",
+  "class": "pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TORI106",
+    "displayName": "TORI106",
+    "profileUrl": "https://sketchfab.com/TORI106"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/9mm-pistol-43bc09f5aace4346a8a2b6e1580fc03f",
+  "faceCount": 4708,
+  "vertexCount": 2622,
+  "materialCount": 2,
+  "textureCount": 8,
+  "animationCount": 0,
+  "likeCount": 748,
+  "tags": [
+    "9mm",
+    "pistol",
+    "9x19mm"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "[9mm Pistol] Blender and Substacne Pinater\n:/",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-pistol--9mm-pistol-43bc09/model.glb",
+  "fileBytes": 4562440,
+  "sha256": "26b1ed961fd52f2465868cb94ed364a3d5ebf6e6c50dd3e8e7b00e3d2ec27b8d",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:20+00:00",
+  "notes": null
+}

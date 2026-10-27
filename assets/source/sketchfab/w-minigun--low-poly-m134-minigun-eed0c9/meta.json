@@ -1,0 +1,62 @@
+{
+  "source": "sketchfab",
+  "uid": "eed0c95de51b4895a48c5729582732cc",
+  "slug": "w-minigun--low-poly-m134-minigun-eed0c9",
+  "name": "Low-Poly M134 Minigun",
+  "class": "minigun",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-m134-minigun-eed0c95de51b4895a48c5729582732cc",
+  "faceCount": 12931,
+  "vertexCount": 7005,
+  "materialCount": 15,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 349,
+  "tags": [
+    "rifle",
+    "minigun",
+    "gatling",
+    "firearm",
+    "machine",
+    "308",
+    "fake",
+    "massive",
+    "held",
+    "m134",
+    "impractical",
+    "firepower",
+    "unrealistic",
+    "762x51mm",
+    "weapon",
+    "low",
+    "poly",
+    "gun",
+    "hand",
+    "rotory"
+  ],
+  "categories": [
+    "science-technology",
+    "weapons-military"
+  ],
+  "description": "As is tradition, every 100th gun is a significant model so, for my 400th, here's a completely impractical, non existant, hand-held, 6000 rpm, 308 caliber Minigun. Enjoy.\n\nOn a less interesting note, I have remodelled the Steyr ACR as it was very flat and just didn't look right\nhttps://sketchfab.com/3d-models/low-poly-steyr-acr-2988ed77bf104a8e8b708e615b966846",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-minigun--low-poly-m134-minigun-eed0c9/model.glb",
+  "fileBytes": 2182352,
+  "sha256": "684910fc5983717bfa72067d6d70b1716b60c8e98ce3eba6e5b6f020e3318876",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:03+00:00",
+  "notes": null
+}

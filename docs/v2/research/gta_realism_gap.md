@@ -76,14 +76,14 @@ Realistic Roblox games accept this mismatch: they build the world at about 0.28 
 | Sedan wheelbase, wheel diameter | 2.8 m, 0.67 m | **10, 2.4** | 8.5, 2.64 | same |
 | SUV, pickup, van | 4.9 / 5.3 / 5.1 m long | **17.5 / 19 / 18** | 12–15 (shells) | `Assets.luau:28–60` |
 | Bus, semi with trailer | 12 m, 16.5 m | **43, 59** | none | |
-| Storey: residential / office / retail ground floor | 3.0 / 3.8 / 5 m | **10.7 / 13.5 / 16–20** | ribbon bands every ≥8.5; tower bands ≥13 | `MapBuilder.luau:1180, 1133` |
+| Storey: residential / office / retail ground floor | 3.0 / 3.8 / 5 m | **10.7 / 13.5 / 16–20** | ribbon bands every ≥8.5; tower bands ≥13 | `MapBuilder.luau:1179, 1137` |
 | Door | 2.1 m | **7.5** | none | |
 | Street lamp (cobra head) | 9–11 m | **32–40** | 18 | `MapBuilder.luau:79` LAMP_FIT |
 | Lamp spacing | 30–45 m | **110–160 per side** | about 1 per *block*, roughly 480 studs of curb | `MapBuilder.luau:2445` |
 | Signal pole, head clearance | 6–8 m, ≥4.6 m | **22–29, ≥16.5** | 22 ✓ | `MapBuilder.luau:80` |
 | Mexican fan palm (LA's signature) | 18–30 m | **65–107**, trunk 1.5–2.5 thick | 17–34 | `Assets.luau:87–88`, `palm()` at `MapBuilder.luau:713` |
 | Downtown block, curb to curb | about 100 × 120–200 m | **360 × 430–700** | 120 × 120, including the sidewalks | `Map.luau:10–11` |
-| Downtown towers | 100–335 m | **350–1,200**: one landmark of 700–900, 6–10 towers of 350–600 | 200–240 | `MapBuilder.luau:551–553` KIT_DIMS |
+| Downtown towers | 100–335 m | **350–1,200**: one landmark of 700–900, 6–10 towers of 350–600 | 200–240 | `MapBuilder.luau:549–551` KIT_DIMS |
 | Map | GTA V: tens of km² | **phase 1: at least 6,000 × 6,000 (1.7 km)²** with StreamingEnabled | 1,640 × 1,640 (0.21 km²), streaming **off** | `Map.luau:16`, `default.project.json:42` |
 
 ---
@@ -313,7 +313,7 @@ Each layer lists the current values, why they read as cheap, and the target.
 ### 2.6 Building massing and facades
 
 **Current**
-- **Downtown:** 11 blocks, each with a single tower or a diagonal "twin" pair, plus plazas (`DOWNTOWN_PLAN`, `MapBuilder.luau:1719–1822`). Each tower gets a Neon ground ring (`NeonEdge`, `:1666`) and a red beacon ball.
+- **Downtown:** 11 blocks, each with a single tower or a diagonal "twin" pair, plus plazas (`DOWNTOWN_PLAN`, `MapBuilder.luau:1719–1814`). Each tower gets a Neon ground ring (`NeonEdge`, `:1666`) and a red beacon ball.
 - **Procedural placeholders** (`:1111–1232`):
   - Glass shafts in saturated colours from `TOWER_GLASS`, `:141–149`: (64,178,214), (122,92,206), (206,104,176) and others.
   - Floor bands that turn Neon at night, Neon `Crown`s and `Fin`s.
@@ -388,11 +388,11 @@ Each layer lists the current values, why they read as cheap, and the target.
 | Item | v1 |
 |---|---|
 | Street lamps | 18 studs tall, **one per block**, about 100 city-wide. PointLight Range 34, Brightness 1.7, no shadows (`MapBuilder.luau:1036–1064, 2445`). |
-| Traffic signals | Only at downtown intersections, in a checkerboard. Cartoon yellow head with a single always-on Neon green lamp (`:1067–1088, 2480–2494`). |
+| Traffic signals | Only at downtown intersections, in a checkerboard. Cartoon yellow head with a single always-on Neon green lamp (`:1067–1088, 2480–2492`). |
 | Parked cars | 24–44 on about 70k studs of curb, roughly one per 1,600 studs (`StreetSpawnService.luau:38–40`). |
 | Traffic | 18–36 cars (`TrafficService.luau:61–62`). |
 | Kit props | 41 AI meshes: hydrant, bench, bus stop, the hot-dog stand at spawn (`DealershipService.luau:749`), and others. |
-| Ads | Cartoon art and joke copy ("DUCK INSURANCE", "VROOM VITAMINS"; `MapBuilder.luau:181–192`). |
+| Ads | Cartoon art and joke copy ("DUCK INSURANCE", "VROOM VITAMINS"; `MapBuilder.luau:182–193`). |
 
 **Why it reads as cheap.** GTA streets are dense: a lamp, a tree, a meter, a sign or a parked car every few metres. In v1 the curbs are bare.
 
@@ -550,7 +550,7 @@ The raw `console.txt` the operator mentions was **not committed**; only the summ
 - The only `91…` IDs in `src` are the **16 ProSoundEffects sounds** in `Config/Sounds.luau:29–59`.
   - Examples: TireScreech 9119186024, Siren 9119165131, CityAmbience 9112758500.
   - The economy API returns AssetTypeId **3 (Audio)**, public domain, for every one, so the IDs themselves are valid.
-- **Likely cause:** `SoundController.luau:999–1012` preloads them with `ContentProvider:PreloadAsync(ids)` as **raw strings**.
+- **Likely cause:** `SoundController.luau:1000–1012` preloads them with `ContentProvider:PreloadAsync(ids)` as **raw strings**.
   - The documented contract is "an array of instances to load" ([ContentProvider API](https://create.roblox.com/docs/reference/engine/classes/ContentProvider.md)); the docs' example preloads a `Sound` instance.
   - A bare string carries no asset type, so audio requested this way can be fetched as the wrong type.
   - 27 non-radio audio IDs are preloaded, which is in line with 21 warnings once cache hits are allowed for.

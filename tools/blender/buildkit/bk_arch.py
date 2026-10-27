@@ -70,6 +70,7 @@ class Building:
         self.height = 0
         self.base_depth = 0.0          # how far below z=0 the model reaches (hillside plinths)
         self.tags = {}
+        self.spawns = []               # parked-car spawn points [(x, y, heading_deg)] in lot space (manifest)
 
     def b(self, role):
         if role not in self.bufs:
@@ -327,6 +328,8 @@ class Building:
                     if stops and i < n:
                         yc = yb + sgn * 3.0
                         G.box(dt, x + 2.0, yc - 0.4, z, x + stall_w - 2.0, yc + 0.4, z + 0.55)
+                    if i < n:
+                        self.spawns.append((round(x + stall_w / 2, 2), round(yb + sgn * (stall_d / 2 + 0.5), 2), 90.0 if sgn < 0 else -90.0))
             else:
                 xb = x0 if edge == "-x" else x1
                 sgn = 1 if edge == "-x" else -1
@@ -339,6 +342,8 @@ class Building:
                     if stops and i < n:
                         xc = xb + sgn * 3.0
                         G.box(dt, xc - 0.4, y + 2.0, z, xc + 0.4, y + stall_w - 2.0, z + 0.55)
+                    if i < n:
+                        self.spawns.append((round(xb + sgn * (stall_d / 2 + 0.5), 2), round(y + stall_w / 2, 2), 180.0 if sgn > 0 else 0.0))
 
     def lot_light(self, x, y, h=24.0, arms=2):
         dt = self.b("Details")
@@ -356,6 +361,7 @@ class Building:
         """Shift everything (e.g. to re-centre a lot after building a terrace or yard in front)."""
         for b in self.bufs.values():
             b.v = [(p[0] + dx, p[1] + dy, p[2] + dz) for p in b.v]
+        self.spawns = [(x + dx, y + dy, h) for (x, y, h) in self.spawns]
 
     def slab(self, role, x0, y0, x1, y1, z, t=0.3, skip=("bottom",)):
         G.box(self.b(role), x0, y0, z - t, x1, y1, z, skip=skip)

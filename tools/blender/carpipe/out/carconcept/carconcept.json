@@ -12,8 +12,8 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "carconcept.glb",
   "dimensions": {
-    "length": 8.853,
-    "width": 16.5,
+    "length": 16.5,
+    "width": 8.853,
     "height": 4.35,
     "wheelbase": 10.602,
     "track_front": 7.392,
@@ -40,13 +40,13 @@
       "radius": 1.4541,
       "width": 1.091,
       "part_center": [
-        -3.2296,
-        1.4536,
+        -3.2243,
+        1.4599,
         -5.2836
       ],
       "attachment_offset": [
-        -0.4646,
-        -0.0023,
+        -0.47,
+        -0.0086,
         -0.0173
       ],
       "axle": [
@@ -55,7 +55,7 @@
         0
       ],
       "steer": true,
-      "tris": 900
+      "tris": 899
     },
     "FR": {
       "object": "WheelFR",
@@ -94,12 +94,12 @@
       "radius": 1.4541,
       "width": 1.0598,
       "part_center": [
-        -3.7279,
+        -3.7291,
         1.4682,
         5.3092
       ],
       "attachment_offset": [
-        0.0071,
+        0.0083,
         -0.0169,
         -0.0083
       ],
@@ -109,7 +109,7 @@
         0
       ],
       "steer": false,
-      "tris": 899
+      "tris": 900
     },
     "RR": {
       "object": "WheelRR",
@@ -121,12 +121,12 @@
       "radius": 1.4485,
       "width": 1.0598,
       "part_center": [
-        3.7253,
+        3.7262,
         1.4408,
         5.3103
       ],
       "attachment_offset": [
-        -0.0083,
+        -0.0091,
         0.0105,
         -0.0094
       ],
@@ -136,25 +136,25 @@
         0
       ],
       "steer": false,
-      "tris": 900
+      "tris": 899
     }
   },
   "seats": {
     "driver": {
       "position": [
-        -0.0004,
-        0.6518,
-        -3.8675
+        -0.1078,
+        1.7029,
+        -2.0658
       ],
       "estimated": false
     },
     "passenger": {
       "position": [
-        3.135,
-        1.5662,
-        0.8481
+        0.6736,
+        1.233,
+        -2.1595
       ],
-      "estimated": true
+      "estimated": false
     },
     "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
   },
@@ -219,9 +219,9 @@
   "exhausts": [
     {
       "position": [
-        -4.95,
+        -2.6559,
         0.5221,
-        7.5834
+        7.507
       ],
       "estimated": true
     }
@@ -261,32 +261,37 @@
   },
   "objects": {
     "Body": {
-      "tris": 7000,
+      "tris": 5703,
       "bbox_min": [
-        -4.4268,
+        -4.4282,
         0.4099,
         -8.8281
       ],
       "bbox_max": [
-        4.4256,
-        4.3259,
+        4.4272,
+        4.3264,
         7.6725
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Body_normal.png",
+        "ao": "textures/carconcept_Body_ao.png"
+      }
     },
     "Body2": {
-      "tris": 999,
+      "tris": 2296,
       "bbox_min": [
-        -4.4145,
+        -4.419,
         0.4065,
-        -8.7553
+        -8.7589
       ],
       "bbox_max": [
-        4.4136,
-        4.3493,
+        4.4183,
+        4.3492,
         7.6639
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Body2_normal.png"
+      }
     },
     "Glass": {
       "tris": 699,
@@ -314,7 +319,11 @@
         2.6163,
         -7.6109
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Lights_normal.png",
+        "base": "textures/carconcept_Lights_base.png",
+        "emit": "textures/carconcept_Lights_emit.png"
+      }
     },
     "LightsRear": {
       "tris": 450,
@@ -328,21 +337,31 @@
         3.7873,
         6.6569
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Lights_normal.png",
+        "base": "textures/carconcept_Lights_base.png",
+        "emit": "textures/carconcept_Lights_emit.png"
+      }
     },
     "Trim": {
-      "tris": 2482,
+      "tris": 2473,
       "bbox_min": [
-        -3.9753,
+        -3.9805,
         0.6516,
         -7.1941
       ],
       "bbox_max": [
         4.0039,
-        3.4576,
+        3.4577,
         7.3298
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Trim_normal.png",
+        "rough": "textures/carconcept_Trim_rough.png",
+        "base": "textures/carconcept_Trim_base.png",
+        "metal": "textures/carconcept_Trim_metal.png",
+        "ao": "textures/carconcept_Trim_ao.png"
+      }
     },
     "Interior": {
       "tris": 1496,
@@ -356,21 +375,33 @@
         4.2936,
         7.3824
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Interior_normal.png",
+        "rough": "textures/carconcept_Interior_rough.png",
+        "base": "textures/carconcept_Interior_base.png",
+        "metal": "textures/carconcept_Interior_metal.png",
+        "ao": "textures/carconcept_Interior_ao.png"
+      }
     },
     "WheelFL": {
-      "tris": 900,
+      "tris": 899,
       "bbox_min": [
-        -4.2499,
-        -0.0122,
+        -4.2522,
+        0.0004,
         -6.7494
       ],
       "bbox_max": [
-        -2.2093,
+        -2.1963,
         2.9194,
         -3.8178
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
+        "base": "textures/carconcept_Wheel_base.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "ao": "textures/carconcept_Wheel_ao.png"
+      }
     },
     "WheelFR": {
       "tris": 899,
@@ -384,43 +415,61 @@
         2.9314,
         -3.8317
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
+        "base": "textures/carconcept_Wheel_base.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "ao": "textures/carconcept_Wheel_ao.png"
+      }
     },
     "WheelRL": {
-      "tris": 899,
+      "tris": 900,
       "bbox_min": [
-        -4.2675,
+        -4.2706,
         0.0116,
         3.8499
       ],
       "bbox_max": [
-        -3.1883,
+        -3.1877,
         2.9247,
         6.7685
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
+        "base": "textures/carconcept_Wheel_base.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "ao": "textures/carconcept_Wheel_ao.png"
+      }
     },
     "WheelRR": {
-      "tris": 900,
+      "tris": 899,
       "bbox_min": [
         3.1838,
         -0.0127,
         3.8608
       ],
       "bbox_max": [
-        4.2669,
+        4.2686,
         2.8942,
         6.7597
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
+        "base": "textures/carconcept_Wheel_base.png",
+        "metal": "textures/carconcept_Wheel_metal.png",
+        "ao": "textures/carconcept_Wheel_ao.png"
+      }
     }
   },
   "triangles": {
     "source": 212407,
-    "total": 17012,
+    "total": 17002,
     "limits": {
       "car": 18000,
-      "body": 7000,
+      "body": 5704,
       "meshpart": 20000
     }
   },

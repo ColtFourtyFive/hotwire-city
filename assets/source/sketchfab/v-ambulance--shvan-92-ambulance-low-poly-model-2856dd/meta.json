@@ -49,5 +49,86 @@
   "sha256": "f2bc496f2481761158b92bbbd43e5f57dbfa774b9073e442d445ee27175aa52a",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:06:32+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      5.0192,
+      2.3494,
+      2.262
+    ],
+    "dims_m": [
+      2.349,
+      5.019,
+      2.262
+    ],
+    "front_evidence": "names(front=8,rear=6)",
+    "flipped": true,
+    "mesh_objects": 28,
+    "triangles": 25943,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "Shvan92_bodymat",
+      "UCB_BOTTOM",
+      "UCB_Interiors_1",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 14,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Shvan92_WheelStock_FL_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_RL_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_FR_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_RL_RB1c_Tire_1k_0.001"
+    ],
+    "wheel_geom": [
+      "Shvan92_WheelStock_FL_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_RL_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_FR_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_RL_RB1c_Tire_1k_0.001"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Shvan92_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Shvan92_Bumper_rear_UCB_BOTTOM_0",
+      "Shvan92_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Shvan92_Suspension_UCB_BOTTOM_0",
+      "Shvan92_Interior_UCB_Interiors_1_0",
+      "Shvan92_Body_Shvan92_bodymat_0",
+      "Shvan92_Bumper_front_UCB_BOTTOM_0",
+      "Shvan92_Headlights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Shvan92_Body_glass_UCB_Lights_and_Glass_Transperent_0",
+      "Shvan92_Hood_Shvan92_bodymat_0",
+      "Shvan92_Reverse_UCB_Lights_and_Glass_0",
+      "Shvan92_Brakelights_UCB_Lights_and_Glass_0",
+      "Shvan92_Bottom_UCB_BOTTOM_0",
+      "Shvan92_Ambulance_Stuff_Shvan92_bodymat_0",
+      "Shvan92_Ambulance_Stuff_Inner_UCB_BOTTOM_0",
+      "Shvan92_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Shvan92_Glass_Passanger_UCB_Lights_and_Glass_Transperent_0",
+      "Shvan92_Steering_Wheel_UCB_Interiors_1_0",
+      "Shvan92_Runningboard_UCB_BOTTOM_0",
+      "Shvan92_Lightbar_Ambulance_UCB_Lights_and_Glass_0",
+      "Shvan92_Headlights_UCB_Lights_and_Glass_0",
+      "Shvan92_Blinkers_UCB_Lights_and_Glass_0",
+      "Shvan92_WheelStock_FL_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_RL_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_FR_RB1c_Tire_1k_0",
+      "Shvan92_WheelStock_RL_RB1c_Tire_1k_0.001",
+      "Shvan92AMB_Numberplate_front_Numberplates_Misk_U_0",
+      "Shvan92AMB_Numberplate_rear_Numberplates_Misk_U_0",
+      "Shvan92_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "render_s": 53.8
+  }
 }

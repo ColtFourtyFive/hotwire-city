@@ -1,0 +1,51 @@
+{
+  "source": "sketchfab",
+  "uid": "36593001f0164a50a2039d9ef1e511ff",
+  "slug": "w-melee--m9-bayonet-default-365930",
+  "name": "M9 Bayonet (Default)",
+  "class": "melee",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Firewarden",
+    "displayName": "Firewarden3D",
+    "profileUrl": "https://sketchfab.com/Firewarden"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/m9-bayonet-default-36593001f0164a50a2039d9ef1e511ff",
+  "faceCount": 2380,
+  "vertexCount": 1202,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 358,
+  "tags": [
+    "melee",
+    "bayonet",
+    "m9",
+    "weapon",
+    "knife",
+    "gameart",
+    "usa",
+    "free",
+    "download",
+    "blade"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-melee--m9-bayonet-default-365930/model.glb",
+  "fileBytes": 3496476,
+  "sha256": "1273e5b285a15409e16cfc6086137b56ce34efba346699534dfe982ac6d8040a",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:11:53+00:00",
+  "notes": null
+}

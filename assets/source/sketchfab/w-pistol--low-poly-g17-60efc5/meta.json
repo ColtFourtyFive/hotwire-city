@@ -1,0 +1,53 @@
+{
+  "source": "sketchfab",
+  "uid": "60efc54ac59e47d18bdff94b2f5144ff",
+  "slug": "w-pistol--low-poly-g17-60efc5",
+  "name": "Low-Poly G17",
+  "class": "pistol",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-g17-60efc54ac59e47d18bdff94b2f5144ff",
+  "faceCount": 2319,
+  "vertexCount": 1262,
+  "materialCount": 11,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 316,
+  "tags": [
+    "handgun",
+    "firearm",
+    "pistol",
+    "scum",
+    "austrian",
+    "shite",
+    "weapon",
+    "lowpoly",
+    "gun",
+    "capitalist",
+    "bollocks"
+  ],
+  "categories": [
+    "science-technology",
+    "weapons-military"
+  ],
+  "description": "A boring gun for boring people.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-pistol--low-poly-g17-60efc5/model.glb",
+  "fileBytes": 217432,
+  "sha256": "fa28b051644ceea0328082eed600a3945dfa6417e42262ecef728ced5b3f4e6f",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:07+00:00",
+  "notes": null
+}
