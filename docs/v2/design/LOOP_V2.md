@@ -201,7 +201,7 @@ New players are protected by rookie protection (10 min, §2.8; HUD pill "ROOKIE 
    - roam a richer district for spawns;
    - hunt the Server Crown or a LOADED blip.
 4. **Every 5-minute pulse:** the armored truck scramble.
-5. **Every 30-minute big pulse:** the heist window (party).
+5. **Every 30-minute big pulse:** the heist window (solo or party).
 6. **Before leaving:** bank the wallet. LOADED makes you the target.
 7. **Exit hooks:**
    - "Heist window in 12:00"
@@ -1214,7 +1214,7 @@ Stage C reference: G = $800/s, Downtown (×1.25). "Per active hour" is a typical
 | S8 | Chop (loot + orders) | Source | `chopValue × orderMult × wantedMult` | Wallet | Epic ×2 order: $35K | $0.1–0.2M | ChopShopService |
 | S9 | Evade bonus | Source | `stars × (100 + 15 s × G)` | Wallet | 3★: $36.3K | $0.1–0.2M | WantedService |
 | S10 | Truck bag | Source | §3.6 | Wallet | $98K × 2.0 = $196K | $0.4–1.2M | ArmoredTruckService |
-| S11 | Bank heist share | Source | §3.7 | Wallet | $2.06M | $2–4M (if both windows are run) | HeistService |
+| S11 | Bank heist share | Source | §3.7 (equal split, party bonus, clamp, events after) | Wallet | $2.93M (crew of 4) / $2.25M (solo) | $2–4M (if both windows are run) | HeistService |
 | S12 | Phone jobs | Source | §3.10 | Wallet | $48–96K | $0.3–0.6M | JobsService |
 | S13 | Contracts, daily, playtime, codes, referral | Source | Income-seconds with floors (`Economy.DAILY_REWARDS`, `Contracts`). **Playtime (V2):** 3 min 2 incomeMinutes (min $300) · 8 min 5 · 15 min Uncommon car · 25 min 10 · 40 min Rare car · 60 min 20 incomeMinutes; **active seconds only**. Reward-origin cars: trade-locked 14 days, never insured. Referral inviter cap 1 per day. | Bank | 300–1,800 s × G | ≈$1M/day | RewardsService |
 | S14 | Race house prize | Source (soft cap) | `500 + 20 s × G` | Wallet | $16.5K | small | RaceService |
@@ -1857,108 +1857,181 @@ Revision 1's six waves are replaced by the dependency-ordered work packages in *
 
 ### 10.1 Global rules (every new system)
 
-1. **Clients send intent, never values.** Ids and uids only. Prices, payouts, values, levels, positions used for payouts, timers and ownership are re-derived on the server.
-2. **Every remote** goes through `Net.on(name, handler, rate)` with `Net.is*` validation. Every ProximityPrompt trigger re-checks distance (≤ `MaxActivationDistance` + 2), line of sight where it matters, state, and the hold time (the `addStealPrompt` pattern: server-recorded `PromptButtonHoldBegan`, reject below 0.9× the required hold, no stale holds).
-3. **Taint.**
-   - Any car flagged by the VehicleService watchdog, and any character flagged by the new **CharacterWatchdog**, earns nothing until the taint clears 10 s after the last violation.
-   - Tainted means: no street income, no XP, no deliveries, no bag pickups or deliveries, no payouts.
-   - CharacterWatchdog rule: horizontal speed ≤ `WalkSpeed × 1.5 + 4` on foot, teleport displacement checks, and server rewind like the car watchdog.
-4. **Minimum travel time.** Every "carry from A to B" payout (loot delivery, theft, truck and heist bags, races, jobs) uses `VehicleService.minTravelTime` or the on-foot equivalent from pickup to drop. Faster is refused.
-5. **Atomic money.**
+1. **Clients send intent, never values.** Ids and uids only. Prices, payouts, values, levels, positions used for payouts, timers, stunt events and ownership are re-derived on the server.
+2. **Every remote** goes through `Net.on(name, handler, rate)` with `Net.is*` validation (`Net.isShape` for tables, `Net.isArrayOf` for lists). Every ProximityPrompt trigger re-checks distance (≤ `MaxActivationDistance` + 2), line of sight where it matters, state, and the hold time (the `addStealPrompt` pattern: server-recorded `PromptButtonHoldBegan`, reject below 0.9× the required hold, no stale holds).
+3. **Cars: taint and pause are two flags.**
+   - `car.data.tainted` is **permanent for that spawned car** (the v1 rule, `VehicleService` watchdog): no delivery, chop, bag pickup or delivery, or race finish, ever.
+   - `car.data.pausedUntil = now + 10` on every watchdog violation: street income and XP stop until it passes. Lag spikes cost a few seconds of income, never a delivery.
+4. **Characters: CharacterWatchdog, taint only in V2.0.**
+   - Rule: on-foot horizontal speed ≤ `WalkSpeed × 1.5 + 4`, plus a teleport displacement check.
+   - **Exempt** while seated, ragdolled, or while `MoveGraceUntil > now`. Every server teleport (cab, hospital, jail, HQ release, respawn), knockback, carjack eject, ragdoll and seat exit at speed sets `MoveGraceUntil = now + 2`.
+   - A player is tainted only after **3 violations within 5 s**; the taint clears 10 s after the last violation and blocks bag pickups and deliveries and crime payouts.
+   - **No server rewind** in V2.0. The first playtest runs telemetry-only (`Flags.WATCHDOG_ENFORCE = false`), so the thresholds are tuned on real data before anything is blocked.
+5. **Minimum travel time.** Every "carry from A to B" payout (loot delivery, theft, truck and heist bags, races, jobs) uses `VehicleService.minTravelTime` or the on-foot equivalent from pickup to drop. Faster is refused.
+6. **Atomic money.**
    - `spend()` happens before the grant, with a refund on grant failure (the v1 Dealership pattern).
    - Grants and their idempotency markers go in the same profile write (the v1 receipt pattern).
-6. **Caps and cooldowns** in Config are enforced server-side with per-player and per-server state.
-7. **Logging.** Every minted payout calls EconomyTelemetry with its row id. Anomalies are flagged, never auto-banned (gta_combat §10.7 philosophy).
+7. **Caps.** Every cap in Config is enforced server-side with persisted counters (`ledger`, `hourly`, `pairs`), so a server hop resets nothing. **Soft caps** (evades, truck bags, jobs, race wins) pay ×0.25 beyond the cap. **Hard caps** stay on minted PvP-adjacent sources: insurance, interceptor, Most Wanted, player-car chop, revenge, repo, 5★ survival, race pairs.
+8. **Far-away state goes through one blip channel.** Under StreamingEnabled (roblox_tech §8) clients can't read distant instances, so every far marker (LOADED, hot ride, stolen-car pulses, Most Wanted, bag carriers, the truck, party members, revenge targets, Tracker GPS, the Crown) is sent by **BlipService** on the `MapBlips` UnreliableRemoteEvent: `{id, kind, pos, flags}`, 2 Hz per viewer, at most 40 blips, about 10 KB/s for the whole server. Filters are per viewer: Tracker GPS only to the victim and their party; a revenge mark only to its holder; party blips only to the party.
+9. **Logging.** Every minted payout calls EconomyTelemetry with its row id. Anomalies are flagged, never auto-banned (gta_combat §10.7 philosophy).
 
 ### 10.2 Per money source
 
 | Source | Exploit vector | Server rule |
 |---|---|---|
-| Street income (S3) | Speedhack, fly or teleport; AFK auto-drive; driving circles in a lot; safe-zone farming; passive farming | Watchdog taint pauses income. ≥ 150 studs net displacement per 60 s. Input-change check every 45 s (server reads `VehicleSeat.ThrottleFloat/SteerFloat`). Road-zone check (RoadGraph lane bounds + 12 studs). Off in safe zones and own garage. Passive ×1.5. S× computed only from server state (stars, cruise seconds). Mileage and XP use the same gates. |
+| Street income (S3) | Speedhack, fly or teleport; AFK autopilot on a loop; driving circles in a lot; safe-zone farming; passive farming; shield farming | Watchdog pause stops income. ≥ 150 studs net displacement per 60 s. Input-change check every 45 s (server reads `VehicleSeat.ThrottleFloat/SteerFloat`). Road-zone check (RoadGraph lane bounds + 12 studs). Off in safe zones and own garage. Passive ×1.5. **Time ramp needs fresh roads** (1,200 studs of edges not driven in 300 s per ramp minute). **Stunt events are sampled by the server** from the car's physics (relative speed and distance to other cars, slip, wheel contact), never reported by the client. **Daily limit** 10,800 full-rate seconds. **Hot ride** heat and the ×6 blip at any rarity. **Protected drives cap at ×5.** S× is computed only from server state. Mileage and XP use the same gates. Anomaly flag for 2 h of income with zero stunt events. |
 | Car XP | XP farming in a loop | Same gates; XP is capped at 1.5× the base rate per minute of driving (bonuses can't stack beyond) |
-| Hotwire timing bar (CLEAN steal) | Always hitting "perfect" | The server picks the sweet-spot window per hold and measures the tap against its own record of when the hold began (±120 ms plus half the ping). The worst case, always perfect, equals a 40% faster hold and never applies to garage raids or carjacks. Logged if the perfect rate stays above 90% over 20 steals. |
-| Store hold-up (S4) | Remote spoof; robbing from outside; multi-store teleport chains | Prompt and aim checks server-side (gun equipped, within 15 studs, aim vector from HitboxHistory facing). Fill ticks server-side only while inside the store volume and within 12 studs. Per-store server cooldown 300 s, per-player 45 s. Taint voids the payout. |
+| Hotwire release (CLEAN steal) | Always releasing "perfectly" | The server picks the green window per hold, tells only the holder (`HotwireWindow`), and measures the release against its own `PromptButtonHoldBegan` / `PromptButtonHoldEnded` times (±120 ms plus half the ping). The worst case, always perfect, equals a 40% faster hold; it never applies to garage raids or carjacks. Logged if the perfect rate stays above 90% over 20 steals. |
+| Store hold-up (S4) | Remote spoof; robbing from outside; multi-store teleport chains | Prompt and aim checks server-side (gun equipped, within 15 studs, aim vector from HitboxHistory facing). Fill ticks server-side only while inside the store volume and within 12 studs. Per-store server cooldown 300 s, per-player 45 s. Character taint voids the payout. |
 | ATM hack (S5) | Auto-solve; spoofed success | The server owns the mini-game seed and step deadlines. The client sends one value per step; a wrong or late value fails the step. Minimum 6 s total. Per-ATM cooldown. |
 | NPC mugging (S6) | Mass-farming peds | Per-ped cooldown 120 s; diminishing returns ×0.25 after 10 in 10 min; ped count bounded by the NPCService budget |
 | Player mugging (T1) | Alt laundering, harassment | Pure transfer (no mint). 120 s victim immunity. Rookie, passive and safe-zone checks. REVENGE mark. Logged. |
-| LOADED drop, carjack spill (T2, T3) | Kill-farming | Only LOADED victims drop (§3.4). Drops are server parts; pickup by Touched validated server-side (distance ≤ 6, alive, untainted). Killer priority 3 s. |
+| LOADED drop, carjack spill (T2, T3) | Kill-farming | Only LOADED victims drop or spill (§3.4, §2.7.1). Drops are server parts; pickup by Touched validated server-side (distance ≤ 6, alive, untainted). Killer priority 3 s. |
+| Wanted loss (K8) | Dying or leaving to dodge a bust | WASTED while wanted takes the same 7%/★ as BUSTED plus the hospital bill and impounds the driven car; combat-logging at 1★+ (or In Combat while LOADED) takes it at release (§10.3) |
 | Jewelry (S7) | Remote smashes | Melee or shot hit validated by WeaponService on the case part. Each case pays once. Server cooldown. |
-| Chop (S8) | Chopping teleported or owned cars; order spam | v1: only Loot, untainted, `minTravelTime`, dwell. Orders: first 3 fills each, server-checked against car attributes. Player-car chop caps (§2.8). |
-| Evade bonus (S9) | Self-heat farming (shoot in the air, evade) | Paid only if peak stars came from a crime **with a victim or target** (not `gunfire` alone), only on a true evade, at most 6 paid evades per hour |
-| Truck bags (S10) | Server hopping; teleport delivery; alt median inflation | Bag value frozen at spawn from the **median** of eligible players, clamped by the deliverer's own G. 12 bags per player per hour. Bags are server-owned parts; carrier state is server-side. `minTravelTime` from crack point to drop-off. Rookies can't pick up. |
-| Bank heist (S11) | AFK crew members; split abuse; alt median | Members must be within 300 studs of the vault at drill end **and** have done at least one interaction (hack, cool, grab, deliver, or a damage contribution) to get a share. Split stored at lobby lock and immutable after. Per-member clamp. One heist per window per server. |
-| Phone jobs (S12) | Instant completion | Server checkpoints with `minTravelTime`; 20 paid per day |
-| Contracts, daily, playtime (S13) | v1 handled | Stats come only from server events (`RewardsService.progress`); playtime is server-measured (v1) |
-| Races (S14) | Alt races; teleport; nitro hacks | Server checkpoints, segment `minTravelTime`, taint disqualifies, VehicleFx nitro caps (v1), pair caps (3 per day), 10 paid wins per day |
-| Insurance (S15) | Alts stealing each other's cars | 20 min hold before a car is insurable; 3 claims per day; the first per pair per 24 h; punch-down and starter rules; paid only after a 300 s lay-low window without a repo |
-| Repo, recovery, revenge, interceptor (S16) | Staged thefts | v1 `BONUS_PAIR_COOLDOWN` 600 s per pair; recovery needs `RECOVERY_MIN_SECONDS` (v1); interceptor capped at 5 per day and per pair per 30 min |
-| Most Wanted reward (S17) | Friend or alt gets 5★, buddy claims | 60 s or more at 5★; claimer not in the target's party, crew or Roblox friends (`IsFriendsWith`, cached); 3 per claimer per day; per pair per 30 min |
-| 5★ survival (S18) | Hiding in an unreachable spot | Paid only if the target was seen by police at least once per 60 s at 5★ (`isSeen` history), and evaded outside safe zones and the own garage |
-| Prestige | Prestige with cars hidden mid-theft | Requires every car parked, none missing or in lay-low, not in combat |
-| Deposits | Depositing while chased | 0★ required. Garage deposit needs a server-side interior check. ATM 2 s hold. |
+| Chop (S8) | Chopping teleported or owned cars; order spam | v1: only Loot, untainted, `minTravelTime`, dwell. Orders: first 3 fills each, server-checked against car attributes. Player-car chop: loot `chopValue` only, 3 per day, pair and 20-min hold rules, $0 between friends, counts as a loss (§2.8). |
+| Evade bonus (S9) | Self-heat farming (shoot in the air, evade) | Paid only if peak stars came from a crime **with a victim or target** (not `gunfire` alone), only on a true evade; 6 full-pay evades per hour, then ×0.25 |
+| Truck bags (S10) | Server hopping; teleport delivery; alt median inflation | Bag value frozen at spawn from the **median** of eligible players, clamped by the deliverer's own G (event multipliers after). 12 full-pay bags per player per rolling hour (persisted), then ×0.25. Bags are server-owned parts; carrier state is server-side. `minTravelTime` from crack point to drop-off. A rookie may pick one up only through the confirm prompt, which ends rookie protection. |
+| Bank heist (S11) | AFK crew members; alt median; window griefing | Members must be within 300 studs of the vault at drill end **and** have done at least one interaction (hack, cool, grab, deliver, or a damage contribution) to get a share. Equal split, computed by the server. Per-member clamp; overflow destroyed. One heist per window per server; an early fail reopens the window if ≥ 180 s remain, and the kit is only refunded after the drill. |
+| Phone jobs (S12) | Instant completion | Server checkpoints with `minTravelTime`; 20 full-pay per day, then ×0.25 |
+| Contracts, daily, playtime (S13) | AFK farming gifts; alt car farms | Stats come only from server events (`RewardsService.progress`). Playtime gifts count **active** seconds only (input, or 30+ studs moved, in the last 60 s). Reward-origin cars are trade-locked 14 days and never insured. Referral inviter rewards: 1 per day. |
+| Races (S14) | Alt races; teleport; nitro hacks | Server checkpoints, segment `minTravelTime`, taint disqualifies, VehicleFx nitro caps (v1), hard pair cap (3 paid races per pair per day), 10 full-pay wins per day then ×0.25 |
+| Pink slips, trades (T6) | Alt funnels; scams; "trade it, raid it back" | Pink slips pass every trading eligibility check (account age, playtime, `IsPaidItemTradingAllowed`) and a 7-day pair cooldown. `TRADE_NET_OUT_PER_DAY` caps net value given per day across trades and pink-slip losses. The counterparty can't keep or chop the car for 72 h. |
+| Insurance (S15) | Alts stealing each other's cars; insure-then-recover | 20 min hold before a car is insurable; 3 claims per day; the first per pair per 24 h; never between party, crew or Roblox friends; never for reward-origin cars; rates below sell value; **clawback** if the uid returns within 7 days; kept cars are sell-locked 7 days |
+| Shield farming | Losing junk cars to alts to trigger the day cap, then driving the best car at ×10 | A loss counts only if the car is worth ≥ 20% of the victim's best non-bound car; every owner-wide protection caps S× at ×5 |
+| Repo, recovery, revenge, interceptor (S16) | Staged thefts and staged mugs | v1 `BONUS_PAIR_COOLDOWN` 600 s per pair; recovery needs `RECOVERY_MIN_SECONDS` (v1); revenge pays only if the offence cost the victim ≥ `max(1,000, 30 s × G)`; repo and revenge 3 paid per day each; interceptor 5 per day and per pair per 30 min |
+| Most Wanted reward (S17) | Friend or alt gets 5★, buddy claims; rich alt feeds a poor main | 60 s or more at 5★; claimer not in the target's party, crew or Roblox friends (`IsFriendsWith`, cached); **clamped to `25,000 + 900 s × claimerG`**; 3 per claimer per day; per pair per 30 min |
+| 5★ survival (S18) | Hiding in an unreachable spot; repeat farming | Paid only if the target was seen by police at least once per 60 s at 5★ (`isSeen` history), and evaded outside safe zones and the own garage; 2 paid per day |
+| Double It (S20) | Cheapest R$ → cash route; stacking on event multipliers | `min(share, 300 s × G)`, once per day, refused when any event multiplier applied |
+| Prestige | Prestige with cars hidden mid-theft | Requires every car parked, none missing or in a lay-low window, not in combat |
+| Deposits | Depositing while chased; server-hopping to bank a LOADED wallet | 0★ required. Garage deposit needs a server-side interior check. ATM 2 s hold. Leaving banks the wallet, minus 10% if LOADED outside your garage. |
 | Mechanic, Go Home | Instant escape or bank | Blocked while wanted, LOADED, In Combat, or carrying loot |
 | Combat | Aimbot, damage spoof, rapid fire | gta_combat §10: hitscan validation pipeline, HitboxHistory rewind, server ammo, ShotAudit |
 
 ### 10.3 Ownership and transfer integrity
 
-1. **Car identity.** A uid is permanent. Every transfer (`CarService.transfer`) removes the record from the source and inserts it into the destination in one server step. Both profiles must be loaded in this server, or the source is this server and the destination gets mail.
-2. **Save ordering for transfers.** `saveNow(giver)` first, then `saveNow(receiver)` (run with `task.spawn`, since saveNow yields).
-   - **A crash between the two** loses the car instead of duplicating it. To recover: before the transfer, write `HC_Escrow_v1/<transferId> = { uid, record, from, to, status = "pending" }`; after both saves, mark it "done".
-   - **On load,** MailService scans the escrow index for this user (`HC_Escrow_v1/idx_<userId>`, a small list) and re-delivers any "pending" record whose uid is missing from both profiles. It never re-delivers if the uid exists anywhere it can check.
-3. **Trades are two transfers** under one `tradeId`, run with the same escrow and ordering. Before the swap, the server re-validates both sides: ownership, `status = ok`, not lay-low, not trade-locked, not bound, eligibility, and **offer unchanged since the last Ready**.
-4. **Serial cars** have an extra global registry check on every load (§2.9). Duplicates go to `retiredCars` with reason "dupe" and are flagged.
-5. **Mail** items have a GUID. Apply-then-record in `mailSeen` happens in the same write, so items are idempotent.
-6. **Leaving mid-transfer.**
-   - A thief leaving during delivery: v1 `fail` returns the car home.
-   - A thief leaving during lay-low: mail return.
-   - Trades: cancel if either player leaves before the swap step.
-   - Heist or truck bags carried by a leaver drop at their last valid position.
-7. **Combat logging.** Leaving within 15 s of player damage (In Combat), or at 2★ or more, applies the BUSTED wallet penalty (35%) at release. This is recorded in the same final save. The Roblox disconnect reason doesn't change it; a mobile drop counts, and the rule is announced in the help text the first time you get 2★.
+1. **Car identity.** A uid is a GUID, minted once, never reused. A record lives in exactly one profile. Every transfer (theft finalisation, trade, pink slip) goes through `CarService.transfer`, and **both profiles must be loaded in this server**. There are no cross-server transfers, no mail and no escrow store in V2.0.
+2. **The swap never yields.** Validate on current server state, then in one step: remove `cars[uid]` from the giver's `data`; on the record set `xferSeq += 1`, `owners`, `lastTransfer`, locks and `inbound = { from = giverUserId, xfer = <GUID> }`; insert into the receiver's `data`; mark both dirty. No `UpdateAsync`, `GetAsync` or `task.wait` inside.
+3. **Save order: giver first.** In a spawned task: `ok = DataService.saveNow(giver)`; only if `ok`, clear `inbound` on the receiver's copy (if it is still there) and `saveNow(receiver)`. If `ok` is false, `inbound` stays set, and the receiver's autosaves carry it.
+   - While `inbound` is set the car can be driven and parked but **not sold, traded, staked or chopped**.
+   - **On the receiver's next load**, CarService makes one `GetAsync("p_" .. from)` on `HotwireCity_v2` (a read; it doesn't touch the session lock) for each `inbound` car. If the giver's stored profile **still has `cars[uid]`**, the giver's save never landed: drop the receiver's copy and log the full record. Otherwise clear `inbound`. If the read fails, keep `inbound` and retry on the next load.
+   - The giver's final save on leave counts: when the giver's `DataService.Released(userId, true)` fires, CarService clears `inbound` on every car that giver handed over this session.
+   - **Accepted loss case:** the giver's save lands, the receiver's never does, and the server crashes. The car is lost (as v1 DATA-1 accepts). The full record JSON is logged at transfer time so an admin can `/hc restore` it.
+   - **Why no escrow:** revision 1's escrow added 4–6 DataStore writes per transfer and a yield before the swap, and only covered the loss case. The `inbound` marker covers the duplicate case with zero extra writes and one read on a rare path.
+4. **Trades** are two transfers under one `tradeId`, swapped in the same step. Before the swap the server re-validates both sides: ownership, `status = ok`, no lay-low, not trade-locked, not bound, not frozen, no `inbound`, eligibility, the net-out cap, and **offer unchanged since the last Ready**. Then `saveNow(A)` and `saveNow(B)`; each car's `inbound` clears once its own giver's save succeeded.
+5. **Serial cars** are checked against `HC_LimitedRegistry_v1` on load (§2.9): repair the registry when the record's `xferSeq` is newer, **freeze and flag** otherwise. Never auto-retire.
+6. **Leave-time economy lives in `DataService.Releasing` handlers** (never `PlayerRemoving`, whose order between systems is connection-dependent). Handlers mutate the `data` argument directly, because the money API is a no-op once the profile is releasing. In order:
+   1. **Server shutdown** (`DataService.isShuttingDown()`): no penalties; every open theft or lay-low resolves for the victim; the wallet goes to the bank for free. Publishing an update must never fine anyone.
+   2. **Combat log:** leaving at 1★ or more, or In Combat while LOADED, applies the WASTED wallet loss `wallet × max(0.07 × stars, LOADED and 0.20 or 0)` (destroyed) and impounds a driven owned car (`status = impounded`). The rule is announced in help text the first time the player reaches 1★. A mobile drop counts; the disconnect reason doesn't change it.
+   3. **LOADED at 0★, outside your own garage:** 10% leave fee, destroyed.
+   4. Whatever remains in the wallet moves to the bank.
+   5. **Victim of an open theft or lay-low:** finalise the transfer (§2.7.4), credit insurance into this same `data`.
+   6. **Thief of an open theft or lay-low:** cancel; the victim keeps the car.
+   7. Heist or truck bags carried by the leaver drop at their last valid position.
+7. **Trades** cancel if either player leaves before the swap step.
 
 ### 10.4 Things the client must never be trusted with
 
-Money amounts, prices, car stats, level or XP, upgrade levels, finish or trait rolls, "1 in X", payout multipliers, wanted stars, district, party membership, split percentages after lock, mini-game success flags, bag ownership, race times, positions used for payouts (always server-sampled), and anything gta_combat §10.7 lists.
+Money amounts, prices, car stats, level or XP, upgrade levels, finish or trait rolls, "1 in X", payout multipliers, stunt events, wanted stars, district, party membership, heist shares, mini-game success flags, hotwire release timing (the server uses its own prompt timestamps), bag ownership, race times, positions used for payouts (always server-sampled), and anything gta_combat §10.7 lists. The bag label and the payout breakdown are computed on the client for display only; the server recomputes every amount.
 
 ---
 
 ## Appendix A: Config skeletons (starting values for engineers)
 
 ```lua
+-- Config/Flags.luau (launch intent; a package that misses the date ships with its flag false)
+return {
+	CARJACK_PLAYERS_ENABLED = true, HEIST_ENABLED = true, TRADING_ENABLED = false, RACES_ENABLED = false,
+	RACE_PINK_SLIPS_ENABLED = false, SERIALS_ENABLED = false, CREWS_PERSISTENT_ENABLED = false, SEASON_ENABLED = false,
+	WATCHDOG_ENFORCE = false, -- CharacterWatchdog telemetry-only until the first playtest is reviewed
+}
+
 -- Config/Theft.luau
 return {
-	CARJACK_MAX_SPEED = 8, CARJACK_HOLD = 0.8, CARJACK_DELIVERY_LIMIT = 180,
-	WALLET_SPILL_ON_CARJACK = 0.10, PLAYER_CAR_CHOP_RATE = 0.20, PLAYER_CAR_CHOPS_PER_DAY = 3,
-	LAYLOW_SECONDS = 300, REPO_HOLD = 3, REPO_HOLD_TRACKER3 = 1.5,
-	REVENGE_MARK_SECONDS = 900, REVENGE_BONUS_SECONDS = 60, REVENGE_BONUS_BASE = 500,
-	INTERCEPTOR_BASE = 500, INTERCEPTOR_SECONDS = 30, INTERCEPTOR_PER_DAY = 5,
-	STARTER_REP = 5, STARTER_CARS = 4, MIN_CARS_KEPT = 2,
-	VICTIM_COOLDOWN = 600, MAX_LOSSES_PER_DAY = 3, PAIR_COOLDOWN = 3600, PUNCH_DOWN_REP_GAP = 15,
-	INSURANCE_RATES = { [0] = 0.25, 0.40, 0.55, 0.70 }, INSURANCE_MIN_HOLD = 1200, INSURANCE_CLAIMS_PER_DAY = 3,
+	CARJACK_MAX_SPEED = 8, CARJACK_HOLD = 0.8, CARJACK_HOLD_DISABLED = 0.4, CARJACK_DELIVERY_LIMIT = 180,
+	CARJACK_VICTIM_IMMUNITY = 180, DISABLED_FLAT_TIRES = 2, DISABLED_HP_FRACTION = 0.30, DISABLED_STILL_SECONDS = 1.5,
+	WALLET_SPILL_ON_CARJACK = 0.10, -- LOADED victims only
+	PLAYER_CAR_CHOPS_PER_DAY = 3, -- pays EconomyMath.chopValue (loot rate)
+	LAYLOW_SECONDS = 300, REPO_HOLD = 3, REPO_HOLD_TRACKER3 = 1.5, REPO_BONUS_SECONDS = 30, REPO_BONUS_PER_DAY = 3, REPO_RP = 150,
+	REVENGE_MARK_SECONDS = 900, REVENGE_BONUS_SECONDS = 30, REVENGE_BONUS_BASE = 500, REVENGE_BONUS_PER_DAY = 3,
+	REVENGE_MIN_OFFENCE_BASE = 1000, REVENGE_MIN_OFFENCE_SECS = 30,
+	INTERCEPTOR_BASE = 500, INTERCEPTOR_SECONDS = 30, INTERCEPTOR_PER_DAY = 5, INTERCEPTOR_PAIR_COOLDOWN = 1800,
+	ROOKIE_SECONDS = 600,
+	STARTER_REP = 8, STARTER_ACTIVE_SECONDS = 7200, MIN_CARS_KEPT = 2,
+	VICTIM_COOLDOWN = 600, MAX_LOSSES_PER_DAY = 3, MAX_LOSSES_PER_DAY_LOW = 1, LOW_REP = 15,
+	LOSS_COUNT_MIN_VALUE_SHARE = 0.20,
+	PAIR_COOLDOWN = 3600, PUNCH_DOWN_MIN_GAP = 6, COUNTERPARTY_LOCK = 259200,
+	INSURANCE_RATES = { [0] = 0.25, 0.32, 0.39, 0.45 }, INSURANCE_MIN_HOLD = 1200, INSURANCE_CLAIMS_PER_DAY = 3,
+	INSURANCE_CLAWBACK_SECONDS = 604800,
+	THEFT_TRADE_LOCK = 604800, THEFT_SELL_LOCK = 604800, TRADE_LOCK = 259200, REWARD_TRADE_LOCK = 1209600,
 	IMMOBILIZER = { [0] = 1, 1, 1.5, 2.0 }, -- by tracker level
-	S_CAP = 10, S_CAP_BOUND = 5, S_BASE = 3, S_RAMP_PER_MIN = 0.5, S_RAMP_MAX = 3, S_PER_STAR = 1, S_PASSIVE = 1.5,
-	FLASH_HEAT_SECONDS = 120, FLASH_MIN_RARITY_ORDER = 5, FLASH_MIN_MULT = 6,
+	-- street income (§2.2)
+	S_BASE = 3, S_PER_STAR = 1, S_CAP = 10, S_CAP_PROTECTED = 5, S_PASSIVE = 1.5,
+	S_RAMP_MAX = 3, S_TIME_RAMP_MAX = 1.5, S_TIME_RAMP_STEP = 0.25, S_RAMP_FRESH_STUDS = 1200, S_RAMP_FRESH_WINDOW = 300,
+	S_ACTION_PER_MIN_MAX = 1.5, S_NEAR_MISS = 0.25, S_DRIFT = 0.25, S_AIR = 0.5, S_DRIFT_SECONDS = 2, S_AIR_SECONDS = 1,
+	S_NEAR_MISS_STUDS = 4, S_NEAR_MISS_REL_SPEED = 40, S_NEAR_MISS_REPEAT = 10,
+	S_DECAY = 0.5, S_DECAY_EVERY = 30, S_DECAY_BELOW_SPEED = 15, S_OUT_GRACE = 30,
+	STREET_FULL_SECONDS_PER_DAY = 10800,
+	HOT_RIDE_BLIP_MULT = 6, FLASH_MIN_MULT = 5, FLASH_HEAT_SECONDS = 180, FLASH_FAST_MULT = 8, FLASH_FAST_SECONDS = 90,
+	-- trading and pink slips (§5.4–5.5)
+	TRADE_NET_OUT_BASE = 100000, TRADE_NET_OUT_SECS = 1800, PINK_SLIP_PAIR_COOLDOWN = 604800, PINK_SLIP_LOSSES_PER_DAY = 2,
+	LEDGER_KEYS = { "losses", "insuranceClaims", "playerCarChops", "interceptors", "revengePaid", "repoPaid",
+		"survivalPaid", "mostWantedClaims", "jobsPaid", "raceWinsPaid", "pinkSlipLosses", "tradeNetOut", "doubleIt",
+		"streetSeconds", "referralsPaid" },
 }
+
+-- Config/Economy.luau (V2 additions; v1 values in Appendix B)
+Economy.G_MIN = 5
+Economy.WANTED_LOSS_PER_STAR = 0.07
+Economy.SURRENDER_LOSS_MULT = 0.5
+Economy.LOADED_BASE, Economy.LOADED_SECS, Economy.LOADED_DROP = 5000, 300, 0.20
+Economy.LEAVE_WALLET_FEE = 0.10 -- LOADED, 0★, outside own garage
+Economy.ATM_FEE = 0.05
+Economy.IMPOUND_FREE_SECONDS, Economy.REPAIR_FREE_SECONDS = 120, 60
+Economy.PRESTIGE_COST_SECONDS, Economy.PRESTIGE_KEEP_CARS = 10800, 3
+Economy.DEALER_REP = { Epic = 10, Legendary = 18, Mythic = 25, Secret = 40 }
+Economy.ACTIVE_WINDOW, Economy.ACTIVE_MOVE_STUDS = 60, 30 -- "active second" for playtime and starter protection
+Economy.PLAYTIME_REWARDS = {
+	{ minutes = 3, kind = "incomeMinutes", amount = 2, min = 300 },
+	{ minutes = 8, kind = "incomeMinutes", amount = 5 },
+	{ minutes = 15, kind = "car", rarity = "Uncommon" },
+	{ minutes = 25, kind = "incomeMinutes", amount = 10 },
+	{ minutes = 40, kind = "car", rarity = "Rare" },
+	{ minutes = 60, kind = "incomeMinutes", amount = 20 },
+}
+Economy.REFERRAL_INVITER_DAILY_CAP = 1
+Economy.DOUBLE_IT_SECS, Economy.DOUBLE_IT_PER_DAY, Economy.DOUBLE_IT_WINDOW = 300, 1, 30
+
+-- Config/Police.luau (additions)
+Police.Heat = { carjack = 1, dealerSteal = 2, playerTheft = 1, hotDrop = 3, assault = 1, copHit = 1, -- v1
+	carjackPlayer = 2, mugPlayer = 1, mugNpc = 1, flash = 1, breach2 = 1, impoundBreak = 2 } -- additive
+Police.HeatFloor = { storeStart = 1, storeFull = 2, gasStation = 2, atmHack = 2, pawnShop = 3, jewelry = 3,
+	truckCrack = 3, bankAlarm = 3, bankDrill = 4 } -- WantedService.raiseTo
 
 -- Config/Crime.luau (excerpt)
 return {
 	WANTED_MULT = { [0] = 1.0, 1.2, 1.5, 2.0, 2.5, 3.0 },
-	PARTY_BONUS_EACH = 0.10, PARTY_BONUS_MAX = 0.30, PARTY_RADIUS = 150, PASSIVE_MULT = 0.5,
+	PARTY_BONUS_EACH = 0.10, PARTY_BONUS_MAX = 0.30, PARTY_RADIUS = 150, PASSIVE_MULT = 0.5, CAP_SOFT_MULT = 0.25,
 	Activities = {
-		store = { rep = 1, fill = 8, base = 500, secs = 120, heatStart = 1, heatFull = 2, storeCd = 300, playerCd = 45, rp = 80 },
-		gas = { rep = 6, fill = 10, base = 800, secs = 150, heatStart = 2, heatFull = 2, storeCd = 300, playerCd = 45, rp = 100 },
-		pawn = { rep = 10, fill = 12, base = 1500, secs = 200, heatStart = 3, heatFull = 3, storeCd = 480, playerCd = 45, rp = 140 },
-		atm = { rep = 6, time = 6, base = 300, secs = 90, heat = 2, atmCd = 600, rp = 70 },
+		store = { rep = 1, fill = 8, base = 500, secs = 120, floorStart = 1, floorFull = 2, storeCd = 300, playerCd = 45, rp = 80 },
+		gas = { rep = 6, fill = 10, base = 800, secs = 150, floorStart = 2, floorFull = 2, storeCd = 300, playerCd = 45, rp = 100 },
+		pawn = { rep = 10, fill = 12, base = 1500, secs = 200, floorStart = 3, floorFull = 3, storeCd = 480, playerCd = 45, rp = 140 },
+		atm = { rep = 6, time = 6, base = 300, secs = 90, floor = 2, atmCd = 600, rp = 70 },
 		npcMug = { rep = 1, hold = 1.5, base = 40, secs = 8, heatChance = 0.5, pedCd = 120, drAfter = 10, drMult = 0.25, rp = 8 },
-		jewelryCase = { rep = 8, cases = 8, smash = 2, base = 800, secs = 30, heat = 3, serverCd = 900, rp = 250 },
-		evade = { basePerStar = 100, secsPerStar = 15, rpPerStar = 20, paidPerHour = 6 },
+		jewelryCase = { rep = 8, cases = 8, smash = 2, base = 800, secs = 30, floor = 3, serverCd = 900, rp = 250 },
+		evade = { basePerStar = 100, secsPerStar = 15, rpPerStar = 20, fullPerHour = 6 },
+		jobs = { fullPerDay = 20, cooldown = 60 },
 	},
+	Trunk = { { w = 60, kind = "cash", base = 50, secs = 10 }, { w = 20, kind = "magazine" }, { w = 10, kind = "armorOrMed" },
+		{ w = 8, kind = "paintVoucher", max = 5 }, { w = 2, kind = "hotDropTip", lead = 60 } },
 	Truck = { interval = 300, warn = 30, hp = 2000, tireHp = 150, guards = 2, crack = 8, bags = 4,
-		bagBase = 2000, bagMedianSecs = 120, clampBase = 5000, clampSecs = 300, heat = 3, bagsPerHour = 12, rp = 200 },
-	Heist = { interval = 1800, window = 300, minCrew = 2, maxCrew = 4, rep = 10, kitBase = 10000, kitSecs = 30,
-		bags = 8, bagBase = 15000, bagMedianSecs = 450, objectiveBonus = 0.05, splitMin = 0.15, splitMax = 0.40,
-		clampBase = 60000, clampSecs = 3600, rivalShare = 0.5, rp = 800, rpPerBag = 100 },
+		bagBase = 2000, bagMedianSecs = 120, clampBase = 5000, clampSecs = 300, floor = 3, bagsPerHourFull = 12, rp = 200 },
+	Heist = { interval = 1800, window = 600, minCrew = 1, maxCrew = 4, leaderRep = 10, memberRep = 3, lobbySeconds = 60,
+		kitBase = 10000, kitSecs = 30, reopenIfRemaining = 180, bagsPerMember = 2, bagBase = 15000, bagMedianSecs = 450,
+		objectiveBonus = 0.05, clampBase = 60000, clampSecs = 3600, rivalShare = 0.5, rp = 800, rpPerBag = 100 },
 	MostWanted = { base = 2500, secs = 60, growthPer30s = 0.1, growthCap = 3, minSeconds = 60, perClaimerDay = 3,
-		survivalBase = 1000, survivalSecsPerMin = 60, survivalMaxMin = 10 },
+		claimerClampBase = 25000, claimerClampSecs = 900,
+		survivalBase = 1000, survivalSecsPerMin = 60, survivalMaxMin = 10, survivalPerDay = 2 },
 }
 
 -- Config/Progression.luau (excerpt)
@@ -1967,7 +2040,9 @@ return {
 	CAR_XP_COEF = 80, CAR_XP_EXP = 1.6, CAR_XP_PER_STUD = 0.05, -- xpToNext(L) = floor(80 * L^1.6)
 	CAR_LEVEL_CAP = { Common = 20, Uncommon = 25, Rare = 30, Epic = 35, Legendary = 40, Mythic = 45, Secret = 50, Exclusive = 35 },
 	LEVEL_INCOME_STEP = 0.03, LEVEL_VALUE_STEP = 0.02,
+	CAR_LEVEL_FEED_EVERY = 5, -- silent bar otherwise
 	VAULT_BAYS = { { rep = 5 }, { rep = 25 }, { pass = "vault" } },
+	COSMETIC_REP = { plates = 10, underglow = 10 },
 	SEASON_TIERS = 50, SEASON_TIER_XP = 2000,
 }
 ```
@@ -1978,30 +2053,102 @@ return {
 
 | v1 value | V2 |
 |---|---|
+| DataStore `HotwireCity_v1`, `SCHEMA_VERSION 1` | **`HotwireCity_v2`**, `SCHEMA_VERSION 1`, `MIGRATIONS = {}`; v1 data is never read (§9.3) |
 | `STARTING_CASH 150`, `STARTER_CAR rustbucket` | Kept; the cash goes to the bank |
 | `START_SLOTS 4`, `MAX_SLOTS 10`, `PASS_EXTRA_SLOTS 2`, `SLOT_PRICES` | Kept |
-| `SELL_FRACTION 0.5`, `CHOP_SHOP_FRACTION 0.35` | Kept. Sell is now 50% of *value* (§2.6). |
+| `SELL_FRACTION 0.5`, `CHOP_SHOP_FRACTION 0.35` | Kept. Sell is now 50% of *value* (§2.6); chop uses `0.35 × price × finish` for loot **and** player cars. |
 | `Upgrades.lock {45,60,90,120}` | Garage security plus a level 4 at 180 s / $2.5M |
-| `Upgrades.hotwire` | Kept as the Hotwire Kit skill |
-| `Upgrades.nitro`, `Upgrades.armor` | Become per-car tracks (§2.4), grandfathered |
+| `Upgrades.hotwire` | Kept as the Hotwire Kit skill (`BuySkill`) |
+| `Upgrades.nitro`, `Upgrades.armor` | Become per-car tracks (§2.4). Nothing to grandfather (fresh store). |
 | `Tools` bat / taser / spikes | Bat → weapons; taser and spikes stay as tools (gta_combat). Prices kept. |
-| `BUSTED_CASH_PENALTY 0.1` / cap 600 s | 35% of wallet, uncapped, bank safe (§4.4) |
+| `BUSTED_CASH_PENALTY 0.1` / cap 600 s | **7% of the wallet per star**, uncapped, bank safe; the same loss on WASTED while wanted and on combat-log (§4.3–4.4) |
 | `SPRAY_*` | Kept (G-based) |
 | `THEFT_TIME_LIMIT 150`, `DROPPED_CAR_TIMEOUT 20`, `THEFT_ABANDON_LIMIT 12`, `THEFT_HOLD_MULTIPLIER 1.4` | Kept |
-| `NEWBIE_PROTECTION_CARS 3` | Starter protection: Rep 5 **and** 4 cars |
-| `THEFT_VICTIM_COOLDOWN 25` | 600 (Shaken) |
-| `RECOVERY_BONUS_SECONDS 30`, `BONUS_PAIR_COOLDOWN 600` | Kept (repo uses 30 s) |
-| `REVENGE_BONUS_SECONDS 20` | 60 + $500 |
+| `NEWBIE_PROTECTION_CARS 3` | Starter protection: **Rep 8 and 7,200 active seconds, one-way latch**; no car-count clause |
+| `THEFT_VICTIM_COOLDOWN 25` | 600 (Shaken), counted losses only |
+| `RECOVERY_BONUS_SECONDS 30`, `BONUS_PAIR_COOLDOWN 600` | Kept (repo uses 30 s, 3 paid per day) |
+| `REVENGE_BONUS_SECONDS 20` | 30 + $500, 3 per day, only when the offence cost ≥ `max(1,000, 30 s × G)` |
 | `OFFLINE_RATE 0.3`, `OFFLINE_CAP_HOURS 6`, `VIP_OFFLINE_RATE 0.6` | Kept; to the bank |
-| `REBIRTH_BASE_COST 750,000`, `REBIRTH_COST_GROWTH 2.75`, `REBIRTH_INCOME_BONUS 0.5` | Kept (Prestige) |
-| `REBIRTH_KEEP_CARS 2` | 3, plus vault and bound cars |
-| `DAILY_REWARDS`, `PLAYTIME_REWARDS`, `Contracts` | Kept. Streak pauses; rewards to the bank; new stats added. |
+| `REBIRTH_BASE_COST 750,000`, `REBIRTH_COST_GROWTH 2.75`, `REBIRTH_INCOME_BONUS 0.5` | Kept as the floor of `max(750K × 2.75^n, 10,800 s × G)` (Prestige) |
+| `REBIRTH_KEEP_CARS 2` | **3 in total including vault cars**, player's choice, plus bound cars |
+| `DAILY_REWARDS`, `Contracts` | Kept. Streak pauses; rewards to the bank; new stats added. |
+| `PLAYTIME_REWARDS` (Rare 15 min, Epic 40 min, Legendary 60 min) | **Replaced** (§7.2 S13): Uncommon at 15 min, Rare at 40 min, the rest income-minutes; active seconds only |
+| `RewardsService.REFERRAL_INVITER_DAILY_CAP 3` | 1 |
 | `GROUP_BONUS 0.1`, `FRIEND_BONUS_EACH 0.1` (max 3), `INDEX_RARITY_BONUS 0.05` | Kept (garageMult); plus set bonuses (§6.4) |
 | `Rarity` weights, `hotwireTime`, `wantedOnSteal`, `wantedChance` | Kept |
-| `Mutations` | Finishes with the same multipliers and weights, plus event finishes |
+| `Mutations` | Finishes with the same multipliers and weights, plus event finishes; `Mutations` removed once every caller is ported |
 | `Events.HOT_DROP_INTERVAL {360,540}` | {600, 900} |
-| `DealershipService.RESTOCK_INTERVAL 240` | 300 (pulse) |
+| `DealershipService.RESTOCK_INTERVAL 240` | 300 (pulse); plus `DEALER_REP` purchase gates |
 | `Police.UNITS_PER_STAR`, `MAX_UNITS_GLOBAL 14`, `DECAY_DELAY` | Kept; × district factor; `DECAY_DELAY` becomes the evade timer (gta_combat) |
-| `Police.Heat` | Extended (§3.11) |
-| `Vehicle.MAX_HEALTH 100`, `NITRO_*`, watchdog constants | Kept. The watchdog uses `CarStats` effective top speed. |
-| `Monetization` passes and products | §8 (Master Thief, Infinite Nitro and Zapper Pass retired; VIP split) |
+| `Police.Heat` | Additive keys extended; robbery levels move to the new `HeatFloor` (§3.11) |
+| `Vehicle.MAX_HEALTH 100`, `NITRO_*`, watchdog constants | Kept. The watchdog reads the car model's `TopSpeed` attribute (from `CarStats`). |
+| `Monetization` passes and products | §8 (Master Thief, Infinite Nitro and Zapper Pass retired; VIP split; Double It capped) |
+| `Workspace.StreamingEnabled = false` (SPEC §3) | `true` per roblox_tech §8; far markers through `MapBlips` |
+
+---
+
+## Critique log
+
+Revision 2 answers three critiques of revision 1: **economy and exploits** (EC1–EC15), **fun, addictiveness and virality** (FU1–FU15) and **engineering** (EN1–EN15). Verdicts: **Accepted** (applied as proposed), **Modified** (the problem is accepted, the fix is changed, with the reason), **Rejected** (not applied, with the reason). Where two critiques collided, the resolution is noted on both.
+
+**Summary:** 35 accepted as proposed and 10 accepted with a changed fix. Two sub-proposals are rejected: EC6's escrow lookup on load (made unnecessary by EN2/EN3) and EC15's "a crime payout taken out of the car resets the ramp" (it contradicts FU4). Four collisions were resolved: EC6 vs EN2/EN3 (lay-low and transfers: engineering's mechanism wins), EC15 vs FU4 (street ramp: merged), EC2 vs FU8 (death and bust losses: merged onto one per-star scale), EN11 vs FU12 (hotwire input: hold-and-release, no tap remote).
+
+### Economy and exploits
+
+| # | Critique | Verdict | What changed and why | Where |
+|---|---|---|---|---|
+| EC1 | P0: protections farmable into "×10 and unstealable" (alts, last-2, starter by car count) | Accepted | `S_CAP_PROTECTED = 5` for every owner-wide protection and bound cars (HUD "PROTECTED · ×5 MAX"); starter protection is a one-way latch with no car-count clause; a loss counts toward Shaken and the day cap only if the car is ≥ 20% of the victim's best non-bound car; lent cars earn no garage income and carry the owner's cap | §0.2, §2.2, §2.8, §5.3 |
+| EC2 | P0: dying beats a bust; server-hop deposits | Accepted, leave fee **modified** | Wanted deaths lose the same per-star share as a bust plus the hospital bill, with the bounty and LOADED bag paid out of it and the driven car impounded (merged with FU8's per-star scale, so the order surrender < BUSTED < WASTED holds at every star level). Combat-log threshold 2★ → 1★. The 10% leave fee applies **only when LOADED** (outside the garage, at 0★): that is the exploit (escaping the LOADED cab/Mechanic block), and fining every mobile disconnect would punish ordinary kids for bad Wi-Fi. | §4.3, §4.4, §10.3 |
+| EC3 | P0: playtime gifts (Legendary at 60 min, no AFK check) break pacing and feed alts | Accepted | New `PLAYTIME_REWARDS` table; active seconds only; reward-origin cars trade-locked 14 days and never insured; referral inviter cap 3 → 1; §7.4 re-run with the gifts included (G at 30 min ≈ 125–150, at 60 min ≈ 250–350) | §7.2 S13, §7.4, App. A/B |
+| EC4 | P1: robbery heat stacks additively (pawn = 5★ every time) | Accepted | `WantedService.raiseTo` + `Police.HeatFloor` for robbery levels; additive `Heat` kept only for acts that escalate | §3.2, §3.11 |
+| EC5 | P1: street income can be botted (~$37M/h) | Accepted, merged with FU4 | Hot-ride heat at any rarity, from S× 5, every 180 s (90 s at ×8, from FU4); fresh-road rule for the time ramp; 10,800 s daily full-rate limit. The FU4 merge also caps plain cruising at ×4.5, roughly halving unattended income again, and adds a zero-stunt anomaly flag. | §2.2, §7.5, §10.2 |
+| EC6 | P1: lay-low finalises on load (thief keeps on crash; dupes); uid reuse; serial retire wipes cars | Accepted in goal, **mechanism modified** | The escrow lookup is replaced by EN2/EN3: the record never leaves the victim until the single final transfer, so there is nothing to finalise on load and no mail copy to duplicate. GUID uids and freeze-not-retire for serial mismatches are accepted as proposed. | §2.7.4, §2.9, §9.3, §10.3 |
+| EC7 | P1: thefts between friends mint money (insurance > sell; free chop) | Accepted, rates **modified** | Clawback (7 d), friend exclusion, 7-day trade and sell locks on kept cars, player-car chop at the loot `chopValue` counted as a loss: all accepted. Insurance rates are {25, 32, 39, 45}% instead of {15, 25, 35, 45}%, because the binding brief (§3.11) promises "about 25%" at the base tier. With the clawback, the friend exclusion and the sell lock, the 25% base no longer mints between friends; every tier stays below the 50% sell value. Impound uses the new 120 s (FU8). | §2.6, §2.7.1, §2.8 |
+| EC8 | P1: Prestige costs minutes and raises G immediately | Accepted | `cost = max(750K × 2.75^n, 10,800 s × G)`; keep 3 cars in total, vault included, player's choice; bound cars kept | §6.3, §7.1 |
+| EC9 | P1: dealership turns cash into top cars ~3× too fast | Accepted | `DEALER_REP = {Epic 10, Legendary 18, Mythic 25, Secret 40}` on purchases only; street, dealer-floor theft and Hot Drops stay open | §6.1, §7.1 |
+| EC10 | P1: veterans can grief newcomers with carjacks | Accepted | Starter protection until Rep 8 **and** 7,200 s (counted as *active* seconds, so it can't be idled away), or until the player keeps or chops someone else's car; punch-down `> max(6, floor(victim.rep / 2))`; 1 counted loss per day below Rep 15; 180 s carjack immunity; wallet spill only when LOADED | §2.7.1, §2.8 |
+| EC11 | P2: Most Wanted reward breaks the clamp law; survival uncapped | Accepted | Claimer clamp `25,000 + 900 s × claimerG`; event multiplier after the clamp; `SURVIVAL_PER_DAY = 2` | §3.12 |
+| EC12 | P2: revenge and repo bonuses can be staged | Accepted | Revenge 60 → 30 s × G, 3 per day, paid only if the offence cost ≥ `max(1,000, 30 s × G)`; repo 3 per day with RP capped the same way | §2.7.4, §6.1 |
+| EC13 | P2: pink slips bypass trade checks; uneven trades; raid-back | Accepted | Pink slips pass every trade eligibility check plus a 7-day pair cooldown; `TRADE_NET_OUT_PER_DAY`; counterparty can't keep or chop for 72 h | §2.8, §5.4, §5.5 |
+| EC14 | P2: Double It is the cheapest R$ → cash route | **Modified** | Kept, because the brief lists "double the payout on the results screen" as an impulse buy. Cap is `min(share, 300 s × G)` rather than 600 s so its R$ rate equals `cash_small`; once per day; refused under event multipliers; 30 s visible with no countdown. | §8.3 |
+| EC15 | P2: heist split maths; Golden Truck clamp; ramp grace stacking; rookie bag contradiction | Mixed: see each | **Split:** superseded by FU2 (equal split only). **Golden Truck:** accepted, generalised: every event multiplier applies after the clamp (§3.1). **Ramp grace:** **modified**: 30 s (not 5) with decay while stopped, and crime payouts do **not** reset the ramp. Robbing a store mid-cruise is the GTA rhythm FU4 asks for; the stacking is limited instead by the ×4.5 plain-cruise ceiling, decay, hot-ride heat from ×5 and the ×6 blip. **Rookie bags:** accepted; the §10.2 "can't pick up" line is gone. | §2.2, §3.1, §3.6, §3.7, §10.2 |
+
+### Fun, addictiveness and virality
+
+| # | Critique | Verdict | What changed and why | Where |
+|---|---|---|---|---|
+| FU1 | HIGH: the first 60 s are calm and the reveal is flat | Accepted, wording **modified** | Scripted JACK of a traffic car at the light by the garage, a guaranteed Gold Common, a scripted 2★ chase (no bust, no shooting, heli flyover, a pursuer crash, LOST THEM ≤ 40 s). The reveal reads "street odds 1 in 21", never "you rolled", because a guaranteed result labelled as a roll would break the §8.1 honesty rule. Needs a signal near each plot [world]; falls back to the v1 newbie car. | §1.3 |
+| FU2 | HIGH: the heist will rarely happen and blocks friend invites | Accepted, kit refund **modified** | Leader Rep 10, members Rep 3, rookies with the confirm prompt, crew 1–4 with 2 bags per member, window 600 s, equal split, objective bonus to the completer, Invite friend. The kit is refunded only for a fail **after the drill**, and an early fail reopens the window: with solo crews and a free refund, one griefer could otherwise burn every window. The party bonus keeps crews ahead per head. | §3.7 |
+| FU3 | HIGH: 30-min rookie protection outlasts the session | Accepted | `ROOKIE_SECONDS = 600`, HUD pill with opt-out, PROTECTION OFF at ~10:00, delta D12 | §1.3, §1.4, §2.8, §4.0 |
+| FU4 | HIGH: S× is idle cruising and punishes stopping | Accepted, numbers **modified** (merged with EC5/EC15) | Time ramp +0.25/min to +1.5 (fresh roads only); stunt ramp (near-miss, drift, airtime) ≤ +1.5 per minute; decay below 15 studs/s; ×6 blip; +1★ every 90 s at ×8. Two numbers differ from the proposal: the **total** ramp is capped at +3 (not +4.5), so the top end stays at revision 1's level and inside the economy targets; and the out-of-car hold is 30 s (not 90 s), the middle ground with EC15's 5 s that still covers a store robbery. | §2.2 |
+| FU5 | MED-HIGH: too many concepts in minutes 1–5 | Accepted | Numbered contact missions with MISSION PASSED; Mission 2 is the blue-car chop order; casino at ~8 min; silent car XP bar (feed at LV 5); wallet help at the first LOADED or rookie end | §1.3, §1.4, §2.3 |
+| FU6 | MED-HIGH: multipliers are invisible | Accepted | `PayoutBreakdown` on every payout, itemised line under the cash delta, wanted chip pulse at 3★+ (Law 9) | §0.2, §3.1, §9.6 |
+| FU7 | MEDIUM: keep-protections can't be seen | Accepted | `ProtectedReason` attribute; client derives pair, punch-down and counterparty; "STEAL" vs "JOYRIDE (protected: reason)" with a padlock | §2.7.1, §2.8, §9.2 |
+| FU8 | MEDIUM: BUSTED is heavy and flat | Accepted (merged with EC2) | Wallet loss `0.07 × stars`, surrender halves; impound free release 600 → 120 s; repair 180 → 60 s | §4.4, §2.1 |
+| FU9 | MEDIUM: can't see what's open to rob | Accepted | `CrimeState`, lit/grey map icons with countdowns, Phone › Jobs › Hot spots | §3.13 |
+| FU10 | MEDIUM: the core verb has no variable reward | Accepted | Trait not replicated on street cars, revealed at delivery; `Rolls.trunk` with the proposed table; no luck boosts on trunk loot. Small addition: the magazine roll falls back to cash for a player who owns no gun. | §2.5, §2.5.1 |
+| FU11 | MEDIUM: hard caps silently pay $0 | Accepted | Soft caps pay ×0.25 with "(limit reached: reduced)"; hard caps only on minted PvP-adjacent sources (race pair caps stay hard as the alt guard) | §0.2, §3.1, §10.1 |
+| FU12 | MEDIUM: two-thumb hotwire; carjacks fail on mobile | Accepted | Hold, release in the green (all platforms); fast jack on a disabled car (0.4 s, no warning, no throttle break) | §1.3, §2.7.1, §10.2 |
+| FU13 | LOW-MED: truck bag label doesn't match the payout | Accepted | Each client shows its own clamped value from the public `bagBase` and its own `G` | §3.6 |
+| FU14 | LOW-MED: day-1 desirables too far away | **Modified** | Plates and underglow Rep 20 → 10 as proposed. AR Rep 15 → **10** (not 8) and Carbine 18 → **14** (not 12): Rep 8 is about 35 minutes in, when a $55K rifle is out of reach anyway and would skip the SMG and hand-cannon tiers; Rep 10 (about 1 h) still lands on day 1, together with the heist the AR is for. | §4.1, §6.1, §8.2 |
+| FU15 | LOW-MED: no "rob the richest" target | Accepted | `ServerCrown` with 3+ players, crown on nameplate, sign and map, feed card, double Top Thief points, mints nothing. Small addition: 5% hysteresis so it doesn't flicker. | §5.6, §5.8 |
+
+### Engineering
+
+| # | Critique | Verdict | What changed and why | Where |
+|---|---|---|---|---|
+| EN1 | Critical: delete the v1→v2 migration (v1 never shipped) | Accepted | Fresh store `HotwireCity_v2`, `SCHEMA_VERSION = 1`, `MIGRATIONS = {}`, forward-version guard, grandfathered rows deleted. The `V1_ARMOR_TO_V2` bug goes with it. gta_combat §13.2's own 1→2 step is overridden by delta **D13** (this task may only write under `docs/v2/design/`, so gta_combat itself is not edited). | §0.3, §4.0, §9.3, App. B |
+| EN2 | Critical: keep the record with the victim until the window ends; transfer once | Accepted | Runtime `LayLow` state, no `laylow` place or field; thief leave/crash/shutdown cancels; victim leave finalises in a `Releasing` handler with insurance in the same final save; the same rule for the delivery phase; MailService and escrow removed | §2.1, §2.7.4, §9.1, §10.3 |
+| EN3 | High: giver-then-receiver saves still duplicate; uid collisions | Accepted | `inbound` marker cleared only after the giver's save; one `GetAsync` on the receiver's next load; no escrow; GUID uids; the accepted loss case is logged for `/hc restore` | §9.1, §10.3 |
+| EN4 | High: per-second money changes flood snapshots and analytics | Accepted | Quiet money path; hot fields via attributes, `CarProgress`, `AmmoState`; spec "60 ticks → 0 snapshots"; street income logged per drive; one "Cash" currency with `wallet + bank`, no deposit events | §7.5, §9.1, §9.5 |
+| EN5 | High: `addCash` alias silently sends crime money to the bank | Accepted | `addCash`/`spendCash` deleted; every call site ported by the "Lands in" column; a spec fails on either name under `src/` | §9.5 |
+| EN6 | High: taint clearing weakens v1's teleport-delivery guard | Accepted | Permanent `tainted` for deliveries, chop, bags and races; separate `pausedUntil` for income and XP | §9.5, §10.1 |
+| EN7 | High: CharacterWatchdog will flag honest players | Accepted | Taint only, no rewind; exemptions for seated, ragdolled and `MoveGraceUntil`; 3 violations in 5 s; telemetry-only first playtest | §10.1 |
+| EN8 | Med-High: serial check can delete legit limited cars | Accepted | Registry `{ownerUserId, uid, xferSeq}`; repair when the record is newer; freeze and flag otherwise; never auto-retire; `retiredCars` keeps the full record | §2.9, §9.1 |
+| EN9 | Medium: leave and shutdown paths | Accepted | `isShuttingDown()`; shutdown skips penalties and resolves thefts for victims; all leave-time economy in `Releasing` handlers mutating `data`; new `Released(userId, ok)` signal | §9.5, §10.3 |
+| EN10 | Medium: one blip channel under StreamingEnabled | Accepted | BlipService + `MapBlips` (unreliable, 2 Hz, ≤ 40, per-viewer filters); positions removed from `TruckState` and `BountyState` | §9.5, §9.6, §10.1 |
+| EN11 | Medium: remote gaps and loose shapes | Accepted, `HotwireTap` **modified** | `CallLawyer`, `BuySkill`, changed `GoHome`, split heist remotes, `Net.isShape`, `Net.isArrayOf` added. `HotwireTap` is not needed: FU12 made the gesture hold-and-release, which the server observes through `PromptButtonHoldEnded`, plus a server → client `HotwireWindow`. `HeistSplit` is dropped with the leader split (FU2). | §9.6, §10.2 |
+| EN12 | Medium: rule-heavy logic must be pure and tested | Accepted | `Util/TheftRules`, `Util/StreetGate`, `Util/Payout` (heist, wanted loss); table-driven specs per §2.8 and §10.2 row; a two-profile transfer spec on the fake store | §9.4; engineering doc |
+| EN13 | Medium: scope against Nov 19; DataStore plan | Accepted | `Config/Flags` per brief §3.13 tier; store table (writer, reads per join, writes per minute, source of truth) in the engineering doc; crew roster wins; `HC_CrewNames_v1` claim keys | §5.2, §9.4, §6.7; engineering doc §2 |
+| EN14 | Low-Med: car stats must reach the client as model attributes | Accepted | `spawnFromRecord` writes `TopSpeed`, `Accel`, `Grip`, `NitroTank`, `DamageMult`, `TireMode`; client and watchdog read them | §9.2, §9.5 |
+| EN15 | Low: owed-car cap deletes records; sentinel place; size spec | Accepted | `owedCars` uncapped and never dropped; `place` optional; worst-case profile < 100 KB spec | §2.1, §9.1, §9.3 |

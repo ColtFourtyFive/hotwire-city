@@ -162,8 +162,8 @@
     "front": [
       {
         "position": [
-          -2.1515,
-          3.9002,
+          -2.3099,
+          3.2122,
           -7.6033
         ],
         "direction": [
@@ -175,8 +175,8 @@
       },
       {
         "position": [
-          2.0698,
-          3.9337,
+          2.3217,
+          3.2043,
           -7.6033
         ],
         "direction": [
@@ -190,8 +190,8 @@
     "rear": [
       {
         "position": [
-          -2.3366,
-          3.8376,
+          -2.6525,
+          2.9273,
           8.7084
         ],
         "direction": [
@@ -203,8 +203,8 @@
       },
       {
         "position": [
-          2.2556,
-          3.8532,
+          2.6634,
+          2.9182,
           8.7084
         ],
         "direction": [
@@ -240,22 +240,21 @@
     -0.0
   ],
   "paint": {
-    "route": "tintmask",
+    "route": "strip",
     "primary": {
       "object": "Body",
       "material": "Canyon75_Bodymat",
       "color_srgb": [
-        0.7373,
-        0.5255,
-        0.0039
+        0.6927,
+        0.4936,
+        0.0682
       ],
       "textured": true,
       "metallic": 0.5,
-      "roughness": 0.5,
-      "mask_coverage": 0.52
+      "roughness": 0.5
     },
     "secondary": null,
-    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
   },
   "objects": {
     "Body": {
@@ -270,31 +269,24 @@
         5.5227,
         8.6592
       ],
-      "textures": {
-        "rough": "textures/canyon_taxi_Body_rough.png",
-        "metal": "textures/canyon_taxi_Body_metal.png",
-        "normal": "textures/canyon_taxi_Body_normal.png",
-        "base": "textures/canyon_taxi_Body_base.png",
-        "tintmask": "textures/canyon_taxi_Body_tintmask.png",
-        "overlay": "textures/canyon_taxi_Body_overlay.png"
-      }
+      "textures": {}
     },
     "Glass": {
-      "tris": 160,
+      "tris": 198,
       "bbox_min": [
-        -0.478,
-        1.1995,
-        -7.9118
+        -2.6074,
+        3.6902,
+        -3.1432
       ],
       "bbox_max": [
-        0.4845,
-        2.0885,
-        8.6248
+        2.621,
+        5.195,
+        5.9479
       ],
       "textures": {}
     },
     "LightsFront": {
-      "tris": 212,
+      "tris": 112,
       "bbox_min": [
         -2.8365,
         2.9531,
@@ -302,72 +294,52 @@
       ],
       "bbox_max": [
         2.8484,
-        5.195,
-        0.1219
+        3.4634,
+        -7.5187
       ],
-      "textures": {
-        "normal": "textures/canyon_taxi_Lights_normal.png",
-        "base": "textures/canyon_taxi_Lights_base.png",
-        "emit": "textures/canyon_taxi_Lights_emit.png"
-      }
+      "textures": {}
     },
     "LightsRear": {
-      "tris": 146,
+      "tris": 48,
       "bbox_min": [
         -2.7666,
         2.6325,
-        0.5525
+        8.6106
       ],
       "bbox_max": [
         2.7781,
-        5.0552,
+        3.2129,
         8.7084
       ],
-      "textures": {
-        "normal": "textures/canyon_taxi_Lights_normal.png",
-        "base": "textures/canyon_taxi_Lights_base.png",
-        "emit": "textures/canyon_taxi_Lights_emit.png"
-      }
+      "textures": {}
     },
     "Trim": {
       "tris": 2599,
       "bbox_min": [
         -3.3891,
         0.4798,
-        -7.8753
+        -7.9065
       ],
       "bbox_max": [
         3.4031,
         5.8309,
-        9.0868
+        9.0712
       ],
-      "textures": {
-        "rough": "textures/canyon_taxi_Trim_rough.png",
-        "metal": "textures/canyon_taxi_Trim_metal.png",
-        "normal": "textures/canyon_taxi_Trim_normal.png",
-        "base": "textures/canyon_taxi_Trim_base.png",
-        "ao": "textures/canyon_taxi_Trim_ao.png"
-      }
+      "textures": {}
     },
     "Interior": {
-      "tris": 216,
+      "tris": 1498,
       "bbox_min": [
-        -0.5943,
-        1.1366,
-        -7.9049
+        -2.5981,
+        1.1689,
+        -7.5679
       ],
       "bbox_max": [
-        0.604,
-        3.4617,
-        8.624
+        2.6116,
+        5.4563,
+        8.5125
       ],
-      "textures": {
-        "rough": "textures/canyon_taxi_Interior_rough.png",
-        "metal": "textures/canyon_taxi_Interior_metal.png",
-        "normal": "textures/canyon_taxi_Interior_normal.png",
-        "base": "textures/canyon_taxi_Interior_base.png",
-        "ao": "textures/canyon_taxi_Interior_ao.png"
-      }
+      "textures": {}
     },
     "WheelFL": {
       "tris": 900,
@@ -381,13 +353,7 @@
         2.313,
         -3.9494
       ],
-      "textures": {
-        "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
-        "base": "textures/canyon_taxi_Wheel_base.png",
-        "rough": "textures/canyon_taxi_Wheel_rough.png",
-        "ao": "textures/canyon_taxi_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelFR": {
       "tris": 900,
@@ -401,13 +367,7 @@
         2.3042,
         -3.9494
       ],
-      "textures": {
-        "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
-        "base": "textures/canyon_taxi_Wheel_base.png",
-        "rough": "textures/canyon_taxi_Wheel_rough.png",
-        "ao": "textures/canyon_taxi_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelRL": {
       "tris": 900,
@@ -421,13 +381,7 @@
         2.313,
         6.2816
       ],
-      "textures": {
-        "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
-        "base": "textures/canyon_taxi_Wheel_base.png",
-        "rough": "textures/canyon_taxi_Wheel_rough.png",
-        "ao": "textures/canyon_taxi_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelRR": {
       "tris": 900,
@@ -441,18 +395,12 @@
         2.3042,
         6.2816
       ],
-      "textures": {
-        "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
-        "base": "textures/canyon_taxi_Wheel_base.png",
-        "rough": "textures/canyon_taxi_Wheel_rough.png",
-        "ao": "textures/canyon_taxi_Wheel_ao.png"
-      }
+      "textures": {}
     }
   },
   "triangles": {
     "source": 20026,
-    "total": 10527,
+    "total": 11649,
     "limits": {
       "car": 18000,
       "body": 7000,
@@ -483,34 +431,34 @@
       "area": 176.355
     },
     "Glass": {
-      "islands": 22,
-      "faces": 160,
-      "area": 2.275
+      "islands": 10,
+      "faces": 198,
+      "area": 28.35
     },
     "LightsFront": {
-      "islands": 9,
-      "faces": 212,
-      "area": 13.698
+      "islands": 4,
+      "faces": 112,
+      "area": 0.868
     },
     "LightsRear": {
-      "islands": 9,
-      "faces": 146,
-      "area": 15.67
+      "islands": 4,
+      "faces": 48,
+      "area": 0.15
     },
     "Trim": {
-      "islands": 102,
-      "faces": 6442,
-      "area": 273.154
+      "islands": 124,
+      "faces": 6602,
+      "area": 275.43
     },
     "Interior": {
-      "islands": 5,
-      "faces": 216,
-      "area": 3.005
+      "islands": 40,
+      "faces": 4599,
+      "area": 280.009
     },
     "Discard": {
-      "islands": 76,
-      "faces": 5614,
-      "area": 367.521
+      "islands": 41,
+      "faces": 1231,
+      "area": 90.516
     },
     "WheelFL": {
       "islands": 17,

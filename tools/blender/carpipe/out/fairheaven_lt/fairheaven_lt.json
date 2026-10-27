@@ -162,8 +162,8 @@
     "front": [
       {
         "position": [
-          -1.8569,
-          2.7061,
+          -1.99,
+          2.2253,
           -7.4897
         ],
         "direction": [
@@ -175,8 +175,8 @@
       },
       {
         "position": [
-          1.9222,
-          2.6596,
+          1.9825,
+          2.2225,
           -7.4897
         ],
         "direction": [
@@ -190,8 +190,8 @@
     "rear": [
       {
         "position": [
-          -2.1011,
-          2.9295,
+          -2.3061,
+          2.1303,
           8.4217
         ],
         "direction": [
@@ -203,8 +203,8 @@
       },
       {
         "position": [
-          2.1528,
-          2.9,
+          2.2984,
+          2.1271,
           8.4217
         ],
         "direction": [
@@ -261,27 +261,24 @@
         4.5854,
         8.4977
       ],
-      "textures": {
-        "normal": "textures/fairheaven_lt_Body_normal.png",
-        "ao": "textures/fairheaven_lt_Body_ao.png"
-      }
+      "textures": {}
     },
     "Glass": {
-      "tris": 160,
+      "tris": 158,
       "bbox_min": [
-        -0.5138,
-        1.0221,
-        -7.7933
+        -2.4936,
+        2.9541,
+        -2.5876
       ],
       "bbox_max": [
-        2.504,
-        2.5234,
-        8.4379
+        2.4872,
+        4.4204,
+        5.2872
       ],
       "textures": {}
     },
     "LightsFront": {
-      "tris": 182,
+      "tris": 130,
       "bbox_min": [
         -2.5689,
         1.9394,
@@ -289,37 +286,29 @@
       ],
       "bbox_max": [
         2.5609,
-        4.3725,
-        -0.4593
+        2.4799,
+        -7.2299
       ],
-      "textures": {
-        "normal": "textures/fairheaven_lt_Lights_normal.png",
-        "base": "textures/fairheaven_lt_Lights_base.png",
-        "emit": "textures/fairheaven_lt_Lights_emit.png"
-      }
+      "textures": {}
     },
     "LightsRear": {
-      "tris": 232,
+      "tris": 126,
       "bbox_min": [
         -2.5908,
         1.8733,
-        -0.7994
+        8.234
       ],
       "bbox_max": [
         2.5828,
-        4.4204,
+        2.5655,
         8.4217
       ],
-      "textures": {
-        "normal": "textures/fairheaven_lt_Lights_normal.png",
-        "base": "textures/fairheaven_lt_Lights_base.png",
-        "emit": "textures/fairheaven_lt_Lights_emit.png"
-      }
+      "textures": {}
     },
     "Trim": {
       "tris": 2600,
       "bbox_min": [
-        -3.1071,
+        -3.1064,
         0.5504,
         -8.1314
       ],
@@ -328,33 +317,21 @@
         4.4656,
         8.8702
       ],
-      "textures": {
-        "base": "textures/fairheaven_lt_Trim_base.png",
-        "rough": "textures/fairheaven_lt_Trim_rough.png",
-        "normal": "textures/fairheaven_lt_Trim_normal.png",
-        "metal": "textures/fairheaven_lt_Trim_metal.png",
-        "ao": "textures/fairheaven_lt_Trim_ao.png"
-      }
+      "textures": {}
     },
     "Interior": {
-      "tris": 1006,
+      "tris": 1499,
       "bbox_min": [
         -2.616,
-        0.8548,
-        -7.6334
+        0.8566,
+        -7.6374
       ],
       "bbox_max": [
-        2.6082,
-        2.7396,
-        8.4651
+        2.6081,
+        4.4568,
+        8.4636
       ],
-      "textures": {
-        "base": "textures/fairheaven_lt_Interior_base.png",
-        "rough": "textures/fairheaven_lt_Interior_rough.png",
-        "normal": "textures/fairheaven_lt_Interior_normal.png",
-        "metal": "textures/fairheaven_lt_Interior_metal.png",
-        "ao": "textures/fairheaven_lt_Interior_ao.png"
-      }
+      "textures": {}
     },
     "WheelFL": {
       "tris": 899,
@@ -368,13 +345,7 @@
         2.0625,
         -3.4655
       ],
-      "textures": {
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
-        "base": "textures/fairheaven_lt_Wheel_base.png",
-        "metal": "textures/fairheaven_lt_Wheel_metal.png",
-        "ao": "textures/fairheaven_lt_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelFR": {
       "tris": 899,
@@ -388,13 +359,7 @@
         2.0591,
         -3.4654
       ],
-      "textures": {
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
-        "base": "textures/fairheaven_lt_Wheel_base.png",
-        "metal": "textures/fairheaven_lt_Wheel_metal.png",
-        "ao": "textures/fairheaven_lt_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelRL": {
       "tris": 890,
@@ -408,13 +373,7 @@
         2.0625,
         5.5369
       ],
-      "textures": {
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
-        "base": "textures/fairheaven_lt_Wheel_base.png",
-        "metal": "textures/fairheaven_lt_Wheel_metal.png",
-        "ao": "textures/fairheaven_lt_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelRR": {
       "tris": 890,
@@ -428,18 +387,12 @@
         2.0591,
         5.5369
       ],
-      "textures": {
-        "rough": "textures/fairheaven_lt_Wheel_rough.png",
-        "normal": "textures/fairheaven_lt_Wheel_normal.png",
-        "base": "textures/fairheaven_lt_Wheel_base.png",
-        "metal": "textures/fairheaven_lt_Wheel_metal.png",
-        "ao": "textures/fairheaven_lt_Wheel_ao.png"
-      }
+      "textures": {}
     }
   },
   "triangles": {
     "source": 19703,
-    "total": 13324,
+    "total": 13657,
     "limits": {
       "car": 18000,
       "body": 7000,
@@ -470,34 +423,34 @@
       "area": 175.553
     },
     "Glass": {
-      "islands": 22,
-      "faces": 160,
-      "area": 2.562
+      "islands": 12,
+      "faces": 158,
+      "area": 26.646
     },
     "LightsFront": {
-      "islands": 9,
-      "faces": 182,
-      "area": 10.796
+      "islands": 6,
+      "faces": 130,
+      "area": 1.106
     },
     "LightsRear": {
-      "islands": 15,
-      "faces": 232,
-      "area": 18.047
+      "islands": 6,
+      "faces": 126,
+      "area": 1.09
     },
     "Trim": {
-      "islands": 66,
-      "faces": 4872,
-      "area": 202.251
+      "islands": 88,
+      "faces": 5032,
+      "area": 204.813
     },
     "Interior": {
-      "islands": 10,
-      "faces": 1006,
-      "area": 13.234
+      "islands": 43,
+      "faces": 4381,
+      "area": 210.626
     },
     "Discard": {
-      "islands": 52,
-      "faces": 4051,
-      "area": 268.52
+      "islands": 19,
+      "faces": 676,
+      "area": 71.129
     },
     "WheelFL": {
       "islands": 18,

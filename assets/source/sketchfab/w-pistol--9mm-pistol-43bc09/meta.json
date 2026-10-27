@@ -43,13 +43,13 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      2.3816,
-      0.3284,
-      1.5791
+      2.4009,
+      0.334,
+      1.5792
     ],
     "dims_m": [
-      2.382,
-      0.328,
+      2.401,
+      0.334,
       1.579
     ],
     "front_evidence": "upright_band",
@@ -73,6 +73,6 @@
       "Cube.005_9m1_0",
       "Cube.005_9m2_0"
     ],
-    "render_s": 44.4
+    "render_s": 9.3
   }
 }

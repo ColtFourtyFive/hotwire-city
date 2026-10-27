@@ -431,10 +431,13 @@ def sc_block(a, night=False):
     for k in range(40):
         S.car(c, r.choice([(xs[0] - 0.5 + i) * P for i in range(len(xs) + 1)]) + r.choice([-9, 9]),
               r.uniform((ys[0] - 0.5) * P, (ys[-1] + 0.5) * P), heading=r.choice([90, 270]), seed=k)
-    S.ground(c, -3000, -3000, 3000, 3000, "sidewalk", z=-0.05)
-    S.ground(c, -3000, -3000, 3000, (ys[0] - 0.5) * P - ROAD_W / 2 - 40, "sand", z=0.05)
-    S.ground(c, -3000, -6000, 3000, (ys[0] - 0.5) * P - ROAD_W / 2 - 200, "sea", z=0.1)
-    return finish("block_night" if night else "block_wide", (-760, -640, 230), (60, 260, 20), 26, a.samples, a.res,
+    ybeach = (ys[0] - 0.5) * P - ROAD_W / 2
+    S.ground(c, -30000, ybeach - 40, 30000, 30000, "sidewalk", z=-0.05)
+    S.ground(c, -30000, ybeach - 200, 30000, ybeach - 40, "sand", z=-0.05)
+    S.ground(c, -30000, -30000, 30000, ybeach - 200, "sea", z=-0.1)
+    for x in range(int((xs[0] - 0.5) * P), int((xs[-1] + 0.5) * P), 46):
+        S.palm(c, x + r.uniform(-6, 6), ybeach - 22 + r.uniform(-6, 6), h=r.uniform(40, 56), seed=r.randint(0, 999))
+    return finish("block_night" if night else "block_wide", (-1180, -1220, 420), (120, 330, 30), 30, a.samples, a.res,
                   night=night, haze_amt=0.65)
 
 

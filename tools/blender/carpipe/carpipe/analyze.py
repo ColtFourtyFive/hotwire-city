@@ -45,7 +45,8 @@ KW_TRIM = [r"chrome", r"metal", r"plastic", r"rubber", r"grill", r"trim", r"badg
            r"intake", r"diffuser", r"roundel", r"kidney", r"splitter", r"_net_", r"mesh_grill", r"_hinge",
            r"blocker", r"_pipe", r"muffler", r"_tank", r"bumper_?black", r"_cladding"]
 KW_TRIM_STRONG = [r"wiper", r"gasket", r"_seal", r"handle", r"chrome", r"rubber", r"_trim", r"trim_", r"weather_?strip",
-                  r"_frame", r"mirror", r"badge", r"emblem", r"logo", r"licen[cs]e", r"_plate"]
+                  r"_frame", r"mirror", r"badge", r"emblem", r"logo", r"licen[cs]e", r"_plate", r"number_?plate",
+                  r"num_?plate", r"decal"]
 KW_PAINT_STRONG = [r"paint", r"lack", r"karosserie", r"car_?paint", r"carbody", r"body_?colou?r", r"_coat"]
 KW_PAINT = KW_PAINT_STRONG + [r"_body", r"body_", r"bodywork", r"car_?shell", r"_shell", r"exterior", r"_hood_",
                               r"_door_?[lr]?_", r"fender", r"_roof"]
@@ -654,8 +655,18 @@ class Car:
                     why[i] = f"cfg:{rx}"
                     break
             if hit is None:
+                # Sketchfab/FBX exports name nodes "<object>_<material>_0": strip the material from the path so
+                # "Windshield_Lights_and_Glass_Transparent_0" reads as a windshield, not a light
+                obj_clean = norm_name(nm_obj).replace(norm_name(re.sub(r"\.\d{3}$", "", nm_mat)), " ")
                 rm = self._role_from_name(nm_mat) if not m["generic"] else None
-                ro = self._role_from_name(nm_obj)
+                ro = self._role_from_name(obj_clean)
+                if not m["generic"] and kw_match(nm_mat, KW_GLASS) and kw_match(nm_mat, KW_LIGHT):
+                    # shared "lights and glass" material: the object decides; else position (lamps sit at the ends)
+                    if ro in (GLASS, LIGHT_F):
+                        rm = ro
+                    else:
+                        rm = LIGHT_F if abs(self.ic[i, 1]) > 0.40 * L and self.ic[i, 2] < 0.62 * H else GLASS
+                        ro = rm
                 if rm is not None and not (rm == BODY and not kw_match(nm_mat, KW_PAINT_STRONG)
                                            and ro in (INTERIOR, GLASS, LIGHT_F, DISCARD)):
                     hit, why[i] = rm, f"mat:{nm_mat[:30]}"

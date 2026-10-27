@@ -47,14 +47,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      0.2808,
-      0.5622,
-      0.1945
+      0.2835,
+      0.5703,
+      0.1976
     ],
     "dims_m": [
-      0.562,
-      0.194,
-      0.281
+      0.57,
+      0.198,
+      0.283
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -77,6 +77,6 @@
       "Display1_mm1_0",
       "Display1_Glock_Mat4_0"
     ],
-    "render_s": 41.5
+    "render_s": 16.9
   }
 }

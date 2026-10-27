@@ -232,22 +232,21 @@
     -0.0
   ],
   "paint": {
-    "route": "tintmask",
+    "route": "strip",
     "primary": {
       "object": "Body",
       "material": "car_body",
       "color_srgb": [
-        0.0,
-        0.0,
-        0.0
+        0.0522,
+        0.0429,
+        0.0401
       ],
       "textured": true,
       "metallic": 0.0,
-      "roughness": 0.5,
-      "mask_coverage": 0.531
+      "roughness": 0.5
     },
     "secondary": null,
-    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
   },
   "objects": {
     "Body": {
@@ -262,14 +261,7 @@
         4.3215,
         8.1342
       ],
-      "textures": {
-        "rough": "textures/goblin_supercar_Body_rough.png",
-        "normal": "textures/goblin_supercar_Body_normal.png",
-        "base": "textures/goblin_supercar_Body_base.png",
-        "metal": "textures/goblin_supercar_Body_metal.png",
-        "tintmask": "textures/goblin_supercar_Body_tintmask.png",
-        "overlay": "textures/goblin_supercar_Body_overlay.png"
-      }
+      "textures": {}
     },
     "Glass": {
       "tris": 700,
@@ -297,13 +289,7 @@
         4.3251,
         7.787
       ],
-      "textures": {
-        "rough": "textures/goblin_supercar_Trim_rough.png",
-        "normal": "textures/goblin_supercar_Trim_normal.png",
-        "base": "textures/goblin_supercar_Trim_base.png",
-        "metal": "textures/goblin_supercar_Trim_metal.png",
-        "ao": "textures/goblin_supercar_Trim_ao.png"
-      }
+      "textures": {}
     },
     "Interior": {
       "tris": 1500,
@@ -317,13 +303,7 @@
         3.7517,
         7.6701
       ],
-      "textures": {
-        "rough": "textures/goblin_supercar_Interior_rough.png",
-        "normal": "textures/goblin_supercar_Interior_normal.png",
-        "base": "textures/goblin_supercar_Interior_base.png",
-        "metal": "textures/goblin_supercar_Interior_metal.png",
-        "ao": "textures/goblin_supercar_Interior_ao.png"
-      }
+      "textures": {}
     },
     "WheelFL": {
       "tris": 899,
@@ -337,13 +317,7 @@
         2.582,
         -3.5403
       ],
-      "textures": {
-        "normal": "textures/goblin_supercar_Wheel_normal.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
-        "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "base": "textures/goblin_supercar_Wheel_base.png",
-        "ao": "textures/goblin_supercar_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelFR": {
       "tris": 899,
@@ -357,13 +331,7 @@
         2.5665,
         -3.5439
       ],
-      "textures": {
-        "normal": "textures/goblin_supercar_Wheel_normal.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
-        "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "base": "textures/goblin_supercar_Wheel_base.png",
-        "ao": "textures/goblin_supercar_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelRL": {
       "tris": 900,
@@ -377,13 +345,7 @@
         2.7025,
         6.2532
       ],
-      "textures": {
-        "normal": "textures/goblin_supercar_Wheel_normal.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
-        "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "base": "textures/goblin_supercar_Wheel_base.png",
-        "ao": "textures/goblin_supercar_Wheel_ao.png"
-      }
+      "textures": {}
     },
     "WheelRR": {
       "tris": 900,
@@ -397,13 +359,7 @@
         2.7016,
         6.2498
       ],
-      "textures": {
-        "normal": "textures/goblin_supercar_Wheel_normal.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
-        "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "base": "textures/goblin_supercar_Wheel_base.png",
-        "ao": "textures/goblin_supercar_Wheel_ao.png"
-      }
+      "textures": {}
     }
   },
   "triangles": {

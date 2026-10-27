@@ -647,6 +647,11 @@ local function weightedLoad(preset: Preset, rate: number): number
 	return VFXLibrary.streamLoad(rate, preset.lifetime) * (preset.cost or 1)
 end
 
+-- A stream's rate before any budget throttling.
+local function wantedRate(s: Stream, tier: VFX.QualityTier): number
+	return (s.preset.rate or 0) * s.rateScale * math.max(s.intensity, 0) * tier.rate
+end
+
 -- Re-rate every active stream from the current tier and load (priority streams first), write the rates that moved,
 -- and after a tier change re-apply stream sizes and trail lifetimes. Cheap: a few dozen streams at most.
 function VFXLibrary.rebalance()
@@ -674,7 +679,7 @@ function VFXLibrary.rebalance()
 			s.active = false
 			continue
 		end
-		local want = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, s.intensity, tier.rate, math.huge, 0)
+		local want = wantedRate(s, tier)
 		if s.priority then
 			priorityLoad += weightedLoad(s.preset, want)
 		else
@@ -684,8 +689,7 @@ function VFXLibrary.rebalance()
 	local pScale, oScale = VFXLibrary.streamShares(budget.cap, priorityLoad, otherLoad)
 	local total = 0
 	for s in activeStreams do
-		local want = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, s.intensity, tier.rate, math.huge, 0)
-		local rate = want * (if s.priority then pScale else oScale)
+		local rate = wantedRate(s, tier) * (if s.priority then pScale else oScale)
 		if (s.rate <= 0 and rate > 0) or math.abs(rate - s.rate) > math.max(0.5, s.rate * 0.08) then
 			s.rate = rate
 			s.emitter.Rate = rate
