@@ -1,6 +1,6 @@
 # Job 0004 report: realistic car deep-dive
 
-> **Status: PARTIAL.** 41 assets are analyzed. Done: the shortlist, muscle, supercar, hatchback, coupe, convertible, luxury sedan, motorcycle, city bus, ambulance and fire truck. SWAT, tow, limo, lowrider, garbage, police sedan and the yiypoo1024 cars follow. `DONE` comes last.
+> **Status: PARTIAL.** 51 assets are analyzed. Garbage truck, police sedan and the yiypoo1024 cars follow. `DONE` comes last.
 
 ## Method
 
@@ -84,3 +84,24 @@
 - **130400317438495 Fire Truck (deleted account) — 4/5.** Convincing Freightliner Business Class–style 6×4 fire engine (tanker/rescue body): roof monitor, lockers, white stripes, detailed grille and wheels. Clean 18-MeshPart build (one mesh per component), 9.8×12×34.6 studs (correct). 4 wheel candidates (separate wheel meshes — good for our rig), no seats, 2 scripts removed. No visible brand badge. (Same mesh also uploaded as 88510772704190.) Orientation flipped. Best fire truck.
 - **97675679051639 "[FREE] Fire Truck" (Madis0nLi0n5722, "made by @REWQ") — duplicate.** ANALYZE output is **byte-for-byte the same geometry** as 130400317438495 (18 parts, 9.8×12×34.6, same cameras) → same mesh re-uploaded (3rd copy with 88510772704190). JSON saved; shots skipped as they would be identical.
 - **11688323025 "New Blueprint City Engine" (WVUPick) — 5/5 looks.** Superb US custom-cab pumper (Pierce-style): "Blueprint City" / "Fire & Rescue" / E-4 livery (fictional city — good), hose bed, ladders, diamond-plate, lightbar, pump panel, interior with gear. 766 parts (142 MeshParts), 182 textures, 29.7×10×13.6 studs bounds (length on X). 22 wheel candidates, 5 seats, 68 scripts removed. Best GTA-style fire engine; rebrand "Blueprint City" to ours. Orientation flipped.
+
+#### SWAT van / armored truck
+- **4732920221 SWAT Van (NorthAmericaOperator) — 2/5.** Blocky part-built black box truck with "SWAT" stencils, neon lightbars and a ram/ladder rack. 211 parts, 0 MeshParts, 26.8×11.7×12.4 studs (length on X), 6 seats, 6 scripts removed. Reads as Roblox-classic, not GTA.
+- **11155605490 "MeshPart swat car very good" (kaikomarkus) — 5/5 looks, 1/5 for rig.** Photoreal **Lenco BearCat-style armored truck**: gun ports, push bumper, roof rails, "S.W.A.T." + shield decals baked into the texture. Almost certainly a game rip (GTA-V-like look). **Single MeshPart** (wheels baked), 0 scripts, no seats. 29.5×11.9×12.5 studs (correct). Great parked prop; provenance unknown — avoid shipping.
+- **6590911334 "Armored Van" (ruger94) — 4/5.** A **2016 Ford Transit high-roof** (internal name) with push bar and **bronze/brown armour plating** on the sides, window louvre shutters. Good mesh body (102 MeshParts), detailed front, tow hitch. Some lights are left on (neon/pink glow spill on ground). 20.1×8.8×8.7 studs (correct). 4 clean wheel candidates, 1 seat, **90 scripts removed**. **Ford oval badges.** Orientation flipped. Best SWAT/armored option that has separable wheels.
+
+#### tow truck
+- **4908467941 "Wrecker F-250 XLT" (Koquains) — 5/5 looks.** Actually a **Chevy Silverado 3500 crew-cab wrecker** (despite the name): diamond-plate body, wheel-lift boom, dolly wheels, lightbar, company door decal. 312 parts (35 MeshParts), 12.2×9.2×26.1 studs (correct). 30 wheel candidates, 5 seats, **109 scripts removed**. **Chevy bowtie badge.** Orientation correct. Best tow truck.
+- **3584156538 "Wrecker 2012 Siveeeradooooo" (blue_wolfpack1) — duplicate.** Same model as 4908467941 (identical internal name "NTA | Wrecker F-250 XLT", 312 parts, 109 scripts, same bounds) → re-upload. JSON saved; shots skipped.
+- **5651733172 "1997 Tow truck" (fadesteeles) — 3/5.** Freightliner FL70-style medium-duty wrecker: boom, wheel-lift, lightbar, chrome wheels; all-white, mostly plain parts (683 parts, 42 MeshParts). Decent silhouette, flat look. 32.5×11.1×11.8 studs (length on X). 16 wheel candidates, 1 seat, 61 scripts removed. Freightliner grille badge. Orientation correct.
+
+#### limousine
+- **13086837324 "Movie Limo" (TornadoBoy1two) — 4/5.** Cadillac DTS stretch limo: correct grille, tail lights, long window line, sunroof. Black paint has a **noisy/crinkled texture** (looks slightly rough up close). A separate **blue spawn/sign part** sits beside the car (bounds 34.4×6.4×18.3 include it; delete). 48 parts (16 MeshParts), 4 clean wheel candidates, 6 seats, 28 scripts removed. **Cadillac crest.** Orientation flipped.
+- **4232019061 2007 Lincoln Town Car Limousine Lowrider (NARSCATT) — 5/5 looks.** Excellent stretch Town Car, slammed on **chrome wire wheels** (lowrider style), blue interior LED strips, glossy black paint, chrome trim. 187 parts (75 MeshParts), 9.4×5.3×32.7 studs (correct). 11 wheel candidates, **10 seats**, 16 scripts removed. Lincoln star badge. Orientation correct. Best limo — **also counts for the lowrider class**.
+- **12651678223 "Police Limo" (roblocraft1432) — 4/5.** Town Car stretch limo with push bar, two lightbars and rear strobes — a fun GTA-ish oddity. Clean body (83 MeshParts), 33×6.1×9.2 studs (correct). 4 clean wheel candidates, 9 seats, 16 scripts removed. Lincoln badge. Orientation flipped.
+
+#### lowrider
+*(Results were mostly 2008-era brick builds and a "Fortnite Lowrider" rip; the best lowrider found is the Lincoln Town Car limo-lowrider 4232019061 above. Adding one more candidate below.)*
+- **13791818186 "Impala 64 SS (Lowrider)" (Powering_BaconYT) — 5/5 looks.** The Folder holds **two '64 Impala SS lowriders** (one posed mid-hydraulic-hop, one parked): candy-purple paint, gold/chrome wire wheels, chrome trim, full interiors — pure GTA San Andreas vibe. 403 parts (205 MeshParts), bounds 34.7×15.1×20.9 because of the two cars (each ~20 long). One car has a **pink underglow light** left on. 17 wheel candidates, 4 seats, 31 scripts removed. Chevy badges. Extract one car. Best dedicated lowrider.
+
+#### garbage truck
