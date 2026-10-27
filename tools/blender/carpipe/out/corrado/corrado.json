@@ -238,7 +238,7 @@
       "material": "01_-_Default",
       "color_srgb": [
         0.5373,
-        0.1451,
+        0.1412,
         0.1333
       ],
       "textured": true,
@@ -263,9 +263,9 @@
         6.6363
       ],
       "textures": {
-        "metal": "textures/corrado_Body_metal.png",
         "base": "textures/corrado_Body_base.png",
         "normal": "textures/corrado_Body_normal.png",
+        "metal": "textures/corrado_Body_metal.png",
         "rough": "textures/corrado_Body_rough.png",
         "tintmask": "textures/corrado_Body_tintmask.png",
         "overlay": "textures/corrado_Body_overlay.png"
@@ -284,9 +284,9 @@
         -3.2817
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "rough": "textures/corrado_Wheel_rough.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
@@ -304,9 +304,9 @@
         -3.2817
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "rough": "textures/corrado_Wheel_rough.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
@@ -324,9 +324,9 @@
         5.458
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "rough": "textures/corrado_Wheel_rough.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
@@ -344,9 +344,9 @@
         5.458
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "rough": "textures/corrado_Wheel_rough.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }

@@ -161,14 +161,51 @@ def decimate(ob, target_tris, symmetric=False):
     return tri_count(ob)
 
 
+def recalc_normals(ob):
+    """Make face winding consistent and outward per connected part.  Roblox renders single-sided, and Cycles'
+    selected-to-active bake casts along the low-poly normal, so inverted faces bake black AND vanish in-game."""
+    me = ob.data
+    before = np.empty(len(me.polygons) * 3)
+    me.polygons.foreach_get("normal", before)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    after = np.empty(len(me.polygons) * 3)
+    me.polygons.foreach_get("normal", after)
+    dots = (before.reshape(-1, 3) * after.reshape(-1, 3)).sum(1)
+    return int((dots < 0).sum())
+
+
 def clean_degenerate(ob, dist):
     """Zero-area / duplicate faces make smart_project emit huge empty UV islands that waste the atlas."""
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     bmesh.ops.dissolve_degenerate(bm, edges=bm.edges, dist=dist)
     bad = [f for f in bm.faces if f.calc_area() < dist * dist * 0.01]
+    # coincident duplicates (double-sided shells modelled as two faces on the same vertices): they overlap in UV
+    # space and fight in the bake.  Keep the one facing away from the part's centre.
+    seen = {}
+    cen = sum((v.co for v in bm.verts), bm.verts[0].co.copy() * 0) / max(len(bm.verts), 1) if bm.verts else None
+    for f in bm.faces:
+        if f in bad:
+            continue
+        key = tuple(sorted(v.index for v in f.verts))
+        g = seen.get(key)
+        if g is None:
+            seen[key] = f
+            continue
+        fo = (f.calc_center_median() - cen).dot(f.normal)
+        go = (g.calc_center_median() - cen).dot(g.normal)
+        if fo > go:
+            bad.append(g)
+            seen[key] = f
+        else:
+            bad.append(f)
     if bad:
-        bmesh.ops.delete(bm, geom=bad, context="FACES")
+        bmesh.ops.delete(bm, geom=list(set(bad)), context="FACES")
     loose = [v for v in bm.verts if not v.link_faces]
     if loose:
         bmesh.ops.delete(bm, geom=loose, context="VERTS")
@@ -213,6 +250,9 @@ def make_low(hi, name, budget, length, symmetric=False):
     t = decimate(lo, budget, symmetric=symmetric)
     triangulate(lo)
     clean_degenerate(lo, length * 2e-4)
+    n_flip = recalc_normals(lo)
+    if n_flip:
+        log(f"{name}: {n_flip} faces re-oriented outward")
     smooth_by_angle(lo)
     log(f"low {name}: {t0} -> {tri_count(lo)} tris (budget {budget})")
     return lo

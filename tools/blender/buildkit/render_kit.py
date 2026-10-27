@@ -287,7 +287,7 @@ def sc_suburbs(a):
         if abs(xx + 175) > 45:
             S.street_lamp(c, xx, rw / 2 + 1.5, facing=(0, -1), h=22)
     S.parked_row(c, -300, 300, -rw / 2 + 4, heading=0, seed=21, prob=0.25)
-    for xx in (-140, 40, 210):
+    for xx in (-60, 100, 230):
         S.palm(c, xx, rw / 2 + 6, h=r.uniform(55, 70), seed=xx + 5, kind="fan")
     S.ground(c, -700, -700, 700, 700, "grass", z=-0.05)
     return finish("suburbs_street", (-175, -4, 6.0), (-40, 62, 14), 20, a.samples, a.res)
@@ -330,13 +330,13 @@ def sc_mansion(a):
         z = base * max(0.0, min(1.35, t)) ** 1.4 + 7 * math.sin(x * 0.018 + 1.3) * max(0, t) + 3 * math.sin(x * 0.07 + y * 0.05) * max(0, t)
         dy = y - LY
         if -W / 2 - 14 < x < W / 2 + 14 and -D / 2 - 30 < dy < D / 2 + 12:
-            z = (base - B.base_depth) if dy < -D / 2 + 8 else base
+            z = (base - B.base_depth) if dy < -D / 2 + 21 else base
         return z
 
     def in_lot(x, y):   # the lot brings its own ground: flat deck level + flat apron below the plinth
         return -W / 2 - 4 < x < W / 2 + 4 and LY - D / 2 - 26 < y < LY + D / 2 + 4
     S.hill(c, -600, -120, 600, 520, hz, nx=150, ny=90, kind="drygrass", skip=in_lot)
-    S.ground(c, -W / 2 - 6, LY - D / 2 + 20, W / 2 + 6, LY + D / 2 + 6, "drygrass", z=base - 0.3)
+    S.ground(c, -W / 2 - 6, LY - D / 2 + 21, W / 2 + 6, LY + D / 2 + 6, "drygrass", z=base - 0.3)
     S.ground(c, -W / 2 - 6, LY - D / 2 - 28, W / 2 + 6, LY - D / 2 + 21, "drygrass", z=base - B.base_depth - 0.2)
     BK.instantiate(B, c, loc=(0, LY, base), rot_z=0)
     r = random.Random(7)
