@@ -1,6 +1,6 @@
 # Job 0004 report: realistic car deep-dive
 
-> **Status: PARTIAL.** 56 assets are analyzed. All 16 classes are done. The yiypoo1024 cars follow. `DONE` comes last.
+> **Status: COMPLETE.** 61 assets were analyzed: 14 from the shortlist, 42 from the 16 new classes and 5 yiypoo1024 cars. That gives 61 JSONs and 115 shots; duplicates and the broken car have no shots. Studio is cleaned up: `HCCar`, `HCStage` and `HCCarFloor` are deleted, ClockTime is back to 16.5, and the Workspace is back to Terrain, Baseplate, SpawnLocation and Camera. The place was not saved and Play was never started.
 
 ## Method
 
@@ -117,3 +117,51 @@
 
 ### C. Creator yiypoo1024
 *(`search_asset` has no creator filter, and searching the name only returns spam that mentions it. Instead I searched by model names typical of their catalogue and picked results whose `creatorName` = yiypoo1024. Shortlist cars from them already covered: Sorento 117276253886376, Murano 73893179863762; Mariner 138255866612822 was a 3-part 2/5 in 0003.)*
+- **15374723303 "2008 Pontiac Torrent" (yiypoo1024) — 2/5.** Low-poly faceted crossover in flat saturated blue (internal name "2008 Pontiac Outlook"), only 3 MeshParts — much cruder than their Sorento/Murano. Bounds 19.1×7.9×22.7 are nearly square (an extra chassis part), so ANALYZE's cameras came out **side-on** rather than 3/4. 8 wheel candidates (Goodyear-lettered tyres), 5 seats, 14 scripts removed.
+- **104259035462682 "2006 Pontiac Grand Prix" (yiypoo1024) — 2/5.** A **photogrammetry scan** (single MeshPart with baked ground patch under it): real-world texture detail, but the **roof/glass is missing/melted** (scan holes) and the car sits on a scanned slab of pavement. 17.2×4.7×7.5 studs. No wheels/seats/scripts. Interesting as a wreck prop only.
+- **83151379176711 "2007 Pontiac Montana" (yiypoo1024) — 2/5.** Another **photogrammetry scan** on a scanned pavement slab: realistic paint and wheels, but **holes in roof/rear glass**, melted upper body. Also **under-scaled: 13.8×4.8×5.8 studs** for a minivan (~30% small). Single MeshPart, no wheels/seats/scripts. Wreck/abandoned-car prop only.
+- **70649312292255 "2009 Pontiac Vibe" (yiypoo1024) — 2/5.** Photogrammetry scan again (same style): very real texture/wheels, **torn roof and windshield holes**, scanned ground slab. 9.4×7.4×19.4 studs (correct scale this time). Single MeshPart, no wheels/seats/scripts. Wreck prop only. Pontiac badge.
+- **83139935191956 "1998 Hyundai Elantra" (yiypoo1024) — 2/5.** A **Sketchfab photogrammetry import** (top-level "Sketchfab_Scene", 6 MeshParts, 6 textures): realistic scuffed paint, two-tone panels — actually reads as a ~2004 Elantra XD. **Badly under-scaled: 5.2×1.7×2.2 studs** (needs ~3.5× scale-up). No wheels/seats/scripts. Texas-style plate.
+
+**yiypoo1024 verdict:** their realistic catalogue is **mixed**. The Sorento (4/5) and Murano (4/5) are clean, proper car models. The rest of what turned up are **photogrammetry scans** (Grand Prix, Montana, Vibe, Elantra): real textures but holes, baked ground slabs and wrong scale, so wreck props only. The Torrent is low-poly. Not a reliable "realistic creator" after all.
+
+## Summary for the lead
+
+**Top picks for the cosmetic-body rig (5/5 looks, separable wheels, sane scale):**
+
+| Role | Asset | Notes |
+|---|---|---|
+| Sports | 11881862706 Jaguar XKR-S GT | cleanest structure: `Wheels.FL/FR/RL/RR`, `DriveSeat`, blue paint group `0989cf` |
+| Hypercar | 116049719671074 Koenigsegg Jesko | detailed cockpit; strip neon-yellow accents |
+| Muscle | 16219472699 Classic Mustang ('69 fastback) | |
+| Muscle (body shell) | 4464423273 Camaro Z28 | **body only, no wheels/scripts** — ideal for our own wheels |
+| Hatch | 5039284025 Veloster N ("Daily Driver") | |
+| Compact | 132078381973405 Prius | |
+| SUV | 97965573521866 Mercedes-AMG GLE 53 Coupé | |
+| Truck | 89890547548224 Ford F-150 SuperCrew | |
+| Convertible | 14966756602 Volattolo Stradagna | **fictional brand**; 532 textures (heavy) |
+| Coupe (unbranded) | 15039920309 Edy Sport Coupe | no real badges |
+| Police SUV | 16390639371 Explorer PIU | real "Clifton" livery → reskin |
+| Police sedan | 18853303033 2011 Crown Vic (**blank white slick-top**) / 12444544835 1998 LAPD P71 | |
+| Limo / lowrider | 4232019061 Lincoln Town Car limo-lowrider; 13791818186 '64 Impala pair | |
+| Tow | 4908467941 Silverado wrecker | |
+| Fire | 11688323025 "Blueprint City" pumper (fictional livery); 130400317438495 18-mesh 6×4 | |
+| Motorbike | 10655506812 Honda CBR1000RR | |
+| Armored | 6590911334 Transit armored van (separable wheels) | |
+
+**Avoid / props only:**
+- Single-mesh bodies with baked wheels: box truck 131180706902259, W215 86338034228651, Mazda626 11229830669, L4D ambulance 72885213582530, BearCat 11155605490, front-loader 5245087628, yiypoo scans.
+- Game/IP rips: CoD CBR600 15104621740, L4D ambulance, WM garbage truck 9186961939 (a Hum3D copy).
+- Broken: 2016 Charger 11511132434 (lights only).
+- Duplicates: 97675679051639 (copy of 130400317438495) and 3584156538 (copy of 4908467941).
+- Oversized or scene packs: Monza SP1 136245297270332 (25×, clay); S-Klasse 14115238067 (multi-car scene).
+
+**Gaps with no shippable free asset:** ambulance, US city bus and luxury sedan. Plan to model these.
+
+**Branding:** almost every good model carries **real badges or liveries** (Ford, Chevy, Nissan, Mercedes, Jaguar, Koenigsegg, LAPD, Ohio SHP, WM, FIAT). The rig should hide or retexture badge meshes. The cleanest canvases are the Stradagna, the Edy coupe, the 2011 Crown Vic, the Blueprint pumper and the Camaro shell.
+
+**Structure notes for the rig:**
+- `wheelCandidates` is reliable when a model groups its wheels (Jaguar, Murano, Explorer, Maxima, Prius, GLE). It overcounts when each wheel is split into rim, tyre and hub meshes (Sorento 24, Stradagna 34, S2000 44).
+- 0 candidates means the wheels are fused into the body (single-mesh models) or the model has no wheels (the Camaro shell).
+- `colorGroupsByArea[1]` is often dark trim or glass, not paint. Pick the paint group as the largest non-black SmoothPlastic/Metal entry.
+- Orientation varies by model (~half are flipped), so normalise using the seat or `DriveSeat` direction, not `LookVector`.
