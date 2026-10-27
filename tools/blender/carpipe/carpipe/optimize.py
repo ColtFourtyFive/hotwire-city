@@ -228,18 +228,19 @@ def atlas_uv(objs, margin=0.004, angle=60.0):
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin, area_weight=0.0,
-                             correct_aspect=True, scale_to_bounds=False)
+                             correct_aspect=False, scale_to_bounds=False)
     if os.environ.get("CARPIPE_UVDEBUG"):
         bpy.ops.object.mode_set(mode="OBJECT")
         log("after smart_project", [round(uv_utilisation(o), 3) for o in objs], [o.data.uv_layers.active.name for o in objs])
         bpy.ops.object.mode_set(mode="EDIT")
-    _weight_islands(objs)
     t0 = time.time()
-    try:
+    # smart_project already packs all selected objects into one 0-1 space (~0.7 texel use). A second
+    # pack_islands(AABB) after shrinking ground-facing islands measured WORSE (0.3-0.5), and CONVEX/CONCAVE
+    # packing costs 20-40 s on interiors, so the smart_project layout is kept as is.
+    if os.environ.get("CARPIPE_PACK"):
+        _weight_islands(objs)
         bpy.ops.uv.pack_islands(udim_source="CLOSEST_UDIM", rotate=True, margin_method="FRACTION", margin=margin,
-                                shape_method="AABB")
-    except TypeError:
-        bpy.ops.uv.pack_islands(rotate=True, margin=margin)
+                                shape_method=os.environ["CARPIPE_PACK"])
     bpy.ops.object.mode_set(mode="OBJECT")
     log(f"atlas uv {[o.name for o in objs]} packed in {time.time() - t0:.1f}s, "
         f"texel use {sum(uv_utilisation(o) for o in objs):.2f}")
