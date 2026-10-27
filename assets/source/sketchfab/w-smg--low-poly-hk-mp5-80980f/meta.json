@@ -57,18 +57,18 @@
   "analysis": {
     "import_dims_m": [
       1.1289,
-      0.6293,
-      0.8944
+      0.1002,
+      0.4453
     ],
     "dims_m": [
       1.129,
-      0.629,
-      0.894
+      0.1,
+      0.445
     ],
     "front_evidence": "upright_band",
     "flipped": false,
-    "mesh_objects": 10,
-    "triangles": 5333,
+    "mesh_objects": 9,
+    "triangles": 5253,
     "materials": 9,
     "material_names": [
       "Material",
@@ -98,9 +98,11 @@
       "Cylinder.001_5",
       "Cylinder.001_6",
       "Cylinder.001_7",
-      "Cylinder.001_8",
+      "Cylinder.001_8"
+    ],
+    "hidden_helpers": [
       "Icosphere"
     ],
-    "render_s": 7.7
+    "render_s": 26.9
   }
 }
