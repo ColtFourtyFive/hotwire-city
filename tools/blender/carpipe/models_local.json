@@ -1,0 +1,62 @@
+{
+  "fairheaven_cop": {
+    "file": "fairheaven_cop.glb",
+    "length": 17.0,
+    "source": {
+      "title": "Fairheaven LT '80 Cop Cruiser - Low poly model",
+      "url": "https://sketchfab.com/3d-models/fairheaven-lt-80-cop-cruiser-low-poly-model-61766c1e6e1e4b2b803c174f33433a74",
+      "download": "sketchfab:61766c1e6e1e4b2b803c174f33433a74",
+      "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+      "attribution": "\"Fairheaven LT '80 Cop Cruiser - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+    },
+    "sketchfab_uid": "61766c1e6e1e4b2b803c174f33433a74"
+  },
+  "fairheaven_lt": {
+    "file": "fairheaven_lt.glb",
+    "length": 17.0,
+    "source": {
+      "title": "Fairheaven LT '80 - Low poly model",
+      "url": "https://sketchfab.com/3d-models/fairheaven-lt-80-low-poly-model-e2678da920cc4be68dbc193727919ffb",
+      "download": "sketchfab:e2678da920cc4be68dbc193727919ffb",
+      "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+      "attribution": "\"Fairheaven LT '80 - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+    },
+    "sketchfab_uid": "e2678da920cc4be68dbc193727919ffb"
+  },
+  "canyon_taxi": {
+    "file": "canyon_taxi.glb",
+    "length": 17.0,
+    "source": {
+      "title": "Canyon '75 Taxi - Low poly model",
+      "url": "https://sketchfab.com/3d-models/canyon-75-taxi-low-poly-model-9e8f92a215784f3d8aaaaeab1bef54c4",
+      "download": "sketchfab:9e8f92a215784f3d8aaaaeab1bef54c4",
+      "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+      "attribution": "\"Canyon '75 Taxi - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+    },
+    "sketchfab_uid": "9e8f92a215784f3d8aaaaeab1bef54c4"
+  },
+  "shvan_van": {
+    "file": "shvan_van.glb",
+    "length": 17.0,
+    "source": {
+      "title": "Shvan '92 - Low poly model",
+      "url": "https://sketchfab.com/3d-models/shvan-92-low-poly-model-09d718c9cf72401b8534d265a06a803f",
+      "download": "sketchfab:09d718c9cf72401b8534d265a06a803f",
+      "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+      "attribution": "\"Shvan '92 - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+    },
+    "sketchfab_uid": "09d718c9cf72401b8534d265a06a803f"
+  },
+  "goblin_supercar": {
+    "file": "goblin_supercar.glb",
+    "length": 17.0,
+    "source": {
+      "title": "Fictional supercar - V12 Goblin",
+      "url": "https://sketchfab.com/3d-models/fictional-supercar-v12-goblin-0a20e49ad5774d778567cb5c3f345786",
+      "download": "sketchfab:0a20e49ad5774d778567cb5c3f345786",
+      "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+      "attribution": "\"Fictional supercar - V12 Goblin\" by ollitei (https://sketchfab.com/ollitei) on Sketchfab, licensed CC Attribution"
+    },
+    "sketchfab_uid": "0a20e49ad5774d778567cb5c3f345786"
+  }
+}

@@ -68,6 +68,20 @@ BAD = re.compile(r"burn|destroy|wreck|abandon|rust|\btoy\b|cartoon|lego|stylized
                  r"wip|concept", re.I)
 
 
+KEEP = ["uid", "name", "author", "faces", "likes", "license_hint", "url", "glb_size", "textures", "bad_name",
+        "too_big", "queries"]
+
+
+def save(data):
+    """Write the candidate index compactly (no thumbnails/tags) - it lives in docs/."""
+    out = {}
+    for k, v in data.items():
+        out[k] = {kk: vv for kk, vv in v.items() if kk != "items"}
+        out[k]["items"] = [{f: r.get(f) for f in KEEP} for r in v["items"]]
+    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
+    OUT_JSON.write_text(json.dumps(out, separators=(",", ":")))
+
+
 def font(sz):
     for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
               str(ROOT / "tools/blender/buildkit/_cache/fonts/Oswald.ttf")]:
@@ -153,7 +167,7 @@ def main():
         name = a.name or a.user
         data = json.loads(OUT_JSON.read_text()) if OUT_JSON.exists() else {}
         data["_adhoc_" + name] = {"kind": a.kind, "queries": [a.q], "user": a.user, "items": items}
-        OUT_JSON.write_text(json.dumps(data, indent=1))
+        save(data)
         for i in range(0, len(items), a.top):
             grid(f"{name}_{i // a.top}", items[i:i + a.top], out, a.top)
         print(f"[scout] {name}: {len(items)}")
@@ -171,8 +185,7 @@ def main():
         data[cls] = {"kind": kind, "queries": queries, "items": items}
         grid(cls, items, out, a.top)
         print(f"[scout] {cls}: {len(items)} candidates")
-        OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-        OUT_JSON.write_text(json.dumps(data, indent=1))
+        save(data)
 
 
 if __name__ == "__main__":

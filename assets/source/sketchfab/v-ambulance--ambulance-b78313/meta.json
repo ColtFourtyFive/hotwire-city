@@ -47,16 +47,16 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      7.4331,
-      10.4871,
+      2.7674,
+      6.7301,
       2.661
     ],
     "dims_m": [
-      7.433,
-      10.487,
+      2.767,
+      6.73,
       2.661
     ],
-    "front_evidence": "roof_offset=+0.17",
+    "front_evidence": "roof_offset=+0.22",
     "flipped": false,
     "mesh_objects": 7,
     "triangles": 4071,
@@ -83,6 +83,6 @@
       "amulans_Material #84_0",
       "shd_SHD_0"
     ],
-    "render_s": 55.6
+    "render_s": 37.9
   }
 }

@@ -32,6 +32,14 @@ def font(sz, bold=False):
     return ImageFont.load_default()
 
 
+def unit_scale(length, lo, hi):
+    """Guess the import unit factor that brings a length into a plausible real-world range."""
+    for f in (1, 0.01, 0.001, 0.1, 0.0254):
+        if lo <= length * f <= hi:
+            return f
+    return 1
+
+
 def cell(meta, d):
     im = Image.new("RGB", (CW, CH + LH), (22, 22, 24))
     p = d / "preview.png"
@@ -49,10 +57,12 @@ def cell(meta, d):
     an = meta.get("analysis") or {}
     dims = an.get("dims_m") or [0, 0, 0]
     if meta.get("kind") == "vehicle":
-        size = f"{dims[1]:.1f}x{dims[0]:.1f}x{dims[2]:.1f}m"
+        f = unit_scale(dims[1], 1.6, 25)
+        size = f"{dims[1] * f:.1f}x{dims[0] * f:.1f}x{dims[2] * f:.1f}m" + ("" if f == 1 else f"(x{f:g})")
         wheels = "wheels:SEP" if an.get("wheels_separate") else "wheels:MERGED?"
     else:
-        size = f"{dims[0] * 100:.0f}cm"
+        f = unit_scale(dims[0], 0.07, 2.5)
+        size = f"{dims[0] * f * 100:.0f}cm" + ("" if f == 1 else f"(x{f:g})")
         wheels = ""
     tris = an.get("triangles") or meta.get("faceCount") or 0
     lic = {"by": "CC-BY", "cc0": "CC0"}.get(meta["license"]["slug"], meta["license"]["slug"])
