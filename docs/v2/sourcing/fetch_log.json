@@ -928,5 +928,85 @@
   "mb": 2.9,
   "license": "by",
   "conversion": "none"
+ },
+ "05a6a02909ee4fcfa5cde3d76cb067f0": {
+  "status": "ok",
+  "slug": "w-shotgun--remington-870-shotgun-05a6a0",
+  "class": "shotgun",
+  "kind": "weapon",
+  "name": "Remington 870 Shotgun",
+  "mb": 3.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "80980f757c2c463ebc73460a31611652": {
+  "status": "ok",
+  "slug": "w-smg--low-poly-hk-mp5-80980f",
+  "class": "smg",
+  "kind": "weapon",
+  "name": "Low-Poly HK MP5",
+  "mb": 0.3,
+  "license": "by",
+  "conversion": "none"
+ },
+ "833e1c5fb1c4414c83c531bacfa1cffb": {
+  "status": "ok",
+  "slug": "w-smg--low-poly-micro-uzi-833e1c",
+  "class": "smg",
+  "kind": "weapon",
+  "name": "Low-Poly Micro Uzi",
+  "mb": 0.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "d9f0070b3c924caf8fe47e41881389f0": {
+  "status": "ok",
+  "slug": "w-smg--low-poly-imi-uzi-d9f007",
+  "class": "smg",
+  "kind": "weapon",
+  "name": "Low-Poly IMI Uzi",
+  "mb": 0.8,
+  "license": "by",
+  "conversion": "none"
+ },
+ "2a9ce66fe96643fc8f20927401e5054c": {
+  "status": "ok",
+  "slug": "w-smg--mp5-submachinegun-2a9ce6",
+  "class": "smg",
+  "kind": "weapon",
+  "name": "MP5 submachinegun",
+  "mb": 8.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "a795adf5f8dd4a2294210d427cbb0e58": {
+  "status": "ok",
+  "slug": "w-sniper--low-poly-l115a3-a795ad",
+  "class": "sniper",
+  "kind": "weapon",
+  "name": "Low-Poly L115A3",
+  "mb": 1.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "cdefd833b4b5407ba32c53c9e7f50cae": {
+  "status": "ok",
+  "slug": "w-sniper--sniper-cdefd8",
+  "class": "sniper",
+  "kind": "weapon",
+  "name": "Sniper",
+  "mb": 4.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "e520b234140049e7890db0b6c29d3925": {
+  "status": "ok",
+  "slug": "w-sniper--sniper-rifle-gameready-free-e520b2",
+  "class": "sniper",
+  "kind": "weapon",
+  "name": "Sniper rifle GameReady Free",
+  "mb": 3.4,
+  "license": "by",
+  "conversion": "none"
  }
 }

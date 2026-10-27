@@ -1,0 +1,56 @@
+{
+  "source": "sketchfab",
+  "uid": "833e1c5fb1c4414c83c531bacfa1cffb",
+  "slug": "w-smg--low-poly-micro-uzi-833e1c",
+  "name": "Low-Poly Micro Uzi",
+  "class": "smg",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-micro-uzi-833e1c5fb1c4414c83c531bacfa1cffb",
+  "faceCount": 4194,
+  "vertexCount": 2265,
+  "materialCount": 11,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 133,
+  "tags": [
+    "mini",
+    "micro",
+    "israel",
+    "sub",
+    "uzi",
+    "machinegun",
+    "pistol",
+    "imi",
+    "iwi",
+    "israeli",
+    "low",
+    "poly",
+    "gun",
+    "smg"
+  ],
+  "categories": [
+    "science-technology",
+    "weapons-military"
+  ],
+  "description": "",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-smg--low-poly-micro-uzi-833e1c/model.glb",
+  "fileBytes": 581500,
+  "sha256": "53201790cee35d69f4755528b9131f3ef7bfa18cf30cd344af10cf11585d8dc9",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:48+00:00",
+  "notes": null
+}

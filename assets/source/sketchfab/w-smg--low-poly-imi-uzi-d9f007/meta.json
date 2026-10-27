@@ -1,0 +1,59 @@
+{
+  "source": "sketchfab",
+  "uid": "d9f0070b3c924caf8fe47e41881389f0",
+  "slug": "w-smg--low-poly-imi-uzi-d9f007",
+  "name": "Low-Poly IMI Uzi",
+  "class": "smg",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-imi-uzi-d9f0070b3c924caf8fe47e41881389f0",
+  "faceCount": 5249,
+  "vertexCount": 2858,
+  "materialCount": 13,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 262,
+  "tags": [
+    "mini",
+    "micro",
+    "israel",
+    "sub",
+    "uzi",
+    "firearm",
+    "machine",
+    "large",
+    "imi",
+    "iwi",
+    "israeli",
+    "fullsize",
+    "weapon",
+    "low",
+    "poly",
+    "gun",
+    "smg"
+  ],
+  "categories": [
+    "science-technology",
+    "weapons-military"
+  ],
+  "description": "Reuploaded for two reasons, One; Sketchfab broke the old models download and two; I remodelled it so it doesn't look like arse anymore.\n\nAlso for whoever cares, I have also remodelled a couple of my other guns, which is why I haven't made any \"new\" model for a while now.\n\nFAL - https://sketchfab.com/3d-models/low-poly-fn-fal-c737946bdccf4441b558b97ede5d0e3b\n\nM1A1 Thompson - https://sketchfab.com/3d-models/low-poly-thompson-m1a1-6f090d072c094ddfb1f1ca5ca4827c88\n\nM1928 Thompson - https://sketchfab.com/3d-models/low-poly-thompson-m1928-1e0f50d770ab4a2aa611a52f63e8d260\n\nSteyr Hahn - https://sketch",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-smg--low-poly-imi-uzi-d9f007/model.glb",
+  "fileBytes": 822564,
+  "sha256": "60e0f453ce4dc24a6bf66358f1255978b9169eda7b321d7ddc1d7269e24187c2",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:52+00:00",
+  "notes": null
+}

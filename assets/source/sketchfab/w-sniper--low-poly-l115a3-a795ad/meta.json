@@ -1,0 +1,63 @@
+{
+  "source": "sketchfab",
+  "uid": "a795adf5f8dd4a2294210d427cbb0e58",
+  "slug": "w-sniper--low-poly-l115a3-a795ad",
+  "name": "Low-Poly L115A3",
+  "class": "sniper",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-l115a3-a795adf5f8dd4a2294210d427cbb0e58",
+  "faceCount": 8132,
+  "vertexCount": 4494,
+  "materialCount": 18,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 147,
+  "tags": [
+    "rifle",
+    "action",
+    "international",
+    "british",
+    "bolt",
+    "winchester",
+    "warfare",
+    "l96",
+    "magnum",
+    "awp",
+    "l115a3",
+    "mag",
+    "arctic",
+    "338",
+    "awm",
+    "accuracy",
+    "lapua",
+    "l115",
+    "low",
+    "poly",
+    "gun"
+  ],
+  "categories": [
+    "electronics-gadgets",
+    "weapons-military"
+  ],
+  "description": "Remodelled",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-sniper--low-poly-l115a3-a795ad/model.glb",
+  "fileBytes": 1225612,
+  "sha256": "11c2ac2043f850fd2109765d51adddc2bfd7388efe88d27005ec1832873ac072",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:13:00+00:00",
+  "notes": null
+}

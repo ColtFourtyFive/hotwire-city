@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "80980f757c2c463ebc73460a31611652",
+  "slug": "w-smg--low-poly-hk-mp5-80980f",
+  "name": "Low-Poly HK MP5",
+  "class": "smg",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "TastyTony",
+    "displayName": "TastyTony",
+    "profileUrl": "https://sketchfab.com/TastyTony"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/low-poly-hk-mp5-80980f757c2c463ebc73460a31611652",
+  "faceCount": 5257,
+  "vertexCount": 2905,
+  "materialCount": 9,
+  "textureCount": 0,
+  "animationCount": 0,
+  "likeCount": 201,
+  "tags": [
+    "small",
+    "german",
+    "sub",
+    "mp5",
+    "9mm",
+    "heckler",
+    "koch",
+    "machinegun",
+    "hk",
+    "80s",
+    "pdw",
+    "parabellum",
+    "low",
+    "poly",
+    "gun",
+    "smg"
+  ],
+  "categories": [
+    "electronics-gadgets"
+  ],
+  "description": "An iconic gun that has seen widespread use since the mid 60s",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-smg--low-poly-hk-mp5-80980f/model.glb",
+  "fileBytes": 278936,
+  "sha256": "a9e26c1f3b7f3aa9e5f5d12380af6da6051de5c055e89ece307f1b3f32963e81",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:45+00:00",
+  "notes": null
+}

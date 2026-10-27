@@ -1,0 +1,49 @@
+{
+  "source": "sketchfab",
+  "uid": "2a9ce66fe96643fc8f20927401e5054c",
+  "slug": "w-smg--mp5-submachinegun-2a9ce6",
+  "name": "MP5 submachinegun",
+  "class": "smg",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "michaelkarel",
+    "displayName": "Michael Karel",
+    "profileUrl": "https://sketchfab.com/michaelkarel"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/mp5-submachinegun-2a9ce66fe96643fc8f20927401e5054c",
+  "faceCount": 7746,
+  "vertexCount": 4430,
+  "materialCount": 3,
+  "textureCount": 9,
+  "animationCount": 0,
+  "likeCount": 403,
+  "tags": [
+    "fps",
+    "mp5",
+    "firearm",
+    "submachinegun",
+    "low-poly",
+    "pbr",
+    "military",
+    "gamemodel"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "MP5 is a 9mm submachine gun, developed in the 1960s by engineers from the German small arms manufacturer Heckler & Koch. mp5 commonly used in shooter game. This model purposed for **first person shooter** game. see render [here](https://www.artstation.com/artwork/KA4wr)\n\nModel information :\n\n- dimension (5.82 cm x 60 cm x 31,6 cm)\n- geometry (3294 Tris)\n- already have bone and simple rig (no constrain)\n- texture size (4096x4096)\n- you can scaledown the resolution if you want.\n\nyou are **free to use** this model on your project **under license term**. do not resell or modified wthout notify me,",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-smg--mp5-submachinegun-2a9ce6/model.glb",
+  "fileBytes": 8362604,
+  "sha256": "58a6c327bcb125880fd41340299f70dd9168186115f6f617d9df240584741bde",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:55+00:00",
+  "notes": null
+}

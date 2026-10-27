@@ -40,7 +40,7 @@ You spawn in your own garage in a sun-baked coastal city.
    - Insurance, a repo window, vault bays, daily loss caps and a revenge mark.
    - Nobody can lose their last 2 cars.
    - The bank can never be taken by another player.
-4. **No reward for murder.** Killing a non-wanted, non-LOADED player pays nothing (gta_combat §8). PvP money only comes from mugging, LOADED wallets, thefts and bounties, and the target always opted into that risk.
+4. **No reward for murder.** Killing a non-wanted, non-LOADED player pays nothing (gta_combat §8). PvP money only comes from mugging, LOADED wallets, thefts, bounties, and revenge on a player who wronged you first. In each case the target opted into the risk.
 5. **The server decides everything.** Money, damage, ownership, positions used for payouts, and timers are all server-side (§10).
 6. **Designed for 8.** Every event works with 1 to 8 players in one server.
 7. **Mobile first.** Every interaction is a ProximityPrompt hold or one big button. No action needs more than 2 taps. Aim assist on touch and gamepad.
@@ -167,7 +167,7 @@ New players are protected by rookie protection (30 min, gta_combat §8) and star
   - Carbine and marksman unlocked.
   - Vault bay 2 at Rep 25.
 - **Cars:**
-  - Legendary and first Mythic cars at levels 20–30.
+  - Legendary and first Mythic cars, with a favourite car at level 15–25.
   - First Chameleon or Galaxy finish, and a limited serial-numbered car to chase.
 - **Prestige 2–4.** Each adds +50% income.
 - **Social:**
@@ -250,7 +250,7 @@ Each car is a **CarRecord** (§9.1) with a permanent `uid` and a `place` (where 
 
 ### 2.2 Street income: the casino
 
-While the owner drives their **own** car (`kind = "Owned"`, `status = ok`, not bound to someone else), every second StreetIncomeService pays:
+While the owner drives their **own** car (`kind = "Owned"`, `status = ok`; bound cars too, at the lower cap), every second StreetIncomeService pays:
 
 ```
 streetIncome/s = carIncome(car) × (1 + 0.5 × rebirths) × S×
@@ -280,7 +280,7 @@ S_CAP = 10 (bound cars: 5)
 |---|---|
 | XP from driving | **1 XP per 20 studs** driven by its owner on the street at ≥ 15 studs/s. Same conditions as street income, but passive mode still earns XP. About 180 XP/min at 60 studs/s. |
 | Bonus XP for the car you're in | +40 per star evaded; +2/s drifting (`Vehicle.DRIFT_SLIP_SPEED`); +50 per crime payout while this car is your getaway (it is within 50 studs at payout and you drive it away within 30 s); race finish +150 (win +300); heist getaway +500; delivering a truck or heist bag in it +100 |
-| XP to the next level | `xpToNext(L) = floor(80 × L^1.6)`. L1→2: 80 XP (about 27 s). L5: 1,050. L10: 3,185. Cumulative: L5 about 1.5K XP (8 min); L10 about 10.7K (about 60 min); L20 about 69K (about 5 h); L30 about 204K (about 14 h); L40 about 436K; L50 about 784K. |
+| XP to the next level | `xpToNext(L) = floor(80 × L^1.6)`. L1→2: 80 XP (about 27 s). L5: 1,050. L10: 3,185. Cumulative at the base 180 XP/min: L5 about 1.5K XP (8 min); L10 about 10.7K (about 60 min); L20 about 69K (about 6.4 h); L30 about 204K (about 19 h); L40 about 436K (about 40 h); L50 about 784K (about 72 h). Bonus XP shortens these by roughly 25%. |
 | Level cap by rarity | Common 20, Uncommon 25, Rare 30, Epic 35, Legendary 40, Mythic 45, Secret 50, Exclusive 35 |
 | Income | +3% per level: `1 + 0.03 × (L − 1)`. L10 ×1.27, L20 ×1.57, L50 ×2.47 |
 | Value | +2% per level (§2.6) |
@@ -611,12 +611,12 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
    bagValue = 15,000 + 450 s × crewMedianG
    total    = Σ bagValue × wantedMult(carrier stars at delivery) × (1 + 0.05 × objectivesMet)
    share_i  = total × split_i
-   share_i  = min(share_i, 60,000 + 1,800 s × memberG_i)   -- overflow goes to other members up to their clamp, then is lost
+   share_i  = min(share_i, 60,000 + 3,600 s × memberG_i)   -- overflow goes to other members up to their clamp, then is lost
    ```
 
    - The default split is equal. In the lobby the leader may set 15–40% per member (the total must be 100%), and members see the split before they Ready.
    - **The split is enforced:** whoever carries the bag, every crew member is paid their share at delivery.
-   - **Stage C example:** 8 bags × $375K × 2.5 = $7.5M; +10% objectives = $8.25M; split 4 ways = **$2.06M each**. That is about 43 min of garage income for about 9 min of play, roughly 4.7×.
+   - **Stage C example:** 8 bags × $375K × 2.5 = $7.5M; +10% objectives = $8.25M; split 4 ways = **$2.06M each**. That is about 43 min of garage income for about 9 min of play, roughly 4.7×. The clamp (`60,000 + 3,600 s × G` = $2.94M at G 800) does not bind between equals. It only caps a low-G member carried by a rich crew: at G 50 the clamp is $240K.
 6. **Fail:** if every crew member is downed or busted with no bags delivered, the payout is 0 and the kit is lost.
 
 ### 3.8 Jewelry store (server cooldown 900 s)
@@ -896,7 +896,7 @@ Weekly boards use keys with an ISO-week suffix. Writes follow the v1 budget rule
 
 ### 6.1 Rep (account level 1–100)
 
-- **Curve:** `repToNext(L) = floor(40 × L^1.45)`. Cumulative: Rep 2 = 40 RP; Rep 5 = 644; Rep 10 = 4,050 (~1 h); Rep 20 ≈ 23.6K (~6 h); Rep 30 ≈ 65K (~16 h); Rep 50 ≈ 232K; Rep 100 ≈ 1.28M.
+- **Curve:** `repToNext(L) = floor(40 × L^1.45)`. Cumulative: Rep 2 = 40 RP; Rep 5 = 644; Rep 10 = 4,050 (~1 h); Rep 20 ≈ 23.6K (~6 h); Rep 30 ≈ 65K (~16–18 h at about 60 RP/min, faster with heists); Rep 50 ≈ 232K; Rep 100 ≈ 1.28M.
 - **RP sources:** the RP column of §3.2, plus:
   - 1 RP per 100 studs cruised;
   - car level-up +20;
@@ -1044,8 +1044,8 @@ Active = actually playing: driving, crimes, events. The pillar target is active 
 | B Early | 10–60 min | 5–10 | 4–6 Uncommon/Rare | 40–250 | 0.15–0.9M | **0.5–3.5M** | 30 / 15 / 40 / 15 | Slots 6–7 ($8K, $40K), Rares ($7–11K), Micro SMG, taser |
 | C Day 1 | 1–3 h | 10–18 | 6–8 Rare/Epic, LV 5–15 | 300–1.5K | 1.1–5.4M | **4–20M** | 30 / 20 / 30 / 20 | Epics ($40–65K), slot 8 ($200K), Epic upgrades (~$1M to max), Comrade, **Prestige I ($750K)** |
 | D Days 2–3 | 3–8 h | 18–25 | 8 Epic/Legendary, LV 10–20 | 2K–8K | 7–29M | **25–100M** | 30 / 20 / 30 / 20 | Legendaries ($250–400K), slot 9 ($1M), Legendary upgrades (~$6M to max), Prestige II–III ($2.1M, $5.7M) |
-| E Day 7 | 8–16 h | 25–32 | 9–10 Legendary/Mythic, LV 20–30 | 10K–40K | 36–144M | **120–500M** | 30 / 25 / 25 / 20 | Mythics ($1.5–2.5M), slot 10 ($5M), Mythic upgrades ($31–52M to max), Prestige IV ($15.6M) |
-| F Day 30 | 40 h+ | 45+ | Mythic/Secret, LV 30–50 | ≥150K | ≥0.5B | **≥2B** | 30 / 25 / 25 / 20 | Secret cars ($10–30M) and upgrades (≤$412M each), Prestige V–VII ($43M–$324M) |
+| E Day 7 | 8–16 h | 25–32 | 9–10 Legendary/Mythic; favourite at LV 15–25 | 10K–40K | 36–144M | **120–500M** | 30 / 25 / 25 / 20 | Mythics ($1.5–2.5M), slot 10 ($5M), Mythic upgrades ($31–52M to max), Prestige IV ($15.6M) |
+| F Day 30 | 40 h+ | 45+ | Mythic/Secret, LV 25–45 | ≥150K | ≥0.5B | **≥2B** | 30 / 25 / 25 / 20 | Secret cars ($10–30M) and upgrades ($206–618M each to max), Prestige V–VII ($43M–$324M) |
 
 **Time-to targets** (playtests must hit these within ±50%):
 
@@ -1489,8 +1489,9 @@ MIGRATIONS[1] = function(d: any, ctx: { userId: number, now: number }): any
 			upgradeSpend = 0, -- grandfathered stages add no value (no free resale profit)
 			paint = Paint.defaultFor(def), mileage = 0,
 			bound = if def and def.rarity == "Exclusive" then true else nil,
-			origin = "migrated", acquiredAt = ctx.now, firstOwner = ctx.userId, owners = 1, thefts = 0,
-			uncollected = 0, place = { kind = "slot", index = 0 }, status = "ok",
+			acquiredAt = ctx.now, firstOwner = ctx.userId, owners = 1, thefts = 0,
+			origin = origin, -- "migrated" | "robux" | "reward"
+			uncollected = 0, place = { kind = "slot", index = 0 }, status = "ok", -- owedCars ignore place until delivered
 		}
 	end
 	local keys = {}
@@ -1762,6 +1763,7 @@ All are validated with `Net.is*`, re-derived from server state, and rate-limited
 |---|---|---|
 | Street income (S3) | Speedhack, fly or teleport; AFK auto-drive; driving circles in a lot; safe-zone farming; passive farming | Watchdog taint pauses income. ≥ 150 studs net displacement per 60 s. Input-change check every 45 s (server reads `VehicleSeat.ThrottleFloat/SteerFloat`). Road-zone check (RoadGraph lane bounds + 12 studs). Off in safe zones and own garage. Passive ×1.5. S× computed only from server state (stars, cruise seconds). Mileage and XP use the same gates. |
 | Car XP | XP farming in a loop | Same gates; XP is capped at 1.5× the base rate per minute of driving (bonuses can't stack beyond) |
+| Hotwire timing bar (CLEAN steal) | Always hitting "perfect" | The server picks the sweet-spot window per hold and measures the tap against its own record of when the hold began (±120 ms plus half the ping). The worst case, always perfect, equals a 40% faster hold and never applies to garage raids or carjacks. Logged if the perfect rate stays above 90% over 20 steals. |
 | Store hold-up (S4) | Remote spoof; robbing from outside; multi-store teleport chains | Prompt and aim checks server-side (gun equipped, within 15 studs, aim vector from HitboxHistory facing). Fill ticks server-side only while inside the store volume and within 12 studs. Per-store server cooldown 300 s, per-player 45 s. Taint voids the payout. |
 | ATM hack (S5) | Auto-solve; spoofed success | The server owns the mini-game seed and step deadlines. The client sends one value per step; a wrong or late value fails the step. Minimum 6 s total. Per-ATM cooldown. |
 | NPC mugging (S6) | Mass-farming peds | Per-ped cooldown 120 s; diminishing returns ×0.25 after 10 in 10 min; ped count bounded by the NPCService budget |
@@ -1841,7 +1843,7 @@ return {
 		bagBase = 2000, bagMedianSecs = 120, clampBase = 5000, clampSecs = 300, heat = 3, bagsPerHour = 12, rp = 200 },
 	Heist = { interval = 1800, window = 300, minCrew = 2, maxCrew = 4, rep = 10, kitBase = 10000, kitSecs = 30,
 		bags = 8, bagBase = 15000, bagMedianSecs = 450, objectiveBonus = 0.05, splitMin = 0.15, splitMax = 0.40,
-		clampBase = 60000, clampSecs = 1800, rivalShare = 0.5, rp = 800, rpPerBag = 100 },
+		clampBase = 60000, clampSecs = 3600, rivalShare = 0.5, rp = 800, rpPerBag = 100 },
 	MostWanted = { base = 2500, secs = 60, growthPer30s = 0.1, growthCap = 3, minSeconds = 60, perClaimerDay = 3,
 		survivalBase = 1000, survivalSecsPerMin = 60, survivalMaxMin = 10 },
 }

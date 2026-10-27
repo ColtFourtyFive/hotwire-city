@@ -72,6 +72,17 @@ def world_verts(objs):
     return np.concatenate(out) if out else np.zeros((0, 3))
 
 
+def robust_bbox(objs, q=0.15):
+    """Percentile bbox over all vertices: ignores stray helper verts / tiny far-away junk."""
+    import numpy as np
+    V = world_verts(objs)
+    if len(V) < 50:
+        return world_bbox(objs)
+    lo = np.percentile(V, q, axis=0)
+    hi = np.percentile(V, 100 - q, axis=0)
+    return Vector(lo.tolist()), Vector(hi.tolist())
+
+
 def mesh_objects():
     return [o for o in bpy.context.scene.objects if o.type == "MESH" and o.data and len(o.data.polygons) > 0]
 
@@ -95,7 +106,7 @@ def main():
             o.parent = root
     bpy.context.view_layer.update()
 
-    mn, mx = world_bbox(meshes)
+    mn, mx = robust_bbox(meshes)
     dims = mx - mn
     stats = {"import_dims_m": [round(d, 4) for d in dims]}
 
@@ -106,12 +117,12 @@ def main():
             rot = Matrix.Rotation(math.radians(-90), 4, "X")
         root.matrix_world = rot @ root.matrix_world
         bpy.context.view_layer.update()
-        mn, mx = world_bbox(meshes); dims = mx - mn
+        mn, mx = robust_bbox(meshes); dims = mx - mn
         if dims.x > dims.y:
             root.matrix_world = Matrix.Rotation(math.radians(90), 4, "Z") @ root.matrix_world
         bpy.context.view_layer.update()
         # front detection: camera sits on -Y, so put the front at -Y
-        mn, mx = world_bbox(meshes); cy = (mn.y + mx.y) / 2; L = max(mx.y - mn.y, 1e-6)
+        mn, mx = robust_bbox(meshes); cy = (mn.y + mx.y) / 2; L = max(mx.y - mn.y, 1e-6)
         fy, ry = [], []
         for o in meshes:
             omn, omx = world_bbox([o]); oc = (omn.y + omx.y) / 2 - cy
@@ -169,12 +180,12 @@ def main():
             root.matrix_world = Matrix.Rotation(math.radians(180), 4, "X") @ root.matrix_world
         stats_front = {"front_evidence": "upright_band", "flipped": bool(flip)}
     bpy.context.view_layer.update()
-    mn, mx = world_bbox(meshes)
+    mn, mx = robust_bbox(meshes)
     # put on the floor, centred
     c = (mn + mx) / 2
     root.matrix_world = Matrix.Translation(Vector((-c.x, -c.y, -mn.z))) @ root.matrix_world
     bpy.context.view_layer.update()
-    mn, mx = world_bbox(meshes)
+    mn, mx = robust_bbox(meshes)
     dims = mx - mn
     stats["dims_m"] = [round(d, 3) for d in dims]
     stats.update(stats_front)  # x=width/len, y, z=height after orientation

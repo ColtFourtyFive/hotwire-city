@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "cdefd833b4b5407ba32c53c9e7f50cae",
+  "slug": "w-sniper--sniper-cdefd8",
+  "name": "Sniper",
+  "class": "sniper",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "bumstrum",
+    "displayName": "DJMaesen",
+    "profileUrl": "https://sketchfab.com/bumstrum"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/sniper-cdefd833b4b5407ba32c53c9e7f50cae",
+  "faceCount": 13087,
+  "vertexCount": 6817,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 680,
+  "tags": [
+    "rifle",
+    "scope",
+    "sniper",
+    "gameready"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "gameready sniper \n\n2k maps\n\nparts are seperated for animation",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-sniper--sniper-cdefd8/model.glb",
+  "fileBytes": 4642016,
+  "sha256": "bbe709fe73d0c016677d35bca0388239c9f8f76cae02ff9f73f43de98d6bf6b7",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:13:05+00:00",
+  "notes": null
+}

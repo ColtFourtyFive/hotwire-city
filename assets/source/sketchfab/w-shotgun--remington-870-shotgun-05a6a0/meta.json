@@ -1,0 +1,50 @@
+{
+  "source": "sketchfab",
+  "uid": "05a6a02909ee4fcfa5cde3d76cb067f0",
+  "slug": "w-shotgun--remington-870-shotgun-05a6a0",
+  "name": "Remington 870 Shotgun",
+  "class": "shotgun",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Urpo",
+    "displayName": "Urpo",
+    "profileUrl": "https://sketchfab.com/Urpo"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/remington-870-shotgun-05a6a02909ee4fcfa5cde3d76cb067f0",
+  "faceCount": 7044,
+  "vertexCount": 3595,
+  "materialCount": 2,
+  "textureCount": 10,
+  "animationCount": 0,
+  "likeCount": 329,
+  "tags": [
+    "870",
+    "remington",
+    "downloadable",
+    "substancepainter",
+    "substance",
+    "weapon",
+    "3dsmax",
+    "shotgun",
+    "free"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "This project started when i was trying different modeling techniques but evolved to this shotgun. This was pretty fast project. Modeling took about two hours and the textures took maybe one hour. The uv maps are pretty bad, but i wanted to try how well substance painters auto uv mapper works.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-shotgun--remington-870-shotgun-05a6a0/model.glb",
+  "fileBytes": 3572788,
+  "sha256": "a171c1f1618f40fbaffae75148932d5dff5286e0d884bec14478e0dbaec2614a",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:12:42+00:00",
+  "notes": null
+}

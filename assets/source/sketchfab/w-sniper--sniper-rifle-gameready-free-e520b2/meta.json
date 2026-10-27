@@ -1,0 +1,45 @@
+{
+  "source": "sketchfab",
+  "uid": "e520b234140049e7890db0b6c29d3925",
+  "slug": "w-sniper--sniper-rifle-gameready-free-e520b2",
+  "name": "Sniper rifle GameReady Free",
+  "class": "sniper",
+  "kind": "weapon",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "pashtetuser",
+    "displayName": "pashtetuser",
+    "profileUrl": "https://sketchfab.com/pashtetuser"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/sniper-rifle-gameready-free-e520b234140049e7890db0b6c29d3925",
+  "faceCount": 15383,
+  "vertexCount": 7720,
+  "materialCount": 1,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 409,
+  "tags": [
+    "rifle",
+    "sniper",
+    "weapon",
+    "gun"
+  ],
+  "categories": [
+    "weapons-military"
+  ],
+  "description": "ruger precision as reference",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/w-sniper--sniper-rifle-gameready-free-e520b2/model.glb",
+  "fileBytes": 3435716,
+  "sha256": "e94ef77c4a55d7fbcef7eae3f6b0b57b59d9ee1db431811efabee0c148acc74f",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:13:09+00:00",
+  "notes": null
+}
