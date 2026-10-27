@@ -103,7 +103,7 @@ def get_model(uid, mid, any_license=False):
         json.dump(source, f, indent=2)
     reg_p = os.path.join(HERE, "models_local.json")
     reg = json.load(open(reg_p)) if os.path.exists(reg_p) else {}
-    reg[mid] = {"file": file_rel, "length": 17.0, "source": source, "sketchfab_uid": uid}
+    reg[mid] = {"file": file_rel, "length": "auto", "source": source, "sketchfab_uid": uid}
     with open(reg_p, "w") as f:
         json.dump(reg, f, indent=2)
     print(f"saved {dst} ({fmt}); registered '{mid}' in models_local.json")

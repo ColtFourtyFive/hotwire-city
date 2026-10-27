@@ -53,12 +53,12 @@
   "analysis": {
     "import_dims_m": [
       8.1172,
-      1.618,
+      2.0,
       5.6167
     ],
     "dims_m": [
       8.117,
-      1.618,
+      2.0,
       5.617
     ],
     "front_evidence": "upright_band",
@@ -101,6 +101,6 @@
       "Cube.001_10",
       "Icosphere"
     ],
-    "render_s": 48.8
+    "render_s": 22.1
   }
 }

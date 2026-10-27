@@ -2,7 +2,7 @@
   "_doc": "Test/reference car models for carpipe. 'file' is relative to _cache/models/<id>/ (fetch_models.py downloads them). Per-model keys are pipeline config overrides: length (studs), front (+x/-x/+y/-y, in the file's Blender axes after import), up, textures {material: image}, roles {regex: Role}, budget {Object: tris}.",
   "carconcept": {
     "file": "CarConcept.glb",
-    "length": 16.5,
+    "length": "auto",
     "class": "sports hatch / concept",
     "source": {
       "title": "Car Concept (glTF Sample Assets)",
@@ -14,13 +14,25 @@
   },
   "musclecar": {
     "file": "src/Objects/FireGTO.obj",
-    "length": 17.5,
+    "length": "auto",
     "class": "muscle",
-    "paint_default": [0.93, 0.68, 0.08],
-    "textures": {"_no_fuzzy": true, "Rim": "../Images/Alloy_01.bmp", "Tyre": "../Images/Tyre_Tile.bmp",
-                 "FrontLights": "../Images/Headlight.bmp", "RearLights": "../Images/RearLight.bmp",
-                 "Interior": "../Images/Interior.bmp", "Grille": "../Images/Grille.bmp",
-                 "License": "../Images/License.bmp", "Badge": "../Images/Badge.bmp", "Underside": "../Images/Underside.bmp"},
+    "paint_default": [
+      0.93,
+      0.68,
+      0.08
+    ],
+    "textures": {
+      "_no_fuzzy": true,
+      "Rim": "../Images/Alloy_01.bmp",
+      "Tyre": "../Images/Tyre_Tile.bmp",
+      "FrontLights": "../Images/Headlight.bmp",
+      "RearLights": "../Images/RearLight.bmp",
+      "Interior": "../Images/Interior.bmp",
+      "Grille": "../Images/Grille.bmp",
+      "License": "../Images/License.bmp",
+      "Badge": "../Images/Badge.bmp",
+      "Underside": "../Images/Underside.bmp"
+    },
     "_note": "Body.bmp is a LightWave planar-projected stripe overlay; the OBJ export lost that projection, so the body is left untextured.",
     "source": {
       "title": "Muscle Car 3D Model",
@@ -32,9 +44,11 @@
   },
   "corrado": {
     "file": "src/car.obj",
-    "length": 15.5,
+    "length": 13.8,
     "class": "compact coupe",
-    "textures": {"01_-_Default": "corradon.png"},
+    "textures": {
+      "01_-_Default": "corradon.png"
+    },
     "source": {
       "title": "Car VW Corradon",
       "url": "https://opengameart.org/content/car-vw-corradon",
@@ -45,9 +59,13 @@
   },
   "uaz452": {
     "file": "src/uaz_452.fbx",
-    "length": 17.0,
+    "length": "auto",
     "class": "van",
-    "textures": {"UazMat": "UazTex.png", "WheelMat": "Wheel.png", "Pixelly": "palette.png"},
+    "textures": {
+      "UazMat": "UazTex.png",
+      "WheelMat": "Wheel.png",
+      "Pixelly": "palette.png"
+    },
     "source": {
       "title": "UAZ-452 Utility Van Lowpoly",
       "url": "https://opengameart.org/content/uaz-452-utility-van-lowpoly",
@@ -58,7 +76,7 @@
   },
   "camaro": {
     "file": "camaro.blend",
-    "length": 17.0,
+    "length": 16.0,
     "class": "muscle (untextured, unnamed parts: robustness test)",
     "source": {
       "title": "chevrolet camaro ss",
@@ -70,7 +88,7 @@
   },
   "bmw27": {
     "file": "src/bmw27/bmw27_cpu.blend",
-    "length": 17.5,
+    "length": "auto",
     "class": "coupe (Blender benchmark scene: robustness test only)",
     "select": "^(?!.*/ 1M /)",
     "_note": "The benchmark scene holds two cars; the second one is a collection instance named 1M.",

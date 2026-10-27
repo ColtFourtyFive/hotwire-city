@@ -13,13 +13,30 @@ from .analyze import INTERIOR, KW_SEAT, TRIM, WHEEL0
 from .util import ensure_dir, fmt3, kw_match, log, reset_scene, select_only, srgb_to_lin, tri_count, verts_np
 
 DEFAULTS = {
-    "length": 17.0,          # studs, bumper to bumper
+    "length": "auto",        # studs bumper to bumper, or "auto": real length (m) x studs_per_meter if the file
+                             # is in metres (plausible 2.8-16 m), else 17
+    "studs_per_meter": 3.4,  # 5.0 m sedan -> 17 studs, matching the ~5.5-stud character
     "tex_body": 1024, "tex_trim": 1024, "tex_interior": 512, "tex_wheel": 512, "tex_lights": 256,
     "glass_tint": [0.06, 0.08, 0.09], "glass_alpha": 0.45,
     "body_maps": True,       # also write Body normal/AO PNGs for an optional SurfaceAppearance
     "budget": {},            # per-object overrides of optimize.BUDGET
     "bake": True,
 }
+
+
+def resolve_length(car, cfg):
+    """Explicit length wins; 'auto' keeps real-world proportions between cars when the source is in metres."""
+    L = cfg.get("length", "auto")
+    if L != "auto":
+        return float(L)
+    lo, hi = car.bbox()
+    src = float(hi[1] - lo[1])
+    if getattr(car, "wheels", None) and 2.8 <= src <= 16.0:
+        r = max(w["radius"] for w in car.wheels)
+        if 0.22 <= r <= 0.75:  # wheel radius also plausible in metres
+            return round(src * float(cfg.get("studs_per_meter", 3.4)), 3)
+    car.warnings.append(f"source length {src:.3g} is not plausibly metres; using 17 studs (set 'length')")
+    return 17.0
 
 
 def rbx(v):
@@ -48,7 +65,7 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     car.orient()
     car.find_wheels()
     car.unsteer_wheels()
-    car.ground_and_scale(float(cfg["length"]))
+    car.ground_and_scale(resolve_length(car, cfg))
     car.classify()
     car.debug_dump(os.path.join(out_dir, "islands_debug.txt"))
     seats = _seats(car)

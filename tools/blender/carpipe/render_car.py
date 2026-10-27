@@ -39,7 +39,8 @@ def load_before(path, cfg):
     car.build(objs)
     car.orient()
     car.find_wheels()
-    car.ground_and_scale(float(cfg.get("length", 17.0)))
+    from carpipe import pipeline
+    car.ground_and_scale(pipeline.resolve_length(car, {**pipeline.DEFAULTS, **cfg}))
     return car.obj
 
 
