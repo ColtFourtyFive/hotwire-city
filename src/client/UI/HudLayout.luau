@@ -46,12 +46,13 @@ export type Layout = {
 	timersDriving: Rect,
 	timerStep: number, -- signed: -(h + gap) on desktop, +(h + gap) on touch
 	speed: Rect, -- driving speed readout
+	driftText: Rect, -- driving: the small "DRIFT 2.4s" line next to / above the speed readout
 	radio: Rect,
 	phone: Rect,
 	phoneScale: number,
 	list: Rect, -- interaction list menu (touch: bottom sheet)
 	listRow: number,
-	buttons: { [string]: Rect }, -- touch only: phone, map (on foot); nitro, drift, horn, exit (driving)
+	buttons: { [string]: Rect }, -- touch only: phone, map (on foot); nitro, drift, horn, exit, radio, spikes (driving)
 }
 
 HudLayout.SAFE = 20
@@ -119,7 +120,8 @@ local function desktop(w: number, h: number): Layout
 	local lineH = 32
 	local location = rect(right - locW, h - S - lines * lineH, locW, lines * lineH)
 	local speed = rect(right - 160, h - S - 40, 160, 40)
-	local locationDriving = rect(right - locW, speed.y - 4 - lines * lineH, locW, lines * lineH)
+	local driftText = rect(speed.x, speed.y - 28, speed.w, 24)
+	local locationDriving = rect(right - locW, driftText.y - 4 - lines * lineH, locW, lines * lineH)
 	local T = HudLayout.TIMER
 	local timers = rect(right - T.w, location.y - 6 - T.h, T.w, T.h)
 	local timersDriving = rect(right - T.w, locationDriving.y - 6 - T.h, T.w, T.h)
@@ -155,6 +157,7 @@ local function desktop(w: number, h: number): Layout
 		timersDriving = timersDriving,
 		timerStep = -(T.h + T.gap),
 		speed = speed,
+		driftText = driftText,
 		radio = radio,
 		phone = phone,
 		phoneScale = phoneScale,
@@ -196,9 +199,14 @@ local function touchLayout(w: number, h: number): Layout
 	local drift = rect(nitro.x - 10 - 84, h - S - 84, 84, 84)
 	local horn = rect(right - 60 - 18, nitro.y - 10 - 60, 60, 60)
 	local exit = rect(horn.x - 12 - 60, horn.y, 60, 60)
+	-- slot for the combat package's in-car tool button (v1 SPIKES), same canvas as these
+	local spikes = rect(exit.x - 12 - 60, exit.y, 60, 60)
 	local phoneBtn = rect(right - 56, h - 136 - 56, 56, 56)
 	local mapBtn = rect(phoneBtn.x - 12 - 56, phoneBtn.y, 56, 56)
 	local speed = rect(drift.x - 12 - 130, h - S - 44, 130, 44)
+	-- radio: tap to change station (the station name shows top-centre); over the speed readout's right end
+	local radioBtn = rect(speed.x + speed.w - 48, speed.y - 8 - 48, 48, 48)
+	local driftText = rect(speed.x - 150, speed.y + 7, 140, 30)
 	local P = HudLayout.PHONE
 	local phoneScale = math.clamp((h - 32) / P.h, 0.8, 1.3)
 	local pw, ph = round(P.w * phoneScale), round(P.h * phoneScale)
@@ -231,12 +239,22 @@ local function touchLayout(w: number, h: number): Layout
 		timersDriving = timers,
 		timerStep = T.h + T.gap,
 		speed = speed,
+		driftText = driftText,
 		radio = radio,
 		phone = phone,
 		phoneScale = phoneScale,
 		list = list,
 		listRow = 40,
-		buttons = { phone = phoneBtn, map = mapBtn, nitro = nitro, drift = drift, horn = horn, exit = exit },
+		buttons = {
+			phone = phoneBtn,
+			map = mapBtn,
+			nitro = nitro,
+			drift = drift,
+			horn = horn,
+			exit = exit,
+			radio = radioBtn,
+			spikes = spikes,
+		},
 	}
 end
 

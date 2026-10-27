@@ -592,7 +592,16 @@ local function displayCash(): number
 end
 
 local function isDriving(): boolean
-	return player:GetAttribute("Driving") == true
+	if player:GetAttribute("Driving") == true then
+		return true
+	end
+	-- the seat is ours a moment before the server flips the attribute: lay out for driving straight away
+	local vc = lazy("VehicleClient")
+	if vc and typeof(vc.isDriving) == "function" then
+		local ok, driving = pcall(vc.isDriving)
+		return ok and driving == true
+	end
+	return false
 end
 
 local function humanoid(): Humanoid?
@@ -1744,10 +1753,16 @@ function HUDController.start()
 	applyResetButton()
 	player:GetAttributeChangedSignal("WantedSeen"):Connect(refreshSeen)
 	player:GetAttributeChangedSignal("BustProgress"):Connect(refreshBust)
-	player:GetAttributeChangedSignal("Driving"):Connect(function()
+	local function onDrivingChanged()
 		applyLayout()
 		refreshButtons()
-	end)
+	end
+	player:GetAttributeChangedSignal("Driving"):Connect(onDrivingChanged)
+	local vc = lazy("VehicleClient")
+	if vc and vc.Entered and vc.Exited then
+		vc.Entered:Connect(onDrivingChanged)
+		vc.Exited:Connect(onDrivingChanged)
+	end
 
 	local function onSnapshot(snap: any, previous: any)
 		local wantHidden = readHidden(snap)

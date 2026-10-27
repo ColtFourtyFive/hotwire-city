@@ -77,6 +77,7 @@ return function(t)
 			locationDriving = L.locationDriving,
 			timers = L.timers,
 			speed = L.speed,
+			driftText = L.driftText,
 			radio = L.radio,
 			phone = L.phone,
 		}
@@ -131,7 +132,7 @@ return function(t)
 					"location",
 					"timers",
 				},
-				{ "radar", "bars", "objective", "locationDriving", "speed", "radio", "stars", "cash" },
+				{ "radar", "bars", "objective", "locationDriving", "speed", "driftText", "radio", "stars", "cash" },
 			}
 			for _, g in groups do
 				for i = 1, #g do
@@ -178,6 +179,9 @@ return function(t)
 				"radio",
 				"timers",
 				"speed",
+				"driftText",
+				"button_radio",
+				"button_spikes",
 				"button_nitro",
 				"button_drift",
 				"button_horn",
