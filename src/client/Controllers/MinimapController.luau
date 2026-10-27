@@ -964,9 +964,13 @@ local function collectCandidate(id: string, pos: Vector3, color: Color3, _label:
 	end
 end
 
-local function pickGps(): (string?, Vector3?, Color3)
+-- Refresh `candidates` from WaypointController (every radar frame: blips of moving targets stay live).
+local function collectWaypoints()
 	candidateCount = 0
 	WaypointController.each(collectCandidate)
+end
+
+local function pickGps(): (string?, Vector3?, Color3)
 	local bestId: string?, bestPos: Vector3?, bestColor = nil, nil, WHITE
 	local bestRank = math.huge
 	for i = 1, candidateCount do
@@ -1150,6 +1154,7 @@ local function update(dt: number)
 	accum = 0
 
 	local pos = root.Position
+	collectWaypoints()
 	if slowAccum >= SLOW_DT then
 		slowAccum = 0
 		slowTick(pos)
@@ -1181,7 +1186,7 @@ local function update(dt: number)
 	end
 	r.spin.Rotation = rot
 	r.arrow.Rotation = headingDeg(root) + rot
-	local nx, ny = MinimapController.rotate(0, -(diameter / 2 - 2), rot)
+	local nx, ny = MinimapController.rotate(0, -(diameter / 2 - 3), rot)
 	r.north.Position = UDim2.new(0.5, nx, 0.5, ny)
 
 	-- GPS head trim

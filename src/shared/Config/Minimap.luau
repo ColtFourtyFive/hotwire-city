@@ -207,6 +207,30 @@ Minimap.DISTRICTS = {
 	{ name = "CHOP YARD", x = -720, z = -800, tier = 2 },
 } :: { District }
 
+export type Area = { name: string, x0: number, z0: number, x1: number, z1: number }
+
+-- Area name shown next to the radar: the first box (world studs) containing the player wins, so landmarks come
+-- before the district rings they sit in. Mirrors MapBuilder.zoneOf's rings (block size 160, ring road at +-800).
+Minimap.AREAS = {
+	{ name = "STUNT PARK", x0 = 640, z0 = 640, x1 = 800, z1 = 800 },
+	{ name = "CITY PARK", x0 = -800, z0 = 640, x1 = -640, z1 = 800 },
+	{ name = "OCEAN PIER", x0 = 640, z0 = -1000, x1 = 800, z1 = -640 },
+	{ name = "CHOP YARD", x0 = -800, z0 = -800, x1 = -640, z1 = -640 },
+	{ name = "SPAWN PLAZA", x0 = -160, z0 = 0, x1 = 0, z1 = 160 },
+	{ name = "DEALERSHIP", x0 = 0, z0 = 0, x1 = 160, z1 = 160 },
+	{ name = "POLICE HQ", x0 = 0, z0 = -160, x1 = 160, z1 = 0 },
+	{ name = "DOWNTOWN", x0 = -320, z0 = -320, x1 = 320, z1 = 320 },
+	{ name = "MIDTOWN", x0 = -480, z0 = -480, x1 = 480, z1 = 480 },
+	{ name = "THE DOCKS", x0 = -820, z0 = -820, x1 = 820, z1 = -640 },
+	{ name = "PALM SUBURBS", x0 = -820, z0 = -820, x1 = -480, z1 = 820 },
+	{ name = "MARKET ROW", x0 = -640, z0 = -640, x1 = 640, z1 = 640 },
+	{ name = "SUNSET BEACH", x0 = 640, z0 = -960, x1 = 960, z1 = 960 },
+	{ name = "SOUTH SHORE", x0 = -960, z0 = 640, x1 = 960, z1 = 960 },
+	{ name = "NORTH BEACH", x0 = -960, z0 = -960, x1 = 960, z1 = -640 },
+	{ name = "WEST BEACH", x0 = -960, z0 = -960, x1 = -640, z1 = 960 },
+} :: { Area }
+Minimap.AREA_DEFAULT = "OPEN WATER"
+
 -- Fullscreen map.
 Minimap.MAP = {
 	KEY = Enum.KeyCode.M,

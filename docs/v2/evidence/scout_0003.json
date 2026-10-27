@@ -1,0 +1,1082 @@
+[
+ {
+  "category": "cars_sedan",
+  "assetId": 97965573521866,
+  "name": "Mercedes Car Vehicle Sedan German Realistic RP",
+  "creator": "nov4_gg2010",
+  "parts": 115,
+  "meshParts": 107,
+  "textures": 0,
+  "scriptsRemoved": 25,
+  "size": [
+   17,
+   6,
+   9
+  ]
+ },
+ {
+  "category": "cars_sedan",
+  "assetId": 116549755605901,
+  "name": "Eft French Sedan Car Vehicle Realistic RP",
+  "creator": "Swift_Hawk217",
+  "parts": 55,
+  "meshParts": 47,
+  "textures": 24,
+  "scriptsRemoved": 22,
+  "size": [
+   73,
+   45,
+   151
+  ]
+ },
+ {
+  "category": "cars_sedan",
+  "assetId": 132078381973405,
+  "name": "Prius Sedan Realistic RP Eco Car",
+  "creator": "Xz_SilvervBCelestial",
+  "parts": 96,
+  "meshParts": 90,
+  "textures": 12,
+  "scriptsRemoved": 3,
+  "size": [
+   7,
+   5,
+   16
+  ]
+ },
+ {
+  "category": "cars_sedan",
+  "assetId": 951086064,
+  "name": "[PUBLIC] 2009 Nissan Maxima",
+  "creator": "turbo_isaac",
+  "parts": 56,
+  "meshParts": 45,
+  "textures": 0,
+  "scriptsRemoved": 71,
+  "size": [
+   18,
+   5,
+   8
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 11881862706,
+  "name": "Realistic cars: Jaguar sports car",
+  "creator": "DominicF1Fan",
+  "parts": 230,
+  "meshParts": 212,
+  "textures": 0,
+  "scriptsRemoved": 24,
+  "size": [
+   9,
+   5,
+   19
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 140417184564372,
+  "name": "Realistic Sports Car Racer Speed Drive",
+  "creator": "tempestzneon",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 6,
+  "size": [
+   9,
+   7,
+   20
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 87717693644018,
+  "name": "Brookhaven Car Realistic Luxury Sports GT",
+  "creator": "Quicwhi4528",
+  "parts": 20,
+  "meshParts": 8,
+  "textures": 4,
+  "scriptsRemoved": 3,
+  "size": [
+   19,
+   4,
+   8
+  ]
+ },
+ {
+  "category": "cars_sports",
+  "assetId": 3204824887,
+  "name": "Chrystler ME412",
+  "creator": "VloneDerrick",
+  "parts": 30,
+  "meshParts": 16,
+  "textures": 0,
+  "scriptsRemoved": 64,
+  "size": [
+   19,
+   5,
+   10
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 138255866612822,
+  "name": "2008 Mercury Mariner",
+  "creator": "yiypoo1024",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   5,
+   5,
+   12
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 14746413121,
+  "name": "2005 Nissan Patrol",
+  "creator": "children3295",
+  "parts": 144,
+  "meshParts": 98,
+  "textures": 6,
+  "scriptsRemoved": 31,
+  "size": [
+   18,
+   6,
+   8
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 117276253886376,
+  "name": "2011 Kia Sorento EX",
+  "creator": "yiypoo1024",
+  "parts": 64,
+  "meshParts": 48,
+  "textures": 32,
+  "scriptsRemoved": 4,
+  "size": [
+   10,
+   7,
+   20
+  ]
+ },
+ {
+  "category": "cars_suv",
+  "assetId": 73893179863762,
+  "name": "2005 Nissan Murano",
+  "creator": "yiypoo1024",
+  "parts": 24,
+  "meshParts": 16,
+  "textures": 20,
+  "scriptsRemoved": 16,
+  "size": [
+   9,
+   6,
+   16
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 16390639371,
+  "name": "Realistic Police Car",
+  "creator": "reachin4stars",
+  "parts": 237,
+  "meshParts": 166,
+  "textures": 1,
+  "scriptsRemoved": 114,
+  "size": [
+   8,
+   6,
+   19
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 103123587729335,
+  "name": "Realistic Police Car Decoration Map RP Detailed",
+  "creator": "StarNeon5292",
+  "parts": 127,
+  "meshParts": 49,
+  "textures": 6,
+  "scriptsRemoved": 5,
+  "size": [
+   10,
+   8,
+   18
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 113053967699143,
+  "name": "Realistic Police Car Cop City Pursuit RP",
+  "creator": "KingJames_the67",
+  "parts": 185,
+  "meshParts": 72,
+  "textures": 23,
+  "scriptsRemoved": 13,
+  "size": [
+   14,
+   9,
+   27
+  ]
+ },
+ {
+  "category": "cars_police",
+  "assetId": 73440173280832,
+  "name": "Realistic Police Car Map Outdoor Siren Vehicle",
+  "creator": "VortexoWByteStormC12",
+  "parts": 1,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 6,
+  "size": [
+   4,
+   4,
+   2
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 89890547548224,
+  "name": "Ford F-150 XLT Supercrew",
+  "creator": "NameNotRick925",
+  "parts": 41,
+  "meshParts": 24,
+  "textures": 32,
+  "scriptsRemoved": 27,
+  "size": [
+   10,
+   8,
+   24
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 10141791793,
+  "name": "2020 GMC 2500 AT4 Bot Dev Kaidan Only",
+  "creator": "liquidbunny1033",
+  "parts": 299,
+  "meshParts": 138,
+  "textures": 4,
+  "scriptsRemoved": 63,
+  "size": [
+   10,
+   9,
+   23
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 8271014113,
+  "name": "Silverado Crawler",
+  "creator": "SubXero_X",
+  "parts": 160,
+  "meshParts": 92,
+  "textures": 600,
+  "scriptsRemoved": 46,
+  "size": [
+   12,
+   9,
+   21
+  ]
+ },
+ {
+  "category": "cars_truck",
+  "assetId": 126180570128588,
+  "name": "2022 Toyota Tundra Arctic Frozen Blizzard Survival",
+  "creator": "FusionLigh_t997732",
+  "parts": 59,
+  "meshParts": 41,
+  "textures": 6,
+  "scriptsRemoved": 1,
+  "size": [
+   22,
+   7,
+   9
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 94301391128632,
+  "name": "Taxi Car Vehicle Realistic Ride Mode On Mesh Taxi",
+  "creator": "CraftEagle24001",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 10,
+  "size": [
+   7,
+   5,
+   18
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 112789212430129,
+  "name": "Taxi Car Vehicle Realistic Ride City Roleplay",
+  "creator": "TigerWraithPixel2016",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   7,
+   5,
+   18
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 131180706902259,
+  "name": "Realistic Box Truck Delivery Cargo Haul Van",
+  "creator": "ElijahStar9036",
+  "parts": 3,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   9,
+   12,
+   25
+  ]
+ },
+ {
+  "category": "cars_taxi_van",
+  "assetId": 71284840505836,
+  "name": "Panal Van (Model made by Gutzow)",
+  "creator": "Gutzow",
+  "parts": 15,
+  "meshParts": 15,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   6,
+   7,
+   19
+  ]
+ },
+ {
+  "category": "guns_pistol",
+  "assetId": 7949754821,
+  "name": "4K realistic pistols,revolvers blendfbxmodel",
+  "creator": "908KS_RKO",
+  "parts": 136,
+  "meshParts": 133,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   9,
+   2,
+   12
+  ]
+ },
+ {
+  "category": "guns_pistol",
+  "assetId": 12700880104,
+  "name": "Working Pistol | Gun with realistic damage",
+  "creator": "happyguywww",
+  "parts": 4,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 4,
+  "size": [
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "category": "guns_pistol",
+  "assetId": 15030367967,
+  "name": "Realistic Pistol",
+  "creator": "SparksammyOfficial",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   1,
+   2,
+   2
+  ]
+ },
+ {
+  "category": "guns_pistol",
+  "assetId": 78033796632460,
+  "name": "realistic guns mesh pack Pistol Giver",
+  "creator": "xw4m5",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   9,
+   3,
+   0
+  ]
+ },
+ {
+  "category": "guns_rifle",
+  "assetId": 86516814029259,
+  "name": "AK47 PBR Realistic Assault Rifle Firearm",
+  "creator": "Quicfli1351",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 1,
+  "scriptsRemoved": 6,
+  "size": [
+   4,
+   1,
+   0
+  ]
+ },
+ {
+  "category": "guns_rifle",
+  "assetId": 9214294514,
+  "name": "Realistic Assault Rifle [NEW]",
+  "creator": "PolyLowDeveloper",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   3,
+   0,
+   0
+  ]
+ },
+ {
+  "category": "guns_rifle",
+  "assetId": 93079579364423,
+  "name": "AKM Realistic Rifle Weapon Prop Gun Assault",
+  "creator": "XzZoom31ViralDzX1963",
+  "parts": 6,
+  "meshParts": 6,
+  "textures": 0,
+  "scriptsRemoved": 5,
+  "size": [
+   0,
+   1,
+   5
+  ]
+ },
+ {
+  "category": "guns_rifle",
+  "assetId": 82824254324474,
+  "name": "Fps Gun Assault Rifle Realistic Modern RP",
+  "creator": "f0xhd09",
+  "parts": 5,
+  "meshParts": 1,
+  "textures": 6,
+  "scriptsRemoved": 13,
+  "size": [
+   6,
+   2,
+   0
+  ]
+ },
+ {
+  "category": "guns_shotgun_smg",
+  "assetId": 126959125460533,
+  "name": "ACS Remington 870 Shotgun Realistic Gun Model",
+  "creator": "ProSparklySkater80",
+  "parts": 27,
+  "meshParts": 16,
+  "textures": 0,
+  "scriptsRemoved": 5,
+  "size": [
+   3,
+   1,
+   5
+  ]
+ },
+ {
+  "category": "guns_shotgun_smg",
+  "assetId": 6734344458,
+  "name": "working realistic double shotgun with animations",
+  "creator": "908KS_RKO",
+  "parts": 12,
+  "meshParts": 7,
+  "textures": 0,
+  "scriptsRemoved": 11,
+  "size": [
+   5,
+   1,
+   0
+  ]
+ },
+ {
+  "category": "guns_shotgun_smg",
+  "assetId": 112572154856350,
+  "name": "UZI SMG Weapon Gun Military Combat Realistic",
+  "creator": "XzJellyrlFlickglZer0",
+  "parts": 111,
+  "meshParts": 4,
+  "textures": 1,
+  "scriptsRemoved": 4,
+  "size": [
+   359,
+   201,
+   26
+  ]
+ },
+ {
+  "category": "guns_shotgun_smg",
+  "assetId": 71752855928467,
+  "name": "P90 90% SMG Weapon Gun Military Realistic",
+  "creator": "Xz_H0ll0wjMR0gueuMOr",
+  "parts": 125,
+  "meshParts": 37,
+  "textures": 16,
+  "scriptsRemoved": 3,
+  "size": [
+   4,
+   1,
+   0
+  ]
+ },
+ {
+  "category": "props_streetlight",
+  "assetId": 12117717385,
+  "name": "Realistic Street Light",
+  "creator": "WovenZane",
+  "parts": 135,
+  "meshParts": 95,
+  "textures": 9,
+  "scriptsRemoved": 1,
+  "size": [
+   2,
+   39,
+   12
+  ]
+ },
+ {
+  "category": "props_streetlight",
+  "assetId": 15078039735,
+  "name": "realistic street light 2",
+  "creator": "BaNaNpO10",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   1,
+   25,
+   7
+  ]
+ },
+ {
+  "category": "props_streetlight",
+  "assetId": 4049898662,
+  "name": "Realistic Double Street Light",
+  "creator": "Infinite_Tungsten",
+  "parts": 27,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 4,
+  "size": [
+   29,
+   32,
+   1
+  ]
+ },
+ {
+  "category": "props_streetlight",
+  "assetId": 95891415099137,
+  "name": "Realistic electricity poles with a street light",
+  "creator": "landonpanda123",
+  "parts": 203,
+  "meshParts": 113,
+  "textures": 7,
+  "scriptsRemoved": 5,
+  "size": [
+   11,
+   34,
+   74
+  ]
+ },
+ {
+  "category": "props_trafficlight",
+  "assetId": 4477106901,
+  "name": "(WORKING) Realistic Traffic Light",
+  "creator": "baxzzi",
+  "parts": 81,
+  "meshParts": 2,
+  "textures": 22,
+  "scriptsRemoved": 3,
+  "size": [
+   40,
+   32,
+   3
+  ]
+ },
+ {
+  "category": "props_trafficlight",
+  "assetId": 96197445871164,
+  "name": "Realistic Traffic Light",
+  "creator": "Robloxian_Dude07",
+  "parts": 98,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   8,
+   29,
+   4
+  ]
+ },
+ {
+  "category": "props_trafficlight",
+  "assetId": 13752790025,
+  "name": "Realistic Traffic Light",
+  "creator": "skelewizz",
+  "parts": 13,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 5,
+  "size": [
+   20,
+   36,
+   3
+  ]
+ },
+ {
+  "category": "props_trafficlight",
+  "assetId": 13522889670,
+  "name": "Realistic Traffic Light Camera",
+  "creator": "CityRoads",
+  "parts": 15,
+  "meshParts": 0,
+  "textures": 18,
+  "scriptsRemoved": 0,
+  "size": [
+   1,
+   6,
+   1
+  ]
+ },
+ {
+  "category": "props_palm",
+  "assetId": 99808919561383,
+  "name": "Realistic Palm Trees",
+  "creator": "3DThunderbolt",
+  "parts": 791,
+  "meshParts": 660,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   115,
+   112,
+   116
+  ]
+ },
+ {
+  "category": "props_palm",
+  "assetId": 10562894034,
+  "name": "Palm Tree (Realistic)",
+  "creator": "Natalie_Clabo",
+  "parts": 3,
+  "meshParts": 3,
+  "textures": 2,
+  "scriptsRemoved": 0,
+  "size": [
+   36,
+   51,
+   36
+  ]
+ },
+ {
+  "category": "props_palm",
+  "assetId": 471214939,
+  "name": "Realistic Palm Tree",
+  "creator": "Narrakin",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   20,
+   45,
+   20
+  ]
+ },
+ {
+  "category": "props_palm",
+  "assetId": 8626962700,
+  "name": "realistic palm tree",
+  "creator": "VilmosSzapary",
+  "parts": 67,
+  "meshParts": 67,
+  "textures": 67,
+  "scriptsRemoved": 0,
+  "size": [
+   19,
+   53,
+   23
+  ]
+ },
+ {
+  "category": "props_street_small",
+  "assetId": 13452054366,
+  "name": "Realistic Fire Hydrant",
+  "creator": "EarlyDev",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   1,
+   3,
+   1
+  ]
+ },
+ {
+  "category": "props_street_small",
+  "assetId": 93408078240744,
+  "name": "Realistic bus stop",
+  "creator": "robloxkingjn3",
+  "parts": 55,
+  "meshParts": 16,
+  "textures": 39,
+  "scriptsRemoved": 3,
+  "size": [
+   16,
+   7,
+   5
+  ]
+ },
+ {
+  "category": "props_street_small",
+  "assetId": 114651969370411,
+  "name": "Realistic Dumpster Trash Can Garbage Bin Metal",
+  "creator": "Content Deleted - 158552482",
+  "parts": 7,
+  "meshParts": 7,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   4,
+   4,
+   6
+  ]
+ },
+ {
+  "category": "props_street_small",
+  "assetId": 78541661129914,
+  "name": "[UPDATE] Enhanced Realistic Trash Can (Mesh) Model",
+  "creator": "shobdrik599",
+  "parts": 2,
+  "meshParts": 2,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   2,
+   3,
+   2
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 16269867210,
+  "name": "realistic, dynamic Shipping container",
+  "creator": "Rezkiy Productions",
+  "parts": 118,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   25,
+   8,
+   8
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 120215648673966,
+  "name": "Shipping Container Blue Storage Cargo Realistic",
+  "creator": "brotherffa_24876",
+  "parts": 134,
+  "meshParts": 0,
+  "textures": 8,
+  "scriptsRemoved": 1,
+  "size": [
+   15,
+   11,
+   38
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 1735022636,
+  "name": "Red Shipping Container (Closed)",
+  "creator": "xXTiny_DaveXx",
+  "parts": 115,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   30,
+   12,
+   12
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 13788653470,
+  "name": "Crane",
+  "creator": "simonlietuva",
+  "parts": 55,
+  "meshParts": 55,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   15,
+   49,
+   27
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 126414463808776,
+  "name": "Realistic Hood Apartment Building City Roleplay",
+  "creator": "Content Deleted - 158552482",
+  "parts": 210,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 6,
+  "size": [
+   48,
+   39,
+   57
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 75934961104200,
+  "name": "Realistic Apartment Buildings City Town Modern",
+  "creator": "Rigovota51",
+  "parts": 816,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   111,
+   44,
+   48
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 324146132,
+  "name": "Realistic Apartment Buildings",
+  "creator": "Zilcosi",
+  "parts": 816,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   111,
+   44,
+   48
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 325256508,
+  "name": "Realistic Apartment Building w Billboards",
+  "creator": "Zilcosi",
+  "parts": 359,
+  "meshParts": 10,
+  "textures": 4,
+  "scriptsRemoved": 0,
+  "size": [
+   75,
+   33,
+   42
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 8744438793,
+  "name": "Realistic Modern Skyscraper (WITH OPTIMIZATION!)",
+  "creator": "Unit Box Games",
+  "parts": 1421,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   120,
+   565,
+   89
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 16063517134,
+  "name": "Realistic Skyscraper",
+  "creator": "DripWxter",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   69,
+   294,
+   111
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 76401662964478,
+  "name": "Realistic Skyscraper City Textures Photo Modern",
+  "creator": "Cyber766Craft",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   69,
+   294,
+   111
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 117935217942431,
+  "name": "Realistic Skyscrapers",
+  "creator": "etipufhu",
+  "parts": 21,
+  "meshParts": 21,
+  "textures": 13,
+  "scriptsRemoved": 0,
+  "size": [
+   42,
+   36,
+   45
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 110999525319105,
+  "name": "Gas Station Model Realistic Town Pumps Store Sign",
+  "creator": "Skystorm9385",
+  "parts": 261,
+  "meshParts": 0,
+  "textures": 120,
+  "scriptsRemoved": 2,
+  "size": [
+   51,
+   20,
+   67
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 112405946562554,
+  "name": "Modern Gas Station Roleplay Map realistic RP",
+  "creator": "SkyPrimal200361",
+  "parts": 1247,
+  "meshParts": 215,
+  "textures": 540,
+  "scriptsRemoved": 6,
+  "size": [
+   37,
+   24,
+   88
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 324139280,
+  "name": "Realistic Gas Station",
+  "creator": "Zilcosi",
+  "parts": 251,
+  "meshParts": 68,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   84,
+   17,
+   66
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 80061545177500,
+  "name": "Store Shelf Convenience Grocery Retail Shop Stores",
+  "creator": "Content Deleted - 158552482",
+  "parts": 151,
+  "meshParts": 18,
+  "textures": 28,
+  "scriptsRemoved": 12,
+  "size": [
+   40,
+   20,
+   48
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 79230898972214,
+  "name": "Brookhaven Heli (Mobile Supported) Police RP Jobs",
+  "creator": "Xz_FrostWPFirevPClaw",
+  "parts": 45,
+  "meshParts": 10,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   33,
+   17,
+   53
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 118889544532956,
+  "name": "Brookhaven Heli (Mobile Supported) Furniture Decor",
+  "creator": "Hyper9MMaxxMNovaCore",
+  "parts": 45,
+  "meshParts": 10,
+  "textures": 0,
+  "scriptsRemoved": 7,
+  "size": [
+   33,
+   17,
+   53
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 139438945638936,
+  "name": "Working Boat Boats Fishing Speed Realistic Water",
+  "creator": "Voltbe0854",
+  "parts": 93,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 9,
+  "size": [
+   102,
+   49,
+   29
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 87556970,
+  "name": "Speed Boat, With steering and realistic stuff",
+  "creator": "ObscureGlock",
+  "parts": 34,
+  "meshParts": 5,
+  "textures": 5,
+  "scriptsRemoved": 5,
+  "size": [
+   35,
+   35,
+   41
+  ]
+ }
+]

@@ -6,6 +6,34 @@
     "moderation": "Reviewing",
     "sha1": "c1d9bcc2e93df691d02e0712f1f01d8db953a85d"
   },
+  "cash_bill": {
+    "assetId": 139544741852293,
+    "assetType": "Image",
+    "file": "assets/vfx/cash_bill.png",
+    "moderation": "Reviewing",
+    "sha1": "c4a8ed77696702c2c26e5e81f3c12a9460e6f564"
+  },
+  "cash_flutter": {
+    "assetId": 104344730175189,
+    "assetType": "Image",
+    "file": "assets/vfx/cash_flutter.png",
+    "moderation": "Reviewing",
+    "sha1": "77453d27a98e0fafdc52feb6f4377e373c557f32"
+  },
+  "coin_spin": {
+    "assetId": 105312686304563,
+    "assetType": "Image",
+    "file": "assets/vfx/coin_spin.png",
+    "moderation": "Reviewing",
+    "sha1": "461c3b596dd74263ca8c8304acba875869911262"
+  },
+  "confetti": {
+    "assetId": 81647794662805,
+    "assetType": "Image",
+    "file": "assets/vfx/confetti.png",
+    "moderation": "Reviewing",
+    "sha1": "cfb4c199d053b57d02fb168cef39a5da759625d6"
+  },
   "debris_chips": {
     "assetId": 92326460960108,
     "assetType": "Image",
@@ -41,6 +69,13 @@
     "moderation": "Approved",
     "sha1": "064dffc6b8d9406a579d55a825a4f76f07c30f04"
   },
+  "headlight_beam": {
+    "assetId": 81577505740546,
+    "assetType": "Image",
+    "file": "assets/vfx/headlight_beam.png",
+    "moderation": "Reviewing",
+    "sha1": "e8cd476cb1c52d08641c4fdd941d2ff645d3efcc"
+  },
   "impact_star": {
     "assetId": 92452831173719,
     "assetType": "Image",
@@ -61,6 +96,13 @@
     "file": "assets/vfx/shockwave_ring.png",
     "moderation": "Reviewing",
     "sha1": "900ec7dbb2c292bfcc9116880be8a6f785dc2f3e"
+  },
+  "skid_mark": {
+    "assetId": 80732619274146,
+    "assetType": "Image",
+    "file": "assets/vfx/skid_mark.png",
+    "moderation": "Reviewing",
+    "sha1": "749cb561e212da405388f4bf2ef9daaf4d55da82"
   },
   "smoke_flipbook": {
     "assetId": 77373203636884,
@@ -117,6 +159,13 @@
     "file": "assets/vfx/tire_smoke.png",
     "moderation": "Reviewing",
     "sha1": "c568c36ec9c85d78bf51ef34cb5758e284e6cff0"
+  },
+  "underglow": {
+    "assetId": 124996636404412,
+    "assetType": "Image",
+    "file": "assets/vfx/underglow.png",
+    "moderation": "Reviewing",
+    "sha1": "8f6604a27dcc538cd8ccb3fa097fff3d750b326f"
   },
   "water_splash": {
     "assetId": 103314128852444,
