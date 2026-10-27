@@ -156,11 +156,11 @@ def flatten(subsurf_cap: int = 1):
         if o.data.users > 1:
             o.data = o.data.copy()
     for o in meshes:
+        neg = o.matrix_world.determinant() < 0
         o.data.transform(o.matrix_world)
         o.matrix_world.identity()
-        if o.matrix_world.determinant() < 0:
-            pass
-    # negative-scale objects flip winding; mesh.transform handles vertex positions but normals need flipping
+        if neg:  # mirrored instance: baking the transform turns the faces inside out
+            o.data.flip_normals()
     vl.update()
     log(f"flatten: {len(meshes)} mesh objects, {sum(len(o.data.polygons) for o in meshes)} faces")
     return meshes

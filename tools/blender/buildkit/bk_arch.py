@@ -1,15 +1,26 @@
-"""Building archetypes. Each generator fills one Building with per-role MeshBufs:
+"""Building archetype core. Each generator fills one Building with per-role MeshBufs; every role becomes
+ONE mesh object on export (= one Roblox MeshPart), split into <Role>_1, <Role>_2 ... only if it passes the
+20k-triangle MeshPart limit.
 
-  Walls   main facade material (brick / stucco / curtain-wall spandrel cladding)  tiling PBR, tintable
-  Trim    sills, lintels, cornices, belt courses, storefront piers, slabs         tiling PBR, tintable
-  Accent  deco racing stripes / eyebrows / shutters                              plain colour (recolourable)
-  Frames  window frames, mullions, storefront aluminium                          plain colour (recolourable)
-  Glass   all glazing, UV'd into the 4x4 window-interior atlas                   atlas + low roughness
-  Roof    roof surfaces                                                          tiling PBR
-  Details AC units, fire escapes, railings, water tanks, antennas, louvres      tiling metal PBR
-  Awning  striped canvas                                                         awning atlas
-  Sign    shop signs, hotel blade sign, helipad                                  city-wide sign atlas
-  WindowsLit  copies of ~35% of the glass quads, for night (hidden by day)       lit atlas / Neon
+  Walls    main facade material (brick / stucco / curtain spandrel / corrugated)  tiling PBR, tintable
+  Walls2   secondary facade material (wood slats, stone base, block, marble)       tiling PBR
+  Trim     sills, lintels, cornices, belts, slabs, copings, fascias                tiling PBR, tintable
+  Accent   deco stripes / eyebrows / shutters / canopies                           plain colour (recolourable)
+  Frames   window frames, mullions, storefront aluminium                           plain colour (recolourable)
+  Glass    all glazing, UV'd into the 4x4 window-interior atlas                    atlas + low roughness
+  Roof     roof surfaces (tar, gravel, clay tile, shingle, metal)                  tiling PBR
+  Details  AC units, fire escapes, rails, tanks, pumps, vents, pipes                tiling metal PBR
+  Doors    roller / garage / service doors                                         tiling PBR (shutter)
+  Awning   striped canvas                                                          awning atlas
+  Sign     storefront signs (signs.png)                                            atlas
+  Brand    blades, name boards, price boards, posters (brands.png)                 atlas
+  Grime    alpha dirt decals (rising damp, rain streaks, rust leaks)               RGBA atlas, alpha blend
+  Site     lot paving: parking, forecourt, driveway, pool deck                     tiling PBR
+  Paint    parking stripes / kerb paint                                            plain colour
+  Lawn     lot grass (drop it if the world uses terrain grass)                     tiling PBR
+  Water    pool water                                                              colour, Glass material
+  Neon     tubes, canopy downlights, wall packs: Neon at night                     plain colour
+  WindowsLit  copies of ~35% of the glass quads, for night (hidden by day)         lit atlas / Neon
 
 Building-local space: front faces -Y, origin bottom-centre of the lot, 1 unit = 1 stud.
 """
@@ -24,14 +35,23 @@ PASTELS = {"pink": (0.96, 0.66, 0.70), "mint": (0.62, 0.90, 0.78), "lavender": (
            "peach": (0.99, 0.76, 0.58), "sky": (0.60, 0.82, 0.96), "lemon": (0.98, 0.91, 0.58),
            "white": (0.96, 0.95, 0.92), "coral": (0.97, 0.56, 0.48), "aqua": (0.50, 0.86, 0.88),
            "sand": (0.93, 0.84, 0.68), "terracotta": (0.80, 0.48, 0.36), "olive": (0.70, 0.72, 0.52)}
+# muted, sun-bleached versions used for LA stucco (GTA V Los Santos palette, not candy pastels)
+STUCCO = {"bone": (0.93, 0.90, 0.82), "cream": (0.95, 0.88, 0.72), "sand": (0.86, 0.77, 0.62),
+          "adobe": (0.80, 0.62, 0.48), "sage": (0.70, 0.74, 0.62), "grey": (0.78, 0.78, 0.76),
+          "salmon": (0.90, 0.68, 0.58), "butter": (0.95, 0.86, 0.60), "white": (0.95, 0.95, 0.93),
+          "slate": (0.58, 0.62, 0.64), "taupe": (0.70, 0.64, 0.56), "mint": (0.74, 0.86, 0.78)}
 ACCENTS = {"teal": (0.0, 0.52, 0.55), "coral": (0.93, 0.36, 0.33), "navy": (0.10, 0.18, 0.40),
            "flamingo": (0.95, 0.35, 0.58), "sea": (0.10, 0.62, 0.62), "sun": (0.98, 0.72, 0.12),
            "white": (0.96, 0.96, 0.94), "aqua": (0.25, 0.78, 0.82)}
 FRAMES = {"white": (0.92, 0.92, 0.9), "black": (0.05, 0.05, 0.055), "bronze": (0.22, 0.16, 0.11),
           "green": (0.06, 0.2, 0.14), "silver": (0.62, 0.64, 0.66), "red": (0.45, 0.06, 0.06)}
 
-TILES = {"Walls": 8.0, "Trim": 6.0, "Accent": 6.0, "Frames": 8.0, "Glass": 8.0, "Roof": 16.0,
-         "Details": 6.0, "Awning": 20.8, "Sign": 8.0, "WindowsLit": 8.0}
+TILES = {"Walls": 8.0, "Walls2": 8.0, "Trim": 6.0, "Accent": 6.0, "Frames": 8.0, "Glass": 8.0, "Roof": 16.0,
+         "Details": 6.0, "Doors": 10.0, "Awning": 20.8, "Sign": 8.0, "Brand": 8.0, "Grime": 24.0, "Site": 24.0,
+         "Paint": 8.0, "Lawn": 20.0, "Water": 16.0, "Neon": 8.0, "WindowsLit": 8.0}
+ROLE_ORDER = ["Walls", "Walls2", "Trim", "Accent", "Frames", "Glass", "Roof", "Details", "Doors", "Awning", "Sign",
+              "Brand", "Site", "Paint", "Lawn", "Water", "Neon", "Grime", "WindowsLit"]
+NIGHT_ONLY = {"WindowsLit"}
 
 
 class Building:
@@ -44,6 +64,8 @@ class Building:
         self.lit_ratio = 0.38
         self.footprint = (0, 0)
         self.height = 0
+        self.base_depth = 0.0          # how far below z=0 the model reaches (hillside plinths)
+        self.tags = {}
 
     def b(self, role):
         if role not in self.bufs:
@@ -259,6 +281,31 @@ class Building:
         span = (n - 1) * spacing
         start = width / 2 - span / 2
         return [start + k * spacing for k in range(n)]
+
+    # -- decals / lot ---------------------------------------------------------------------------------
+    def grime(self, F, u0, u1, z0, z1, kind="base", n=0.04):
+        """Alpha dirt quad in front of a facade (kind: base|streak|soot|leak). u tiles every 24 studs."""
+        gu0, gv0, gu1, gv1 = ATLAS["grime"][kind]
+        t = TILES["Grime"]
+        off = self.rng.random()
+        F.quad(self.b("Grime"), u0, u1, z0, z1, n, uv=[(u0 / t + off, gv0), (u1 / t + off, gv0), (u1 / t + off, gv1), (u0 / t + off, gv1)])
+
+    def grime_base(self, Fs, h=7.0, z=0.0, sides=None, n=0.04):
+        for side, F in Fs.items():
+            if sides is None or side in sides:
+                self.grime(F, 0.0, F.W, z, z + h, "base", n)
+
+    def brand(self, F, uc, z0, key, height, n=0.0, frame="Frames", depth=0.45, border=0.25):
+        u0_, v0, u1_, v1 = ATLAS["brands"][key]
+        w = height * (u1_ - u0_) / (v1 - v0)
+        u0, u1 = uc - w / 2, uc + w / 2
+        if depth > 0:
+            F.box(self.b(frame), u0 - border, u1 + border, n, n + depth, z0 - border, z0 + height + border)
+        F.quad(self.b("Brand"), u0, u1, z0, z0 + height, n + depth + 0.02, uv=(u0_, v0, u1_, v1))
+        return w
+
+    def slab(self, role, x0, y0, x1, y1, z, t=0.3, skip=("bottom",)):
+        G.box(self.b(role), x0, y0, z - t, x1, y1, z, skip=skip)
 
     # -- output ---------------------------------------------------------------------------------------
     def stats(self):

@@ -14,6 +14,7 @@
 --   set(id, position: Vector3?, color: Color3?, label: string?)   nil position clears. `Waypoint` remote does the same.
 --   track(id, target: Instance | () -> Vector3?, color?, label?)   moving target (Model/BasePart/Attachment or getter).
 --   clear(id), clearAll(), has(id), getPosition(id)
+--   each(fn(id, position, color, label))                           every shown waypoint (minimap / map blips + GPS)
 -- Auto waypoints:
 --   "home"    own plot drop-off (MapLayout.plotDropoffZone(PlotIndex)) while the local player drives a car whose model
 --             Kind is "Loot" or "Stolen"; cleared when not driving (only if this controller created it).
@@ -776,6 +777,18 @@ end
 function WaypointController.getPosition(id: string): Vector3?
 	local wp = waypoints[id]
 	return if wp then wp.position else nil
+end
+
+-- Calls fn(id, position, color, label) for every shown waypoint (known position, not hidden as a duplicate of
+-- another one). Used by the minimap / fullscreen map for blips and GPS; pass a long-lived function (no per-call
+-- allocation here).
+function WaypointController.each(fn: (string, Vector3, Color3, string) -> ())
+	for id, wp in waypoints do
+		local pos = wp.position
+		if pos and not wp.suppressed then
+			fn(id, pos, wp.color, wp.label)
+		end
+	end
 end
 
 -- Internal: set a waypoint owned by this controller (auto=true).

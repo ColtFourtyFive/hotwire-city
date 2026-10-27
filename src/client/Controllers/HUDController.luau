@@ -37,6 +37,8 @@
 --   getFeedAnchor(): Vector2?             real px top-left for NotificationController's event feed (beside the menu)
 --   getMenuBottom(): number               real px bottom of the top-left buttons (wide overlays go below on phones)
 --   holdCash(amount) / releaseCash()      offline modal: show cash without `amount` until COLLECT, then count up
+--   setMinimapReserve(touchLeft, desktopBottom)   MinimapController: design px the radar takes (touch: top-left
+--                                         width, the buttons move right; desktop: bottom-left height, the column wraps)
 --   VisibilityChanged: Signal(hidden: boolean)
 -- Pure helpers (tests): clampStars, starStates, cashTrend, theftView, theftMode, playtimeClaimable, rebirthReady,
 --   gearAffordable, homeState, gridFit, touchMenuGrid, countGarage, menuNameCandidates, vipChatPrefix, resetAllowed.
@@ -1214,6 +1216,11 @@ end
 
 local applyFocus: (boolean, boolean?) -> ()
 
+-- Design px the minimap (MinimapController) claims: touch = width at the top-left (the CODES / SETTINGS row and the
+-- menu strip start right of it), desktop = height at the bottom-left (the menu column wraps above it).
+local minimapTouchLeft = 0
+local minimapDesktopBottom = 0
+
 local function layout()
 	local u = ui
 	if not u then
@@ -1232,7 +1239,9 @@ local function layout()
 		end
 	end
 	u.topRow.Size = UDim2.fromOffset(topCell * 3, topCell)
-	u.topRow.Position = UDim2.fromOffset(12, top)
+	-- touch: the minimap owns the top-left corner, so the buttons start right of it (MinimapController reserve)
+	local left = 12 + (if touch then minimapTouchLeft else 0)
+	u.topRow.Position = UDim2.fromOffset(left, top)
 	u.toggleButton.Position = UDim2.fromOffset(12, top)
 	local menuTop = top + topCell + 14
 	local count = #HUDController.MENU
@@ -1242,21 +1251,22 @@ local function layout()
 		-- of the top-center cash pill + status stack; bigger cells when they fit (phones sit at the 0.55 scale floor)
 		cols, rows, cell = HUDController.touchMenuGrid(
 			count,
-			canvas.X / 2 - TOP_CENTER_HALF - 12,
+			canvas.X / 2 - TOP_CENTER_HALF - left,
 			canvas.Y / 3 - menuTop,
 			{ MENU_CELL_TOUCH, TOP_ROW_CELL_TOUCH },
 			MENU_PAD
 		)
 	else
 		cell = MENU_CELL
-		cols, rows = HUDController.gridFit(count, canvas.Y - menuTop - 16, cell, MENU_PAD)
+		-- desktop: the minimap owns the bottom-left corner; the column wraps above it
+		cols, rows = HUDController.gridFit(count, canvas.Y - menuTop - 16 - minimapDesktopBottom, cell, MENU_PAD)
 	end
 	local width = math.max(1, cols) * (cell + MENU_PAD) - MENU_PAD
 	local height = math.max(1, rows) * (cell + MENU_PAD) - MENU_PAD
 	u.grid.CellSize = UDim2.fromOffset(cell, cell)
-	u.menu.Position = UDim2.fromOffset(12, menuTop)
+	u.menu.Position = UDim2.fromOffset(left, menuTop)
 	u.menu.Size = UDim2.fromOffset(width, height)
-	menuLayout = { x = 12, top = menuTop, width = width, height = height, strip = touch }
+	menuLayout = { x = left, top = menuTop, width = width, height = height, strip = touch }
 	u.statusScale.Scale = if touch then STATUS_TOUCH_SCALE else 1
 	u.theftScale.Scale = if touch then THEFT_TOUCH_SCALE else 1
 	homeHeight = if touch then 64 else 54
@@ -1265,6 +1275,17 @@ local function layout()
 	local homeBottom = if hotbarVisible() then math.ceil(HOTBAR_REAL_PX / s) + 6 else 14
 	u.home.Position = UDim2.new(0.5, 0, 1, -homeBottom)
 	applyFocus(false, true)
+end
+
+-- MinimapController: reserve the HUD corner the radar sits in (design px; 0 releases it) and re-run the layout.
+function HUDController.setMinimapReserve(touchLeft: number, desktopBottom: number)
+	local l = if typeof(touchLeft) == "number" and touchLeft == touchLeft then math.max(0, touchLeft) else 0
+	local b = if typeof(desktopBottom) == "number" and desktopBottom == desktopBottom then math.max(0, desktopBottom) else 0
+	if l == minimapTouchLeft and b == minimapDesktopBottom then
+		return
+	end
+	minimapTouchLeft, minimapDesktopBottom = l, b
+	layout()
 end
 
 -------------------------------------------------------------------------------------------------------------------------

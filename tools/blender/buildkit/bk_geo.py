@@ -334,6 +334,134 @@ class Facade:
             quad(buf, P(u0, z0, -depth), P(u0, z0, 0), P(u0, z1, 0), P(u0, z1, -depth))
 
 
+# ----------------------------------------------------------------------------- roofs / misc solids
+def slope_uv(pts, along, tile, off=(0.0, 0.0)):
+    """UV for a sloped roof face: u along the eave direction `along`, v up the slope (from the lowest vertex)."""
+    a = Vector(along).normalized()
+    n = Vector(_newell(pts))
+    up = n.cross(a).normalized()
+    if up.z < 0:
+        up = -up
+    p0 = Vector(pts[0])
+    return [(((Vector(p) - p0).dot(a)) / tile + off[0], ((Vector(p) - p0).dot(up)) / tile + off[1]) for p in pts]
+
+
+def poly(buf, pts, uv_along=None, tile=None):
+    """Single planar polygon (any count, convex), CCW seen from the front. uv_along -> slope_uv."""
+    t = tile or buf.tile
+    uv = slope_uv(pts, uv_along, t) if uv_along is not None else None
+    buf.add([tuple(p) for p in pts], [tuple(range(len(pts)))], None if uv is None else [uv], tile=t)
+
+
+def tri(buf, a, b, c, uv_along=None, tile=None):
+    poly(buf, [a, b, c], uv_along, tile)
+
+
+def hip_roof(roof, x0, y0, x1, y1, z, pitch=0.42, overhang=1.5, ridge_axis=None, fascia=None, fascia_h=0.9, soffit=None):
+    """Hip roof over rect (x0..x1, y0..y1) at eave height z. pitch = rise/run. Returns ridge height.
+    fascia/soffit: optional MeshBufs for the eave board and the underside."""
+    X0, Y0, X1, Y1 = x0 - overhang, y0 - overhang, x1 + overhang, y1 + overhang
+    W, D = X1 - X0, Y1 - Y0
+    if ridge_axis is None:
+        ridge_axis = "x" if W >= D else "y"
+    if ridge_axis == "x":
+        h = D / 2 * pitch
+        r0, r1 = (X0 + D / 2, (Y0 + Y1) / 2, z + h), (X1 - D / 2, (Y0 + Y1) / 2, z + h)
+        if r0[0] > r1[0]:
+            r0 = r1 = ((X0 + X1) / 2, (Y0 + Y1) / 2, z + h)
+        poly(roof, [(X0, Y0, z), (X1, Y0, z), r1, r0], uv_along=(1, 0, 0))
+        poly(roof, [(X1, Y1, z), (X0, Y1, z), r0, r1], uv_along=(-1, 0, 0))
+        tri(roof, (X1, Y0, z), (X1, Y1, z), r1, uv_along=(0, 1, 0))
+        tri(roof, (X0, Y1, z), (X0, Y0, z), r0, uv_along=(0, -1, 0))
+    else:
+        h = W / 2 * pitch
+        r0, r1 = ((X0 + X1) / 2, Y0 + W / 2, z + h), ((X0 + X1) / 2, Y1 - W / 2, z + h)
+        if r0[1] > r1[1]:
+            r0 = r1 = ((X0 + X1) / 2, (Y0 + Y1) / 2, z + h)
+        poly(roof, [(X1, Y0, z), (X1, Y1, z), r1, r0], uv_along=(0, 1, 0))
+        poly(roof, [(X0, Y1, z), (X0, Y0, z), r0, r1], uv_along=(0, -1, 0))
+        tri(roof, (X0, Y0, z), (X1, Y0, z), r0, uv_along=(1, 0, 0))
+        tri(roof, (X1, Y1, z), (X0, Y1, z), r1, uv_along=(-1, 0, 0))
+    _eave(X0, Y0, X1, Y1, z, fascia, fascia_h, soffit, x0, y0, x1, y1)
+    return z + h
+
+
+def gable_roof(roof, x0, y0, x1, y1, z, pitch=0.42, overhang=1.5, ridge_axis="x", fascia=None, fascia_h=0.9,
+               soffit=None, gable_wall=None, rake=None):
+    """Gable roof; the triangular gable ends are added to `gable_wall` (flush with the wall plane)."""
+    X0, Y0, X1, Y1 = x0 - overhang, y0 - overhang, x1 + overhang, y1 + overhang
+    if ridge_axis == "x":
+        h = (Y1 - Y0) / 2 * pitch
+        yc = (Y0 + Y1) / 2
+        poly(roof, [(X0, Y0, z), (X1, Y0, z), (X1, yc, z + h), (X0, yc, z + h)], uv_along=(1, 0, 0))
+        poly(roof, [(X1, Y1, z), (X0, Y1, z), (X0, yc, z + h), (X1, yc, z + h)], uv_along=(-1, 0, 0))
+        if gable_wall is not None:
+            zw = z - overhang * pitch * 0.0
+            hh = (y1 - y0) / 2 * pitch + overhang * pitch
+            tri(gable_wall, (x0, y1, z), (x0, y0, z), (x0, (y0 + y1) / 2, z + hh))
+            tri(gable_wall, (x1, y0, z), (x1, y1, z), (x1, (y0 + y1) / 2, z + hh))
+        if rake is not None:   # barge boards along the sloped edges
+            for X in (X0, X1):
+                for (ya, yb) in ((Y0, yc), (Y1, yc)):
+                    za, zb = z, z + h
+                    poly(rake, [(X, ya, za - fascia_h), (X, yb, zb - fascia_h), (X, yb, zb), (X, ya, za)][::(1 if (X == X1) == (yb > ya) else -1)])
+        if fascia is not None:
+            for Y, sgn in ((Y0, -1), (Y1, 1)):
+                box(fascia, X0, Y - 0.15 if sgn < 0 else Y - 0.05, z - fascia_h, X1, Y + 0.05 if sgn < 0 else Y + 0.15, z + 0.05)
+        if soffit is not None:
+            for (ya, yb) in ((Y0, y0), (y1, Y1)):
+                poly(soffit, [(X0, ya, z - 0.05), (X0, yb, z - 0.05), (X1, yb, z - 0.05), (X1, ya, z - 0.05)])
+    else:
+        h = (X1 - X0) / 2 * pitch
+        xc = (X0 + X1) / 2
+        poly(roof, [(X1, Y0, z), (X1, Y1, z), (xc, Y1, z + h), (xc, Y0, z + h)], uv_along=(0, 1, 0))
+        poly(roof, [(X0, Y1, z), (X0, Y0, z), (xc, Y0, z + h), (xc, Y1, z + h)], uv_along=(0, -1, 0))
+        if gable_wall is not None:
+            hh = (x1 - x0) / 2 * pitch + overhang * pitch
+            tri(gable_wall, (x0, y0, z), (x1, y0, z), ((x0 + x1) / 2, y0, z + hh))
+            tri(gable_wall, (x1, y1, z), (x0, y1, z), ((x0 + x1) / 2, y1, z + hh))
+        if fascia is not None:
+            for X, sgn in ((X0, -1), (X1, 1)):
+                box(fascia, X - 0.15 if sgn < 0 else X - 0.05, Y0, z - fascia_h, X + 0.05 if sgn < 0 else X + 0.15, Y1, z + 0.05)
+        if soffit is not None:
+            for (xa, xb) in ((X0, x0), (x1, X1)):
+                poly(soffit, [(xa, Y0, z - 0.05), (xb, Y0, z - 0.05), (xb, Y1, z - 0.05), (xa, Y1, z - 0.05)][::-1])
+    return z + h
+
+
+def _eave(X0, Y0, X1, Y1, z, fascia, fh, soffit, x0, y0, x1, y1):
+    if fascia is not None:
+        box(fascia, X0 - 0.15, Y0 - 0.15, z - fh, X1 + 0.15, Y0 + 0.05, z + 0.05, skip=("back",))
+        box(fascia, X0 - 0.15, Y1 - 0.05, z - fh, X1 + 0.15, Y1 + 0.15, z + 0.05)
+        box(fascia, X0 - 0.15, Y0 + 0.05, z - fh, X0 + 0.05, Y1 - 0.05, z + 0.05)
+        box(fascia, X1 - 0.05, Y0 + 0.05, z - fh, X1 + 0.15, Y1 - 0.05, z + 0.05)
+    if soffit is not None:
+        zz = z - fh + 0.02
+        for q in (((X0, Y0), (X1, Y0), (x1, y0), (x0, y0)), ((X1, Y0), (X1, Y1), (x1, y1), (x1, y0)),
+                  ((X1, Y1), (X0, Y1), (x0, y1), (x1, y1)), ((X0, Y1), (X0, Y0), (x0, y0), (x0, y1))):
+            poly(soffit, [(p[0], p[1], zz) for p in q][::-1])
+
+
+def shed_roof(roof, x0, y0, x1, y1, z_low, z_high, overhang=1.0, low_side="-y"):
+    X0, Y0, X1, Y1 = x0 - overhang, y0 - overhang, x1 + overhang, y1 + overhang
+    if low_side == "-y":
+        poly(roof, [(X0, Y0, z_low), (X1, Y0, z_low), (X1, Y1, z_high), (X0, Y1, z_high)], uv_along=(1, 0, 0))
+    else:
+        poly(roof, [(X1, Y1, z_low), (X0, Y1, z_low), (X0, Y0, z_high), (X1, Y0, z_high)], uv_along=(-1, 0, 0))
+
+
+def prism(buf, loop, z0, z1, top=True, bottom=False, tile=None):
+    """Vertical extrusion of a CCW loop (walls + optional caps). Concave caps are not supported."""
+    n = len(loop)
+    for i in range(n):
+        a, b = loop[i], loop[(i + 1) % n]
+        quad(buf, (a[0], a[1], z0), (b[0], b[1], z0), (b[0], b[1], z1), (a[0], a[1], z1), tile=tile)
+    if top:
+        cap(buf, loop, z1, up=True, tile=tile)
+    if bottom:
+        cap(buf, loop, z0, up=False, tile=tile)
+
+
 # ----------------------------------------------------------------------------- to Blender
 def to_object(buf, material, collection, parent=None, sharp_deg=50.0, weighted=True):
     me = bpy.data.meshes.new(buf.name)

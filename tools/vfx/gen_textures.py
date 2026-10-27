@@ -689,8 +689,12 @@ def bill_image(W=1024, H=512):
         d.text((tx, ty + h * 0.01), "100", font=_font(int(h * 0.15)), fill=light, anchor=anchor)
     d.text((w * 0.5, h * 0.115), "HOTWIRE CITY", font=small, fill=ink, anchor="mm")
     d.text((w * 0.5, h * 0.885), "ONE HUNDRED HOT BUCKS", font=small, fill=ink, anchor="mm")
-    d.text((w * 0.25, h * 0.72), "HC", font=big, fill=(30, 98, 56, 50), anchor="mm")
-    d.text((w * 0.75, h * 0.3), "HC", font=big, fill=(30, 98, 56, 50), anchor="mm")
+    # faint watermarks on their own layer (ImageDraw writes RGBA straight through: no in-place blending)
+    wm = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    dw = ImageDraw.Draw(wm)
+    dw.text((w * 0.25, h * 0.72), "HC", font=big, fill=(30, 98, 56, 60), anchor="mm")
+    dw.text((w * 0.75, h * 0.3), "HC", font=big, fill=(30, 98, 56, 60), anchor="mm")
+    img = Image.alpha_composite(img, wm)
     img = img.resize((W, H), Image.LANCZOS)
     return img
 
