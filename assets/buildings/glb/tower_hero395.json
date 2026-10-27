@@ -1,0 +1,176 @@
+{
+ "name": "tower_hero395",
+ "archetype": "tower",
+ "seed": 109,
+ "footprint": [
+  160,
+  160
+ ],
+ "height": 396.6,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "downtown",
+  "floors": 29,
+  "style": "fins",
+  "crown": "lit_band"
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "tower_hero395_Walls2": {
+   "role": "Walls2",
+   "tris": 1264,
+   "material": {
+    "kind": "texture",
+    "set": "granite",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_hero395_Trim": {
+   "role": "Trim",
+   "tris": 144,
+   "material": {
+    "kind": "texture",
+    "set": "concrete",
+    "tint": [
+     0.92,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_hero395_Accent": {
+   "role": "Accent",
+   "tris": 1932,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.55,
+     0.57,
+     0.6
+    ],
+    "metallic": 0.85,
+    "roughness": 0.35
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_hero395_Frames": {
+   "role": "Frames",
+   "tris": 5060,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.05,
+     0.05,
+     0.055
+    ],
+    "metallic": 0.85,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_hero395_Glass": {
+   "role": "Glass",
+   "tris": 5368,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.55,
+     0.72,
+     0.86
+    ],
+    "roughness": 0.03,
+    "metallic": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_hero395_Roof": {
+   "role": "Roof",
+   "tris": 8,
+   "material": {
+    "kind": "texture",
+    "set": "roof_gravel",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "tower_hero395_Details": {
+   "role": "Details",
+   "tris": 250,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_hero395_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.4,
+    "metallic": 0.2
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_hero395_Neon": {
+   "role": "Neon",
+   "tris": 82,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.9,
+     0.78
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.8400000000000001,
+     0.768
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_hero395_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 1366,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 15476,
+ "max_part_tris": 5368,
+ "glb": "tower_hero395.glb",
+ "glb_bytes": 1087448,
+ "textures_embedded": false
+}

@@ -87,13 +87,16 @@ def _sort_ccw(pts, idx, outward):
     return tuple(sorted(idx, key=lambda i: math.atan2((Vector(pts[i]) - c).dot(b), (Vector(pts[i]) - c).dot(t))))
 
 
+NO_BEVEL = False   # production export (produce.py): chamfers cost ~4x the triangles of a plain box
+
+
 def box(buf, x0, y0, z0, x1, y1, z1, bevel=0.0, skip=(), tile=None, off=(0.0, 0.0)):
     """Axis-aligned box. bevel>0 -> 45deg chamfer on all edges (shaded smooth with weighted normals later).
     skip: faces to drop when hidden, any of 'bottom','top','-x','+x','-y','+y' (unbevelled boxes only)."""
     x0, x1 = min(x0, x1), max(x0, x1)
     y0, y1 = min(y0, y1), max(y0, y1)
     z0, z1 = min(z0, z1), max(z0, z1)
-    c = min(bevel, (x1 - x0) * 0.45, (y1 - y0) * 0.45, (z1 - z0) * 0.45)
+    c = 0.0 if NO_BEVEL else min(bevel, (x1 - x0) * 0.45, (y1 - y0) * 0.45, (z1 - z0) * 0.45)
     ctr = ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)
     if c <= 1e-4:
         P = [(x, y, z) for z in (z0, z1) for y in (y0, y1) for x in (x0, x1)]

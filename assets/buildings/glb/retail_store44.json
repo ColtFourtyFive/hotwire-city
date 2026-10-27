@@ -1,0 +1,284 @@
+{
+ "name": "retail_store44",
+ "archetype": "corner_store",
+ "seed": 711,
+ "footprint": [
+  64.0,
+  86.0
+ ],
+ "height": 17.8,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "commercial",
+  "building": [
+   44.0,
+   36.0
+  ]
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [
+  [
+   -25.0,
+   -12.0,
+   90.0
+  ],
+  [
+   -15.0,
+   -12.0,
+   90.0
+  ],
+  [
+   -5.0,
+   -12.0,
+   90.0
+  ],
+  [
+   5.0,
+   -12.0,
+   90.0
+  ],
+  [
+   15.0,
+   -12.0,
+   90.0
+  ],
+  [
+   25.0,
+   -12.0,
+   90.0
+  ]
+ ],
+ "parts": {
+  "retail_store44_Walls": {
+   "role": "Walls",
+   "tris": 6,
+   "material": {
+    "kind": "texture",
+    "set": "stucco",
+    "tint": [
+     0.95,
+     0.88,
+     0.72
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_Walls2": {
+   "role": "Walls2",
+   "tris": 6,
+   "material": {
+    "kind": "texture",
+    "set": "cmu",
+    "tint": [
+     0.95,
+     0.88,
+     0.72
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_Trim": {
+   "role": "Trim",
+   "tris": 142,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.93,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_store44_Accent": {
+   "role": "Accent",
+   "tris": 154,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.95,
+     0.75,
+     0.1
+    ],
+    "metallic": 0.0,
+    "roughness": 0.5
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_store44_Frames": {
+   "role": "Frames",
+   "tris": 160,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.62,
+     0.64,
+     0.66
+    ],
+    "metallic": 0.8,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_Glass": {
+   "role": "Glass",
+   "tris": 8,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     1,
+     1,
+     1
+    ],
+    "roughness": 0.05,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_Roof": {
+   "role": "Roof",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "roof_tar",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "retail_store44_Details": {
+   "role": "Details",
+   "tris": 324,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_store44_Doors": {
+   "role": "Doors",
+   "tris": 12,
+   "material": {
+    "kind": "texture",
+    "set": "shutter",
+    "tint": [
+     0.8,
+     0.8,
+     0.8
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "retail_store44_Brand": {
+   "role": "Brand",
+   "tris": 12,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_Site": {
+   "role": "Site",
+   "tris": 10,
+   "material": {
+    "kind": "texture",
+    "set": "curb",
+    "tint": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "retail_store44_Asphalt": {
+   "role": "Asphalt",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "asphalt",
+    "tint": [
+     0.92,
+     0.92,
+     0.94
+    ]
+   },
+   "tile_studs": 24.0,
+   "night_only": false
+  },
+  "retail_store44_Paint": {
+   "role": "Paint",
+   "tris": 14,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.9,
+     0.9,
+     0.86
+    ],
+    "metallic": 0.0,
+    "roughness": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_Neon": {
+   "role": "Neon",
+   "tris": 52,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.97,
+     0.9
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.8819999999999999,
+     0.8400000000000001
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_store44_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 8,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 912,
+ "max_part_tris": 324,
+ "glb": "retail_store44.glb",
+ "glb_bytes": 69160,
+ "textures_embedded": false
+}

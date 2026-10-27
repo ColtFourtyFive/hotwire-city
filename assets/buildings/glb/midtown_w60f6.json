@@ -1,0 +1,167 @@
+{
+ "name": "midtown_w60f6",
+ "archetype": "midtown",
+ "seed": 515,
+ "footprint": [
+  60,
+  62
+ ],
+ "height": 91.5,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "midtown",
+  "floors": 6,
+  "wall": "brick_red"
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "midtown_w60f6_Walls": {
+   "role": "Walls",
+   "tris": 1642,
+   "material": {
+    "kind": "texture",
+    "set": "brick_red",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Trim": {
+   "role": "Trim",
+   "tris": 4816,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.96,
+     0.95,
+     0.92
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Frames": {
+   "role": "Frames",
+   "tris": 1624,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.22,
+     0.16,
+     0.11
+    ],
+    "metallic": 0.1,
+    "roughness": 0.35
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Glass": {
+   "role": "Glass",
+   "tris": 360,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     1,
+     1,
+     1
+    ],
+    "roughness": 0.05,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Roof": {
+   "role": "Roof",
+   "tris": 4,
+   "material": {
+    "kind": "texture",
+    "set": "roof_tar",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Details": {
+   "role": "Details",
+   "tris": 3066,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.55,
+     0.57,
+     0.6
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Doors": {
+   "role": "Doors",
+   "tris": 24,
+   "material": {
+    "kind": "texture",
+    "set": "shutter",
+    "tint": [
+     0.75,
+     0.75,
+     0.75
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "midtown_w60f6_Awning": {
+   "role": "Awning",
+   "tris": 24,
+   "material": {
+    "kind": "atlas",
+    "file": "awnings.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 20.8,
+   "night_only": false
+  },
+  "midtown_w60f6_Sign": {
+   "role": "Sign",
+   "tris": 4,
+   "material": {
+    "kind": "atlas",
+    "file": "signs.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "midtown_w60f6_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 146,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 11710,
+ "max_part_tris": 4816,
+ "glb": "midtown_w60f6.glb",
+ "glb_bytes": 819656,
+ "textures_embedded": false
+}

@@ -160,6 +160,12 @@ local function loadRaw(id: number, source: string): Instance?
 	return viaAssetService() or viaInsert()
 end
 
+-- Raw load of one asset (owned: InsertService first) with no normalization, for systems with their own template
+-- contract (BuildingService). Yields; nil on failure.
+function AssetLibrary.loadRaw(id: number, source: string): Instance?
+	return loadRaw(id, source)
+end
+
 -- Turns a raw loaded container into a normalized template Model (or nil if it has no visible parts).
 function AssetLibrary._normalize(raw: Instance, key: string, def: Assets.AssetDef): Model?
 	local store = def.source == "store"

@@ -1,0 +1,176 @@
+{
+ "name": "tower_big235",
+ "archetype": "tower",
+ "seed": 331,
+ "footprint": [
+  172,
+  176
+ ],
+ "height": 236.4,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "downtown",
+  "floors": 17,
+  "style": "curtain",
+  "crown": "mech"
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "tower_big235_Walls2": {
+   "role": "Walls2",
+   "tris": 608,
+   "material": {
+    "kind": "texture",
+    "set": "granite",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_big235_Trim": {
+   "role": "Trim",
+   "tris": 120,
+   "material": {
+    "kind": "texture",
+    "set": "concrete",
+    "tint": [
+     0.92,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_big235_Accent": {
+   "role": "Accent",
+   "tris": 12,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.05,
+     0.05,
+     0.055
+    ],
+    "metallic": 0.85,
+    "roughness": 0.35
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_big235_Frames": {
+   "role": "Frames",
+   "tris": 6040,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.05,
+     0.05,
+     0.055
+    ],
+    "metallic": 0.85,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_big235_Glass": {
+   "role": "Glass",
+   "tris": 3748,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.55,
+     0.8,
+     0.74
+    ],
+    "roughness": 0.03,
+    "metallic": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_big235_Roof": {
+   "role": "Roof",
+   "tris": 6,
+   "material": {
+    "kind": "texture",
+    "set": "roof_gravel",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "tower_big235_Details": {
+   "role": "Details",
+   "tris": 480,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_big235_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.4,
+    "metallic": 0.2
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_big235_Neon": {
+   "role": "Neon",
+   "tris": 22,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.9,
+     0.78
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.8400000000000001,
+     0.768
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_big235_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 964,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 12002,
+ "max_part_tris": 6040,
+ "glb": "tower_big235.glb",
+ "glb_bytes": 845904,
+ "textures_embedded": false
+}

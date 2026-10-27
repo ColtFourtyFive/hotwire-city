@@ -57,6 +57,11 @@ ROLE_ORDER = ["Walls", "Walls2", "Walls3", "Trim", "Accent", "Frames", "Glass", 
               "Brand", "Site", "Asphalt", "Paint", "Lawn", "Water", "Neon", "Grime", "WindowsLit"]
 NIGHT_ONLY = {"WindowsLit"}
 
+# Production mode (produce.py sets it): the game-ready variants. No Grime decals (MeshPart TextureID alpha is a hard
+# cut-out in Roblox, so soft dirt would read as blotches), lighter rear facades (alley side: windows without frames,
+# sills or AC units), sparser quoins on tall buildings. Previews / render_kit keep the full-detail look.
+PROD = False
+
 
 class Building:
     def __init__(self, kind, seed, name=None):
@@ -97,10 +102,49 @@ class Building:
         fw, fd = st.get("frame_w", 0.32), st.get("frame_d", 0.35)
         openings.append((u0, u1, z0, z1))
         has_sill = st.get("sill", True)
+        if st.get("frameless"):   # production rear facades: reveal + glass only
+            F.reveal(self.b(wall_role), u0, u1, z0, z1, d)
+            self.glass(F, u0, u1, z0, z1, -d, st.get("cells", "res"))
+            return
         F.reveal(self.b(wall_role), u0, u1, z0, z1, d, sides=(not has_sill, True, True, True))
         self.glass(F, u0, u1, z0, z1, -d, st.get("cells", "res"))
         fr = self.b("Frames")
         nb, nf = -d, -d + fd
+        if PROD:   # the same read from the street at ~1/3 of the triangles: front faces only, recessed in the reveal
+            uc, h = (u0 + u1) / 2, z1 - z0
+            F.quad(fr, u0, u0 + fw, z0, z1, nf)
+            F.quad(fr, u1 - fw, u1, z0, z1, nf)
+            F.quad(fr, u0 + fw, u1 - fw, z0, z0 + fw * 1.4, nf)
+            F.quad(fr, u0 + fw, u1 - fw, z1 - fw, z1, nf)
+            mul = st.get("mullion", "v")
+            if mul in ("v", "cross", "grid"):
+                F.quad(fr, uc - fw * 0.4, uc + fw * 0.4, z0 + fw * 1.4, z1 - fw, nf - 0.05)
+            if mul in ("t", "cross", "dh", "grid"):
+                zt = z0 + h * (0.5 if mul == "dh" else 0.66)
+                F.quad(fr, u0 + fw, u1 - fw, zt - fw * 0.45, zt + fw * 0.45, nf - 0.02)
+            tr = self.b(st.get("trim_role", "Trim"))
+            if has_sill:
+                F.box(tr, u0 - 0.4, u1 + 0.4, -d, 0.6, z0 - 0.5, z0 + 0.05, skip=("back",))
+            hd = st.get("header")
+            if hd in ("lintel", "keystone"):
+                F.box(tr, u0 - 0.5, u1 + 0.5, -0.05, 0.22, z1, z1 + (1.0 if hd == "lintel" else 0.9), skip=("back",))
+                if hd == "keystone":
+                    F.quad(tr, uc - 0.55, uc + 0.55, z1 - 0.25, z1 + 1.25, 0.42)
+            elif hd == "eyebrow":
+                F.box(self.b(st.get("eyebrow_role", "Accent")), u0 - 0.9, u1 + 0.9, -0.05, 1.5, z1 + 0.35, z1 + 0.7, skip=("back",))
+            if st.get("surround"):
+                s = st["surround"]
+                F.quad(tr, u0 - s, u0, z0, z1 + s, 0.25)
+                F.quad(tr, u1, u1 + s, z0, z1 + s, 0.25)
+                F.quad(tr, u0, u1, z1, z1 + s, 0.25)
+            if st.get("shutters"):
+                sw = (u1 - u0) * 0.5
+                for a, b_ in ((u0 - sw - 0.15, u0 - 0.15), (u1 + 0.15, u1 + sw + 0.15)):
+                    F.quad(self.b("Accent"), a, b_, z0 + 0.1, z1 - 0.1, 0.22)
+            if st.get("ac", 0) > 0 and self.rng.random() < st["ac"]:
+                w2 = min(1.3, (u1 - u0) * 0.35)
+                F.box(self.b("Details"), uc - w2, uc + w2, -d + 0.15, 1.3, z0 + 0.05, z0 + 1.55, skip=("back",))
+            return
         F.box(fr, u0, u0 + fw, nb, nf, z0, z1, skip=("back",))
         F.box(fr, u1 - fw, u1, nb, nf, z0, z1, skip=("back",))
         F.box(fr, u0 + fw, u1 - fw, nb, nf, z0, z0 + fw * 1.4, skip=("back",))
@@ -139,7 +183,9 @@ class Building:
             sw = (u1 - u0) * 0.5
             ac = self.b("Accent")
             for a, b_ in ((u0 - sw - 0.15, u0 - 0.15), (u1 + 0.15, u1 + sw + 0.15)):
-                F.box(ac, a, b_, -0.05, 0.22, z0 + 0.1, z1 - 0.1, bevel=0.05)
+                F.box(ac, a, b_, -0.05, 0.22, z0 + 0.1, z1 - 0.1, bevel=0.05, skip=("back",))
+                if PROD:
+                    continue
                 for k in range(1, 6):   # louvre lines
                     zz = z0 + (z1 - z0) * k / 6
                     F.box(ac, a + 0.12, b_ - 0.12, 0.2, 0.3, zz - 0.06, zz + 0.06, skip=("back",))
@@ -291,6 +337,8 @@ class Building:
     # -- decals / lot ---------------------------------------------------------------------------------
     def grime(self, F, u0, u1, z0, z1, kind="base", n=0.04):
         """Alpha dirt quad in front of a facade (kind: base|streak|soot|leak). u tiles every 24 studs."""
+        if PROD:
+            return
         gu0, gv0, gu1, gv1 = ATLAS["grime"][kind]
         t = TILES["Grime"]
         off = self.rng.random()
@@ -402,13 +450,17 @@ def midtown(seed=0, **kw):
           "header": "keystone" if brick and r.random() < 0.5 else ("lintel" if brick else None),
           "surround": None if brick else 0.55, "ac": 0.18, "cells": "res", "shutters": (not brick) and r.random() < 0.4}
     ww, wh, sp = 4.0, 6.6, 7.4
-    escape_side = "right" if brick else None
-    balconies = (not brick) or r.random() < 0.3
+    # fire escape: the classic street-front escape, or the rear; never a side (a row neighbour would cut through it)
+    escape_side = kw.get("escape", ("back" if PROD else "right") if brick else None)
+    if floors < 2:
+        escape_side = None
+    balconies = kw.get("balconies", (not brick) or r.random() < 0.3)
     for side, F in Fs.items():
         ops_up, ops_gf = [], []
         cols = B.columns(F.W, sp, 3.5, ww)
         if side in party:
-            F.wall(B.b("Walls"), gf, top)
+            if floors > 0:
+                F.wall(B.b("Walls"), gf, top)
             F.wall(B.b("Trim"), 0, gf)
             B.grime(F, 0, F.W, top - 10, top, "soot")
             continue
@@ -418,6 +470,8 @@ def midtown(seed=0, **kw):
                 s2 = dict(st)
                 if side == "back":
                     s2["ac"], s2["shutters"] = 0.08, False
+                    if PROD:
+                        s2.update(frameless=True, ac=0, header=None, surround=None)
                 is_bal = balconies and side == "front" and fi % 1 == 0 and ci % 2 == 1 and fi < floors
                 if is_bal:   # french door + balcony
                     s2 = dict(s2, sill=False, mullion="v", ac=0, shutters=False)
@@ -429,7 +483,7 @@ def midtown(seed=0, **kw):
                         B.grime(F, uc - ww / 2 - 0.3, uc + ww / 2 + 0.3, z0 - 5.0, z0 - 0.5, "streak", n=0.03)
         # ground floor
         if side == "front":
-            n_shops = 2 if W >= 44 else 1
+            n_shops = kw.get("shops", 3 if W >= 70 else (2 if W >= 44 else 1))
             pier = 2.4
             sw = (W - pier * (n_shops + 1)) / n_shops
             for k in range(n_shops):
@@ -448,34 +502,39 @@ def midtown(seed=0, **kw):
         F.wall(B.b("Trim"), 0, gf, ops_gf)
         B.grime(F, 0, F.W, 0, 7.0, "base")
         B.grime(F, 0, F.W, top - 7.5, top - 1.4, "soot")
-        F.wall(B.b("Walls"), gf, top, ops_up)
+        if floors > 0:
+            F.wall(B.b("Walls"), gf, top, ops_up)
         if side == escape_side:
             fire_escape(B, F, gf, fh, floors, cols, ww)
     # horizontal articulation
-    B.belt(loop, gf - 0.8, h=1.0, out=0.45)
+    if floors > 0:
+        B.belt(loop, gf - 0.8, h=1.0, out=0.45)
     B.cornice(loop, top, size=1.3 if brick else 1.0)
-    if brick:
-        quoins(B, Fs, gf, top)
+    if brick and floors > 0:
+        quoins(B, Fs, gf, top, step=2.8 if (PROD and floors > 5) else 1.4)
     B.parapet(loop, top, h=2.6, t=0.9)
     # roof kit
     rz = top + 0.02
-    B.bulkhead(-W / 2 + 9, D / 2 - 8, rz, w=9, d=7, h=8)
-    if brick and r.random() < 0.8:
+    if floors > 0:
+        B.bulkhead(-W / 2 + 9, D / 2 - 8, rz, w=9, d=7, h=8)
+    if brick and floors > 1 and r.random() < 0.8:
         B.water_tank(W / 2 - 9, D / 2 - 10, rz, r=3.6, h=6.5)
     for k in range(r.randint(2, 4)):
         B.hvac(r.uniform(-W / 2 + 6, W / 2 - 6), r.uniform(-D / 2 + 6, 0), rz, w=r.choice([4, 5, 6]), d=3.5, h=r.choice([2.5, 3.2]))
     return B
 
 
-def quoins(B, Fs, z0, z1, size=2.2):
+def quoins(B, Fs, z0, z1, size=2.2, step=1.4):
     tr = B.b("Trim")
     for side, F in Fs.items():
+        if PROD and side == "back":
+            continue
         z, k = z0, 0
-        while z + 1.4 <= z1 - 1.2:
+        while z + step <= z1 - 1.2:
             w = size if k % 2 == 0 else size * 0.62
-            F.box(tr, 0, w, -0.02, 0.28, z + 0.06, z + 1.34, skip=("back",))
-            F.box(tr, F.W - w, F.W, -0.02, 0.28, z + 0.06, z + 1.34, skip=("back",))
-            z += 1.4
+            F.box(tr, 0, w, -0.02, 0.28, z + 0.06, z + step - 0.06, skip=("back",))
+            F.box(tr, F.W - w, F.W, -0.02, 0.28, z + 0.06, z + step - 0.06, skip=("back",))
+            z += step
             k += 1
 
 
@@ -486,6 +545,11 @@ def balcony(B, F, u0, u1, zf, depth):
     F.box(dt, u0 + 0.1, u1 - 0.1, depth - 0.25, depth - 0.05, zf + rail_h - 0.25, zf + rail_h, bevel=0.05)
     for u in (u0 + 0.15, u1 - 0.35):
         F.box(dt, u, u + 0.2, 0.1, depth - 0.1, zf + rail_h - 0.22, zf + rail_h, skip=("back",))
+    if PROD:   # solid balcony fronts (Trim) instead of ~40 balusters each
+        F.box(tr, u0 + 0.1, u1 - 0.1, depth - 0.3, depth - 0.1, zf, zf + rail_h - 0.3, skip=("bottom",))
+        for side_u in (u0 + 0.1, u1 - 0.3):
+            F.box(tr, side_u, side_u + 0.2, 0.1, depth - 0.3, zf, zf + rail_h - 0.3, skip=("bottom", "back"))
+        return
     n = int((u1 - u0) / 0.7)
     for k in range(n + 1):
         u = u0 + 0.2 + (u1 - u0 - 0.4) * k / n

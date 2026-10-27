@@ -123,8 +123,10 @@ def tower(seed=0, **kw):
               "Brand": ("atlas", "brands.png", 0.4, 0.2), "Sign": ("atlas", "signs.png"), "Grime": ("grime",),
               "Neon": ("neon", (1.0, 0.9, 0.78)), "WindowsLit": ("lit",), "Site": ("tex", "pavers", (0.95, 0.95, 0.95))}
     B.lit_ratio = 0.45
-    # ---- podium (stone + glass lobby)
+    # ---- podium (stone + glass lobby); podium_h (studs) follows the parcel contract's planned-tower podium
     pod_floors = r.choice([2, 2, 3])
+    if kw.get("podium_h"):
+        pod_floors = max(2, int(round((kw["podium_h"] - 26.0) / fh)) + 2)
     lobby_h = 26.0
     ph = lobby_h + (pod_floors - 2) * fh
     Fs = B.facades(W, D)
@@ -169,7 +171,7 @@ def tower(seed=0, **kw):
     B.brand(F, W / 2, 18.0, name_key, 3.6, n=0.0, depth=0.0, frame="Walls2")
     # plaza strip in front (part of the lot, under the canopy)
     # ---- shaft with setbacks
-    inset = r.choice([5.0, 6.0, 8.0])
+    inset = kw.get("inset", r.choice([5.0, 6.0, 8.0]))
     x0, y0, x1, y1 = -W / 2 + inset, -D / 2 + inset, W / 2 - inset, D / 2 - inset
     z = ph + 0.2
     n_set = kw.get("setbacks", r.choice([0, 1, 1, 2]))
@@ -257,6 +259,34 @@ def tower(seed=0, **kw):
             p0, p1 = (xx, y0, z + 0.4), (xx, y1, z + hh + 0.4)
             G.hcylinder(fr, p0, p1, 0.3, seg=4)
         top = z + hh
+    elif crown == "flat":
+        # plain parapet roof with plant: cooling towers, HVAC rows, a stair bulkhead and a mast
+        cooling_tower(B, x0 + 9, y1 - 8, z, w=10, d=7, h=6)
+        cooling_tower(B, x1 - 9, y1 - 8, z, w=8, d=6, h=5)
+        for k in range(r.randint(3, 5)):
+            B.hvac(r.uniform(x0 + 6, x1 - 6), r.uniform(y0 + 5, cy), z, w=r.choice([4, 5, 6]), d=3.2, h=r.choice([2.4, 3.0]))
+        B.bulkhead(cx - tw * 0.15, cy, z, w=10, d=8, h=9, wall_role="Walls2")
+        G.cylinder(dt, cx + tw * 0.25, cy + td * 0.2, z, z + 16, 0.4, seg=8, caps=(False, True), r1=0.2)
+        G.box(B.b("Neon"), cx + tw * 0.25 - 0.5, cy + td * 0.2 - 0.5, z + 16, cx + tw * 0.25 + 0.5, cy + td * 0.2 + 0.5, z + 17)
+        top = z + 9.5
+    elif crown == "lit_band":
+        # glass crown box ringed by three LED bands (Neon: lit at night) over a mechanical floor
+        ins = 2.5
+        lp = B.rect_loop(tw - 2 * ins, td - 2 * ins, x0 + ins, y0 + ins)
+        hh = 18.0
+        Fk = B.facades(tw - 2 * ins, td - 2 * ins, x0 + ins, y0 + ins)
+        for side, F in Fk.items():
+            F.wall(B.b("Walls2"), z, z + 2.0)
+            F.quad(B.b("Glass"), 0, F.W, z + 2.0, z + hh, -0.3, uv=ATLAS["windows"]["spandrel"])
+            n, bw = _bays(F.W, 5.0)
+            for i in range(n + 1):
+                F.box(fr, max(0, i * bw - 0.25), min(F.W, i * bw + 0.25), -0.3, 0.3, z + 2.0, z + hh, skip=("back",))
+            for zz in (z + 6.0, z + 11.0, z + 16.0):
+                F.box(B.b("Neon"), 0, F.W, -0.3, 0.45, zz, zz + 0.7, skip=("back", "left", "right"))
+        G.cap(B.b("Roof"), lp, z + hh)
+        G.sweep(B.b("Trim"), lp, [(0.0, z + hh), (0.5, z + hh), (0.5, z + hh + 1.0), (0.0, z + hh + 1.0)])
+        top = z + hh + 1.0
+        cooling_tower(B, cx, cy, top, w=10, d=7, h=5)
     else:  # helipad
         G.prism(B.b("Trim"), B.rect_loop(min(tw, td) * 0.7, min(tw, td) * 0.7, cx - min(tw, td) * 0.35, cy - min(tw, td) * 0.35), z, z + 3.0)
         s = min(tw, td) * 0.7

@@ -1,0 +1,273 @@
+{
+ "name": "industrial_shed60",
+ "archetype": "warehouse",
+ "seed": 1141,
+ "footprint": [
+  90.0,
+  84.0
+ ],
+ "height": 26.53,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "industrial",
+  "style": "metal",
+  "docks": 3,
+  "building": [
+   60.0,
+   44.0,
+   22.0
+  ]
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "industrial_shed60_Walls": {
+   "role": "Walls",
+   "tris": 52,
+   "material": {
+    "kind": "texture",
+    "set": "metal_siding",
+    "tint": [
+     0.55,
+     0.66,
+     0.78
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_Walls2": {
+   "role": "Walls2",
+   "tris": 108,
+   "material": {
+    "kind": "texture",
+    "set": "cmu",
+    "tint": [
+     0.82,
+     0.8,
+     0.77
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_Trim": {
+   "role": "Trim",
+   "tris": 330,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.55,
+     0.08,
+     0.06
+    ],
+    "metallic": 0.5,
+    "roughness": 0.45
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "industrial_shed60_Accent": {
+   "role": "Accent",
+   "tris": 54,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.95,
+     0.72,
+     0.08
+    ],
+    "metallic": 0.0,
+    "roughness": 0.5
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "industrial_shed60_Frames": {
+   "role": "Frames",
+   "tris": 400,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.62,
+     0.64,
+     0.66
+    ],
+    "metallic": 0.8,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_Glass": {
+   "role": "Glass",
+   "tris": 36,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.7,
+     0.8,
+     0.85
+    ],
+    "roughness": 0.05,
+    "metallic": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_Roof": {
+   "role": "Roof",
+   "tris": 4,
+   "material": {
+    "kind": "texture",
+    "set": "corrugated",
+    "tint": [
+     0.9,
+     0.9,
+     0.9
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "industrial_shed60_Roof2": {
+   "role": "Roof2",
+   "tris": 26,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "metallic": 0.0,
+    "roughness": 0.9
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "industrial_shed60_Details": {
+   "role": "Details",
+   "tris": 220,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.6,
+     0.62,
+     0.64
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "industrial_shed60_Doors": {
+   "role": "Doors",
+   "tris": 14,
+   "material": {
+    "kind": "texture",
+    "set": "shutter",
+    "tint": [
+     0.85,
+     0.85,
+     0.85
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "industrial_shed60_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_Site": {
+   "role": "Site",
+   "tris": 12,
+   "material": {
+    "kind": "texture",
+    "set": "curb",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "industrial_shed60_Asphalt": {
+   "role": "Asphalt",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "asphalt",
+    "tint": [
+     0.92,
+     0.92,
+     0.94
+    ]
+   },
+   "tile_studs": 24.0,
+   "night_only": false
+  },
+  "industrial_shed60_Paint": {
+   "role": "Paint",
+   "tris": 2,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.92,
+     0.88,
+     0.5
+    ],
+    "metallic": 0.0,
+    "roughness": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_Neon": {
+   "role": "Neon",
+   "tris": 72,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.85,
+     0.6
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.81,
+     0.6599999999999999
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_shed60_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 26,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 1360,
+ "max_part_tris": 400,
+ "glb": "industrial_shed60.glb",
+ "glb_bytes": 109432,
+ "textures_embedded": false
+}

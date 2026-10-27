@@ -17,7 +17,8 @@ def warehouse(seed=0, **kw):
     Wb = kw.get("bw", r.choice([110.0, 130.0, 150.0]))
     Db = kw.get("bd", r.choice([70.0, 80.0, 90.0]))
     H = kw.get("h", r.choice([30.0, 34.0]) if style == "metal" else r.choice([34.0, 38.0]))
-    W, D = Wb + 30.0, Db + 86.0
+    court = kw.get("court", 86.0)   # truck court + office annex depth in front of the docks (urban: ~40)
+    W, D = Wb + 30.0, Db + court
     sid = SIDING[kw.get("siding", r.choice(list(SIDING)))]
     trim_c = r.choice([(0.12, 0.22, 0.42), (0.55, 0.08, 0.06), (0.15, 0.15, 0.16), (0.85, 0.85, 0.83)])
     B.spec = {"Walls": ("tex", "metal_siding", sid) if style == "metal" else ("tex", "precast", sid),

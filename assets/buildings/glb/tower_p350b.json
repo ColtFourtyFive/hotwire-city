@@ -1,0 +1,176 @@
+{
+ "name": "tower_p350b",
+ "archetype": "tower",
+ "seed": 209,
+ "footprint": [
+  160,
+  160
+ ],
+ "height": 347.9,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "downtown",
+  "floors": 26,
+  "style": "curtain",
+  "crown": "flat"
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "tower_p350b_Walls2": {
+   "role": "Walls2",
+   "tris": 1266,
+   "material": {
+    "kind": "texture",
+    "set": "granite",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_p350b_Trim": {
+   "role": "Trim",
+   "tris": 100,
+   "material": {
+    "kind": "texture",
+    "set": "concrete",
+    "tint": [
+     0.92,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_p350b_Accent": {
+   "role": "Accent",
+   "tris": 12,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.55,
+     0.57,
+     0.6
+    ],
+    "metallic": 0.85,
+    "roughness": 0.35
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_p350b_Frames": {
+   "role": "Frames",
+   "tris": 4796,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.16,
+     0.17,
+     0.18
+    ],
+    "metallic": 0.85,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_p350b_Glass": {
+   "role": "Glass",
+   "tris": 4496,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.66,
+     0.7,
+     0.74
+    ],
+    "roughness": 0.03,
+    "metallic": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_p350b_Roof": {
+   "role": "Roof",
+   "tris": 6,
+   "material": {
+    "kind": "texture",
+    "set": "roof_gravel",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "tower_p350b_Details": {
+   "role": "Details",
+   "tris": 470,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "tower_p350b_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.4,
+    "metallic": 0.2
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_p350b_Neon": {
+   "role": "Neon",
+   "tris": 22,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.9,
+     0.78
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.8400000000000001,
+     0.768
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "tower_p350b_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 1114,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 12284,
+ "max_part_tris": 4796,
+ "glb": "tower_p350b.glb",
+ "glb_bytes": 860952,
+ "textures_embedded": false
+}

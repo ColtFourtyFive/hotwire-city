@@ -1,0 +1,202 @@
+{
+ "name": "deco_w66f8",
+ "archetype": "deco",
+ "seed": 674,
+ "footprint": [
+  66,
+  64.0
+ ],
+ "height": 111.0,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "beach",
+  "floors": 8,
+  "accent": "mint"
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "deco_w66f8_Walls": {
+   "role": "Walls",
+   "tris": 1066,
+   "material": {
+    "kind": "texture",
+    "set": "stucco",
+    "tint": [
+     0.7474999999999999,
+     0.9039999999999999,
+     0.891
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "deco_w66f8_Walls2": {
+   "role": "Walls2",
+   "tris": 40,
+   "material": {
+    "kind": "texture",
+    "set": "terrazzo",
+    "tint": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "deco_w66f8_Trim": {
+   "role": "Trim",
+   "tris": 2524,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.97,
+     0.96,
+     0.93
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "deco_w66f8_Accent": {
+   "role": "Accent",
+   "tris": 1514,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.6596,
+     0.9048,
+     0.7944
+    ],
+    "metallic": 0.0,
+    "roughness": 0.6
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "deco_w66f8_Frames": {
+   "role": "Frames",
+   "tris": 1896,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.62,
+     0.64,
+     0.66
+    ],
+    "metallic": 0.3,
+    "roughness": 0.35
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "deco_w66f8_Glass": {
+   "role": "Glass",
+   "tris": 360,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     1,
+     1,
+     1
+    ],
+    "roughness": 0.05,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "deco_w66f8_Roof": {
+   "role": "Roof",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "roof_tar",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "deco_w66f8_Details": {
+   "role": "Details",
+   "tris": 238,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.7,
+     0.72,
+     0.74
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "deco_w66f8_Awning": {
+   "role": "Awning",
+   "tris": 32,
+   "material": {
+    "kind": "atlas",
+    "file": "awnings.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 20.8,
+   "night_only": false
+  },
+  "deco_w66f8_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.35,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "deco_w66f8_Neon": {
+   "role": "Neon",
+   "tris": 66,
+   "material": {
+    "kind": "neon",
+    "color": [
+     0.2,
+     1.0,
+     0.6
+    ],
+    "day_color": [
+     0.42,
+     0.8999999999999999,
+     0.6599999999999999
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "deco_w66f8_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 98,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 7838,
+ "max_part_tris": 2524,
+ "glb": "deco_w66f8.glb",
+ "glb_bytes": 555008,
+ "textures_embedded": false
+}

@@ -1,0 +1,382 @@
+{
+ "name": "retail_strip5",
+ "archetype": "strip",
+ "seed": 703,
+ "footprint": [
+  144.0,
+  124.0
+ ],
+ "height": 30.0,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "commercial",
+  "units": 5,
+  "canopy": "flat",
+  "building": [
+   120.0,
+   44.0
+  ]
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [
+  [
+   -60.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   -50.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   -40.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   -30.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   -20.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   -10.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   0.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   10.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   20.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   30.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   40.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   50.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   60.0,
+   -44.0,
+   -90.0
+  ],
+  [
+   -60.0,
+   -5.0,
+   90.0
+  ],
+  [
+   -50.0,
+   -5.0,
+   90.0
+  ],
+  [
+   -40.0,
+   -5.0,
+   90.0
+  ],
+  [
+   -30.0,
+   -5.0,
+   90.0
+  ],
+  [
+   -20.0,
+   -5.0,
+   90.0
+  ],
+  [
+   -10.0,
+   -5.0,
+   90.0
+  ],
+  [
+   0.0,
+   -5.0,
+   90.0
+  ],
+  [
+   10.0,
+   -5.0,
+   90.0
+  ],
+  [
+   20.0,
+   -5.0,
+   90.0
+  ],
+  [
+   30.0,
+   -5.0,
+   90.0
+  ],
+  [
+   40.0,
+   -5.0,
+   90.0
+  ],
+  [
+   50.0,
+   -5.0,
+   90.0
+  ],
+  [
+   60.0,
+   -5.0,
+   90.0
+  ]
+ ],
+ "parts": {
+  "retail_strip5_Walls": {
+   "role": "Walls",
+   "tris": 174,
+   "material": {
+    "kind": "texture",
+    "set": "stucco",
+    "tint": [
+     0.95,
+     0.88,
+     0.72
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_Trim": {
+   "role": "Trim",
+   "tris": 450,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.93,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_strip5_Frames": {
+   "role": "Frames",
+   "tris": 772,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.62,
+     0.64,
+     0.66
+    ],
+    "metallic": 0.8,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_Glass": {
+   "role": "Glass",
+   "tris": 40,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     1,
+     1,
+     1
+    ],
+    "roughness": 0.05,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_Roof": {
+   "role": "Roof",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "roof_tar",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "retail_strip5_Details": {
+   "role": "Details",
+   "tris": 404,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_strip5_Doors": {
+   "role": "Doors",
+   "tris": 48,
+   "material": {
+    "kind": "texture",
+    "set": "shutter",
+    "tint": [
+     0.8,
+     0.8,
+     0.8
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "retail_strip5_Sign": {
+   "role": "Sign",
+   "tris": 26,
+   "material": {
+    "kind": "atlas",
+    "file": "signs.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_Brand": {
+   "role": "Brand",
+   "tris": 4,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_Site": {
+   "role": "Site",
+   "tris": 10,
+   "material": {
+    "kind": "texture",
+    "set": "curb",
+    "tint": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "retail_strip5_Asphalt": {
+   "role": "Asphalt",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "asphalt",
+    "tint": [
+     0.92,
+     0.92,
+     0.94
+    ]
+   },
+   "tile_studs": 24.0,
+   "night_only": false
+  },
+  "retail_strip5_Paint": {
+   "role": "Paint",
+   "tris": 56,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.9,
+     0.9,
+     0.86
+    ],
+    "metallic": 0.0,
+    "roughness": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_Lawn": {
+   "role": "Lawn",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "grass",
+    "tint": [
+     0.8,
+     0.98,
+     0.65
+    ]
+   },
+   "tile_studs": 20.0,
+   "night_only": false
+  },
+  "retail_strip5_Neon": {
+   "role": "Neon",
+   "tris": 188,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.97,
+     0.9
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.8819999999999999,
+     0.8400000000000001
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_strip5_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 40,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 2218,
+ "max_part_tris": 772,
+ "glb": "retail_strip5.glb",
+ "glb_bytes": 164940,
+ "textures_embedded": false
+}

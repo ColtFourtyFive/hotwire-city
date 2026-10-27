@@ -1,0 +1,256 @@
+{
+ "name": "mansion_w96b",
+ "archetype": "mansion",
+ "seed": 901,
+ "footprint": [
+  96,
+  84
+ ],
+ "height": 27.6,
+ "base_depth": 12.0,
+ "tags": {
+  "district": "hills",
+  "base_depth": 12.0,
+  "cantilever": -1,
+  "slats": false
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "mansion_w96b_Walls": {
+   "role": "Walls",
+   "tris": 48,
+   "material": {
+    "kind": "texture",
+    "set": "stucco",
+    "tint": [
+     0.96,
+     0.96,
+     0.94
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "mansion_w96b_Walls2": {
+   "role": "Walls2",
+   "tris": 36,
+   "material": {
+    "kind": "texture",
+    "set": "granite",
+    "tint": [
+     0.92,
+     0.9,
+     0.86
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "mansion_w96b_Trim": {
+   "role": "Trim",
+   "tris": 58,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.97,
+     0.97,
+     0.96
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "mansion_w96b_Accent": {
+   "role": "Accent",
+   "tris": 10,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.12,
+     0.12,
+     0.13
+    ],
+    "metallic": 0.0,
+    "roughness": 0.5
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "mansion_w96b_Frames": {
+   "role": "Frames",
+   "tris": 608,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.05,
+     0.05,
+     0.055
+    ],
+    "metallic": 0.6,
+    "roughness": 0.35
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "mansion_w96b_Glass": {
+   "role": "Glass",
+   "tris": 58,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.85,
+     0.9,
+     0.92
+    ],
+    "roughness": 0.03,
+    "metallic": 0.35
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "mansion_w96b_Clear": {
+   "role": "Clear",
+   "tris": 24,
+   "material": {
+    "kind": "clear",
+    "color": [
+     0.85,
+     0.93,
+     0.94
+    ],
+    "transparency": 0.65,
+    "material": "Glass"
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "mansion_w96b_Roof": {
+   "role": "Roof",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "roof_gravel",
+    "tint": [
+     0.9,
+     0.9,
+     0.9
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "mansion_w96b_Details": {
+   "role": "Details",
+   "tris": 112,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.65,
+     0.66,
+     0.68
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "mansion_w96b_Doors": {
+   "role": "Doors",
+   "tris": 4,
+   "material": {
+    "kind": "texture",
+    "set": "wood_fence",
+    "tint": [
+     0.6,
+     0.5,
+     0.42
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "mansion_w96b_Site": {
+   "role": "Site",
+   "tris": 16,
+   "material": {
+    "kind": "texture",
+    "set": "pavers",
+    "tint": [
+     1.0,
+     0.98,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "mansion_w96b_Lawn": {
+   "role": "Lawn",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "grass",
+    "tint": [
+     0.8,
+     0.98,
+     0.65
+    ]
+   },
+   "tile_studs": 20.0,
+   "night_only": false
+  },
+  "mansion_w96b_Water": {
+   "role": "Water",
+   "tris": 2,
+   "material": {
+    "kind": "water",
+    "color": [
+     0.04,
+     0.45,
+     0.58
+    ],
+    "transparency": 0.25,
+    "material": "Glass"
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "mansion_w96b_Neon": {
+   "role": "Neon",
+   "tris": 270,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.82,
+     0.55
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.7919999999999999,
+     0.63
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "mansion_w96b_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 26,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 1276,
+ "max_part_tris": 608,
+ "glb": "mansion_w96b.glb",
+ "glb_bytes": 102860,
+ "textures_embedded": false
+}

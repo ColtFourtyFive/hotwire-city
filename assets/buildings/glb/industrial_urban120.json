@@ -1,0 +1,273 @@
+{
+ "name": "industrial_urban120",
+ "archetype": "warehouse",
+ "seed": 1149,
+ "footprint": [
+  150.0,
+  120.0
+ ],
+ "height": 40.6,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "industrial",
+  "style": "tiltup",
+  "docks": 3,
+  "building": [
+   120.0,
+   90.0,
+   40.0
+  ]
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "industrial_urban120_Walls": {
+   "role": "Walls",
+   "tris": 104,
+   "material": {
+    "kind": "texture",
+    "set": "precast",
+    "tint": [
+     0.93,
+     0.93,
+     0.91
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_Walls2": {
+   "role": "Walls2",
+   "tris": 70,
+   "material": {
+    "kind": "texture",
+    "set": "cmu",
+    "tint": [
+     0.82,
+     0.8,
+     0.77
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_Trim": {
+   "role": "Trim",
+   "tris": 386,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.55,
+     0.08,
+     0.06
+    ],
+    "metallic": 0.5,
+    "roughness": 0.45
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "industrial_urban120_Accent": {
+   "role": "Accent",
+   "tris": 54,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.95,
+     0.72,
+     0.08
+    ],
+    "metallic": 0.0,
+    "roughness": 0.5
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "industrial_urban120_Frames": {
+   "role": "Frames",
+   "tris": 500,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.62,
+     0.64,
+     0.66
+    ],
+    "metallic": 0.8,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_Glass": {
+   "role": "Glass",
+   "tris": 42,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.7,
+     0.8,
+     0.85
+    ],
+    "roughness": 0.05,
+    "metallic": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_Roof": {
+   "role": "Roof",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "roof_gravel",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "industrial_urban120_Roof2": {
+   "role": "Roof2",
+   "tris": 326,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "metallic": 0.0,
+    "roughness": 0.9
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "industrial_urban120_Details": {
+   "role": "Details",
+   "tris": 780,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.6,
+     0.62,
+     0.64
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "industrial_urban120_Doors": {
+   "role": "Doors",
+   "tris": 20,
+   "material": {
+    "kind": "texture",
+    "set": "shutter",
+    "tint": [
+     0.85,
+     0.85,
+     0.85
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "industrial_urban120_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_Site": {
+   "role": "Site",
+   "tris": 12,
+   "material": {
+    "kind": "texture",
+    "set": "curb",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "industrial_urban120_Asphalt": {
+   "role": "Asphalt",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "asphalt",
+    "tint": [
+     0.92,
+     0.92,
+     0.94
+    ]
+   },
+   "tile_studs": 24.0,
+   "night_only": false
+  },
+  "industrial_urban120_Paint": {
+   "role": "Paint",
+   "tris": 8,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.92,
+     0.88,
+     0.5
+    ],
+    "metallic": 0.0,
+    "roughness": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_Neon": {
+   "role": "Neon",
+   "tris": 204,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.85,
+     0.6
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.81,
+     0.6599999999999999
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "industrial_urban120_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 36,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 2548,
+ "max_part_tris": 780,
+ "glb": "industrial_urban120.glb",
+ "glb_bytes": 175640,
+ "textures_embedded": false
+}
