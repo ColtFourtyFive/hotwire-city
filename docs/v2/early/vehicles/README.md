@@ -86,7 +86,7 @@ DZ = Daniel Zhabotinsky. Full credits are in `assets/ATTRIBUTION.md` ("Shipped: 
 | | |
 |---|---|
 | Car models | 30, plus 2 police units sharing them. 35 catalog cars and 10 aliases; the motorcycle is deferred. |
-| Uploads | 30 Models, all moderation **Approved**. 9 body Images (8 Reviewing at upload time, 1 Approved). Recorded in `assets/vehicles/manifest.json`. |
+| Uploads | 30 Models and 9 body Images, all moderation **Approved**. Recorded in `assets/vehicles/manifest.json`. |
 | Triangles | 6.1k (Ashcombe Vireo) to 15.8k (Tamura Hayate) per car, 12.8k on average; every car ≤ 18k and every MeshPart ≤ 20k |
 | Instances per car | 15–21 BaseParts: 8–13 MeshParts, chassis, seat, 2 bump stops, 4 light anchors |
 | Template load (engine) | 30 / 30 in about 2 s, 4 in parallel |
@@ -103,7 +103,7 @@ DZ = Daniel Zhabotinsky. Full credits are in `assets/ATTRIBUTION.md` ("Shipped: 
   - the camera fade.
 - **Garage pads are 16 studs** (v1 plots). Realistic cars run 13–26 studs, the bus is 44 and the ladder truck 38. The bus and ladder truck carry `oversize = true` and `street = false`. Plot and dealership pad sizing belongs to A1 / C1.
 - **Driver-side drift FX (BACKLOG 3)** need the VFX owner: raise the `TireSmoke` rate and opacity and the `SkidMark` opacity in Config/VFX, and verify VehicleClient's skid-contact height on mesh cars in a stationary drift test.
-- **8 body Images were still in moderation review** at upload time. If one is rejected, `gen_vehicles.py` drops it, and that car shows a flat Body colour (liveries go white). Re-run `upload_roster.py --status` and then `gen_vehicles.py`.
+- **A rejected Image later** (moderation can be re-run) makes `gen_vehicles.py` drop it; that car then shows a flat Body colour (liveries go white). Re-check with `upload_roster.py --status`.
 - **LOOP_V2 §2.10** wants the Diamond Dragster re-tuned (bound, $300/s, top speed 160) before it is sold. Its v1 economy is kept here; that is Monetization's / C1's call.
 - **Leftover marks on some models.** Some DZ liveries carry generic text ("POLICE", "TAXI", "AMBULANCE", "911"), and plates carry the authors' handles (for example "LEXY 6"). There are no makes or logos. Badge meshes and centre-line emblem geometry are dropped by carpipe.
 - **Second police unit and service vehicles.** `Cars.PoliceSUV` is ready, but PoliceService still spawns only `Cars.Police`. Escalating to the SUV at higher wanted levels belongs to C2. Traffic can use the bus and service vehicles once C2's kinematic traffic lands.

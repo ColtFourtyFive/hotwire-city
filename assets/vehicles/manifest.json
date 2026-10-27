@@ -5,7 +5,7 @@
    "bytes": 195499,
    "file": "assets/vehicles/brookline_cab/textures/brookline_cab_Body_base.png",
    "kind": "livery",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Halden Brookline Cab body livery",
    "sha1": "bb5454544e107467f39cbb53e9098f75f76f3230"
   },
@@ -23,7 +23,7 @@
    "bytes": 317684,
    "file": "assets/vehicles/caliente/textures/caliente_Body_overlay.png",
    "kind": "overlay",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Marlowe Caliente body overlay",
    "sha1": "0b347907423daa0e95f125cee812ab59abc2a160"
   },
@@ -32,7 +32,7 @@
    "bytes": 269202,
    "file": "assets/vehicles/hauler_medic/textures/hauler_medic_Body_base.png",
    "kind": "livery",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Halden Hauler Medic body livery",
    "sha1": "4592587c28ed5de83bd30fa66f72f4ecb8f1e62d"
   },
@@ -41,7 +41,7 @@
    "bytes": 745537,
    "file": "assets/vehicles/metro_cab/textures/metro_cab_Body_base.png",
    "kind": "livery",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Halden Metro Cab body livery",
    "sha1": "6902be43f1c8838173a2078bcc373537d110d93c"
   },
@@ -50,7 +50,7 @@
    "bytes": 368264,
    "file": "assets/vehicles/nyx/textures/nyx_Body_overlay.png",
    "kind": "overlay",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Velacor Nyx body overlay",
    "sha1": "af60bf7cdf216efe88931dffc35047ebd7f56954"
   },
@@ -59,7 +59,7 @@
    "bytes": 220159,
    "file": "assets/vehicles/trailhead_patrol/textures/trailhead_patrol_Body_base.png",
    "kind": "livery",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Oakridge Trailhead Patrol body livery",
    "sha1": "ea977574d70304864fcc236d9d84de138fd5f725"
   },
@@ -68,7 +68,7 @@
    "bytes": 309507,
    "file": "assets/vehicles/vaultline/textures/vaultline_Body_base.png",
    "kind": "livery",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Brennan Vaultline body livery",
    "sha1": "0ce8f51ec9dc044909021186d78ded8f20460787"
   },
@@ -77,7 +77,7 @@
    "bytes": 135508,
    "file": "assets/vehicles/vireo/textures/vireo_Body_overlay.png",
    "kind": "overlay",
-   "moderation": "Reviewing",
+   "moderation": "Approved",
    "name": "HC car Ashcombe Vireo body overlay",
    "sha1": "4db522efb03afb86112deb42f96ffc9b2d695fcd"
   }
@@ -325,5 +325,5 @@
   }
  },
  "note": "Hotwire City v2 vehicles: Roblox asset ids (owner user 11686693147). Written by upload_roster.py.",
- "updated": "2026-10-27T22:13:53"
+ "updated": "2026-10-27T22:27:30"
 }

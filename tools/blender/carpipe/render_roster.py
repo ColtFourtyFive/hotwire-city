@@ -194,7 +194,9 @@ def sheet(ids, out, cols=5):
         dr.text((x + 10, y + h + 4), labels[i][0], fill=(245, 245, 245), font=f1)
         dr.text((x + 10, y + h + 30), labels[i][1], fill=(170, 170, 175), font=f2)
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    img.save(out)
+    if img.size[0] > 2400:  # keep the committed sheet a few MB
+        img = img.resize((2400, round(img.size[1] * 2400 / img.size[0])), Image.LANCZOS)
+    img.save(out, optimize=True)
     util.log("sheet ->", out)
     return out
 

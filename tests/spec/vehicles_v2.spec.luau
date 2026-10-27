@@ -286,7 +286,6 @@ return function(t)
 				t.ok(def.income >= band[1] and def.income <= band[2], id .. " income in band")
 				t.ok(def.price >= band[3] and def.price <= band[4], id .. " price in band")
 			end
-			t.ok(Rarity.Defs == nil or Rarity.Defs[def.rarity] ~= nil or true, id .. " rarity")
 		end
 		for _, def in Cars.PoliceUnits do
 			t.ok(def.police == true and Vehicles.get(def.vehicle) ~= nil, def.id .. " police unit model")
@@ -382,7 +381,8 @@ return function(t)
 			local p = tpl:FindFirstChild(name)
 			t.ok(p ~= nil, "template part " .. name)
 			vnear(p.CFrame.Position, box.center, 0.02, name .. " lands on the sidecar centre")
-			t.ok(p.CFrame.LookVector.Z < -0.99 or name:match("^Wheel") == nil or true, name)
+			-- the importer turned the geometry 180 degrees with identity part rotations: prepare turns the parts back
+			t.ok(p.CFrame.LookVector.Z > 0.99, name .. " part turned back 180 degrees")
 		end
 		vnear(tpl.WheelFL.CFrame.Position, spec.wheels[1].partCenter, 0.02, "front-left wheel at front-left")
 		t.ok(tpl.LightsFront.CFrame.Position.Z < 0, "headlamps at -Z after preparation")
