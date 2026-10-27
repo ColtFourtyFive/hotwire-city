@@ -17,6 +17,7 @@
 -- Public API: open(), close(), toggle(), isOpen()
 -- Pure helpers (tests): fitScale, fitCenterZ, worldToScreen, screenToWorld, zoomAround, clampCenter, isTap.
 
+local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -56,6 +57,15 @@ local FIT_SPAN = (MapConfig.BOUNDARY + 50) * 2 -- studs the fit-to-screen view s
 local CENTER_LIMIT = MapConfig.BOUNDARY + 40
 local UPDATE_DT = 1 / 30
 local WHITE = Color3.new(1, 1, 1)
+-- legend panel (design px): heading row + gap, panel padding, grid gaps, the touch LEGEND / HIDE button
+local LEGEND_HEADER = 30
+local LEGEND_PAD = 12
+local LEGEND_COLUMN_GAP = 8
+local LEGEND_ROW_GAP = 2
+local LEGEND_MARGIN = 18
+local LEGEND_TOGGLE_HEIGHT = 48
+local ACTION_PAD = "HC_MapPad"
+local PAD_PRIORITY = Enum.ContextActionPriority.High.Value + 100 -- above VehicleClient's driving binds
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests). A view is (cx, cz, scale): world point at the screen center + px per stud.
@@ -126,6 +136,85 @@ function MapScreenController.isTap(moved: number, held: number, slop: number?, m
 	return moved <= (slop or MAP.TAP_SLOP) and held <= (maxTime or MAP.TAP_TIME)
 end
 
+export type LegendEntry = { icon: string, color: Color3, text: string }
+
+-- Legend rows, in order: you, garages, the fixed POIs, then the dynamic blips.
+function MapScreenController.legendEntries(): { LegendEntry }
+	local B = MinimapConfig.BLIPS
+	local list: { LegendEntry } = {
+		{ icon = "_arrow", color = WHITE, text = "You" },
+		{ icon = B.ownGarage.icon, color = B.ownGarage.color, text = B.ownGarage.label },
+		{ icon = B.otherGarage.icon, color = B.otherGarage.color, text = "Rival Garage" },
+	}
+	for _, def in MinimapConfig.POIS do
+		table.insert(list, { icon = def.icon, color = def.color, text = def.label })
+	end
+	table.insert(list, { icon = B.hotDrop.icon, color = B.hotDrop.color, text = B.hotDrop.label })
+	table.insert(list, { icon = B.waypoint.icon, color = CUSTOM.COLOR, text = B.waypoint.label })
+	table.insert(list, { icon = B.police.icon, color = B.police.red, text = B.police.label })
+	table.insert(list, { icon = B.heli.icon, color = B.heli.color, text = B.heli.label })
+	table.insert(list, { icon = B.player.icon, color = B.player.color, text = "Other Players" })
+	return list
+end
+
+export type LegendLayout = {
+	cols: number,
+	width: number,
+	height: number,
+	bottom: number, -- design px from the canvas bottom to the panel's bottom edge
+	scrolls: boolean,
+}
+
+-- Legend panel for `count` rows on the chrome canvas (design px, inset-relative): one column on desktop (bottom-left),
+-- two on touch, opening above the LEGEND / HIDE button. Never taller than the space between the title / hint header
+-- (MAP.CHROME_TOP) and its bottom edge: the rows scroll instead.
+function MapScreenController.legendLayout(count: number, _canvasW: number, canvasH: number, touch: boolean): LegendLayout
+	local cols = if touch then 2 else 1
+	local rows = math.max(1, math.ceil(count / cols))
+	local content = rows * MAP.LEGEND_ROW + (rows - 1) * LEGEND_ROW_GAP
+	local full = LEGEND_PAD * 2 + LEGEND_HEADER + content
+	local bottom = LEGEND_MARGIN + (if touch then LEGEND_TOGGLE_HEIGHT + 8 else 0)
+	local maxH = canvasH - bottom - MAP.CHROME_TOP - 8
+	local minH = LEGEND_PAD * 2 + LEGEND_HEADER + MAP.LEGEND_ROW
+	local height = math.max(math.min(full, maxH), minH)
+	local scrolls = height < full
+	local width = LEGEND_PAD * 2
+		+ cols * MAP.LEGEND_COLUMN
+		+ (cols - 1) * LEGEND_COLUMN_GAP
+		+ (if scrolls then 8 else 0)
+	return { cols = cols, width = width, height = height, bottom = bottom, scrolls = scrolls }
+end
+
+-- Where a district name (box centered at x, y with half sizes hw, hh; screen px) can go without covering a blip:
+-- the first of y, one step up, one down, two up, two down whose box clears every obstacle (obsX / obsY centers with
+-- half size r). nil when none does (the name is skipped this frame).
+function MapScreenController.placeLabel(
+	x: number,
+	y: number,
+	hw: number,
+	hh: number,
+	obsX: { number },
+	obsY: { number },
+	n: number,
+	r: number
+): number?
+	local step = hh * 2 + 4
+	for _, k in { 0, -1, 1, -2, 2 } do
+		local cy = y + k * step
+		local clear = true
+		for i = 1, n do
+			if math.abs(obsX[i] - x) < hw + r and math.abs(obsY[i] - cy) < hh + r then
+				clear = false
+				break
+			end
+		end
+		if clear then
+			return cy
+		end
+	end
+	return nil
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- State
 -------------------------------------------------------------------------------------------------------------------------
@@ -148,8 +237,12 @@ type Ui = {
 	gpsText: TextLabel,
 	clearButton: TextButton,
 	legend: Frame,
+	legendRows: ScrollingFrame,
+	legendGrid: UIGridLayout,
 	legendToggle: TextButton,
 	hint: TextLabel,
+	reticle: Frame,
+	blockers: { GuiObject }, -- chrome a press must not fall through to the map from (overChrome)
 }
 
 local ui: Ui? = nil
@@ -316,10 +409,11 @@ local function chromeButton(text: string, color: Color3, size: Vector2): TextBut
 end
 
 local function legendRow(parent: Instance, order: number, icon: string, color: Color3, text: string)
+	-- sized by the legend's UIGridLayout (MAP.LEGEND_COLUMN x MAP.LEGEND_ROW)
 	local row = Kit.new("Frame", {
 		Name = "Row",
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 26),
+		Size = UDim2.new(1, 0, 0, MAP.LEGEND_ROW),
 		LayoutOrder = order,
 		Parent = parent,
 	})
@@ -538,48 +632,96 @@ local function build(): Ui
 	clearButton.Visible = false
 	clearButton.Parent = chrome
 
-	-- legend (bottom-left)
+	-- legend (bottom-left; on touch a toggled panel above its LEGEND / HIDE button). Rows sit in a grid inside a
+	-- scroll frame: legendLayout picks one column on desktop, two on touch, and caps the height to the free space.
 	local legend = Kit.panel({
 		Name = "Legend",
+		Active = true,
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.new(0, 18, 1, -18),
-		Size = UDim2.fromOffset(210, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
+		Size = UDim2.fromOffset(210, 300),
 		BackgroundTransparency = 0.1,
 		Parent = chrome,
 	})
 	Kit.padding(12).Parent = legend
-	Kit.list(Enum.FillDirection.Vertical, 2, Enum.HorizontalAlignment.Left).Parent = legend
 	Kit.label("LEGEND", 18, {
-		LayoutOrder = 0,
+		Name = "Heading",
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.new(1, 0, 0, 24),
 		Parent = legend,
 	})
+	local legendRows = Kit.new("ScrollingFrame", {
+		Name = "Rows",
+		Active = true,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(0, LEGEND_HEADER),
+		Size = UDim2.new(1, 0, 1, -LEGEND_HEADER),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		ScrollBarThickness = 4,
+		ScrollBarImageColor3 = Theme.Colors.TextDim,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Parent = legend,
+	})
+	local legendGrid = Kit.new("UIGridLayout", {
+		CellSize = UDim2.fromOffset(MAP.LEGEND_COLUMN, MAP.LEGEND_ROW),
+		CellPadding = UDim2.fromOffset(LEGEND_COLUMN_GAP, LEGEND_ROW_GAP),
+		FillDirection = Enum.FillDirection.Horizontal,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Parent = legendRows,
+	})
 	local order = 1
-	local B = MinimapConfig.BLIPS
-	legendRow(legend, order, "_arrow", WHITE, "You")
-	order += 1
-	legendRow(legend, order, B.ownGarage.icon, B.ownGarage.color, B.ownGarage.label)
-	order += 1
-	legendRow(legend, order, B.otherGarage.icon, B.otherGarage.color, "Rival Garage")
-	order += 1
-	for _, def in MinimapConfig.POIS do
-		legendRow(legend, order, def.icon, def.color, def.label)
+	for _, row in MapScreenController.legendEntries() do
+		legendRow(legendRows, order, row.icon, row.color, row.text)
 		order += 1
 	end
-	legendRow(legend, order, B.hotDrop.icon, B.hotDrop.color, B.hotDrop.label)
-	order += 1
-	legendRow(legend, order, B.waypoint.icon, CUSTOM.COLOR, B.waypoint.label)
-	order += 1
-	legendRow(legend, order, B.police.icon, B.police.red, B.police.label)
-	local legendToggle = chromeButton("LEGEND", Theme.Colors.PanelLight, Vector2.new(130, 48))
+	local legendToggle = chromeButton("LEGEND", Theme.Colors.PanelLight, Vector2.new(130, LEGEND_TOGGLE_HEIGHT))
 	legendToggle.Name = "LegendToggle"
 	legendToggle.TextSize = 18
 	legendToggle.AnchorPoint = Vector2.new(0, 1)
 	legendToggle.Position = UDim2.new(0, 18, 1, -18)
 	legendToggle.Visible = false
 	legendToggle.Parent = chrome
+
+	-- gamepad: the waypoint goes where this center reticle points
+	local reticle = Kit.new("Frame", {
+		Name = "Reticle",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(44, 44),
+		Visible = false,
+		ZIndex = 6,
+		Parent = backdrop,
+	})
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = reticle })
+	Kit.new("UIStroke", { Color = WHITE, Thickness = 2.5, Transparency = 0.1, Parent = reticle })
+	for i = 0, 3 do
+		local vertical = i % 2 == 0
+		Kit.new("Frame", {
+			Name = "Tick",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = WHITE,
+			BorderSizePixel = 0,
+			Position = UDim2.new(
+				0.5,
+				if vertical then 0 elseif i == 1 then 26 else -26,
+				0.5,
+				if not vertical then 0 elseif i == 0 then -26 else 26
+			),
+			Size = UDim2.fromOffset(if vertical then 3 else 12, if vertical then 12 else 3),
+			ZIndex = 6,
+			Parent = reticle,
+		})
+	end
+
+	-- chrome that swallows presses (Active) and that onTap ignores even if the engine lets the press through
+	for _, g in { title, hint, gpsChip, tools } do
+		(g :: GuiObject).Active = true
+	end
+	local blockers: { GuiObject } =
+		{ title, hint, gpsChip, close, tools, zoomIn, zoomOut, recenter, clearButton, legend, legendToggle }
 
 	local u: Ui = {
 		mapGui = mapGui,
@@ -596,8 +738,12 @@ local function build(): Ui
 		gpsText = gpsText,
 		clearButton = clearButton,
 		legend = legend,
+		legendRows = legendRows,
+		legendGrid = legendGrid,
 		legendToggle = legendToggle,
 		hint = hint,
+		reticle = reticle,
+		blockers = blockers,
 	}
 
 	local function zoomBy(factor: number)
@@ -689,6 +835,16 @@ local function garageList(): { Vector3 }
 	return list
 end
 
+-- per-frame scratch: static blip centers (screen px) the district names step aside from
+local obsX: { number } = {}
+local obsY: { number } = {}
+local obsCount = 0
+local function addObstacle(x: number, y: number)
+	obsCount += 1
+	obsX[obsCount] = x
+	obsY[obsCount] = y
+end
+
 local function refresh()
 	local u = ui
 	if not u then
@@ -708,29 +864,20 @@ local function refresh()
 	local zoomLevel = scale / MapScreenController.fitScale(vpW, vpH, chromeTop())
 	local blipSize = math.floor(MAP.BLIP_SIZE * uiScale * math.clamp(0.85 + zoomLevel * 0.08, 0.85, 1.25))
 	hotspotCount = 0
-
-	-- district labels
-	local labelSize = math.floor(MAP.LABEL_SIZE * uiScale * math.clamp(0.9 + zoomLevel * 0.1, 0.9, 1.4))
-	for _, d in MinimapConfig.DISTRICTS do
-		if d.tier == 1 or zoomLevel >= 1.6 then
-			local sx, sy = MapScreenController.worldToScreen(d.x, d.z, cx, cz, scale, vpW, vpH)
-			if sx > -200 and sx < vpW + 200 and sy > -50 and sy < vpH + 50 then
-				local size = if d.tier == 1 then labelSize else math.floor(labelSize * 0.78)
-				labelPut(u.labels, d.name, size, Theme.Colors.Text, sx, sy, 1)
-			end
-		end
-	end
+	obsCount = 0
 
 	-- POIs
 	for _, poi in poiList() do
 		local sx, sy = MapScreenController.worldToScreen(poi.pos.X, poi.pos.Z, cx, cz, scale, vpW, vpH)
 		blipPut(u.blips, poi.icon, poi.color, blipSize, sx, sy, 2)
 		addHotspot(poi.pos.X, poi.pos.Z, poi.label, sx, sy)
+		addObstacle(sx, sy)
 	end
 	-- garages
 	local plots = Workspace:FindFirstChild("Plots")
 	local me = player.UserId
 	local B = MinimapConfig.BLIPS
+	local ownerSize = math.max(MAP.OWNER_LABEL_MIN, math.floor(MAP.OWNER_LABEL_SIZE * uiScale))
 	for i, door in garageList() do
 		local model = if plots then plots:FindFirstChild("Plot" .. i) else nil
 		local owner = if model then model:GetAttribute("OwnerUserId") else nil
@@ -755,26 +902,48 @@ local function refresh()
 				end
 			end
 			if name and zoomLevel >= 1.3 then
-				labelPut(u.labels, name, math.floor(13 * uiScale), def.color, sx, sy + blipSize * 0.5 + 10 * uiScale, 2)
+				labelPut(u.labels, name, ownerSize, def.color, sx, sy + blipSize * 0.5 + ownerSize * 0.5 + 4, 2)
 			end
 			addHotspot(door.X, door.Z, name or "GARAGE", sx, sy)
+			addObstacle(sx, sy)
 		end
 	end
-	-- police
-	for _, model in MinimapController.getPolice() do
+	-- other players (small dots, lowest)
+	for _, other in Players:GetPlayers() do
+		if other ~= player then
+			local char = other.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if root and root:IsA("BasePart") then
+				local p = root.Position
+				local sx, sy = MapScreenController.worldToScreen(p.X, p.Z, cx, cz, scale, vpW, vpH)
+				blipPut(u.blips, B.player.icon, B.player.color, math.floor(blipSize * 0.5), sx, sy, 1)
+			end
+		end
+	end
+	-- police cars + chopper (flash red / blue while the siren is on)
+	local red = MinimapController.flashOn(clock, MinimapConfig.RADAR.WANTED_FLASH_HZ)
+	for i, model in MinimapController.getPolice() do
 		if model.PrimaryPart then
 			local p = (model.PrimaryPart :: BasePart).Position
 			local sx, sy = MapScreenController.worldToScreen(p.X, p.Z, cx, cz, scale, vpW, vpH)
-			local red = MinimapController.flashOn(clock, MinimapConfig.RADAR.WANTED_FLASH_HZ)
+			local siren = model:GetAttribute("Siren") == true
+			local flash = siren and MinimapController.flashOn(clock, MinimapConfig.RADAR.WANTED_FLASH_HZ, i)
 			blipPut(
 				u.blips,
 				B.police.icon,
-				if red and model:GetAttribute("Siren") == true then B.police.red else B.police.blue,
+				if flash then B.police.red else B.police.blue,
 				math.floor(blipSize * 0.55),
 				sx,
 				sy,
 				3
 			)
+		end
+	end
+	for _, model in MinimapController.getHelis() do
+		if model.PrimaryPart then
+			local p = (model.PrimaryPart :: BasePart).Position
+			local sx, sy = MapScreenController.worldToScreen(p.X, p.Z, cx, cz, scale, vpW, vpH)
+			blipPut(u.blips, B.heli.icon, if red then B.heli.color else B.police.blue, blipSize, sx, sy, 3)
 		end
 	end
 	-- waypoints (on top)
@@ -789,8 +958,35 @@ local function refresh()
 			size += math.floor((2 + 2 * math.sin(clock * 5)) * uiScale)
 		end
 		blipPut(u.blips, MinimapController.waypointIcon(wpIds[i]), wpColor[i], size, sx, sy, 5)
+		addObstacle(sx, sy)
 	end
 	blipEnd(u.blips)
+
+	-- district labels (UI text, nothing baked): step aside from the blips placed above
+	local labelSize = math.floor(MAP.LABEL_SIZE * uiScale * math.clamp(0.9 + zoomLevel * 0.1, 0.9, 1.4))
+	local obstacleHalf = blipSize * 0.5 + 2
+	for _, d in MinimapConfig.DISTRICTS do
+		if d.tier == 1 or zoomLevel >= 1.6 then
+			local sx, sy = MapScreenController.worldToScreen(d.x, d.z, cx, cz, scale, vpW, vpH)
+			if sx > -200 and sx < vpW + 200 and sy > -50 and sy < vpH + 50 then
+				local size = if d.tier == 1 then labelSize else math.floor(labelSize * 0.78)
+				-- display font, all caps: ~0.62 em per glyph
+				local y = MapScreenController.placeLabel(
+					sx,
+					sy,
+					#d.name * size * 0.31,
+					(size + 6) / 2,
+					obsX,
+					obsY,
+					obsCount,
+					obstacleHalf
+				)
+				if y then
+					labelPut(u.labels, d.name, size, Theme.Colors.Text, sx, y, 1)
+				end
+			end
+		end
+	end
 	labelEnd(u.labels)
 
 	-- you

@@ -1,0 +1,524 @@
+{
+  "name": "shvan_van",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Shvan '92 - Low poly model",
+    "url": "https://sketchfab.com/3d-models/shvan-92-low-poly-model-09d718c9cf72401b8534d265a06a803f",
+    "download": "sketchfab:09d718c9cf72401b8534d265a06a803f",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Shvan '92 - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "shvan_van.glb",
+  "dimensions": {
+    "length": 17.0,
+    "width": 8.15,
+    "height": 6.693,
+    "wheelbase": 10.879,
+    "track_front": 5.745,
+    "track_rear": 5.745,
+    "bbox_min": [
+      -4.0508,
+      -0.0209,
+      -7.7777
+    ],
+    "bbox_max": [
+      4.0991,
+      6.6725,
+      9.2223
+    ]
+  },
+  "wheels": {
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.8723,
+        1.1959,
+        -5.4396
+      ],
+      "radius": 1.2168,
+      "width": 0.911,
+      "part_center": [
+        2.7811,
+        1.1959,
+        -5.4396
+      ],
+      "attachment_offset": [
+        0.0912,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 837
+    },
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.8723,
+        1.2377,
+        -5.4396
+      ],
+      "radius": 1.2168,
+      "width": 0.911,
+      "part_center": [
+        -2.7811,
+        1.2377,
+        -5.4396
+      ],
+      "attachment_offset": [
+        -0.0912,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 837
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.8723,
+        1.1959,
+        5.4396
+      ],
+      "radius": 1.2168,
+      "width": 0.911,
+      "part_center": [
+        2.818,
+        1.1959,
+        5.4396
+      ],
+      "attachment_offset": [
+        0.0542,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 789
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.8723,
+        1.2377,
+        5.4396
+      ],
+      "radius": 1.2168,
+      "width": 0.911,
+      "part_center": [
+        -2.8767,
+        1.2377,
+        5.4396
+      ],
+      "attachment_offset": [
+        0.0044,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 789
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.5485,
+        2.4096,
+        0.8703
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.5485,
+        2.4096,
+        0.8703
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.3666,
+          3.9849,
+          -7.6237
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.3439,
+          3.9886,
+          -7.6237
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.5948,
+          3.0842,
+          9.1193
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.6219,
+          3.0463,
+          9.1193
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.445,
+        0.8032,
+        9.0523
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    2.1419,
+    -0.0
+  ],
+  "paint": {
+    "route": "strip",
+    "primary": {
+      "object": "Body",
+      "material": "Shvan92_bodymat",
+      "color_srgb": [
+        0.0996,
+        0.0996,
+        0.0996
+      ],
+      "textured": false,
+      "metallic": 0.5,
+      "roughness": 0.5
+    },
+    "secondary": null,
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 6998,
+      "bbox_min": [
+        -3.3601,
+        1.1112,
+        -7.7194
+      ],
+      "bbox_max": [
+        3.3956,
+        6.6725,
+        9.0963
+      ],
+      "textures": {
+        "normal": "textures/shvan_van_Body_normal.png",
+        "ao": "textures/shvan_van_Body_ao.png"
+      }
+    },
+    "Glass": {
+      "tris": 160,
+      "bbox_min": [
+        -0.5204,
+        1.1814,
+        -7.7639
+      ],
+      "bbox_max": [
+        0.5249,
+        1.853,
+        9.2223
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 432,
+      "bbox_min": [
+        -3.0519,
+        2.5151,
+        -7.6237
+      ],
+      "bbox_max": [
+        3.0959,
+        6.2904,
+        -1.9905
+      ],
+      "textures": {
+        "base": "textures/shvan_van_Lights_base.png",
+        "emit": "textures/shvan_van_Lights_emit.png",
+        "normal": "textures/shvan_van_Lights_normal.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 340,
+      "bbox_min": [
+        -2.8501,
+        2.7611,
+        8.9793
+      ],
+      "bbox_max": [
+        2.881,
+        3.4888,
+        9.1193
+      ],
+      "textures": {
+        "base": "textures/shvan_van_Lights_base.png",
+        "emit": "textures/shvan_van_Lights_emit.png",
+        "normal": "textures/shvan_van_Lights_normal.png"
+      }
+    },
+    "Trim": {
+      "tris": 2599,
+      "bbox_min": [
+        -4.0573,
+        0.5221,
+        -7.7827
+      ],
+      "bbox_max": [
+        4.1042,
+        6.3481,
+        9.2154
+      ],
+      "textures": {
+        "metal": "textures/shvan_van_Trim_metal.png",
+        "base": "textures/shvan_van_Trim_base.png",
+        "rough": "textures/shvan_van_Trim_rough.png",
+        "normal": "textures/shvan_van_Trim_normal.png",
+        "ao": "textures/shvan_van_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 68,
+      "bbox_min": [
+        -0.5436,
+        1.1569,
+        -7.7614
+      ],
+      "bbox_max": [
+        0.5467,
+        1.7252,
+        -7.5941
+      ],
+      "textures": {
+        "metal": "textures/shvan_van_Interior_metal.png",
+        "base": "textures/shvan_van_Interior_base.png",
+        "rough": "textures/shvan_van_Interior_rough.png",
+        "normal": "textures/shvan_van_Interior_normal.png",
+        "ao": "textures/shvan_van_Interior_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 837,
+      "bbox_min": [
+        2.2168,
+        -0.0209,
+        -6.6541
+      ],
+      "bbox_max": [
+        3.3453,
+        2.4128,
+        -4.2251
+      ],
+      "textures": {
+        "base": "textures/shvan_van_Wheel_base.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 837,
+      "bbox_min": [
+        -3.3453,
+        0.0209,
+        -6.6541
+      ],
+      "bbox_max": [
+        -2.2169,
+        2.4545,
+        -4.2251
+      ],
+      "textures": {
+        "base": "textures/shvan_van_Wheel_base.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 789,
+      "bbox_min": [
+        2.2908,
+        -0.0209,
+        4.2251
+      ],
+      "bbox_max": [
+        3.3453,
+        2.4128,
+        6.6541
+      ],
+      "textures": {
+        "base": "textures/shvan_van_Wheel_base.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 789,
+      "bbox_min": [
+        -3.3453,
+        0.0209,
+        4.2251
+      ],
+      "bbox_max": [
+        -2.408,
+        2.4545,
+        6.6541
+      ],
+      "textures": {
+        "base": "textures/shvan_van_Wheel_base.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 23045,
+    "total": 13849,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.067,
+      "white_lights": 0.0,
+      "deck_height": 0.8,
+      "cabin": 0.41,
+      "mirrors": 1.2
+    },
+    "confidence": 5.477
+  },
+  "scale": {
+    "source_length": 4.899136066436768,
+    "factor": 3.4699995610377923,
+    "target_length": 17.0
+  },
+  "classes": {
+    "Body": {
+      "islands": 106,
+      "faces": 7780,
+      "area": 279.985
+    },
+    "Glass": {
+      "islands": 22,
+      "faces": 160,
+      "area": 2.669
+    },
+    "LightsFront": {
+      "islands": 12,
+      "faces": 436,
+      "area": 19.021
+    },
+    "LightsRear": {
+      "islands": 6,
+      "faces": 340,
+      "area": 0.864
+    },
+    "Trim": {
+      "islands": 99,
+      "faces": 6272,
+      "area": 260.608
+    },
+    "Interior": {
+      "islands": 1,
+      "faces": 68,
+      "area": 1.306
+    },
+    "Discard": {
+      "islands": 36,
+      "faces": 4721,
+      "area": 411.972
+    },
+    "WheelFR": {
+      "islands": 11,
+      "faces": 841,
+      "area": 24.093
+    },
+    "WheelFL": {
+      "islands": 11,
+      "faces": 841,
+      "area": 24.093
+    },
+    "WheelRR": {
+      "islands": 8,
+      "faces": 793,
+      "area": 22.709
+    },
+    "WheelRL": {
+      "islands": 8,
+      "faces": 793,
+      "area": 22.709
+    }
+  },
+  "warnings": []
+}

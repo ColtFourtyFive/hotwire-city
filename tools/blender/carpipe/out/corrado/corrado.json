@@ -1,0 +1,409 @@
+{
+  "name": "corrado",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Car VW Corradon",
+    "url": "https://opengameart.org/content/car-vw-corradon",
+    "download": "https://opengameart.org/sites/default/files/car_0.zip",
+    "license": "CC0",
+    "attribution": "Car VW Corradon by rohezal (OpenGameArt.org), CC0 (no attribution required). Real-car likeness: rebrand before shipping."
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "corrado.glb",
+  "dimensions": {
+    "length": 15.5,
+    "width": 7.613,
+    "height": 5.573,
+    "wheelbase": 9.816,
+    "track_front": 6.691,
+    "track_rear": 6.691,
+    "bbox_min": [
+      -3.8065,
+      -0.0,
+      -8.0462
+    ],
+    "bbox_max": [
+      3.8065,
+      5.5733,
+      7.4538
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -3.3453,
+        1.2037,
+        -4.9082
+      ],
+      "radius": 1.2037,
+      "width": 0.9224,
+      "part_center": [
+        -3.3453,
+        1.2037,
+        -4.9082
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 72
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        3.3453,
+        1.2037,
+        -4.9082
+      ],
+      "radius": 1.2037,
+      "width": 0.9224,
+      "part_center": [
+        3.3453,
+        1.2037,
+        -4.9082
+      ],
+      "attachment_offset": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 72
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -3.3453,
+        1.2037,
+        4.9082
+      ],
+      "radius": 1.2037,
+      "width": 0.9224,
+      "part_center": [
+        -3.3453,
+        1.2037,
+        4.9082
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 72
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        3.3453,
+        1.2037,
+        4.9082
+      ],
+      "radius": 1.2037,
+      "width": 0.9224,
+      "part_center": [
+        3.3453,
+        1.2037,
+        4.9082
+      ],
+      "attachment_offset": [
+        -0.0,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 72
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.4465,
+        2.0064,
+        0.7853
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.4465,
+        2.0064,
+        0.7853
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.7407,
+          2.3408,
+          -7.595
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          2.7407,
+          2.3408,
+          -7.595
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": true
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.7407,
+          2.8981,
+          7.595
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      },
+      {
+        "position": [
+          2.7407,
+          2.8981,
+          7.595
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": true
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.2839,
+        0.6688,
+        7.2988
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.7835,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "01_-_Default",
+      "color_srgb": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "textured": true,
+      "metallic": 0.0,
+      "roughness": 1.0,
+      "mask_coverage": 0.272
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 2562,
+      "bbox_min": [
+        -3.7694,
+        0.6801,
+        -8.0462
+      ],
+      "bbox_max": [
+        3.7479,
+        5.5733,
+        7.4538
+      ],
+      "textures": {
+        "rough": "textures/corrado_Body_rough.png",
+        "metal": "textures/corrado_Body_metal.png",
+        "normal": "textures/corrado_Body_normal.png",
+        "base": "textures/corrado_Body_base.png",
+        "tintmask": "textures/corrado_Body_tintmask.png",
+        "overlay": "textures/corrado_Body_overlay.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 72,
+      "bbox_min": [
+        -3.8065,
+        0.0,
+        -6.1304
+      ],
+      "bbox_max": [
+        -2.8841,
+        2.4073,
+        -3.6859
+      ],
+      "textures": {
+        "base": "textures/corrado_Wheel_base.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 72,
+      "bbox_min": [
+        2.8841,
+        0.0,
+        -6.1304
+      ],
+      "bbox_max": [
+        3.8065,
+        2.4073,
+        -3.6859
+      ],
+      "textures": {
+        "base": "textures/corrado_Wheel_base.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 72,
+      "bbox_min": [
+        -3.8065,
+        0.0,
+        3.6859
+      ],
+      "bbox_max": [
+        -2.8841,
+        2.4073,
+        6.1304
+      ],
+      "textures": {
+        "base": "textures/corrado_Wheel_base.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 72,
+      "bbox_min": [
+        2.8841,
+        0.0,
+        3.6859
+      ],
+      "bbox_max": [
+        3.8065,
+        2.4073,
+        6.1304
+      ],
+      "textures": {
+        "base": "textures/corrado_Wheel_base.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 2850,
+    "total": 2850,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 0.0,
+      "red_lights": 0.0,
+      "white_lights": 0.0,
+      "deck_height": -0.8,
+      "cabin": -0.6,
+      "mirrors": -1.2
+    },
+    "confidence": 2.6
+  },
+  "scale": {
+    "source_length": 361.42962646484375,
+    "factor": 0.042885250308908156,
+    "target_length": 15.5
+  },
+  "classes": {
+    "Body": {
+      "islands": 3,
+      "faces": 2562,
+      "area": 411.088
+    },
+    "WheelFL": {
+      "islands": 1,
+      "faces": 72,
+      "area": 16.244
+    },
+    "WheelFR": {
+      "islands": 1,
+      "faces": 72,
+      "area": 16.244
+    },
+    "WheelRL": {
+      "islands": 1,
+      "faces": 72,
+      "area": 16.244
+    },
+    "WheelRR": {
+      "islands": 1,
+      "faces": 72,
+      "area": 16.244
+    }
+  },
+  "warnings": []
+}

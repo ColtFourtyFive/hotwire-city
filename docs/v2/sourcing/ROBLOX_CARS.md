@@ -17,7 +17,7 @@
    - **Affected cars:** Tundra, police interceptor, police hatch, box truck, Mercedes, Prius, plus the taxi extra.
    - **Payload IDs to blocklist:** `74145699488273`, `75521726909736`, `95925098868592`, `115188487528112`, `128320524036560`, `130049213376589`, `140312253726156`.
    - **Rule:** never parent an inserted Creator Store model into the DataModel before deleting every `LuaSourceContainer`. See section 4.
-2. **Every shortlisted car has real-brand marks that must be overridden.**
+2. **Every shortlisted car except the box truck has real-brand marks that must be overridden.**
    - Where they are: textures (Ford oval, Jaguar growler, Toyota/Prius badges, a BMW centre cap on the Kia), real police insignia (Michigan State Police, Ohio State Highway Patrol, Police Nationale), real-format plates, and modelled badges.
    - We override them at runtime by retexturing or hiding the specific parts listed below. We never re-upload the third-party mesh.
 3. **Best picks:**
@@ -25,8 +25,8 @@
      - Jaguar `11881862706`: separate doors, bonnet and boot; clean paint split.
      - Kia Sorento `117276253886376`.
      - F-150 `89890547548224`.
-     - Toyota Tundra `126180570128588`: already badged "VELLFIRE", so it is the nearest to parody-ready.
-     - Police hatch `103123587729335`: livery baked in a SurfaceAppearance.
+     - Toyota Tundra `126180570128588`: badged "VELLFIRE" (itself a real Toyota model name), so only one grille word has to be hidden or covered. It has a backdoor.
+     - Police hatch `103123587729335`: livery baked in a SurfaceAppearance. It has a backdoor.
    - **Usable after work:** Nissan Murano `73893179863762`, box truck `131180706902259`, Prius `132078381973405`.
    - **Poor fits:**
      - Patrol `14746413121`: 463k tris.
@@ -352,12 +352,12 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
 - **Size:** 22.08 × 8.76 × 7.27 studs. Scale ×0.959, yaw 90.
 - **Front from:** `light-names+long-axis`.
 - **Parts:** 41 visible (41 MeshParts, 35 unique meshes, ~41,886 tris). 18 hidden, 6 decals, 0 SurfaceAppearance, 1 script.
-- **Look:** A 2022 Tundra TRD Pro crew cab in sand: 41 parts, 42k tris, about the right scale (×0.96). The grille already reads **"VELLFIRE"** instead of TOYOTA, so it is the closest to parody-ready: only that word changes.
+- **Look:** A 2022 Tundra TRD Pro crew cab in sand: 41 parts, 42k tris, about the right scale (×0.96). The grille reads **"VELLFIRE"** instead of TOYOTA. Vellfire is itself a real Toyota model name, so it is not a parody. Still, it is the smallest de-branding job in the set: one word of grille geometry to hide or cover.
 - **Wheels:** `Wheels/XX/Parts/{Rim, Tire}` spin. There is no static caliper.
 - **Paint:** `Body/COLOR#1`, `Body/COLOR#2`, rgb(211,190,150), recolourable.
 - **Glass:** Two parts. One is Material Glass; the other is a Transparency 0.65 part.
 - **Lights:** `Body/Vehicle_Lights/*`: 14 parts named Left/Right/Light#n, classified by position into 7 head, 6 tail and 1 indicator.
-- **Logos:** The "VELLFIRE" lettering is grille geometry, not a texture. A `Body/LicensePlate` part is present. The dirt decals are fine to keep.
+- **Logos:** The "VELLFIRE" lettering is grille geometry, not a texture. Hide it if it is its own MeshPart (not checked); otherwise cover it with a badge plate of ours. A `Body/LicensePlate` part is present. The dirt decals are fine to keep.
 - **Other:** Front direction comes from the lamp names and the long axis, since there is no seat. **Backdoor:** `CoreSkyboxSystem` at the root (JobId check, payload 95925098868592).
 
 | Group | Parts | Selectors |
@@ -511,7 +511,7 @@ The JSON maps are in `roblox_car_maps/`. Previews are in `assets/source/roblox/<
 | `951086064` Maxima | 2009 Nissan Maxima, blue | 18.02 × 7.49 × 5.54 (×0.96) | 45 / 104k | Good-looking, untextured mid-size sedan. Its paint is named, so it is recolourable. **Suspicious** `ThrottlePatcher` reparents itself to ServerScriptService. |
 | `3204824887` ME412 | Chrysler ME Four-Twelve concept | 19.35 × 9.89 × 5.19 (×0.84) | 18 / 23k | Clean supercar silhouette, flat materials; the Chrysler wing badge is modelled. A "super"-class candidate. |
 | `10141791793` "2020 GMC 2500 AT4" | Actually a **2020 Chevrolet Silverado WT PPV** (`Body/2020 Silverado WT/PPV package`), unmarked black, with Whelen Talon and lightbar | 23.49 × 9.57 × 8.43 (×0.97) | 281 / 367k (62 unions shown as boxes) | Heavy. Unmarked-police flavour. 300 parts exceeds `AssetLibrary.MAX_STORE_PARTS` = 250, so it would be rejected as is. |
-| `71284840505836` Panel van | 1980s Ford Econoline-style van, plain white | 19.08 × 6.41 × 7.71 (×0.92) | 15 / 5k | Very light and plain: a good delivery or worker van. No textures, no scripts. Front comes from lamp names (no seat). |
+| `71284840505836` Panel van | Low-poly 1980s panel van, light blue-grey, untextured | 19.08 × 6.41 × 7.71 (×0.92) | 15 / 5k | Plain and toy-like up close: background traffic or a parked van only. No textures, no scripts, no backdoor. Front comes from lamp names (no seat). Wheel grouping is uneven (3/2/1/2 parts), so check it by hand. |
 | `94301391128632` Taxi | Crown Victoria-style yellow cab, 2 MeshParts | 18.99 × 7.52 × 5.71 (×1.01) | 2 / 3k | Wheels baked into the body mesh. **Backdoor**: 5 nested TextureConfiguration copies. Per the scout, `112789212430129` is the same mesh (not downloaded). |
 
 ## 7. Problems, assumptions and open items

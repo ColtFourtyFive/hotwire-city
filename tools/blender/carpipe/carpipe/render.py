@@ -226,8 +226,9 @@ def studio(L=17.0):
         lt.visible_glossy = True
 
 
-def street(L=17.0, night=False):
-    """Golden-hour (or wet night) street: 4-lane asphalt, markings, curb + sidewalk, lamp posts."""
+def street(L=17.0, night=False, keep_clear=None):
+    """Golden-hour (or wet night) street: 4-lane asphalt, markings, curb + sidewalk, lamp posts.
+    keep_clear: (x, y) camera position; lamp posts between it and the origin are skipped."""
     if night:
         world_hdri(os.path.join(CACHE, "hdri", "street_night.hdr"), strength=0.6, rot_deg=110, bg_strength=0.5)
     else:
@@ -267,9 +268,15 @@ def street(L=17.0, night=False):
     # lamp posts (and their lights at night)
     pole = _mat("pole", (0.18, 0.19, 0.2), rough=0.4, metal=0.8)
     for s in (-1, 1):
-        for k in (-2, -1, 0, 1, 2):
+        for k in (-3, -2, -1, 0, 1, 2, 3):
             x = s * (road_w / 2 + 0.9 * L / 17)
             y = k * L * 1.6 + (L * 0.8 if s > 0 else 0)
+            if keep_clear is not None:
+                cx, cy = keep_clear
+                # distance from the pole to the segment camera -> origin
+                t = max(0.0, min(1.0, (x * cx + y * cy) / max(cx * cx + cy * cy, 1e-6)))
+                if math.hypot(x - t * cx, y - t * cy) < L * 0.45 and t > 0.05:
+                    continue
             _box("pole", (0.25, 0.25, 9.5 * L / 17), (x, y, 4.75 * L / 17), pole)
             _box("arm", (2.6 * L / 17, 0.2, 0.2), (x - s * 1.2 * L / 17, y, 9.4 * L / 17), pole)
             if night:
@@ -278,6 +285,14 @@ def street(L=17.0, night=False):
                 lt.data.energy = 9000 * (L / 17) ** 2
                 lt.data.color = (1.0, 0.62, 0.3)
                 lt.data.shadow_soft_size = 0.4
+
+
+def camera_pos(target, L, az_deg=35.0, el_deg=10.0, lens=50, dist_mul=1.0):
+    a = math.radians(az_deg)
+    e = math.radians(el_deg)
+    fov = 2 * math.atan(18.0 / lens)
+    d = (L * 0.62) / math.tan(fov / 2) * dist_mul
+    return Vector(target) + Vector((math.sin(a) * math.cos(e), math.cos(a) * math.cos(e), math.sin(e))) * d
 
 
 def camera(target, L, az_deg=35.0, el_deg=10.0, lens=50, dist_mul=1.0, shift_y=0.0):

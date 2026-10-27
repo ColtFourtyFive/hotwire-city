@@ -12,6 +12,7 @@ wheel detection (by name and by geometry), logo/badge-like names, glass-like mat
 """
 import json
 import math
+import os
 import re
 import sys
 import time
@@ -336,6 +337,19 @@ def main():
         dist = radius / math.sin(fov_v / 2) * fill
         cam.location = center + dvec * dist
         cam.rotation_euler = (center - cam.location).to_track_quat("-Z", "Y").to_euler()
+        if a["kind"] != "vehicle":
+            # exact fit of the (robust) bbox corners for this view direction, then back off by `fill`
+            bpy.context.view_layer.update()
+            corners = [Vector((x, y, z)) for x in (mn.x, mx.x) for y in (mn.y, mx.y) for z in (mn.z, mx.z)]
+            flat = [c for v in corners for c in v]
+            loc, _ = cam.camera_fit_coords(bpy.context.evaluated_depsgraph_get(), flat)
+            d_fit = (Vector(loc) - center).dot(dvec)
+            cam.location = Vector(loc) + dvec * (max(d_fit, 1e-6) * (fill - 1.0))
+            dist = (cam.location - center).length
+            if os.environ.get("HC_DEBUG_FIT"):
+                from bpy_extras.object_utils import world_to_camera_view
+                bpy.context.view_layer.update()
+                print("FITDBG", [tuple(round(c, 2) for c in world_to_camera_view(scene, cam, v)[:2]) for v in corners])
         cam_d.clip_start = dist * 0.01
         cam_d.clip_end = dist * 20
 
@@ -344,7 +358,7 @@ def main():
     if a["kind"] == "vehicle":
         views = [("main", 35, 14, (W, Hh), 0.80), ("inset", 180 + 35, 14, (W // 2, Hh // 2), 0.80)]
     else:
-        views = [("main", 18, 12, (W, Hh), 0.62), ("inset", 180 + 18, 12, (W // 2, Hh // 2), 0.62)]
+        views = [("main", 18, 12, (W, Hh), 1.12), ("inset", 180 + 18, 12, (W // 2, Hh // 2), 1.12)]
     paths = []
     for tag, az, el, (rw, rh), fill in views:
         scene.render.resolution_x, scene.render.resolution_y = rw, rh

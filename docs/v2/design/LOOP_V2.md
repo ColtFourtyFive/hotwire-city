@@ -985,11 +985,12 @@ Menace, spawn protection, revenge immunity, "In Combat" and vigilante rules are 
 | Step | Rule |
 |---|---|
 | Eligibility | Both players: Rep 10 or more, 2 h or more of playtime, `player.AccountAge ≥ 14` days, in the same server, `PolicyService:GetPolicyInfoForPlayerAsync().IsPaidItemTradingAllowed == true` (if false, trading is disabled for that player), not in combat, not wanted |
-| Items | **Cars only**, up to 4 per side. No cash, no bound cars, nothing trade-locked (freshly stolen: 24 h; traded or won: 72 h), no impounded or lay-low cars |
+| Items | **Cars only**, up to 4 per side. No cash, no bound cars, nothing trade-locked (kept by theft: 7 days; traded or won: 72 h; reward-origin cars: 14 days), no frozen cars, no cars with `inbound` set, no impounded or lay-low cars |
 | Window | Request → accept → both add cars. The server keeps the authoritative offer; `TradeState` mirrors it. |
 | Anti-scam | Any change to either side **resets both Ready flags** and restarts the countdown. Each side's total value (§2.6) is shown. If one side gives more than 2× the other's value, a red "Uneven trade" warning appears and that side needs an extra 2 s hold. |
-| Confirm | Both READY → a 10 s countdown showing the full item list → both CONFIRM. The server re-validates ownership, state and eligibility, then swaps atomically (§10.4). |
-| After | The received cars are trade-locked for 72 h. The serial registry is updated. The `HC_TradeLog_v1` entry is written. Cooldown 60 s between trades. |
+| Net-out cap | Per UTC day, the **net value a player gives away** (value given minus value received, summed over trades and pink-slip losses) may not exceed `TRADE_NET_OUT_PER_DAY = max(100,000, 1,800 s × giverG)`. A trade that would exceed it is refused with the remaining allowance shown. This bounds alt funnels and scams without blocking fair swaps. |
+| Confirm | Both READY → a 10 s countdown showing the full item list → both CONFIRM. The server re-validates ownership, state and eligibility, **and that the offer is unchanged since the last Ready**, then swaps (§10.3). |
+| After | The received cars are trade-locked for 72 h and record `lastTransfer` (so the giver can't raid them back for 72 h, §2.8). The serial registry is updated. The `HC_TradeLog_v1` entry is written. Cooldown 60 s between trades. Ships behind `Flags.TRADING_ENABLED`. |
 
 ### 5.6 Leaderboards (OrderedDataStores, v1 LeaderboardService pattern, log-encoded where needed)
 
@@ -997,7 +998,7 @@ Menace, spawn protection, revenge immunity, "In Combat" and vigilante rules are 
 |---|---|---|---|
 | Richest | Net worth = bank + Σ car values | `LB_netWorth_v1` | All-time and weekly |
 | Most Wanted | Longest continuous seconds at 5★ | `LB_mostWanted_v1` | Weekly and all-time |
-| Top Thief | Player cars stolen and kept | `LB_thefts_v1` | Weekly |
+| Top Thief | Player cars stolen and kept (a car kept from the Server Crown holder counts 2) | `LB_thefts_v1` | Weekly |
 | Best Garage | Garage likes received | `LB_likes_v1` | Weekly |
 | Fastest Racer | Best time per route | `LB_race_<route>_v1` | All-time |
 | Top Crew | Crew RP this week | `LB_crewRep_v1` | Weekly |
@@ -1009,6 +1010,12 @@ Weekly boards use keys with an ISO-week suffix. Writes follow the v1 budget rule
 
 - **Garage likes.** Garages are physical, so visitors walk in. A LIKE prompt on the owner sign gives 1 like per visitor per garage per UTC day (`likes.given`). The owner's like count shows on the sign. Feeds Best Garage.
 - **Emotes.** An emote wheel with free emotes plus the Street Emotes pack (§8).
+
+### 5.8 The Server Crown ("rob the richest", brief §3.11)
+
+- **Who.** With 3 or more players in the server, the player with the highest **net worth** (bank + wallet + Σ car values) holds the `ServerCrown` attribute. Recomputed every 30 s and on join and leave; it changes hands only when the challenger leads by 5%, so it doesn't flicker.
+- **Shown** as a crown on the nameplate, the garage sign and the map blip (`MapBlips` kind `crown`), with a feed card when it changes hands: "<Name> is the richest player in the city."
+- **Effect.** Status only. A car kept from the crowned player counts double on Top Thief, and the feed names it ("stole from the Crown"). **It mints nothing** and changes no protection: starter, Shaken, the daily cap and the rest all apply as normal.
 - **Photo mode.**
   - Phone › Camera freezes your character, hides the HUD, frees the camera within 30 studs, and offers 6 grounded filters.
   - Hooks: `CaptureService:CaptureScreenshot` then `PromptShareCapture`.
@@ -1025,8 +1032,8 @@ Weekly boards use keys with an ISO-week suffix. Writes follow the v1 budget rule
 - **RP sources:** the RP column of §3.2, plus:
   - 1 RP per 100 studs cruised;
   - car level-up +20;
-  - repo +150;
-  - revenge down +50;
+  - repo +150 (only on the 3 paid repos per day);
+  - revenge down +50 (only on the 3 paid revenges per day);
   - Most Wanted claim +300;
   - 5★ survival +100 per minute;
   - races (§5.4);
@@ -1034,22 +1041,25 @@ Weekly boards use keys with an ISO-week suffix. Writes follow the v1 budget rule
 
 | Rep | Unlocks |
 |---|---|
-| 1 | Garage (4 slots), bat, P9 (gift), light armor, med kits, convenience stores, NPC mugging, phone jobs, Industrial district comfort |
+| 1 | Garage (4 slots), bat, P9 (gift), light armor, med kits, convenience stores, NPC mugging, phone jobs, Industrial district comfort; dealership Common to Rare |
 | 2 | Mod Shop: stage 1 of every track, paint; pry bar |
-| 3 | Taser, armored truck bags, Tracker and Insurance tracks |
+| 3 | Taser, armored truck bags, Tracker and Insurance tracks, **joining a bank heist crew** |
 | 4 | Stinger strip |
 | 5 | **Vault bay 1**, crew creation, player mugging and carjacking (after rookie protection), Suburbs comfort |
 | 6 | Micro SMG, gas stations, ATM hack (Hacking Device) |
-| 8 | Hand cannon, heavy armor, jewelry store |
-| 10 | Pump, **bank heist**, **trading** (with its other gates), pawn shop, **Prestige I**, Downtown comfort |
+| 8 | Hand cannon, heavy armor, jewelry store; starter protection can end (with 2 h of active play, §2.8) |
+| 10 | **Comrade AR**, Pump, **leading a bank heist**, **trading** (with its other gates), pawn shop, **Prestige I**, **underglow and custom plates** (or the passes earlier), **Epic cars at the dealership**, Downtown comfort |
 | 12 | Tactical SMG |
-| 15 | Comrade AR, **pink slips**, Duffel |
-| 18 | Carbine, Beachfront comfort |
-| 20 | Underglow and custom plates, free (or the pass earlier) |
+| 14 | Carbine |
+| 15 | **Pink slips**, Duffel; the low-Rep daily loss cap (1) rises to 3 |
+| 18 | **Legendary cars at the dealership**, Beachfront comfort |
 | 22 | Marksman |
-| 25 | **Vault bay 2**, Hills comfort |
+| 25 | **Vault bay 2**, **Mythic cars at the dealership**, Hills comfort |
 | 32 | Port/Airport comfort |
+| 40 | **Secret cars at the dealership** |
 | 40, 50, 60…100 | Cosmetic crests, plate frames, emotes |
+
+**Dealership Rep gates** (`DEALER_REP = { Epic = 10, Legendary = 18, Mythic = 25, Secret = 40 }`) apply to **buying** only. Stealing from the street, the dealership floor or a Hot Drop stays open at any Rep, so an early Legendary is always earned on the street. Cumulative RP: Rep 10 ≈ 4K (about 1 h), Rep 18 ≈ 18K (about 5 h), Rep 25 ≈ 41K (about 11.5 h), Rep 40 ≈ 133K (about 37 h), which lands the first bought Epic, Legendary, Mythic and Secret on the §7.1 milestones.
 
 ### 6.2 Districts (soft gates)
 
@@ -1070,15 +1080,18 @@ Anyone can go anywhere. Richer districts spawn better cars, pay more and police 
 | `port_airport` | Cranes, containers, runway | 32 | 4.5 (+Secret 0.02) | 1.80 | 1.75 | 3 |
 | `highway` | Countryside or desert loop | 1 | 1.0 | 1.00 | 0.75 | 8 |
 
+**Provisional mapping to the world plan** (`docs/v2/world/plan_gameplay.png`; the world team owns the final polygons): Rust Flats and The Foundry → `industrial`; Southgate → `suburbs`; Midtown and Pinnacle Heights → `downtown`; Palmera Beach → `beach`; Sunwood Hills → `hills`; Iron Bay and Hotwire International → `port_airport`; Cactus Junction, Red Mesa and the coast highway → `highway`.
+
 ### 6.3 Prestige (v1 Rebirth, renamed)
 
 | Item | Rule |
 |---|---|
-| Cost | `750,000 × 2.75^n` (v1 `REBIRTH_BASE_COST`, `REBIRTH_COST_GROWTH`): 750K, 2.06M, 5.67M, 15.6M, 42.9M, 118M, 324M… |
-| Requirement | Rep ≥ 10 + 5n (10, 15, 20…). Every car parked (none out, impounded or in lay-low). No car missing (repo window). Not in combat. |
+| Cost | `max(750,000 × 2.75^n, PRESTIGE_COST_SECONDS × G)` with `PRESTIGE_COST_SECONDS = 10,800` (3 h of garage income). The fixed ladder (v1 `REBIRTH_BASE_COST`, `REBIRTH_COST_GROWTH`: 750K, 2.06M, 5.67M, 15.6M, 42.9M, 118M, 324M…) is the floor; the G term makes the cash a real sink at every stage instead of minutes of play. |
+| Requirement | Rep ≥ 10 + 5n (10, 15, 20…). Every car parked (none out, impounded or in a lay-low window). No car missing. Not in combat. |
 | Perks | +50% income per prestige (v1 `REBIRTH_INCOME_BONUS`, applies to G, so crime payouts scale too). +10 s laser lock (v1). Prestige crest I–X on the name plate. Prestige plate frame. One exclusive cosmetic paint per prestige tier. |
-| Keeps | Rep and RP, weapons, armor and items, security upgrades, Hotwire Kit, cosmetics, discovered and finish Index, stats, crew, season, **vault cars, bound cars, and the best 3 other cars by value** with all their levels and upgrades (v1 `REBIRTH_KEEP_CARS` 2 → 3) |
+| Keeps | Rep and RP, weapons, armor and items, security upgrades, Hotwire Kit, cosmetics, discovered and finish Index, stats, crew, season, **bound cars**, and **3 other cars in total** (`PRESTIGE_KEEP_CARS = 3`) with all their levels and upgrades. Vault cars count toward the 3. The player picks on the confirm screen; the default is the 3 most valuable. |
 | Resets | Wallet and bank to `STARTING_CASH` 150 (paid out to the bank first, v1 behaviour); `slotsUnlocked` to 4; every other car is **scrapped** (the confirm screen lists them by name) |
+| Effect on G | Keeping 3 cars is roughly 55–70% of a typical 8–10-car garage's income. After Prestige I (×1.5 multiplier) G lands at about ×0.85–1.05 of before; after II (×1.33) and III (×1.25) it dips to about ×0.75–0.9, and recovers above the old level within about one session as slots refill. The prestige is a step back for a permanent step up, not an instant boost. |
 | UI | Pause › STATS › Reputation / Prestige (UI §5.15) |
 
 ### 6.4 Collection Index and sets (v1 Index, extended)
@@ -1146,11 +1159,11 @@ The daily streak (v1) **pauses instead of resetting** (brief §2.6 retention wid
 | Daily | 00:00 | Contracts, daily objective, ledger counters | §6.6 | RewardsService |
 | Weekly | Mon 00:00 | Weekly contracts and boards reset | | |
 | Weekend | Fri 18:00 – Mon 06:00 | Rotating modifier: **Double Crime Cash** (liveOpsMult 2), **Double Rep**, **Double Car XP**, **Rare Weekend** (street luck ×2, displayed odds update) | Announced on Thursday | LiveOpsService schedule |
-| Saturday | 17:00–18:00 | **Admin Abuse hour**, run live by the owner or automatically. Rotation: Hypercar Rain (10 Legendary+ cargo drops over 10 min), Police Strike (no police for 10 min), Golden Truck (bags ×5), City Under Siege (everyone 3★, wantedMult +1 tier), Finish Fever (non-Stock finish weights ×10, odds shown), Glitch Drop (Glitch finish Hot Drops), Bounty Night (Most Wanted rewards ×3) | MessagingService topic `HC_LiveOps` to all servers | LiveOpsService + AdminService |
+| Saturday | 17:00–18:00 | **Admin Abuse hour**, run live by the owner or automatically. Rotation: Hypercar Rain (10 Legendary+ cargo drops over 10 min), Police Strike (no police for 10 min), Golden Truck (bag `eventMult` ×5, after the clamp), City Under Siege (everyone 3★, wantedMult +1 tier), Finish Fever (non-Stock finish weights ×10, odds shown), Glitch Drop (Glitch finish Hot Drops), Bounty Night (Most Wanted `eventMult` ×3, after the clamp) | MessagingService topic `HC_LiveOps` to all servers | LiveOpsService + AdminService |
 | Saturday | 18:00 | Update drop: 3–5 cars + one finish, trait, weapon or activity | | |
 | Monthly | First Saturday | Limited serial car event (#/500) | §2.9 | SerialService |
 | Season | 8 weeks | Street Pass + city reskin | §6.5 | SeasonService |
-| Launch | Nov 19, 2026 (GTA VI week) | "Free GTA your friends can play" week: Double Rep + a daily Hypercar Rain | | LiveOpsService |
+| Launch | Nov 19, 2026 (GTA VI week) | "Free GTA your friends can play" week: Double Rep + a daily Hypercar Rain. Ships the launch core (brief §3.13); heist, trading, races, serials, persistent crews and the season can be switched on later through `Config/Flags` without a rebuild (§9.4). | | LiveOpsService |
 | Holidays | Halloween, Thanksgiving–New Year | Reskins (night city, snow drifting), themed limited cars | | |
 
 **Live config.** `HC_LiveConfig_v1/current` is a server-only JSON of multipliers and schedule overrides, read every 5 min and **clamped** to safe ranges (multipliers 1–5, durations ≤ 3 h). It lets an event run without a publish.
@@ -1167,22 +1180,23 @@ Active = actually playing: driving, crimes, events. The pillar target is active 
 |---|---|---|---|---|---|---|---|---|
 | A Onboarding | 0–10 min | 1–4 | 2–4 Common | 5–25 | 18K–90K | **60K–300K** | 30 / 10 / 50 / 10 | Slot 5 ($1.5K), stage-1 upgrades ($100–300), ammo |
 | B Early | 10–60 min | 5–10 | 4–6 Uncommon/Rare | 40–250 | 0.15–0.9M | **0.5–3.5M** | 30 / 15 / 40 / 15 | Slots 6–7 ($8K, $40K), Rares ($7–11K), Micro SMG, taser |
-| C Day 1 | 1–3 h | 10–18 | 6–8 Rare/Epic, LV 5–15 | 300–1.5K | 1.1–5.4M | **4–20M** | 30 / 20 / 30 / 20 | Epics ($40–65K), slot 8 ($200K), Epic upgrades (~$1M to max), Comrade, **Prestige I ($750K)** |
-| D Days 2–3 | 3–8 h | 18–25 | 8 Epic/Legendary, LV 10–20 | 2K–8K | 7–29M | **25–100M** | 30 / 20 / 30 / 20 | Legendaries ($250–400K), slot 9 ($1M), Legendary upgrades (~$6M to max), Prestige II–III ($2.1M, $5.7M) |
-| E Day 7 | 8–16 h | 25–32 | 9–10 Legendary/Mythic; favourite at LV 15–25 | 10K–40K | 36–144M | **120–500M** | 30 / 25 / 25 / 20 | Mythics ($1.5–2.5M), slot 10 ($5M), Mythic upgrades ($31–52M to max), Prestige IV ($15.6M) |
-| F Day 30 | 40 h+ | 45+ | Mythic/Secret, LV 25–45 | ≥150K | ≥0.5B | **≥2B** | 30 / 25 / 25 / 20 | Secret cars ($10–30M) and upgrades ($206–618M each to max), Prestige V–VII ($43M–$324M) |
+| C Day 1 | 1–3 h | 10–18 | 6–8 Rare/Epic, LV 5–15 | 300–1.5K | 1.1–5.4M | **4–20M** | 30 / 20 / 30 / 20 | Epics ($40–65K, dealer Rep 10), slot 8 ($200K), Epic upgrades (~$1M to max), Comrade, **Prestige I (`max($750K, 3 h × G)` ≈ $3–16M)** |
+| D Days 2–3 | 3–8 h | 18–25 | 8 Epic/Legendary, LV 10–20 | 2K–8K | 7–29M | **25–100M** | 30 / 20 / 30 / 20 | Legendaries ($250–400K, dealer Rep 18), slot 9 ($1M), Legendary upgrades (~$6M to max), Prestige II–III (≈ 3 h × G: $22–86M) |
+| E Day 7 | 8–16 h | 25–32 | 9–10 Legendary/Mythic; favourite at LV 15–25 | 10K–40K | 36–144M | **120–500M** | 30 / 25 / 25 / 20 | Mythics ($1.5–2.5M, dealer Rep 25), slot 10 ($5M), Mythic upgrades ($31–52M to max), Prestige IV (≈ $108–432M) |
+| F Day 30 | 40 h+ | 45+ | Mythic/Secret, LV 25–45 | ≥150K | ≥0.5B | **≥2B** | 30 / 25 / 25 / 20 | Secret cars ($10–30M, dealer Rep 40) and upgrades ($206–618M each to max), Prestige V+ (≥ $1.6B) |
 
 **Time-to targets** (playtests must hit these within ±50%):
 
 | Milestone | Target |
 |---|---|
-| First Rare | about 12 min |
-| First Epic | 60–90 min |
-| First Legendary | day 2–3, or a Hot Drop |
-| First Mythic | day 5–7 |
-| First Secret | day 20 or later |
-| Prestige I | about 2 h |
+| First Rare | about 12 min (a Rare playtime gift at 40 min is the floor) |
+| First Epic | 60–90 min (dealer gate Rep 10; street or daily-streak day 7 earlier for the lucky) |
+| First Legendary | day 2–3 (dealer gate Rep 18 ≈ 5 h), or a Hot Drop or street luck |
+| First Mythic | day 5–7 (dealer gate Rep 25 ≈ 11.5 h) |
+| First Secret | day 20 or later (dealer gate Rep 40 ≈ 37 h; Port/Airport street weight 0.02) |
+| Prestige I | about 2–3 h |
 | First car at LV 10 | about 60 min of driving it |
+| Starter protection ends | about 2 h (Rep 8 and 7,200 active seconds) |
 
 ### 7.2 Sources, transfers and sinks (the spreadsheet)
 
@@ -1192,7 +1206,7 @@ Stage C reference: G = $800/s, Downtown (×1.25). "Per active hour" is a typical
 |---|---|---|---|---|---|---|---|
 | S1 | Garage income | Source | Σ carIncome × garageMult per second | Uncollected → bank | $800/s base | $2.9M | GarageService |
 | S2 | Offline | Source | `min(away, 6 h) × base × 0.30` (VIP 0.60) | Bank | ≤ $5.2M per return | — | RewardsService |
-| S3 | Street income | Source | carIncome × (1+0.5R) × S× (3–10) | Wallet | LV 10 Epic: $330 × 5.5 = $1.8K/s | $1.5–2.5M (about 20 min cruising) | StreetIncomeService |
+| S3 | Street income | Source | carIncome × (1+0.5R) × S× (3–10; ≤5 protected; 1 after 3 h/day) | Wallet | LV 10 Epic: $330 × 5.5 = $1.8K/s | $1.5–2.5M (about 20 min of driving) | StreetIncomeService |
 | S4 | Store hold-ups | Source | §3.2 | Wallet | $181K | $0.9–1.8M | RobberyService |
 | S5 | ATM hack | Source | §3.2 | Wallet | $135K | $0.3–0.5M | RobberyService |
 | S6 | NPC mugging | Source | §3.2, diminishing returns | Wallet | $9.6K | ~$0.1M | RobberyService |
@@ -1202,18 +1216,19 @@ Stage C reference: G = $800/s, Downtown (×1.25). "Per active hour" is a typical
 | S10 | Truck bag | Source | §3.6 | Wallet | $98K × 2.0 = $196K | $0.4–1.2M | ArmoredTruckService |
 | S11 | Bank heist share | Source | §3.7 | Wallet | $2.06M | $2–4M (if both windows are run) | HeistService |
 | S12 | Phone jobs | Source | §3.10 | Wallet | $48–96K | $0.3–0.6M | JobsService |
-| S13 | Contracts, daily, playtime, codes, referral | Source | v1 tables in income-seconds with floors (`Economy.DAILY_REWARDS`, `PLAYTIME_REWARDS`, `Contracts`) | Bank | 300–1,800 s × G | ≈$1M/day | RewardsService |
-| S14 | Race house prize | Source (capped) | `500 + 20 s × G` | Wallet | $16.5K | small | RaceService |
-| S15 | Insurance | Source (capped) | 25–70% × value | Bank | Epic LV 10 (value $60K): $15–42K | rare | TheftService |
-| S16 | Repo, recovery, revenge, interceptor | Source (capped) | 30 / 30 / 60 / 30 s × G (+$500 revenge or interceptor) | Wallet | $24–48K | rare | TheftService |
-| S17 | Most Wanted police reward | Source (capped) | §3.12 | Wallet | $50–150K | rare | DamageService |
-| S18 | 5★ survival | Source | §3.12 | Wallet | $49K per minute at 5★ | rare | WantedService |
+| S13 | Contracts, daily, playtime, codes, referral | Source | Income-seconds with floors (`Economy.DAILY_REWARDS`, `Contracts`). **Playtime (V2):** 3 min 2 incomeMinutes (min $300) · 8 min 5 · 15 min Uncommon car · 25 min 10 · 40 min Rare car · 60 min 20 incomeMinutes; **active seconds only**. Reward-origin cars: trade-locked 14 days, never insured. Referral inviter cap 1 per day. | Bank | 300–1,800 s × G | ≈$1M/day | RewardsService |
+| S14 | Race house prize | Source (soft cap) | `500 + 20 s × G` | Wallet | $16.5K | small | RaceService |
+| S15 | Insurance | Source (capped, clawback) | 25–45% × value | Bank | Epic LV 10 (value $60K): $15–27K | rare | TheftService |
+| S16 | Repo, recovery, revenge, interceptor | Source (capped) | 30 / 30 / 30 / 30 s × G (+$500 revenge or interceptor); repo and revenge 3 per day each | Wallet | $24–25K | rare | TheftService |
+| S17 | Most Wanted police reward | Source (capped) | §3.12, clamped by the claimer's own G | Wallet | $50–150K | rare | DamageService |
+| S18 | 5★ survival | Source (2 per day) | §3.12 | Wallet | $49K per minute at 5★ | rare | WantedService |
 | S19 | Cash Rain, events | Source | v1 `CASH_RAIN_BAG_SECONDS` 20 s × G per bag | Wallet | $16K per bag | event | EventService |
-| S20 | Robux cash | Source (paid) | 10 min, 1 h or 4 h of G (with floors) | Bank | — | — | MonetizationService |
+| S20 | Robux cash | Source (paid) | 10 min, 1 h or 4 h of G (with floors); Double It `min(share, 300 s × G)` once a day | Bank | — | — | MonetizationService |
+| S21 | Trunk loot | Source | 60% × (`50 + 10 s × G`), plus items (§2.5.1) | Wallet | $8K | $0.1–0.2M | GarageService (delivery) |
 | A1 | Street steals, Hot Drops, dealer stock | Asset source | Cars | Garage | — | — | Street/Event/Dealer |
 | T1 | Player mugging | Transfer | 25% of the victim's wallet | Wallet → wallet | — | — | RobberyService |
-| T2 | LOADED drop | Transfer (sink if unclaimed) | 20% of the victim's wallet | Bag → wallet | — | — | DamageService |
-| T3 | Carjack spill | Transfer (sink if unclaimed) | 10% of the victim's wallet | Pickups | — | — | TheftService |
+| T2 | LOADED drop | Transfer (sink if unclaimed) | 20% of the victim's wallet (out of the wanted loss if wanted) | Bag → wallet | — | — | DamageService |
+| T3 | Carjack spill | Transfer (sink if unclaimed) | 10% of a **LOADED** victim's wallet | Pickups | — | — | TheftService |
 | T4 | Street bounty | Transfer | `min(10% of wallet, stars × 20 s × G)` | Wallet → wallet | — | — | DamageService |
 | T5 | Car theft | Asset transfer | Car record | Victim → thief | — | — | TheftService |
 | T6 | Pink slip, trade | Asset transfer | Car record | — | — | — | Race/TradeService |
@@ -1224,15 +1239,18 @@ Stage C reference: G = $800/s, Downtown (×1.25). "Per active hour" is a typical
 | K5 | Paint, plates, rims | Sink | `$250 + 2% × price` | — | $1.3K | small | ModShopService |
 | K6 | Weapons, ammo, armor, kits, tools | Sink | §4.1 | — | Comrade $55K | $20–80K | ShopService (gta_combat) |
 | K7 | Hospital | Sink | `min(5% × (wallet + bank), 120 s × G)` | — | ≤ $96K | $50–150K | DamageService |
-| K8 | BUSTED | Sink | 35% of wallet (17.5% on surrender) | — | — | $0.1–0.4M | WantedService |
-| K9 | Impound and repair | Sink | `max(250, 3% value)` / `max(100, 1% value)` | — | $1.8K / $600 | small | JailService |
+| K8 | BUSTED, WASTED while wanted, combat-log | Sink | 7% of wallet per star (halved on surrender; bounty and LOADED bag paid out of it on death) | — | 2★ bust on $200K: $28K | $0.1–0.4M | WantedService / DamageService |
+| K9 | Impound and repair | Sink | `max(250, 3% value)` to skip 120 s / `max(100, 1% value)` to skip 60 s | — | $1.8K / $600 | small | JailService |
 | K10 | Spray, Lawyer | Sink | Spray: `stars × max(250, 15 s × G)` (v1). Lawyer (phone, clears ≤2★ when unseen): `stars × max(500, 30 s × G)`, 10 min cooldown | — | 3★ spray: $36K | $50–100K | WantedService |
 | K11 | ATM fee | Sink | 5% of the deposit | — | — | $20–60K | BankingService |
 | K12 | Mechanic | Sink | `max(250, 5 s × G)` | — | $4K | small | GarageService |
 | K13 | Heist kit | Sink | `10,000 + 30 s × leaderG` | — | $34K | per heist | HeistService |
 | K14 | Crew creation | Sink | $25,000 | — | — | one-off | CrewService |
 | K15 | Unclaimed drops | Sink | Cash bags vanish after 30 s, event bags after 60 s | — | — | — | — |
-| K16 | Prestige | Sink (reset) | Wipes wallet and bank; cost as in §6.3 | — | $750K | — | RebirthService |
+| K16 | Prestige | Sink (reset) | Wipes wallet and bank; cost `max(750K × 2.75^n, 10,800 s × G)` (§6.3) | — | $8.6M at G 800 | — | RebirthService |
+| K17 | Leave fee | Sink | 10% of the wallet when leaving while LOADED at 0★ outside your garage | — | — | small | BankingService |
+| K18 | Insurance clawback | Sink (reverses S15) | The paid amount, if the uid returns within 7 days | — | — | rare | CarService |
+| K19 | Heist overflow | Sink | Share above a member's clamp is destroyed | — | — | rare | HeistService |
 
 ### 7.3 Price sheet (one place to look)
 
@@ -1246,9 +1264,9 @@ Stage C reference: G = $800/s, Downtown (×1.25). "Per active hour" is a typical
 | Paint change | $250 + 2% of the car's price (first one free) |
 | Weapons, ammo, armor | §4.1 (gta_combat §5.2) |
 | Hacking Device / Duffel | $2,500 / $50,000 |
-| Fees | Hospital `min(5%, 120 s × G)` · impound `max(250, 3% value)` · repair `max(100, 1% value)` · mechanic `max(250, 5 s × G)` · ATM 5% · spray (v1) · Lawyer `stars × max(500, 30 s × G)` |
-| Heist kit / crew | `10,000 + 30 s × G` / $25,000 |
-| Prestige | `750,000 × 2.75^n` |
+| Fees | Hospital `min(5%, 120 s × G)` · impound `max(250, 3% value)` (or free after 120 s) · repair `max(100, 1% value)` (or free after 60 s) · mechanic `max(250, 5 s × G)` · ATM 5% · spray (v1) · Lawyer `stars × max(500, 30 s × G)` · LOADED leave fee 10% |
+| Heist kit / crew | `10,000 + 30 s × G` (refunded on a fail after the drill) / $25,000 |
+| Prestige | `max(750,000 × 2.75^n, 10,800 s × G)` |
 
 ### 7.4 First 30 minutes, simulated (checks that the numbers hang together)
 

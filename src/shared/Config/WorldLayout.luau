@@ -258,8 +258,8 @@ local FLATTEN: { { poly: { P2 }, y: number, blend: number } } = {
 	},
 	{ -- Starview Observatory summit pad
 		poly = { { x = -700, z = -3220 }, { x = -320, z = -3220 }, { x = -320, z = -2950 }, { x = -700, z = -2950 } },
-		y = 252,
-		blend = 120,
+		y = 224,
+		blend = 140,
 	},
 }
 
@@ -1111,10 +1111,13 @@ local function humpProfile(
 	return function(s: number, L: number): number
 		local r = math.min(riseLen, L * 0.45)
 		local f = math.min(fallLen, L * 0.45)
+		local function ease(t: number): number
+			return 0.5 * t + 0.5 * t * t * (3 - 2 * t) -- max slope 1.25x the average
+		end
 		if s < r then
-			return yEnd0 + (top - yEnd0) * SMOOTH(0, r, s)
+			return yEnd0 + (top - yEnd0) * ease(s / r)
 		elseif s > L - f then
-			return top + (yEnd1 - top) * SMOOTH(L - f, L, s)
+			return top + (yEnd1 - top) * ease((s - (L - f)) / f)
 		end
 		return top
 	end
@@ -1144,7 +1147,7 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 		return P(J.x + ex * a + wx * b, J.z + ez * a + wz * b)
 	end
 	local R = 150
-	local Lb = 300 -- branch carriageways start this far beyond the near carriageway
+	local Lb = 380 -- branch carriageways start this far beyond the near carriageway
 	local Lm = 260
 	local Ln = 380
 	local Ls = 220
@@ -1163,10 +1166,16 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 	do
 		local s, p, tx, tz = portOn(N, L(-ob - Ln, o).x, L(-ob - Ln, o).z)
 		local _ = s
-		local endS = Lm
-		local q, qx, qz = portAt(Out, endS)
-		local k = 0.42 * WorldGen.dist(p.x, p.z, q.x, q.z)
-		local pts = WorldGen.bezier(p, P(p.x + tx * k, p.z + tz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
+		local q, qx, qz = portAt(Out, Lm)
+		local g0 = portAt(Out, Lm - 110)
+		local gx, gz = WorldGen.right(qx, qz) -- Out's right = outboard (-e side)
+		local guide = P(g0.x + gx * 26, g0.z + gz * 26)
+		local k = 0.42 * WorldGen.dist(p.x, p.z, guide.x, guide.z)
+		local pts = WorldGen.bezier(p, P(p.x + tx * k, p.z + tz * k), P(guide.x - qx * k, guide.z - qz * k), guide, 24)
+		local tail = WorldGen.bezier(guide, P(guide.x + qx * 40, guide.z + qz * 40), P(q.x - qx * 40, q.z - qz * 40), q, 12)
+		for i = 2, #tail do
+			table.insert(pts, tail[i])
+		end
 		addWay(
 			name .. " ramp",
 			"ramp",
@@ -1178,9 +1187,16 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 	do
 		local inL = WorldGen.polyLength(In.pts)
 		local p, px, pz = portAt(In, inL - Lm)
+		local g0 = portAt(In, inL - Lm + 110)
+		local gx, gz = WorldGen.right(px, pz) -- In's right = outboard (+e side)
+		local guide = P(g0.x + gx * 26, g0.z + gz * 26)
 		local _, q, qx, qz = portOn(N, L(ob + Ln, o).x, L(ob + Ln, o).z)
-		local k = 0.42 * WorldGen.dist(p.x, p.z, q.x, q.z)
-		local pts = WorldGen.bezier(p, P(p.x + px * k, p.z + pz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
+		local pts = WorldGen.bezier(p, P(p.x + px * 40, p.z + pz * 40), P(guide.x - px * 40, guide.z - pz * 40), guide, 12)
+		local k = 0.42 * WorldGen.dist(guide.x, guide.z, q.x, q.z)
+		local rest = WorldGen.bezier(guide, P(guide.x + px * k, guide.z + pz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
+		for i = 2, #rest do
+			table.insert(pts, rest[i])
+		end
 		addWay(
 			name .. " ramp",
 			"ramp",
@@ -1752,7 +1768,15 @@ addWay(
 addWay(
 	"Starview Road",
 	"rural",
-	smooth({ { -150, -2142 }, { 50, -2380 }, { -320, -2560 }, { 60, -2760 }, { -280, -2930 }, { -520, -3080 } }, 120),
+	smooth({
+		{ -150, -2142 },
+		{ 120, -2360 },
+		{ -380, -2520 },
+		{ 160, -2700 },
+		{ -360, -2860 },
+		{ 0, -2990 },
+		{ -520, -3080 },
+	}, 120),
 	{ lanes = 1, maxGrade = 0.15 }
 )
 addWay(
@@ -1851,6 +1875,13 @@ addWay("Container Road", "street", { P(-1600, 4000), P(700, 4020), P(2780, 3980)
 addWay("Quay Road", "street", { P(-600, 3560), P(-600, 4390) }, { parking = false, sidewalk = 8 })
 addWay("Dock Street", "street", { P(1700, 3560), P(1700, 4350) }, { parking = false, sidewalk = 8 })
 
+-- Rust Flats rail yard service road (along the tracks; Hot Drop and stunt access).
+addWay("Rail Yard Road", "service", { P(2085, 1255), P(3000, 1255), P(3100, 1190), P(3100, 900) }, {
+	lanes = 1,
+	traffic = false,
+	sidewalk = 0,
+})
+
 -- Palmera Pier: drivable wooden pier into the ocean (no traffic).
 addWay("Palmera Pier", "pier", { P(-4480, -950), P(-4790, -950), P(-5180, -950), P(-5900, -950) }, {
 	lanes = 1,
@@ -1886,7 +1917,17 @@ do
 		return ch.floorNorthY + (ch.floorSouthY - ch.floorNorthY) * (s / L)
 	end
 	local nx, nz = WorldGen.polyAt(drive, 0)
-	addWay("Channel Ramp North", "service", { P(2080, -1990), P(2012, -1880), P(nx, nz) }, {
+	local riverPts: { P2 } = {}
+	for _, w in ways do
+		if w.name == "Riverside Drive" then
+			riverPts = w.pts
+		end
+	end
+	local function onRiverside(z: number): P2
+		local _, _, px, pz = WorldGen.polyProject(riverPts, 2080, z)
+		return P(px, pz)
+	end
+	addWay("Channel Ramp North", "service", { onRiverside(-1990), P(2012, -1880), P(nx, nz) }, {
 		lanes = 1,
 		layer = -1,
 		noCross = true,
@@ -1898,7 +1939,7 @@ do
 	-- south access sits in the gap between 10th Street and Grove Street (no street crosses the ramp)
 	local _, sGap = WorldGen.polyProject(drive, 1956, 1600)
 	local sx, sz = WorldGen.polyAt(drive, sGap)
-	addWay("Channel Ramp South", "service", { P(sx, sz), P(2012, sz - 200), P(2085, sz - 360) }, {
+	addWay("Channel Ramp South", "service", { P(sx, sz), P(2012, sz - 200), onRiverside(sz - 360) }, {
 		lanes = 1,
 		layer = -1,
 		noCross = true,
@@ -1936,8 +1977,9 @@ local function snapEnds(onlyGenerated: boolean)
 		for _, ei in ends do
 			local p = w.pts[ei]
 			local best: P2? = nil
-			local bestD = 45
-			WorldGen.segQuery(idx, p.x, p.z, 45, function(id: number)
+			local reach = if w.generated then 45 else 120
+			local bestD = reach
+			WorldGen.segQuery(idx, p.x, p.z, reach, function(id: number)
 				if idx.owner[id] == wi then
 					return
 				end
@@ -2658,8 +2700,9 @@ local function pinFrom(x: number, z: number, tol: number): number?
 	WorldGen.segQuery(allIdx, x, z, tol, function(id: number)
 		local t, _, _, d = WorldGen.projectSeg(x, z, allIdx.ax[id], allIdx.az[id], allIdx.bx[id], allIdx.bz[id])
 		if d <= bestD then
-			local y = yOnSeg(done[allIdx.owner[id]], allIdx.segNo[id], t)
-			if math.abs(y - surface) <= 8 then
+			local o = done[allIdx.owner[id]]
+			local y = yOnSeg(o, allIdx.segNo[id], t)
+			if o.yMode == "ground" or math.abs(y - surface) <= 8 then
 				bestD = d
 				best = y
 			end
@@ -2793,6 +2836,29 @@ local function alignWay(w: Way)
 			end
 			ys[k] = y
 			nextY = y
+		end
+		-- pins too far apart in height for the grade limit: spread the climb evenly between them (no cliffs)
+		local pinIdx: { number } = {}
+		for k = 1, n do
+			if pinAt[k] or k == 1 or k == n then
+				table.insert(pinIdx, k)
+			end
+		end
+		for q = 1, #pinIdx - 1 do
+			local k0, k1 = pinIdx[q], pinIdx[q + 1]
+			local run = cum[k1] - cum[k0]
+			local worst = 0
+			for k = k0 + 1, k1 do
+				local r = cum[k] - cum[k - 1]
+				if r > 1e-6 then
+					worst = math.max(worst, math.abs(ys[k] - ys[k - 1]) / r)
+				end
+			end
+			if worst > g * 1.02 and run > 1e-6 then
+				for k = k0 + 1, k1 - 1 do
+					ys[k] = ys[k0] + (ys[k1] - ys[k0]) * (cum[k] - cum[k0]) / run
+				end
+			end
 		end
 		w.pts = withPins
 		w.ys = ys

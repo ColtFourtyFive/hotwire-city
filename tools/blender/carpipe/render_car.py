@@ -83,20 +83,25 @@ def main():
             else:
                 R.camera(tgt, L, az_deg=35, el_deg=9)
         elif shot == "street_day":
-            R.street(L, night=False)
-            W = side["dimensions"]["width"]
             lane = L * 0.42
-            # three paint variants parked/driving in the near lanes
+            tgt_s = (lane * 0.5, -L * 0.35, H * 0.5)
+            cam = dict(az_deg=32, el_deg=8, lens=35, dist_mul=1.05)
+            cp = R.camera_pos(tgt_s, L, **cam)
+            R.street(L, night=False, keep_clear=(cp.x, cp.y))
+            # three paint variants: hero in the near lane, one behind it, one oncoming
             R.load_glb(glb, offset=(lane * 0.5, 0, 0), paint=PAINTS[0])
-            R.load_glb(glb, offset=(lane * 1.5, -L * 1.25, 0), paint=PAINTS[2])
-            R.load_glb(glb, offset=(-lane * 0.5, L * 1.6, 0), rot_z=math.pi, paint=PAINTS[1])
-            R.camera((lane * 0.6, -L * 0.2, H * 0.45), L, az_deg=28, el_deg=7, lens=40, dist_mul=1.15)
+            R.load_glb(glb, offset=(lane * 1.5, -L * 1.35, 0), paint=PAINTS[2])
+            R.load_glb(glb, offset=(-lane * 0.5, -L * 1.1, 0), rot_z=math.pi, paint=PAINTS[1])
+            R.camera(tgt_s, L, **cam)
         elif shot == "street_night":
-            R.street(L, night=True)
             lane = L * 0.42
+            tgt_s = (lane * 0.5, -L * 0.3, H * 0.5)
+            cam = dict(az_deg=26, el_deg=6, lens=35, dist_mul=1.0)
+            cp = R.camera_pos(tgt_s, L, **cam)
+            R.street(L, night=True, keep_clear=(cp.x, cp.y))
             R.load_glb(glb, offset=(lane * 0.5, 0, 0), paint=PAINTS[1], lights_on=True)
-            R.load_glb(glb, offset=(-lane * 0.5, L * 1.7, 0), rot_z=math.pi, paint=PAINTS[2], lights_on=True)
-            R.camera((lane * 0.5, L * 0.1, H * 0.45), L, az_deg=24, el_deg=6, lens=40, dist_mul=1.0)
+            R.load_glb(glb, offset=(-lane * 0.5, -L * 1.2, 0), rot_z=math.pi, paint=PAINTS[2], lights_on=True)
+            R.camera(tgt_s, L, **cam)
         else:
             continue
         out[shot] = R.render_to(p)

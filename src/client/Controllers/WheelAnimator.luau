@@ -14,9 +14,13 @@
 --   * Other players' / AI cars that drift (sideways slip from the replicated chassis velocity, same test as the
 --     driving controller) get local flipbook tire smoke (VFXLibrary "TireSmoke" streams, quality-scaled + budgeted),
 --     skid-mark Trails from the rear wheels + a SoundController screech loop; the driver's own FX are VehicleClient's.
+--     While they drift, a contact ray per rear tyre (every other update) keeps each skid mark on the road and turns
+--     that tyre's smoke + mark off when it is in the air.
 --   * Night (Lighting attribute IsNight): the HEADLIGHT_CARS nearest driven / traffic / police cars within
---     HEADLIGHT_RANGE get volumetric headlight cones (VFXLibrary "HeadlightCone" Beams from their Headlight parts,
---     built once per car, toggled every rebuild). Parked / display cars stay dark. Beams only: no extra lights.
+--     HEADLIGHT_RANGE get volumetric headlight cones (VFXLibrary "HeadlightCone" Beams, built once per car, toggled
+--     every rebuild). Procedural cars: from their Headlight parts. HeroMesh cars (procedural lamps hidden in place):
+--     from the shell's "HeadlightL"/"HeadlightR" attachments when it has them, else at the procedural lamps' x/y on
+--     the shell's front face. Parked / display cars stay dark. Beams only: no extra lights.
 --   * Budget: the HOT_COUNT nearest on-screen cars update every frame, the rest round-robin COLD_PER_FRAME per frame.
 --     Cars behind the camera are skipped; only Vehicles and rainbow cars take a slot; bob rays are cast every other
 --     update (every TRAFFIC_BOB_EVERY for Traffic, which holds a fixed height); unchanged wheel poses are not
@@ -71,6 +75,10 @@ local POSE_EPS = 1e-4 -- radians / studs: smaller pose changes skip the Weld.C0 
 local SPARKLE_RETRY = 2 -- seconds before searching a Diamond/Galaxy model for its emitter again
 local DRIFT_FX_RANGE = 150 -- observers' drift smoke / screech only this close
 local DRIFT_MAX_VERTICAL = 10 -- studs/s: faster vertical motion = airborne (no smoke)
+local CONTACT_EVERY = 2 -- observers' skid-contact rays every Nth update while drifting
+local CONTACT_REACH = 1.2 -- studs below the tyre bottom a contact ray still counts as ground (droop)
+local SKID_LIFT = 0.04 -- studs the skid trail floats over the road (no z-fighting)
+local HERO_LAMP_INSET = 0.15 -- studs behind the shell's front face a fallback hero cone starts
 
 type WheelRig = {
 	index: number,
@@ -86,11 +94,19 @@ type WheelRig = {
 	written: number, -- offset of the last C0 write (NaN = never written)
 }
 
+type DriftWheel = {
+	hub: Vector3, -- built hub position (chassis space)
+	smoke: VFXLibrary.Stream?,
+	skid: VFXLibrary.TrailRig?,
+	grounded: boolean, -- last contact ray found road under this tyre
+	lit: boolean, -- smoke + mark currently on
+}
+
 type DriftFx = {
-	smoke: { VFXLibrary.Stream },
-	skids: { VFXLibrary.TrailRig },
+	wheels: { DriftWheel },
 	screech: Sound?,
 	on: boolean,
+	tick: number,
 }
 
 type Rig = {
@@ -125,6 +141,7 @@ type Rig = {
 	fxFrame: number, -- frame in which the car was last seen drifting
 	cones: { VFXLibrary.BeamRig }?, -- night headlight cones (built on first use)
 	conesOn: boolean,
+	conesHero: boolean, -- the cones were built for a HeroMesh car (rebuilt when a shell arrives / leaves)
 }
 
 local rigs: { [Model]: Rig } = {}
@@ -195,6 +212,79 @@ function WheelAnimator.wantsHeadlights(kind: any, driverUserId: any): boolean
 	return typeof(driverUserId) == "number" and driverUserId > 0
 end
 
+-- Night headlight picks: the first `maxCars` entries of a distance-sorted list (entries have .dist) within `range`
+-- that `wants` lights; none by day. Returns the picked entries as a set.
+function WheelAnimator.pickHeadlights(
+	list: { any },
+	night: boolean,
+	maxCars: number,
+	range: number,
+	wants: (any) -> boolean
+): { [any]: boolean }
+	local picked: { [any]: boolean } = {}
+	local left = if night then maxCars else 0
+	for _, item in list do
+		if left <= 0 or item.dist > range then
+			break
+		end
+		if wants(item) then
+			picked[item] = true
+			left -= 1
+		end
+	end
+	return picked
+end
+
+-- Cone switches after a pick: lit entries no longer wanted (or gone: alive false) go dark, wanted ones light up.
+-- Returns (turnOff, turnOn) lists.
+function WheelAnimator.headlightChanges(
+	lit: { [any]: boolean },
+	want: { [any]: boolean },
+	alive: (any) -> boolean
+): ({ any }, { any })
+	local off, on = {}, {}
+	for item in lit do
+		if not want[item] or not alive(item) then
+			table.insert(off, item)
+		end
+	end
+	for item in want do
+		if not lit[item] then
+			table.insert(on, item)
+		end
+	end
+	return off, on
+end
+
+-- Frontmost (minimum) Z, in chassis space, of a set of parts' boxes: the hero shell's front face.
+function WheelAnimator.frontZ(parts: { BasePart }, chassisCF: CFrame): number?
+	local best: number? = nil
+	for _, p in parts do
+		local rel = chassisCF:ToObjectSpace(p.CFrame)
+		local h = p.Size / 2
+		local reach = math.abs(rel.XVector.Z) * h.X + math.abs(rel.YVector.Z) * h.Y + math.abs(rel.ZVector.Z) * h.Z
+		local z = rel.Position.Z - reach
+		if best == nil or z < best then
+			best = z
+		end
+	end
+	return best
+end
+
+-- Fallback cone origin on a HeroMesh car without lamp attachments: the hidden procedural lamp's x / y, moved onto
+-- the shell's front face (frontZ, chassis space; nil = keep the lamp's own z).
+function WheelAnimator.heroConeOrigin(lamp: Vector3, frontZ: number?): Vector3
+	if frontZ == nil then
+		return lamp
+	end
+	return Vector3.new(lamp.X, lamp.Y, frontZ + HERO_LAMP_INSET)
+end
+
+-- Skid-mark height (chassis space) from a contact ray: the hit point's height in the car's frame + a hair.
+function WheelAnimator.skidY(contactLocalY: number): number
+	return contactLocalY + SKID_LIFT
+end
+
 local function byDistance(a: Rig, b: Rig): boolean
 	return a.dist < b.dist
 end
@@ -232,6 +322,7 @@ local function newRig(model: Model): Rig
 		fxFrame = 0,
 		cones = nil,
 		conesOn = false,
+		conesHero = false,
 	}
 end
 
@@ -406,16 +497,62 @@ end
 ----------------------------------------------------------------------------------------------------------------------
 local litRigs: { [Rig]: boolean } = {}
 
+local function addCone(cones: { VFXLibrary.BeamRig }, parent: BasePart, origin: Vector3)
+	local ok, beam = pcall(VFXLibrary.beam, "HeadlightCone", parent, origin, Vector3.new(0, 0, -1))
+	if ok and beam then
+		table.insert(cones, beam)
+	end
+end
+
+-- Hero shell lamps: attachments "HeadlightL" / "HeadlightR" anywhere in the shell (chassis-space positions).
+local function shellLamps(shell: Instance, chassis: BasePart): { Vector3 }
+	local out: { Vector3 } = {}
+	for _, name in { "HeadlightL", "HeadlightR" } do
+		local att = shell:FindFirstChild(name, true)
+		if att and att:IsA("Attachment") then
+			table.insert(out, chassis.CFrame:PointToObjectSpace(att.WorldPosition))
+		end
+	end
+	return out
+end
+
 local function buildCones(rig: Rig)
 	local cones: { VFXLibrary.BeamRig } = {}
 	rig.cones = cones
-	for _, d in rig.model:GetDescendants() do
+	rig.conesHero = rig.heroMesh
+	rig.conesOn = false -- fresh beams start disabled
+	local model = rig.model
+	local chassis = rig.chassis or model.PrimaryPart
+	local shell = if rig.heroMesh then model:FindFirstChild(WheelAnimator.SHELL_NAME) else nil
+	if shell and chassis then
+		local lamps = shellLamps(shell, chassis)
+		if #lamps > 0 then
+			for _, origin in lamps do
+				addCone(cones, chassis, origin)
+			end
+			return
+		end
+	end
+	local front: number? = nil
+	if shell and chassis then
+		local parts: { BasePart } = {}
+		for _, d in shell:GetDescendants() do
+			if d:IsA("BasePart") then
+				table.insert(parts, d)
+			end
+		end
+		front = WheelAnimator.frontZ(parts, chassis.CFrame)
+	end
+	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") and d.Name == "Headlight" then
 			-- Headlight parts are never rotated: their -Z is the car's front
-			local ok, beam =
-				pcall(VFXLibrary.beam, "HeadlightCone", d, Vector3.new(0, 0, -d.Size.Z / 2), Vector3.new(0, 0, -1))
-			if ok and beam then
-				table.insert(cones, beam)
+			local face = Vector3.new(0, 0, -d.Size.Z / 2)
+			if front and chassis then
+				-- hidden procedural lamp: start the cone on the shell's front face instead
+				local lamp = chassis.CFrame:PointToObjectSpace(d.CFrame:PointToWorldSpace(face))
+				addCone(cones, chassis, WheelAnimator.heroConeOrigin(lamp, front))
+			else
+				addCone(cones, d, face)
 			end
 			if #cones >= 2 then
 				break
@@ -424,7 +561,20 @@ local function buildCones(rig: Rig)
 	end
 end
 
+local function destroyCones(rig: Rig)
+	for _, c in rig.cones or {} do
+		c.beam:Destroy()
+		c.a0:Destroy()
+		c.a1:Destroy()
+	end
+	rig.cones = nil
+	rig.conesOn = false
+end
+
 local function setCones(rig: Rig, on: boolean)
+	if on and rig.cones and rig.conesHero ~= rig.heroMesh then
+		destroyCones(rig) -- a shell arrived (or left) since the cones were built
+	end
 	if on and not rig.cones then
 		buildCones(rig)
 	end
@@ -440,33 +590,37 @@ local function setCones(rig: Rig, on: boolean)
 	end
 end
 
+local function rigWantsLights(rig: Rig): boolean
+	local model = rig.model
+	return rig.isVehicle
+		and WheelAnimator.wantsHeadlights(model:GetAttribute("Kind"), model:GetAttribute("DriverUserId"))
+end
+
+local function rigAlive(rig: Rig): boolean
+	return rig.model.Parent ~= nil
+end
+
 -- After each nearest-list rebuild: cones on for the nearest qualifying cars at night, off everywhere else.
 local function updateHeadlights()
 	local night = Lighting:GetAttribute("IsNight") == true
-	local left = if night then WheelAnimator.HEADLIGHT_CARS else 0
-	local want: { [Rig]: boolean } = {}
-	if left > 0 then
-		for _, rig in nearList do
-			if left <= 0 or rig.dist > WheelAnimator.HEADLIGHT_RANGE then
-				break
-			end
-			local model = rig.model
-			if
-				rig.isVehicle
-				and WheelAnimator.wantsHeadlights(model:GetAttribute("Kind"), model:GetAttribute("DriverUserId"))
-			then
-				want[rig] = true
-				left -= 1
-			end
-		end
+	local want = WheelAnimator.pickHeadlights(
+		nearList,
+		night,
+		WheelAnimator.HEADLIGHT_CARS,
+		WheelAnimator.HEADLIGHT_RANGE,
+		rigWantsLights
+	)
+	local off, on = WheelAnimator.headlightChanges(litRigs, want, rigAlive)
+	for _, rig in off do
+		setCones(rig, false)
 	end
-	for rig in litRigs do
-		if not want[rig] or rig.model.Parent == nil then
-			setCones(rig, false)
-		end
+	for _, rig in on do
+		setCones(rig, true)
 	end
 	for rig in want do
-		setCones(rig, true)
+		if rig.conesHero ~= rig.heroMesh then
+			setCones(rig, true) -- re-skinned while lit: rebuild on the new body
+		end
 	end
 end
 
@@ -523,29 +677,73 @@ end
 ----------------------------------------------------------------------------------------------------------------------
 -- Observers' drift FX (F11): other cars' smoke + screech, derived from replicated velocity
 ----------------------------------------------------------------------------------------------------------------------
+local OBSERVER_SMOKE: VFXLibrary.StreamOpts = { rateScale = 0.8 }
+
 local function buildDriftFx(rig: Rig): DriftFx?
 	local chassis = rig.chassis
 	if not chassis then
 		return nil
 	end
-	local fx: DriftFx = { smoke = {}, skids = {}, screech = nil, on = false }
+	local fx: DriftFx = { wheels = {}, screech = nil, on = false, tick = 0 }
+	-- marks start at the resting contact patch (the driving controller rides RIDE_LIFT above the built pose)
+	local rest = -rig.radius - VehicleController.RIDE_LIFT + SKID_LIFT
 	for _, w in rig.wheels do
 		if w.rear then
 			local att = Instance.new("Attachment")
 			att.Name = "HC_ObserverSmoke"
 			att.Position = w.basePos - Vector3.new(0, rig.radius * 0.85, 0)
 			att.Parent = chassis
-			local smoke = VFXLibrary.stream("TireSmoke", att, { rateScale = 0.8 })
-			if smoke then
-				table.insert(fx.smoke, smoke)
-			end
-			local skid = VFXLibrary.trail("SkidMark", chassis, w.basePos - Vector3.new(0, rig.radius - 0.08, 0))
-			if skid then
-				table.insert(fx.skids, skid)
-			end
+			table.insert(fx.wheels, {
+				hub = w.basePos,
+				smoke = VFXLibrary.stream("TireSmoke", att, OBSERVER_SMOKE),
+				skid = VFXLibrary.trail("SkidMark", chassis, w.basePos + Vector3.new(0, rest, 0)),
+				grounded = true,
+				lit = false,
+			})
 		end
 	end
 	return fx
+end
+
+-- One tyre's smoke + skid mark on/off (free when unchanged).
+local function setWheelFx(w: DriftWheel, on: boolean)
+	if w.lit == on then
+		return
+	end
+	w.lit = on
+	if w.smoke then
+		VFXLibrary.setStream(w.smoke, on)
+	end
+	local skid = w.skid
+	if skid and skid.trail.Parent then
+		skid.trail.Enabled = on
+	end
+end
+
+-- While drifting: a contact ray per rear tyre (every CONTACT_EVERY updates; `now` forces one) keeps its skid mark on
+-- the road through suspension travel / body roll and switches a tyre in the air off.
+local function updateDriftContact(rig: Rig, cf: CFrame, now: boolean)
+	local fx = rig.fx
+	local params = rayParams
+	if not fx or not fx.on then
+		return
+	end
+	fx.tick += 1
+	if params and (now or fx.tick % CONTACT_EVERY == 1) then
+		local up = cf.UpVector
+		local reach = BOB_UP + rig.radius + CONTACT_REACH
+		for _, w in fx.wheels do
+			local hub = cf * w.hub
+			local hit = Workspace:Raycast(hub + up * BOB_UP, up * -reach, params)
+			w.grounded = hit ~= nil
+			if hit and w.skid then
+				VFXLibrary.setTrailHeight(w.skid, WheelAnimator.skidY(cf:PointToObjectSpace(hit.Position).Y))
+			end
+		end
+	end
+	for _, w in fx.wheels do
+		setWheelFx(w, w.grounded)
+	end
 end
 
 local function setDriftFx(rig: Rig, on: boolean)
@@ -558,13 +756,9 @@ local function setDriftFx(rig: Rig, on: boolean)
 		return
 	end
 	fx.on = on
-	for _, st in fx.smoke do
-		VFXLibrary.setStream(st, on)
-	end
-	for _, skid in fx.skids do
-		if skid.trail.Parent then
-			skid.trail.Enabled = on
-		end
+	for _, w in fx.wheels do
+		w.grounded = true
+		setWheelFx(w, on)
 	end
 	local sc = soundController
 	if on then
@@ -611,7 +805,9 @@ local function animateWheels(rig: Rig, dt: number, controller: any, hot: boolean
 			vF = vel:Dot(cf.LookVector)
 			if hot and rig.dist <= DRIFT_FX_RANGE and WheelAnimator.observedDrift(cf, vel) then
 				rig.fxFrame = frameId
+				local starting = not (rig.fx and rig.fx.on)
 				setDriftFx(rig, true)
+				updateDriftContact(rig, cf, starting)
 			end
 			local yawRate = chassis.AssemblyAngularVelocity:Dot(cf.UpVector)
 			steerTarget = VMath.estimateSteerAngle(yawRate, vF, rig.wheelbase, MAX_STEER)

@@ -1083,12 +1083,7 @@ local function applyLayout()
 		r.area.TextScaled = false
 		r.areaFit.MaxTextSize = RADAR.AREA_TEXT
 		r.area.TextXAlignment = Enum.TextXAlignment.Left
-		pcall(
-			HUDController.setMinimapReserve,
-			0,
-			diameter + RADAR.MARGIN + RADAR.PILL_ROOM + RADAR.TOP_CLEARANCE,
-			0
-		)
+		pcall(HUDController.setMinimapReserve, 0, diameter + RADAR.MARGIN + RADAR.PILL_ROOM + RADAR.TOP_CLEARANCE, 0)
 	end
 	lastScale = -1
 	northAlpha = -1
@@ -1307,8 +1302,7 @@ local function slowTick(pos: Vector3)
 			local moved = Vector3.new(ft.X - target.X, 0, ft.Z - target.Z).Magnitude > GPS.TARGET_MOVED
 				or Vector3.new(ff.X - pos.X, 0, ff.Z - pos.Z).Magnitude > GPS.REROUTE_DISTANCE
 			local waited = clock - failAt
-			need = waited >= MinimapController.retryDelay(failCount)
-				or (moved and waited >= GPS.REROUTE_MIN_INTERVAL)
+			need = waited >= MinimapController.retryDelay(failCount) or (moved and waited >= GPS.REROUTE_MIN_INTERVAL)
 		end
 	else
 		local old = routeTarget
@@ -1516,7 +1510,15 @@ local function update(dt: number)
 			local p = other.Position
 			local dx, dz = p.X - px0, p.Z - pz0
 			if dx * dx + dz * dz < view2 then
-				poolPut(pool, playerBlip.icon, playerBlip.color, small, radius + dx * cs - dz * sn, radius + dx * sn + dz * cs, 1)
+				poolPut(
+					pool,
+					playerBlip.icon,
+					playerBlip.color,
+					small,
+					radius + dx * cs - dz * sn,
+					radius + dx * sn + dz * cs,
+					1
+				)
 			end
 		end
 	end

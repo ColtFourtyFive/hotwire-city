@@ -1,0 +1,18 @@
+Body         vis=2 faces=   180 area= 449.735 c=[-0.01 -0.31  4.57] why= :: UazMat | Uaz / Cube.002
+WheelRL      vis=2 faces=    10 area=  20.622 c=[-2.81 -4.55  1.46] why=wheel-cylinder :: WheelMat | WheelLB / Uaz / Cylinder.002
+WheelRR      vis=2 faces=    10 area=  20.622 c=[ 2.81 -4.55  1.46] why=wheel-cylinder :: WheelMat | WheelRB / Uaz / Cylinder.003
+WheelFL      vis=2 faces=    10 area=  20.622 c=[-2.81  4.55  1.46] why=wheel-cylinder :: WheelMat | WheelLF / Uaz / Cylinder
+WheelFR      vis=2 faces=    10 area=  20.622 c=[2.81 4.55 1.46] why=wheel-cylinder :: WheelMat | WheelRF / Uaz / Cylinder.001
+Body         vis=2 faces=    24 area=  11.864 c=[-0.01 -0.76  1.52] why= :: UazMat | Uaz / Cube.002
+Trim         vis=2 faces=    34 area=  10.526 c=[-0.01  8.13  2.45] why= :: Pixelly | Uaz / Cube.002
+Trim         vis=2 faces=    34 area=   9.739 c=[-0.01 -8.26  2.45] why= :: Pixelly | Uaz / Cube.002
+Body         vis=2 faces=    28 area=   8.428 c=[-0.01  4.54  1.47] why= :: UazMat | Uaz / Cube.002
+Body         vis=2 faces=    32 area=   7.527 c=[-0.01 -4.58  1.48] why= :: UazMat | Uaz / Cube.002
+Body         vis=2 faces=    17 area=   1.841 c=[-2.    8.24  3.93] why= :: UazMat | Uaz / Cube.002
+Body         vis=2 faces=    17 area=   1.841 c=[1.99 8.24 3.93] why= :: UazMat | Uaz / Cube.002
+Trim         vis=2 faces=    22 area=   1.481 c=[4.1  6.23 5.83] why= :: Pixelly | Uaz / Cube.002
+Trim         vis=2 faces=    22 area=   1.481 c=[-4.12  6.23  5.83] why= :: Pixelly | Uaz / Cube.002
+Trim         vis=2 faces=     2 area=   1.349 c=[-0.01  8.49  2.46] why=mat:LicensePlateUaz :: LicensePlateUaz | LicensePlate / Uaz / Cube.001
+Trim         vis=2 faces=     2 area=   1.347 c=[-0.01 -8.45  2.46] why=mat:LicensePlateUaz :: LicensePlateUaz | LicensePlateBack / Uaz / Cube.003
+Trim         vis=2 faces=    14 area=   0.390 c=[-3.71  6.4   5.65] why= :: Pixelly | Uaz / Cube.002
+Trim         vis=2 faces=    14 area=   0.390 c=[3.69 6.4  5.65] why= :: Pixelly | Uaz / Cube.002
