@@ -209,6 +209,15 @@
     "XKR-S GT/Misc/TK/Model/Meshes/boot_ok.015",
     "XKR-S GT/Misc/TK/Model/Meshes/boot_ok.023",
     "XKR-S GT/Misc/Tach/Parts/Part"
+   ],
+   "selectors": [
+    "Misc/Speedo/Parts/Part/**",
+    "Misc/Tach/Parts/Part/**",
+    "Misc/FL/Door/Model/{Meshes/Black.011 (1), Meshes/Mirror.001 (1), Meshes/Silver (1), Meshes/Tex TR.024, Meshes/Tex TR.025, Meshes/Tex TR.026, +12 more}",
+    "Misc/HK/Model/{Meshes/Black_Transparency.006_bonnet_ok.002, Meshes/Stripes_Transparency.006_bonnet_ok.004}",
+    "Misc/FR/Door/Model/{Meshes/Black.012, Meshes/Mirror.002 (1), Meshes/Silver.001 (1), Meshes/Tex TR.028, Meshes/Tex TR.029, Meshes/Tex TR.030, +11 more}",
+    "Misc/TK/Model/{Meshes/Black.003 (2), Meshes/LP Black, Meshes/LP Boot, Meshes/LP Boot.001, Meshes/Tex TR.018, Meshes/Tex TR.019, +8 more}",
+    "Body/Model/{Meshes/Black (5), Meshes/Black.001 (3), Meshes/Black.002 (2), Meshes/Black.004 (2), Meshes/Black.005 (2), Meshes/Black.006 (2), +37 more}"
    ]
   },
   "Glass": {
@@ -228,6 +237,12 @@
     "XKR-S GT/Misc/TK/Model/Meshes/Glass.001",
     "XKR-S GT/Misc/TK/Model/Meshes/Red Glass (1)",
     "XKR-S GT/Misc/TK/Model/Meshes/Window.003 (1)"
+   ],
+   "selectors": [
+    "Misc/FL/Door/Model/Meshes/Window.001 (1)",
+    "Misc/FR/Door/Model/Meshes/Window.002 (1)",
+    "Misc/TK/Model/{Meshes/Glass.001, Meshes/Red Glass (1), Meshes/Window.003 (1)}",
+    "Body/Model/{Meshes/F Glass (1), Meshes/Glass, Meshes/Window (1), Meshes/Windows (5), Meshes/windscreen_ok.001}"
    ]
   },
   "Interior": {
@@ -262,6 +277,12 @@
     "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.003",
     "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.005",
     "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.007"
+   ],
+   "selectors": [
+    "Misc/Speedo/Parts/Needle/**",
+    "Misc/Tach/Parts/Needle/**",
+    "Misc/Wheel/**",
+    "Body/Model/{Meshes/XK_Interior, Meshes/XK_Interior.001, Meshes/XK_Interior.002, Meshes/XK_Interior.003, Meshes/XK_Interior.004, Meshes/XK_Interior.005, +12 more}"
    ]
   },
   "Lights_Head": {
@@ -283,6 +304,11 @@
     "XKR-S GT/Body/Model/Meshes/XK_Lights.019",
     "XKR-S GT/Misc/FL/Door/Model/Meshes/Light (2)",
     "XKR-S GT/Misc/FR/Door/Model/Meshes/Light.001 (2)"
+   ],
+   "selectors": [
+    "Misc/FL/Door/Model/Meshes/Light (2)",
+    "Misc/FR/Door/Model/Meshes/Light.001 (2)",
+    "Body/Model/{Meshes/Light(s).003 (2), Meshes/Light(s).005 (2), Meshes/Light(s).006 (2), Meshes/Light(s).007 (2), Meshes/Light(s).008 (2), Meshes/Light(s).009 (2), +5 more}"
    ]
   },
   "Lights_Tail": {
@@ -308,6 +334,10 @@
     "XKR-S GT/Misc/TK/Model/Meshes/Light(s).017",
     "XKR-S GT/Misc/TK/Model/Meshes/Light(s).018",
     "XKR-S GT/Misc/TK/Model/Meshes/Light(s).019"
+   ],
+   "selectors": [
+    "Misc/TK/Model/{Meshes/Light(s).014 (1), Meshes/Light(s).015 (1), Meshes/Light(s).016, Meshes/Light(s).017, Meshes/Light(s).018, Meshes/Light(s).019}",
+    "Body/Model/{Meshes/Light(s) (2), Meshes/Light(s).001 (1), Meshes/Light(s).002 (1), Meshes/Light(s).004 (2), Meshes/Light(s).010 (2), Meshes/Light(s).011 (2), +5 more}"
    ]
   },
   "Paint": {
@@ -328,6 +358,13 @@
     "XKR-S GT/Misc/FR/Door/Model/Meshes/Paint.009 (1)",
     "XKR-S GT/Misc/HK/Model/Meshes/Paint.001_Transparency.006_bonnet_ok.001",
     "XKR-S GT/Misc/TK/Model/Meshes/Paint.001 (1)"
+   ],
+   "selectors": [
+    "Misc/FL/Door/Model/{Meshes/Paint.006 (1), Meshes/Paint.007 (1)}",
+    "Misc/HK/Model/Meshes/Paint.001_Transparency.006_bonnet_ok.001",
+    "Misc/FR/Door/Model/{Meshes/Paint.008 (1), Meshes/Paint.009 (1)}",
+    "Misc/TK/Model/Meshes/Paint.001 (1)",
+    "Body/Model/{Meshes/Paint (4), Meshes/Paint.002 (1), Meshes/Paint.003 (1), Meshes/Paint.004 (1), Meshes/Paint.005 (1), Meshes/Paint_Transparency.006_bonnet_ok.003}"
    ]
   },
   "WheelStatic_FL": {
@@ -338,6 +375,9 @@
    "paths": [
     "XKR-S GT/Wheels/FL/WheelFixed/Meshes/Tex TR.012",
     "XKR-S GT/Wheels/FL/WheelFixed/Meshes/Transparency.001"
+   ],
+   "selectors": [
+    "Wheels/FL/WheelFixed/**"
    ]
   },
   "WheelStatic_FR": {
@@ -348,6 +388,9 @@
    "paths": [
     "XKR-S GT/Wheels/FR/WheelFixed/Meshes/Tex TR.011",
     "XKR-S GT/Wheels/FR/WheelFixed/Meshes/Transparency.007"
+   ],
+   "selectors": [
+    "Wheels/FR/WheelFixed/**"
    ]
   },
   "WheelStatic_RL": {
@@ -358,6 +401,9 @@
    "paths": [
     "XKR-S GT/Wheels/RL/WheelFixed/Meshes/Tex TR.013",
     "XKR-S GT/Wheels/RL/WheelFixed/Meshes/Transparency.002"
+   ],
+   "selectors": [
+    "Wheels/RL/WheelFixed/**"
    ]
   },
   "WheelStatic_RR": {
@@ -368,6 +414,9 @@
    "paths": [
     "XKR-S GT/Wheels/RR/WheelFixed/Meshes/Tex TR.014",
     "XKR-S GT/Wheels/RR/WheelFixed/Meshes/Transparency.003"
+   ],
+   "selectors": [
+    "Wheels/RR/WheelFixed/**"
    ]
   },
   "Wheel_FL": {
@@ -383,6 +432,9 @@
     "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.004",
     "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.005",
     "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.006"
+   ],
+   "selectors": [
+    "Wheels/FL/Parts/**"
    ]
   },
   "Wheel_FR": {
@@ -398,6 +450,9 @@
     "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.004",
     "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.005",
     "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.006"
+   ],
+   "selectors": [
+    "Wheels/FR/Parts/**"
    ]
   },
   "Wheel_RL": {
@@ -413,6 +468,9 @@
     "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.004",
     "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.005",
     "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.006"
+   ],
+   "selectors": [
+    "Wheels/RL/Parts/**"
    ]
   },
   "Wheel_RR": {
@@ -428,6 +486,9 @@
     "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.004",
     "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.005",
     "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.006"
+   ],
+   "selectors": [
+    "Wheels/RR/Parts/**"
    ]
   }
  },

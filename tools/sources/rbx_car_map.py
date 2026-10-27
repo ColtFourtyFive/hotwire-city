@@ -373,7 +373,8 @@ def analyze(model_id):
             group[n["id"]] = "Lights_" + sub
             rule[n["id"]] = "light: " + ("Neon" if mat == "Neon" else "name/light child")
             continue
-        if mat == "Glass" or RE_GLASS.search(" ".join(chain_names[:2])) or (0.15 <= tr <= 0.85 and luminance(col) < 0.5):
+        trim = re.search(r"contour|trim|frame|seal|surround|rubber|joint", nm, re.I)
+        if not trim and (mat == "Glass" or RE_GLASS.search(" ".join(chain_names[:2])) or (0.15 <= tr <= 0.85 and luminance(col) < 0.5)):
             group[n["id"]] = "Glass"
             rule[n["id"]] = "glass: " + ("Material=Glass" if mat == "Glass" else ("name" if RE_GLASS.search(" ".join(chain_names[:2])) else f"T={tr}"))
             continue
@@ -608,7 +609,7 @@ def summary_line(o):
     wheels = "/".join(str(n("Wheel_" + q)) for q in ("FL", "FR", "RL", "RR"))
     lights = sum(v["count"] for k, v in g.items() if k.startswith("Lights_"))
     return (f"{o['assetId']} {o['name'][:26]:26s} vis={c['visibleParts']:3d} mesh={c['uniqueMeshes']:3d} tris={c['approxTris']:6d} "
-            f"wheels={wheels} glass={n('Glass')} lights={lights} paint={n('Paint')}{o['paint']['color_rgb255']} "
+            f"wheels={wheels} glass={n('Glass')} lights={lights} paint={n('Paint')}{o['paint']['color_rgb255']}+baked{n('PaintBaked')} "
             f"body={n('Body')} int={n('Interior')} dims={o['dims_studs']} scale={o['suggested_uniform_scale']} "
             f"fwd={o['forward']['method']} sec={'FLAG' if o['security']['flaggedScripts'] else 'ok'}")
 

@@ -105,26 +105,31 @@
  },
  "groups": {
   "Body": {
-   "count": 3,
+   "count": 4,
    "rules": {
-    "default": 3
+    "default": 4
    },
    "paths": [
     "2005 Nissan Murano/Body/Badges",
     "2005 Nissan Murano/Body/Chassis+Trim",
-    "2005 Nissan Murano/Body/Chrome"
+    "2005 Nissan Murano/Body/Chrome",
+    "2005 Nissan Murano/Body/Windows Trim"
+   ],
+   "selectors": [
+    "Body/{Badges, Chassis+Trim, Chrome, Windows Trim}"
    ]
   },
   "Glass": {
-   "count": 3,
+   "count": 2,
    "rules": {
-    "glass: Material=Glass": 2,
-    "glass: name": 1
+    "glass: Material=Glass": 2
    },
    "paths": [
-    "2005 Nissan Murano/Body/Windows Trim",
     "2005 Nissan Murano/Body/Windshield/Windshield(Front)",
     "2005 Nissan Murano/Body/Windshield/Windshield(Rear)"
+   ],
+   "selectors": [
+    "Body/Windshield/**"
    ]
   },
   "Interior": {
@@ -134,6 +139,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Body/Interior"
+   ],
+   "selectors": [
+    "Body/Interior"
    ]
   },
   "Lights_Brake": {
@@ -143,6 +151,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Body/Lights/Taillights/Brakelight"
+   ],
+   "selectors": [
+    "Body/Lights/Taillights/Brakelight/**"
    ]
   },
   "Lights_Head": {
@@ -152,6 +163,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Body/Lights/Headlights/Headlights Cover"
+   ],
+   "selectors": [
+    "Body/Lights/Headlights/Headlights Cover"
    ]
   },
   "Lights_Indicator_R": {
@@ -161,6 +175,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Body/Lights/Headlights/Indicators"
+   ],
+   "selectors": [
+    "Body/Lights/Headlights/Indicators"
    ]
   },
   "Lights_Reverse": {
@@ -170,6 +187,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Body/Lights/Taillights/Reverse Lights"
+   ],
+   "selectors": [
+    "Body/Lights/Taillights/Reverse Lights"
    ]
   },
   "Lights_Tail": {
@@ -179,6 +199,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Body/Lights/Taillights/Taillights"
+   ],
+   "selectors": [
+    "Body/Lights/Taillights/Taillights"
    ]
   },
   "Paint": {
@@ -191,6 +214,9 @@
     "2005 Nissan Murano/Body/Paint/Paint#2",
     "2005 Nissan Murano/Body/Paint/Paint#3",
     "2005 Nissan Murano/Body/Paint/Paint#4"
+   ],
+   "selectors": [
+    "Body/Paint/**"
    ]
   },
   "Wheel_FL": {
@@ -200,6 +226,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Wheels/FL"
+   ],
+   "selectors": [
+    "Wheels/FL/**"
    ]
   },
   "Wheel_FR": {
@@ -209,6 +238,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Wheels/FR"
+   ],
+   "selectors": [
+    "Wheels/FR/**"
    ]
   },
   "Wheel_RL": {
@@ -218,6 +250,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Wheels/RL"
+   ],
+   "selectors": [
+    "Wheels/RL/**"
    ]
   },
   "Wheel_RR": {
@@ -227,6 +262,9 @@
    },
    "paths": [
     "2005 Nissan Murano/Wheels/RR"
+   ],
+   "selectors": [
+    "Wheels/RR/**"
    ]
   }
  },

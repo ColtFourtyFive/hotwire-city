@@ -145,6 +145,9 @@
     "2005 Nissan Patrol/Body/safari_grill_SUB2",
     "2005 Nissan Patrol/Body/safari_grill_SUB3",
     "2005 Nissan Patrol/Body/safari_grill_SUB4"
+   ],
+   "selectors": [
+    "Body/{6b8a_SUB1, Part#1, Part#2, bodyshell_SUB2, bodyshell_SUB3, chassis_SUB0, +20 more}"
    ]
   },
   "Glass": {
@@ -161,6 +164,9 @@
     "2005 Nissan Patrol/Body/window_rr",
     "2005 Nissan Patrol/Body/windscreen001",
     "2005 Nissan Patrol/Body/windscreen_r"
+   ],
+   "selectors": [
+    "Body/{window_lf, window_lm, window_lr, window_rf, window_rm, window_rr, +2 more}"
    ]
   },
   "Interior": {
@@ -178,6 +184,9 @@
     "2005 Nissan Patrol/Body/safari_gauge",
     "2005 Nissan Patrol/Body/safari_seats_SUB0",
     "2005 Nissan Patrol/Body/safari_seats_SUB1"
+   ],
+   "selectors": [
+    "Body/{safari_dash_SUB0, safari_dash_SUB1, safari_dash_SUB2, safari_dash_SUB3, safari_dash_SUB4, safari_dash_SUB5, +3 more}"
    ]
   },
   "Lights_Brake": {
@@ -190,6 +199,9 @@
     "2005 Nissan Patrol/Body/brakelight_l_SUB1",
     "2005 Nissan Patrol/Body/brakelight_r_SUB0",
     "2005 Nissan Patrol/Body/brakelight_r_SUB1"
+   ],
+   "selectors": [
+    "Body/{brakelight_l_SUB0, brakelight_l_SUB1, brakelight_r_SUB0, brakelight_r_SUB1}"
    ]
   },
   "Lights_Head": {
@@ -204,6 +216,9 @@
     "2005 Nissan Patrol/Body/extralight_2_SUB1",
     "2005 Nissan Patrol/Body/headlight_l_SUB0",
     "2005 Nissan Patrol/Body/headlight_r_SUB0"
+   ],
+   "selectors": [
+    "Body/{extralight_1_SUB0, extralight_1_SUB1, extralight_2_SUB0, extralight_2_SUB1, headlight_l_SUB0, headlight_r_SUB0}"
    ]
   },
   "Lights_Indicator_L": {
@@ -220,6 +235,11 @@
     "2005 Nissan Patrol/Body/indicator_lf_SUB2",
     "2005 Nissan Patrol/Body/indicator_lf_SUB3",
     "2005 Nissan Patrol/Body/indicator_lr"
+   ],
+   "selectors": [
+    "Body/arrow#1/**",
+    "Body/arrow#2/**",
+    "Body/{indicator_lf_SUB0, indicator_lf_SUB1, indicator_lf_SUB2, indicator_lf_SUB3, indicator_lr}"
    ]
   },
   "Lights_Indicator_R": {
@@ -233,6 +253,9 @@
     "2005 Nissan Patrol/Body/indicator_rf_SUB2",
     "2005 Nissan Patrol/Body/indicator_rf_SUB3",
     "2005 Nissan Patrol/Body/indicator_rr"
+   ],
+   "selectors": [
+    "Body/{indicator_rf_SUB0, indicator_rf_SUB1, indicator_rf_SUB2, indicator_rf_SUB3, indicator_rr}"
    ]
   },
   "Lights_Reverse": {
@@ -243,6 +266,9 @@
    "paths": [
     "2005 Nissan Patrol/Body/reversinglight_l",
     "2005 Nissan Patrol/Body/reversinglight_r"
+   ],
+   "selectors": [
+    "Body/{reversinglight_l, reversinglight_r}"
    ]
   },
   "Lights_Tail": {
@@ -259,6 +285,9 @@
     "2005 Nissan Patrol/Body/taillight_l_SUB1",
     "2005 Nissan Patrol/Body/taillight_r_SUB0",
     "2005 Nissan Patrol/Body/taillight_r_SUB1"
+   ],
+   "selectors": [
+    "Body/{safari_detail_SUB0, safari_detail_SUB1, safari_detail_SUB2, safari_detail_SUB3, taillight_l_SUB0, taillight_l_SUB1, +2 more}"
    ]
   },
   "Paint": {
@@ -289,6 +318,11 @@
     "2005 Nissan Patrol/Body/door_pside_r_SUB4",
     "2005 Nissan Patrol/Body/safari_back_SUB0",
     "2005 Nissan Patrol/Body/safari_grill_SUB0"
+   ],
+   "selectors": [
+    "Body/Front Plate/**",
+    "Body/Rear Plate/**",
+    "Body/{6b8a_SUB0, bodyshell_SUB0, bodyshell_SUB1, chassis_SUB4, door_dside_f001_SUB0, door_dside_f001_SUB1, +14 more}"
    ]
   },
   "Wheel_FL": {
@@ -298,6 +332,9 @@
    },
    "paths": [
     "2005 Nissan Patrol/Wheels/FL"
+   ],
+   "selectors": [
+    "Wheels/FL/**"
    ]
   },
   "Wheel_FR": {
@@ -307,6 +344,9 @@
    },
    "paths": [
     "2005 Nissan Patrol/Wheels/FR"
+   ],
+   "selectors": [
+    "Wheels/FR/**"
    ]
   },
   "Wheel_RL": {
@@ -316,6 +356,9 @@
    },
    "paths": [
     "2005 Nissan Patrol/Wheels/RL"
+   ],
+   "selectors": [
+    "Wheels/RL/**"
    ]
   },
   "Wheel_RR": {
@@ -325,6 +368,9 @@
    },
    "paths": [
     "2005 Nissan Patrol/Wheels/RR"
+   ],
+   "selectors": [
+    "Wheels/RR/**"
    ]
   }
  },

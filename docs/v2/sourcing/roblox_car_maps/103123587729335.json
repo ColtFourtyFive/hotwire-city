@@ -127,14 +127,15 @@
  },
  "groups": {
   "Body": {
-   "count": 14,
+   "count": 15,
    "rules": {
-    "default": 14
+    "default": 15
    },
    "paths": [
     "LeoRosa44's Car/Body/Body/Avant 1",
     "LeoRosa44's Car/Body/Body/Avant 2",
     "LeoRosa44's Car/Body/Body/Avant 3",
+    "LeoRosa44's Car/Body/Body/Contours de vitre",
     "LeoRosa44's Car/Body/Body/R\u00e9troviseurs",
     "LeoRosa44's Car/Body/Body/Soubassement",
     "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/Part",
@@ -148,25 +149,24 @@
     "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Part"
    ],
    "selectors": [
-    "Body/Body/{Avant 1, Avant 2, Avant 3, R\u00e9troviseurs, Soubassement}",
+    "Body/Body/{Avant 1, Avant 2, Avant 3, Contours de vitre, R\u00e9troviseurs, Soubassement}",
     "Body/Plaques/**",
     "Body/Emergency/Antennes/Model#1/**"
    ]
   },
   "Glass": {
-   "count": 5,
+   "count": 4,
    "rules": {
-    "glass: name": 5
+    "glass: name": 4
    },
    "paths": [
-    "LeoRosa44's Car/Body/Body/Contours de vitre",
     "LeoRosa44's Car/Body/Body/Vitre de phare arri\u00e8re",
     "LeoRosa44's Car/Body/Body/Vitre de phare avant",
     "LeoRosa44's Car/Body/Body/Vitres",
     "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Glass"
    ],
    "selectors": [
-    "Body/Body/{Contours de vitre, Vitre de phare arri\u00e8re, Vitre de phare avant, Vitres}",
+    "Body/Body/{Vitre de phare arri\u00e8re, Vitre de phare avant, Vitres}",
     "Body/Emergency/Lightbar/Model/Glass"
    ]
   },

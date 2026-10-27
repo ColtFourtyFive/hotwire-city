@@ -219,6 +219,9 @@
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#81",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#82",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#9"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#1, MeshPart#10, MeshPart#11, MeshPart#12, MeshPart#13, MeshPart#14, +66 more}"
    ]
   },
   "Glass": {
@@ -235,6 +238,9 @@
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#31",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#4",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#7"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#21, MeshPart#3, MeshPart#31, MeshPart#4, MeshPart#7}"
    ]
   },
   "Lights_Head": {
@@ -245,6 +251,9 @@
    "paths": [
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#18",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#41"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#18, MeshPart#41}"
    ]
   },
   "Lights_Indicator_L": {
@@ -255,6 +264,9 @@
    "paths": [
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#28",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#69"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Body/{MeshPart#28, MeshPart#69}"
    ]
   },
   "Paint": {
@@ -273,6 +285,10 @@
     "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#8",
     "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#9",
     "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#8"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Body/Color/**",
+    "Model/Model/GLE 53 4MATIC+/Body/MeshPart#8"
    ]
   },
   "Wheel_FL": {
@@ -285,6 +301,9 @@
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#2",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#3",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#4"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Wheels/FL/**"
    ]
   },
   "Wheel_FR": {
@@ -297,6 +316,9 @@
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#2",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#3",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#4"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Wheels/FR/**"
    ]
   },
   "Wheel_RL": {
@@ -309,6 +331,9 @@
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#2",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#3",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#4"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Wheels/RL/**"
    ]
   },
   "Wheel_RR": {
@@ -321,6 +346,9 @@
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#2",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#3",
     "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#4"
+   ],
+   "selectors": [
+    "Model/Model/GLE 53 4MATIC+/Wheels/RR/**"
    ]
   }
  },

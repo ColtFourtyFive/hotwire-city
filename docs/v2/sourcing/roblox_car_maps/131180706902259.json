@@ -63,6 +63,9 @@
    },
    "paths": [
     "TruckProp/MeshPart"
+   ],
+   "selectors": [
+    "MeshPart/**"
    ]
   },
   "Paint": {
@@ -73,6 +76,9 @@
    "paths": [
     "TruckProp/Part",
     "TruckProp/Wedge"
+   ],
+   "selectors": [
+    "./{Part, Wedge}"
    ]
   }
  },

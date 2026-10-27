@@ -123,6 +123,9 @@
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.016",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.018",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.019"
+   ],
+   "selectors": [
+    "Body/Model/{Meshes/sorento_Plane, Meshes/sorento_Plane.001, Meshes/sorento_Plane.003, Meshes/sorento_Plane.004, Meshes/sorento_Plane.005, Meshes/sorento_Plane.007, +10 more}"
    ]
   },
   "Glass": {
@@ -136,6 +139,9 @@
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.022 (1)",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.023 (1)",
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.024"
+   ],
+   "selectors": [
+    "Body/Model/{Meshes/sorento_Plane.020, Meshes/sorento_Plane.021 (1), Meshes/sorento_Plane.022 (1), Meshes/sorento_Plane.023 (1), Meshes/sorento_Plane.024}"
    ]
   },
   "Paint": {
@@ -147,6 +153,9 @@
     "2011 Kia Sorento EX/Body/Model/Meshes/sorento_Plane.017",
     "2011 Kia Sorento EX/Body/Model/paint#1",
     "2011 Kia Sorento EX/Body/Model/paint#2"
+   ],
+   "selectors": [
+    "Body/Model/{Meshes/sorento_Plane.017, paint#1, paint#2}"
    ]
   },
   "WheelStatic_FL": {
@@ -156,6 +165,9 @@
    },
    "paths": [
     "2011 Kia Sorento EX/Wheels/FL/WheelFixed/BrakeCal/Caliper"
+   ],
+   "selectors": [
+    "Wheels/FL/WheelFixed/**"
    ]
   },
   "WheelStatic_FR": {
@@ -165,6 +177,9 @@
    },
    "paths": [
     "2011 Kia Sorento EX/Wheels/FR/WheelFixed/BrakeCal/Caliper"
+   ],
+   "selectors": [
+    "Wheels/FR/WheelFixed/**"
    ]
   },
   "WheelStatic_RL": {
@@ -174,6 +189,9 @@
    },
    "paths": [
     "2011 Kia Sorento EX/Wheels/RL/WheelFixed/BrakeCal/Caliper"
+   ],
+   "selectors": [
+    "Wheels/RL/WheelFixed/**"
    ]
   },
   "WheelStatic_RR": {
@@ -183,6 +201,9 @@
    },
    "paths": [
     "2011 Kia Sorento EX/Wheels/RR/WheelFixed/BrakeCal/Caliper"
+   ],
+   "selectors": [
+    "Wheels/RR/WheelFixed/**"
    ]
   },
   "Wheel_FL": {
@@ -195,6 +216,9 @@
     "2011 Kia Sorento EX/Wheels/FL/Parts/Wheel/MeshPart#2",
     "2011 Kia Sorento EX/Wheels/FL/Parts/Wheel/MeshPart#3",
     "2011 Kia Sorento EX/Wheels/FL/Parts/Wheel/Tire"
+   ],
+   "selectors": [
+    "Wheels/FL/Parts/**"
    ]
   },
   "Wheel_FR": {
@@ -207,6 +231,9 @@
     "2011 Kia Sorento EX/Wheels/FR/Parts/Wheel/MeshPart#2",
     "2011 Kia Sorento EX/Wheels/FR/Parts/Wheel/MeshPart#3",
     "2011 Kia Sorento EX/Wheels/FR/Parts/Wheel/Tire"
+   ],
+   "selectors": [
+    "Wheels/FR/Parts/**"
    ]
   },
   "Wheel_RL": {
@@ -219,6 +246,9 @@
     "2011 Kia Sorento EX/Wheels/RL/Parts/Wheel/MeshPart#2",
     "2011 Kia Sorento EX/Wheels/RL/Parts/Wheel/MeshPart#3",
     "2011 Kia Sorento EX/Wheels/RL/Parts/Wheel/Tire"
+   ],
+   "selectors": [
+    "Wheels/RL/Parts/**"
    ]
   },
   "Wheel_RR": {
@@ -231,6 +261,9 @@
     "2011 Kia Sorento EX/Wheels/RR/Parts/Wheel/MeshPart#2",
     "2011 Kia Sorento EX/Wheels/RR/Parts/Wheel/MeshPart#3",
     "2011 Kia Sorento EX/Wheels/RR/Parts/Wheel/Tire"
+   ],
+   "selectors": [
+    "Wheels/RR/Parts/**"
    ]
   }
  },

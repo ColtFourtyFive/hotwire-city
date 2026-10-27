@@ -176,6 +176,60 @@
     "Model/Wedge#13",
     "Model/Wedge#14",
     "Model/Wedge#4"
+   ],
+   "selectors": [
+    "Wedge#1/**",
+    "Part#5/**",
+    "Wedge#4/**",
+    "Part#9/**",
+    "Part#13/**",
+    "Part#14/**",
+    "Part#15/**",
+    "Part#17/**",
+    "Part#19/**",
+    "Part#26/**",
+    "Part#27/**",
+    "Wedge#12/**",
+    "2#1/**",
+    "2#2/**",
+    "Part#29/**",
+    "Part#34/**",
+    "Part#38/**",
+    "Part#39/**",
+    "Part#40/**",
+    "Part#42/**",
+    "Wedge#13/**",
+    "Wedge#14/**",
+    "Part#48/**",
+    "Part#49/**",
+    "Part#50/**",
+    "Part#61/**",
+    "Part#62/**",
+    "Part#65/**",
+    "Part#66/**",
+    "Part#68/**",
+    "Part#69/**",
+    "Part#70/**",
+    "Part#71/**",
+    "Part#73/**",
+    "Part#74/**",
+    "Part#76/**",
+    "Part#78/**",
+    "Part#79/**",
+    "Part#81/**",
+    "Part#83/**",
+    "Part#85/**",
+    "Part#87/**",
+    "Part#88/**",
+    "Part#93/**",
+    "Part#96/**",
+    "Part#97/**",
+    "Part#101/**",
+    "J/**",
+    "Part#104/**",
+    "Part#106/**",
+    "Part#136/**",
+    "./{A, Part#102, Part#107, Part#22, Part#57, Part#80}"
    ]
   },
   "Glass": {
@@ -197,6 +251,19 @@
     "Model/Wedge#25",
     "Model/Wedge#26",
     "Model/Wedge#28"
+   ],
+   "selectors": [
+    "Part#20/**",
+    "Part#25/**",
+    "Part#32/**",
+    "Wedge#16/**",
+    "Part#111/**",
+    "Part#118/**",
+    "Wedge#23/**",
+    "Wedge#25/**",
+    "Wedge#26/**",
+    "Wedge#28/**",
+    "./{B, C}"
    ]
   },
   "Interior": {
@@ -210,6 +277,13 @@
     "Model/Seat#3",
     "Model/Seat#4",
     "Model/VehicleSeat"
+   ],
+   "selectors": [
+    "VehicleSeat/**",
+    "Seat#1/**",
+    "Seat#2/**",
+    "Seat#3/**",
+    "Seat#4/**"
    ]
   },
   "Lights_Head": {
@@ -220,6 +294,10 @@
    "paths": [
     "Model/Light#1",
     "Model/Light#2"
+   ],
+   "selectors": [
+    "Light#1/**",
+    "Light#2/**"
    ]
   },
   "Lights_Tail": {
@@ -230,6 +308,10 @@
    "paths": [
     "Model/Light#3",
     "Model/Light#4"
+   ],
+   "selectors": [
+    "Light#3/**",
+    "Light#4/**"
    ]
   },
   "Paint": {
@@ -339,6 +421,109 @@
     "Model/Wedge#7",
     "Model/Wedge#8",
     "Model/Wedge#9"
+   ],
+   "selectors": [
+    "Wedge#2/**",
+    "Part#1/**",
+    "Part#2/**",
+    "Wedge#3/**",
+    "Part#4/**",
+    "Wedge#5/**",
+    "Wedge#6/**",
+    "Part#7/**",
+    "Part#8/**",
+    "Part#10/**",
+    "Wedge#7/**",
+    "Part#11/**",
+    "Wedge#8/**",
+    "Part#12/**",
+    "Part#16/**",
+    "Part#18/**",
+    "Wedge#9/**",
+    "Part#21/**",
+    "Wedge#10/**",
+    "Wedge#11/**",
+    "Part#23/**",
+    "Part#24/**",
+    "Part#28/**",
+    "Part#30/**",
+    "Part#31/**",
+    "Part#33/**",
+    "Part#35/**",
+    "Part#36/**",
+    "Part#37/**",
+    "Part#41/**",
+    "Part#44/**",
+    "Part#45/**",
+    "Wedge#15/**",
+    "Part#46/**",
+    "Part#47/**",
+    "Part#51/**",
+    "Part#52/**",
+    "Wedge#17/**",
+    "Part#53/**",
+    "Part#54/**",
+    "Wedge#18/**",
+    "Part#55/**",
+    "Part#56/**",
+    "Part#58/**",
+    "Wedge#19/**",
+    "Part#60/**",
+    "Part#63/**",
+    "Part#64/**",
+    "Part#67/**",
+    "Part#72/**",
+    "Part#75/**",
+    "Part#77/**",
+    "Part#82/**",
+    "Part#84/**",
+    "Part#86/**",
+    "Part#89/**",
+    "Part#90/**",
+    "Part#91/**",
+    "Part#92/**",
+    "Part#94/**",
+    "Part#95/**",
+    "Part#98/**",
+    "Part#99/**",
+    "Part#100/**",
+    "Part#103/**",
+    "Part#105/**",
+    "Part#109/**",
+    "Part#110/**",
+    "Wedge#20/**",
+    "Part#112/**",
+    "Part#113/**",
+    "Part#114/**",
+    "Part#115/**",
+    "Part#116/**",
+    "Part#117/**",
+    "Part#119/**",
+    "Part#120/**",
+    "Part#121/**",
+    "Wedge#21/**",
+    "Part#122/**",
+    "Part#123/**",
+    "Wedge#22/**",
+    "Part#125/**",
+    "Part#126/**",
+    "Part#127/**",
+    "Part#128/**",
+    "Part#129/**",
+    "Wedge#24/**",
+    "Part#130/**",
+    "Wedge#27/**",
+    "Part#131/**",
+    "Part#132/**",
+    "Wedge#29/**",
+    "Part#133/**",
+    "Part#134/**",
+    "Part#135/**",
+    "Wedge#30/**",
+    "Part#137/**",
+    "Part#138/**",
+    "Part#139/**",
+    "Part#140/**"
    ]
   },
   "Wheel_FL": {
@@ -348,6 +533,9 @@
    },
    "paths": [
     "Model/Part#6"
+   ],
+   "selectors": [
+    "Part#6/**"
    ]
   },
   "Wheel_FR": {
@@ -357,6 +545,9 @@
    },
    "paths": [
     "Model/Part#59"
+   ],
+   "selectors": [
+    "Part#59/**"
    ]
   },
   "Wheel_RL": {
@@ -366,6 +557,9 @@
    },
    "paths": [
     "Model/Part#124"
+   ],
+   "selectors": [
+    "Part#124/**"
    ]
   },
   "Wheel_RR": {
@@ -375,6 +569,9 @@
    },
    "paths": [
     "Model/Part#108"
+   ],
+   "selectors": [
+    "Part#108/**"
    ]
   }
  },

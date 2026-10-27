@@ -1,7 +1,7 @@
 {
  "assetId": 126180570128588,
  "name": "2022 Vellfire Prairie",
- "depicts": "Toyota Vellfire AH30 (listed as Tundra)",
+ "depicts": "2022 Toyota Tundra CrewMax (badged \"VELLFIRE\")",
  "forward": {
   "method": "light-names+long-axis",
   "lookVector": [
@@ -16,8 +16,8 @@
   "width": 8.76,
   "height": 7.27
  },
- "real_length_m": 4.94,
- "suggested_uniform_scale": 0.799,
+ "real_length_m": 5.93,
+ "suggested_uniform_scale": 0.959,
  "counts": {
   "instances": 205,
   "baseParts": 59,
@@ -139,6 +139,9 @@
     "2022 Vellfire Prairie/Body/Mesh Part#7",
     "2022 Vellfire Prairie/Body/Mesh Part#8",
     "2022 Vellfire Prairie/Body/Mesh Part#9"
+   ],
+   "selectors": [
+    "Body/{Mesh Part#1, Mesh Part#10, Mesh Part#11, Mesh Part#12, Mesh Part#13, Mesh Part#14, +9 more}"
    ]
   },
   "Glass": {
@@ -150,6 +153,9 @@
    "paths": [
     "2022 Vellfire Prairie/Body/Mesh Part#4",
     "2022 Vellfire Prairie/Body/Mesh Part#5"
+   ],
+   "selectors": [
+    "Body/{Mesh Part#4, Mesh Part#5}"
    ]
   },
   "Lights_Head": {
@@ -165,6 +171,15 @@
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#3",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#1",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#2"
+   ],
+   "selectors": [
+    "Body/Vehicle_Lights/Left#1/**",
+    "Body/Vehicle_Lights/Light#1/**",
+    "Body/Vehicle_Lights/Light#2/**",
+    "Body/Vehicle_Lights/Light#3/**",
+    "Body/Vehicle_Lights/Right#1/**",
+    "Body/Vehicle_Lights/Left#3/**",
+    "Body/Vehicle_Lights/Right#2/**"
    ]
   },
   "Lights_Indicator_L": {
@@ -174,6 +189,9 @@
    },
    "paths": [
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#8"
+   ],
+   "selectors": [
+    "Body/Vehicle_Lights/Light#8/**"
    ]
   },
   "Lights_Tail": {
@@ -188,6 +206,14 @@
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#5",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#6",
     "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#3"
+   ],
+   "selectors": [
+    "Body/Vehicle_Lights/Left#2/**",
+    "Body/Vehicle_Lights/Light#4/**",
+    "Body/Vehicle_Lights/Light#5/**",
+    "Body/Vehicle_Lights/Light#6/**",
+    "Body/Vehicle_Lights/Light#10/**",
+    "Body/Vehicle_Lights/Right#3/**"
    ]
   },
   "Paint": {
@@ -198,6 +224,10 @@
    "paths": [
     "2022 Vellfire Prairie/Body/COLOR#1",
     "2022 Vellfire Prairie/Body/COLOR#2"
+   ],
+   "selectors": [
+    "Body/COLOR#1/**",
+    "Body/COLOR#2/**"
    ]
   },
   "Wheel_FL": {
@@ -208,6 +238,9 @@
    "paths": [
     "2022 Vellfire Prairie/Wheels/FL/Parts/Rim",
     "2022 Vellfire Prairie/Wheels/FL/Parts/Tire"
+   ],
+   "selectors": [
+    "Wheels/FL/**"
    ]
   },
   "Wheel_FR": {
@@ -218,6 +251,9 @@
    "paths": [
     "2022 Vellfire Prairie/Wheels/FR/Parts/Rim",
     "2022 Vellfire Prairie/Wheels/FR/Parts/Tire"
+   ],
+   "selectors": [
+    "Wheels/FR/**"
    ]
   },
   "Wheel_RL": {
@@ -228,6 +264,9 @@
    "paths": [
     "2022 Vellfire Prairie/Wheels/RL/Parts/Rim",
     "2022 Vellfire Prairie/Wheels/RL/Parts/Tire"
+   ],
+   "selectors": [
+    "Wheels/RL/**"
    ]
   },
   "Wheel_RR": {
@@ -238,6 +277,9 @@
    "paths": [
     "2022 Vellfire Prairie/Wheels/RR/Parts/Rim",
     "2022 Vellfire Prairie/Wheels/RR/Parts/Tire"
+   ],
+   "selectors": [
+    "Wheels/RR/**"
    ]
   }
  },
