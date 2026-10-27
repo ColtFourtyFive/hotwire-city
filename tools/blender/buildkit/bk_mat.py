@@ -17,8 +17,12 @@ TEXSETS = {
     "facade_tiles": ("facade_tiles", 1.0, 0.7), "roof_gravel": ("roof_gravel", 1.0, 1.0), "roof_tar": ("roof_tar", 1.0, 1.0),
     "metal": ("metal", 1.0, 0.7), "shutter": ("shutter", 1.0, 1.0), "asphalt": ("asphalt", 1.0, 1.0),
     "sidewalk": ("sidewalk", 1.0, 1.0), "curb": ("curb", 1.0, 1.0), "terrazzo": ("terrazzo", 1.0, 0.5),
+    "corrugated": ("corrugated", 1.0, 1.0), "metal_siding": ("metal_siding", 1.0, 1.0), "roof_clay": ("roof_clay", 1.0, 1.0),
+    "roof_shingle": ("roof_shingle", 1.0, 1.0), "cmu": ("cmu", 1.0, 0.8), "wood_fence": ("wood_fence", 1.0, 0.8),
+    "wood_slats": ("wood_slats", 1.0, 0.8), "marble": ("marble", 0.7, 0.4), "pavers": ("pavers", 1.0, 0.8),
+    "precast": ("precast", 1.0, 0.6), "grass": ("grass", 1.0, 1.0),
 }
-TINTABLE = {"stucco", "brick_painted", "plaster"}   # use the generated grey <key>_tint.png as ColorMap
+TINTABLE = {"stucco", "brick_painted", "plaster", "metal_siding", "cmu", "precast"}   # grey <key>_tint.png ColorMap
 
 _cache = {}
 
@@ -120,6 +124,47 @@ def lit(name, strength=4.0):
     bsdf.inputs["Emission Strength"].default_value = strength
     bsdf.inputs["Roughness"].default_value = 0.1
     m["roblox"] = {"kind": "lit", "file": "windows_lit.png"}
+    return m
+
+
+def grime(name, file="grime.png", strength=1.0):
+    """Alpha-blended dirt decals (Roblox: SurfaceAppearance AlphaMode=Transparency, CastShadow=false)."""
+    m, nt, bsdf = _new(name)
+    t = nt.nodes.new("ShaderNodeTexImage"); t.image = img(os.path.join(GEN, file))
+    nt.links.new(t.outputs[0], bsdf.inputs["Base Color"])
+    if strength != 1.0:
+        mm = nt.nodes.new("ShaderNodeMath"); mm.operation = "MULTIPLY"; mm.inputs[1].default_value = strength
+        nt.links.new(t.outputs[1], mm.inputs[0]); nt.links.new(mm.outputs[0], bsdf.inputs["Alpha"])
+    else:
+        nt.links.new(t.outputs[1], bsdf.inputs["Alpha"])
+    bsdf.inputs["Roughness"].default_value = 0.9
+    try:
+        m.surface_render_method = "BLENDED"
+    except Exception:
+        pass
+    m["roblox"] = {"kind": "decal", "file": file, "alpha": "Transparency"}
+    return m
+
+
+def neon(name, rgb, strength=6.0, day_rgb=None):
+    """Night-glow tubes / light fixtures (Roblox: Material=Neon at night, SmoothPlastic+day colour by day)."""
+    m, nt, bsdf = _new(name)
+    day = day_rgb or tuple(min(1.0, c * 0.6 + 0.3) for c in rgb)
+    bsdf.inputs["Base Color"].default_value = (*day, 1)
+    bsdf.inputs["Emission Color"].default_value = (*rgb, 1)
+    bsdf.inputs["Emission Strength"].default_value = strength
+    bsdf.inputs["Roughness"].default_value = 0.3
+    m["roblox"] = {"kind": "neon", "color": list(rgb), "day_color": list(day)}
+    return m
+
+
+def water(name, rgb=(0.05, 0.38, 0.45)):
+    m, nt, bsdf = _new(name)
+    bsdf.inputs["Base Color"].default_value = (*rgb, 1)
+    bsdf.inputs["Roughness"].default_value = 0.02
+    bsdf.inputs["Specular IOR Level"].default_value = 0.6
+    bsdf.inputs["IOR"].default_value = 1.33
+    m["roblox"] = {"kind": "water", "color": list(rgb), "transparency": 0.25, "material": "Glass"}
     return m
 
 

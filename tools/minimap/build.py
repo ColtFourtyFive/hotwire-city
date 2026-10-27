@@ -43,7 +43,7 @@ def run(cmd):
 def upload_image(path, name):
     from rbxcloud import upload, req  # noqa: E402  (reads the key itself; never printed)
 
-    st, body, _ = upload(path, name, USER_ID, "Decal", "image/png")
+    st, body, _ = upload(path, name, USER_ID, "Image", "image/png")  # "Decal" ids do not work in ImageLabels
     if st >= 300:
         raise RuntimeError(f"upload {name}: HTTP {st} {body[:300]}")
     op = json.loads(body)["path"]
@@ -67,7 +67,7 @@ def write_config(manifest, args, icon_index):
         for c in range(tiles):
             e = manifest.get(f"tile_{r}_{c}")
             row.append(f'"rbxassetid://{e["assetId"]}"' if e and e.get("assetId") else '""')
-        ids.append("\t\t{ " + ", ".join(row) + " },")
+        ids.append("\t{ " + ", ".join(row) + " },")
     atlas = manifest.get("blips")
     atlas_id = f'"rbxassetid://{atlas["assetId"]}"' if atlas and atlas.get("assetId") else '""'
     icon_lines = []
@@ -135,7 +135,7 @@ def main():
         if args.no_upload:
             print(f"{key}: changed, not uploaded (--no-upload)")
             continue
-        asset_id, moderation = upload_image(path, f"HotwireCity minimap {key}")
+        asset_id, moderation = upload_image(path, f"HotwireCity minimap {key}")  # assetType Image
         manifest[key] = {"assetId": asset_id, "sha256": h, "file": os.path.relpath(path, ROOT),
                          "moderation": moderation, "uploaded": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
         print(f"{key}: uploaded -> {asset_id} ({moderation})")

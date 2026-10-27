@@ -404,13 +404,161 @@ def tint_base(key, target=0.82, contrast=0.8):
     Image.fromarray((np.stack([lum] * 3, -1) * 255).astype(np.uint8)).save(os.path.join(OUT, f"{key}_tint.png"))
 
 
+# ----------------------------------------------------------------------------- grime decals (RGBA)
+def grime_atlas(atlas):
+    """Dirt overlays (alpha-blended decal quads in front of walls). 4 bands of 1024x256, each tiles in u:
+    base   : ground splash / rising damp (dark at the bottom, fades up)
+    streak : rain streaks hanging from sills / cornices (dark at the top, fading down)
+    soot   : soft roof-edge / parapet weathering
+    leak   : rust drip from AC units / metal (brown streaks)"""
+    H = 256
+    sheet = np.zeros((1024, 1024, 4), np.float32)
+    xs = np.arange(1024, dtype=np.float32)
+    def tile_noise(h, cells, seed):
+        n = smooth_noise(h, 1024 + 64, cells, seed)[:, :1024]
+        # make it tile in u by cross-fading the ends
+        k = 64
+        w = np.linspace(0, 1, k, dtype=np.float32)[None, :]
+        n2 = n.copy()
+        n2[:, :k] = n[:, :k] * w + n[:, -k:] * (1 - w)
+        return n2
+    yy = np.linspace(0, 1, H, dtype=np.float32)[:, None]   # 0 = top of band image
+    # base grime: alpha high at bottom (yy=1)
+    n1, n2 = tile_noise(H, 24, 11), tile_noise(H, 96, 12)
+    edge = 0.55 + 0.45 * tile_noise(1, 40, 13)[0][None, :]
+    a = np.clip((yy - (1 - edge * 0.9)) / (edge * 0.9), 0, 1) ** 1.6
+    a = a * (0.55 + 0.45 * n1) * (0.8 + 0.4 * n2)
+    sheet[0:H, :, :3] = np.array([0.16, 0.14, 0.12])
+    sheet[0:H, :, 3] = np.clip(a * 0.85, 0, 1)
+    # streaks: dark at top, columns of varying length
+    r = np.random.default_rng(21)
+    cols = np.zeros(1024, np.float32)
+    lens = np.zeros(1024, np.float32)
+    x = 0
+    while x < 1024:
+        w = int(r.integers(6, 40))
+        cols[x:x + w] = r.uniform(0.25, 1.0)
+        lens[x:x + w] = r.uniform(0.25, 1.0)
+        x += w + int(r.integers(0, 30))
+    cols = np.convolve(cols, np.ones(9) / 9, mode="same")
+    lens = np.convolve(lens, np.ones(9) / 9, mode="same")
+    fall = np.clip(1 - yy / np.maximum(lens[None, :], 0.05), 0, 1) ** 1.3
+    a = fall * cols[None, :] * (0.7 + 0.3 * tile_noise(H, 64, 22))
+    a[:6] *= np.linspace(0.3, 1, 6)[:, None]
+    sheet[H:2 * H, :, :3] = np.array([0.12, 0.11, 0.10])
+    sheet[H:2 * H, :, 3] = np.clip(a * 0.7, 0, 1)
+    # soot: broad soft darkening from the top
+    n3 = tile_noise(H, 16, 31)
+    a = np.clip(1 - yy * (1.2 + 0.8 * n3), 0, 1) ** 1.8 * (0.6 + 0.4 * tile_noise(H, 80, 32))
+    sheet[2 * H:3 * H, :, :3] = np.array([0.10, 0.10, 0.10])
+    sheet[2 * H:3 * H, :, 3] = np.clip(a * 0.6, 0, 1)
+    # rust leak
+    sheet[3 * H:4 * H, :, :3] = np.array([0.32, 0.17, 0.08])
+    sheet[3 * H:4 * H, :, 3] = np.clip(fall * cols[None, ::-1] * 0.75, 0, 1)
+    for i, k in enumerate(("base", "streak", "soot", "leak")):
+        atlas["grime"][k] = [0.0, 1 - (i + 1) * H / 1024 + 2 / 1024, 1.0, 1 - i * H / 1024 - 2 / 1024]
+    Image.fromarray((np.clip(sheet, 0, 1) * 255).astype(np.uint8), "RGBA").save(os.path.join(OUT, "grime.png"))
+
+
+# ----------------------------------------------------------------------------- brand sheet
+BLADES = [("FLAMINGO", "Limelight", (232, 96, 140), (248, 246, 238)),
+          ("BREEZE", "Righteous", (0, 140, 150), (248, 246, 238)),
+          ("CORONADO", "Limelight", (40, 70, 120), (246, 240, 226)),
+          ("SEA SPRAY", "Righteous", (230, 120, 60), (248, 246, 238))]
+WIDE = [  # 512x96 name boards: towers, warehouses, hotels, strip malls
+    ("PACIFIC TRUST", "Oswald", (226, 196, 120), (24, 26, 30)),
+    ("MERIDIAN", "Oswald", (235, 235, 235), (30, 34, 40)),
+    ("HALCYON TOWER", "Limelight", (220, 200, 150), (36, 32, 30)),
+    ("VANTAGE", "Oswald", (255, 255, 255), (12, 70, 120)),
+    ("BAYVIEW LOGISTICS", "Oswald", (255, 255, 255), (20, 60, 120)),
+    ("KESTREL STEEL CO.", "Oswald", (30, 30, 30), (236, 190, 40)),
+    ("OCEANSIDE FREIGHT", "Oswald", (255, 255, 255), (170, 30, 30)),
+    ("HOTEL CORONADO", "Limelight", (40, 70, 120), (246, 240, 226)),
+    ("THE SANDPIPER", "Limelight", (230, 110, 120), (248, 246, 238)),
+    ("PALM PLAZA", "Righteous", (255, 255, 255), (28, 110, 100)),
+    ("QUIK STOP 24/7", "Bungee", (255, 255, 255), (200, 30, 40)),
+    ("PUMP & GO", "Bungee", (255, 255, 255), (16, 70, 160)),
+]
+
+
+def brand_atlas(atlas):
+    S = 2
+    img = Image.new("RGB", (1024 * S, 1024 * S), (60, 60, 60))
+    d = ImageDraw.Draw(img)
+    rect = lambda x0, y0, x1, y1: [x0 / 1024, 1 - y1 / 1024, x1 / 1024, 1 - y0 / 1024]
+    # vertical blades: x 0..512, y 0..768
+    for j, (text, fn, fg, bg) in enumerate(BLADES):
+        x0 = 128 * j * S
+        d.rectangle([x0, 0, x0 + 128 * S, 768 * S], fill=fg)
+        d.rectangle([x0 + 7 * S, 7 * S, x0 + 121 * S, 761 * S], fill=bg)
+        t = text.replace(" ", "")
+        step = 736 / len(t)
+        for k, ch in enumerate(t):
+            cy = 16 + k * step
+            draw_fit(d, (x0 + 16 * S, cy * S, x0 + 112 * S, (cy + step - 8) * S), ch, fn, fg, 120 * S)
+        atlas["brands"][f"blade{j}"] = rect(128 * j + 2, 2, 128 * (j + 1) - 2, 766)
+        atlas["brand_names"][f"blade{j}"] = text
+    # wide boards: x 512..1024, rows of 64 (12 rows -> y 0..768)
+    for i, (text, fn, fg, bg) in enumerate(WIDE):
+        y0 = i * 64 * S
+        x0 = 512 * S
+        d.rectangle([x0, y0, x0 + 512 * S, y0 + 64 * S], fill=bg)
+        draw_fit(d, (x0 + 20 * S, y0 + 9 * S, x0 + 492 * S, y0 + 55 * S), text, fn, fg, 46 * S)
+        atlas["brands"][f"wide{i}"] = rect(514, i * 64 + 2, 1022, (i + 1) * 64 - 2)
+        atlas["brand_names"][f"wide{i}"] = text
+    # gas price board 160x256 at (0,768)
+    x0, y0 = 0, 768 * S
+    d.rectangle([x0, y0, x0 + 160 * S, y0 + 256 * S], fill=(16, 70, 160))
+    draw_fit(d, (x0 + 10 * S, y0 + 8 * S, x0 + 150 * S, y0 + 60 * S), "PUMP&GO", "Bungee", (255, 255, 255), 40 * S)
+    for k, (lab, pr) in enumerate((("REG", "4.89"), ("PLUS", "5.09"), ("DSL", "5.39"))):
+        yy = y0 + (72 + k * 60) * S
+        d.rectangle([x0 + 8 * S, yy, x0 + 152 * S, yy + 52 * S], fill=(12, 12, 14))
+        draw_fit(d, (x0 + 12 * S, yy + 6 * S, x0 + 56 * S, yy + 46 * S), lab, "Oswald", (255, 255, 255), 26 * S)
+        draw_fit(d, (x0 + 60 * S, yy + 4 * S, x0 + 148 * S, yy + 48 * S), pr, "Oswald", (255, 60, 40), 44 * S)
+    atlas["brands"]["gasprice"] = rect(2, 770, 158, 1022)
+    # gas logo square 128 at (160, 768)
+    x0 = 160 * S
+    d.rectangle([x0, y0, x0 + 128 * S, y0 + 128 * S], fill=(16, 70, 160))
+    d.ellipse([x0 + 14 * S, y0 + 14 * S, x0 + 114 * S, y0 + 114 * S], fill=(250, 200, 30))
+    draw_fit(d, (x0 + 24 * S, y0 + 36 * S, x0 + 104 * S, y0 + 92 * S), "P&G", "Bungee", (16, 70, 160), 40 * S)
+    atlas["brands"]["gaslogo"] = rect(162, 770, 286, 894)
+    # canopy fascia stripe 288..1024 x 768..832 : brand blue with yellow + red stripes (tiles in u)
+    x0, x1 = 288 * S, 1024 * S
+    d.rectangle([x0, y0, x1, y0 + 64 * S], fill=(16, 70, 160))
+    d.rectangle([x0, y0 + 40 * S, x1, y0 + 48 * S], fill=(250, 200, 30))
+    d.rectangle([x0, y0 + 50 * S, x1, y0 + 56 * S], fill=(210, 30, 40))
+    atlas["brands"]["fascia"] = rect(290, 770, 1022, 830)
+    # posters 4 x (96x128) at (160+128.., 832)
+    posters = [("COLD\nBEER", (200, 30, 40), (255, 255, 255)), ("LOTTO", (250, 200, 30), (20, 20, 20)),
+               ("ATM", (20, 120, 60), (255, 255, 255)), ("2 FOR\n$5", (255, 255, 255), (200, 30, 40)),
+               ("ICE", (30, 120, 200), (255, 255, 255)), ("OPEN", (20, 20, 20), (255, 60, 60))]
+    for k, (t, bg, fg) in enumerate(posters):
+        px, py = (288 + k * 120) * S, (840) * S
+        d.rectangle([px, py, px + 112 * S, py + 176 * S], fill=bg)
+        lines = t.split("\n")
+        for li, ln in enumerate(lines):
+            hh = 150 / len(lines)
+            draw_fit(d, (px + 8 * S, py + (12 + li * hh) * S, px + 104 * S, py + (12 + (li + 1) * hh - 6) * S), ln, "Bungee", fg, 48 * S)
+        atlas["brands"][f"poster{k}"] = rect(288 + k * 120 + 1, 841, 288 + k * 120 + 111, 1015)
+    # diner roof sign 128x128 at (160, 896): "EAT"
+    x0, yb = 160 * S, 896 * S
+    d.rectangle([x0, yb, x0 + 128 * S, yb + 128 * S], fill=(200, 20, 30))
+    draw_fit(d, (x0 + 10 * S, yb + 20 * S, x0 + 118 * S, yb + 108 * S), "EAT", "Bungee", (255, 240, 200), 70 * S)
+    atlas["brands"]["eat"] = rect(162, 898, 286, 1022)
+    img = img.resize((1024, 1024), Image.LANCZOS)
+    img.save(os.path.join(OUT, "brands.png"))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    atlas = {"windows": {}, "awnings": {}, "signs": {}, "sign_names": {}}
+    atlas = {"windows": {}, "awnings": {}, "signs": {}, "sign_names": {}, "grime": {}, "brands": {}, "brand_names": {}}
     window_atlases(atlas)
     awning_atlas(atlas)
     sign_atlas(atlas)
-    for k, tgt, c in (("stucco", 0.86, 0.9), ("brick_painted", 0.8, 0.9), ("plaster", 0.84, 0.7)):
+    grime_atlas(atlas)
+    brand_atlas(atlas)
+    for k, tgt, c in (("stucco", 0.86, 0.9), ("brick_painted", 0.8, 0.9), ("plaster", 0.84, 0.7),
+                      ("metal_siding", 0.78, 1.0), ("cmu", 0.74, 0.9), ("precast", 0.8, 0.8)):
         tint_base(k, tgt, c)
     with open(os.path.join(OUT, "atlas.json"), "w") as f:
         json.dump(atlas, f, indent=1)

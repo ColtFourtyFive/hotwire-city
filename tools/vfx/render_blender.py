@@ -241,7 +241,7 @@ def bent_sheet(name, w, h, cuts, material):
     ob.scale = (w, h, 1)
     bpy.ops.object.transform_apply(scale=True)
     ob.data.materials.append(material)
-    add_modifier(ob, "SOLIDIFY", thickness=0.01)
+    # no Solidify: Cycles shades both sides of a single sheet; thickness made the bill read as a wad
     bend = add_modifier(ob, "SIMPLE_DEFORM", deform_method="BEND", deform_axis="Y", angle=0.0)
     shade_smooth(ob)
     return ob, bend
@@ -261,7 +261,7 @@ def cash_flutter():
     axis = Vector((0.25, 0.55, 0.8)).normalized()
 
     def pose(i, t):
-        bend.angle = math.radians(55) * math.sin(2 * math.pi * t)
+        bend.angle = math.radians(30) * math.sin(2 * math.pi * t)
         pivot.matrix_world = (Matrix.Rotation(t * 2 * math.pi, 4, axis) @ Matrix.Rotation(math.radians(70), 4, "X"))
 
     render_frames("cash_flutter", pose, 256)
@@ -281,7 +281,7 @@ def confetti():
     axis = Vector((0.6, 0.35, 0.72)).normalized()
 
     def pose(i, t):
-        bend.angle = math.radians(35) * math.sin(2 * math.pi * t + 0.6)
+        bend.angle = math.radians(40) * math.sin(2 * math.pi * t + 0.6)
         pivot.matrix_world = Matrix.Rotation(t * 2 * math.pi, 4, axis) @ Matrix.Rotation(math.radians(60), 4, "X")
 
     render_frames("confetti", pose, 128)

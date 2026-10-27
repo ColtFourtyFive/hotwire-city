@@ -14,11 +14,11 @@ Minimap.WORLD_SIZE = 2048
 Minimap.TILE_COUNT = 2
 Minimap.TILE_PIXELS = 1024
 Minimap.TILES = {
-		{ "rbxassetid://125342931892275", "rbxassetid://105556853474800" },
-		{ "rbxassetid://120529464584703", "rbxassetid://109037026982585" },
+		{ "rbxassetid://117519932574490", "rbxassetid://125804761967084" },
+		{ "rbxassetid://84265254994123", "rbxassetid://71493891656879" },
 }
 -- Blip atlas (tools/minimap/icons.py): name -> { x, y, w, h } in atlas pixels.
-Minimap.ATLAS = "rbxassetid://123534770759333"
+Minimap.ATLAS = "rbxassetid://120282250823159"
 Minimap.ATLAS_CELLS = {
 	garage = { 0, 0, 64, 64 },
 	car = { 64, 0, 64, 64 },

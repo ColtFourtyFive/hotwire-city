@@ -1,37 +1,37 @@
 {
-  "tile_0_0": {
-    "assetId": 125342931892275,
-    "sha256": "337b2a4db559dd7ed7120016f000b1a6802a3482c7cc6781e21251fbc0f4c481",
-    "file": "assets/minimap/tile_0_0.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T15:43:35Z"
-  },
-  "tile_0_1": {
-    "assetId": 105556853474800,
-    "sha256": "4e4c9b3a1f959763300dafaa02894b4624beda078f063df82ea5b8b49f56dbec",
-    "file": "assets/minimap/tile_0_1.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T15:43:39Z"
-  },
-  "tile_1_0": {
-    "assetId": 120529464584703,
-    "sha256": "dab3567d18e54eb5c4319c049e076555ec51a13617b804d24ee3942f7ead7413",
-    "file": "assets/minimap/tile_1_0.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T15:43:43Z"
-  },
-  "tile_1_1": {
-    "assetId": 109037026982585,
-    "sha256": "06e91b254d01758c737555653b5092d40d6d2ee03c80c864f320682549496530",
-    "file": "assets/minimap/tile_1_1.png",
-    "moderation": "Approved",
-    "uploaded": "2026-10-27T15:43:47Z"
-  },
   "blips": {
-    "assetId": 123534770759333,
+    "assetId": 120282250823159,
     "sha256": "07feb381cbc70ba65fe7c1a04a0afe991c79dc8203cf5f7ab39d6bc76288430d",
     "file": "assets/minimap/blips.png",
     "moderation": "Approved",
-    "uploaded": "2026-10-27T15:43:51Z"
+    "uploaded": "2026-10-27T15:44:17Z"
+  },
+  "tile_0_0": {
+    "assetId": 117519932574490,
+    "sha256": "337b2a4db559dd7ed7120016f000b1a6802a3482c7cc6781e21251fbc0f4c481",
+    "file": "assets/minimap/tile_0_0.png",
+    "moderation": "Approved",
+    "uploaded": "2026-10-27T15:44:49Z"
+  },
+  "tile_0_1": {
+    "assetId": 125804761967084,
+    "sha256": "4e4c9b3a1f959763300dafaa02894b4624beda078f063df82ea5b8b49f56dbec",
+    "file": "assets/minimap/tile_0_1.png",
+    "moderation": "Approved",
+    "uploaded": "2026-10-27T15:44:54Z"
+  },
+  "tile_1_0": {
+    "assetId": 84265254994123,
+    "sha256": "dab3567d18e54eb5c4319c049e076555ec51a13617b804d24ee3942f7ead7413",
+    "file": "assets/minimap/tile_1_0.png",
+    "moderation": "Approved",
+    "uploaded": "2026-10-27T15:44:58Z"
+  },
+  "tile_1_1": {
+    "assetId": 71493891656879,
+    "sha256": "06e91b254d01758c737555653b5092d40d6d2ee03c80c864f320682549496530",
+    "file": "assets/minimap/tile_1_1.png",
+    "moderation": "Approved",
+    "uploaded": "2026-10-27T15:45:02Z"
   }
 }
