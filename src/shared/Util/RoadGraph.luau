@@ -93,6 +93,22 @@ local BROAD_CELL = 128 -- broadphase cell for splitting segments
 local KEY_SPAN = 2 ^ 21
 local EPS = 1e-9
 
+-- Point at param t along a -> b, computed in double precision and snapped to 1/1024 stud so grid intersections land
+-- exactly on their integer coordinates (Vector3 is single precision: a:Lerp(b, t) drifts by ~1e-4).
+local Q = 1024
+local function lerpExact(a: Vector3, b: Vector3, t: number): Vector3
+	if t <= 0 then
+		return a
+	elseif t >= 1 then
+		return b
+	end
+	return Vector3.new(
+		math.round((a.X + (b.X - a.X) * t) * Q) / Q,
+		math.round((a.Y + (b.Y - a.Y) * t) * Q) / Q,
+		math.round((a.Z + (b.Z - a.Z) * t) * Q) / Q
+	)
+end
+
 local function cellKey(cx: number, cz: number): number
 	return (cx + KEY_SPAN) * (KEY_SPAN * 2) + (cz + KEY_SPAN)
 end
@@ -299,7 +315,7 @@ function RoadGraph.build(segments: { RoadSegment }?): Graph
 		local prevT = -math.huge
 		for _, t in params do
 			if prevNode == nil or (t - prevT) * len > snap * 0.5 then
-				local node = nodeAt(s.a:Lerp(s.b, t), level)
+				local node = nodeAt(lerpExact(s.a, s.b, t), level)
 				if prevNode and node ~= prevNode then
 					local a, b = prevNode, node
 					local key = math.min(a, b) .. ":" .. math.max(a, b)
@@ -393,7 +409,7 @@ local function projectEdge(self: Graph, e: number, pos: Vector3): (number, Vecto
 	local dx, dz = b.X - a.X, b.Z - a.Z
 	local len2 = dx * dx + dz * dz
 	local t = if len2 > EPS then math.clamp(((pos.X - a.X) * dx + (pos.Z - a.Z) * dz) / len2, 0, 1) else 0
-	local p = a:Lerp(b, t)
+	local p = lerpExact(a, b, t)
 	return t, p, (p - pos).Magnitude
 end
 
@@ -770,7 +786,7 @@ function RoadGraph.projectToPolyline(points: { Vector3 }, pos: Vector3): (number
 			bestD, bestI, bestT = d, i, t
 		end
 	end
-	return math.sqrt(bestD), bestI, bestT, points[bestI]:Lerp(points[bestI + 1], bestT)
+	return math.sqrt(bestD), bestI, bestT, lerpExact(points[bestI], points[bestI + 1], bestT)
 end
 
 return RoadGraph

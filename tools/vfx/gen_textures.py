@@ -46,171 +46,203 @@ def generator(fn):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-# shared building blocks
+# smoke family: a lit union of spheres (cauliflower billows) with noise-eroded, fluffy edges
 # ----------------------------------------------------------------------------------------------------------------
-def blob_cluster(size, rng, blobs, spread=0.42, rmin=0.16, rmax=0.34, squash=1.0):
-    """Soft union of gaussian blobs. blobs: count; returns density field [0, 1]."""
-    x, y = grid(size)
-    acc = np.ones((size, size), dtype=np.float32)
-    centers = []
-    for i in range(blobs):
-        a = rng.uniform(0, 2 * math.pi)
-        d = spread * math.sqrt(rng.uniform(0, 1)) * (0.25 if i == 0 else 1.0)
-        cx, cy = math.cos(a) * d, math.sin(a) * d * squash
-        r = rng.uniform(rmin, rmax) * (1.35 if i == 0 else 1.0)
-        centers.append((cx, cy, r))
-        g = np.exp(-((x - cx) ** 2 + ((y - cy) / max(squash, 0.3)) ** 2 * squash) / (2 * (r * 0.55) ** 2))
-        acc *= 1 - g * 0.92
-    return 1 - acc, centers
-
-
-def billow(size, rng, blobs=11, erosion=0.35, warp_amt=0.0, squash=1.0, detail=1.0, spread=0.42, rmin=0.16,
-           rmax=0.34, light_strength=1.4, contrast=0.5, specks=0):
-    """A lit, cauliflower-edged smoke volume. Returns (gray, alpha)."""
-    dens, _ = blob_cluster(size, rng, blobs, spread=spread, rmin=rmin, rmax=rmax, squash=squash)
-    n1 = spectral_noise(size, size, rng, beta=2.2, fmin=3)
-    n2 = spectral_noise(size, size, rng, beta=1.6, fmin=8)
-    if warp_amt > 0:
-        wx = spectral_noise(size, size, rng, beta=2.6, fmin=2)
-        wy = spectral_noise(size, size, rng, beta=2.6, fmin=2)
-        ys, xs = np.mgrid[0:size, 0:size].astype(np.float32)
-        dens = sample_bilinear(dens, xs + (wx - 0.5) * warp_amt * size, ys + (wy - 0.5) * warp_amt * size)
-        n1 = sample_bilinear(n1, xs + (wx - 0.5) * warp_amt * size * 0.5, ys + (wy - 0.5) * warp_amt * size * 0.5)
-    noise = 0.65 * n1 + 0.35 * n2 * detail + (1 - detail) * 0.175
-    d = dens * (1 - erosion + erosion * 1.6 * noise) - erosion * 0.25
-    x, y = grid(size)
-    r = np.sqrt(x * x + y * y)
-    d *= smoothstep(1.0, 0.8, r)
-    alpha = smoothstep(0.02, 0.55, d)
-    alpha = np.power(alpha, 1.15)
-    lit = shade_from_density(alpha, strength=light_strength, soften=size / 90)
-    vertical = 0.5 - 0.5 * y  # brighter on top
-    gray = 1 - contrast + contrast * (0.55 * lit + 0.45 * vertical)
-    gray += (n2 - 0.5) * 0.08
-    if specks:
-        sx = rng.uniform(-0.85, 0.85, specks)
-        sy = rng.uniform(-0.85, 0.85, specks)
-        sr = rng.uniform(0.006, 0.02, specks)
-        sp = np.zeros_like(alpha)
-        for i in range(specks):
-            dd = ((x - sx[i]) ** 2 + (y - sy[i]) ** 2) / (sr[i] ** 2)
-            sp = np.maximum(sp, np.exp(-dd) * rng.uniform(0.5, 1.0))
-        ring = smoothstep(0.35, 0.75, r) * smoothstep(0.98, 0.85, r)
-        alpha = np.maximum(alpha, sp * ring)
-    alpha = edge_fade(alpha, size * 0.02)
-    return np.clip(gray, 0, 1), alpha
-
-
-def frame_cells(make_frame, count, cell, cols, supersample=2):
-    frames = []
+def make_spheres(rng, count, spread, rmin, rmax, squash=1.0, core_scale=1.45):
+    sph = []
     for i in range(count):
-        t = i / max(count - 1, 1)
-        img = make_frame(i, t, cell * supersample)
-        if supersample != 1:
-            img = resize(img, (cell, cell))
-        frames.append(img)
-    return atlas(frames, cols)
+        a = rng.uniform(0, 2 * math.pi)
+        d = spread * math.sqrt(rng.uniform(0.05, 1)) * (0.15 if i == 0 else 1.0)
+        r = rng.uniform(rmin, rmax) * (core_scale if i == 0 else 1.0)
+        sph.append([math.cos(a) * d, math.sin(a) * d * squash, rng.uniform(-0.2, 0.25), r, math.cos(a), math.sin(a)])
+    return sph
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# smoke family
-# ----------------------------------------------------------------------------------------------------------------
+def ring_spheres(rng, rings, jitter=0.25, squash=1.0):
+    """Rounder clusters: rings of (ring radius, count, sphere radius); center spheres sit in front."""
+    sph = []
+    for (R, n, r) in rings:
+        a0 = rng.uniform(0, 2 * math.pi)
+        for k in range(n):
+            a = a0 + k * 2 * math.pi / max(n, 1) + rng.uniform(-jitter, jitter) / max(n, 1) * 6
+            d = R * rng.uniform(0.85, 1.12)
+            rr = r * rng.uniform(0.8, 1.2)
+            sph.append([math.cos(a) * d, math.sin(a) * d * squash, 0.35 - R * 0.9 + rng.uniform(-0.08, 0.08), rr,
+                        math.cos(a), math.sin(a)])
+    return sph
+
+
+def sphere_field(size, spheres, grow=1.0, drift=0.0, rise=0.0, rscale=1.0):
+    """Height field + normals of the union of spheres (front-most surface wins)."""
+    x, y = grid(size)
+    H = np.full((size, size), -9.0, dtype=np.float32)
+    nx = np.zeros_like(H)
+    ny = np.zeros_like(H)
+    nz = np.ones_like(H)
+    for (cx, cy, cz, r, dx, dy) in spheres:
+        px = (cx + dx * drift) * grow
+        py = (cy + dy * drift) * grow - rise
+        rr = r * rscale * grow
+        d2 = (x - px) ** 2 + (y - py) ** 2
+        inside = d2 < rr * rr
+        h = np.sqrt(np.maximum(rr * rr - d2, 0)) + cz * rr
+        upd = inside & (h > H)
+        H = np.where(upd, h, H)
+        nx = np.where(upd, (x - px) / rr, nx)
+        ny = np.where(upd, (y - py) / rr, ny)
+        nz = np.where(upd, np.sqrt(np.maximum(rr * rr - d2, 0)) / rr, nz)
+    cover = (H > -8).astype(np.float32)
+    return H, nx, ny, nz, cover
+
+
+def puff_image(size, spheres, rng_noise, t=0.0, grow=1.0, drift=0.0, rise=0.0, rscale=1.0, erosion=0.25,
+               fluff=0.22, contrast=0.62, opacity=1.0, wisp=0.0, grit=0.0, light=(-0.45, -0.8, 0.55)):
+    """Render a puff. rng_noise: dict of precomputed noise fields (n1, n2, n3, wx, wy) at `size`."""
+    n1, n2, n3, wx, wy = (rng_noise[k] for k in ("n1", "n2", "n3", "wx", "wy"))
+    H, nx, ny, nz, cover = sphere_field(size, spheres, grow, drift, rise, rscale)
+    # smooth the facets (smoke is soft) + a gentle low-frequency bump
+    soft = size / 110.0
+    nx, ny, nz = blur(nx, soft), blur(ny, soft), blur(nz, soft)
+    gy, gx = np.gradient(blur(n1, size / 120.0))
+    bump = size / 70.0
+    nx = nx - gx * bump
+    ny = ny - gy * bump
+    inv = 1.0 / np.sqrt(nx * nx + ny * ny + nz * nz + 1e-6)
+    nx, ny, nz = nx * inv, ny * inv, nz * inv
+    lx, ly, lz = light
+    ll = math.sqrt(lx * lx + ly * ly + lz * lz)
+    ndl = (nx * lx + ny * ly + nz * lz) / ll
+    wrap = 0.45
+    diffuse = np.clip((ndl + wrap) / (1 + wrap), 0, 1)
+    rim = np.power(np.clip(1 - nz, 0, 1), 2.5) * 0.18
+    Hc = np.where(cover > 0, H, 0)
+    ao = np.clip(1 + (Hc - blur(Hc, size / 14.0)) * 2.6, 0.5, 1.08)
+    x, y = grid(size)
+    under = 0.88 + 0.12 * np.clip(-y * 1.2 + 0.2, -1, 1)  # undersides a touch darker
+    gray = (1 - contrast) + contrast * diffuse * ao * under + rim
+    gray += (n2 - 0.5) * 0.05
+    # alpha: thickness from height, eroded by multi-scale noise -> fluffy, translucent fringe
+    Hn = np.clip(Hc / (np.max(Hc) + 1e-6), 0, 1)
+    e = 0.5 * n1 + 0.3 * n2 + 0.2 * n3
+    a = Hn * 1.6 + (e - 0.5) * fluff * 2.6 - erosion * (0.35 + 1.0 * e)
+    alpha = smoothstep(0.0, 0.55, a) * cover
+    alpha *= 0.62 + 0.38 * smoothstep(0.0, 0.55, Hn)
+    alpha = blur(alpha, size / 220.0)
+    if grit > 0:
+        g = spectral_noise(size, size, np.random.default_rng(5), beta=0.4, fmin=60)
+        alpha *= 1 - grit * (1 - g) * 0.9
+    img = rgba(np.clip(gray, 0, 1), np.clip(alpha * opacity, 0, 1))
+    if wisp > 0:
+        ys, xs = np.mgrid[0:size, 0:size].astype(np.float32)
+        amt = wisp * size
+        sx = xs + (wx - 0.5) * amt
+        sy = ys + (wy - 0.5) * amt
+        img = np.stack([sample_bilinear(img[..., c], sx, sy) for c in range(4)], axis=-1)
+    img[..., 3] = edge_fade(img[..., 3], size * 0.025)
+    return img
+
+
+def noise_set(size, seed, wisp_scale=2.6):
+    rng = np.random.default_rng(seed)
+    return {
+        "n1": spectral_noise(size, size, rng, beta=2.0, fmin=4),
+        "n2": spectral_noise(size, size, rng, beta=1.5, fmin=10),
+        "n3": spectral_noise(size, size, rng, beta=1.0, fmin=28),
+        "wx": spectral_noise(size, size, rng, beta=wisp_scale, fmin=2),
+        "wy": spectral_noise(size, size, rng, beta=wisp_scale, fmin=2),
+    }
+
+
 @generator
 def smoke_puff_a():
     rng = np.random.default_rng(101)
-    g, a = billow(512, rng, blobs=13, erosion=0.32)
-    return save(rgba(g, a), "smoke_puff_a")
+    sph = make_spheres(rng, 28, 0.52, 0.14, 0.27, core_scale=1.15)
+    img = puff_image(1024, sph, noise_set(1024, 11), erosion=0.26, fluff=0.36, wisp=0.02)
+    return save(resize(img, (512, 512)), "smoke_puff_a")
 
 
 @generator
 def smoke_puff_b():
     rng = np.random.default_rng(202)
-    g, a = billow(512, rng, blobs=16, erosion=0.38, squash=0.78, spread=0.5, rmin=0.13, rmax=0.28, warp_amt=0.05)
-    return save(rgba(g, a), "smoke_puff_b")
+    sph = make_spheres(rng, 26, 0.58, 0.14, 0.29, squash=0.75)
+    img = puff_image(1024, sph, noise_set(1024, 22), erosion=0.28, wisp=0.03)
+    return save(resize(img, (512, 512)), "smoke_puff_b")
 
 
 @generator
 def smoke_puff_c():
-    rng = np.random.default_rng(303)
-    g, a = billow(512, rng, blobs=9, erosion=0.55, warp_amt=0.16, detail=1.3, contrast=0.4, rmax=0.3)
-    return save(rgba(g, a), "smoke_puff_c")
+    rng = np.random.default_rng(313)
+    sph = make_spheres(rng, 16, 0.5, 0.17, 0.32)
+    img = puff_image(1024, sph, noise_set(1024, 33), erosion=0.42, fluff=0.4, wisp=0.09, contrast=0.4,
+                     opacity=0.92)
+    return save(resize(img, (512, 512)), "smoke_puff_c")
 
 
 @generator
 def dust_puff():
     rng = np.random.default_rng(404)
-    g, a = billow(512, rng, blobs=14, erosion=0.5, warp_amt=0.08, detail=1.6, contrast=0.55, squash=0.85,
-                  specks=70)
-    # grainier, drier body
-    grain = spectral_noise(512, 512, rng, beta=0.6, fmin=40)
-    a = a * (0.82 + 0.18 * grain)
-    return save(rgba(g * (0.92 + 0.08 * grain), a), "dust_puff")
-
-
-def evolving_smoke(seed, cells=16, cell=256, wispy=False):
-    rng = np.random.default_rng(seed)
-    S = cell * 2
-    blobs = []
-    for i in range(14 if not wispy else 9):
-        a = rng.uniform(0, 2 * math.pi)
-        d = 0.36 * math.sqrt(rng.uniform(0, 1)) * (0.2 if i == 0 else 1)
-        blobs.append((math.cos(a) * d, math.sin(a) * d, rng.uniform(0.14, 0.3) * (1.4 if i == 0 else 1),
-                      math.cos(a), math.sin(a)))
-    n1 = spectral_noise(S, S, rng, beta=2.2, fmin=3)
-    n2 = spectral_noise(S, S, rng, beta=1.6, fmin=8)
-    wx = spectral_noise(S, S, rng, beta=2.6, fmin=2)
-    wy = spectral_noise(S, S, rng, beta=2.6, fmin=2)
-    x, y = grid(S)
-    ys, xs = np.mgrid[0:S, 0:S].astype(np.float32)
+    sph = make_spheres(rng, 28, 0.5, 0.13, 0.25, squash=0.72, core_scale=1.2)
+    img = puff_image(1024, sph, noise_set(1024, 44), erosion=0.4, fluff=0.45, wisp=0.05, contrast=0.5,
+                     grit=0.45)
+    # flying grit specks around the cloud
+    x, y = grid(1024)
     r = np.sqrt(x * x + y * y)
-
-    def make(i, t, size):
-        grow = 0.62 + 0.38 * (1 - (1 - t) ** 2)
-        acc = np.ones((S, S), dtype=np.float32)
-        for (cx, cy, rr, dx, dy) in blobs:
-            ex = 0.12 * t
-            px, py = (cx + dx * ex) * grow, (cy + dy * ex - 0.08 * t) * grow
-            sig = rr * 0.55 * (0.8 + 0.45 * t)
-            gg = np.exp(-((x - px) ** 2 + (y - py) ** 2) / (2 * sig * sig))
-            acc *= 1 - gg * 0.9
-        dens = 1 - acc
-        wamt = (0.05 + 0.22 * t) * S * (1.6 if wispy else 1.0)
-        rot = t * 0.6
-        sx = xs + (wx - 0.5) * wamt + math.cos(rot) * 9 * t * S / 256
-        sy = ys + (wy - 0.5) * wamt - 14 * t * S / 256
-        dens = sample_bilinear(dens, xs + (wx - 0.5) * wamt * 0.6, ys + (wy - 0.5) * wamt * 0.6)
-        noise = 0.65 * sample_bilinear(n1, sx, sy) + 0.35 * sample_bilinear(n2, sx * 1.0 + 7 * t, sy)
-        erosion = (0.28 if not wispy else 0.45) + 0.42 * t
-        d = dens * (1 - erosion + erosion * 1.7 * noise) - erosion * 0.3
-        d *= smoothstep(1.0, 0.82, r)
-        alpha = np.power(smoothstep(0.02, 0.5 if not wispy else 0.65, d), 1.1)
-        alpha *= 1 - 0.35 * smoothstep(0.55, 1.0, t)
-        lit = shade_from_density(alpha, strength=1.3 if not wispy else 0.9, soften=S / 90)
-        vertical = 0.5 - 0.5 * y
-        contrast = 0.5 if not wispy else 0.32
-        gray = 1 - contrast + contrast * (0.55 * lit + 0.45 * vertical) + (n2 - 0.5) * 0.06
-        alpha = edge_fade(alpha, S * 0.03)
-        return rgba(gray, alpha)
-
-    return _cells_downsampled(make, cells, cell, S)
+    sp = np.zeros((1024, 1024), dtype=np.float32)
+    for _ in range(46):
+        a = rng.uniform(0, 2 * math.pi)
+        d = rng.uniform(0.55, 0.9)
+        sx, sy, sr = math.cos(a) * d, math.sin(a) * d * 0.85, rng.uniform(0.004, 0.009)
+        sp = np.maximum(sp, np.exp(-((x - sx) ** 2 + (y - sy) ** 2) / (sr * sr)) * rng.uniform(0.6, 1))
+    a_ = np.maximum(img[..., 3], sp * smoothstep(0.98, 0.9, r))
+    img[..., 3] = a_
+    img[..., :3] = np.where((sp > 0.05)[..., None] & (img[..., 3:4] < 0.2), 0.45, img[..., :3])
+    return save(resize(img, (512, 512)), "dust_puff")
 
 
-def _cells_downsampled(make, cells, cell, S):
+def evolving_puff(seed, cells=16, cell=256, wispy=False):
+    S = cell * 2
+    rng = np.random.default_rng(seed)
+    if wispy:
+        sph = ring_spheres(rng, [(0.0, 1, 0.3), (0.26, 6, 0.2), (0.48, 10, 0.15)], jitter=0.5)
+    else:
+        sph = ring_spheres(rng, [(0.0, 1, 0.32), (0.27, 6, 0.21), (0.5, 9, 0.17)], jitter=0.35)
+    ns = noise_set(S, seed + 1)
     frames = []
     for i in range(cells):
         t = i / (cells - 1)
-        frames.append(resize(make(i, t, S), (cell, cell)))
+        e = 1 - (1 - t) ** 2
+        grow = 0.86 + 0.34 * e
+        img = puff_image(
+            S, sph, _shift_noise(ns, t, S),
+            grow=grow, drift=0.06 * e, rise=0.03 * t, rscale=1.0 + 0.05 * t,
+            erosion=(0.3 if wispy else 0.18) + 0.75 * t,
+            fluff=(0.5 if wispy else 0.26) + 0.25 * t,
+            wisp=(0.06 if wispy else 0.015) + (0.1 if wispy else 0.07) * t,
+            contrast=(0.4 if wispy else 0.62) - 0.1 * t,
+            opacity=(0.8 if wispy else 1.0) * (1 - 0.3 * smoothstep(0.6, 1.0, t)),
+        )
+        frames.append(resize(img, (cell, cell)))
     return atlas(frames, 4)
+
+
+def _shift_noise(ns, t, S):
+    """Noise drifts up + swirls over the flipbook (sampling offset grows with t)."""
+    ys, xs = np.mgrid[0:S, 0:S].astype(np.float32)
+    ox, oy = 18 * t * S / 256, 30 * t * S / 256
+    out = {}
+    for k, f in ns.items():
+        out[k] = sample_bilinear(f, xs + ox * (1 if k in ("n1", "wx") else -0.6), ys + oy)
+    return out
 
 
 @generator
 def smoke_flipbook():
-    return save(evolving_smoke(505), "smoke_flipbook")
+    return save(evolving_puff(505), "smoke_flipbook")
 
 
 @generator
 def tire_smoke():
-    return save(evolving_smoke(606, wispy=True), "tire_smoke")
+    return save(evolving_puff(606, wispy=True), "tire_smoke")
 
 
 # ----------------------------------------------------------------------------------------------------------------
