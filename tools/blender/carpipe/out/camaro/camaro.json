@@ -40,14 +40,14 @@
       "radius": 1.0605,
       "width": 0.8124,
       "part_center": [
-        -0.1997,
+        -2.7827,
         1.0605,
-        -1.8406
+        -4.7799
       ],
       "attachment_offset": [
-        -2.583,
         0.0,
-        -2.9393
+        0.0,
+        -0.0
       ],
       "axle": [
         1,
@@ -67,14 +67,14 @@
       "radius": 1.0605,
       "width": 0.8124,
       "part_center": [
-        0.2084,
+        2.7827,
         1.0605,
-        -1.8406
+        -4.7799
       ],
       "attachment_offset": [
-        2.5743,
         0.0,
-        -2.9393
+        0.0,
+        0.0
       ],
       "axle": [
         1,
@@ -94,14 +94,14 @@
       "radius": 1.0605,
       "width": 0.8124,
       "part_center": [
-        -0.1997,
+        -2.7827,
         1.0605,
-        3.9998
+        4.7799
       ],
       "attachment_offset": [
-        -2.583,
         0.0,
-        0.7801
+        0.0,
+        -0.0
       ],
       "axle": [
         1,
@@ -121,14 +121,14 @@
       "radius": 1.0605,
       "width": 0.8124,
       "part_center": [
-        0.2084,
+        2.7827,
         1.0605,
-        3.9998
+        4.7799
       ],
       "attachment_offset": [
-        2.5743,
+        -0.0,
         0.0,
-        0.7801
+        -0.0
       ],
       "axle": [
         1,
@@ -270,7 +270,7 @@
       "tris": 376,
       "bbox_min": [
         -3.1043,
-        0.6421,
+        1.1017,
         -7.2014
       ],
       "bbox_max": [
@@ -280,8 +280,8 @@
       ],
       "textures": {
         "metal": "textures/camaro_Trim_metal.png",
-        "rough": "textures/camaro_Trim_rough.png",
         "normal": "textures/camaro_Trim_normal.png",
+        "rough": "textures/camaro_Trim_rough.png",
         "base": "textures/camaro_Trim_base.png",
         "ao": "textures/camaro_Trim_ao.png"
       }
@@ -294,35 +294,35 @@
         -5.8462
       ],
       "bbox_max": [
-        2.7895,
+        -2.3765,
         2.121,
-        2.165
+        -3.7136
       ],
       "textures": {
-        "metal": "textures/camaro_Wheel_metal.png",
-        "rough": "textures/camaro_Wheel_rough.png",
         "normal": "textures/camaro_Wheel_normal.png",
+        "rough": "textures/camaro_Wheel_rough.png",
         "base": "textures/camaro_Wheel_base.png",
+        "metal": "textures/camaro_Wheel_metal.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     },
     "WheelFR": {
       "tris": 630,
       "bbox_min": [
-        -2.7722,
+        2.3765,
         0.0,
         -5.8462
       ],
       "bbox_max": [
         3.189,
         2.121,
-        2.165
+        -3.7136
       ],
       "textures": {
-        "metal": "textures/camaro_Wheel_metal.png",
-        "rough": "textures/camaro_Wheel_rough.png",
         "normal": "textures/camaro_Wheel_normal.png",
+        "rough": "textures/camaro_Wheel_rough.png",
         "base": "textures/camaro_Wheel_base.png",
+        "metal": "textures/camaro_Wheel_metal.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     },
@@ -331,27 +331,27 @@
       "bbox_min": [
         -3.189,
         0.0,
-        2.1534
+        3.7136
       ],
       "bbox_max": [
-        2.7895,
+        -2.3765,
         2.121,
         5.8462
       ],
       "textures": {
-        "metal": "textures/camaro_Wheel_metal.png",
-        "rough": "textures/camaro_Wheel_rough.png",
         "normal": "textures/camaro_Wheel_normal.png",
+        "rough": "textures/camaro_Wheel_rough.png",
         "base": "textures/camaro_Wheel_base.png",
+        "metal": "textures/camaro_Wheel_metal.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     },
     "WheelRR": {
       "tris": 630,
       "bbox_min": [
-        -2.7722,
+        2.3765,
         0.0,
-        2.1534
+        3.7136
       ],
       "bbox_max": [
         3.189,
@@ -359,10 +359,10 @@
         5.8462
       ],
       "textures": {
-        "metal": "textures/camaro_Wheel_metal.png",
-        "rough": "textures/camaro_Wheel_rough.png",
         "normal": "textures/camaro_Wheel_normal.png",
+        "rough": "textures/camaro_Wheel_rough.png",
         "base": "textures/camaro_Wheel_base.png",
+        "metal": "textures/camaro_Wheel_metal.png",
         "ao": "textures/camaro_Wheel_ao.png"
       }
     }
