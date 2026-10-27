@@ -288,6 +288,51 @@ function WorldGen.polyOffset(pts: { P2 }, d: number): { P2 }
 	return out
 end
 
+-- Offset with a per-vertex distance dOf(i, s) (s = arc length of vertex i): lanes added / dropped, flared medians.
+function WorldGen.polyOffsetVar(pts: { P2 }, dOf: (number, number) -> number): { P2 }
+	local n = #pts
+	local out: { P2 } = table.create(n)
+	local s = 0
+	for i = 1, n do
+		if i > 1 then
+			s += WorldGen.dist(pts[i - 1].x, pts[i - 1].z, pts[i].x, pts[i].z)
+		end
+		local seg = { pts[math.max(1, i - 1)], pts[i], pts[math.min(n, i + 1)] }
+		local one = WorldGen.polyOffset(seg, dOf(i, s))
+		table.insert(out, one[2])
+	end
+	return out
+end
+
+-- Turn angle (radians, 0 = straight) at the interior vertices of a polyline; returns the largest and where.
+function WorldGen.maxTurn(pts: { any }): (number, number)
+	local worst, at = 0, 0
+	for i = 2, #pts - 1 do
+		local a, b, c = pts[i - 1], pts[i], pts[i + 1]
+		local ax, az = b.x - a.x, b.z - a.z
+		local bx, bz = c.x - b.x, c.z - b.z
+		local la, lb = math.sqrt(ax * ax + az * az), math.sqrt(bx * bx + bz * bz)
+		if la > 1e-6 and lb > 1e-6 then
+			local cosT = math.clamp((ax * bx + az * bz) / (la * lb), -1, 1)
+			local t = math.acos(cosT)
+			if t > worst then
+				worst, at = t, i
+			end
+		end
+	end
+	return worst, at
+end
+
+-- 32-bit FNV-1a of a string (bake fingerprints).
+function WorldGen.fnv32(s: string): number
+	local h = 0x811C9DC5
+	for i = 1, #s do
+		h = bit32.bxor(h, string.byte(s, i))
+		h = (h * 0x193 + bit32.lshift(h, 24)) % 4294967296 -- h * 16777619 mod 2^32
+	end
+	return h
+end
+
 -- Arc points around (cx, cz) radius r from angle a0 to a1 (radians, Roblox XZ: angle 0 = +X, pi/2 = +Z).
 function WorldGen.arc(cx: number, cz: number, r: number, a0: number, a1: number, step: number?): { P2 }
 	local n = math.max(2, math.ceil(math.abs(a1 - a0) * r / (step or 40)))
@@ -992,11 +1037,13 @@ end
 
 export type Arc = { to: number, edge: number, cost: number }
 
+-- cost(i, forward) overrides the default (edge length), e.g. travel time + junction delay at the arrival node.
 function WorldGen.arcs(
 	nNodes: number,
 	edges: { any },
 	oneWay: (number) -> boolean,
-	usable: ((number) -> boolean)?
+	usable: ((number) -> boolean)?,
+	cost: ((number, boolean) -> number)?
 ): { { Arc } }
 	local out: { { Arc } } = table.create(nNodes)
 	for i = 1, nNodes do
@@ -1004,13 +1051,189 @@ function WorldGen.arcs(
 	end
 	for i, e in edges do
 		if usable == nil or usable(i) then
-			table.insert(out[e.a], { to = e.b, edge = i, cost = e.length })
+			table.insert(out[e.a], { to = e.b, edge = i, cost = if cost then cost(i, true) else e.length })
 			if not oneWay(i) then
-				table.insert(out[e.b], { to = e.a, edge = -i, cost = e.length })
+				table.insert(out[e.b], { to = e.a, edge = -i, cost = if cost then cost(i, false) else e.length })
 			end
 		end
 	end
 	return out
+end
+
+-- Arcs reversed (to -> from), for "everyone drives to one target" fields.
+function WorldGen.reverseArcs(nNodes: number, arcs: { { Arc } }): { { Arc } }
+	local out: { { Arc } } = table.create(nNodes)
+	for i = 1, nNodes do
+		out[i] = {}
+	end
+	for from = 1, nNodes do
+		for _, a in arcs[from] do
+			table.insert(out[a.to], { to = from, edge = a.edge, cost = a.cost })
+		end
+	end
+	return out
+end
+
+-- Binary heap keyed by f (ties by node id, so results never depend on insertion order).
+type Heap = { n: { number }, f: { number } }
+
+local function heapPush(h: Heap, node: number, f: number)
+	local heapN, heapF = h.n, h.f
+	table.insert(heapN, node)
+	table.insert(heapF, f)
+	local i = #heapN
+	while i > 1 do
+		local p = i // 2
+		if heapF[p] > heapF[i] or (heapF[p] == heapF[i] and heapN[p] > heapN[i]) then
+			heapN[p], heapN[i] = heapN[i], heapN[p]
+			heapF[p], heapF[i] = heapF[i], heapF[p]
+			i = p
+		else
+			break
+		end
+	end
+end
+
+local function heapPop(h: Heap): number
+	local heapN, heapF = h.n, h.f
+	local top = heapN[1]
+	local lastN, lastF = table.remove(heapN) :: number, table.remove(heapF) :: number
+	local size = #heapN
+	if size > 0 then
+		heapN[1], heapF[1] = lastN, lastF
+		local i = 1
+		while true do
+			local l, r = i * 2, i * 2 + 1
+			local m = i
+			if l <= size and (heapF[l] < heapF[m] or (heapF[l] == heapF[m] and heapN[l] < heapN[m])) then
+				m = l
+			end
+			if r <= size and (heapF[r] < heapF[m] or (heapF[r] == heapF[m] and heapN[r] < heapN[m])) then
+				m = r
+			end
+			if m == i then
+				break
+			end
+			heapN[m], heapN[i] = heapN[i], heapN[m]
+			heapF[m], heapF[i] = heapF[i], heapF[m]
+			i = m
+		end
+	end
+	return top
+end
+
+-- Dijkstra from several seeded nodes ({ [node] = start cost }). Returns (cost per node, arc taken into each node as
+-- signed edge id, predecessor node). With reverseArcs this is a cost-to-target field: next hop = pred.
+function WorldGen.dijkstra(
+	nNodes: number,
+	arcs: { { Arc } },
+	seeds: { [number]: number }
+): ({ number }, { number }, { number })
+	local dist = table.create(nNodes, math.huge)
+	local viaEdge = table.create(nNodes, 0)
+	local pred = table.create(nNodes, 0)
+	local closed = table.create(nNodes, false)
+	local h: Heap = { n = {}, f = {} }
+	local keys: { number } = {}
+	for node in seeds do
+		table.insert(keys, node)
+	end
+	table.sort(keys)
+	for _, node in keys do
+		local c = seeds[node]
+		if c < dist[node] then
+			dist[node] = c
+			heapPush(h, node, c)
+		end
+	end
+	while #h.n > 0 do
+		local n = heapPop(h)
+		if closed[n] then
+			continue
+		end
+		closed[n] = true
+		for _, arc in arcs[n] do
+			local w = arc.to
+			local nd = dist[n] + arc.cost
+			if nd < dist[w] then
+				dist[w] = nd
+				viaEdge[w] = arc.edge
+				pred[w] = n
+				heapPush(h, w, nd)
+			end
+		end
+	end
+	return dist, viaEdge, pred
+end
+
+-- A* between seeded starts ({ [node] = cost to reach it from the true start }) and goals ({ [node] = cost from it to
+-- the true goal}). hScale turns straight-line distance into the cost unit (1 / max speed for travel-time costs; must
+-- keep the heuristic admissible). Returns (signed edge ids, start node, goal node, total cost) or nil.
+function WorldGen.astarMulti(
+	arcs: { { Arc } },
+	nodePos: (number) -> (number, number),
+	starts: { [number]: number },
+	goals: { [number]: number },
+	tx: number,
+	tz: number,
+	hScale: number
+): ({ number }?, number, number, number)
+	local g: { [number]: number } = {}
+	local parentEdge: { [number]: number } = {}
+	local parentNode: { [number]: number } = {}
+	local closed: { [number]: boolean } = {}
+	local h: Heap = { n = {}, f = {} }
+	local function heur(n: number): number
+		local x, z = nodePos(n)
+		return WorldGen.dist(x, z, tx, tz) * hScale
+	end
+	local keys: { number } = {}
+	for node in starts do
+		table.insert(keys, node)
+	end
+	table.sort(keys)
+	for _, node in keys do
+		g[node] = starts[node]
+		heapPush(h, node, starts[node] + heur(node))
+	end
+	local best, bestNode = math.huge, 0
+	while #h.n > 0 do
+		local n = heapPop(h)
+		if closed[n] then
+			continue
+		end
+		closed[n] = true
+		local gn = g[n]
+		if gn + heur(n) >= best then
+			break -- admissible heuristic: nothing left in the heap can beat the best goal found
+		end
+		local goalCost = goals[n]
+		if goalCost ~= nil and gn + goalCost < best then
+			best, bestNode = gn + goalCost, n
+		end
+		for _, arc in arcs[n] do
+			local w = arc.to
+			if not closed[w] then
+				local ng = gn + arc.cost
+				if g[w] == nil or ng < g[w] then
+					g[w] = ng
+					parentEdge[w] = arc.edge
+					parentNode[w] = n
+					heapPush(h, w, ng + heur(w))
+				end
+			end
+		end
+	end
+	if bestNode == 0 then
+		return nil, 0, 0, math.huge
+	end
+	local path: { number } = {}
+	local cur = bestNode
+	while starts[cur] == nil or parentNode[cur] ~= nil and g[cur] ~= starts[cur] do
+		table.insert(path, 1, parentEdge[cur])
+		cur = parentNode[cur]
+	end
+	return path, cur, bestNode, best
 end
 
 -- Strongly connected components (iterative Kosaraju). Returns (componentOf, count, sizeOfLargest, idOfLargest).
