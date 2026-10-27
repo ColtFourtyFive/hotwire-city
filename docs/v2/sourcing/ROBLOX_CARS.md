@@ -32,6 +32,7 @@
      - Patrol `14746413121`: 463k tris.
      - Mercedes `97965573521866`: 422k tris, and a backdoor.
      - Police "interceptor" `113053967699143`: a 2010-era brick-built sedan made of 183 Parts, not an SUV.
+   - **Scout correction:** the Explorer-style police SUV in `scout_0003_cars_sheet.jpg` is `16390639371` ("T488"). It is the right-most car, #1 in insertion order; the report swapped its description with #3. It is mapped here as an extra (§6) and is the actual police-SUV candidate: about 300k tris, no backdoor pattern.
 4. **Wheels are separable on 10 of 11 cars**, so a runtime rig can spin them. The box truck is one 5k-tri mesh with its wheels baked in.
    - On the A-Chassis cars, spinning parts (`Wheels/XX/Parts`) are already split from non-spinning parts (`Wheels/XX/Fixed` or `WheelFixed`).
 5. **Scale:** most cars are within ±15 % of 1 stud = 0.28 m. Each map JSON has `suggested_uniform_scale`.

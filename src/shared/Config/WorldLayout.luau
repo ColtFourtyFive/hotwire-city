@@ -1408,7 +1408,7 @@ do
 		end
 	end
 end
-local H2end = corridorTail(H2, 160, "H2 Port Expressway", "highway", { lanes = 2, median = 6, yMode = "ground" })
+corridorTail(H2, 160, "H2 Port Expressway", "highway", { lanes = 2, median = 6, yMode = "ground" })
 
 -- H9: Sunwood Canyon freeway north from the ring to the Coast Highway at Hidden Cove.
 local H9center: { P2 } = WorldGen.fillet({
@@ -1435,7 +1435,7 @@ do
 		end
 	end
 end
-local H9end = corridorTail(H9, 170, "H9 Sunwood Freeway", "highway", { lanes = 2, median = 6, yMode = "ground" })
+corridorTail(H9, 170, "H9 Sunwood Freeway", "highway", { lanes = 2, median = 6, yMode = "ground" })
 
 -------------------------------------------------------------------------------------------------------------------------
 -- 4b. Arterials (boulevards / avenues), rural highways, hill roads, port, airport, pier, channel
@@ -1446,7 +1446,7 @@ local function smooth(ctrl: { { number } }, r: number?): { P2 }
 end
 
 -- Palmera Drive: beachfront boulevard (palms in a wide median), north end becomes Cliffside Road.
-local palmera = addWay(
+addWay(
 	"Palmera Drive",
 	"boulevard",
 	smooth(
@@ -1482,7 +1482,7 @@ local mission = addWay(
 	{ lanes = 2, median = 10, parking = true }
 )
 
-local sunwood = addWay(
+addWay(
 	"Sunwood Boulevard",
 	"avenue",
 	smooth({
@@ -1524,14 +1524,14 @@ local harbor = addWay(
 	{ lanes = 2, median = 6, parking = false, bridges = {} }
 )
 
-local gilded = addWay(
+addWay(
 	"Gilded Mile",
 	"avenue",
 	smooth({ { -3380, -1600 }, { -2900, -1150 }, { -2300, -620 }, { -1700, -60 }, { -1240, 360 } }, 900),
 	{ lanes = 2, median = 18, parking = true, sidewalk = 14 }
 )
 
-local vista = addWay(
+addWay(
 	"Vista Avenue",
 	"avenue",
 	smooth(
@@ -1541,14 +1541,14 @@ local vista = addWay(
 	{ lanes = 2, median = 8, parking = true }
 )
 
-local foundryAve = addWay(
+addWay(
 	"Foundry Avenue",
 	"avenue",
 	smooth({ { 2430, -1960 }, { 2400, -1000 }, { 2400, -250 }, { 2420, 660 }, { 2440, 1600 }, { 2450, 2950 } }),
 	{ lanes = 2, median = 0, parking = true }
 )
 
-local riverside = addWay(
+addWay(
 	"Riverside Drive",
 	"street",
 	smooth({ { 2080, -2025 }, { 2080, -1000 }, { 2075, 0 }, { 2080, 1000 }, { 2085, 2000 }, { 2085, 2290 } }),
@@ -1562,7 +1562,7 @@ local airportBlvd = addWay(
 	{ lanes = 3, median = 12 }
 )
 
-local southgateAve = addWay(
+addWay(
 	"Southgate Avenue",
 	"avenue",
 	smooth({
@@ -1579,7 +1579,7 @@ local southgateAve = addWay(
 )
 
 -- Airport terminal loop (one-way) + Palmera Drive's south link.
-local terminalLoop = addWay(
+addWay(
 	"Terminal Drive",
 	"avenue",
 	smooth({
@@ -1616,7 +1616,7 @@ addWay(
 )
 
 -- Coast Highway: the scenic loop (divided rural highway) from Hidden Cove around the north and east coast to Rust Flats.
-local coastHwy = addWay(
+addWay(
 	"Coast Highway",
 	"highway",
 	smooth({
@@ -1645,7 +1645,7 @@ local coastHwy = addWay(
 	{ lanes = 2, median = 16 }
 )
 
-local cliffside = addWay(
+addWay(
 	"Cliffside Road",
 	"rural",
 	smooth(
@@ -1656,7 +1656,7 @@ local cliffside = addWay(
 )
 
 -- Red Mesa Road: Crown Boulevard's rural continuation through Cactus Junction to the east coast.
-local redMesa = addWay(
+addWay(
 	"Red Mesa Road",
 	"rural",
 	smooth({
@@ -1671,7 +1671,7 @@ local redMesa = addWay(
 	{ lanes = 1 }
 )
 
-local foothill = addWay(
+addWay(
 	"Foothill Road",
 	"rural",
 	smooth(
@@ -1681,7 +1681,7 @@ local foothill = addWay(
 	{ lanes = 1 }
 )
 
-local dustbowl = addWay(
+addWay(
 	"Dustbowl Road",
 	"rural",
 	smooth({ { 4330, -560 }, { 4300, 300 }, { 4100, 1200 }, { 4200, 2100 }, { 4420, 2650 }, { 4650, 3330 } }, 600),
@@ -1824,7 +1824,7 @@ addWay(
 )
 
 -- Iron Bay: terminal ring road + container road.
-local terminalWay = addWay(
+addWay(
 	"Terminal Way",
 	"avenue",
 	smooth({
@@ -3116,9 +3116,7 @@ for _, node in Nodes do
 		control = "merge"
 	elseif classes.pier or classes.channel or classes.runway or classes.service then
 		control = "yield"
-	elseif hasRamp then
-		control = "signal"
-	elseif majors >= 2 then
+	elseif hasRamp or majors >= 2 then
 		control = "signal"
 	elseif majors == 1 then
 		control = if URBAN[district] then "signal" else "stop"
@@ -4866,7 +4864,6 @@ do
 		if not e.parking or e.layer ~= 0 or e.bridge then
 			continue
 		end
-		local pts = edgePts[ei].pts
 		local s0 = nodeRadius(e.a) + 26
 		local s1 = e.length - nodeRadius(e.b) - 26
 		local laneSide = e.width / 2 - S.PARKING_LANE / 2

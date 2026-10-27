@@ -16,8 +16,13 @@
 --   flipbook            { layout = "Grid2x2" | "Grid4x4" | "Grid8x8", mode = "Loop" | "OneShot" | "PingPong" |
 --                         "Random", fps = { min, max }?, startRandom = boolean? }
 --   orientation         Enum.ParticleOrientation name;  emissionDirection: Enum.NormalId name
---   pool                burst slots in the ring (one emitter each; concurrent bursts with different colors need
---                       different slots because Color/Size changes apply to live particles too)
+--   pool                burst slots normally in use (one emitter each). Color/Size changes apply to particles still
+--                       in the air, so a burst only re-looks an idle slot; a busy pool grows to 2x (POOL_HARD_CAP)
+--   velocityInheritance ParticleEmitter.VelocityInheritance (0..1): the share of the parent part's velocity a particle
+--                       keeps (emitters on moving cars, e.g. the exhaust backfire)
+--   tierSize            streams only: Size follows the quality tier's sizeScale (big translucent smoke is fill-rate
+--                       bound on phones, not particle-count bound)
+--   cost                streams only: budget weight per particle (default 1; big smoke counts more than a spark)
 
 export type NumKey = { t: number, v: number, e: number? }
 export type ColorKey = { t: number, c: Color3 }
@@ -48,6 +53,9 @@ export type Preset = {
 	timeScale: number?,
 	flipbook: Flipbook?,
 	pool: number?,
+	velocityInheritance: number?,
+	tierSize: boolean?,
+	cost: number?,
 }
 export type TrailPreset = {
 	texture: string,
@@ -79,8 +87,24 @@ export type BeamPreset = {
 	faceCamera: boolean,
 	segments: number,
 }
-export type SpritePreset = { texture: string, size: number, lightInfluence: number, maxDistance: number }
-export type QualityTier = { rate: number, count: number, maxParticles: number, trailLife: number, extras: boolean }
+-- towardCamera: studs the sprite is pulled toward the camera (BillboardGui.StudsOffset Z) so the car body it sits on
+-- does not clip it.
+export type SpritePreset = {
+	texture: string,
+	size: number,
+	lightInfluence: number,
+	maxDistance: number,
+	towardCamera: number?,
+}
+-- sizeScale: Size multiplier for tierSize streams (fill rate), trailLife: Trail.Lifetime multiplier.
+export type QualityTier = {
+	rate: number,
+	count: number,
+	maxParticles: number,
+	trailLife: number,
+	sizeScale: number,
+	extras: boolean,
+}
 
 local function K(t: number, v: number, e: number?): NumKey
 	return { t = t, v = v, e = e }
@@ -169,12 +193,16 @@ VFX.FlipbookLayouts = {
 -------------------------------------------------------------------------------------------------------------------------
 -- Budget / quality
 -------------------------------------------------------------------------------------------------------------------------
-VFX.MAX_DISTANCE = 250 -- studs from the camera: farther effects are not emitted at all
+VFX.MAX_DISTANCE = 250 -- studs from the camera: farther library calls are not emitted (callers that cull may force)
 VFX.QUALITY_REFRESH = 5 -- seconds between re-reads of the player's graphics quality setting
+VFX.REBALANCE_INTERVAL = 0.75 -- seconds between re-rates of every active stream (load / tier changes)
+VFX.STREAM_SHARE = 0.6 -- share of the particle cap continuous streams may use (the rest is burst headroom)
+VFX.MIN_STREAM_SCALE = 0.25 -- throttled streams never drop below this share of their rate
+VFX.POOL_HARD_CAP = 12 -- burst slots per preset, however busy
 VFX.Quality = {
-	high = { rate = 1, count = 1, maxParticles = 1600, trailLife = 1, extras = true },
-	medium = { rate = 0.65, count = 0.7, maxParticles = 900, trailLife = 0.75, extras = true },
-	low = { rate = 0.4, count = 0.45, maxParticles = 500, trailLife = 0.5, extras = false },
+	high = { rate = 1, count = 1, maxParticles = 1600, trailLife = 1, sizeScale = 1, extras = true },
+	medium = { rate = 0.65, count = 0.7, maxParticles = 900, trailLife = 0.75, sizeScale = 0.75, extras = true },
+	low = { rate = 0.4, count = 0.45, maxParticles = 500, trailLife = 0.5, sizeScale = 0.6, extras = false },
 } :: { [string]: QualityTier }
 
 -- Speed fractions (of top speed) where the arcade "gearbox" upshifts: crossing one upward under throttle pops the
@@ -440,7 +468,10 @@ VFX.Presets = {
 		lifetime = { 0.16, 0.24 },
 		speed = { 6, 11 },
 		spread = { 12, 12 },
-		emissionDirection = "Top", -- bursts aim Top along BurstOpts.direction (the exhaust's rearward axis)
+		-- emitted from the car's own exhaust attachment (VFXLibrary.attach): chassis +Z is the rear, and the pop keeps
+		-- the car's velocity so it stays at the tailpipe instead of being left behind
+		emissionDirection = "Back",
+		velocityInheritance = 1,
 		rotation = { 0, 360 },
 		size = { K(0, 1.3), K(1, 2.8) },
 		transparency = { K(0, 0), K(1, 0.6) },
@@ -478,8 +509,11 @@ VFX.Presets = {
 		emissionDirection = "Back",
 		rotation = { 0, 360 },
 		rotSpeed = { -40, 40 },
-		size = { K(0, 1.6, 0.4), K(0.3, 5.5, 1), K(1, 11, 2) },
-		transparency = { K(0, 0.4), K(0.2, 0.25), K(1, 1) },
+		-- fill rate (phones): ends at 9 (+1.5) on high, x Quality.sizeScale on medium (6.75) / low (5.4)
+		size = { K(0, 1.4, 0.3), K(0.3, 4.6, 0.8), K(1, 9, 1.5) },
+		transparency = { K(0, 0.45), K(0.2, 0.32), K(1, 1) },
+		tierSize = true,
+		cost = 2,
 		color = { C(0, 240, 240, 246), C(1, 214, 214, 224) },
 		lightEmission = 0.04,
 		lightInfluence = 0.75,
@@ -495,16 +529,20 @@ VFX.Presets = {
 		speed = { 26, 36 },
 		spread = { 8, 8 },
 		emissionDirection = "Back",
-		rotation = { -15, 15 },
+		rotation = { 0, 360 },
+		rotSpeed = { -120, 120 },
 		size = { K(0, 2.6, 0.3), K(1, 0.8) },
-		squash = { K(0, 0.6), K(1, 0.3) },
+		squash = { K(0, 0.35), K(1, 0.1) }, -- slightly tall tongues, randomly rotated: a roiling afterburner
 		transparency = { K(0, 0), K(0.65, 0.25), K(1, 1) },
 		color = NITRO_COLOR,
 		lightEmission = 1,
 		lightInfluence = 0,
 		brightness = 2,
 		zOffset = 1,
-		orientation = "VelocityParallel", -- flame tips point away from the tailpipe
+		-- locked to the exhaust: a 3-7 stud plume that rides with the car at any boost speed (world-space particles
+		-- became a 20-stud dotted wake). Camera-facing so the chase cam (looking down the plume) still sees a flame;
+		-- the NitroJet beam carries the direction from the side.
+		lockedToPart = true,
 		flipbook = { layout = "Grid4x4", mode = "Loop", fps = { 24, 30 }, startRandom = true },
 	},
 	NitroCore = {
@@ -534,6 +572,8 @@ VFX.Presets = {
 		rotSpeed = { -25, 25 },
 		size = { K(0, 1.5, 0.4), K(1, 7.5, 1.5) },
 		transparency = { K(0, 0.4), K(1, 1) },
+		tierSize = true,
+		cost = 1.5,
 		color = { C(0, 190, 165, 125), C(1, 190, 165, 125) },
 		lightEmission = 0,
 		lightInfluence = 1,
@@ -550,6 +590,8 @@ VFX.Presets = {
 		emissionDirection = "Top",
 		size = { K(0, 3, 0.6), K(1, 5, 1) },
 		transparency = { K(0, 0.1), K(1, 1) },
+		tierSize = true,
+		cost = 1.5,
 		color = { C(0, 235, 248, 255), C(1, 205, 235, 255) },
 		lightEmission = 0.1,
 		lightInfluence = 0.7,
@@ -630,7 +672,7 @@ VFX.Beams = {
 } :: { [string]: BeamPreset }
 
 VFX.Sprites = {
-	SirenGlare = { texture = "glare", size = 7, lightInfluence = 0, maxDistance = 300 },
+	SirenGlare = { texture = "glare", size = 7, lightInfluence = 0, maxDistance = 300, towardCamera = 1.5 },
 } :: { [string]: SpritePreset }
 
 return VFX

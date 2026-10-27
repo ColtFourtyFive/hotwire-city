@@ -67,5 +67,81 @@
   "sha256": "c30d4113d452490af40963e708cf51b9c2adacf5fee30dc52889647fc8d2896a",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:07:57+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      4.3719,
+      9.3878,
+      2.1721
+    ],
+    "dims_m": [
+      4.372,
+      9.388,
+      2.172
+    ],
+    "front_evidence": "roof_offset=-0.15",
+    "flipped": true,
+    "mesh_objects": 23,
+    "triangles": 19252,
+    "materials": 18,
+    "material_names": [
+      ".001",
+      ".002",
+      ".003",
+      ".004",
+      ".005",
+      ".006",
+      ".007",
+      ".008",
+      ".009",
+      ".010",
+      ".011",
+      ".012",
+      ".014",
+      ".017",
+      ".019",
+      "Root",
+      "material",
+      "material_11"
+    ],
+    "textures": 10,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.002_0",
+      "LFW.003_0",
+      "LFW.001_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.001_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 1,
+    "object_names": [
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.000_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.002_0",
+      "LFW.003_0",
+      "LFW.001_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.001_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.001_0",
+      "Torus.001_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd_0.001",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.002_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.001_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.016_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.013_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.010_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.014_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.010_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.002_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd_1",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.004_0",
+      "\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd.012_0"
+    ],
+    "render_s": 38.1
+  }
 }

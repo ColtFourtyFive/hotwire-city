@@ -116,29 +116,31 @@ The loop adds three decision points that v1 lacked:
 | Parked cars (garage income) | Slot `uncollected` | Nobody. A thief gets the car, but its uncollected cash is paid to the victim first (v1 rule). | Collect pad → bank (Auto-Collect pass: every 60 s) |
 | Offline earnings, contracts, daily rewards, insurance, Robux cash | Bank | Nobody | Already safe |
 | Street income from driving an owned car | Wallet | Muggers, LOADED drop, BUSTED | Deposit |
-| Robberies, heists, truck, chop, jobs, bounties | Wallet | Same | Deposit |
-| **Deposit** | Wallet → bank | — | Enter your own garage at 0★: automatic and free. Or use an ATM at 0★: 2 s hold, 5% fee. |
+| Robberies, heists, truck, chop, jobs, bounties, trunk cash | Wallet | Same | Deposit |
+| **Deposit** | Wallet → bank | — | Enter your own garage at 0★: automatic and free. Or use an ATM at 0★: 2 s hold, 5% fee. Leaving the server at 0★ also banks the wallet: free, or minus 10% if you are LOADED and outside your garage (§10.3). |
 
 ### 1.3 First 5 minutes (second by second)
 
-New players are protected by rookie protection (30 min, gta_combat §8) and starter theft protection (§2.8). Help text appears in the GTA top-left box (UI §5.5); there are no centre cards.
+New players are protected by rookie protection (10 min, §2.8; HUD pill "ROOKIE 7:42 · tap to fight players") and starter theft protection (§2.8). Help text appears in the GTA top-left box (UI §5.5); there are no centre cards.
+
+**Framing.** Onboarding is a chain of numbered **contact missions** sent by text from "Dex" (a fixer contact in the phone). Each mission has exactly one objective line (bottom-centre), one GPS target, and ends with a **MISSION PASSED** shard and its reward. Only one new concept is taught per mission (Law 1). Flags live in `onboarding` (§9.1).
 
 | Time | Beat | What the player sees and does | Systems | Emotion |
 |---|---|---|---|---|
-| 0:00 | Spawn at home | The garage door rolls up. The owner sign reads "<Name>'s Garage". A Rustbucket on pad 1 ticks $3/s (`Economy.STARTER_CAR`). Help: "Cars in your garage earn money. Go steal another one." | PlotService, GarageService | Ownership |
-| 0:05 | One target | A GPS line and chevron to a Common car within 120 studs (v1 newbie guarantee) | StreetSpawnService | Clarity |
-| 0:12 | Hotwire | Hold E, or the big HOTWIRE button. A timing bar appears; tapping in the green cuts the hold 40% and makes it a **CLEAN** steal (no witness roll). | VehicleService prompt, HotwireClient | Skill |
-| 0:15 | Siren | **The first steal adds 1★ by script** (v1 gave 0★; brief G18). One slow "tutorial cruiser" chases, and it cannot bust you in this chase. | WantedService `tutorialChase` | Adrenaline |
-| 0:15–0:45 | Escape | Search circle on the minimap; break line of sight, the stars flash, then clear. "You evaded the police" plus the evade bonus. | WantedService (gta_combat §9.4 evade) | Relief |
-| 0:50 | Deliver | Drive into the drop-off. The car parks on pad 2 and income goes from $3/s to about $7/s. A reveal card shows rarity, finish and "1 in X" (§2.5). | GarageService, RevealController | Reward |
+| 0:00 | Spawn at home | The garage door rolls up. The owner sign reads "<Name>'s Garage". A Rustbucket on pad 1 ticks $3/s (`Economy.STARTER_CAR`). Help: "Cars in your garage earn money." Text from Dex: **Mission 1: "Get me a ride."** | PlotService, GarageService, OnboardingService | Ownership |
+| 0:05 | One target | GPS to the traffic signal outside the garage [world: every plot has a signal within 150 studs on the gameplay plan]. A scripted traffic car pulls up and stops at the red light. A big **JACK** button (keyboard F, gamepad Y) appears when you're within 8 studs. Fallback when the scripted car can't spawn: the v1 parked newbie car within 120 studs and a hotwire. | TrafficService `scriptedStop`, StreetSpawnService | Clarity |
+| 0:10 | **Jack** | Hold JACK 0.6 s. The NPC driver is thrown out and ragdolls (`NPCService.ejectComic`, realistic animation), shouting. You're in. | TrafficService carjack, NPCService | Power, the GTA moment |
+| 0:12 | Siren | **Scripted 2★** (`WantedService.tutorialChase`). Two tutorial cruisers that cannot bust or shoot, a cosmetic police heli flyover with searchlight, and one pursuer scripted to clip traffic and crash with sparks. | WantedService, PoliceService `tutorial` units | Adrenaline |
+| 0:15–0:45 | Escape | The search circle shrinks each time you break line of sight; it collapses fast enough that **"LOST THEM"** lands in 40 s or less. Evade bonus paid. | WantedService (gta_combat §9.4) | Relief |
+| 0:50 | Deliver | Drive into the drop-off. The car parks on pad 2. It is a Common with a **guaranteed Gold finish**, so income goes from $3/s to $13/s. Reveal card: "GOLD · street odds 1 in 21" (the true street odds of a Gold Common, computed as in §2.5; the card never claims this roll was random). Trunk roll (§2.5.1). **MISSION PASSED.** | GarageService, RevealController | Reward |
 | 1:00 | Rep 2 | Shard: "REP 2" | RepService | Growth |
 | 1:10 | Collect | Walk over the Collect pad: cash goes to the bank, with a cash delta top-right | GarageService | Ownership |
-| 1:20 | **The casino** | Help: "Drive your own car: it earns ×3 on the street, and more the longer you cruise. Your wallet is at risk until you bank it." Take the Rustbucket out. The HUD shows **WALLET +$9/s, STREET ×3.0**. | StreetIncomeService | Greed |
-| 2:00 | Car level | Feed: "Rustbucket LV 2: +3% income" | StreetIncomeService | Attachment |
-| 3:00 | The phone | A text from a contact: "Got you a piece. The corner store on <street> owes me." **Kessler P9 plus 2 magazines granted** (brief: free pistol in minutes 4–6) | onboarding beat flag `gun_gift` | Power |
-| 3:30 | Stick-up | Aim at the clerk, or the HOLD UP prompt. The register fills over 8 s; 1★, then 2★. | RobberyService | Thrill |
+| 1:20 | **Mission 2: "Bring me any blue car."** | This is the first chop-shop order, pulled forward. GPS to a parked blue car. **Hotwire:** hold the prompt; a bar fills, and releasing while it is in the green band makes a **CLEAN** steal (faster, no witness roll). Holding to the end also works. Deliver to the Chop Shop. MISSION PASSED (order ×1.5). | VehicleService prompt, HotwireClient, ChopShopService | Skill |
+| 2:00+ | Car level | Silent: the car's XP bar fills on the HUD. No feed line until LV 5. | StreetIncomeService | Attachment (quiet) |
+| 3:00 | **Mission 3: "The corner store owes me."** | Text from Dex: "Got you a piece." **Kessler P9 plus 2 magazines granted** (brief: free pistol in minutes 4–6). GPS to the nearest Kwik Stop. | onboarding flag `gun_gift` | Power |
+| 3:30 | Stick-up | Aim at the clerk, or the HOLD UP prompt. The register fills over 8 s; 1★, then 2★. The payout line itemises the multiplier: "$3,090 · ×1.5 WANTED 2★" (§3.1). | RobberyService | Thrill |
 | 4:00 | Getaway | A real 2★ chase. Cops only shoot if you are armed and firing (gta_combat §9.1). | PoliceService | Risk |
-| 4:45 | Bank it | Enter your garage at 0★: the wallet auto-deposits. Help: "Wallet = at risk. Bank = safe." | BankingService | Safety |
+| 4:45 | Home | Enter your garage at 0★: the wallet auto-deposits with a WALLET → BANK delta. **No wallet help text yet** (it comes with the first LOADED moment or when rookie protection ends). MISSION PASSED. | BankingService | Safety |
 | ~5:00 | Shared clock | Feed card: "ARMORED TRUCK leaving the depot in 0:30", shown at the next server pulse | EventClock | Anticipation |
 
 ### 1.4 First 30 minutes
@@ -146,34 +148,37 @@ New players are protected by rookie protection (30 min, gta_combat §8) and star
 | Minute | Beat / unlock | Hook |
 |---|---|---|
 | 5–8 | Mod Shop opens (Rep 2). Engine stage 1 on the Rustbucket costs $100, and the first paint job is free. | First per-car investment |
-| 5–10 | First armored truck. A rookie who grabs a bag sees a prompt: "Taking event loot ends your Rookie Protection." | Shared server moment |
-| 8–12 | Slot 5 ($1,500, `Economy.SLOT_PRICES[5]`). The first chop-shop order on the phone's Jobs app. | Goal gradient |
+| ~8 | **Mission 4: "The casino."** Help: "Drive your own car: it earns ×3 on the street. Near-misses, drifts and jumps push it higher." Take the Gold Common out. The HUD shows **WALLET +$30/s, STREET ×3.0** and the multiplier ticks up on the first near-miss. | Greed |
 | 8–10 | One-time Starter Pack offer in the phone (§8.3). Dismissible and never shown again. | Moment of desire |
-| 10–15 | Rep 5: **Vault bay 1** unlocks. Help: "Once you own 4 cars, other players can steal them. Park your best one in the Vault." | Loss aversion |
-| 10–15 | Party invite prompt when a friend is in the server. Quick-chat wheel unlocks. | Co-play |
+| 5–10 | First armored truck. A rookie who grabs a bag sees a prompt: "Taking event loot ends your Rookie Protection." | Shared server moment |
+| ~10 | **Rookie protection ends** (600 s), usually alongside the first truck. Shard: "PROTECTION OFF: other players can now rob you." Help, now and only now: "Wallet = at risk. Bank = safe. Your garage banks it for free." Your *cars* stay protected much longer (starter protection, §2.8). | Stakes |
+| 8–12 | Slot 5 ($1,500, `Economy.SLOT_PRICES[5]`). The chop order board in the phone's Jobs app (already met in Mission 2). | Goal gradient |
+| 10–15 | Rep 5: **Vault bay 1** unlocks. Help: "Your cars can't be kept by thieves until Rep 8 and 2 hours of play. Park your best one in the Vault before then." | Loss aversion |
+| 10–15 | Party invite prompt when a friend is in the server, plus **Invite friend** (`SocialService:PromptGameInvite`) in the party panel. Quick-chat wheel unlocks. | Co-play |
+| 15 | Playtime gift: an Uncommon car (reward-origin, trade-locked 14 days). | Surprise |
 | 12–18 | First Rare car (street or dealership, $7–11K). A server feed card shows someone's Legendary reveal. | Envy and social proof |
-| 15–25 | First LOADED moment: the wallet crosses `max(5,000, 300 s × G)` and a $ blip appears on everyone's map. | Greed vs risk |
-| 25–30 | Rookie protection ends. Shard: "PROTECTION OFF: other players can now rob you. Bank your wallet." | Stakes |
-| 25–30 | Big-pulse countdown in the feed: "Bank heist window opens in 4:00 (Rep 10, crew of 2+)". | Next-session hook |
+| 15–25 | First LOADED moment: the wallet crosses `max(5,000, 300 s × G)` and a $ blip appears on everyone's map. If the wallet help hasn't shown yet, it shows now. | Greed vs risk |
+| 25–30 | Big-pulse countdown in the feed: "Bank heist window opens in 4:00 (leader Rep 10, crew 1–4)". The heist lobby has an **Invite friend** button. | Next-session hook |
 
 ### 1.5 Day 1 (60–180 minutes over 2–3 sessions)
 
-- **Rep 10:**
-  - Pump shotgun.
-  - Bank heist, trading (once account and playtime gates pass), pawn shop.
-  - First Prestige becomes possible at $750K (`Economy.REBIRTH_BASE_COST`).
+- **Rep 10 (about 1 h):**
+  - Comrade AR and Pump shotgun; custom plates and underglow.
+  - Leading a bank heist, trading (once account and playtime gates pass), pawn shop, Epic cars at the dealership.
+  - First Prestige becomes possible at `max($750K, 10,800 s × G)` (§6.3), typically reached in session 2–3.
+- **About 2 h of play (Rep 8+):** starter protection ends; your cars can now be kept by thieves (§2.8).
 - **Garage:** 6–8 cars, the first Epic, and a favourite car at level 10, which unlocks Engine stage 3.
 - **First theft arc:** a carjack, either way.
-  - The victim gets an insurance cheque, a REVENGE mark and the repo window.
+  - The victim gets a REVENGE mark, the repo window and, if the car is kept, an insurance cheque.
   - The thief has to defend the lay-low bay for 5 minutes. This is the clip.
-- **First bank heist** with a party, in roles: driver, hacker, gunman and lookout.
+- **First bank heist,** solo or with a party, in roles: driver, hacker, gunman and lookout.
 - **Exit hook:** "Your garage earns about $X while you're away (6 h cap)" (v1 `OFFLINE_RATE 0.3`, `OFFLINE_CAP_HOURS 6`), plus "Heist window in 12:00".
 
 ### 1.6 Day 7 (8–16 hours total)
 
 - **Rep 25–32:**
-  - The Beachfront and Hills districts are comfortable.
-  - Carbine and marksman unlocked.
+  - The Beachfront and Hills districts are comfortable; Legendary (Rep 18) and Mythic (Rep 25) cars at the dealership.
+  - Carbine (Rep 14) and marksman (Rep 22) unlocked.
   - Vault bay 2 at Rep 25.
 - **Cars:**
   - Legendary and first Mythic cars, with a favourite car at level 15–25.
@@ -183,17 +188,18 @@ New players are protected by rookie protection (30 min, gta_combat §8) and star
   - Pink slips (Rep 15).
   - A regular crew, crew weekly contract, the Saturday Admin Abuse hour.
   - Season pass tier about 12–18 of 50.
-- **Status goals:** the Most Wanted board (longest at 5★), Best Garage (likes), Top Thief, Richest.
+- **Status goals:** the Most Wanted board (longest at 5★), Best Garage (likes), Top Thief, Richest, and wearing the **Server Crown** (§5.8).
 
 ### 1.7 The session (target 15–25 min) and the server clock
 
 1. **Join.** An email with offline earnings (bank), the daily objective and contracts in Pause › JOBS.
 2. **Collect** the garage. Check the order board and the pulse timer in the phone's Jobs app.
-3. **Choose a plan:**
-   - cruise a car to level it (XP plus wallet);
+3. **Choose a plan** (the map shows which stores, ATMs and the jewelry store are open, §3.13):
+   - drive a car hard to level it (XP plus wallet; stunts climb the multiplier);
    - chain robberies for the wanted multiplier;
    - fill a chop order;
-   - roam a richer district for spawns.
+   - roam a richer district for spawns;
+   - hunt the Server Crown or a LOADED blip.
 4. **Every 5-minute pulse:** the armored truck scramble.
 5. **Every 30-minute big pulse:** the heist window (party).
 6. **Before leaving:** bank the wallet. LOADED makes you the target.
@@ -209,7 +215,7 @@ New players are protected by rookie protection (30 min, gta_combat §8) and star
 |---|---|---|
 | 300 s (±0) | **Pulse:** armored truck, order-board refresh, dealership full restock | `DealershipService.RESTOCK_INTERVAL` 240 → **300** |
 | 600–900 s | Hot Drop (Legendary or better) | `Events.HOT_DROP_INTERVAL {360,540}` → **{600,900}** (brief: rare spawn every 10–15 min) |
-| 1,800 s | **Big pulse:** bank-heist window, open for 300 s | new |
+| 1,800 s | **Big pulse:** bank-heist window, open for 600 s | new |
 | 900 s cooldown | Jewelry store resets | new |
 | v1 random | Cash Rain, Rush Hour, 2× Cash (5 min) | `Events.*` unchanged |
 | v1 day/night (12 min day, 4 min night) | Night: street luck ×1.5 and +1 police unit per chase | `LightingService.isNight` |
