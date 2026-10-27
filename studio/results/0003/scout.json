@@ -778,5 +778,305 @@
    3,
    2
   ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 16269867210,
+  "name": "realistic, dynamic Shipping container",
+  "creator": "Rezkiy Productions",
+  "parts": 118,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   25,
+   8,
+   8
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 120215648673966,
+  "name": "Shipping Container Blue Storage Cargo Realistic",
+  "creator": "brotherffa_24876",
+  "parts": 134,
+  "meshParts": 0,
+  "textures": 8,
+  "scriptsRemoved": 1,
+  "size": [
+   15,
+   11,
+   38
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 1735022636,
+  "name": "Red Shipping Container (Closed)",
+  "creator": "xXTiny_DaveXx",
+  "parts": 115,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   30,
+   12,
+   12
+  ]
+ },
+ {
+  "category": "props_port",
+  "assetId": 13788653470,
+  "name": "Crane",
+  "creator": "simonlietuva",
+  "parts": 55,
+  "meshParts": 55,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   15,
+   49,
+   27
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 126414463808776,
+  "name": "Realistic Hood Apartment Building City Roleplay",
+  "creator": "Content Deleted - 158552482",
+  "parts": 210,
+  "meshParts": 3,
+  "textures": 0,
+  "scriptsRemoved": 6,
+  "size": [
+   48,
+   39,
+   57
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 75934961104200,
+  "name": "Realistic Apartment Buildings City Town Modern",
+  "creator": "Rigovota51",
+  "parts": 816,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   111,
+   44,
+   48
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 324146132,
+  "name": "Realistic Apartment Buildings",
+  "creator": "Zilcosi",
+  "parts": 816,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   111,
+   44,
+   48
+  ]
+ },
+ {
+  "category": "bld_apartment",
+  "assetId": 325256508,
+  "name": "Realistic Apartment Building w Billboards",
+  "creator": "Zilcosi",
+  "parts": 359,
+  "meshParts": 10,
+  "textures": 4,
+  "scriptsRemoved": 0,
+  "size": [
+   75,
+   33,
+   42
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 8744438793,
+  "name": "Realistic Modern Skyscraper (WITH OPTIMIZATION!)",
+  "creator": "Unit Box Games",
+  "parts": 1421,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   120,
+   565,
+   89
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 16063517134,
+  "name": "Realistic Skyscraper",
+  "creator": "DripWxter",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   69,
+   294,
+   111
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 76401662964478,
+  "name": "Realistic Skyscraper City Textures Photo Modern",
+  "creator": "Cyber766Craft",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 2,
+  "size": [
+   69,
+   294,
+   111
+  ]
+ },
+ {
+  "category": "bld_skyscraper",
+  "assetId": 117935217942431,
+  "name": "Realistic Skyscrapers",
+  "creator": "etipufhu",
+  "parts": 21,
+  "meshParts": 21,
+  "textures": 13,
+  "scriptsRemoved": 0,
+  "size": [
+   42,
+   36,
+   45
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 110999525319105,
+  "name": "Gas Station Model Realistic Town Pumps Store Sign",
+  "creator": "Skystorm9385",
+  "parts": 261,
+  "meshParts": 0,
+  "textures": 120,
+  "scriptsRemoved": 2,
+  "size": [
+   51,
+   20,
+   67
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 112405946562554,
+  "name": "Modern Gas Station Roleplay Map realistic RP",
+  "creator": "SkyPrimal200361",
+  "parts": 1247,
+  "meshParts": 215,
+  "textures": 540,
+  "scriptsRemoved": 6,
+  "size": [
+   37,
+   24,
+   88
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 324139280,
+  "name": "Realistic Gas Station",
+  "creator": "Zilcosi",
+  "parts": 251,
+  "meshParts": 68,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   84,
+   17,
+   66
+  ]
+ },
+ {
+  "category": "bld_shop",
+  "assetId": 80061545177500,
+  "name": "Store Shelf Convenience Grocery Retail Shop Stores",
+  "creator": "Content Deleted - 158552482",
+  "parts": 151,
+  "meshParts": 18,
+  "textures": 28,
+  "scriptsRemoved": 12,
+  "size": [
+   40,
+   20,
+   48
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 79230898972214,
+  "name": "Brookhaven Heli (Mobile Supported) Police RP Jobs",
+  "creator": "Xz_FrostWPFirevPClaw",
+  "parts": 45,
+  "meshParts": 10,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   33,
+   17,
+   53
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 118889544532956,
+  "name": "Brookhaven Heli (Mobile Supported) Furniture Decor",
+  "creator": "Hyper9MMaxxMNovaCore",
+  "parts": 45,
+  "meshParts": 10,
+  "textures": 0,
+  "scriptsRemoved": 7,
+  "size": [
+   33,
+   17,
+   53
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 139438945638936,
+  "name": "Working Boat Boats Fishing Speed Realistic Water",
+  "creator": "Voltbe0854",
+  "parts": 93,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 9,
+  "size": [
+   102,
+   49,
+   29
+  ]
+ },
+ {
+  "category": "vehicles_air_sea",
+  "assetId": 87556970,
+  "name": "Speed Boat, With steering and realistic stuff",
+  "creator": "ObscureGlock",
+  "parts": 34,
+  "meshParts": 5,
+  "textures": 5,
+  "scriptsRemoved": 5,
+  "size": [
+   35,
+   35,
+   41
+  ]
  }
 ]

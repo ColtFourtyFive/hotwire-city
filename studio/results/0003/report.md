@@ -1,6 +1,6 @@
 # Job 0003 report: Creator Store realism scout
 
-> **Status: PARTIAL.** Categories 0–12 are done (cars, guns, street props). Port, buildings and air/sea follow. `DONE` will be written only at the end.
+> **Status: COMPLETE.** All 18 categories are scouted (72 assets). CLEANUP ran and `Workspace.HCScout` is gone; the Workspace is back to Terrain, Baseplate, SpawnLocation and Camera. The place was not saved.
 
 - **Studio:** 0.744.0.7441077, Hotwire City place, Edit mode only. Play was never started while `HCScout` existed, and the place was never saved.
 - **Search:** `search_asset` with scope `creator_store`, `assetType=Model`, `priceFilter=free`, 8–12 results per query.
@@ -99,3 +99,49 @@ I picked one each of hydrant, bus stop, dumpster and bin, because no single sear
 - **4/5:** #2 `93408078240744` Realistic bus stop (robloxkingjn3). A glass shelter with an ad panel and 39 textures, the most GTA-like prop so far.
 - **4/5:** #3 `114651969370411` Realistic Dumpster. A green commercial dumpster, 7 meshes at correct scale.
 - **3/5:** #4 `78541661129914` Enhanced Realistic Trash Can (shobdrik599). A small grey bin.
+
+### props_port
+- **3/5:** #1 `16269867210` "realistic, dynamic Shipping container" (Rezkiy Productions). A dark ribbed 40-ft box built from 118 plain parts.
+- **4/5:** #2 `120215648673966` Blue shipping container (brotherffa_24876). It has corrugated sides, door bars and 8 textures. The best container; it ships standing on its end at 15×11×38, so it needs rotating.
+- **3/5:** #3 `1735022636` Red shipping container (closed). A classic red ribbed container made of 115 parts.
+- **2/5:** #4 `13788653470` Crane (simonlietuva). A 49-stud stylised pedestal crane with orange trim, more sci-fi than port. **There are no real gantry or STS port cranes on the free store**; a "realistic port crane" search returns toys and boats.
+
+### bld_apartment
+The layout camera sits past the floor edge, so the bottom of the shot is the void.
+- **3/5:** #1 `126414463808776` Realistic Hood Apartment (deleted account). A 3-storey stucco walk-up with fire escape; 210 parts.
+- **2/5:** #2 `75934961104200` "Apartment Buildings City Town Modern" (Rigovota51). This is **#3 re-uploaded**: same 816 parts and size, plus **8 scripts** the original does not have. That is a typical backdoor pattern, so avoid this id.
+- **2/5:** #3 `324146132` Zilcosi "Realistic Apartment Buildings". Plain 4-storey pink/grey brick blocks, 2015 style.
+- **3/5:** #4 `325256508` Zilcosi apartment with billboards. Brick with windows and a roof unit; the best of the four, but dated.
+- No apartment here reaches GTA level. Buildings are better made in-house, in Blender, than taken from the free store.
+
+### bld_skyscraper
+See `bld_skyscraper_close.png`, because the layout camera is 900 studs out.
+- **4/5:** #1 `8744438793` Realistic Modern Skyscraper (Unit Box Games). A 565-stud stepped tower with antenna, glass grid and lobby colonnade; 1,421 parts. The best skyline piece.
+- **3/5:** #2 `16063517134` Realistic Skyscraper (DripWxter). A single 294-stud MeshPart with a podium and blue glass grid. Efficient, but untextured.
+- **2/5:** #3 `76401662964478` "Skyscraper City Textures Photo". **The same mesh as #2** re-uploaded, plus 2 scripts. Avoid.
+- **2/5:** #4 `117935217942431` "Realistic Skyscrapers" (etipufhu). A **miniature** 42×36×45 cluster of textured towers, roughly a diorama. One texture failed to load.
+
+### bld_shop
+See also `bld_shop_close.png`.
+- **3/5:** #1 `110999525319105` Gas station (Skystorm9385). A canopy, pumps and store with 120 textures, but plain-looking from range.
+- **4/5:** #2 `112405946562554` Modern Gas Station RP (SkyPrimal200361). It arrived as a **StyleLink root** holding models. It has an orange-neon canopy, 6 branded pumps and 540 textures, and looks the most like a GTA "Xero/Globe Oil" station. Heavy at 1,247 parts.
+- **3/5:** #3 `324139280` Zilcosi gas station. A white "ELECTRIC" canopy with chargers; clean but simple.
+- **2/5:** #4 `80061545177500` Convenience store (deleted account). The exterior is a plain stucco box; its value is the interior shelves. 12 scripts were removed.
+
+### vehicles_air_sea
+- **3/5:** #1 `79230898972214` and #2 `118889544532956` "Brookhaven Heli". **Every helicopter result is the same Brookhaven heli** re-uploaded by spam accounts: a Bell-206-style police heli on a helipad, 45 parts, 7–8 scripts each. Acceptable as a prop; no better free heli turned up.
+- **4/5:** #3 `139438945638936` Working Boat (Voltbe0854). A 102-stud white flybridge cruiser with railings. Convincing, and good for a marina.
+- **1/5:** #4 `87556970` Speed Boat (ObscureGlock). It shows as a floating dark wedge, and its bounds come from an offset part. 2010-era.
+
+## Summary for the lead
+
+- **Use:**
+  - Cars: Jaguar `11881862706`; yiypoo1024's SUVs `117276253886376` and `73893179863762`; Nissan Patrol `14746413121`; F-150 `89890547548224`; Tundra `126180570128588`; Explorer police `113053967699143`; box truck `131180706902259`.
+  - Guns: AK47 PBR `86516814029259`; Remington 870 `126959125460533`.
+  - Street: streetlight `12117717385`; traffic light `4477106901` and `13752790025`; palm `8626962700` and pack `99808919561383`; bus stop `93408078240744`; dumpster `114651969370411`.
+  - Port: blue container `120215648673966`.
+  - Buildings: skyscraper `8744438793`; gas station `112405946562554`.
+  - Boat: cruiser `139438945638936`.
+- **Avoid these re-uploads with extra scripts:** `75934961104200` and `76401662964478`. The same mesh under two ids also occurs for the taxis and helicopters; prefer the original uploader.
+- **Gaps:** pistols, port cranes, apartments and helicopters have no GTA-grade free option. Plan in-house modelling for these.
+- **Console:** see `console.txt`. It shows only image-load failures from inserted assets (a few textures 403/404). No script errors; all scripts were deleted before anything could run.
