@@ -11,9 +11,9 @@ DOOR_COLORS = [(0.30, 0.17, 0.09), (0.45, 0.07, 0.06), (0.05, 0.05, 0.06), (0.08
 
 
 def _win(B, F, u0, u1, z0, z1, ops, kind="slider"):
-    st = {"depth": 0.45, "mullion": "v" if kind == "slider" else ("grid" if kind == "grid" else "t"), "header": None,
+    st = {"depth": 0.45, "mullion": "v" if kind.startswith("slider") else ("grid" if kind == "grid" else "t"), "header": None,
           "surround": 0.55 if B.tags.get("surrounds") else None, "cells": "res", "sill": True, "frame_w": 0.24,
-          "frame_d": 0.3, "ac": 0.0}
+          "frame_d": 0.3, "ac": 0.0, "shutters": B.tags.get("shutters", False) and kind != "slider_big"}
     B.window(F, u0, u1, z0, z1, st, ops)
 
 
@@ -31,7 +31,9 @@ def house(seed=0, **kw):
     pool = kw.get("pool", r.random() < 0.45)
     garage_side = kw.get("garage", r.choice(["left", "right"]))
     door_rgb = DOOR_COLORS[r.randrange(len(DOOR_COLORS))]
-    B.tags = {"district": "suburbs", "style": style, "floors": stories, "roof": roofmat, "surrounds": style != "ranch"}
+    B.tags = {"district": "suburbs", "style": style, "floors": stories, "roof": roofmat, "surrounds": style != "ranch",
+              "shutters": kw.get("shutters", style in ("ranch", "tract2") and r.random() < 0.4)}
+    porch = kw.get("porch", style == "ranch" and stories == 1 and r.random() < 0.65)
     B.spec = {"Walls": ("tex", "stucco", tint), "Walls2": ("tex", "cmu" if fence == "block" else "wood_fence",
                                                              (0.88, 0.85, 0.8) if fence == "block" else (0.9, 0.85, 0.8)),
               "Trim": ("tex", "plaster", (0.95, 0.94, 0.91)), "Frames": ("color", FRAMES["white"], 0.4, 0.0),
@@ -78,7 +80,7 @@ def house(seed=0, **kw):
                 continue
             big = side == "back" and k == n // 2
             if big:   # sliding patio door to the yard
-                _win(B, F, uc - 4.5, uc + 4.5, 0.6, 8.6, ops, "slider")
+                _win(B, F, uc - 4.5, uc + 4.5, 0.6, 8.6, ops, "slider_big")
             else:
                 _win(B, F, uc - 3.0, uc + 3.0, 3.4, 8.8, ops, "grid" if style == "spanish" and side == "front" else "slider")
             if stories == 2:
@@ -138,6 +140,19 @@ def house(seed=0, **kw):
                      soffit=tr, gable_wall=wa)
         G.gable_roof(roof, gx0, gy0, gx1, gy0 + GD, gh, pitch=pitch, overhang=ov, ridge_axis="y", fascia=tr,
                      soffit=tr, gable_wall=wa)
+    if porch:   # covered front porch: slab, square posts, shed roof tucked under the main eave
+        pw0, pw1 = max(mx0 + 1.0, mx0 + door_u - 12.0), min(mx1 - 1.0, mx0 + door_u + 12.0)
+        pd = 8.0
+        G.box(B.b("Site"), pw0, hy0 - pd, 0.0, pw1, hy0, 0.8, skip=("bottom",))
+        for px in (pw0 + 0.6, pw1 - 0.6, (pw0 + pw1) / 2 if pw1 - pw0 > 18 else None):
+            if px is not None:
+                G.box(tr, px - 0.45, hy0 - pd + 0.4, 0.8, px + 0.45, hy0 - pd + 1.3, eave - 1.6)
+        G.box(tr, pw0, hy0 - pd + 0.2, eave - 1.6, pw1, hy0 - pd + 1.4, eave - 0.9)
+        G.poly(roof, [(pw0 - 0.6, hy0 - pd - 0.6, eave - 1.0), (pw1 + 0.6, hy0 - pd - 0.6, eave - 1.0),
+                      (pw1 + 0.6, hy0 - ov + 0.2, eave + 0.25), (pw0 - 0.6, hy0 - ov + 0.2, eave + 0.25)], uv_along=(1, 0, 0))
+        G.poly(tr, [(pw0 - 0.6, hy0 - ov + 0.2, eave - 1.6), (pw1 + 0.6, hy0 - ov + 0.2, eave - 1.6),
+                    (pw1 + 0.6, hy0 - pd - 0.6, eave - 1.6), (pw0 - 0.6, hy0 - pd - 0.6, eave - 1.6)])
+        B.tags["porch"] = True
     # gutters + downspouts on the front eaves
     dt = B.b("Details")
     for (x0, x1, y, z) in ((mx0, mx1, hy0, eave), (gx0, gx1, gy0, gh)):

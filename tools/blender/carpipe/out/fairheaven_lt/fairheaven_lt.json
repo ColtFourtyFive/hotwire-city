@@ -261,7 +261,10 @@
         4.5854,
         8.4977
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/fairheaven_lt_Body_normal.png",
+        "ao": "textures/fairheaven_lt_Body_ao.png"
+      }
     },
     "Glass": {
       "tris": 160,
@@ -289,7 +292,11 @@
         4.3725,
         -0.4593
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/fairheaven_lt_Lights_normal.png",
+        "base": "textures/fairheaven_lt_Lights_base.png",
+        "emit": "textures/fairheaven_lt_Lights_emit.png"
+      }
     },
     "LightsRear": {
       "tris": 232,
@@ -303,7 +310,11 @@
         4.4204,
         8.4217
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/fairheaven_lt_Lights_normal.png",
+        "base": "textures/fairheaven_lt_Lights_base.png",
+        "emit": "textures/fairheaven_lt_Lights_emit.png"
+      }
     },
     "Trim": {
       "tris": 2600,
@@ -317,7 +328,13 @@
         4.4656,
         8.8702
       ],
-      "textures": {}
+      "textures": {
+        "base": "textures/fairheaven_lt_Trim_base.png",
+        "rough": "textures/fairheaven_lt_Trim_rough.png",
+        "normal": "textures/fairheaven_lt_Trim_normal.png",
+        "metal": "textures/fairheaven_lt_Trim_metal.png",
+        "ao": "textures/fairheaven_lt_Trim_ao.png"
+      }
     },
     "Interior": {
       "tris": 1006,
@@ -331,7 +348,13 @@
         2.7396,
         8.4651
       ],
-      "textures": {}
+      "textures": {
+        "base": "textures/fairheaven_lt_Interior_base.png",
+        "rough": "textures/fairheaven_lt_Interior_rough.png",
+        "normal": "textures/fairheaven_lt_Interior_normal.png",
+        "metal": "textures/fairheaven_lt_Interior_metal.png",
+        "ao": "textures/fairheaven_lt_Interior_ao.png"
+      }
     },
     "WheelFL": {
       "tris": 899,
@@ -345,7 +368,13 @@
         2.0625,
         -3.4655
       ],
-      "textures": {}
+      "textures": {
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
+        "base": "textures/fairheaven_lt_Wheel_base.png",
+        "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "ao": "textures/fairheaven_lt_Wheel_ao.png"
+      }
     },
     "WheelFR": {
       "tris": 899,
@@ -359,7 +388,13 @@
         2.0591,
         -3.4654
       ],
-      "textures": {}
+      "textures": {
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
+        "base": "textures/fairheaven_lt_Wheel_base.png",
+        "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "ao": "textures/fairheaven_lt_Wheel_ao.png"
+      }
     },
     "WheelRL": {
       "tris": 890,
@@ -373,7 +408,13 @@
         2.0625,
         5.5369
       ],
-      "textures": {}
+      "textures": {
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
+        "base": "textures/fairheaven_lt_Wheel_base.png",
+        "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "ao": "textures/fairheaven_lt_Wheel_ao.png"
+      }
     },
     "WheelRR": {
       "tris": 890,
@@ -387,7 +428,13 @@
         2.0591,
         5.5369
       ],
-      "textures": {}
+      "textures": {
+        "rough": "textures/fairheaven_lt_Wheel_rough.png",
+        "normal": "textures/fairheaven_lt_Wheel_normal.png",
+        "base": "textures/fairheaven_lt_Wheel_base.png",
+        "metal": "textures/fairheaven_lt_Wheel_metal.png",
+        "ao": "textures/fairheaven_lt_Wheel_ao.png"
+      }
     }
   },
   "triangles": {

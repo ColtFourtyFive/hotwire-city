@@ -50,7 +50,8 @@ JOINT_CLASSES = {"Weld", "ManualWeld", "WeldConstraint", "Motor6D", "Motor", "Sn
                  "RopeConstraint", "RodConstraint", "NoCollisionConstraint", "AlignOrientation", "AlignPosition",
                  "VectorForce", "LinearVelocity", "AngularVelocity", "Torque", "Attachment"}
 BACKDOOR_FLAGS = ("require-by-attribute", "require-tonumber", "self-hide", "coregui-toggle", "studio-evasion",
-                  "backdoor-family", "odd-parent", "getfenv", "loadstring", "setfenv")
+                  "backdoor-family", "odd-parent", "getfenv", "loadstring", "setfenv", "string-reverse-loop",
+                  "injects-into-services")
 
 RE_WHEELCONT = re.compile(r"^(fl|fr|rl|rr|lf|rf|lr|wheel ?fl|wheel ?fr|wheel ?rl|wheel ?rr|wheel_?(fl|fr|rl|rr)|"
                           r"front ?left|front ?right|rear ?left|rear ?right|back ?left|back ?right)$", re.I)
@@ -538,6 +539,11 @@ def analyze(model_id):
                 payload |= {int(x) for x in lits if len(x) >= 10}
                 flagged.append({"path": upath[n["id"]], "class": n["class"], "flags": bad, "requireIds": req,
                                 "payloadIds": sorted(payload)})
+    for n in nodes:
+        if n["props"].get("AttrCode"):
+            ids = n["props"].get("AttrCodeIds")
+            flagged.append({"path": upath[n["id"]], "class": n["class"], "flags": ["code-in-attribute"] + list(n["props"]["AttrCode"]),
+                            "requireIds": [], "payloadIds": sorted({int(x) for x in (ids if isinstance(ids, list) else [])})})
     hidden = [n for n in parts if not visible(n)]
 
     # --- stats -----------------------------------------------------------------------------------
@@ -639,7 +645,7 @@ def analyze(model_id):
         "hubs": hubs,
         "paint": {"color_rgb255": list(paint_color) if paint_color else None, "method": paint_method,
                   "parts": groups_json.get("Paint", {}).get("count", 0), "sameColourButTextured": paint_textured},
-        "security": {"flaggedScripts": flagged, "verdict": "BACKDOOR - strip all scripts before parenting" if flagged else "no backdoor pattern found (still strip all scripts)"},
+        "security": {"flaggedScripts": flagged, "verdict": ("FLAGGED (" + ", ".join(sorted({f.split(":")[0].split(" ")[0] for x in flagged for f in x["flags"]})) + ") - strip all scripts before parenting") if flagged else "no backdoor pattern found (still strip all scripts)"},
         "strip": dict(strip.most_common()),
         "groups": groups_json,
         "decals": decal_info,

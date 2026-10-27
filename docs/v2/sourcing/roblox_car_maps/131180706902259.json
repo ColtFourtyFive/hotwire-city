@@ -47,8 +47,41 @@
   "sameColourButTextured": 0
  },
  "security": {
-  "flaggedScripts": [],
-  "verdict": "no backdoor pattern found (still strip all scripts)"
+  "flaggedScripts": [
+   {
+    "path": "TruckProp/MeshPart/DO NOT DELETE/Material",
+    "class": "Script",
+    "flags": [
+     "injects-into-services"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "TruckProp/MeshPart/DO NOT DELETE/Material/Credits/TextBox/LocalScript",
+    "class": "LocalScript",
+    "flags": [
+     "string-reverse-loop"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "TruckProp/MeshPart/DO NOT DELETE/Material/Credits/TextBox/LocalScript/PlaneConstraint",
+    "class": "PlaneConstraint",
+    "flags": [
+     "code-in-attribute",
+     "a:GetObjects (reversed)",
+     "a:StarterCharacterScripts (reversed)",
+     "a:rbxassetid://%d+ (reversed)"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     75521726909736
+    ]
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
  },
  "strip": {
   "Script": 1,

@@ -88,8 +88,20 @@
   "sameColourButTextured": 0
  },
  "security": {
-  "flaggedScripts": [],
-  "verdict": "no backdoor pattern found (still strip all scripts)"
+  "flaggedScripts": [
+   {
+    "path": "Maxima/Body/VehicleSeat/Set/Assets/LeanPatcher/Patcher/ThrottlePatcher",
+    "class": "Script",
+    "flags": [
+     "injects-into-services"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     576251517412231684
+    ]
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
  },
  "strip": {
   "LocalScript": 47,

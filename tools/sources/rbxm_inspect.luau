@@ -314,6 +314,9 @@ local function visit(inst, parentId, depth, parentPath)
 				{ "script%.Parent%s*=%s*nil", "self-hide" }, { "SetCoreGuiEnabled", "coregui-toggle" },
 				{ "game%.JobId", "studio-evasion(JobId)" }, { "RunService:IsStudio", "studio-check" },
 				{ "TextureConfiguration", "backdoor-family:TextureConfiguration" },
+				{ ":sub%(%s*i%s*,%s*i%s*%)%s*%.%.", "string-reverse-loop" },
+				{ "StarterCharacterScripts", "injects-into-services" }, { "StarterPlayerScripts", "injects-into-services" },
+				{ "ServerScriptService", "injects-into-services" }, { "Parent%s*=%s*[%w_]*[Ss]tarter[Gg]ui", "injects-into-services" },
 			}
 			for _, c in checks do
 				if string.find(src, c[1]) then
@@ -336,13 +339,38 @@ local function visit(inst, parentId, depth, parentPath)
 	end)
 	if okA and attrs and next(attrs) then
 		local a = {}
+		local codeFlags = {}
 		for k, v in attrs do
 			local c = conv(v)
 			if typeof(c) ~= "Instance" then
 				a[k] = c
 			end
+			-- code smuggled in string attributes (sometimes reversed): flag it, keep only a short prefix
+			if typeof(v) == "string" and #v > 30 then
+				for _, txt in { v, string.reverse(v) } do
+					for _, pat in { "GetObjects", "require%s*%(", "loadstring", "getfenv", "StarterCharacterScripts",
+						"ServerScriptService", "rbxassetid://%d+" } do
+						if string.find(txt, pat) then
+							table.insert(codeFlags, k .. ":" .. pat .. (txt ~= v and " (reversed)" or ""))
+						end
+					end
+				end
+				if #codeFlags > 0 then
+					a[k] = "<code-like string, " .. #v .. " chars>"
+					local ids = {}
+					for _, txt in { v, string.reverse(v) } do
+						for id in string.gmatch(txt, "rbxassetid://(%d+)") do
+							table.insert(ids, id)
+						end
+					end
+					props.AttrCodeIds = ids
+				end
+			end
 		end
 		props.Attributes = a
+		if #codeFlags > 0 then
+			props.AttrCode = codeFlags
+		end
 	end
 	local okT, tags = pcall(function()
 		return inst:GetTags()
