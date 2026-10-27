@@ -232,21 +232,22 @@
     -0.0
   ],
   "paint": {
-    "route": "strip",
+    "route": "tintmask",
     "primary": {
       "object": "Body",
       "material": "01_-_Default",
       "color_srgb": [
-        0.7151,
-        0.579,
-        0.5702
+        0.5373,
+        0.1451,
+        0.1333
       ],
       "textured": true,
       "metallic": 0.0,
-      "roughness": 1.0
+      "roughness": 1.0,
+      "mask_coverage": 0.775
     },
     "secondary": null,
-    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
   },
   "objects": {
     "Body": {
@@ -261,7 +262,14 @@
         4.9621,
         6.6363
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/corrado_Body_metal.png",
+        "base": "textures/corrado_Body_base.png",
+        "normal": "textures/corrado_Body_normal.png",
+        "rough": "textures/corrado_Body_rough.png",
+        "tintmask": "textures/corrado_Body_tintmask.png",
+        "overlay": "textures/corrado_Body_overlay.png"
+      }
     },
     "WheelFL": {
       "tris": 72,
@@ -275,7 +283,13 @@
         2.1433,
         -3.2817
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
+        "base": "textures/corrado_Wheel_base.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
     },
     "WheelFR": {
       "tris": 72,
@@ -289,7 +303,13 @@
         2.1433,
         -3.2817
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
+        "base": "textures/corrado_Wheel_base.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
     },
     "WheelRL": {
       "tris": 72,
@@ -303,7 +323,13 @@
         2.1433,
         5.458
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
+        "base": "textures/corrado_Wheel_base.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
     },
     "WheelRR": {
       "tris": 72,
@@ -317,7 +343,13 @@
         2.1433,
         5.458
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
+        "base": "textures/corrado_Wheel_base.png",
+        "normal": "textures/corrado_Wheel_normal.png",
+        "rough": "textures/corrado_Wheel_rough.png",
+        "ao": "textures/corrado_Wheel_ao.png"
+      }
     }
   },
   "triangles": {
