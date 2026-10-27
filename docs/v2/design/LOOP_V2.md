@@ -243,11 +243,11 @@ Each car is a **CarRecord** (§9.1) with a permanent `uid` and a `place` (where 
 |---|---|---|---|---|
 | `slot` + `ok`, parked | Garage pad 1–10 (+2 with the pass) | 100% garage income into `uncollected` | Garage raid, only while the lock is down and the owner is online (v1) and §2.8 allows it | Driven out, sold, or stolen |
 | `vault` + `ok`, parked | Vault bay 1–3, a separate locked bay inside the garage | 100% garage income | **Never while parked** | Driven out or moved |
-| Driving (runtime "Out") | Street, driven by the owner | Street income (S×) into the wallet. No garage income. | **Carjack** (§2.7) | Parked again, wrecked (→ repair), busted (→ impound), or carjacked |
-| `laylow` | The thief's lay-low bay (a pad outside the garage door) | 0 | Repo by the victim or the victim's party (victim online) | After `LAYLOW_SECONDS` (300) it moves to the thief's slot |
-| `status = impounded` | Impound lot [world] | 0 | Break-out by the owner only | Pay `max(250, 3% value)`, wait 600 s (free), or break out (+2★) |
-| `status = repair` | Mechanic queue | 0 | No | 180 s (free) or pay `max(100, 1% value)` |
-| `owedCars` list | Not in the world | 0 | No | Delivered into the first free slot (replaces v1 `exclusives` and `pendingCars`) |
+| Driving (runtime "Out") | Street, driven by the owner | Street income (S×) into the wallet. No garage income. | **Carjack** (§2.7) | Parked again, wrecked (→ repair), busted or WASTED while wanted (→ impound), or carjacked |
+| Runtime "LayLow" (record still in the **victim's** profile, `place` unchanged) | The thief's lay-low pad (outside the thief's garage door) | 0 | Repo by the victim or the victim's party (victim online) | After `LAYLOW_SECONDS` (300) the record transfers once to the thief's reserved slot (§2.7.4) |
+| `status = impounded` | Impound lot [world] | 0 | Break-out by the owner only | Pay `max(250, 3% value)`, wait **120 s** (free), or break out (+2★) |
+| `status = repair` | Mechanic queue | 0 | No | **60 s** (free) or pay `max(100, 1% value)` |
+| `owedCars` list (`place = nil`) | Not in the world | 0 | No | Delivered into the first free slot (replaces v1 `exclusives` and `pendingCars`). Never dropped; there is no cap. |
 
 **Capacity** is `slotsUnlocked` (4 → 10, `Economy.START_SLOTS`/`MAX_SLOTS`, prices `Economy.SLOT_PRICES` unchanged) + 2 (pass, `PASS_EXTRA_SLOTS`) + vault bays.
 - Vault bays: 1 at Rep 5, +1 at Rep 25, +1 from a pass; maximum 3.
