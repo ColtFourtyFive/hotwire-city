@@ -1,0 +1,911 @@
+[
+ {
+  "class": "ambulance",
+  "kind": "vehicle",
+  "uid": "2856dd3c61f940909dced9a5c0379484",
+  "name": "Shvan '92 Ambulance - Low Poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 25943,
+  "glb_mb": 13.7
+ },
+ {
+  "class": "ambulance",
+  "kind": "vehicle",
+  "uid": "b78313c16c9d46a7a67643245cf278d2",
+  "name": "Ambulance",
+  "author": "mk2design",
+  "faces": 4074,
+  "glb_mb": 6.6
+ },
+ {
+  "class": "ambulance",
+  "kind": "vehicle",
+  "uid": "c9c7a08fcef1451cba8e3d40d9999bef",
+  "name": "Stw Ambulance",
+  "author": "ramonaflowers",
+  "faces": 4262,
+  "glb_mb": 2.2
+ },
+ {
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "uid": "26e809cce40e4359a3199649f12ef295",
+  "name": "MD '84 Armored - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 20364,
+  "glb_mb": 12.5
+ },
+ {
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "uid": "5b9076973cda47e98609640d745bb8ce",
+  "name": "SWAT Police Van",
+  "author": "Zack_Hawley",
+  "faces": 23509,
+  "glb_mb": 14.6
+ },
+ {
+  "class": "armored_truck",
+  "kind": "vehicle",
+  "uid": "e3616909ddc644249d50396c3bc2c8cf",
+  "name": "BOPE Caveir\u00e3o armored truck",
+  "author": "42manako",
+  "faces": 34260,
+  "glb_mb": 6.4
+ },
+ {
+  "class": "box_truck",
+  "kind": "vehicle",
+  "uid": "3be03b6a43aa41898c9ca806b8787052",
+  "name": "LCT 3000 '07- Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 15846,
+  "glb_mb": 11.3
+ },
+ {
+  "class": "box_truck",
+  "kind": "vehicle",
+  "uid": "663a0953c038434a918cb85725c88ffa",
+  "name": "LCT 3000 '95 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 18947,
+  "glb_mb": 11.5
+ },
+ {
+  "class": "box_truck",
+  "kind": "vehicle",
+  "uid": "b0e8788b6b774fe3a18eda1895a2b8fe",
+  "name": "Box-truck",
+  "author": "CristianRus",
+  "faces": 31374,
+  "glb_mb": 6.7
+ },
+ {
+  "class": "bus",
+  "kind": "vehicle",
+  "uid": "14fe03d792914d51b6c6250b393c44fd",
+  "name": "Generic Town Bus",
+  "author": "own.guest",
+  "faces": 55542,
+  "glb_mb": 4.0
+ },
+ {
+  "class": "bus",
+  "kind": "vehicle",
+  "uid": "36646fcf41da498ca24a02f4b6fb1d95",
+  "name": "City Bus - rigged | \u0420\u043e\u0410\u0417-5236",
+  "author": "grox777",
+  "faces": 5564,
+  "glb_mb": 3.9
+ },
+ {
+  "class": "bus",
+  "kind": "vehicle",
+  "uid": "c1371690104c47649df34180c0b5f7c1",
+  "name": "bus",
+  "author": "tnikita",
+  "faces": 25821,
+  "glb_mb": 0.7
+ },
+ {
+  "class": "bus",
+  "kind": "vehicle",
+  "uid": "f4910577387c491bb37832d4abb1b01e",
+  "name": "MAN Lion's City 12G (EfficiencyHybrid)",
+  "author": "karpworkz",
+  "faces": 68550,
+  "glb_mb": 6.2
+ },
+ {
+  "class": "compact",
+  "kind": "vehicle",
+  "uid": "055ff8a21b8d4d279debca089e2fafcd",
+  "name": "Ace '11 - Low Poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 18442,
+  "glb_mb": 10.9
+ },
+ {
+  "class": "compact",
+  "kind": "vehicle",
+  "uid": "122a22d210234596ad23623588d0d166",
+  "name": "Milano '95 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 18064,
+  "glb_mb": 11.4
+ },
+ {
+  "class": "compact",
+  "kind": "vehicle",
+  "uid": "f81da34570b145deb463fa091604d251",
+  "name": "1991 Honda Civic EG6",
+  "author": "rifdanzz",
+  "faces": 21594,
+  "glb_mb": 2.1
+ },
+ {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "uid": "ee87869496e245bfb4e7e2b0b1339aa6",
+  "name": "Augmented Firetruck *clean*",
+  "author": "NPotamianos",
+  "faces": 44838,
+  "glb_mb": 6.1
+ },
+ {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "uid": "8ff2a13f30914932a70c7950cfa58465",
+  "name": "Generic civil service vehicles pack",
+  "author": "comrade1280",
+  "faces": 92709,
+  "glb_mb": 56.0
+ },
+ {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "uid": "b72d3b0536da4a68ae306bb6e1bc7617",
+  "name": "Fire Engine with Ladder Low Poly",
+  "author": "afcm.contact",
+  "faces": 25742,
+  "glb_mb": 1.2
+ },
+ {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "uid": "403fbe45460041c2a97031d0635634cf",
+  "name": "German Ladder Fire Truck(MAN TGA truck)",
+  "author": "cm_dp",
+  "faces": 50532,
+  "glb_mb": 9.8
+ },
+ {
+  "class": "limousine",
+  "kind": "vehicle",
+  "uid": "8f2f466f668b4958831cd5f2d6da299a",
+  "name": "Chrysler 300C Limo MK1 2004-2010",
+  "author": "szymonpasterczyk",
+  "faces": 102953,
+  "glb_mb": 6.8
+ },
+ {
+  "class": "limousine",
+  "kind": "vehicle",
+  "uid": "4ed60d3a62144a1a87dbd35b585da3e2",
+  "name": "Mercedes W126 Limousine lowpoly for 3D-printing",
+  "author": "fishermans",
+  "faces": 18236,
+  "glb_mb": 0.9
+ },
+ {
+  "class": "limousine",
+  "kind": "vehicle",
+  "uid": "8765868e46bc4b7985cc57af60d16577",
+  "name": "GMC Hummer H2 Limo",
+  "author": "maregajavier",
+  "faces": 2280,
+  "glb_mb": 0.3
+ },
+ {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "uid": "c68508c056a34a34997992deb4355166",
+  "name": "Impala 1964 Lowrider",
+  "author": "mrkuza",
+  "faces": 19288,
+  "glb_mb": 3.5
+ },
+ {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "uid": "db303e2cef1642cabec0b2b9b7a8bb6b",
+  "name": "Impala Lowpoly",
+  "author": "bagatela.qc",
+  "faces": 11364,
+  "glb_mb": 0.6
+ },
+ {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "uid": "a0330ed5d12c4379b2835ee12800b964",
+  "name": "Chevrolet Impala 1963 - Home Work 7 (anatomy)",
+  "author": "DmitryBorisov",
+  "faces": 127540,
+  "glb_mb": 6.3
+ },
+ {
+  "class": "lowrider",
+  "kind": "vehicle",
+  "uid": "63bb4688f48a443aaace3a9c7c79aadb",
+  "name": "1975 Cadillac Eldorado (Lowrider)",
+  "author": "maregajavier",
+  "faces": 7398,
+  "glb_mb": 0.9
+ },
+ {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "uid": "bf29aca039c447ab913608e3f6818875",
+  "name": "Gourami - Luxury Saloon",
+  "author": "ministephen",
+  "faces": 107768,
+  "glb_mb": 5.8
+ },
+ {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "uid": "148c7b6bf06e44c9ae2bb923ff8b4846",
+  "name": "Mercedes-Benz S-Class W222",
+  "author": "Ryan.Qin",
+  "faces": 35935,
+  "glb_mb": 14.4
+ },
+ {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "uid": "32ac065960334899afc8ff6fbb2d79ee",
+  "name": "Trinity '03 - Low Poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 19617,
+  "glb_mb": 11.3
+ },
+ {
+  "class": "luxury_sedan",
+  "kind": "vehicle",
+  "uid": "9828f80360c644d6981bd6c6cee3fb57",
+  "name": "[FREE] 2010 Lincoln Town Car",
+  "author": "Velrifea",
+  "faces": 28280,
+  "glb_mb": 1.9
+ },
+ {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "uid": "3e05cd872ef0458ca3d6b0770bb03622",
+  "name": "Suzuki GSXR 750",
+  "author": "kaleemullah550",
+  "faces": 27095,
+  "glb_mb": 2.8
+ },
+ {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "uid": "7b3343ad0c0f4cbe94238c734e1b731a",
+  "name": "Yamaha R1",
+  "author": "ejsnowy",
+  "faces": 92768,
+  "glb_mb": 12.2
+ },
+ {
+  "class": "muscle",
+  "kind": "vehicle",
+  "uid": "955edc733c6d44fabc0ad7c246a15896",
+  "name": "Phoenix 455 '71 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 25947,
+  "glb_mb": 11.7
+ },
+ {
+  "class": "muscle",
+  "kind": "vehicle",
+  "uid": "46fed79f600c4fc69e060991f9e3e4f9",
+  "name": "Duke '69 - Low Poly Model",
+  "author": "DanielZhabotinsky",
+  "faces": 18555,
+  "glb_mb": 8.5
+ },
+ {
+  "class": "muscle",
+  "kind": "vehicle",
+  "uid": "38a1fd572beb433fa2d26d8c1070c8fa",
+  "name": "( FREE ) Dodge Challenger SRT",
+  "author": "Lambo_SC04",
+  "faces": 114022,
+  "glb_mb": 7.8
+ },
+ {
+  "class": "pickup",
+  "kind": "vehicle",
+  "uid": "6c48c94be8974dc7a5932f697c0ba68f",
+  "name": "Conquer '89 Pickup - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 21130,
+  "glb_mb": 11.5
+ },
+ {
+  "class": "pickup",
+  "kind": "vehicle",
+  "uid": "606bccade8db412daf90d4a9dd2aabd3",
+  "name": "ford f-150",
+  "author": "amogusstrikesback2",
+  "faces": 32090,
+  "glb_mb": 3.8
+ },
+ {
+  "class": "pickup",
+  "kind": "vehicle",
+  "uid": "10c645c6477e4052b4ea91563ea539ce",
+  "name": "2018 chevrolet silverado centennial edition",
+  "author": "amogusstrikesback2",
+  "faces": 47582,
+  "glb_mb": 3.8
+ },
+ {
+  "class": "pickup",
+  "kind": "vehicle",
+  "uid": "3b3ac59245c44872b06ad85673be9643",
+  "name": "Lightbody '90 MD Pickup - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 27092,
+  "glb_mb": 13.3
+ },
+ {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "uid": "31f0ac0f03ad42e3bbf236b3ecb2049e",
+  "name": "Murphy '97 Cruiser - Low Poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 17419,
+  "glb_mb": 17.1
+ },
+ {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "uid": "9f30d360cee343efb5a441978ddb57bd",
+  "name": "2001 Crown Victoria Police Interceptor Game Prop",
+  "author": "haoliu95",
+  "faces": 42420,
+  "glb_mb": 37.7
+ },
+ {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "uid": "dc81625478a744649b210c7f248b0b6a",
+  "name": "Illinois '90 Police cruiser - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 19700,
+  "glb_mb": 11.7
+ },
+ {
+  "class": "police_cruiser",
+  "kind": "vehicle",
+  "uid": "6a5c6c8a75764eea905541fd5b05e9bf",
+  "name": "Trinity '03 Cop Interceptor - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 20760,
+  "glb_mb": 11.7
+ },
+ {
+  "class": "police_suv",
+  "kind": "vehicle",
+  "uid": "745830362bb342128ef6509345606ffe",
+  "name": "Urban '10 Cop Enforcer - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 19580,
+  "glb_mb": 10.8
+ },
+ {
+  "class": "police_suv",
+  "kind": "vehicle",
+  "uid": "259fc16c23d548ba8d5802c563d8ebdc",
+  "name": "Lowpoly Generic SUV Police",
+  "author": "mk2design",
+  "faces": 9042,
+  "glb_mb": 12.7
+ },
+ {
+  "class": "sedan",
+  "kind": "vehicle",
+  "uid": "7fd6e15785fa4aa9bfd6e31eb7c97ba6",
+  "name": "Kiri '10 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 13035,
+  "glb_mb": 11.0
+ },
+ {
+  "class": "sedan",
+  "kind": "vehicle",
+  "uid": "d43bb748da364af2b3f0a9348365f0fb",
+  "name": "Tozzo '98 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 17928,
+  "glb_mb": 11.3
+ },
+ {
+  "class": "sedan",
+  "kind": "vehicle",
+  "uid": "3cf0bc6c19d14080a2cfdb80bc3efc57",
+  "name": "2006 Toyota Camry 24 G Limited",
+  "author": "tonielpro520",
+  "faces": 34455,
+  "glb_mb": 4.3
+ },
+ {
+  "class": "sedan",
+  "kind": "vehicle",
+  "uid": "d604871eee5b4181bb298163b0b675b7",
+  "name": "Illinois '90 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 19354,
+  "glb_mb": 11.5
+ },
+ {
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "uid": "2e1a3699de7e4f688d328dc005ef1aac",
+  "name": "Generic Coupe \"Azura\"",
+  "author": "mk2design",
+  "faces": 36178,
+  "glb_mb": 28.8
+ },
+ {
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "uid": "6dd4ae19c454414d9eed2bc524515d78",
+  "name": "JDM Sport '99 - Low Poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 23191,
+  "glb_mb": 11.4
+ },
+ {
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "uid": "f2a917a924734a89a020e7f970e55e7c",
+  "name": "Nissan 200SX Silvia S14",
+  "author": "Lexyc16",
+  "faces": 18231,
+  "glb_mb": 1.9
+ },
+ {
+  "class": "supercar",
+  "kind": "vehicle",
+  "uid": "0a20e49ad5774d778567cb5c3f345786",
+  "name": "Fictional supercar - V12 Goblin",
+  "author": "ollitei",
+  "faces": 86623,
+  "glb_mb": 9.2
+ },
+ {
+  "class": "supercar",
+  "kind": "vehicle",
+  "uid": "3ab977050c334c13b6abb5de078b4957",
+  "name": "Saba V12 '95 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 24552,
+  "glb_mb": 12.7
+ },
+ {
+  "class": "supercar",
+  "kind": "vehicle",
+  "uid": "c967ab4abbc54ae4b7933fd81a86c99c",
+  "name": "Cheetah '84 - Low poly Model",
+  "author": "DanielZhabotinsky",
+  "faces": 23338,
+  "glb_mb": 11.5
+ },
+ {
+  "class": "supercar",
+  "kind": "vehicle",
+  "uid": "f7bece69400f4640a4a3be746b44998b",
+  "name": "2017 Mclaren 720s",
+  "author": "s0h1o9b",
+  "faces": 6917,
+  "glb_mb": 1.4
+ },
+ {
+  "class": "suv",
+  "kind": "vehicle",
+  "uid": "2866efdfa943484391ef8313768e074d",
+  "name": "Urban '10 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 16577,
+  "glb_mb": 11.1
+ },
+ {
+  "class": "suv",
+  "kind": "vehicle",
+  "uid": "edc994ad28ed438cb365c0e0389ac177",
+  "name": "Lowpoly Generic SUV",
+  "author": "mk2design",
+  "faces": 8024,
+  "glb_mb": 16.8
+ },
+ {
+  "class": "suv",
+  "kind": "vehicle",
+  "uid": "f7632f55ed4c49e29f44c409260416f1",
+  "name": "2011 - Range Rover Evoque - Free Vehicle Archive",
+  "author": "free-vehicle-archive",
+  "faces": 124106,
+  "glb_mb": 7.4
+ },
+ {
+  "class": "suv",
+  "kind": "vehicle",
+  "uid": "1a2a52b16cad4e618af347461817895c",
+  "name": "Mercedes Benz G-class W263",
+  "author": "Lexyc16",
+  "faces": 12518,
+  "glb_mb": 0.6
+ },
+ {
+  "class": "taxi",
+  "kind": "vehicle",
+  "uid": "2429a825ff1646568e8e6e1453f9c501",
+  "name": "2001 Crown Victoria Taxi Game Prop",
+  "author": "haoliu95",
+  "faces": 33922,
+  "glb_mb": 35.6
+ },
+ {
+  "class": "taxi",
+  "kind": "vehicle",
+  "uid": "fa1a26fc2b0848c38efba4ed132b49ad",
+  "name": "Illinois '90 Taxi #2 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 19905,
+  "glb_mb": 11.8
+ },
+ {
+  "class": "taxi",
+  "kind": "vehicle",
+  "uid": "9e8f92a215784f3d8aaaaeab1bef54c4",
+  "name": "Canyon '75 Taxi - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 20037,
+  "glb_mb": 12.4
+ },
+ {
+  "class": "van",
+  "kind": "vehicle",
+  "uid": "09d718c9cf72401b8534d265a06a803f",
+  "name": "Shvan '92 - Low poly model",
+  "author": "DanielZhabotinsky",
+  "faces": 23045,
+  "glb_mb": 12.6
+ },
+ {
+  "class": "van",
+  "kind": "vehicle",
+  "uid": "ed2a0b37a01e4e51ba5b82c35d4a9dae",
+  "name": "2003 Chevrolet Express GMC Savana 2500 Cargo Van",
+  "author": "ddiaz-design",
+  "faces": 31252,
+  "glb_mb": 4.1
+ },
+ {
+  "class": "van",
+  "kind": "vehicle",
+  "uid": "f69de1315bb049c8946d57f6006acd73",
+  "name": "Mercedes Benz Sprinter 2006",
+  "author": "Max-7215",
+  "faces": 37565,
+  "glb_mb": 43.6
+ },
+ {
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "uid": "849b7cdf8622487485febc40db89e734",
+  "name": "Low-Poly AKM",
+  "author": "TastyTony",
+  "faces": 6910,
+  "glb_mb": 1.0
+ },
+ {
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "uid": "409c8845a8034f92b860fdff752dc2dc",
+  "name": "AKM | Free Lowpoly",
+  "author": "dan741vlasov",
+  "faces": 18742,
+  "glb_mb": 28.4
+ },
+ {
+  "class": "assault_rifle",
+  "kind": "weapon",
+  "uid": "46a36e92379341d495fdcd7750a7ebc3",
+  "name": "AK-47 (Assault rifle)",
+  "author": "so_O",
+  "faces": 19278,
+  "glb_mb": 14.6
+ },
+ {
+  "class": "carbine",
+  "kind": "weapon",
+  "uid": "8cab1cbeb82c4396a154f9fc8771417b",
+  "name": "Low-Poly M4a1",
+  "author": "TastyTony",
+  "faces": 10680,
+  "glb_mb": 1.8
+ },
+ {
+  "class": "carbine",
+  "kind": "weapon",
+  "uid": "059e968f6f764357880807c62c117ab7",
+  "name": "Low-Poly HK416",
+  "author": "TastyTony",
+  "faces": 9253,
+  "glb_mb": 1.6
+ },
+ {
+  "class": "carbine",
+  "kind": "weapon",
+  "uid": "b516a8416b1044a7839b4a89dc24ca38",
+  "name": "M4 Carbine",
+  "author": "sinnik",
+  "faces": 15377,
+  "glb_mb": 8.9
+ },
+ {
+  "class": "grenade",
+  "kind": "weapon",
+  "uid": "c233d27d001d4d19aab9f35bf171f1a5",
+  "name": "Low-Poly M67",
+  "author": "TastyTony",
+  "faces": 1046,
+  "glb_mb": 0.2
+ },
+ {
+  "class": "grenade",
+  "kind": "weapon",
+  "uid": "36a23ce20b8d47beb1fa26cfe9b0a129",
+  "name": "M67 Grenade",
+  "author": "nickolasa.mcintosh",
+  "faces": 4378,
+  "glb_mb": 2.6
+ },
+ {
+  "class": "grenade",
+  "kind": "weapon",
+  "uid": "05e2a29118c3408eaa574bcec6997aba",
+  "name": "M67 Fragmentation Grenade",
+  "author": "vextin",
+  "faces": 1610,
+  "glb_mb": 4.4
+ },
+ {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "uid": "b81da261345f4462b2c4412352162287",
+  "name": "Low-Poly Desert Eagle",
+  "author": "TastyTony",
+  "faces": 4299,
+  "glb_mb": 0.8
+ },
+ {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "uid": "32838f1430494894911b077ab281b6a7",
+  "name": "desert eagle  (FREE MODEL)",
+  "author": "javadbayat",
+  "faces": 19836,
+  "glb_mb": 1.2
+ },
+ {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "uid": "360c6276282e48109fcca66f31004d81",
+  "name": "Revolver .357 Magnum",
+  "author": "Artem.Goyko",
+  "faces": 4826,
+  "glb_mb": 34.6
+ },
+ {
+  "class": "heavy_pistol",
+  "kind": "weapon",
+  "uid": "3b81c991e9c84236a5c03895f9ca0aa3",
+  "name": "357 Python Revolver (Rigged/Game Ready)",
+  "author": "InfuriatingScholar",
+  "faces": 18680,
+  "glb_mb": 7.0
+ },
+ {
+  "class": "melee",
+  "kind": "weapon",
+  "uid": "432955b77985433eab60e359ef4bab73",
+  "name": "Baseball bat",
+  "author": "Nirduk",
+  "faces": 7280,
+  "glb_mb": 7.1
+ },
+ {
+  "class": "melee",
+  "kind": "weapon",
+  "uid": "672bafb0f7ea41848f38a5adeeee804b",
+  "name": "Alluminum/Carbon Fiber Bat",
+  "author": "MauriceBaxter",
+  "faces": 7730,
+  "glb_mb": 7.9
+ },
+ {
+  "class": "melee",
+  "kind": "weapon",
+  "uid": "36593001f0164a50a2039d9ef1e511ff",
+  "name": "M9 Bayonet (Default)",
+  "author": "Firewarden",
+  "faces": 2380,
+  "glb_mb": 10.5
+ },
+ {
+  "class": "melee",
+  "kind": "weapon",
+  "uid": "48e00da7aeb94530a5d0e0c3d58ca274",
+  "name": "Combat Knife",
+  "author": "San.Dro",
+  "faces": 1200,
+  "glb_mb": 16.4
+ },
+ {
+  "class": "minigun",
+  "kind": "weapon",
+  "uid": "eed0c95de51b4895a48c5729582732cc",
+  "name": "Low-Poly M134 Minigun",
+  "author": "TastyTony",
+  "faces": 12931,
+  "glb_mb": 2.2
+ },
+ {
+  "class": "minigun",
+  "kind": "weapon",
+  "uid": "8f008c3e18934707a834cde8c72364f5",
+  "name": "M134 handheld (Minigun)",
+  "author": "boriseviav",
+  "faces": 15836,
+  "glb_mb": 29.4
+ },
+ {
+  "class": "pistol",
+  "kind": "weapon",
+  "uid": "60efc54ac59e47d18bdff94b2f5144ff",
+  "name": "Low-Poly G17",
+  "author": "TastyTony",
+  "faces": 2319,
+  "glb_mb": 0.2
+ },
+ {
+  "class": "pistol",
+  "kind": "weapon",
+  "uid": "859943889553467eaa0203400117c595",
+  "name": "Low-Poly Beretta 92fs",
+  "author": "TastyTony",
+  "faces": 3365,
+  "glb_mb": 0.2
+ },
+ {
+  "class": "pistol",
+  "kind": "weapon",
+  "uid": "e3412d9803f04bdaa97ad9b68ed665d7",
+  "name": "G19 Pistol, Game Ready, Free version",
+  "author": "Rotuma",
+  "faces": 20382,
+  "glb_mb": 11.7
+ },
+ {
+  "class": "pistol",
+  "kind": "weapon",
+  "uid": "43bc09f5aace4346a8a2b6e1580fc03f",
+  "name": "9mm Pistol",
+  "author": "TORI106",
+  "faces": 4708,
+  "glb_mb": 15.0
+ },
+ {
+  "class": "shotgun",
+  "kind": "weapon",
+  "uid": "8766498ce778479aa03c3b6078937510",
+  "name": "Low-Poly Remington 870",
+  "author": "TastyTony",
+  "faces": 1444,
+  "glb_mb": 0.1
+ },
+ {
+  "class": "shotgun",
+  "kind": "weapon",
+  "uid": "c0551a6b841145f7a8e59e9304728f1f",
+  "name": "Low-Poly Mossberg 590",
+  "author": "TastyTony",
+  "faces": 2552,
+  "glb_mb": 0.5
+ },
+ {
+  "class": "shotgun",
+  "kind": "weapon",
+  "uid": "6db0ad4764d14eee8f063eea3600071b",
+  "name": "Remington 870 Shotgun",
+  "author": "milinam2002",
+  "faces": 6202,
+  "glb_mb": 9.7
+ },
+ {
+  "class": "shotgun",
+  "kind": "weapon",
+  "uid": "05a6a02909ee4fcfa5cde3d76cb067f0",
+  "name": "Remington 870 Shotgun",
+  "author": "Urpo",
+  "faces": 7044,
+  "glb_mb": 12.8
+ },
+ {
+  "class": "smg",
+  "kind": "weapon",
+  "uid": "80980f757c2c463ebc73460a31611652",
+  "name": "Low-Poly HK MP5",
+  "author": "TastyTony",
+  "faces": 5257,
+  "glb_mb": 0.3
+ },
+ {
+  "class": "smg",
+  "kind": "weapon",
+  "uid": "833e1c5fb1c4414c83c531bacfa1cffb",
+  "name": "Low-Poly Micro Uzi",
+  "author": "TastyTony",
+  "faces": 4194,
+  "glb_mb": 0.6
+ },
+ {
+  "class": "smg",
+  "kind": "weapon",
+  "uid": "d9f0070b3c924caf8fe47e41881389f0",
+  "name": "Low-Poly IMI Uzi",
+  "author": "TastyTony",
+  "faces": 5249,
+  "glb_mb": 0.8
+ },
+ {
+  "class": "smg",
+  "kind": "weapon",
+  "uid": "2a9ce66fe96643fc8f20927401e5054c",
+  "name": "MP5 submachinegun",
+  "author": "michaelkarel",
+  "faces": 7746,
+  "glb_mb": 52.7
+ },
+ {
+  "class": "sniper",
+  "kind": "weapon",
+  "uid": "a795adf5f8dd4a2294210d427cbb0e58",
+  "name": "Low-Poly L115A3",
+  "author": "TastyTony",
+  "faces": 8132,
+  "glb_mb": 1.2
+ },
+ {
+  "class": "sniper",
+  "kind": "weapon",
+  "uid": "cdefd833b4b5407ba32c53c9e7f50cae",
+  "name": "Sniper",
+  "author": "bumstrum",
+  "faces": 13087,
+  "glb_mb": 13.9
+ },
+ {
+  "class": "sniper",
+  "kind": "weapon",
+  "uid": "e520b234140049e7890db0b6c29d3925",
+  "name": "Sniper rifle GameReady Free",
+  "author": "pashtetuser",
+  "faces": 15383,
+  "glb_mb": 13.5
+ }
+]

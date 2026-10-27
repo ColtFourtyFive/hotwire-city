@@ -26,7 +26,7 @@ ONE mesh object on export (= one Roblox MeshPart), split into <Role>_1, <Role>_2
 
 Building-local space: front faces -Y, origin bottom-centre of the lot, 1 unit = 1 stud.
 """
-import json, math, os, random
+import json, math, os, random, zlib
 import bk_geo as G
 import bk_mat as M
 
@@ -60,7 +60,7 @@ NIGHT_ONLY = {"WindowsLit"}
 class Building:
     def __init__(self, kind, seed, name=None):
         self.kind, self.seed = kind, seed
-        self.rng = random.Random(hash((kind, seed)) & 0xFFFFFFFF)
+        self.rng = random.Random(zlib.crc32(f"{kind}:{seed}".encode()))   # stable across processes
         self.name = name or f"{kind}_{seed:02d}"
         self.bufs = {}
         self.spec = {}

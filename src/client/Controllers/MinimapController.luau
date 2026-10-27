@@ -895,6 +895,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 local function buildPois()
+	RoadGraph.get() -- build the road graph now, not on the first GPS request
 	table.clear(pois)
 	for _, def in MinimapConfig.POIS do
 		local ok, list = pcall(MinimapController.poiPositions, def.at)
@@ -1145,7 +1146,7 @@ end
 local function update(dt: number)
 	local r = radar
 	local root = rootPart()
-	if not r or hidden or not root then
+	if not r or not root then
 		return
 	end
 	clock += dt
@@ -1167,6 +1168,9 @@ local function update(dt: number)
 			refreshOwners()
 			r.area.Text = MinimapController.areaAt(pos)
 		end
+	end
+	if hidden then
+		return -- streamer mode: GPS bookkeeping (routes, arrival) keeps running, nothing is drawn
 	end
 
 	-- zoom + scale

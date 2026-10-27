@@ -115,8 +115,8 @@ POIS = [
 RANGE = {"star": 500, "flag": 600, "tree": 600, "wheel": 600}
 GARAGES = [tuple(g["door"]) for g in GEO["garages"]]
 DISTRICTS = [("DOWNTOWN", 0, -240, 1), ("MIDTOWN", -400, -400, 1), ("MARKET ROW", 240, -560, 1),
-             ("PALM SUBURBS", -720, -80, 1), ("SUNSET BEACH", 720, 80, 1), ("THE DOCKS", -80, -720, 1),
-             ("SOUTH SHORE", 80, 720, 1), ("STUNT PARK", 720, 640, 2), ("CITY PARK", -720, 640, 2),
+             ("PALM SUBURBS", -720, -80, 1), ("SUNSET BEACH", 720, 80, 1), ("THE DOCKS", 0, -720, 1),
+             ("SOUTH SHORE", 0, 720, 1), ("STUNT PARK", 720, 640, 2), ("CITY PARK", -720, 640, 2),
              ("OCEAN PIER", 720, -910, 2), ("CHOP YARD", -720, -800, 2)]
 
 
