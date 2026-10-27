@@ -1,0 +1,2862 @@
+[
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1836021107,
+  "info": {
+   "clip_ratio": 0.00809,
+   "duration": 177.1,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 2.5,
+   "regions": {},
+   "rms_db": -8.0,
+   "silent_share": 0.01,
+   "trail_silence": 0.85
+  },
+  "keys": [
+   "Radio_UrbanJungleDrive"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Nicolas Baudino",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 177,
+   "free": true,
+   "name": "Urban Jungle Drive",
+   "title": "Urban Jungle Drive",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1836160527,
+  "info": {
+   "clip_ratio": 0.01437,
+   "duration": 154.07,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 3.3,
+   "regions": {},
+   "rms_db": -8.1,
+   "silent_share": 0.01,
+   "trail_silence": 1.7
+  },
+  "keys": [
+   "Radio_FatElectroFunk"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "AXS",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 154,
+   "free": true,
+   "name": "Fat Electro Funk",
+   "title": "Fat Electro Funk",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 1837115816,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 153.44,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.1,
+   "regions": {},
+   "rms_db": -15.1,
+   "silent_share": 0.03,
+   "trail_silence": 4.25
+  },
+  "keys": [
+   "Radio_NeonLights"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Bibliotheque",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Cheesy 80s 8 bit / K-pop inspired synth pop for a determined workout routine.\r\nDuration: 153 seconds\r\n\r\nGenre: Pop\r\nLibrary: Bibliotheque\r\nAlbum: SYNTHWAVE\r\nAlbum Info: \"From themes of darkness and light, from fun to heatfelt; this collection of 80s inspired synthwave tracks journeys through a wide range of emotions.\"\r\n\r\nCourtesy of APM Music.",
+   "duration": 153,
+   "free": true,
+   "name": "Neon Lights",
+   "title": "Neon Lights",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1837301807,
+  "info": {
+   "clip_ratio": 0.01059,
+   "duration": 198.31,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 2.8,
+   "regions": {},
+   "rms_db": -8.4,
+   "silent_share": 0.01,
+   "trail_silence": 1.85
+  },
+  "keys": [
+   "Radio_OutrunArcade"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Boris Popov",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 198,
+   "free": true,
+   "name": "Outrun Arcade",
+   "title": "Outrun Arcade",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1841268296,
+  "info": {
+   "clip_ratio": 0.00671,
+   "duration": 153.91,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 3.6,
+   "regions": {},
+   "rms_db": -10.2,
+   "silent_share": 0.01,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Radio_TheStickup"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Guy Buss",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 154,
+   "free": true,
+   "name": "The Stickup",
+   "title": "The Stickup",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 1847692770,
+  "info": {
+   "clip_ratio": 0.00117,
+   "duration": 160.7,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": 2.1,
+   "regions": {},
+   "rms_db": -10.3,
+   "silent_share": 0.01,
+   "trail_silence": 1.55
+  },
+  "keys": [
+   "Radio_PartyTime"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Sonoton Vanguard",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Big synth riff in this powerful EDM club track. Detuned chords add a dark dance edge. High energy mood. 122 bpm (Dmin)Teen Culture~Propulsive~Lifestyle - Cars~Lifestyle - general\r\nDuration: 160 seconds\r\n\r\nGenre: Club/Electronica\r\nLibrary: Sonoton Vanguard\r\nAlbum: ELECTRONICA - EDM & SOUNDSCAPES\r\nAlbum Info: \"High energy, rousing EDM club bangers with electronic atmospheres and underscores.\"\r\n\r\nCou",
+   "duration": 161,
+   "free": true,
+   "name": "Edm Party Time",
+   "title": "Edm Party Time",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9044508438,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 127.99,
+   "format": "mp3",
+   "lead_silence": 0.0,
+   "peak_db": -0.2,
+   "regions": {},
+   "rms_db": -16.0,
+   "silent_share": 0.08,
+   "trail_silence": 2.0
+  },
+  "keys": [
+   "Radio_AllGood"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Bibliotheque",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Fun, jazzy, cool. Upbeat drums with playful keys. Funky and cool classic hip hop with an R&B vibe.\n\nDuration: 128 seconds\nGenre: Easy Listening\nLibrary: Bibliotheque\nAlbum: Jazzy Hip Hop: Golden Era Beats\nAlbum Info: Cool, old-school hip hop and R&B with upbeat drums, confident brass and playful melodies. Atmospheric and impactful cues with attitude.\nAsset Type: Music\n\nCourtesy of APM Music.",
+   "duration": 128,
+   "free": true,
+   "name": "All Good - Instrumental",
+   "title": "All Good - Instrumental",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9046863253,
+  "info": {
+   "clip_ratio": 0.01109,
+   "duration": 165.24,
+   "format": "mp3",
+   "lead_silence": 0.0,
+   "peak_db": 2.3,
+   "regions": {},
+   "rms_db": -10.4,
+   "silent_share": 0.01,
+   "trail_silence": 1.55
+  },
+  "keys": [
+   "Radio_Poolside"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Max Cameron Concors",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 165,
+   "free": true,
+   "name": "Poolside",
+   "title": "Poolside",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9046863579,
+  "info": {
+   "clip_ratio": 0.00632,
+   "duration": 120.1,
+   "format": "mp3",
+   "lead_silence": 0.05,
+   "peak_db": 2.2,
+   "regions": {},
+   "rms_db": -9.9,
+   "silent_share": 0.01,
+   "trail_silence": 1.5
+  },
+  "keys": [
+   "Radio_CityLights"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Inside Tracks",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 120,
+   "free": true,
+   "name": "City Lights",
+   "title": "City Lights",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112758500,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 48.22,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -10.5,
+   "regions": {},
+   "rms_db": -29.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "CityAmbience"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "City Ambience, By US Capitol, Afternoon, Distant Siren, Traffic, Occasional Car Over Metal Plate, Loop\n\nDuration: 48.2 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 48,
+   "free": true,
+   "name": "City Ambience 3 (SFX)",
+   "title": "City Ambience 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112891352,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 46.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.6,
+   "regions": {},
+   "rms_db": -25.7,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Traffic"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Urban Traffic, New York City, Overhead Perspective, Diffuse and Muted, Siren Wailing, Horn Honks, Short Yelp of Siren, Loop\n\nDuration: 46.0 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 46,
+   "free": true,
+   "name": "Urban Traffic 2 (SFX)",
+   "title": "Urban Traffic 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112910245,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.3,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.5,
+   "regions": {
+    "Mech_PumpRack": {
+     "clip_ratio": 0.0,
+     "duration": 2.3,
+     "lead_silence": 0.0,
+     "peak_db": -5.5,
+     "region": [
+      0.85,
+      1.25
+     ],
+     "region_oob": false,
+     "region_rms_db": -24.3,
+     "region_steady_db": 19.3,
+     "rms_db": -25.2,
+     "silent_share": 0.83,
+     "trail_silence": 0.55
+    },
+    "Reload_Shell": {
+     "clip_ratio": 0.0,
+     "duration": 2.3,
+     "lead_silence": 0.0,
+     "peak_db": -5.5,
+     "region": [
+      0.05,
+      0.4
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.5,
+     "region_steady_db": 18.9,
+     "rms_db": -25.2,
+     "silent_share": 0.83,
+     "trail_silence": 0.55
+    }
+   },
+   "rms_db": -25.2,
+   "silent_share": 0.83,
+   "trail_silence": 0.55
+  },
+  "keys": [
+   "Mech_PumpRack",
+   "Reload_Shell"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "12 gauge Pump Action Shotgun, Ithaca, With Cocking, Multiple Shots\n\nDuration: 2.9 seconds\nCategory: Guns - Shotguns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "12 Gauge Pump Action Shotgun 4 (SFX)",
+   "title": "12 Gauge Pump Action Shotgun 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112913564,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.58,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.4,
+   "regions": {
+    "Shot_ShotgunFallback": {
+     "clip_ratio": 0.0,
+     "duration": 0.58,
+     "lead_silence": 0.0,
+     "peak_db": -7.4,
+     "region": [
+      0,
+      0.17
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.9,
+     "region_steady_db": 11.8,
+     "rms_db": -23.1,
+     "silent_share": 0.36,
+     "trail_silence": 0.2
+    }
+   },
+   "rms_db": -23.1,
+   "silent_share": 0.36,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Shot_ShotgunFallback"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "12 Gauge Shotgun, Pump Action, Ejecting Shell, Quick Pumps\n\nDuration: 1.1 seconds\nCategory: Guns - Shotguns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "12 Gauge Shotgun 9 (SFX)",
+   "title": "12 Gauge Shotgun 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113104176,
+  "info": {
+   "clip_ratio": 4e-05,
+   "duration": 1.28,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.3,
+   "regions": {
+    "Gun_Empty": {
+     "clip_ratio": 4e-05,
+     "duration": 1.28,
+     "lead_silence": 0.0,
+     "peak_db": 0.3,
+     "region": [
+      0.3,
+      0.45
+     ],
+     "region_oob": false,
+     "region_rms_db": -17.7,
+     "region_steady_db": 9.9,
+     "rms_db": -20.8,
+     "silent_share": 0.72,
+     "trail_silence": 0.75
+    }
+   },
+   "rms_db": -20.8,
+   "silent_share": 0.72,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "Gun_Empty",
+   "Reload_Mag"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ammo Magazine, Spring Release, Fast Insert, Eject, Handle, Pistol Gun, Click, Metal, Clip\n\nDuration: 2.3 seconds\nCategory: Guns - Handling\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ammo Magazine 1 (SFX)",
+   "title": "Ammo Magazine 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113180776,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.78,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.1,
+   "regions": {},
+   "rms_db": -25.2,
+   "silent_share": 0.13,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Shot_Rifle",
+   "Shot_SMG"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Assault Rifle, Steyr AUG .223 Cal Short Barrel, Single and Multiple Shot Bursts, Distant Bullets Landing, Machine Gun\n\nDuration: 0.9 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Assault Rifle 9 (SFX)",
+   "title": "Assault Rifle 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113198012,
+  "info": {
+   "clip_ratio": 0.00178,
+   "duration": 2.64,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.5,
+   "regions": {},
+   "rms_db": -13.7,
+   "silent_share": 0.63,
+   "trail_silence": 1.65
+  },
+  "keys": [
+   "Tail_Rifle"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Assault Rifle, M4A1 Carbine, Single Shots\n\nDuration: 3.3 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Assault Rifle 1 (SFX)",
+   "title": "Assault Rifle 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113480915,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.08,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -5.9,
+   "regions": {},
+   "rms_db": -21.9,
+   "silent_share": 0.48,
+   "trail_silence": 0.45
+  },
+  "keys": [
+   "BodyFall"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Body Fall, Impact, Thud, Slide\n\nDuration: 1.1 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Body Fall Thud 2 (SFX)",
+   "title": "Body Fall Thud 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113632396,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.9,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -2.3,
+   "regions": {},
+   "rms_db": -20.4,
+   "silent_share": 0.49,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "Impact1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Impact, Deep Heavy Thudding into Wall, Cracking, Shattering at Tail, Sprinkling\n\nDuration: 2.1 seconds\nCategory: Guns - Bullets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Bullet Impact 9 (SFX)",
+   "title": "Bullet Impact 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113632506,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.43,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -2.2,
+   "regions": {},
+   "rms_db": -21.0,
+   "silent_share": 0.57,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "Impact2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Impact, Deep Heavy Thudding into Wall, Cracking, Shattering at Tail, Sprinkling\n\nDuration: 1.7 seconds\nCategory: Guns - Bullets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Bullet Impact 10 (SFX)",
+   "title": "Bullet Impact 10 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113634361,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.4,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.2,
+   "regions": {},
+   "rms_db": -20.7,
+   "silent_share": 0.29,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Whiz1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Whiz, Whoosh By\n\nDuration: 1.2 seconds\nCategory: Guns - Bullet Whiz\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Bullet Whiz 1 (SFX)",
+   "title": "Bullet Whiz 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113634444,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.57,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -1.3,
+   "regions": {},
+   "rms_db": -18.0,
+   "silent_share": 0.18,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Whiz2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Whiz, Whoosh By\n\nDuration: 1.5 seconds\nCategory: Guns - Bullet Whiz\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Bullet Whiz 2 (SFX)",
+   "title": "Bullet Whiz 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113661285,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.71,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -5.8,
+   "regions": {},
+   "rms_db": -20.4,
+   "silent_share": 0.3,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "PeelOut"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cadillac, Peel Out, Tire Screech, Underground Parking, Various Versions\n\nDuration: 2.7 seconds\nCategory: Vehicles - Tires\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Cadillac Peel Out Tire Screech 2 (SFX)",
+   "title": "Cadillac Peel Out Tire Screech 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113726510,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.74,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.3,
+   "regions": {},
+   "rms_db": -23.9,
+   "silent_share": 0.64,
+   "trail_silence": 0.45
+  },
+  "keys": [
+   "CashDrop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cash Drop, Carpet or Felt Table Hit\n\nDuration: 1.0 seconds\nCategory: Foley - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Cash Drop 4 (SFX)",
+   "title": "Cash Drop 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113728042,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.11,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -1.1,
+   "regions": {},
+   "rms_db": -21.8,
+   "silent_share": 0.17,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Cash"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cash Register, TEC135, Electronic, Drawer, Solo, Manually Opened and Closed, Multiples, No Motor\n\nDuration: 2.1 seconds\nCategory: Mechanical - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Cash Register 1 (SFX)",
+   "title": "Cash Register 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113728049,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.72,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -7.0,
+   "regions": {},
+   "rms_db": -28.6,
+   "silent_share": 0.41,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "CashBig"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cash Register, TEC135, Electronic, Drawer, Solo, Manually Opened and Closed, Multiples, No Motor\n\nDuration: 1.7 seconds\nCategory: Mechanical - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Cash Register 2 (SFX)",
+   "title": "Cash Register 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113948676,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.5,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -5.1,
+   "regions": {},
+   "rms_db": -30.4,
+   "silent_share": 0.4,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "CountingMoney"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Counting Money, Twisting Wad of Bills, Paper Handling, Crinkle, Scrunch\n\nDuration: 0.5 seconds\nCategory: Paper\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Counting Money 2 (SFX)",
+   "title": "Counting Money 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114402205,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.23,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -1.8,
+   "regions": {},
+   "rms_db": -12.2,
+   "silent_share": 0.25,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "AirHorn"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ferrari 308, Car, Honking, Dual Air Horns, Discordant Buzzing Tone, Pulsing Blows of Varied Length\n\nDuration: 1.2 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ferrari 308 Car Honking Dual Air Horns 2 (SFX)",
+   "title": "Ferrari 308 Car Honking Dual Air Horns 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114402206,
+  "info": {
+   "clip_ratio": 6e-05,
+   "duration": 1.4,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 0.1,
+   "regions": {},
+   "rms_db": -10.5,
+   "silent_share": 0.15,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Horn"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ferrari 308, Car, Honking, Dual Air Horns, Discordant Buzzing Tone, Pulsing Blows of Varied Length\n\nDuration: 1.4 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ferrari 308 Car Honking Dual Air Horns 1 (SFX)",
+   "title": "Ferrari 308 Car Honking Dual Air Horns 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "LEAD_SILENCE"
+  ],
+  "hard": [],
+  "id": 9114590297,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.4,
+   "format": "ogg",
+   "lead_silence": 0.75,
+   "peak_db": -4.6,
+   "regions": {},
+   "rms_db": -26.4,
+   "silent_share": 0.74,
+   "trail_silence": 1.7
+  },
+  "keys": [
+   "GlassBreak"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Glass Break, Juice Glass, Smash\n\nDuration: 3.4 seconds\nCategory: Glass - Breaking\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Glass Break 1 (SFX)",
+   "title": "Glass Break 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114729252,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.32,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -0.5,
+   "regions": {
+    "Shot_HandCannon": {
+     "clip_ratio": 0.0,
+     "duration": 1.32,
+     "lead_silence": 0.0,
+     "peak_db": -0.5,
+     "region": [
+      0.04,
+      1.32
+     ],
+     "region_oob": false,
+     "region_rms_db": -14.0,
+     "region_steady_db": 18.2,
+     "rms_db": -14.1,
+     "silent_share": 0.65,
+     "trail_silence": 0.85
+    }
+   },
+   "rms_db": -14.1,
+   "silent_share": 0.65,
+   "trail_silence": 0.85
+  },
+  "keys": [
+   "Shot_HandCannon"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Gun, Mini Uzi, Single Shots, Very Good\n\nDuration: 1.5 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Gun Single Shots 11 (SFX)",
+   "title": "Gun Single Shots 11 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114764435,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.22,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -11.8,
+   "regions": {},
+   "rms_db": -36.0,
+   "silent_share": 0.75,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Handcuffs"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Handcuff Movement, Metal Rattle, Ratchet\n\nDuration: 2.6 seconds\nCategory: Foley - Props\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Handcuff Movement 19 (SFX)",
+   "title": "Handcuff Movement 19 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116361236,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.52,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.4,
+   "regions": {},
+   "rms_db": -24.9,
+   "silent_share": 0.4,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Distant_Burst"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Machine Gun Bursts, Miniature M2HB .22 Cal Belt Fed, Bursts of 3, 4, 5 Shots\n\nDuration: 0.6 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Machine Gun Bursts 12 (SFX)",
+   "title": "Machine Gun Bursts 12 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116546593,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 4.1,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -2.5,
+   "regions": {},
+   "rms_db": -14.4,
+   "silent_share": 0.26,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Melee_Metal",
+   "MetalHit"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Crash, Huge Impact, Debris Scattering, Squeaking, Thunderous, Hollow Metallic Hit\n\nDuration: 4.1 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Metal Crash 4 (SFX)",
+   "title": "Metal Crash 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9117399029,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.41,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.3,
+   "regions": {},
+   "rms_db": -26.0,
+   "silent_share": 0.79,
+   "trail_silence": 1.85
+  },
+  "keys": [
+   "Shot_Pistol"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Pistol, Silenced 9mm, Single Shots, Ricochets, Reload, Handling, Gun\n\nDuration: 2.6 seconds\nCategory: Guns - Pistols\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Pistol Single Shots 1 (SFX)",
+   "title": "Pistol Single Shots 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "LEAD_SILENCE",
+   "VOICE?"
+  ],
+  "hard": [],
+  "id": 9117798202,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 6.3,
+   "format": "ogg",
+   "lead_silence": 2.25,
+   "peak_db": -15.0,
+   "regions": {},
+   "rms_db": -28.2,
+   "silent_share": 0.6,
+   "trail_silence": 1.3
+  },
+  "keys": [
+   "PoliceRadio"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Police Radio, Dispatcher and Many Officers, Clicks and Pops, Scratchy\n\nDuration: 6.3 seconds\nCategory: Voices - Radio\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 6,
+   "free": true,
+   "name": "Police Radio Dispatcher Many Officers 24 (SFX)",
+   "title": "Police Radio Dispatcher Many Officers 24 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9117969584,
+  "info": {
+   "clip_ratio": 0.00195,
+   "duration": 0.49,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.5,
+   "regions": {},
+   "rms_db": -12.0,
+   "silent_share": 0.33,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Bonk"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Punch Kit, Whappy Chin Sock, Beefy Hit\n\nDuration: 1.8 seconds\nCategory: Fight - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Punch Kit Beefy Hit 1 (SFX)",
+   "title": "Punch Kit Beefy Hit 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9117969687,
+  "info": {
+   "clip_ratio": 0.0014,
+   "duration": 0.62,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.5,
+   "regions": {},
+   "rms_db": -11.8,
+   "silent_share": 0.42,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "Melee_Punch1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Punch Kit, Whappy Chin Sock, Beefy Hit\n\nDuration: 1.8 seconds\nCategory: Fight - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Punch Kit Beefy Hit 2 (SFX)",
+   "title": "Punch Kit Beefy Hit 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9117969717,
+  "info": {
+   "clip_ratio": 0.00296,
+   "duration": 0.9,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.4,
+   "regions": {},
+   "rms_db": -10.1,
+   "silent_share": 0.61,
+   "trail_silence": 0.55
+  },
+  "keys": [
+   "Melee_Punch2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Punch Kit, Whappy Chin Sock, Beefy Hit\n\nDuration: 1.8 seconds\nCategory: Fight - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Punch Kit Beefy Hit 3 (SFX)",
+   "title": "Punch Kit Beefy Hit 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118168291,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.44,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -1.6,
+   "regions": {},
+   "rms_db": -18.2,
+   "silent_share": 0.25,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Whiz3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Rico, Zingy Guns, Bullet Whiz, Zippy Impacts\n\nDuration: 0.7 seconds\nCategory: Guns - Bullet Whiz\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Rico Bullet Whiz 3 (SFX)",
+   "title": "Rico Bullet Whiz 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118168612,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.67,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -2.9,
+   "regions": {},
+   "rms_db": -22.7,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Ricochet1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ricochet Metal, Bullet Impact, Clang, Clank, Ringing\n\nDuration: 1.7 seconds\nCategory: Guns - Ricochets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Ricochet Metal 1 (SFX)",
+   "title": "Ricochet Metal 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118169272,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.18,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -3.0,
+   "regions": {},
+   "rms_db": -23.3,
+   "silent_share": 0.74,
+   "trail_silence": 1.55
+  },
+  "keys": [
+   "Ricochet2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ricochet, Bullet, Reverberant\n\nDuration: 2.2 seconds\nCategory: Guns - Ricochets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Ricochet Reverberant 3 (SFX)",
+   "title": "Ricochet Reverberant 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118173988,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.07,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.6,
+   "regions": {},
+   "rms_db": -25.7,
+   "silent_share": 0.7,
+   "trail_silence": 2.15
+  },
+  "keys": [
+   "Shot_Marksman"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Rifle, Barrett M82 .50 Cal, Single Shots, Metal Clinks, Gun, Also Known As: M107\n\nDuration: 3.5 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Rifle Single Shots 3 (SFX)",
+   "title": "Rifle Single Shots 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118708982,
+  "info": {
+   "clip_ratio": 1e-05,
+   "duration": 17.76,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": 0.3,
+   "regions": {},
+   "rms_db": -13.6,
+   "silent_share": 0.03,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Crash"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ronking Car Crash, Impacts Against Metal, Glass Break, Grating, Heavy Shatter, Thumps, Suspension\n\nDuration: 17.8 seconds\nCategory: Vehicles - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 18,
+   "free": true,
+   "name": "Ronking Car Crash 1 (SFX)",
+   "title": "Ronking Car Crash 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119165131,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 26.74,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -4.1,
+   "regions": {},
+   "rms_db": -19.9,
+   "silent_share": 0.2,
+   "trail_silence": 2.1
+  },
+  "keys": [
+   "Siren"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Siren Wail, Start and Away, Back In and Stop, Off, Emergency, Ambulance\n\nDuration: 26.7 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 27,
+   "free": true,
+   "name": "Siren Wail 1 (SFX)",
+   "title": "Siren Wail 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119165140,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 30.44,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -7.7,
+   "regions": {},
+   "rms_db": -23.0,
+   "silent_share": 0.07,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "SirenAlt"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Siren Wail, Start and Away, Back In and Stop, Off, Emergency, Ambulance\n\nDuration: 30.4 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 30,
+   "free": true,
+   "name": "Siren Wail 2 (SFX)",
+   "title": "Siren Wail 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119186024,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 14.59,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -4.5,
+   "regions": {},
+   "rms_db": -26.6,
+   "silent_share": 0.13,
+   "trail_silence": 1.7
+  },
+  "keys": [
+   "TireScreech"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Skids, Tire Screeches on Dirt and Pavement, Gravel, Grinding into the Ground, Some Squeals, Rocks Flinging and Ticking\n\nDuration: 14.6 seconds\nCategory: Vehicles - Tires\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 15,
+   "free": true,
+   "name": "Skids Tire Screeches On Dirt Pavement 1 (SFX)",
+   "title": "Skids Tire Screeches On Dirt Pavement 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120704346,
+  "info": {
+   "clip_ratio": 0.00025,
+   "duration": 3.09,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": 1.2,
+   "regions": {},
+   "rms_db": -16.3,
+   "silent_share": 0.11,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Wasted"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Whoosh, Deep Booming Blast, Rumbling Destruction\n\nDuration: 3.1 seconds\nCategory: Whooshes - Bys\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Whoosh Deep Booming Blast Reversed At Tail 1 (SFX)",
+   "title": "Whoosh Deep Booming Blast Reversed At Tail 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120962232,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.37,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.5,
+   "regions": {},
+   "rms_db": -22.7,
+   "silent_share": 0.29,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "ImpactWood"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Wood Snap, Crunches, For Bullet Impact and Splintering\n\nDuration: 0.8 seconds\nCategory: Wood - Cracks\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Wood Snap Bullet Impact 1 (SFX)",
+   "title": "Wood Snap Bullet Impact 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125380872,
+  "info": {
+   "clip_ratio": 7e-05,
+   "duration": 1.89,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.6,
+   "regions": {},
+   "rms_db": -27.7,
+   "silent_share": 0.22,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Melee_Bat"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Baseball, Wood Bat Hits Hard Ball, Power Whacks, Solid, Resonant, Singles, Various Versions\n\nFull Name: Baseball Wood Bat Hits Hard Ball Power Whacks 5\nDuration: 3.0 seconds\nCategory: Sports\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Baseball Wood Bat Hits Hard Ball Power Whack (SFX)",
+   "title": "Baseball Wood Bat Hits Hard Ball Power Whack (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125404320,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.96,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.8,
+   "regions": {},
+   "rms_db": -16.2,
+   "silent_share": 0.1,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "Busted",
+   "WastedImpact"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Boom Impact, Deep Distant Thumping Hit, Booming, Long Resonant Decay with Light Rattle\n\nFull Name: Boom Impact Deep Distant Thumping Hits Booming 36\nDuration: 3.0 seconds\nCategory: Stings\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Boom Impact Deep Distant Thumping Hits Boomi (SFX)",
+   "title": "Boom Impact Deep Distant Thumping Hits Boomi (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP",
+   "VOICE?"
+  ],
+  "hard": [],
+  "id": 9125774594,
+  "info": {
+   "clip_ratio": 0.00993,
+   "duration": 4.44,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": 0.2,
+   "regions": {},
+   "rms_db": -13.8,
+   "silent_share": 0.01,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "PoliceRadioFeed"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Police Radio, Line Feed, Radio Voices, Static, Broadcast Squelches, Describing Boston Street Locations with a Boston Accent\n\nFull Name: Police Radio Line Feed Radio Voices Static 19\nDuration: 4.4 seconds\nCategory: Voices - Radio\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Police Radio Line Feed Radio Voices Static 1 (SFX)",
+   "title": "Police Radio Line Feed Radio Voices Static 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 10066947742,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.87,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.6,
+   "regions": {},
+   "rms_db": -31.1,
+   "silent_share": 0.41,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Purchase"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 1,
+   "free": true,
+   "name": "RBLX UI Purchase (SFX)",
+   "title": "RBLX UI Purchase (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 15675028888,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.49,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.0,
+   "regions": {},
+   "rms_db": -18.3,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Whoosh"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 1,
+   "free": true,
+   "name": "Roblox_UI_Whoosh_02",
+   "title": "Roblox_UI_Whoosh_02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 15675032796,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.13,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.6,
+   "regions": {},
+   "rms_db": -27.8,
+   "silent_share": 0.5,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Click"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 0,
+   "free": true,
+   "name": "Roblox_UI_Small_Click",
+   "title": "Roblox_UI_Small_Click",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 15675059323,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.37,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.0,
+   "regions": {},
+   "rms_db": -15.0,
+   "silent_share": 0.71,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "ClickBright"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 0,
+   "free": true,
+   "name": "Roblox_UI_Bright_Click",
+   "title": "Roblox_UI_Bright_Click",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 17208319162,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.9,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.0,
+   "regions": {},
+   "rms_db": -21.7,
+   "silent_share": 0.39,
+   "trail_silence": 0.35
+  },
+  "keys": [
+   "Pickup"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 1,
+   "free": true,
+   "name": "Roblox GUI - Pickup",
+   "title": "Roblox GUI - Pickup",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 17208361335,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.52,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -2.7,
+   "regions": {},
+   "rms_db": -17.1,
+   "silent_share": 0.5,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "Notify"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 2,
+   "free": true,
+   "name": "Roblox GUI - Notification High",
+   "title": "Roblox GUI - Notification High",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 70527882874881,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.96,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -8.1,
+   "regions": {},
+   "rms_db": -31.1,
+   "silent_share": 0.36,
+   "trail_silence": 0.6
+  },
+  "keys": [
+   "Tail_Gun2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_gun_tail-02",
+   "title": "AS_gun_tail-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 72333449737130,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -26.0,
+   "silent_share": 0.5,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Shot_Carbine4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-04",
+   "title": "AS_rifle_shot-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 72710061789341,
+  "info": {
+   "clip_ratio": 0.00631,
+   "duration": 155.29,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 2.3,
+   "regions": {},
+   "rms_db": -9.4,
+   "silent_share": 0.01,
+   "trail_silence": 1.45
+  },
+  "keys": [
+   "Radio_Hyperdrive"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Queens Road",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 155,
+   "free": true,
+   "name": "Hyperdrive",
+   "title": "Hyperdrive",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "LEAD_SILENCE",
+   "SILENT"
+  ],
+  "hard": [
+   "SILENT"
+  ],
+  "id": 75302784250672,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.62,
+   "format": "ogg",
+   "lead_silence": 1.6,
+   "peak_db": -39.4,
+   "regions": {},
+   "rms_db": -99.0,
+   "silent_share": 1.0,
+   "trail_silence": 1.6
+  },
+  "keys": [
+   "Tail_Shotgun1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_shotgun_tail-01",
+   "title": "AS_shotgun_tail-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "THIRD_PARTY"
+  ],
+  "hard": [],
+  "id": 78270463799678,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.11,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -1.3,
+   "regions": {},
+   "rms_db": -16.8,
+   "silent_share": 0.06,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "EngineStart"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Sound of an engine starting",
+   "duration": 3,
+   "free": true,
+   "name": "Engine-Start",
+   "title": "Engine-Start",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 79289354458541,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.54,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -10.2,
+   "regions": {},
+   "rms_db": -32.3,
+   "silent_share": 0.52,
+   "trail_silence": 1.1
+  },
+  "keys": [
+   "Tail_Gun3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 3,
+   "free": true,
+   "name": "AS_gun_tail-03",
+   "title": "AS_gun_tail-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "THIRD_PARTY"
+  ],
+  "hard": [],
+  "id": 80317022777602,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 9.17,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.5,
+   "regions": {},
+   "rms_db": -24.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "EngineLoop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Loopable sound of a car engine.",
+   "duration": 9,
+   "free": true,
+   "name": "Car-Engine-Loop",
+   "title": "Car-Engine-Loop",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 82409501948316,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.3,
+   "regions": {},
+   "rms_db": -26.2,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-02",
+   "title": "AS_shotgun_shot-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 84039532799719,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.0,
+   "regions": {},
+   "rms_db": -25.5,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-04",
+   "title": "AS_shotgun_shot-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 86903016850225,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -26.2,
+   "silent_share": 0.33,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Shot_Carbine3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-03",
+   "title": "AS_rifle_shot-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "THIRD_PARTY"
+  ],
+  "hard": [],
+  "id": 87646813759701,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.07,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.3,
+   "regions": {},
+   "rms_db": -22.8,
+   "silent_share": 0.05,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "EngineStop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Sound of a car engine stopping",
+   "duration": 1,
+   "free": true,
+   "name": "Engine-Stop",
+   "title": "Engine-Stop",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 90852446208160,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.31,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -7.4,
+   "regions": {},
+   "rms_db": -29.6,
+   "silent_share": 0.54,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "Tail_Gun1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_gun_tail-01",
+   "title": "AS_gun_tail-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 99008924129683,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.5,
+   "regions": {},
+   "rms_db": -25.5,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-01",
+   "title": "AS_shotgun_shot-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "LEAD_SILENCE",
+   "SILENT"
+  ],
+  "hard": [
+   "SILENT"
+  ],
+  "id": 99323994116525,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.31,
+   "format": "ogg",
+   "lead_silence": 2.3,
+   "peak_db": -31.7,
+   "regions": {},
+   "rms_db": -99.0,
+   "silent_share": 1.0,
+   "trail_silence": 2.3
+  },
+  "keys": [
+   "Tail_Shotgun4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_shotgun_tail-04",
+   "title": "AS_shotgun_tail-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 106454770387605,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.7,
+   "regions": {},
+   "rms_db": -25.1,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-03",
+   "title": "AS_shotgun_shot-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 109431560870225,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.5,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.3,
+   "regions": {},
+   "rms_db": -15.7,
+   "silent_share": 0.44,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "HitTick"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_gun_punch-01",
+   "title": "AS_gun_punch-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 111187749925677,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.65,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -31.2,
+   "silent_share": 0.51,
+   "trail_silence": 1.0
+  },
+  "keys": [
+   "Tail_Gun4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 3,
+   "free": true,
+   "name": "AS_gun_tail-04",
+   "title": "AS_gun_tail-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "SILENT"
+  ],
+  "hard": [
+   "SILENT"
+  ],
+  "id": 116468550696572,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.42,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -35.2,
+   "regions": {},
+   "rms_db": -48.8,
+   "silent_share": 0.94,
+   "trail_silence": 2.05
+  },
+  "keys": [
+   "Tail_Shotgun2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_shotgun_tail-02",
+   "title": "AS_shotgun_tail-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "THIRD_PARTY"
+  ],
+  "hard": [],
+  "id": 125094987563505,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.22,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -10.9,
+   "regions": {},
+   "rms_db": -35.1,
+   "silent_share": 0.42,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "CarDoor"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Sound of a car door opening and closing",
+   "duration": 1,
+   "free": true,
+   "name": "Open-Close-Car-Door",
+   "title": "Open-Close-Car-Door",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "LEAD_SILENCE",
+   "SILENT"
+  ],
+  "hard": [
+   "SILENT"
+  ],
+  "id": 125311341637563,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.31,
+   "format": "ogg",
+   "lead_silence": 2.3,
+   "peak_db": -34.7,
+   "regions": {},
+   "rms_db": -99.0,
+   "silent_share": 1.0,
+   "trail_silence": 2.3
+  },
+  "keys": [
+   "Tail_Shotgun3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_shotgun_tail-03",
+   "title": "AS_shotgun_tail-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 127619198178554,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.9,
+   "regions": {},
+   "rms_db": -26.0,
+   "silent_share": 0.5,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Shot_Carbine2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-02",
+   "title": "AS_rifle_shot-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 127645268874265,
+  "info": {
+   "clip_ratio": 0.00014,
+   "duration": 1.66,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.8,
+   "regions": {},
+   "rms_db": -23.6,
+   "silent_share": 0.76,
+   "trail_silence": 1.25
+  },
+  "keys": [
+   "Coin"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 2,
+   "free": true,
+   "name": "CoinTransfer_01",
+   "title": "CoinTransfer_01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 128650101411844,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.3,
+   "regions": {},
+   "rms_db": -26.7,
+   "silent_share": 0.33,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Shot_Carbine1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-01",
+   "title": "AS_rifle_shot-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ }
+]

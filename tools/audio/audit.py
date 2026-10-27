@@ -55,12 +55,14 @@ SILENCE_DB = -50.0
 OUT_MD = os.path.join(ROOT, "docs", "v2", "evidence", "audio_audit.md")
 OUT_JSON = os.path.join(ROOT, "docs", "v2", "evidence", "audio_audit.json")
 
-# Roblox-licensed audio publishers (platform licence deals): Pro Sound Effects, APM Music, Audioscape, Roblox.
+# Roblox-licensed audio publishers (platform licence deals): Pro Sound Effects, APM Music, Audioscape, plus Roblox's
+# own accounts (Roblox, the verified Roblox Resources group).
 LICENSED = {
     7462895450: "Pro Sound Effects",
     7462718749: "APM Music",
     34159607: "Audioscape",
     1: "Roblox",
+    3529469: "Roblox Resources",  # verified group run by Roblox's CreatorKnowledge account (template / docs assets)
 }
 VOICE_WORDS = re.compile(r"\b(voice|voices|talk|talking|speech|speaks?|dispatcher|announcer|chatter|vocal|says|"
                          r"spoken|conversation|walla|crowd talk|scanner)\b", re.I)
@@ -198,6 +200,72 @@ def analyse(x, region=None, loop=False):
             out["region_steady_db"] = round(float(np.std(sdb)), 1)
             if loop and len(sdb) >= 2:
                 out["seam_db"] = round(abs(float(sdb[-1] - sdb[0])), 1)
+    return out
+
+
+
+def feature_track(x, hop=0.01, win=1024):
+    """(rms dB, spectral centroid Hz) every `hop` seconds."""
+    n = max(1, int(SR * hop))
+    w = np.hanning(win)
+    freqs = np.fft.rfftfreq(win, 1.0 / SR)
+    out = []
+    for start in range(0, max(1, len(x) - win), n):
+        seg = x[start:start + win]
+        if len(seg) < win:
+            break
+        spec = np.abs(np.fft.rfft(seg * w))
+        s = float(np.sum(spec))
+        c = float(np.sum(spec * freqs) / s) if s > 1e-9 else 0.0
+        out.append((db(np.sqrt(np.mean(seg.astype(np.float64) ** 2))), c))
+    return np.array(out) if out else np.zeros((0, 2))
+
+
+def zero_cross_near(x, i, rising=True, span=400):
+    """Index of the closest zero crossing (same slope) to sample i."""
+    lo, hi = max(1, i - span), min(len(x) - 1, i + span)
+    seg = x[lo - 1:hi]
+    if rising:
+        idx = np.where((seg[:-1] <= 0) & (seg[1:] > 0))[0]
+    else:
+        idx = np.where((seg[:-1] >= 0) & (seg[1:] < 0))[0]
+    if len(idx) == 0:
+        return i
+    idx = idx + lo
+    return int(idx[np.argmin(np.abs(idx - i))])
+
+
+def loop_candidates(x, a, b, min_len, max_len, top=5, win=0.35):
+    """Best LoopRegion lengths inside [a, b] s: compares the feature track (level + brightness) just after the loop
+    start with the track just after start+L (what plays after the seam), so the seam does not jump. Returns
+    [(start s, end s, cost)] with both ends snapped to rising zero crossings."""
+    tr = feature_track(x[int(a * SR): int(b * SR)])
+    if len(tr) < 10:
+        return []
+    hop = 0.01
+    w = max(5, int(win / hop))
+    ref = tr[:w]
+    cmean = max(1.0, float(np.mean(tr[:, 1])))
+    res = []
+    for L in range(int(min_len / hop), int(max_len / hop) + 1):
+        if L + w > len(tr):
+            break
+        cand = tr[L:L + w]
+        cost = float(np.mean(np.abs(cand[:, 0] - ref[:, 0])) + 12 * np.mean(np.abs(cand[:, 1] - ref[:, 1])) / cmean)
+        res.append((cost, L))
+    res.sort()
+    picked = []
+    for cost, L in res:
+        if any(abs(L - q) < 20 for _, q in picked):
+            continue
+        picked.append((cost, L))
+        if len(picked) >= top:
+            break
+    out = []
+    s0 = zero_cross_near(x, int(a * SR))
+    for cost, L in picked:
+        e = zero_cross_near(x, s0 + int(L * hop * SR))
+        out.append((round(s0 / SR, 3), round(e / SR, 3), round(cost, 2)))
     return out
 
 
@@ -497,8 +565,8 @@ def run_envelope(args):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def run_search(args):
-    q = urllib.parse.quote(args.search)
+def search_one(query, args, seen):
+    q = urllib.parse.quote(query)
     tok = ""
     found = 0
     pages = 0
@@ -508,13 +576,17 @@ def run_search(args):
         for item in j.get("creatorStoreAssets") or []:
             a = item.get("asset") or {}
             c = item.get("creator") or {}
-            cid = c.get("userId")
+            cid = c.get("userId") or c.get("groupId")
             if not args.all_creators and cid not in LICENSED:
                 continue
+            aid = a.get("id")
+            if aid in seen:
+                continue
+            seen.add(aid)
             found += 1
             desc = (a.get("description") or "").replace("\n", " ")
-            print(f"{a.get('id'):>16}  {a.get('durationSeconds')!s:>4}s  {LICENSED.get(cid, c.get('name'))!s:<18} "
-                  f"{(a.get('name') or '')[:60]:<60} {desc[:110] if args.verbose else ''}")
+            print(f"{aid:>16}  {a.get('durationSeconds')!s:>4}s  {LICENSED.get(cid, c.get('name'))!s:<18} "
+                  f"{(a.get('name') or '')[:60]:<60} {desc[:110] if args.verbose else ''}", flush=True)
             if found >= args.limit:
                 break
         nt = j.get("nextPageToken")
@@ -522,7 +594,41 @@ def run_search(args):
             break
         tok = "&pageToken=" + urllib.parse.quote(nt)
         time.sleep(0.5)
+
+
+def run_search(args):
+    """--search "q1;q2;..." : one block per query, ids de-duplicated across the queries."""
+    seen = set()
+    for query in [x.strip() for x in args.search.split(";") if x.strip()]:
+        print(f"== {query}", flush=True)
+        try:
+            search_one(query, args, seen)
+        except RuntimeError as e:
+            print(f"   search failed: {e}")
+        time.sleep(0.3)
     return 0
+
+
+def run_loop(args):
+    """--loop ID --from A --to B [--min L] [--max L]: best LoopRegion candidates inside [A, B]."""
+    aid = int(args.loop)
+    tmp = tempfile.mkdtemp(prefix="hc_audio_")
+    try:
+        path, kind = download(aid, tmp)
+        if not path:
+            print("download failed:", kind)
+            return 1
+        x = decode(path)
+        a = args.frm or 0.0
+        b = args.to or len(x) / SR
+        lo = args.min or 1.0
+        hi = args.max or max(lo, (b - a) * 0.95)
+        print(f"{aid}: loop candidates in [{a}, {b}] s, length {lo}..{hi} s (start, end, seam cost; lower is better)")
+        for st, en, cost in loop_candidates(x, a, b, lo, hi):
+            print(f"  loopStart={st:.3f}  loopEnd={en:.3f}  ({en - st:.2f} s)  cost {cost}")
+        return 0
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def main():
@@ -538,7 +644,12 @@ def main():
     ap.add_argument("--limit", type=int, default=25)
     ap.add_argument("--pages", type=int, default=4)
     ap.add_argument("-v", "--verbose", action="store_true")
+    ap.add_argument("--loop", help="loop-point search for one id (with --from / --to / --min / --max)")
+    ap.add_argument("--min", type=float)
+    ap.add_argument("--max", type=float)
     args = ap.parse_args()
+    if args.loop:
+        return run_loop(args)
     if args.search:
         return run_search(args)
     if args.envelope:
