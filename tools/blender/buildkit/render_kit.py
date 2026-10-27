@@ -449,7 +449,7 @@ def sc_block(a, night=False):
         S.car(c, r.choice([(xs[0] - 0.5 + i) * P for i in range(len(xs) + 1)]) + r.choice([-9, 9]),
               r.uniform((ys[0] - 0.5) * P, (ys[-1] + 0.5) * P), heading=r.choice([90, 270]), seed=k)
     ybeach = (ys[0] - 0.5) * P - ROAD_W / 2
-    S.ground(c, -30000, ybeach - 40, 30000, 30000, "drygrass", z=-0.05, tile=40.0)
+    S.ground(c, -30000, ybeach - 40, 30000, 30000, "chaparral", z=-0.05, tile=40.0)
     S.ground(c, -30000, ybeach - 200, 30000, ybeach - 40, "sand", z=-0.05)
     S.ground(c, -30000, -30000, 30000, ybeach - 200, "sea", z=-0.1)
     for x in range(int((xs[0] - 0.5) * P), int((xs[-1] + 0.5) * P), 46):
@@ -457,7 +457,7 @@ def sc_block(a, night=False):
     # mountains behind downtown (the Vinewood-hills backdrop) so the horizon is land, not a table edge
     S.hill(c, -12000, 3200, 12000, 12000, lambda x, y: max(0.0, min(1.0, (y - 3200) / 2500) * (
         420 + 160 * math.sin(x * 0.0009 + 0.7) + 90 * math.sin(x * 0.0027 + y * 0.0013) + 40 * math.sin(x * 0.011))),
-           nx=120, ny=30, kind="drygrass")
+           nx=120, ny=30, kind="chaparral")
     bpy.context.scene.world.mist_settings.depth = 4200.0
     return finish("block_night" if night else "block_wide", (-900, -760, 175), (40, 420, 70), 30, a.samples, a.res,
                   night=night, haze_amt=0.6)

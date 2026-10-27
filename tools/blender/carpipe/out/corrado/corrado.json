@@ -263,9 +263,9 @@
         6.6363
       ],
       "textures": {
-        "base": "textures/corrado_Body_base.png",
-        "metal": "textures/corrado_Body_metal.png",
         "rough": "textures/corrado_Body_rough.png",
+        "metal": "textures/corrado_Body_metal.png",
+        "base": "textures/corrado_Body_base.png",
         "tintmask": "textures/corrado_Body_tintmask.png",
         "overlay": "textures/corrado_Body_overlay.png"
       }
@@ -283,9 +283,9 @@
         -3.2817
       ],
       "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
@@ -302,9 +302,9 @@
         -3.2817
       ],
       "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
@@ -321,9 +321,9 @@
         5.458
       ],
       "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
@@ -340,9 +340,9 @@
         5.458
       ],
       "textures": {
+        "metal": "textures/corrado_Wheel_metal.png",
         "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
-        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     }

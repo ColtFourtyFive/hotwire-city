@@ -244,7 +244,7 @@
       "textured": true,
       "metallic": 0.5,
       "roughness": 0.5,
-      "mask_coverage": 0.553
+      "mask_coverage": 0.465
     },
     "secondary": null,
     "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
@@ -266,13 +266,12 @@
         "rough": "textures/fairheaven_cop_Body_rough.png",
         "base": "textures/fairheaven_cop_Body_base.png",
         "metal": "textures/fairheaven_cop_Body_metal.png",
-        "normal": "textures/fairheaven_cop_Body_normal.png",
         "tintmask": "textures/fairheaven_cop_Body_tintmask.png",
         "overlay": "textures/fairheaven_cop_Body_overlay.png"
       }
     },
     "Glass": {
-      "tris": 266,
+      "tris": 264,
       "bbox_min": [
         -2.4941,
         2.9549,
@@ -298,9 +297,8 @@
         -7.2336
       ],
       "textures": {
-        "emit": "textures/fairheaven_cop_Lights_emit.png",
-        "normal": "textures/fairheaven_cop_Lights_normal.png",
-        "base": "textures/fairheaven_cop_Lights_base.png"
+        "base": "textures/fairheaven_cop_Lights_base.png",
+        "emit": "textures/fairheaven_cop_Lights_emit.png"
       }
     },
     "LightsRear": {
@@ -316,9 +314,8 @@
         8.4223
       ],
       "textures": {
-        "emit": "textures/fairheaven_cop_Lights_emit.png",
-        "normal": "textures/fairheaven_cop_Lights_normal.png",
-        "base": "textures/fairheaven_cop_Lights_base.png"
+        "base": "textures/fairheaven_cop_Lights_base.png",
+        "emit": "textures/fairheaven_cop_Lights_emit.png"
       }
     },
     "Trim": {
@@ -374,7 +371,6 @@
         -3.4627
       ],
       "textures": {
-        "normal": "textures/fairheaven_cop_Wheel_normal.png",
         "rough": "textures/fairheaven_cop_Wheel_rough.png",
         "base": "textures/fairheaven_cop_Wheel_base.png",
         "metal": "textures/fairheaven_cop_Wheel_metal.png",
@@ -394,7 +390,6 @@
         -3.4626
       ],
       "textures": {
-        "normal": "textures/fairheaven_cop_Wheel_normal.png",
         "rough": "textures/fairheaven_cop_Wheel_rough.png",
         "base": "textures/fairheaven_cop_Wheel_base.png",
         "metal": "textures/fairheaven_cop_Wheel_metal.png",
@@ -414,7 +409,6 @@
         5.5367
       ],
       "textures": {
-        "normal": "textures/fairheaven_cop_Wheel_normal.png",
         "rough": "textures/fairheaven_cop_Wheel_rough.png",
         "base": "textures/fairheaven_cop_Wheel_base.png",
         "metal": "textures/fairheaven_cop_Wheel_metal.png",
@@ -434,7 +428,6 @@
         5.5367
       ],
       "textures": {
-        "normal": "textures/fairheaven_cop_Wheel_normal.png",
         "rough": "textures/fairheaven_cop_Wheel_rough.png",
         "base": "textures/fairheaven_cop_Wheel_base.png",
         "metal": "textures/fairheaven_cop_Wheel_metal.png",
@@ -444,7 +437,7 @@
   },
   "triangles": {
     "source": 19499,
-    "total": 13133,
+    "total": 13131,
     "limits": {
       "car": 18000,
       "body": 7000,

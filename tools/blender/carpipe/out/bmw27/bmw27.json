@@ -353,10 +353,10 @@
         7.7864
       ],
       "textures": {
-        "rough": "textures/bmw27_Trim_rough.png",
         "normal": "textures/bmw27_Trim_normal.png",
-        "base": "textures/bmw27_Trim_base.png",
+        "rough": "textures/bmw27_Trim_rough.png",
         "metal": "textures/bmw27_Trim_metal.png",
+        "base": "textures/bmw27_Trim_base.png",
         "ao": "textures/bmw27_Trim_ao.png"
       }
     },
@@ -373,10 +373,10 @@
         7.4379
       ],
       "textures": {
-        "rough": "textures/bmw27_Interior_rough.png",
         "normal": "textures/bmw27_Interior_normal.png",
-        "base": "textures/bmw27_Interior_base.png",
+        "rough": "textures/bmw27_Interior_rough.png",
         "metal": "textures/bmw27_Interior_metal.png",
+        "base": "textures/bmw27_Interior_base.png",
         "ao": "textures/bmw27_Interior_ao.png"
       }
     },
@@ -393,10 +393,10 @@
         -3.4928
       ],
       "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
         "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
         "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
         "ao": "textures/bmw27_Wheel_ao.png"
       }
     },
@@ -413,10 +413,10 @@
         -3.4953
       ],
       "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
         "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
         "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
         "ao": "textures/bmw27_Wheel_ao.png"
       }
     },
@@ -433,10 +433,10 @@
         5.9248
       ],
       "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
         "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
         "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
         "ao": "textures/bmw27_Wheel_ao.png"
       }
     },
@@ -453,10 +453,10 @@
         5.9481
       ],
       "textures": {
-        "normal": "textures/bmw27_Wheel_normal.png",
         "rough": "textures/bmw27_Wheel_rough.png",
-        "base": "textures/bmw27_Wheel_base.png",
         "metal": "textures/bmw27_Wheel_metal.png",
+        "normal": "textures/bmw27_Wheel_normal.png",
+        "base": "textures/bmw27_Wheel_base.png",
         "ao": "textures/bmw27_Wheel_ao.png"
       }
     }
