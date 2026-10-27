@@ -46,7 +46,8 @@
 5. **Lighting must look right in two modes.** Graphics quality decides the lighting path. Shadows are off below quality level 4 ([DOC] [improve](https://create.roblox.com/docs/performance-optimization/improve)). A developer cannot force Future-style lighting on a phone.
    - The mobile look has to come from emissive windows, the sky, the atmosphere and the colour grade, not from shadows.
 6. **Keep Atmosphere Density at 0.25–0.30.** Above about 0.35 the aerial and skyline views turn into a wall ([EVID] lab job 0002, and the v1 `overview_high_haze.jpg`).
-7. **Use SurfaceAppearance `AlphaMode = TintMask` with `SurfaceAppearance.Color` for car paint.** `Color` is scriptable at runtime and does not rebuild FastClusters ([ANN 4147160](https://devforum.roblox.com/t/making-avatar-rendering-more-performant/4147160)). One texture set can serve every paint colour.
+7. **Use SurfaceAppearance `AlphaMode = TintMask` with `SurfaceAppearance.Color` for car paint.** `Color` is scriptable at runtime, and the docs say tinting "does not affect performance". One texture set can serve every paint colour.
+   - For skinned or Humanoid models, Roblox announced that `SurfaceAppearance.Color` changes would stop triggering FastCluster rebuilds "in early 2026" ([ANN 4147160](https://devforum.roblox.com/t/making-avatar-rendering-more-performant/4147160)). I have not confirmed that it shipped. It does not affect rigid cars either way.
 8. **Content rules make three GTA staples illegal at Moderate:**
    - **Alcohol:** any bar, liquor store or beer sign makes the game 18+ only.
    - **Strong language:** Restricted.
@@ -798,7 +799,7 @@ Base URL: `https://apis.roblox.com`. Use API key auth with the `x-api-key` heade
 | Universe config | `GET/PATCH /cloud/v2/universes/{u}?updateMask=…`: `visibility`, `voiceChatEnabled`, `privateServerPriceRobux`, `desktop/mobile/tablet/console/vrEnabled`; `displayName` and `description` go through the root place. | `universe:write` | 100/min | `ageRating` is exposed. Set maturity through the questionnaire, not the API. ([ref](https://create.roblox.com/docs/cloud/reference/features/universes)) |
 | Restart servers after publish | `POST /cloud/v2/universes/{u}:restartServers` | `universe:write` | — | |
 | Place config | `PATCH /cloud/v2/universes/{u}/places/{p}`: `displayName`, `description`, `serverSize` | `universe.place:write` | 100/min | |
-| Live tunables (no republish) | Configs API: `/creator-configs-public-api/v1/configs/universes/{u}/repositories/{repo}/draft` → `…/publish` | — | — | GA 2026-03 ([ref](https://create.roblox.com/docs/cloud/reference/features/configs)). Good for economy and wanted-level tuning. |
+| Live tunables (no republish) | Configs API: `/creator-configs-public-api/v1/configs/universes/{u}/repositories/{repo}/draft` → `…/publish` | — | — | Launched 2026-03-10; the endpoints are still BETA ([ref](https://create.roblox.com/docs/cloud/reference/features/configs)). Good for economy and wanted-level tuning. |
 
 ### Luau Execution limits
 

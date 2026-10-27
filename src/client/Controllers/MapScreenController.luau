@@ -15,7 +15,7 @@
 --    is a Kit.screen with the usual scaling.
 --
 -- Public API: open(), close(), toggle(), isOpen()
--- Pure helpers (tests): fitScale, worldToScreen, screenToWorld, zoomAround, clampCenter, isTap.
+-- Pure helpers (tests): fitScale, fitCenterZ, worldToScreen, screenToWorld, zoomAround, clampCenter, isTap.
 
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -61,8 +61,14 @@ local WHITE = Color3.new(1, 1, 1)
 -- Pure helpers (exported for tests). A view is (cx, cz, scale): world point at the screen center + px per stud.
 -------------------------------------------------------------------------------------------------------------------------
 
-function MapScreenController.fitScale(vpW: number, vpH: number): number
-	return math.max(1e-3, math.min(vpW, vpH) / FIT_SPAN)
+-- px per stud that shows the whole island below a `top` px header (default 0).
+function MapScreenController.fitScale(vpW: number, vpH: number, top: number?): number
+	return math.max(1e-3, math.min(vpW, vpH - (top or 0)) / FIT_SPAN)
+end
+
+-- View center z that centers the island in the area below a `top` px header at `scale`.
+function MapScreenController.fitCenterZ(scale: number, top: number?): number
+	return -((top or 0) / 2) / scale
 end
 
 function MapScreenController.worldToScreen(
@@ -185,8 +191,13 @@ local function viewport(): (number, number)
 	return 1280, 720
 end
 
+-- Real px the title / hint / GPS chip take at the top of the screen.
+local function chromeTop(): number
+	return MAP.CHROME_TOP * Kit.uiScale(Theme.TouchMinScale)
+end
+
 local function limits(): (number, number)
-	local fit = MapScreenController.fitScale(vpW, vpH)
+	local fit = MapScreenController.fitScale(vpW, vpH, chromeTop())
 	return fit * MAP.MIN_ZOOM, fit * MAP.MAX_ZOOM
 end
 
@@ -504,14 +515,21 @@ local function build(): Ui
 	zoomIn.LayoutOrder = 1
 	zoomIn.TextSize = 32
 	zoomIn.Parent = tools
-	local zoomOut = chromeButton("−", Theme.Colors.PanelLight, Vector2.new(60, 60))
+	local zoomOut = chromeButton("-", Theme.Colors.PanelLight, Vector2.new(60, 60))
 	zoomOut.LayoutOrder = 2
 	zoomOut.TextSize = 32
 	zoomOut.Parent = tools
-	local recenter = chromeButton("◎", Theme.Colors.Secondary, Vector2.new(60, 60))
+	local recenter = chromeButton("", Theme.Colors.Secondary, Vector2.new(60, 60))
+	recenter.Name = "Recenter"
 	recenter.LayoutOrder = 3
-	recenter.TextSize = 30
 	recenter.Parent = tools
+	atlasImage("target", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(36, 36),
+		ZIndex = 4,
+		Parent = recenter,
+	})
 	local clearButton = chromeButton("CLEAR WAYPOINT", Theme.Colors.Primary, Vector2.new(210, 50))
 	clearButton.Name = "ClearWaypoint"
 	clearButton.TextSize = 18
@@ -687,7 +705,7 @@ local function refresh()
 	u.world.Position = UDim2.fromOffset(ox, oy)
 	u.world.Size = UDim2.fromOffset(WORLD_SIZE * scale, WORLD_SIZE * scale)
 
-	local zoomLevel = scale / MapScreenController.fitScale(vpW, vpH)
+	local zoomLevel = scale / MapScreenController.fitScale(vpW, vpH, chromeTop())
 	local blipSize = math.floor(MAP.BLIP_SIZE * uiScale * math.clamp(0.85 + zoomLevel * 0.08, 0.85, 1.25))
 	hotspotCount = 0
 
@@ -1026,7 +1044,7 @@ function MapScreenController.open()
 	vpW, vpH = viewport()
 	local lo = limits()
 	scale = lo
-	cx, cz = 0, 0
+	cx, cz = 0, MapScreenController.fitCenterZ(scale, chromeTop())
 	local touch = Kit.isTouch()
 	u.hint.Text = if touch
 		then "Tap to set a waypoint  •  Pinch to zoom  •  Drag to move"

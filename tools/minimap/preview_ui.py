@@ -114,7 +114,7 @@ POIS = [
 ]
 RANGE = {"star": 500, "flag": 600, "tree": 600, "wheel": 600}
 GARAGES = [tuple(g["door"]) for g in GEO["garages"]]
-DISTRICTS = [("DOWNTOWN", 0, -240, 1), ("MIDTOWN", -400, -400, 1), ("MARKET ROW", 560, 240, 1),
+DISTRICTS = [("DOWNTOWN", 0, -240, 1), ("MIDTOWN", -400, -400, 1), ("MARKET ROW", 240, -560, 1),
              ("PALM SUBURBS", -720, -80, 1), ("SUNSET BEACH", 720, 80, 1), ("THE DOCKS", -80, -720, 1),
              ("SOUTH SHORE", 80, 720, 1), ("STUNT PARK", 720, 640, 2), ("CITY PARK", -720, 640, 2),
              ("OCEAN PIER", 720, -910, 2), ("CHOP YARD", -720, -800, 2)]
@@ -467,9 +467,10 @@ def scene_phone(routes, out):
 def scene_map(routes, out, W, H, phone):
     ui = max(0.72, min(W / 1280, H / 720)) if phone else min(W / 1280, H / 720)
     img = Image.new("RGBA", (W, H), WATER + (255,))
-    fit = min(W, H) / ((960 + 50) * 2)
-    scale = fit * (1.0 if not phone else 1.0)
-    cx, cz = 0.0, 0.0
+    top = 84 * ui
+    fit = min(W, H - top) / ((960 + 50) * 2)
+    scale = fit
+    cx, cz = 0.0, -(top / 2) / scale
 
     def ws(x, z):
         return W / 2 + (x - cx) * scale, H / 2 + (z - cz) * scale
@@ -487,7 +488,7 @@ def scene_map(routes, out, W, H, phone):
     img.paste((0, 0, 0, 255), (0, 0, W, band.height), band)
     img.paste((0, 0, 0, 255), (0, H - band.height, W, H), band.transpose(Image.FLIP_TOP_BOTTOM))
     # route (from the player's position)
-    route = routes[2]
+    route = routes[1]
     pts = [ws(*p) for p in route["points"]]
     w = 7 * ui
     o = 2.5 * ui
@@ -504,6 +505,8 @@ def scene_map(routes, out, W, H, phone):
     lf = font(FONT_HEAVY, 20 * ui)
     lf2 = font(FONT_HEAVY, 15 * ui)
     for name, x, z, tier in DISTRICTS:
+        if tier != 1:
+            continue  # tier-2 names appear once zoomed in (zoom >= 1.6)
         sx, sy = ws(x, z)
         d.text((sx, sy), name, font=lf if tier == 1 else lf2, fill=(255, 255, 255), anchor="mm",
                stroke_width=max(1, int(2 * ui)), stroke_fill=(10, 11, 22))
@@ -552,11 +555,14 @@ def scene_map(routes, out, W, H, phone):
     d.text((W / 2 - cw / 2 + 48 * cs, 16 * cs + ch / 2), chip, font=cf, fill=(255, 255, 255), anchor="lm",
            stroke_width=int(1.5 * cs), stroke_fill=(10, 11, 22))
     # tools
-    for i, lab in enumerate(["◎", "−", "+"]):
+    for i, lab in enumerate(["", "-", "+"]):
         by = H - 18 * cs - 60 * cs - i * 70 * cs
         col = THEME["Secondary"] if i == 0 else THEME["PanelLight"]
         rounded(d, [W - 78 * cs, by, W - 18 * cs, by + 60 * cs], 14 * cs, fill=col, outline=(10, 11, 22), width=int(3 * cs))
-        text_center(d, (W - 48 * cs, by + 30 * cs), lab, font(FONT_HEAVY, 28 * cs), (255, 255, 255))
+        if lab:
+            text_center(d, (W - 48 * cs, by + 30 * cs), lab, font(FONT_HEAVY, 28 * cs), (255, 255, 255))
+        else:
+            paste_center(img, icon("target", 36 * cs), W - 48 * cs, by + 30 * cs)
     rounded(d, [W - 96 * cs - 210 * cs, H - 18 * cs - 50 * cs, W - 96 * cs, H - 18 * cs], 14 * cs,
             fill=THEME["Primary"], outline=(10, 11, 22), width=int(3 * cs))
     text_center(d, (W - 96 * cs - 105 * cs, H - 18 * cs - 25 * cs), "CLEAR WAYPOINT", font(FONT_HEAVY, 16 * cs),

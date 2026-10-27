@@ -197,7 +197,7 @@ export type District = { name: string, x: number, z: number, tier: number }
 Minimap.DISTRICTS = {
 	{ name = "DOWNTOWN", x = 0, z = -240, tier = 1 },
 	{ name = "MIDTOWN", x = -400, z = -400, tier = 1 },
-	{ name = "MARKET ROW", x = 560, z = 240, tier = 1 },
+	{ name = "MARKET ROW", x = 240, z = -560, tier = 1 },
 	{ name = "PALM SUBURBS", x = -720, z = -80, tier = 1 },
 	{ name = "SUNSET BEACH", x = 720, z = 80, tier = 1 },
 	{ name = "THE DOCKS", x = -80, z = -720, tier = 1 },
@@ -243,6 +243,7 @@ Minimap.MAP = {
 	CLEAR_RADIUS = 26, -- real px: tapping this close to your custom waypoint removes it
 	BLIP_SIZE = 30,
 	LABEL_SIZE = 20,
+	CHROME_TOP = 84, -- design px of title / hint / GPS chip; the fit view starts below it
 }
 
 return Minimap

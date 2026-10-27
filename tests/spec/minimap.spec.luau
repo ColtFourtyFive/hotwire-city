@@ -277,6 +277,18 @@ return function(t)
 		end
 	end)
 
+	t.test("fit view leaves room for the header", function()
+		local top = 84
+		local s = MapScreen.fitScale(1280, 720, top)
+		t.ok(s < MapScreen.fitScale(1280, 720), "smaller than without a header")
+		local cz = MapScreen.fitCenterZ(s, top)
+		local _, y0 = MapScreen.worldToScreen(0, -MapConfig.BOUNDARY, 0, cz, s, 1280, 720)
+		local _, y1 = MapScreen.worldToScreen(0, MapConfig.BOUNDARY, 0, cz, s, 1280, 720)
+		t.ok(y0 >= top - 1e-6, "island top below the header")
+		t.ok(y1 <= 720 + 1e-6, "island bottom on screen")
+		t.near((y0 + y1) / 2, top + (720 - top) / 2, 1e-6, "centered in the free area")
+	end)
+
 	t.test("screen <-> world round trip", function()
 		local rng = H.Random.new(23)
 		for _ = 1, 50 do

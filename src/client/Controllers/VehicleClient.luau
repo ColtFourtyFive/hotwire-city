@@ -1241,16 +1241,16 @@ local function simStep(s: Session, dt: number)
 	-- crash detection: sudden loss of speed against a decaying recent maximum
 	local speed = controller.speed
 	s.recentMax = math.max(speed, s.recentMax - CRASH_WINDOW_DECAY * dt)
+	-- velocity at the recent peak = the pre-impact velocity while a crash's speed drop is under way (spark ray)
+	if speed >= s.recentMax - 1 then
+		s.prevVel = s.chassis.AssemblyLinearVelocity
+	end
 	local drop = s.recentMax - speed
 	if drop > CRASH_DROP and os.clock() - s.lastCrash > CRASH_COOLDOWN then
 		onCrash(s, drop)
 		s.recentMax = speed
 	end
-	-- pre-impact velocity for the next crash's spark ray (only kept while moving fast enough to matter)
-	local vel = s.chassis.AssemblyLinearVelocity
-	if vel.Magnitude > s.prevVel.Magnitude * 0.6 or os.clock() - s.lastCrash > 0.3 then
-		s.prevVel = vel
-	end
+end
 end
 
 local function renderStep(s: Session, dt: number)

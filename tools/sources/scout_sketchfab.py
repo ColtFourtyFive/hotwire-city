@@ -62,7 +62,7 @@ WEAPON_QUERIES = {
 }
 
 # names that are obviously off-brief (wrecks, toys, stylised) – still kept in json, just ranked last
-BAD = re.compile(r"burn|destroy|wreck|abandon|rust|toy|cartoon|lego|stylized|stylised|voxel|minecraft|"
+BAD = re.compile(r"burn|destroy|wreck|abandon|rust|\btoy\b|cartoon|lego|stylized|stylised|voxel|minecraft|"
                  r"chibi|cute|kids|broken|dirty|crash|damaged|old |scan of|diorama|scene|lowpoly pack|"
                  r"sci-?fi|fantasy|futur|cyber|hover|zombie|apocalyp|nerf|water ?gun|paper|clay|sketch|"
                  r"wip|concept", re.I)

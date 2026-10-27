@@ -201,13 +201,13 @@ def studio(L=17.0):
     bpy.ops.object.mode_set(mode="OBJECT")
     me = o.data
     co = verts_np(me)
-    y0 = L * 1.6
+    y0 = L * 1.4
     R = L * 1.2
-    for i, (x, y, z) in enumerate(co):
-        if y > y0:
-            t = min((y - y0) / R, math.pi / 2)
-            co[i] = (x, y0 + R * math.sin(t) + max(0, (y - y0) - R * math.pi / 2) * 0, R * (1 - math.cos(t)) +
-                     max(0.0, (y - y0) - R * math.pi / 2))
+    for i, (x, y, z) in enumerate(co):  # sweep the far (-Y) side of the floor up into a wall
+        if -y > y0:
+            u = -y - y0
+            t = min(u / R, math.pi / 2)
+            co[i] = (x, -(y0 + R * math.sin(t)), R * (1 - math.cos(t)) + max(0.0, u - R * math.pi / 2))
     me.vertices.foreach_set("co", co.astype(np.float32).ravel())
     me.update()
     for p in me.polygons:
