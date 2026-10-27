@@ -35,7 +35,7 @@
 4. **Wheels are separable on 10 of 11 cars**, so a runtime rig can spin them. The box truck is one 5k-tri mesh with its wheels baked in.
    - On the A-Chassis cars, spinning parts (`Wheels/XX/Parts`) are already split from non-spinning parts (`Wheels/XX/Fixed` or `WheelFixed`).
 5. **Scale:** most cars are within ±15 % of 1 stud = 0.28 m. Each map JSON has `suggested_uniform_scale`.
-   - Oversized: police hatch ×0.78, police interceptor ×0.67, F-150 ×0.86, Kia ×0.84.
+   - Oversized: police interceptor ×0.71, police hatch ×0.78, Kia ×0.84, F-150 ×0.86.
 
 ## 1. Pipeline (tools/sources/)
 
@@ -43,10 +43,10 @@
 |---|---|---|
 | Download | `python3 -I tools/sources/rbxdl.py <id> [...]`. Open Cloud asset delivery; the key goes only in the `x-api-key` header via `tools/rbxcloud.py key()`. Retries, gunzip/zstd, magic-byte detection, 60 MB cap. | `asset.rbxm`, `.rbxmx`, `.mesh`, `.png`, `.jpg`… and `meta.json` (type, kind, size, sha256, mesh version, or the error such as `403: Asset is not approved for the requester`) |
 | Inspect | `lune run tools/sources/rbxm_inspect.luau <asset> <tree.json>`. Uses `@lune/roblox` `deserializeModel`. Strips the `<?xml` prologue and empty `<BinaryString>` values, which rbx-dom otherwise rejects. | `tree.json`: every instance with class, path, Size, CFrame, Color, Material, Transparency, MeshId/TextureID (old and `*Content` properties), SurfaceAppearance maps, SpecialMesh, decals, lights, joints, attributes and tags. Script **sources are never written**. Each script gets a security `Scan` (flags, `require(<id>)`, long numeric literals). |
-| Meshes and textures | `python3 -I tools/sources/rbxmesh.py model <id>`, or `convert <in.mesh> <out.obj|glb>` | `assets/source/roblox/<meshId>/mesh.obj`, `mesh.glb`, `mesh.json`; `assets/source/roblox/<imageId>/image.png` (Decal→Image indirection followed); `deps.json` per model |
+| Meshes and textures | `python3 -I tools/sources/rbxmesh.py model <id>`, or `convert <in.mesh> <out.obj or out.glb>` | `assets/source/roblox/<meshId>/mesh.obj`, `mesh.glb`, `mesh.json`; `assets/source/roblox/<imageId>/image.png` (Decal→Image indirection followed); `deps.json` per model |
 | Rebuild and render | `python3 -I tools/sources/rbx_to_blender.py <id> [--glb] [--blend]`. Blender 5.2 as a module, Cycles CPU, 32 samples, OIDN, 960×540. | `preview_34.png`, `preview_side.png`, `build.json`; optionally `rebuilt.glb` and `rebuilt.blend` |
 | Classify | `python3 -I tools/sources/rbx_car_map.py <id>` | `docs/v2/sourcing/roblox_car_maps/<id>.json` |
-| All of the above, plus the sheet | `python3 -I tools/sources/rbx_cars.py run|map|texsheet|sheet [ids]` | `docs/v2/sourcing/roblox_cars_sheet.png`; `assets/source/roblox/<id>/textures_sheet.png` (every texture a car uses, for logo review) |
+| All of the above, plus the sheet | `python3 -I tools/sources/rbx_cars.py <run, map, texsheet or sheet> [ids]` | `docs/v2/sourcing/roblox_cars_sheet.png`; `assets/source/roblox/<id>/textures_sheet.png` (every texture a car uses, for logo review) |
 
 **Mesh format coverage.** The format comes from the devforum "Roblox Mesh Format" community spec, cross-checked against real payloads.
 
@@ -105,7 +105,12 @@ The target is the existing **CarBuilder HeroShell contract**, read from `src/sha
 - `Headlight` and `Taillight` lamp parts exist.
 - A store model becomes `AssetLibrary.Hero[key]` (`Config/Assets` `source = "store"`) and is cloned in as `HeroShell`.
 
-Today that shell is one rigid lump: the procedural wheels hide under it, and its paint and lights are inert. The map JSON gives the shell the structure it needs.
+Today a shell is welded on as one rigid piece:
+- The procedural visuals, wheels included, go to Transparency 1, so the shell's own wheels never turn.
+- `repaint` sets `ShellPaint`, and `mutateShell` then paints the shell flat, glass and trim included.
+- The shell's lamps are just geometry.
+
+The map JSON gives the shell the structure it needs.
 
 ### 3.1 Groups (per visible BasePart; a Decal follows its part)
 

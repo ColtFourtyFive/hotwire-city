@@ -288,7 +288,9 @@ def write_obj(m, path, mtl_texture=None, name="mesh"):
     if mtl_texture:
         mtl = os.path.splitext(path)[0] + ".mtl"
         with open(mtl, "w") as f:
-            f.write(f"newmtl {name}\nKd 1 1 1\nmap_Kd {os.path.relpath(mtl_texture, os.path.dirname(path))}\n")
+            rel = os.path.relpath(os.path.abspath(mtl_texture), os.path.dirname(os.path.abspath(path)))
+            tex_ref = rel if not rel.startswith("..") else os.path.abspath(mtl_texture)
+            f.write(f"newmtl {name}\nKd 1 1 1\nmap_Kd {tex_ref}\n")
         lines.append(f"mtllib {os.path.basename(mtl)}")
     lines.append(f"o {name}")
     lines += [f"v {x:.6f} {y:.6f} {z:.6f}" for x, y, z in m.pos]

@@ -40,5 +40,37 @@
   "sha256": "e936725122d21bccdfbe90c72130bd70b2d0717c03ac847731f85ba2077753cd",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:07:54+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      12.5637,
+      2.7212,
+      2.505
+    ],
+    "dims_m": [
+      2.721,
+      12.564,
+      2.505
+    ],
+    "front_evidence": "roof_offset=+0.09",
+    "flipped": false,
+    "mesh_objects": 1,
+    "triangles": 2280,
+    "materials": 1,
+    "material_names": [
+      "GmcHummerH2Limo1Mtl"
+    ],
+    "textures": 1,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Object_2"
+    ],
+    "render_s": 37.5
+  }
 }

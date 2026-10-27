@@ -874,10 +874,24 @@ for _, d in DISTRICTS do
 	districtById[d.id] = d
 end
 
+local districtBoxes: { { number } } = {}
+for i, d in DISTRICTS do
+	local x0, z0, x1, z1 = WorldGen.polyBounds(d.poly)
+	districtBoxes[i] = { x0, z0, x1, z1 }
+end
+
 local function districtAt(x: number, z: number): string
 	local best, bestP = "mesa", -1
-	for _, d in DISTRICTS do
-		if d.priority > bestP and WorldGen.pointInPoly(d.poly, x, z) then
+	for i, d in DISTRICTS do
+		local bb = districtBoxes[i]
+		if
+			d.priority > bestP
+			and x >= bb[1]
+			and x <= bb[3]
+			and z >= bb[2]
+			and z <= bb[4]
+			and WorldGen.pointInPoly(d.poly, x, z)
+		then
 			best, bestP = d.id, d.priority
 		end
 	end
@@ -4575,14 +4589,32 @@ local LOT_GAP: { [string]: number } = {
 	mesa = 160,
 }
 
+local FLAT_DISTRICT: { [string]: boolean } =
+	{ downtown = true, midtown = true, beach = true, foundry = true, rust = true, southgate = true, port = true, airport = true }
+local noLotBoxes: { { number } } = {}
+for i, area in NO_LOTS do
+	local x0, z0, x1, z1 = WorldGen.polyBounds(area)
+	noLotBoxes[i] = { x0, z0, x1, z1 }
+end
+
 -- Distance from a lot's front face along the inward normal to the next road footprint behind it (capped).
 local function backDistance(fx: number, fz: number, nx: number, nz: number, cap: number): number
-	local d = 8
+	local d = 12
 	while d < cap do
 		if roadClearance(fx + nx * d, fz + nz * d, 1) then
+			-- refine back to 3-stud precision
+			local lo = d - 12
+			while d - lo > 3 do
+				local mid = (lo + d) / 2
+				if roadClearance(fx + nx * mid, fz + nz * mid, 1) then
+					d = mid
+				else
+					lo = mid
+				end
+			end
 			return d
 		end
-		d += 8
+		d += 12
 	end
 	return cap
 end
@@ -4619,40 +4651,49 @@ do
 		local front = e.width / 2 + e.sidewalk + setback
 		local cx, cz = px + nx * (front + depth / 2), pz + nz * (front + depth / 2)
 		local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2, hd = depth / 2 }
-		if districtAt(cx, cz) ~= did then
+		if overlapsAny(obb, 1) or districtAt(cx, cz) ~= did then
 			return false
 		end
 		-- inset copy for the road test (the front face may touch the sidewalk)
-		local inset: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = width / 2 - 1.5, hd = depth / 2 - 1.5 }
+		local ihw, ihd = width / 2 - 1.5, depth / 2 - 1.5
 		local vx, vz = -tz, tx
 		for i = -2, 2 do
 			for j = -2, 2 do
+				local corner = math.abs(i) == 2 and math.abs(j) == 2
 				if math.abs(i) == 2 or math.abs(j) == 2 or (i == 0 and j == 0) then
-					local x = cx + tx * inset.hw * i / 2 + vx * inset.hd * j / 2
-					local z = cz + tz * inset.hw * i / 2 + vz * inset.hd * j / 2
+					local x = cx + tx * ihw * i / 2 + vx * ihd * j / 2
+					local z = cz + tz * ihw * i / 2 + vz * ihd * j / 2
 					if roadClearance(x, z, 0.5) then
 						return false
 					end
-					if (math.abs(i) == 2 and math.abs(j) == 2) and not landAtLeast(x, z, 30) then
-						return false
-					end
-					for _, area in NO_LOTS do
-						if WorldGen.pointInPoly(area, x, z) then
+					if corner then
+						if not landAtLeast(x, z, 30) then
 							return false
+						end
+						for ai, area in NO_LOTS do
+							local bb = noLotBoxes[ai]
+							if
+								x >= bb[1]
+								and x <= bb[3]
+								and z >= bb[2]
+								and z <= bb[4]
+								and WorldGen.pointInPoly(area, x, z)
+							then
+								return false
+							end
 						end
 					end
 				end
 			end
 		end
-		if overlapsAny(obb, 1) then
-			return false
-		end
-		local ys = {}
-		for _, c in WorldGen.obbCorners(obb) do
-			table.insert(ys, gradeAt(c.x, c.z))
-		end
-		if math.max(table.unpack(ys)) - math.min(table.unpack(ys)) > 46 then
-			return false
+		if not FLAT_DISTRICT[did] then
+			local ys = {}
+			for _, c in WorldGen.obbCorners(obb) do
+				table.insert(ys, gradeAt(c.x, c.z))
+			end
+			if math.max(table.unpack(ys)) - math.min(table.unpack(ys)) > 46 then
+				return false
+			end
 		end
 		seq += 1
 		local dist = districtById[did]
@@ -5213,18 +5254,21 @@ local LevelCrossings = {}
 for _, rail in WorldLayout.Rails do
 	for k = 1, #rail.points - 1 do
 		local a, b = rail.points[k], rail.points[k + 1]
-		for _, e in Edges do
+		local seenEdge: { [number]: boolean } = {}
+		local mx, mz = (a.X + b.X) / 2, (a.Z + b.Z) / 2
+		local r = (Vector3.new(b.X, 0, b.Z) - Vector3.new(a.X, 0, a.Z)).Magnitude / 2 + 1
+		WorldGen.segQuery(roadSegs, mx, mz, r, function(id: number)
+			local ei = roadSegs.owner[id]
+			local e = Edges[ei]
 			if e.layer ~= 0 or e.elevated then
-				continue
+				return
 			end
-			for j = 1, #e.points - 1 do
-				local c, d = e.points[j], e.points[j + 1]
-				local t = WorldGen.segIntersect(a.X, a.Z, b.X, b.Z, c.X, c.Z, d.X, d.Z, 0)
-				if t then
-					table.insert(LevelCrossings, { rail = rail.name, edge = e.id, pos = a:Lerp(b, t) })
-				end
+			local t = WorldGen.segIntersect(a.X, a.Z, b.X, b.Z, roadSegs.ax[id], roadSegs.az[id], roadSegs.bx[id], roadSegs.bz[id], 0)
+			if t and not seenEdge[ei] then
+				seenEdge[ei] = true
+				table.insert(LevelCrossings, { rail = rail.name, edge = ei, pos = a:Lerp(b, t) })
 			end
-		end
+		end)
 	end
 end
 WorldLayout.LevelCrossings = LevelCrossings

@@ -159,7 +159,7 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
     W, D = B.footprint
     y = north_lot_y(D)
     BK.instantiate(B, col(), loc=(0, y, 0), rot_z=0)
-    lot_cars(B, 0, y, 0, frac=cars_frac, seed=seed)
+    lot_cars(B, 0, y, 0, frac=cars_frac * 0.7, seed=seed)
     xl, xr = -W / 2, W / 2
     for k, (na, ns) in enumerate(neighbours):
         Bn = BK.build(na, ns)
@@ -177,21 +177,21 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
 
 
 def sc_strip(a):
-    return sc_single_lot(a, "strip", 2, "strip_mall", (-78, 31, 6.0), (6, 112, 13), lens=22,
+    return sc_single_lot(a, "strip", 2, "strip_mall", (-100, -30, 7.5), (2, 110, 12), lens=30,
                          neighbours=(("corner_store", 1),), kw={"units": 5})
 
 
 def sc_gas(a):
-    return sc_single_lot(a, "gas", 1, "gas_station", (-82, 31, 6.0), (4, 96, 11), lens=22, neighbours=(("diner", 2),),
+    return sc_single_lot(a, "gas", 1, "gas_station", (-112, -30, 7.5), (2, 92, 10), lens=30, neighbours=(("diner", 2),),
                          cars_frac=0.4)
 
 
 def sc_diner(a):
-    return sc_single_lot(a, "diner", 1, "diner", (-52, 32, 5.5), (2, 96, 11), lens=22, neighbours=(("gas", 3),))
+    return sc_single_lot(a, "diner", 1, "diner", (-78, -30, 6.5), (0, 96, 10), lens=34, neighbours=(("gas", 3),))
 
 
 def sc_store(a):
-    return sc_single_lot(a, "corner_store", 2, "corner_store", (-46, 32, 5.5), (2, 92, 9), lens=22,
+    return sc_single_lot(a, "corner_store", 2, "corner_store", (-64, -30, 6.0), (0, 90, 8), lens=34,
                          neighbours=(("strip", 4), ("diner", 3)))
 
 

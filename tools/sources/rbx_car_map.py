@@ -80,7 +80,7 @@ REAL_LENGTH_M = {  # approximate real-world overall length of the car each listi
     117276253886376: (4.69, "Kia Sorento XM 2011"),
     73893179863762: (4.77, "Nissan Murano Z50 2005"),
     126180570128588: (5.93, "2022 Toyota Tundra CrewMax (badged \"VELLFIRE\")"),
-    113053967699143: (5.38, "brick-built 2000s police sedan (Crown Victoria proportions)"),
+    113053967699143: (5.38, "Brick-built 2000s police sedan (Crown Victoria proportions)"),
     103123587729335: (4.25, "Peugeot 308-style Police Nationale hatchback"),
     131180706902259: (7.0, "Isuzu NPR-style 16 ft box truck"),
     97965573521866: (4.94, "Mercedes-AMG GLE 53 4MATIC+ coupe SUV (listed as sedan)"),

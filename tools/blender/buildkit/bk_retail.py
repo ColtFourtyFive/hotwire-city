@@ -159,8 +159,14 @@ def _store_box(B, x0, y0, W, D, h, name_key, posters=True):
             u0_, v0, u1_, v1 = ATLAS["brands"][key]
             F.quad(B.b("Brand"), u, u + 2.8, 3.2, 7.2, -0.55, uv=(u0_, v0, u1_, v1))
     F.wall(B.b("Walls"), 0, h, ops)
-    # fascia brand board, lit
-    B.brand(F, W / 2, h - 5.6, name_key, 4.2, n=0.0, depth=0.6, frame="Trim")
+    # fascia board, lit: brands.png key ("wideN") or a storefront sign from signs.png ("hN")
+    if name_key.startswith("h"):
+        B.sign(F, W / 2, h - 5.4, name_key, height=3.6, n=0.0, frame="Trim")
+    else:
+        B.brand(F, W / 2, h - 5.6, name_key, 4.2, n=0.0, depth=0.6, frame="Trim")
+    if r.random() < 0.4:   # half-open security shutter on part of the glass
+        sh0 = gw0 + r.uniform(0, 4)
+        F.box(B.b("Doors"), sh0, sh0 + r.uniform(8, 14), 0.1, 0.5, 10.5 - r.uniform(2.0, 5.0), 10.6)
     F.box(B.b("Trim"), -0.5, W + 0.5, 0.0, 4.5, 11.2, 11.8)
     for t in (0.2, 0.5, 0.8):
         F.box(B.b("Neon"), W * t - 0.8, W * t + 0.8, 2.5, 3.8, 11.15, 11.2, skip=("top",))
@@ -198,7 +204,7 @@ def corner_store(seed=0, **kw):
     B.spec["Walls2"] = ("tex", "cmu", tint)
     h = 17.0
     x0, y0 = -W0 / 2, D / 2 - 2.0 - D0
-    _store_box(B, x0, y0, W0, D0, h, "wide10")
+    _store_box(B, x0, y0, W0, D0, h, kw.get("sign", r.choice(["wide10", "wide10", "h1", "h2", "h5", "h9"])))
     G.box(B.b("Site"), x0 - 2.0, y0 - 7.0, -0.5, x0 + W0 + 2.0, y0, 0.6, skip=("bottom",))
     B.parking(-W / 2 + 1, -D / 2 + 2.0, W / 2 - 1, y0 - 7.0, rows=("+y",))
     B.lot_light(-W / 2 + 4, -D / 2 + 6, h=22.0, arms=1)
@@ -211,8 +217,8 @@ def gas(seed=0, **kw):
     """Gas station: branded canopy over pump islands, convenience kiosk, price pylon, concrete forecourt."""
     B = Building("gas", seed, kw.get("name"))
     r = B.rng
-    W, D = kw.get("W", 150.0), kw.get("D", 130.0)
-    tint = STUCCO["white"]
+    W, D = kw.get("W", r.choice([140.0, 150.0, 160.0])), kw.get("D", r.choice([120.0, 130.0]))
+    tint = STUCCO[r.choice(["white", "bone", "grey"])]
     _common_spec(B, tint, frame="silver")
     B.spec["Walls2"] = ("tex", "cmu", (0.92, 0.92, 0.9))
     B.spec["Accent"] = ("color", (0.06, 0.27, 0.63), 0.4, 0.2)
@@ -221,14 +227,19 @@ def gas(seed=0, **kw):
     # forecourt
     G.quad(B.b("Site"), (-W / 2, -D / 2, 0.04), (W / 2, -D / 2, 0.04), (W / 2, D / 2, 0.04), (-W / 2, D / 2, 0.04))
     # kiosk store at the back-left
-    sw, sd, h = 52.0, 36.0, 16.0
-    sx0, sy0 = -W / 2 + 8.0, D / 2 - 4.0 - sd
+    sw, sd, h = r.choice([46.0, 52.0, 58.0]), r.choice([32.0, 36.0]), 16.0
+    store_left = kw.get("store_left", r.random() < 0.6)
+    sx0, sy0 = (-W / 2 + 8.0) if store_left else (W / 2 - 8.0 - sw), D / 2 - 4.0 - sd
     _store_box(B, sx0, sy0, sw, sd, h, "wide11")
     G.box(B.b("Site"), sx0 - 1.0, sy0 - 6.0, -0.5, sx0 + sw + 1.0, sy0, 0.6, skip=("bottom",))
-    B.parking(sx0 + sw + 6.0, sy0 + 2.0, W / 2 - 2, D / 2 - 2.0, rows=("-y",), stall_d=18.0)
+    if store_left:
+        B.parking(sx0 + sw + 6.0, sy0 + 2.0, W / 2 - 2, D / 2 - 2.0, rows=("-y",), stall_d=18.0)
+    else:
+        B.parking(-W / 2 + 2, sy0 + 2.0, sx0 - 6.0, D / 2 - 2.0, rows=("-y",), stall_d=18.0)
     # canopy
-    cw, cdp, cz, ct = 76.0, 42.0, 17.0, 3.6
-    cx, cy = 8.0, -D / 2 + 46.0
+    n_isl = kw.get("islands", r.choice([2, 3, 3, 4]))
+    cw, cdp, cz, ct = 22.0 + n_isl * 18.0, r.choice([38.0, 42.0]), 17.0, r.choice([3.2, 3.6, 4.2])
+    cx, cy = (8.0 if store_left else -8.0), -D / 2 + 46.0
     X0, X1, Y0, Y1 = cx - cw / 2, cx + cw / 2, cy - cdp / 2, cy + cdp / 2
     G.box(B.b("Trim"), X0, Y0, cz, X1, Y1, cz + ct, skip=())
     # fascia band texture on the 4 outer faces (tiles in u)
@@ -250,8 +261,8 @@ def gas(seed=0, **kw):
     Fl = G.Facade((cx - 9.0, Y0, 0), (1, 0, 0), (0, -1, 0), 18.0)
     B.brand(Fl, 9.0, cz + ct + 0.1, "gaslogo", 5.5, n=0.6, depth=0.5, frame="Accent")
     # columns + pump islands
-    for k in range(3):
-        ix = X0 + cw * (k + 0.5) / 3
+    for k in range(n_isl):
+        ix = X0 + cw * (k + 0.5) / n_isl
         G.box(B.b("Walls2"), ix - 1.2, cy - 1.2, 0.0, ix + 1.2, cy + 1.2, cz, skip=("bottom",))
         G.box(B.b("Trim"), ix - 2.6, cy - 12.0, 0.0, ix + 2.6, cy + 12.0, 0.7, skip=("bottom",))
         for sgn in (-1, 1):
@@ -264,7 +275,7 @@ def gas(seed=0, **kw):
         for sgn in (-1, 1):
             B.bollard(ix, cy + sgn * 11.2, h=3.4)
     # price pylon at the street corner
-    px, py = W / 2 - 12.0, -D / 2 + 5.0
+    px, py = (W / 2 - 12.0) if store_left else (-W / 2 + 12.0), -D / 2 + 5.0
     Fp = G.Facade((px - 5.0, py, 0), (1, 0, 0), (0, -1, 0), 10.0)
     Fp.box(B.b("Walls2"), 0.0, 10.0, -1.0, 1.0, 0.0, 4.0)
     Fp.box(B.b("Accent"), 0.6, 9.4, -0.6, 0.6, 4.0, 26.0)
@@ -279,7 +290,7 @@ def gas(seed=0, **kw):
     G.box(B.b("Trim"), -W / 2, -D / 2 + 4.0, 0.0, W / 2 - 22, -D / 2 + 4.6, 0.8)
     B.lot_light(-W / 2 + 4.0, -D / 2 + 30.0, h=24.0, arms=1)
     B.footprint, B.height = (W, D), 26.0
-    B.tags = {"district": "commercial", "brand": "PUMP & GO", "pumps": 6}
+    B.tags = {"district": "commercial", "brand": "PUMP & GO", "pumps": 2 * n_isl}
     return B
 
 
@@ -351,6 +362,10 @@ def diner(seed=0, **kw):
     B.brand(Fs, 9.0, 20.5, "eat", 10.0, n=0.6, depth=0.0)
     Fs2 = G.Facade((9.0, (y0 + y1) / 2, 0), (-1, 0, 0), (0, 1, 0), 18.0)
     B.brand(Fs2, 9.0, 20.5, "eat", 10.0, n=0.6, depth=0.0)
+    # name board on the front upper band (Sunset Diner / Donut Dash / Pizza Palace / Coral Cafe)
+    nk = kw.get("sign", r.choice(["h0", "h8", "h10", "h6"]))
+    Fn = G.Facade((x0 + rad, y0, 0), (1, 0, 0), (0, -1, 0), bw - 2 * rad)
+    B.sign(Fn, (bw - 2 * rad) * (0.25 if r.random() < 0.5 else 0.75), 13.9, nk, height=2.6, n=0.4)
     G.sweep(B.b("Neon"), [(-9.6, (y0 + y1) / 2 - 0.6), (9.6, (y0 + y1) / 2 - 0.6), (9.6, (y0 + y1) / 2 + 0.6), (-9.6, (y0 + y1) / 2 + 0.6)],
             [(0.0, 31.0), (0.15, 31.0), (0.15, 31.4), (0.0, 31.4)], closed=True)
     B.hvac(x0 + 14, y1 - 8, 14.6, w=6, d=4, h=3)

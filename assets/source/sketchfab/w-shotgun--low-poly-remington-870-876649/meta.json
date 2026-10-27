@@ -49,5 +49,66 @@
   "sha256": "5902df91fbde4a75f3409f6ad8c8994ea9bd65b7bdc68465777727730f5ec324",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:12:29+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      0.7907,
+      0.0497,
+      0.1822
+    ],
+    "dims_m": [
+      0.791,
+      0.05,
+      0.182
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 26,
+    "triangles": 1444,
+    "materials": 5,
+    "material_names": [
+      "Material",
+      "Material.001",
+      "Material.002",
+      "Material.003",
+      "Material.004"
+    ],
+    "textures": 0,
+    "texture_max_px": 0,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Cube_0",
+      "Cylinder_0",
+      "Cylinder.001_0",
+      "Cube.001_0",
+      "Cylinder.002_0",
+      "Cube.002_0",
+      "Cube.003_0",
+      "Cylinder.003_0",
+      "Cylinder.004_0",
+      "Cube.004_0",
+      "Cylinder.005_0",
+      "Cube.005_0",
+      "Cylinder.006_0",
+      "Cube.006_0",
+      "Cylinder.007_0",
+      "Cylinder.008_0",
+      "Cylinder.009_0",
+      "Cube.007_0",
+      "Cylinder.010_0",
+      "Cube.008_0",
+      "Cylinder.011_0",
+      "Cube.009_0",
+      "Cylinder.013_0",
+      "Cube.010_0",
+      "Cube.011_0",
+      "Cylinder.014_0"
+    ],
+    "render_s": 34.8
+  }
 }

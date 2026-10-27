@@ -3,7 +3,7 @@
 Date: 2026-10-27. Scope: the visual layers only (look and feel). Binding direction: `00_LEAD_DIRECTION.md`, which calls for grounded GTA V realism.
 
 **Evidence used**
-- Real-engine screenshots (Studio 0.744, job 0001) in `docs/v2/evidence/v1_real_engine/`: `spawn_dealership.jpg`, `downtown_street.jpg`, `overview_high_haze.jpg`, `overview_low_sw.jpg`, `driving.jpg`, `garage.jpg`, `dealership.jpg`, and `job0001_report.md`.
+- Real-engine screenshots (Studio 0.744, job 0001) in `docs/v2/evidence/v1_real_engine/`: `spawn_dealership.jpg` and `downtown_street.jpg` (the same daylight frame saved twice; the night `spawn_player_view` exists only in `_sheet_job0001.jpg`), `overview_high_haze.jpg`, `overview_low_sw.jpg`, `driving.jpg`, `garage.jpg`, `dealership.jpg`, and `job0001_report.md`.
 - Offline previews: `docs/previews/dressed_iso_ne.png`, `kit_buildings.png` and `cars_lineup.png`.
 - Lighting lab round 1: `docs/v2/evidence/lighting_lab_0002_sheet.jpg` and `lighting_lab_0002_report.md`. The preset values are in `studio/jobs/0002-lighting-lab.md`.
 - The source files cited below, by file and line.
@@ -19,24 +19,24 @@ v1 does not look cheap because Roblox can't do better. It looks cheap because it
 Ranked by how much of each screenshot they ruin:
 
 1. **The grade tints the whole world pink and then purple.**
-   - Sunset ColorCorrection `TintColor` is (255,192,170), saturation is +0.24 to +0.36 at every hour, and `Ambient` is 84–130 where the default is 0.
+   - Sunset ColorCorrection `TintColor` is (255,192,170), saturation is +0.24 to +0.36 at every hour, and `Ambient` is 104–130 by day (66–84 at night) where the default is 0.
    - Night is lit violet by design.
    - The cycle is 16 minutes, and new servers start at 16:12, so players reach the purple night after about 2 minutes (§2.3–2.4).
-2. **The haze swallows the city.** Atmosphere Haze peaks at 2.1–2.5 with a low Offset of 0.12. This, not Density, is what makes `overview_high_haze.jpg` a brown wall (§2.2).
+2. **The haze swallows the city.** Atmosphere Haze peaks at 2.1–2.5 (about 2.05 when `overview_high_haze.jpg` was taken). Haze, not Density, is what separates that brown wall from the lab preset that kept the skyline. Offset (0.12) was the same in both, so it is not the cause (§2.2).
 3. **There are no real materials.**
    - `part()` defaults to SmoothPlastic (`MapBuilder.luau:225`).
    - Roads are blue-purple SmoothPlastic (58,61,80); sidewalks are lavender-white SmoothPlastic.
    - The Asphalt, Pavement, Concrete and Plaster materials are used **zero times** in the map. Brick is used once.
 4. **Neon everywhere, on pastel and toy-saturated albedos.**
-   - The map builder uses 32 `neon()` trims, and the garages add 33 more.
+   - `MapBuilder.luau` has 31 `neon()` call sites, 6 more parts set to Neon directly, and 19 `nightGlow` parts that switch to Neon at night. The garages (`PlotService.luau`) add 26 `neon()` calls and 4 direct Neon parts, and `DealershipService.luau` adds 5. Several of these sites are inside loops, so the real part count is higher.
    - Pink and cyan rims sit on every pad, canopy and tower.
    - The palette tables are named PASTEL, SHOP and NEON (`MapBuilder.luau:140–180`).
 5. **The scale is a toy.**
-   - The whole island is 1,640 studs (0.46 km) across, so a car crosses it in about 15 s.
+   - The road grid is 1,640 studs (0.46 km) across: 1,800 with the beach, and the boundary walls sit at ±960. A car at the median top speed of about 110 studs/s crosses it in about 15 s (9–25 s across the car roster).
    - Every road has the same 40-stud, two-lane cross-section.
    - Blocks are 120 studs (34 m). Towers top out at 240 studs (67 m).
    - Cars are 13.4 studs long but 6.8 wide: the stubby proportions of a toy.
-6. **Blob AI meshes with baked, smeared lighting.** There are 97 owned Higgsfield/Meshy meshes: 22 buildings, 41 props and 33 car shells (`Config/Assets.luau`). They replace the procedural placeholders.
+6. **Blob AI meshes with baked, smeared lighting.** There are 96 owned Higgsfield/Meshy meshes: 22 buildings, 41 props and 33 car shells (`Config/Assets.luau`). They replace the procedural placeholders.
 7. **Building massing reads as a board game.** Single towers or diagonal pairs sit on plinths in 104-stud lots. There are no street walls. Windows are "ring bands" wrapped around boxes (`MapBuilder.luau:1091–1109`), with no mullions, depth or rooftop clutter.
 8. **Default Roblox characters.** NPCs use the blocky default R15 body and classic 2D shirts, and play the default `507777826` walk and idle animations. There are only 10–14 pedestrians on the whole map (`NPCService.luau:81–82, 126–129`).
 9. **The default Roblox sky** (no textures, `LightingService.luau:479–483`), with a giant cartoon sun (16°) and moon (11°).
@@ -46,7 +46,7 @@ Ranked by how much of each screenshot they ruin:
     - A 500×110 tutorial card in the middle of the screen (`TutorialController.luau:677–679`).
     - Distances shown in "studs" (`EventsClient.luau:519`).
 
-**Fastest big jump:** items 1, 2, 3, 4 and 10 are config and palette changes that need no new assets, about 1 to 1.5 days in all. Items 5 to 8 are the v2 build waves (§5).
+**Fastest big jump:** items 1–4, plus removing the item-6 meshes, are config and palette changes that need no new assets: about 1 to 1.5 days in all (§5 rows 1, 2, 3, 6, 7 and 8). Item 10, the UI, is another 6–10 h. Items 5, 7 and 8, and replacements for the item-6 meshes, are the v2 build waves (§5).
 
 ---
 
@@ -149,7 +149,7 @@ Each layer lists the current values, why they read as cheap, and the target.
 | Saturation | +0.31 |
 | Contrast | +0.13 |
 | Exposure | +0.10 |
-| OutdoorAmbient | about (198,135,118) |
+| OutdoorAmbient | about (195,129,119) |
 
 *Geometry.*
 - The camera is at (0, 900, 900). Assuming it looked at the map centre, it was pitched −45°. Roblox's default vertical FOV of 70° then covers rays from −10° to −80°.
@@ -164,9 +164,9 @@ Each layer lists the current values, why they read as cheap, and the target.
 | **v1 at 17.2** | **0.315 / 2.05 / 0.12** | nothing visible from 914 studs onward, even at the bottom edge | **≲ 300** |
 
 - v1's Density (0.315) was *lower* than the lab day preset (0.32), which kept the skyline.
-- The difference is **Haze 2.05**, 2.3× the lab day value, together with the low Offset. Offset 0.12 blends distant geometry into the sky by design (Roblox docs: "a lower value … blends distant objects into the sky").
+- The difference is **Haze 2.05**, 2.3× the lab day value. Offset cannot explain it: lab `day_clear` used the same Offset, 0.12, and kept the skyline. A higher Offset may still help (the Roblox docs say to increase it "to create a horizon silhouette against the sky" or reduce it "to blend distant objects into the sky"), but that has not been tested here.
 - At L ≈ 300 the bottom edge keeps exp(−914/300) ≈ 5% contrast and the frame centre about 1.4%. Visually that is zero, which is exactly the result.
-- Conclusion: **the fog wall is a Haze plus Offset problem, made worse by the grade. Density alone does not explain it.** `references.md` §1.2 blamed Density; this doc corrects that.
+- Conclusion: **the fog wall is mainly a Haze problem, made worse by the warm Color and Decay and by the grade. Density alone does not explain it, and Offset did not differ between the two cases.** `references.md` §1.2 blamed Density; this doc corrects that.
 
 *Why it is brown rather than grey.*
 - With Haze > 0 and Glare > 0, Roblox's in-scattered light ramps from `Color` (toward the sun) to `Decay` (away from it). ([Atmosphere guide](https://create.roblox.com/docs/en-us/environment/atmosphere); [Atmosphere API](https://create.roblox.com/docs/reference/engine/classes/Atmosphere.md).)
@@ -182,7 +182,7 @@ Each layer lists the current values, why they read as cheap, and the target.
 - The warm brown cast needs Haze > 0 on a warm Color, so `HotwireAtmosphere` was most likely the active one. But the template Bloom and SunRays add to v1's, and a template DepthOfField, if enabled, would blur the far city. The soft background in `spawn_dealership.jpg` is consistent with that.
 - **Fix:** LightingService v2 destroys or adopts *every* `Sky`, `Atmosphere` and `PostEffect` in Lighting that it did not create. The operator should dump `Lighting:GetChildren()` with their properties in Play mode to confirm.
 
-**Target** (lab round 1 limits: Density 0.24–0.30, Offset ≥0.2, Haze ≤1.0, neutral colour):
+**Target.** Lab round 1 recommended a Density of about 0.25–0.30 and neutral fog colour. The limits Haze ≤ 1.0 and Offset ≥ 0.2 are this doc's own proposals and have not been tested: every lab preset used an Offset of 0.08–0.15.
 
 | | Day (13:00) | Golden (17:30) | Night (22:00) |
 |---|---|---|---|
@@ -322,7 +322,7 @@ Each layer lists the current values, why they read as cheap, and the target.
   - `skyscraper_twist` (240 studs), `skyscraper_deco` (220), `skyscraper_neon` (200), `office_block` (80);
   - the `car_showroom` backdrop placed on the dealership roof (`DealershipService.luau:715`). This is the smeared pink building in the spawn shot.
   - See `docs/previews/kit_buildings.png`: toy proportions, baked blotchy textures, swirl and deco towers.
-- **Garage:** a white box with Neon trim (`PlotService.luau`, 33 Neon uses).
+- **Garage:** a white box with Neon trim (`PlotService.luau`: 26 `neon()` calls plus 4 parts set to Neon directly).
 
 **Why it reads as cheap**
 - Objects sit on plinths instead of forming street walls. Every building is a different saturated colour.
@@ -469,7 +469,7 @@ Each layer lists the current values, why they read as cheap, and the target.
 - **Body:** proportioned bodies with dynamic heads and neutral expressions, and varied skin tones.
   - Free Roblox bundles compared visually (`img_gta/realism_gap_body_bundles_238_239_337.jpg`):
     - **"City Life Woman" (337)** has believable proportions;
-    - "Man" (238) and "Woman" (239) are humanoid but still stylized.
+    - "Man" (238) and "Woman" (239) are humanoid but still stylized. Bundle 238 includes Brown Hair 62234425, the accessory behind the §3.3 404, so leave its hair out.
     - Source: [catalog bundle details](https://catalog.roblox.com/v1/bundles/details?bundleIds=238&bundleIds=239&bundleIds=337).
   - Pick a male counterpart in the asset-sourcing pass (task #11). `BodyHeightScale` 1.05–1.10.
 - **Clothing:** layered 3D clothing (jackets, hoodies, jeans, suits, uniforms) over the classic 2D shirts.
@@ -520,19 +520,19 @@ The raw `console.txt` the operator mentions was **not committed**; only the summ
 ### 3.1 "Asset content representation is being generated" (about 170 warnings; the meshes did load)
 
 **Which assets**
-- The only 3D content fetched at boot is the **97 `source = "owned"` entries** in `Config/Assets.luau`:
+- The only 3D content fetched at boot is the **96 `source = "owned"` entries** in `Config/Assets.luau`:
   - 33 Hero car shells (`:28–60`);
   - 41 Props (`:65–105`);
   - 22 Buildings (`:122–143`).
 - `AssetLibrary` loads them with `InsertService:LoadAsset` (`AssetLibrary.luau:146–160`).
-- All 97 were uploaded **hours before the run** (2026-10-26/27) by `tools/upload_hero.py`, through Open Cloud, as a GLB turned into a `Model` (`upload_hero.py:19`; `assets/hero/manifest.json`).
+- All 96 were uploaded **hours before the run** (2026-10-26/27) by `tools/upload_hero.py`, through Open Cloud, as a GLB turned into a `Model` (`upload_hero.py:19`; `assets/hero/manifest.json`).
 - The 13 `store` props are years-old Creator Store models. All are AssetTypeId 10, checked through `economy.roblox.com/v2/assets/{id}/details`. They are not the cause.
 
 **Cause**
 - Roblox's content platform stores the uploaded source and derives runtime forms lazily: mesh LODs, GPU-compressed textures and so on. Roblox calls these "alternative content representations", or ACRs.
 - On a cache miss it queues a transcoder job and, if no fallback format is ready, answers "Not ready – retry later". The client retries. Roblox describes this fallback as "part of the content contract", not an error.
 - Source: Roblox's SIGGRAPH 2026 talk *SLIM: Scaling User-Generated 3D Worlds on Roblox* ([PDF](https://www.advances.realtimerendering.com/s2026/content/SMAK_SIG26_SLIM-Scaling_User-Generated_3D_Worlds_on_Roblox_8_Aug_2026.pdf), pp. on asset transcoders and ACRs).
-- 97 brand-new models, each with a mesh and textures, fetched for the first time by a new Studio build, plus retries, gives roughly 170 lines.
+- 96 brand-new models, each with a mesh and textures, fetched for the first time by a new Studio build, plus retries, gives roughly 170 lines.
 
 **Impact**
 - The warnings are benign and heal themselves once each ACR exists.
@@ -540,7 +540,7 @@ The raw `console.txt` the operator mentions was **not committed**; only the summ
 - On the first server after an upload, players can see procedural placeholders or late pop-in.
 
 **Fix**
-1. In v2, most of these 97 meshes are on the kill list: blob AI buildings and props, and meme cars. Removing them from `Config/Assets` removes the warnings.
+1. In v2, most of these 96 meshes are on the kill list: blob AI buildings and props, and meme cars. Removing them from `Config/Assets` removes the warnings.
 2. For v2 assets, **ship meshes inside the place**: Rojo-built `.rbxm` or MeshParts in packages. Do not `InsertService:LoadAsset` whole models at server boot.
 3. After any upload, pre-warm it: the operator opens the place once and plays for about 60 s before screenshots or publishing.
 4. Keep the procedural fallback, but log the IDs that time out, so the next report can list them.
@@ -558,9 +558,10 @@ The raw `console.txt` the operator mentions was **not committed**; only the summ
 
 ### 3.3 404 on `Workspace.NPCs.Shopkeeper.Hat1.Handle.TextureId` = rbxassetid://81504106
 
-- The economy API says 81504106 is "TX_MaleChunk_Hero", **AssetTypeId 4 (Mesh)**, created by Roblox. It is not an image, so it is a broken texture reference inside a 2009-era catalog hat.
-- The visible shopkeeper is the car salesman in a fedora (`spawn_dealership.jpg`). His outfit's hat is **19027209, "Perfectly Legitimate Business Hat" (2009)** (`NPCOutfits.luau:72`), which is the probable culprit.
-- **Fix:** swap the hat. v2 outfits will be re-curated anyway.
+- The economy API lists 81504106 as "TX_MaleChunk_Hero", **AssetTypeId 4 (Mesh)**, created by Roblox in 2012. The file it serves is actually a PNG of 71,938 bytes. So it is a texture registered under the wrong asset type, and the client's request for it as an image fails with a 404.
+- The accessory that points at it is **62234425, "Brown Hair"** (2011, free, by Roblox). Its asset file holds an Accessory named `Hat1` whose Handle has MeshId 81504052 and TextureId 81504106. That matches the console path exactly. The salesman's fedora 19027209 is named `Fedora` and uses texture 18987684, so it is not the culprit. (Corrected in the Verification pass; the first draft blamed the fedora.)
+- 62234425 is the `HairAccessory` for `car_salesman` and `chef_vendor` and their alternates (`NPCOutfits.luau:73, 81, 91, 99, 107`), and it is in the civilian hair pool (`:204`). All three shopkeepers are named "Shopkeeper" (`NPCService.luau:1576`).
+- **Fix:** replace 62234425 everywhere in `NPCOutfits.luau`. v2 outfits will be re-curated anyway.
 
 ### 3.4 "Wrap-deformer fetching meshes resulted in error" (repeated)
 
@@ -606,7 +607,7 @@ Hours are for one builder agent plus one operator verification pass. Jump is the
 | 12 | **Realistic vehicles**: proportions, PBR paint with TintMask, wheels, lights; meme cars removed from the core pool | CarBuilder v2, car kit | 4–6 days | ★★★★ | Cars are the hero objects of a car-heist game. |
 | 13 | **Realistic NPCs**: bodies, layered outfits, animation pack, 30–60 lightweight pedestrians | `NPCService.luau`, `NPCOutfits.luau` | 3–5 days | ★★★ | Blocky dummies kill realism up close. |
 | 14 | **Vegetation**: tall Washingtonia palms, street trees, terrain hills | MapBuilder v2, foliage assets | 2–3 days | ★★★ | The LA silhouette. |
-| 15 | **Console hygiene**: preload Sound instances, swap the hat, ship meshes in-place, commit `console.txt` | `SoundController.luau`, `NPCOutfits.luau`, operator procedure | 1–2 | ★ | Clean logs; no pop-in. |
+| 15 | **Console hygiene**: preload Sound instances, replace Brown Hair 62234425, ship meshes in-place, commit `console.txt` | `SoundController.luau`, `NPCOutfits.luau`, operator procedure | 1–2 | ★ | Clean logs; no pop-in. |
 
 **Recommended order**
 1. Items 1, 2, 3, 6, 7 and 8 in one "de-cartoon" pass, about 1.5 days.
@@ -646,6 +647,6 @@ Items 1–8 alone won't make v1 look like GTA. The city is still a toy-scale gri
 - Roblox, SIGGRAPH 2026, *SLIM: Scaling User-Generated 3D Worlds on Roblox* (alternative content representations, "Not ready – retry later"): https://www.advances.realtimerendering.com/s2026/content/SMAK_SIG26_SLIM-Scaling_User-Generated_3D_Worlds_on_Roblox_8_Aug_2026.pdf
 - The stud is defined as 0.28 m (April 2019): https://roblox.fandom.com/wiki/Stud_(unit)
 - Poly Haven HDRIs (pure-sky list) and textures (asphalt, concrete, brick, stucco, plaster, all CC0): https://api.polyhaven.com/assets?t=hdris&c=skies and https://api.polyhaven.com/assets?t=textures
-- Roblox economy asset details. Checked IDs: 16 ProSoundEffects audio (type 3), 81504106 (type 4 Mesh), 19027209, 96678446 and 10476359 (type 8 Hat), and the 13 store props (type 10). Endpoint: `https://economy.roblox.com/v2/assets/{id}/details`
+- Roblox economy asset details. Checked IDs: 16 ProSoundEffects audio (type 3), 81504106 (type 4 Mesh, but the file is a PNG), 62234425 "Brown Hair" (type 41), 19027209, 96678446 and 10476359 (type 8 Hat), and the 13 store props (type 10). Endpoint: `https://economy.roblox.com/v2/assets/{id}/details`
 - Roblox catalog bundles 238 "Man", 239 "Woman" and 337 "City Life Woman" (free, by Roblox), with thumbnails saved to `img_gta/realism_gap_body_bundles_238_239_337.jpg`: https://catalog.roblox.com/v1/bundles/details?bundleIds=238&bundleIds=239&bundleIds=337
 - In-repo: `docs/v2/evidence/v1_real_engine/*`, `docs/v2/evidence/lighting_lab_0002_*`, `studio/jobs/0002-lighting-lab.md`, `docs/v2/research/references.md`, `docs/v2/research/gta_ui_language.md`, `docs/v2/proto/buildkit/_iter/midtown_v1.png`.

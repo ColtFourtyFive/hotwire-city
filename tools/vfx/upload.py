@@ -5,6 +5,7 @@ changed. The API key is read by tools/rbxcloud.py (never printed).
 
 Usage: python3 tools/vfx/upload.py [key ...] [--user 11686693147] [--force]
        python3 tools/vfx/upload.py --status        # refresh moderation states in the manifest
+       python3 tools/vfx/upload.py --archive <assetId>   # archive an unused upload (reversible: :restore)
 Then:  python3 tools/vfx/gen_luau.py   (writes the ids into src/shared/Config/VFX.luau)
 """
 import hashlib
@@ -54,9 +55,37 @@ def refresh_status(man):
     json.dump(man, open(MANIFEST, "w"), indent=2, sort_keys=True)
 
 
+def referenced(asset_id):
+    """True when the id is in the manifest or anywhere under src/ (never archive a live texture)."""
+    man = json.load(open(MANIFEST)) if os.path.exists(MANIFEST) else {}
+    if any(str(e.get("assetId")) == asset_id for e in man.values()):
+        return True
+    for base, _, files in os.walk(os.path.join(ROOT, "src")):
+        for f in files:
+            if f.endswith(".luau") and asset_id in open(os.path.join(base, f), encoding="utf-8").read():
+                return True
+    return False
+
+
+def archive(asset_id):
+    if not asset_id.isdigit():
+        print("bad asset id", asset_id)
+        return
+    if referenced(asset_id):
+        print("refusing: asset", asset_id, "is still referenced (manifest or src/)")
+        return
+    st, body, _ = req("POST", f"https://apis.roblox.com/assets/v1/assets/{asset_id}:archive", data=b"{}",
+                      headers={"Content-Type": "application/json"})
+    state = json.loads(body).get("state") if st == 200 else body[:300]
+    print("archive", asset_id, st, state)
+
+
 def main(argv):
     if "--status" in argv:
         refresh_status(json.load(open(MANIFEST)))
+        return
+    if "--archive" in argv:
+        archive(argv[argv.index("--archive") + 1])
         return
     user = "11686693147"
     force = "--force" in argv
