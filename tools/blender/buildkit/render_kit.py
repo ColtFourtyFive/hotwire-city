@@ -38,7 +38,7 @@ def north_lot_y(D):
 
 
 def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w=40.0, palm_kind="fan", side_w=SIDE_W,
-           no_cars=None, clear=None):
+           no_cars=None, clear=None, no_cars_n=None):
     """clear=(x, y, r): keep lamps/palms out of a radius around the camera."""
     ok = (lambda px, py: clear is None or math.hypot(px - clear[0], py - clear[1]) > clear[2])
     """East-west avenue centred on y=0 with sidewalks both sides (lots start at |y| = ROAD_W/2 + SIDE_W)."""
@@ -64,7 +64,11 @@ def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w
         k += 1
     if cars:
         nc = no_cars or (x0 - 1, x0 - 1)
-        S.parked_row(c, x0 + 10, x1 - 10, ROAD_W / 2 - 4.2, heading=180, seed=seed + 1, prob=0.55)
+        if no_cars_n:   # keep the kerb in front of the hero lot clear
+            S.parked_row(c, x0 + 10, no_cars_n[0], ROAD_W / 2 - 4.2, heading=180, seed=seed + 1, prob=0.55)
+            S.parked_row(c, no_cars_n[1], x1 - 10, ROAD_W / 2 - 4.2, heading=180, seed=seed + 3, prob=0.55)
+        else:
+            S.parked_row(c, x0 + 10, x1 - 10, ROAD_W / 2 - 4.2, heading=180, seed=seed + 1, prob=0.55)
         S.parked_row(c, max(x0 + 10, nc[1]), x1 - 10, -ROAD_W / 2 + 4.2, heading=0, seed=seed + 2, prob=0.55)
         # a few moving-lane cars for life
         for k in range(3):
@@ -169,10 +173,10 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
                   cars_frac=0.6):
     S.reset(a.res)
     S.world("sky_late_afternoon", sun_az=sun)
-    avenue(-320, 320, lamps=64, palms=palms, seed=seed + 11, far_w=0, clear=(cam[0], cam[1], 26),
-           no_cars=(cam[0] - 40, cam[0] + 40))
     B = BK.build(arch, seed, **(kw or {}))
     W, D = B.footprint
+    avenue(-320, 320, lamps=64, palms=palms, seed=seed + 11, far_w=0, clear=(cam[0], cam[1], 55),
+           no_cars=(cam[0] - 40, cam[0] + 40), no_cars_n=(-W / 2 - 30, W / 2 + 10))
     y = north_lot_y(D)
     BK.instantiate(B, col(), loc=(0, y, 0), rot_z=0)
     lot_cars(B, 0, y, 0, frac=cars_frac * 0.7, seed=seed)
@@ -208,7 +212,7 @@ def sc_gas(a):
 
 
 def sc_diner(a):
-    return sc_single_lot(a, "diner", 1, "diner", (-78, -30, 6.5), (0, 96, 10), lens=34, neighbours=(("gas", 3),))
+    return sc_single_lot(a, "diner", 1, "diner", (-62, -28, 6.0), (2, 94, 10), lens=36, neighbours=(("gas", 3),))
 
 
 def sc_store(a):
