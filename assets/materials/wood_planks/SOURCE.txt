@@ -1,0 +1,2 @@
+CC0 (Poly Haven): https://polyhaven.com/a/wooden_planks
+Converted by tools/blender/materials/prep_pbr.py

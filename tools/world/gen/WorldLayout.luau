@@ -541,7 +541,7 @@ local SUBZONES: { SubZone } = {
 		district = "downtown",
 		poly = poly({ { -500, -1000 }, { 900, -1000 }, { 900, 300 }, { -500, 300 } }),
 		style = "glass_towers",
-		height = { 120, 300 },
+		height = { 90, 210 }, -- generic lots; the tower plan (phase 2) adds the 220-760 skyline
 		carTier = "sports",
 		note = "glass curtain walls; the explicit tower plan stands here",
 	},
@@ -3059,6 +3059,9 @@ local RESERVED_AREAS: { { poly: { P2 }, name: string } } = {
 	{ name = "Rail Yard", poly = poly({ { 2330, 1180 }, { 3700, 1180 }, { 3700, 1520 }, { 2330, 1520 } }) },
 	{ name = "Hotwire Plaza", poly = poly({ { 340, -520 }, { 712, -520 }, { 712, -262 }, { 340, -262 } }) },
 	{ name = "Liberty Square", poly = poly({ { -96, 252 }, { 255, 252 }, { 255, 602 }, { -96, 602 } }) },
+	-- Hero sites: whole half-blocks with no mid-block alley, so the landmark footprints fit (gta critiques 1, 8).
+	{ name = "Pinnacle Tower", poly = poly({ { -96, -560 }, { 262, -560 }, { 262, -308 }, { -96, -308 } }) },
+	{ name = "City Hall", poly = poly({ { -96, 698 }, { 262, 698 }, { 262, 888 }, { -96, 888 } }) },
 	{ name = "Echo Park", poly = poly({ { -2050, 1680 }, { -1450, 1680 }, { -1450, 2060 }, { -2050, 2060 } }) },
 	{ name = "Iron Bay Arena", poly = poly({ { 1000, 2080 }, { 1480, 2080 }, { 1480, 2800 }, { 1000, 2800 } }) },
 	{ name = "Sunwood Country Club", poly = poly({ { -4420, -2780 }, { -3650, -2780 }, { -3650, -2240 }, { -4420, -2240 } }) },
@@ -4415,8 +4418,34 @@ for _, node in Nodes do
 end
 
 WorldLayout.Intersections = Intersections
--- TEMP-DEBUG
-WorldLayout._ways = ways
 WorldLayout.DroppedEdges = droppedEdges
 WorldLayout.MergedJunctions = MergedJunctions
+
+-- Hand-off to the second generator phase (tools/world/gen/Places.luau: places, parcels, spawns, routing, events,
+-- streetscape, streaming data). The loader strips `_ctx` before anything is baked.
+WorldLayout._ctx = {
+	ways = ways,
+	DISTRICTS = DISTRICTS,
+	districtById = districtById,
+	CLASS_ORDER = CLASS_ORDER,
+	MAJOR = MAJOR,
+	poly = poly,
+	ringCenter = ringCenter,
+	ringY = ringY,
+	ringS = ringS,
+	ringOffset = H1.offsetAt,
+	ringLanes = H1.lanesAt,
+	trench = { sTd0, sTr1 },
+	stubWay = stubWay,
+	channelWay = channelWay,
+	corridors = { H1 = H1, H2 = H2, H3 = H3, H6 = H6, H7 = H7, H9 = H9 },
+	H6tail = H6tail,
+	H7tail = H7tail,
+	edgeHeadingFrom = edgeHeadingFrom,
+	overWaterOrChannel = overWaterOrChannel,
+	L2_Y = L2_Y,
+	L3_Y = L3_Y,
+	TRENCH_Y = TRENCH_Y,
+	DECK_Y = DECK_Y,
+}
 return WorldLayout

@@ -11,7 +11,8 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local Harness = require("../../tests/harness")
 
-local SOURCE = "tools/world/gen/WorldLayout.luau"
+-- Phase 1 builds the road network (returns WorldLayout with a private `_ctx`); phase 2 adds everything placed on it.
+local PHASES = { "tools/world/gen/WorldLayout.luau", "tools/world/gen/Places.luau" }
 
 local function requireNode(node)
 	local path = rawget(node, "__path")
@@ -34,7 +35,11 @@ return function()
 		Vector3 = Harness.roblox.Vector3,
 		CFrame = Harness.roblox.CFrame,
 	}, { __index = _G })
-	local source = fs.readFile(SOURCE)
-	local chunk = luau.load(source, { debugName = SOURCE, environment = env })
-	return chunk()
+	local function load(path)
+		return luau.load(fs.readFile(path), { debugName = path, environment = env })
+	end
+	local W = load(PHASES[1])()
+	load(PHASES[2])()(W)
+	W._ctx = nil
+	return W
 end

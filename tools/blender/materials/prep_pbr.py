@@ -51,16 +51,22 @@ UA = {"User-Agent": "HotwireCity-materials/1.0"}
 #   spt: StudsPerTile override (default: real-world size / M_PER_STUD)
 #   pattern: MaterialPattern (Organic hides repetition on natural / noisy sets; Regular keeps joints straight)
 #   ao: how much of the AO map is multiplied into the ColorMap; metal: constant metalness when the set has no map
+#   albedo: mean sRGB luminance the ColorMap is scaled to (in linear light); fresh-asphalt scans are ~0.16, which
+#     reads as a black hole in a game, GTA streets sit nearer 0.27-0.30
+#   rough=(lo, hi): remap the roughness map's 2nd..98th percentile onto lo..hi (some scans ship wet-looking values)
+#   metal_norm: stretch a low-contrast metal map to 0..1; metal_albedo: sRGB luminance the metallic texels' ColorMap
+#     is lifted to (real metals reflect 50-95 %, a dark ColorMap on a metal reads as black plastic)
 SETS = {
-    "asphalt_clean": dict(src=("acg", "Asphalt025C"), base="Asphalt", spt=8, pattern="Organic", ao=0.4,
+    "asphalt_clean": dict(src=("acg", "Asphalt025C"), base="Asphalt", spt=8, pattern="Organic", ao=0.4, rough=(0.74, 0.95), albedo=0.27,
                           use="roads, parking lots (new surface)"),
-    "asphalt_worn": dict(src=("acg", "Asphalt026C"), base="Asphalt", spt=10, pattern="Organic", ao=0.4,
+    "asphalt_worn": dict(src=("acg", "Asphalt026C"), base="Asphalt", spt=10, pattern="Organic", ao=0.4, rough=(0.76, 0.97), albedo=0.30,
                          use="older streets, alleys, industrial lots (cracks)"),
-    "sidewalk_paving": dict(src=("ph", "concrete_pavement"), base="Pavement", pattern="Regular", ao=0.5,
-                            use="LA-style scored concrete sidewalk slabs"),
+    "sidewalk_paving": dict(src=("ph", "large_grey_tiles"), base="Pavement", pattern="Regular", ao=0.5,
+                            use="sidewalk: big pale concrete slabs with weedy joints"),
     "curb_concrete": dict(src=("ph", "concrete_floor_01"), base="Concrete", spt=8, pattern="Organic", ao=0.4,
+                          rough=(0.72, 0.94),
                           use="curbs, medians, plinths, barriers"),
-    "brick_red": dict(src=("ph", "red_brick_03"), base="Brick", pattern="Regular", ao=0.6,
+    "brick_red": dict(src=("ph", "red_brick_03"), base="Brick", pattern="Regular", ao=0.6, rough=(0.72, 0.95),
                       use="midtown walls, lofts, warehouses"),
     "brick_tan": dict(src=("ph", "yellow_brick"), base="Brick", pattern="Regular", ao=0.6,
                       use="older commercial facades"),
@@ -68,19 +74,22 @@ SETS = {
                    use="houses, deco hotels; near-white so part Color tints it"),
     "roof_tiles": dict(src=("ph", "clay_roof_tiles_02"), base="Slate", pattern="Regular", ao=0.6,
                        use="Spanish / mission clay roofs"),
-    "roof_gravel": dict(src=("ph", "gravel_floor_02"), base="Pebble", spt=7, pattern="Organic", ao=0.5,
+    "roof_gravel": dict(src=("ph", "gravel_floor_02"), base="Pebble", spt=7, pattern="Organic", ao=0.5, rough=(0.78, 1.0),
                         use="flat roofs (ballast gravel)"),
     "metal_corrugated": dict(src=("ph", "corrugated_iron_02"), base="Metal", pattern="Regular", ao=0.5, metal=1.0,
+                             metal_norm=True, metal_albedo=0.62,
                              use="sheds, warehouse siding, fences"),
     "metal_rusty": dict(src=("ph", "rusty_metal_04"), base="CorrodedMetal", spt=8, pattern="Organic", ao=0.4,
+                        metal_norm=True, metal_albedo=0.5,
                         use="containers, port, scrap, industrial"),
     "wood_planks": dict(src=("ph", "wooden_planks"), base="WoodPlanks", pattern="Regular", ao=0.5,
                         use="pier / boardwalk decks, fences"),
-    "grass": dict(src=("acg", "Grass004"), base="Grass", spt=8, pattern="Organic", ao=0.4,
+    "grass": dict(src=("acg", "Grass001"), base="Grass", spt=8, pattern="Organic", ao=0.4, rough=(0.82, 1.0),
+                  albedo=0.33,
                   use="lawns, parks, verges (or terrain Grass)"),
     "sand": dict(src=("acg", "Ground080"), base="Sand", spt=10, pattern="Organic", ao=0.4,
                  use="beach (or terrain Sand)"),
-    "rock": dict(src=("ph", "rock_face"), base="Rock", pattern="Organic", ao=0.5,
+    "rock": dict(src=("ph", "rock_08"), base="Rock", spt=10, pattern="Organic", ao=0.5, rough=(0.78, 0.98),
                  use="hills, cliffs, rock outcrops (or terrain Rock)"),
     "terrazzo": dict(src=("acg", "Terrazzo013"), base="Marble", spt=6, pattern="Regular", ao=0.3,
                      use="lobbies, malls, plazas"),
@@ -194,14 +203,18 @@ def normal_convention(nrm, disp):
 
 
 def seam_score(a):
-    """Wrap-around step / interior step (1.0 = as smooth as the interior). Uses luminance."""
+    """Wrap-around step relative to the interior: the mean |a[0] - a[-1]| across the wrap divided by the 90th
+    percentile of the same per-line step everywhere inside the image (so brick courses and plank joints, which are
+    legitimately sharp, do not count as seams). <= ~1.2 means the wrap is no worse than the texture's own lines."""
     if a.ndim == 3:
         a = a @ np.array([0.2126, 0.7152, 0.0722], np.float32)
-    inner_x = np.abs(np.diff(a, axis=1)).mean()
-    inner_y = np.abs(np.diff(a, axis=0)).mean()
-    edge_x = np.abs(a[:, 0] - a[:, -1]).mean()
-    edge_y = np.abs(a[0, :] - a[-1, :]).mean()
-    return float(max(edge_x / (inner_x + 1e-6), edge_y / (inner_y + 1e-6)))
+    worst = 0.0
+    for ax in (0, 1):
+        b = a if ax == 0 else a.T
+        steps = np.abs(np.diff(b, axis=0)).mean(axis=1)
+        wrap = np.abs(b[0] - b[-1]).mean()
+        worst = max(worst, float(wrap / (np.percentile(steps, 90) + 1e-6)))
+    return worst
 
 
 def make_seamless(maps, band=0.18):
@@ -258,15 +271,42 @@ def convert(name, spec, info, force=False):
     v[..., 2] = np.maximum(v[..., 2], 0.05)
     v /= np.linalg.norm(v, axis=2, keepdims=True) + 1e-6
     nrm = v * 0.5 + 0.5
+    if spec.get("rough"):
+        lo, hi = spec["rough"]
+        p2, p98 = np.percentile(rough, [2, 98])
+        rough = lo + (hi - lo) * np.clip((rough - p2) / max(p98 - p2, 1e-3), 0, 1)
+        check["roughness_remapped"] = [lo, hi]
+    if spec.get("metal_norm") and "metal" in f:
+        p2, p98 = np.percentile(metal, [2, 98])
+        metal = np.clip((metal - p2) / max(p98 - p2, 1e-3), 0, 1)
+        metal = metal * metal * (3 - 2 * metal)
+        check["metal_normalized"] = True
+    if spec.get("metal_albedo"):
+        lum = color @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+        wsum = metal.sum()
+        if wsum > 1:
+            cur = float((lum * metal).sum() / wsum)
+            gain = max(1.0, spec["metal_albedo"] / max(cur, 1e-3))
+            color = np.clip(color * (1 + (gain - 1) * metal[..., None]), 0, 1)
+            check["metal_albedo_gain"] = round(gain, 2)
     if "ao" in f and spec.get("ao", 0) > 0:
         ao = resize(load(f["ao"], "L"))
         k = float(spec["ao"])
         color = color * (1 - k + k * ao)[..., None]
         check["ao_baked"] = k
+    if spec.get("albedo"):
+        lin_c = np.where(color <= 0.04045, color / 12.92, ((color + 0.055) / 1.055) ** 2.4)
+        cur = float((lin_c @ np.array([0.2126, 0.7152, 0.0722], np.float32)).mean())
+        t = spec["albedo"]
+        tgt = t / 12.92 if t <= 0.04045 else ((t + 0.055) / 1.055) ** 2.4
+        lin_c = np.clip(lin_c * (tgt / max(cur, 1e-4)), 0, 1)
+        color = np.where(lin_c <= 0.0031308, lin_c * 12.92, 1.055 * np.power(lin_c, 1 / 2.4) - 0.055).astype(np.float32)
+        check["albedo_scaled_to"] = t
     maps = {"color": color, "normal": nrm, "roughness": rough, "metalness": metal}
     s0 = {k: round(seam_score(a), 2) for k, a in maps.items() if k != "metalness"}
     check["seam_before"] = s0
-    if max(s0.values()) > 1.6:
+    # Regular sets (brick courses, plank joints) ghost when cross-faded, so only fix them when clearly broken
+    if max(s0.values()) > (1.5 if spec["pattern"] == "Organic" else 2.5):
         maps = make_seamless(maps)
         check["seam_fixed"] = True
         check["seam_after"] = {k: round(seam_score(a), 2) for k, a in maps.items() if k != "metalness"}
@@ -346,7 +386,7 @@ def render_swatches(entries, size=360, samples=32):
         sun.angle = math.radians(0.8)
         so = bpy.data.objects.new("Sun", sun)
         s.collection.objects.link(so)
-        so.rotation_euler = (math.radians(62), 0, math.radians(-35))
+        so.rotation_euler = (math.radians(55), 0, math.radians(-50))  # 35 deg elevation, raking from the left
         spt = e["materialVariant"]["StudsPerTile"]
         # material
         m = bpy.data.materials.new(e["name"])
@@ -374,12 +414,12 @@ def render_swatches(entries, size=360, samples=32):
         mt.links.new(tex("normal", True).outputs[0], nm.inputs["Color"])
         mt.links.new(nm.outputs[0], bsdf.inputs["Normal"])
         # floor: 3x3 tiles, cube, figure
-        L = 3 * spt
+        L = 6 * spt  # floor: 6x6 tiles so repetition is visible
         bpy.ops.mesh.primitive_plane_add(size=L, location=(0, 0, 0))
         fl = bpy.context.object
         fl.data.materials.append(m)
-        c = max(4.0, spt * 0.55)
-        bpy.ops.mesh.primitive_cube_add(size=c, location=(L * 0.12, L * 0.1, c / 2))
+        c = max(5.0, spt * 0.7)
+        bpy.ops.mesh.primitive_cube_add(size=c, location=(c * 0.9, c * 0.6, c / 2))
         cb = bpy.context.object
         cb.rotation_euler = (0, 0, math.radians(28))
         cb.data.materials.append(m)
@@ -392,15 +432,16 @@ def render_swatches(entries, size=360, samples=32):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         fig_m = bpy.data.materials.new("fig")
         fig_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.05, 0.05, 0.06, 1)
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.75, depth=5.5, location=(-L * 0.18, L * 0.02, 2.75))
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.75, depth=5.5, location=(-c * 0.7, -c * 0.1, 2.75))
         bpy.context.object.data.materials.append(fig_m)
         cam_d = bpy.data.cameras.new("C")
         cam_d.lens = 35
         cam = bpy.data.objects.new("C", cam_d)
         s.collection.objects.link(cam)
         s.camera = cam
-        cam.location = Vector((-L * 0.62, -L * 0.78, L * 0.55))
-        d = Vector((0, L * 0.06, 0)) - cam.location
+        r = max(18.0, c * 3.2)  # camera distance scales with the cube, floor runs to the frame edges
+        cam.location = Vector((-r * 0.55, -r * 0.83, r * 0.62))
+        d = Vector((c * 0.2, c * 0.6, 0)) - cam.location
         cam.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
         p = os.path.join(CACHE, "_swatch", f"{e['name']}.png")
         os.makedirs(os.path.dirname(p), exist_ok=True)

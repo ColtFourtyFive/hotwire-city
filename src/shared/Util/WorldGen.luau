@@ -580,6 +580,55 @@ function WorldGen.obbContains(b: OBB, x: number, z: number, margin: number?): bo
 	return math.abs(dx * b.ux + dz * b.uz) <= b.hw + m and math.abs(-dx * b.uz + dz * b.ux) <= b.hd + m
 end
 
+-- Distance from segment a-b to the rectangle (0 when they touch). In 2D, two disjoint convex shapes are closest at a
+-- segment endpoint or a rectangle corner, so this is exact.
+function WorldGen.obbSegDistance(b: OBB, ax: number, az: number, bx: number, bz: number): number
+	local function toLocal(x: number, z: number): (number, number)
+		local dx, dz = x - b.cx, z - b.cz
+		return dx * b.ux + dz * b.uz, -dx * b.uz + dz * b.ux
+	end
+	local u0, v0 = toLocal(ax, az)
+	local u1, v1 = toLocal(bx, bz)
+	-- clip the segment against the box (Liang-Barsky): any surviving piece means they intersect
+	local t0, t1 = 0, 1
+	local du, dv = u1 - u0, v1 - v0
+	local inside = true
+	for _, c in { { -du, u0 + b.hw }, { du, b.hw - u0 }, { -dv, v0 + b.hd }, { dv, b.hd - v0 } } do
+		local p, q = c[1], c[2]
+		if math.abs(p) < 1e-12 then
+			if q < 0 then
+				inside = false
+				break
+			end
+		else
+			local t = q / p
+			if p < 0 then
+				t0 = math.max(t0, t)
+			else
+				t1 = math.min(t1, t)
+			end
+			if t0 > t1 then
+				inside = false
+				break
+			end
+		end
+	end
+	if inside then
+		return 0
+	end
+	local function boxDist(u: number, v: number): number
+		local du2 = math.max(math.abs(u) - b.hw, 0)
+		local dv2 = math.max(math.abs(v) - b.hd, 0)
+		return math.sqrt(du2 * du2 + dv2 * dv2)
+	end
+	local best = math.min(boxDist(u0, v0), boxDist(u1, v1))
+	for _, c in { { -b.hw, -b.hd }, { b.hw, -b.hd }, { b.hw, b.hd }, { -b.hw, b.hd } } do
+		local _, _, _, d = WorldGen.projectSeg(c[1], c[2], u0, v0, u1, v1)
+		best = math.min(best, d)
+	end
+	return best
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Spatial hash (cell -> list of ids)
 -------------------------------------------------------------------------------------------------------------------------
