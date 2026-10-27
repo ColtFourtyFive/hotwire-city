@@ -296,7 +296,7 @@ class Facade:
     def quad(self, buf, u0, u1, z0, z1, n=0.0, uv=None, tile=None):
         quad(buf, self.p(u0, z0, n), self.p(u1, z0, n), self.p(u1, z1, n), self.p(u0, z1, n), uv=uv, tile=tile)
 
-    def wall(self, buf, z0, z1, openings, u0=0.0, u1=None, n=0.0):
+    def wall(self, buf, z0, z1, openings=(), u0=0.0, u1=None, n=0.0):
         """Wall plane between z0..z1 with rectangular holes [(u0,u1,z0,z1), ...]; greedy-merged quads."""
         u1 = self.W if u1 is None else u1
         us = sorted({u0, u1, *[max(u0, min(u1, o[0])) for o in openings], *[max(u0, min(u1, o[1])) for o in openings]})
