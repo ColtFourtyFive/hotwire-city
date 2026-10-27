@@ -898,5 +898,455 @@
   "verdict": 4,
   "flag": null,
   "note": "Phone booth (payphone) (Robloxisforbab1e5): an open-front booth with a \"Phone\" Bell-logo header, a lit ring light, a detailed Elcotel-style payphone mesh and a diamond-plate floor. Real size (3×7×3). Very usable. **The Bell logo is a real trademark**, so swap the decal. *(close1)*"
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "5529328916",
+  "name": "Realistic Billboard",
+  "creator": "xvcvc1",
+  "parts": 54,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   34,
+   44,
+   10
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Realistic Billboard (xvcvc1): a small, blank, thin-framed panel on a single pole; looks unfinished."
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "11120580589",
+  "name": "Realistic Billboard",
+  "creator": "High_Definiti0n",
+  "parts": 285,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   95,
+   112,
+   82
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Realistic Billboard (High_Definiti0n): a full-size **L-shaped monopole billboard**, 112 studs high, 285 parts. It has a perforated catwalk with railing, a truss arm, a cylindrical beam, a ladder up the column and a blank white face. It reads exactly like an LA freeway-side billboard. Apply our ad decals to the face. *(close1)*"
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "2980976799",
+  "name": "Billboard",
+  "creator": "Identified_K9",
+  "parts": 54,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   66,
+   55,
+   11
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Billboard (Identified_K9): a blank 66-stud board on a lattice tower with a catwalk. Fine as a background filler."
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "4827295690",
+  "name": "Billboard",
+  "creator": "inp888",
+  "parts": 42,
+  "meshParts": 0,
+  "textures": 6,
+  "scriptsRemoved": 0,
+  "size": [
+   32,
+   48,
+   9
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Billboard, two-sided (inp888): a small 32-stud board with a different image decal on each face (a night-club shot). It is the only one with art, but the art is not ours."
+ },
+ {
+  "category": "billboards_frames",
+  "assetId": "13612217686",
+  "name": "Billboard Pack",
+  "creator": "U5Studios",
+  "parts": 60,
+  "meshParts": 56,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   151,
+   82,
+   34
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Billboard Pack (U5Studios): two MeshPart monopole \"V\" boards with catwalks and light rails, blank faces. Lighter on parts (56 MeshParts total) than the 285-part one, so the better choice for repeated roadside boards. It arrived as a Folder; I wrapped it in a Model for the layout. *(close2)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "83471113389608",
+  "name": "Traffic Cone Realistic Traffic Construction Road",
+  "creator": "ShreddCPhoenixT",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   1,
+   1,
+   1
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Traffic Cone (ShreddCPhoenixT): a clean orange MeshPart cone, but **only 1 stud tall** (real ≈2.3 studs), so scale it ×2.3. **3 scripts removed.** *(close2, right)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "136386088614829",
+  "name": "Road Barricade Construction Barrier Roadblock City",
+  "creator": "Content Deleted - 158552482",
+  "parts": 5,
+  "meshParts": 0,
+  "textures": 16,
+  "scriptsRemoved": 2,
+  "size": [
+   5,
+   3,
+   1
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Road Barricade (Content Deleted - 158552482): renders as a **stone-textured trapezoid block**, not a striped barricade. **2 scripts removed despite the \"No scripts\" description.** *(close2, left)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "6693814769",
+  "name": "construction Barricade",
+  "creator": "TheCarsAll",
+  "parts": 64,
+  "meshParts": 4,
+  "textures": 2,
+  "scriptsRemoved": 10,
+  "size": [
+   26,
+   14,
+   17
+  ],
+  "verdict": null,
+  "flag": "avoid",
+  "note": "construction Barricade \"xxl\" (TheCarsAll): actually a flatbed trailer with an arrow board plus **two Roblox NPC worker rigs**. **10 scripts removed.** Blocky, and the NPCs are unwanted. *(close1, centre)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "107131356944164",
+  "name": "Scaffolding",
+  "creator": "Wish Game",
+  "parts": 164,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   16,
+   15,
+   5
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Scaffolding (Wish Game): a 16×15 two-bay steel tube frame with cross-bracing and a wood deck. Tiles well. No scripts. *(close1, left)*"
+ },
+ {
+  "category": "construction",
+  "assetId": "119266200526586",
+  "name": "Tower Crane Construction Building Site Towers City",
+  "creator": "Lesomaku610",
+  "parts": 250,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 8,
+  "size": [
+   63,
+   203,
+   177
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Tower Crane (Lesomaku610): a 203-stud yellow lattice tower crane with an operator cab, counter-jib, hook and a hanging I-beam on a base slab. It reads well on a skyline (the jib points at the camera in the lineup). **8 scripts removed despite the \"No scripts\" description.** 250 parts. *(lineup)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "10969289501",
+  "name": "[FREE] Lifeguard Tower By: Weather",
+  "creator": "WeatherMan51",
+  "parts": 83,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   33,
+   17,
+   17
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Lifeguard Tower (WeatherMan51): **an LA-County-style lifeguard tower**: a sky-blue cabin with wrap windows and an antenna on a raised deck, with a railed ramp, cross-braced stilts and footings. The Santa Monica / Venice look exactly. 83 parts, no scripts. *(close1)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "13351773651",
+  "name": "Lifeguard Tower",
+  "creator": "sodafont",
+  "parts": 73,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   7,
+   21,
+   15
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Lifeguard Tower (sodafont): a white lattice ladder-chair with a red pointed roof, European style. Not LA."
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "17739161260",
+  "name": "Beach Umbrella",
+  "creator": "ImATeapot418",
+  "parts": 42,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   12,
+   9,
+   12
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Beach Umbrella (ImATeapot418): a single solid-red umbrella, simple and clean. *(close2, right)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "9017391415",
+  "name": "Beach chair and umbrella",
+  "creator": "mrtrolldos",
+  "parts": 135,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   15,
+   8,
+   42
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Beach chair and umbrella (mrtrolldos): two red/white umbrellas with striped blue and red loungers. Clean, believable, real size. 135 parts, no scripts. *(close2, left)*"
+ },
+ {
+  "category": "beach_pier",
+  "assetId": "82002680152727",
+  "name": "Realistic Dock Wooden Pier Marina Harbor Boat Deck",
+  "creator": "Content Deleted - 158552482",
+  "parts": 36,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 4,
+  "size": [
+   15,
+   11,
+   62
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Realistic Dock (Content Deleted - 158552482): a 62-stud brown plank jetty on posts. Lake-dock scale, not an ocean pier. **4 scripts removed despite the \"No scripts\" description.**"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "18290346289",
+  "name": "Carrier 8.5 Ton RTU Rooftop AC Unit with Gas Heat",
+  "creator": "Teo7472",
+  "parts": 762,
+  "meshParts": 87,
+  "textures": 33,
+  "scriptsRemoved": 57,
+  "size": [
+   16,
+   6,
+   13
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Carrier 8.5 Ton RTU (Teo7472): the smaller sibling with 2 fans, a Carrier badge, coil guard, service panels and gas-heat flue. Excellent. **762 parts and 57 scripts removed**, which is very heavy, so it is a hero-roof prop only. A cheap LOD stand-in is needed for the skyline. *(close1, right)*"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "18336727555",
+  "name": "Carrier 20 Ton Rooftop AC Unit",
+  "creator": "Teo7472",
+  "parts": 319,
+  "meshParts": 68,
+  "textures": 24,
+  "scriptsRemoved": 28,
+  "size": [
+   20,
+   6,
+   21
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Carrier 20 Ton Rooftop AC Unit (Teo7472): an accurate commercial RTU with 4 condenser fans, louvred panels and a curb base. Real size (20×6×21). **319 parts and 28 scripts removed** (fan, sound and economiser logic). Use the stripped copy, or merge it into fewer parts for mass placement. *(close1, left)*"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "74677240725658",
+  "name": "Roblox tv antenna set! rooftop signal boost RP",
+  "creator": "NovaCore9JSparkt1493",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 3,
+  "size": [
+   6,
+   4,
+   6
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "\"Roblox tv antenna set!\" (NovaCore9JSparkt1493): a single white mesh that reads as a satellite dish blob. **3 scripts removed**, and the title is SEO spam."
+ },
+ {
+  "category": "rooftop",
+  "assetId": "7226259248",
+  "name": "Roof Turbine Vent",
+  "creator": "zerg666",
+  "parts": 1,
+  "meshParts": 1,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   2,
+   2,
+   1
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Roof Turbine Vent (zerg666): a tiny (2-stud) chrome whirlybird. Correct shape but low detail; fine as filler. *(close2, right)*"
+ },
+ {
+  "category": "rooftop",
+  "assetId": "14047509152",
+  "name": "Roof Top Vents Pack",
+  "creator": "lowqualityqwerty",
+  "parts": 7,
+  "meshParts": 7,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   82,
+   5,
+   10
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Roof Top Vents Pack (lowqualityqwerty): 7 MeshPart pieces of galvanised duct runs and boxes on stands. Clean and light (7 parts); good roof clutter. It arrived as a Folder; I wrapped it in a Model. *(close2, left)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "122655307130669",
+  "name": "Car Lift garage repair",
+  "creator": "Skyflux1123",
+  "parts": 16,
+  "meshParts": 17,
+  "textures": 0,
+  "scriptsRemoved": 1,
+  "size": [
+   1,
+   12,
+   14
+  ],
+  "verdict": 5,
+  "flag": null,
+  "note": "Car Lift (Skyflux1123): a realistic red **two-post lift**, 12 studs tall. MeshParts with a control box, hydraulic unit, swing arms with pads and a floor crossover. Exactly right for the player garage. **1 script removed** (probably the lift motion). *(close1)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "79571080572612",
+  "name": "Garage Tool Box Boxes Toolbox Shelf Shop Workbench",
+  "creator": "Zephcr3423",
+  "parts": 47,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 6,
+  "size": [
+   5,
+   3,
+   5
+  ],
+  "verdict": 2,
+  "flag": null,
+  "note": "Garage Tool Box (Zephcr3423): a small dark-grey chest with an open lid. **6 scripts removed despite the \"No scripts\" description.**"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "146685916",
+  "name": "Snap-on tool box",
+  "creator": "cmt18",
+  "parts": 21,
+  "meshParts": 0,
+  "textures": 1,
+  "scriptsRemoved": 0,
+  "size": [
+   4,
+   10,
+   12
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Snap-on tool box (cmt18): a classic red roll cabinet with 7 drawers and casters. It reads right but is **about 2× oversize (10 studs tall)**, so scale it ×0.5. **\"Snap-on\" is a trademark** (the model is unbranded in the render, but the name isn't). *(close2, right)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "10735214840",
+  "name": "Tire Rack",
+  "creator": "Krisko_BGxd",
+  "parts": 84,
+  "meshParts": 36,
+  "textures": 6,
+  "scriptsRemoved": 0,
+  "size": [
+   11,
+   8,
+   6
+  ],
+  "verdict": 4,
+  "flag": null,
+  "note": "Tire Rack (Krisko_BGxd): a two-tier black/red X-braced rack with rows of street and off-road tyres (36 MeshParts). Very good garage dressing. No scripts. *(close2, left)*"
+ },
+ {
+  "category": "garage_interior",
+  "assetId": "2109264797",
+  "name": "[GREEN LIZARD GARAGE] Mobile Tool Box (TOP+BOTTOM)",
+  "creator": "Green Lizard Garage",
+  "parts": 56,
+  "meshParts": 0,
+  "textures": 0,
+  "scriptsRemoved": 0,
+  "size": [
+   5,
+   4,
+   2
+  ],
+  "verdict": 3,
+  "flag": null,
+  "note": "Green Lizard Garage Mobile Tool Box: a bright green top-and-bottom tool chest on casters, real size. Fine, though the colour is loud."
  }
 ]

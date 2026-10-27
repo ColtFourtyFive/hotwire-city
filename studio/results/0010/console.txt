@@ -1,0 +1,59 @@
+# Studio Output for this session, via LogService:GetLogHistory() (no log file is written for this session)
+20:29:03 [MessageInfo] DataModel Loading https://assetdelivery.roblox.com/v1/asset/?id=106226892419530&version=28
+20:29:07 [MessageWarning] ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+20:49:57 [MessageWarning] [Rojo-Warn] Could not swap instances Lighting and Lighting during sync replacement: Cannot change Parent of type Lighting
+[Rojo-Warn] Cannot change Parent of type Lighting
+20:50:40 [MessageWarning] ContentId: rbxassetid://9116546593 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9113948676 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9117969584 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9119186024 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9119165140 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9114590297 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9114402205 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9119165131 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://125094987563505 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9113726510 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9118708982 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://87646813759701 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9112891352 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9112758500 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9113661285 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://78270463799678 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9113728042 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9114402206 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://9113728049 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://80317022777602 failed due to: Asset type does not match requested type
+20:50:40 [MessageWarning] ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+20:50:41 [MessageWarning] ContentId: rbxassetid://81504106 failed due to: Request asset was not found
+20:51:37 [MessageWarning] [Rojo-Warn] Precommit hook errored: user_RojoManagedPlugin.rbxm.Rojo.Plugin.PatchTree:231: table index is nil
+20:51:37 [MessageWarning] [Rojo-Warn] Could not swap instances Lighting and Lighting during sync replacement: Cannot change Parent of type Lighting
+[Rojo-Warn] Cannot change Parent of type Lighting
+20:51:53 [MessageWarning] ContentId: rbxassetid://125094987563505 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9113728042 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9114402205 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9113726510 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9119186024 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9117969584 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9116546593 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9113661285 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9112891352 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://87646813759701 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9118708982 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9119165131 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9113728049 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9112758500 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9113948676 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://80317022777602 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9119165140 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://78270463799678 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9114402206 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://9114590297 failed due to: Asset type does not match requested type
+20:51:53 [MessageWarning] ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+20:51:54 [MessageWarning] ContentId: rbxassetid://4542793421 failed due to: User is not authorized to access Asset.
+20:51:54 [MessageWarning] ContentId: rbxassetid://4542793421 failed due to: User is not authorized to access Asset.
+21:01:48 [MessageError] Failed to parse TexturePack in Workspace.HCScout.veg_bushes_hedges_grass.PBRBush.PBR Bush.Trunk.MeshPart.SurfaceAppearance.
+21:13:39 [MessageWarning] ContentId: rbxassetid://7177387461 failed due to: Requested asset is archived
+21:13:39 [MessageWarning] ContentId: rbxassetid://7177402591 failed due to: Requested asset is archived
+21:13:41 [MessageWarning] ContentId: rbxassetid://7177402591 failed due to: Requested asset is archived
+21:13:41 [MessageWarning] ContentId: rbxassetid://7177387461 failed due to: Requested asset is archived
+21:18:25 [MessageError] Failed to parse TexturePack in Workspace.HCScout.garage_interior.TireRack.Model.Tire.SurfaceAppearance.
