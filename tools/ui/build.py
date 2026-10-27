@@ -143,6 +143,7 @@ def main():
             print(f"{key}: uploaded -> {asset_id} ({moderation})")
             with open(MANIFEST, "w") as fh:
                 json.dump(manifest, fh, indent=1, sort_keys=True)
+            time.sleep(12)  # docs/v2/CONTENT_SAFETY.md: at most one upload per 10 s
     cells = json.load(open(CELLS))
     write_config(manifest, cells)
 

@@ -21,46 +21,46 @@
   "uploaded": "2026-10-27T17:03:59Z"
  },
  "loading_1": {
-  "assetId": 76057201104160,
+  "assetId": 126476604674666,
   "file": "assets/ui/loading_1.png",
-  "moderation": "Approved",
-  "sha256": "8512a9e06c8f9a75be72388135a37ed45e230176f946d3a6d8db80c0e3fc7de7",
-  "uploaded": "2026-10-27T17:04:40Z"
+  "moderation": "Reviewing",
+  "sha256": "172c07e2df16ec3bad7ef699651042c5608c7a8bbcc18765c4929901c6801253",
+  "uploaded": "2026-10-27T22:12:27Z"
  },
  "loading_2": {
-  "assetId": 90347903015746,
+  "assetId": 88911031856041,
   "file": "assets/ui/loading_2.png",
-  "moderation": "Approved",
-  "sha256": "01ad14054b17da580467077747d21fbb4674e2ac186f634c252831a0c1c798d8",
-  "uploaded": "2026-10-27T17:04:48Z"
+  "moderation": "Reviewing",
+  "sha256": "0a1f14a14c684244e595e9e37dafc32e0d8b72814bd8a047497aecf1de24af15",
+  "uploaded": "2026-10-27T22:12:44Z"
  },
  "loading_3": {
-  "assetId": 124336509648512,
+  "assetId": 98920086702399,
   "file": "assets/ui/loading_3.png",
-  "moderation": "Approved",
-  "sha256": "c0da09a20764d0f73b2e981c8ded5429a6392e0e7ea470bd7f54e33b4b1b95a5",
-  "uploaded": "2026-10-27T17:04:55Z"
+  "moderation": "Reviewing",
+  "sha256": "0eaf3f234598a128d582117bc93e9f9505d66f916e2274e791d2b8c1c2dcdfc6",
+  "uploaded": "2026-10-27T22:13:01Z"
  },
  "loading_4": {
-  "assetId": 124106427198608,
+  "assetId": 122684952734465,
   "file": "assets/ui/loading_4.png",
-  "moderation": "Approved",
-  "sha256": "fd689d168498559e2893d752f56e1d99a14b663a04deaf049613a2d7ac27202a",
-  "uploaded": "2026-10-27T17:05:04Z"
+  "moderation": "Reviewing",
+  "sha256": "f886c6064bc51865e9813933733a1215f61635f145b2ab9a62ff58368628d156",
+  "uploaded": "2026-10-27T22:13:17Z"
  },
  "loading_5": {
-  "assetId": 139161880276868,
+  "assetId": 92193259703476,
   "file": "assets/ui/loading_5.png",
-  "moderation": "Approved",
-  "sha256": "43fdceebe8b3ed5aa4608529ce2a63eb54ea79c02b9207401c637ce005a40b12",
-  "uploaded": "2026-10-27T17:05:12Z"
+  "moderation": "Reviewing",
+  "sha256": "e2d8a3c14121deadb1794e4d817a61acd61fd8ed19c1bdf84cb5c92f28287662",
+  "uploaded": "2026-10-27T22:13:34Z"
  },
  "loading_6": {
-  "assetId": 137928702582117,
+  "assetId": 80911965883631,
   "file": "assets/ui/loading_6.png",
-  "moderation": "Approved",
-  "sha256": "75052f4ba7e2382eaeb26391fcc700e6751d5198a40d66603ab2a77e49f1cda4",
-  "uploaded": "2026-10-27T17:05:18Z"
+  "moderation": "Reviewing",
+  "sha256": "2ba2a020b26921a4059d31c2031d9de83e0b246be1a20fa56f0af1ed00a86e03",
+  "uploaded": "2026-10-27T22:13:50Z"
  },
  "phone_shell": {
   "assetId": 100859923569033,
