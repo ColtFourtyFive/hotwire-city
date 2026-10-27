@@ -21,6 +21,35 @@ python3 -I tools/blender/buildkit/render_kit.py --all  # hero renders -> docs/v2
 To debug winding, run `build.py ... --backfaces --render x.png`. It renders back faces red. Roblox culls back faces,
 so anything red is wrong. The awnings and umbrellas are double-sided on purpose.
 
+## Production set for the game (wave A3)
+
+The game does not use the SurfaceAppearance route described below (the importer and the publish API make it
+impractical; evidence in `docs/v2/early/buildings/README.md`). The production pipeline is:
+
+```bash
+python3 -I tools/blender/buildkit/produce.py            # variants.py -> assets/buildings/glb/<key>.glb + .json, catalog.json
+python3 tools/blender/buildkit/upload.py                # Models + 7 Images -> assets/buildings/manifest.json (sha1-skips)
+python3 -I tools/blender/buildkit/gen_config.py         # -> src/shared/Config/Buildings.luau (GENERATED block); --check
+lune run tools/blender/buildkit/export_placements.luau  # BuildingService planner over the generator parcels -> _cache/
+python3 -I tools/blender/buildkit/render_city.py        # evidence renders -> docs/v2/early/buildings/
+python3 tools/blender/buildkit/cloud_probe.py           # real-engine InsertService probe (read-only Luau Execution)
+```
+
+- `variants.py` lists the 155 variants by family (tower, office, midtown, deco, retail, house, villa, mansion,
+  industrial), sized from the parcel contract (`tools/world/gen/Places.luau` section 13): planned 160 x 160 skyline
+  towers with hero crowns, slabs, office blocks, 0-11 floor walk-ups and shallow row buildings, deco hotels, strip
+  malls / stores / diners, houses on narrow, shallow and full lots, villas, mansions, sheds to port warehouses.
+- `produce.py` sets `bk_arch.PROD` and `bk_geo.NO_BEVEL`: no Grime decals, frame rings instead of frame boxes,
+  solid balcony fronts, sparser quoins, lighter rear facades, no chamfers. The tallest walk-up dropped from 102k to
+  19k triangles; the largest MeshPart in the set is 8.3k.
+- GLBs carry geometry + UVs only. `rbxmat.py` is the runtime surface contract per role (Enum.Material + Look
+  MaterialVariant + colour, TextureID atlases, Neon / WindowsLit night states) used by `gen_config.py` and
+  `render_city.py`.
+- New archetype parameters: tower `podium_h`, `inset` and crowns `flat` / `lit_band`; midtown `escape`
+  (front / back / none), `balconies`, `shops`, 0-floor shops; house `garage_w`; warehouse `court`; strip
+  `park_d`.
+- `gen_textures.py`: the sign atlases no longer carry alcohol or lottery signs (content rules).
+
 ## Archetypes (`build.py --arch`)
 
 | arch | district | what it is | main parameters (`--kw` JSON) |

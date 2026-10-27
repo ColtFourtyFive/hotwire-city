@@ -1,0 +1,216 @@
+{
+ "name": "house_spanish58",
+ "archetype": "house",
+ "seed": 811,
+ "footprint": [
+  58,
+  80
+ ],
+ "height": 17.69,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "suburbs",
+  "style": "spanish",
+  "floors": 1,
+  "roof": "clay",
+  "surrounds": true,
+  "shutters": false
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "house_spanish58_Walls": {
+   "role": "Walls",
+   "tris": 104,
+   "material": {
+    "kind": "texture",
+    "set": "stucco",
+    "tint": [
+     0.95,
+     0.86,
+     0.6
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "house_spanish58_Walls2": {
+   "role": "Walls2",
+   "tris": 50,
+   "material": {
+    "kind": "texture",
+    "set": "cmu",
+    "tint": [
+     0.88,
+     0.85,
+     0.8
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "house_spanish58_Trim": {
+   "role": "Trim",
+   "tris": 280,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.95,
+     0.94,
+     0.91
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "house_spanish58_Accent": {
+   "role": "Accent",
+   "tris": 34,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.3,
+     0.17,
+     0.09
+    ],
+    "metallic": 0.0,
+    "roughness": 0.45
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "house_spanish58_Frames": {
+   "role": "Frames",
+   "tris": 62,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.92,
+     0.92,
+     0.9
+    ],
+    "metallic": 0.0,
+    "roughness": 0.4
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "house_spanish58_Glass": {
+   "role": "Glass",
+   "tris": 10,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     1,
+     1,
+     1
+    ],
+    "roughness": 0.05,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "house_spanish58_Roof": {
+   "role": "Roof",
+   "tris": 12,
+   "material": {
+    "kind": "texture",
+    "set": "roof_clay",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "house_spanish58_Details": {
+   "role": "Details",
+   "tris": 136,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.75,
+     0.76,
+     0.77
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "house_spanish58_Doors": {
+   "role": "Doors",
+   "tris": 32,
+   "material": {
+    "kind": "texture",
+    "set": "shutter",
+    "tint": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "tile_studs": 10.0,
+   "night_only": false
+  },
+  "house_spanish58_Site": {
+   "role": "Site",
+   "tris": 16,
+   "material": {
+    "kind": "texture",
+    "set": "curb",
+    "tint": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "house_spanish58_Lawn": {
+   "role": "Lawn",
+   "tris": 6,
+   "material": {
+    "kind": "texture",
+    "set": "grass",
+    "tint": [
+     0.8,
+     0.98,
+     0.65
+    ]
+   },
+   "tile_studs": 20.0,
+   "night_only": false
+  },
+  "house_spanish58_Neon": {
+   "role": "Neon",
+   "tris": 36,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.8,
+     0.5
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.78,
+     0.6
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  }
+ },
+ "total_tris": 778,
+ "max_part_tris": 280,
+ "glb": "house_spanish58.glb",
+ "glb_bytes": 65512,
+ "textures_embedded": false
+}

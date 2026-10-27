@@ -47,9 +47,9 @@ def house(seed=0, **kw):
     sb = kw.get("setback", 26.0)
     fh1, fh2 = 12.0, 11.0
     eave = fh1 + (fh2 if stories == 2 else 0.0)
-    HW = min(W - 30.0, kw.get("hw", r.choice([36.0, 40.0, 44.0])))
+    GW, GD = kw.get("garage_w", 23.0), 24.0   # 23 = two-car, 13 = one-car (narrow lots)
+    HW = min(W - GW - 7.0, kw.get("hw", r.choice([36.0, 40.0, 44.0])))
     HD = kw.get("hd", r.choice([34.0, 38.0]))
-    GW, GD = 23.0, 24.0
     gfwd = kw.get("garage_fwd", r.choice([0.0, 0.0, 6.0]))
     total = HW + GW
     x_left = -total / 2 + (r.uniform(-2, 2))

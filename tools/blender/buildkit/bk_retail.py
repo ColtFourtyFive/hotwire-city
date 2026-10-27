@@ -52,7 +52,7 @@ def strip(seed=0, **kw):
     bd = kw.get("bd", r.choice([44.0, 50.0]))
     canopy = kw.get("canopy", r.choice(["mansard", "flat", "flat"]))
     bw = n * uw
-    park_d = 62.0
+    park_d = kw.get("park_d", 62.0)   # 62 = two stall rows + aisle; ~34 = one row along the storefronts
     W, D = bw + 24.0, bd + 10.0 + park_d + 8.0
     tint = STUCCO[kw.get("stucco", r.choice(["bone", "cream", "sand", "grey", "taupe", "salmon"]))]
     _common_spec(B, tint, frame=r.choice(["silver", "bronze", "black"]))
@@ -107,7 +107,7 @@ def strip(seed=0, **kw):
     G.box(B.b("Site"), x0 - 1.0, y0 - cd - 1.0, -0.5, x1 + 1.0, y0, 0.6, skip=("bottom",))
     # parking
     py0, py1 = -D / 2 + 8.0, y0 - cd - 1.0
-    B.parking(-W / 2 + 2, py0, W / 2 - 2, py1, rows=("-y", "+y"))
+    B.parking(-W / 2 + 2, py0, W / 2 - 2, py1, rows=("-y", "+y") if park_d >= 50 else ("+y",))
     G.quad(B.b("Lawn"), (-W / 2, -D / 2, 0.08), (W / 2, -D / 2, 0.08), (W / 2, py0, 0.08), (-W / 2, py0, 0.08))
     G.box(B.b("Trim"), -W / 2, py0 - 0.5, 0, W / 2 - 26, py0, 0.7)
     # pylon sign at the street corner

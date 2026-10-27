@@ -1,0 +1,1142 @@
+{
+ "images": {
+  "awnings": {
+   "assetId": 87918086722084,
+   "bytes": 647953,
+   "file": "tools/blender/buildkit/out/textures/awnings.png",
+   "moderation": "Approved",
+   "sha1": "ca7265df6ffcbabc224c71dd5776e3cb6c0d1bb3"
+  },
+  "brands": {
+   "assetId": 120971830421996,
+   "bytes": 259464,
+   "file": "tools/blender/buildkit/out/textures/brands.png",
+   "moderation": "Approved",
+   "sha1": "976bbfdaeec4e78efbcbd0f9bd06f91d4e74c8a9"
+  },
+  "fb_curtain": {
+   "assetId": 137714710655631,
+   "bytes": 1981,
+   "file": "assets/buildings/textures/fb_curtain.png",
+   "moderation": "Approved",
+   "sha1": "8347f8ce081f33b6f0cf45cabf540b1941ae8619"
+  },
+  "fb_punched": {
+   "assetId": 121831985176395,
+   "bytes": 1812,
+   "file": "assets/buildings/textures/fb_punched.png",
+   "moderation": "Approved",
+   "sha1": "a218527b2ccfbf4a97b6458e27e64efa5edc3580"
+  },
+  "fb_ribbon": {
+   "assetId": 117068769811906,
+   "bytes": 1576,
+   "file": "assets/buildings/textures/fb_ribbon.png",
+   "moderation": "Approved",
+   "sha1": "5a03ac4229e517e6a18f7fd0c0e40c72c0d782ed"
+  },
+  "signs": {
+   "assetId": 80639091405783,
+   "bytes": 211859,
+   "file": "tools/blender/buildkit/out/textures/signs.png",
+   "moderation": "Approved",
+   "sha1": "6c35cc795cbed9fd87e6767238420a7b21e46584"
+  },
+  "windows_day": {
+   "assetId": 136930987872533,
+   "bytes": 302599,
+   "file": "tools/blender/buildkit/out/textures/windows_day.png",
+   "moderation": "Approved",
+   "sha1": "8f4d71b34f629606b15db28b5acdbfcbc67732b8"
+  }
+ },
+ "models": {
+  "deco_w100f3s": {
+   "assetId": 79897166684375,
+   "bytes": 304868,
+   "file": "assets/buildings/glb/deco_w100f3s.glb",
+   "moderation": "Approved",
+   "sha1": "04fba697071c9646d6578069809df4d44bde32a7"
+  },
+  "deco_w100f5s": {
+   "assetId": 101798834175111,
+   "bytes": 438224,
+   "file": "assets/buildings/glb/deco_w100f5s.glb",
+   "moderation": "Approved",
+   "sha1": "feb9d497ed16b789e9db242116a229c1b5769f5d"
+  },
+  "deco_w50f2": {
+   "assetId": 126118487159880,
+   "bytes": 186692,
+   "file": "assets/buildings/glb/deco_w50f2.glb",
+   "moderation": "Approved",
+   "sha1": "a5772c161bb9630ed4d5bbe7960cb811dbe9240f"
+  },
+  "deco_w50f3": {
+   "assetId": 125465629215378,
+   "bytes": 237140,
+   "file": "assets/buildings/glb/deco_w50f3.glb",
+   "moderation": "Approved",
+   "sha1": "b526a3cb7f4b4c3a7afef974ebff51d2327bd16b"
+  },
+  "deco_w50f4": {
+   "assetId": 116067745079495,
+   "bytes": 290944,
+   "file": "assets/buildings/glb/deco_w50f4.glb",
+   "moderation": "Approved",
+   "sha1": "eb5c3fb8d630c1d024abb93863f6acfa25eac501"
+  },
+  "deco_w66f2": {
+   "assetId": 75690334336975,
+   "bytes": 199844,
+   "file": "assets/buildings/glb/deco_w66f2.glb",
+   "moderation": "Approved",
+   "sha1": "bbe8cf241109c3f0625471d441aaf62f33985065"
+  },
+  "deco_w66f2s": {
+   "assetId": 119671258575680,
+   "bytes": 171296,
+   "file": "assets/buildings/glb/deco_w66f2s.glb",
+   "moderation": "Approved",
+   "sha1": "703d03c947a04aa281606f6711c5178b0892c9ee"
+  },
+  "deco_w66f3": {
+   "assetId": 103457547230514,
+   "bytes": 260788,
+   "file": "assets/buildings/glb/deco_w66f3.glb",
+   "moderation": "Approved",
+   "sha1": "96336b3ed8c1fd7a179b0d1ccd17706579072f86"
+  },
+  "deco_w66f4": {
+   "assetId": 114937428303505,
+   "bytes": 320192,
+   "file": "assets/buildings/glb/deco_w66f4.glb",
+   "moderation": "Approved",
+   "sha1": "22e44358594159d709b012411fceeb691b67c8f6"
+  },
+  "deco_w66f6": {
+   "assetId": 104636189143236,
+   "bytes": 438572,
+   "file": "assets/buildings/glb/deco_w66f6.glb",
+   "moderation": "Approved",
+   "sha1": "c47e56a807d13803e587e55a028e38da2c8c783a"
+  },
+  "deco_w66f8": {
+   "assetId": 111256574726376,
+   "bytes": 555008,
+   "file": "assets/buildings/glb/deco_w66f8.glb",
+   "moderation": "Approved",
+   "sha1": "43bab5cf361e38e17d2a74558f174a0c211f7e53"
+  },
+  "deco_w84f3": {
+   "assetId": 80478334711965,
+   "bytes": 308180,
+   "file": "assets/buildings/glb/deco_w84f3.glb",
+   "moderation": "Approved",
+   "sha1": "d3f7147970d67bc028d2433230a22aff5dc27f60"
+  },
+  "deco_w84f4": {
+   "assetId": 72521435775620,
+   "bytes": 375424,
+   "file": "assets/buildings/glb/deco_w84f4.glb",
+   "moderation": "Approved",
+   "sha1": "22c9046a91981ec8f7e06b90716582fa13125417"
+  },
+  "deco_w84f4s": {
+   "assetId": 135735679841552,
+   "bytes": 322244,
+   "file": "assets/buildings/glb/deco_w84f4s.glb",
+   "moderation": "Approved",
+   "sha1": "ea43523d78243c81c2da35651c4be146fddceeab"
+  },
+  "deco_w84f6": {
+   "assetId": 122853278012107,
+   "bytes": 512140,
+   "file": "assets/buildings/glb/deco_w84f6.glb",
+   "moderation": "Approved",
+   "sha1": "6543d6567e3f993b3fc33368a6f209043ab8cefa"
+  },
+  "house_ranch46": {
+   "assetId": 110080786982923,
+   "bytes": 62524,
+   "file": "assets/buildings/glb/house_ranch46.glb",
+   "moderation": "Approved",
+   "sha1": "b81b6c337697e279fc65692457270f7717b45518"
+  },
+  "house_ranch56s": {
+   "assetId": 130608520973675,
+   "bytes": 65856,
+   "file": "assets/buildings/glb/house_ranch56s.glb",
+   "moderation": "Approved",
+   "sha1": "d28f3eb714d92f554d0ea3ba249344f58b41bcdd"
+  },
+  "house_ranch58": {
+   "assetId": 74786412411528,
+   "bytes": 79288,
+   "file": "assets/buildings/glb/house_ranch58.glb",
+   "moderation": "Approved",
+   "sha1": "dc6d63ff9ff1bf86e30baba80313803b938b56e3"
+  },
+  "house_ranch62s": {
+   "assetId": 137469544885781,
+   "bytes": 62756,
+   "file": "assets/buildings/glb/house_ranch62s.glb",
+   "moderation": "Approved",
+   "sha1": "79b79a18bf4f9deb026153a004b06eb301db2cc3"
+  },
+  "house_ranch72": {
+   "assetId": 86023749361365,
+   "bytes": 89640,
+   "file": "assets/buildings/glb/house_ranch72.glb",
+   "moderation": "Approved",
+   "sha1": "dcfd704e1303b55e7d8d852bd4125367e92b1abf"
+  },
+  "house_ranch84s": {
+   "assetId": 134401485303258,
+   "bytes": 86784,
+   "file": "assets/buildings/glb/house_ranch84s.glb",
+   "moderation": "Approved",
+   "sha1": "85abee238266d83fbb77bbe355dc26ebe307ed69"
+  },
+  "house_spanish38": {
+   "assetId": 124309876006008,
+   "bytes": 75604,
+   "file": "assets/buildings/glb/house_spanish38.glb",
+   "moderation": "Approved",
+   "sha1": "825d3f43a5a927cb2b25ee3b86f20bf00d5528e7"
+  },
+  "house_spanish46": {
+   "assetId": 104559672399776,
+   "bytes": 67824,
+   "file": "assets/buildings/glb/house_spanish46.glb",
+   "moderation": "Approved",
+   "sha1": "11490e7290e1d871dac1b58d6b397b982f13968d"
+  },
+  "house_spanish58": {
+   "assetId": 129932399637558,
+   "bytes": 65512,
+   "file": "assets/buildings/glb/house_spanish58.glb",
+   "moderation": "Approved",
+   "sha1": "c9cdf63e23dc82adec5fb601fb3604e00a93d422"
+  },
+  "house_spanish58b": {
+   "assetId": 119743860365525,
+   "bytes": 90960,
+   "file": "assets/buildings/glb/house_spanish58b.glb",
+   "moderation": "Approved",
+   "sha1": "51ed0627882a65f1fc5dc8132d88d33c582f776d"
+  },
+  "house_spanish70s": {
+   "assetId": 114946323246650,
+   "bytes": 64844,
+   "file": "assets/buildings/glb/house_spanish70s.glb",
+   "moderation": "Approved",
+   "sha1": "4addee65232c6574b77cc7da8b12655985c1a5a3"
+  },
+  "house_spanish72": {
+   "assetId": 117044040879336,
+   "bytes": 75524,
+   "file": "assets/buildings/glb/house_spanish72.glb",
+   "moderation": "Approved",
+   "sha1": "6be2a6efe29644df454b392365b9b6f7a75a972b"
+  },
+  "house_tract236": {
+   "assetId": 91547024730578,
+   "bytes": 78460,
+   "file": "assets/buildings/glb/house_tract236.glb",
+   "moderation": "Approved",
+   "sha1": "c9eb7044ce735d9caf8bdb2b23258b6b70342f1f"
+  },
+  "house_tract246": {
+   "assetId": 107151094366209,
+   "bytes": 92484,
+   "file": "assets/buildings/glb/house_tract246.glb",
+   "moderation": "Approved",
+   "sha1": "565fab3adcb47905e8fb5e88f8030624b1392fcd"
+  },
+  "house_tract258": {
+   "assetId": 111528717539911,
+   "bytes": 86080,
+   "file": "assets/buildings/glb/house_tract258.glb",
+   "moderation": "Approved",
+   "sha1": "b0b473572c43722d026a75e634c3a8e9477da830"
+  },
+  "house_tract258b": {
+   "assetId": 74562427267010,
+   "bytes": 107372,
+   "file": "assets/buildings/glb/house_tract258b.glb",
+   "moderation": "Approved",
+   "sha1": "8a62099aa2a032d07dab0297ec60b8578474ea5b"
+  },
+  "house_tract262s": {
+   "assetId": 104399773022907,
+   "bytes": 86988,
+   "file": "assets/buildings/glb/house_tract262s.glb",
+   "moderation": "Approved",
+   "sha1": "8cbcbf4761c5f0c25e7ae71ba996472c2efdfc2c"
+  },
+  "house_tract262t": {
+   "assetId": 84695262080383,
+   "bytes": 87984,
+   "file": "assets/buildings/glb/house_tract262t.glb",
+   "moderation": "Approved",
+   "sha1": "f2c39cde94d39241d1c400bafca2e16a806fe77f"
+  },
+  "house_tract272": {
+   "assetId": 84669103479222,
+   "bytes": 117176,
+   "file": "assets/buildings/glb/house_tract272.glb",
+   "moderation": "Approved",
+   "sha1": "740d0d7e28e021cd92c24925cebf97304dad5bfd"
+  },
+  "house_villa110": {
+   "assetId": 116070350820070,
+   "bytes": 148744,
+   "file": "assets/buildings/glb/house_villa110.glb",
+   "moderation": "Approved",
+   "sha1": "bc2b152b1109ae629477b6d1edd46efd34679295"
+  },
+  "house_villa76s": {
+   "assetId": 101543233322805,
+   "bytes": 100192,
+   "file": "assets/buildings/glb/house_villa76s.glb",
+   "moderation": "Approved",
+   "sha1": "fe75fdb622f0601d179c0aa77b0bcaec34b905ce"
+  },
+  "house_villa84": {
+   "assetId": 126899372612661,
+   "bytes": 104416,
+   "file": "assets/buildings/glb/house_villa84.glb",
+   "moderation": "Approved",
+   "sha1": "aa5d72260b7258a449f59899e356512fda9b178f"
+  },
+  "house_villa90b": {
+   "assetId": 139992099876347,
+   "bytes": 115236,
+   "file": "assets/buildings/glb/house_villa90b.glb",
+   "moderation": "Approved",
+   "sha1": "d07b1003d1660bcc006b511de8a07ddc87404def"
+  },
+  "house_villa96": {
+   "assetId": 84402046373442,
+   "bytes": 138236,
+   "file": "assets/buildings/glb/house_villa96.glb",
+   "moderation": "Approved",
+   "sha1": "2c8e2adf0b12a21f6087f1e4e132091de3a7ccbc"
+  },
+  "industrial_factory160": {
+   "assetId": 110063293078737,
+   "bytes": 227740,
+   "file": "assets/buildings/glb/industrial_factory160.glb",
+   "moderation": "Approved",
+   "sha1": "a19348a2d74365b740628460bc34151d8dab3af2"
+  },
+  "industrial_factory220": {
+   "assetId": 119506933376942,
+   "bytes": 309728,
+   "file": "assets/buildings/glb/industrial_factory220.glb",
+   "moderation": "Approved",
+   "sha1": "58a205e18f14eb134adfafdf9ef74ff63d0a3aa4"
+  },
+  "industrial_hangar140": {
+   "assetId": 125440670281273,
+   "bytes": 169208,
+   "file": "assets/buildings/glb/industrial_hangar140.glb",
+   "moderation": "Approved",
+   "sha1": "854d0f063cc46718edf2394d130e7de53ced087b"
+  },
+  "industrial_shed60": {
+   "assetId": 129097290526613,
+   "bytes": 109432,
+   "file": "assets/buildings/glb/industrial_shed60.glb",
+   "moderation": "Approved",
+   "sha1": "8a7248af9cb3f7ef65e5d05b1b22f38113c976e0"
+  },
+  "industrial_shed90": {
+   "assetId": 111983731019762,
+   "bytes": 127352,
+   "file": "assets/buildings/glb/industrial_shed90.glb",
+   "moderation": "Approved",
+   "sha1": "b7f86aaa964d710d92f45af65d055011edf6c8d3"
+  },
+  "industrial_urban100s": {
+   "assetId": 119828804398808,
+   "bytes": 130208,
+   "file": "assets/buildings/glb/industrial_urban100s.glb",
+   "moderation": "Approved",
+   "sha1": "f760ff136a26814ba75f2b5497f9af297fd1ac9c"
+  },
+  "industrial_urban120": {
+   "assetId": 129002745367499,
+   "bytes": 175640,
+   "file": "assets/buildings/glb/industrial_urban120.glb",
+   "moderation": "Approved",
+   "sha1": "cd4e68138df2c9bf3f8934b5d45a39db03e88bd2"
+  },
+  "industrial_urban60s": {
+   "assetId": 92861348178957,
+   "bytes": 106096,
+   "file": "assets/buildings/glb/industrial_urban60s.glb",
+   "moderation": "Approved",
+   "sha1": "815ba4e51975216ab61b7d042211dfae6efb3411"
+  },
+  "industrial_urban80": {
+   "assetId": 87259475212057,
+   "bytes": 130596,
+   "file": "assets/buildings/glb/industrial_urban80.glb",
+   "moderation": "Approved",
+   "sha1": "6de6d027c1514caec06e789e7325fec2d5422791"
+  },
+  "industrial_wh110": {
+   "assetId": 131660317851016,
+   "bytes": 156972,
+   "file": "assets/buildings/glb/industrial_wh110.glb",
+   "moderation": "Approved",
+   "sha1": "ce7900abeb6daff5884da0dc06919e4359987a83"
+  },
+  "industrial_wh130": {
+   "assetId": 111093224018488,
+   "bytes": 167820,
+   "file": "assets/buildings/glb/industrial_wh130.glb",
+   "moderation": "Approved",
+   "sha1": "1c960883b6080ef0f853059cd4ab3f86540492b3"
+  },
+  "industrial_wh150": {
+   "assetId": 111607898873477,
+   "bytes": 201840,
+   "file": "assets/buildings/glb/industrial_wh150.glb",
+   "moderation": "Approved",
+   "sha1": "b0b953cd78326c96fbd9ae43726456d65d1af440"
+  },
+  "industrial_wh200": {
+   "assetId": 85583092853692,
+   "bytes": 267328,
+   "file": "assets/buildings/glb/industrial_wh200.glb",
+   "moderation": "Approved",
+   "sha1": "b8d427f14f96f7e0c868df1f3c6c52fb5e712aa8"
+  },
+  "industrial_wh240": {
+   "assetId": 102844325861025,
+   "bytes": 255100,
+   "file": "assets/buildings/glb/industrial_wh240.glb",
+   "moderation": "Approved",
+   "sha1": "265851e3be8d476a29251f2df047295842f1707f"
+  },
+  "mansion_w110a": {
+   "assetId": 134589882641008,
+   "bytes": 120244,
+   "file": "assets/buildings/glb/mansion_w110a.glb",
+   "moderation": "Approved",
+   "sha1": "62f77d5fcd89f6221444f5715b7394ecdc8a34e1"
+  },
+  "mansion_w110b": {
+   "assetId": 116586014717835,
+   "bytes": 106524,
+   "file": "assets/buildings/glb/mansion_w110b.glb",
+   "moderation": "Approved",
+   "sha1": "c2c6ac87704656f9d0177460f30096a30e4d6bc8"
+  },
+  "mansion_w130a": {
+   "assetId": 81664313545389,
+   "bytes": 120092,
+   "file": "assets/buildings/glb/mansion_w130a.glb",
+   "moderation": "Approved",
+   "sha1": "4183961ffddf7e276be85848a089d0c60151f6e4"
+  },
+  "mansion_w130b": {
+   "assetId": 131150476913630,
+   "bytes": 119808,
+   "file": "assets/buildings/glb/mansion_w130b.glb",
+   "moderation": "Approved",
+   "sha1": "392a4bc31677ae22f0beced3cbb94ab2bd0324cc"
+  },
+  "mansion_w150a": {
+   "assetId": 132660527826458,
+   "bytes": 119676,
+   "file": "assets/buildings/glb/mansion_w150a.glb",
+   "moderation": "Approved",
+   "sha1": "7de98f1848831c44708a1b818f9c0a525034658b"
+  },
+  "mansion_w150b": {
+   "assetId": 80265872812310,
+   "bytes": 118572,
+   "file": "assets/buildings/glb/mansion_w150b.glb",
+   "moderation": "Approved",
+   "sha1": "ff7e309da074263ead60fdc872c9882ab0d74585"
+  },
+  "mansion_w96a": {
+   "assetId": 125506248380142,
+   "bytes": 103440,
+   "file": "assets/buildings/glb/mansion_w96a.glb",
+   "moderation": "Approved",
+   "sha1": "18dd1435d126d059013d47b84cd0e8181e957d11"
+  },
+  "mansion_w96b": {
+   "assetId": 127823089982698,
+   "bytes": 102860,
+   "file": "assets/buildings/glb/mansion_w96b.glb",
+   "moderation": "Approved",
+   "sha1": "c93462e45a9bfc6344f80520963c656a2c183bde"
+  },
+  "midtown_w44f0": {
+   "assetId": 102586610119151,
+   "bytes": 67360,
+   "file": "assets/buildings/glb/midtown_w44f0.glb",
+   "moderation": "Approved",
+   "sha1": "321c909a3424976d58e1bf495fca67e3f78c4f91"
+  },
+  "midtown_w44f0b": {
+   "assetId": 79347327740630,
+   "bytes": 67728,
+   "file": "assets/buildings/glb/midtown_w44f0b.glb",
+   "moderation": "Approved",
+   "sha1": "235a5f7e5545f9586baea263002f0881df2b8cbc"
+  },
+  "midtown_w44f1": {
+   "assetId": 87757234507325,
+   "bytes": 127108,
+   "file": "assets/buildings/glb/midtown_w44f1.glb",
+   "moderation": "Approved",
+   "sha1": "9f806967270e760ce8f7ed1e66dc21392d1c0c65"
+  },
+  "midtown_w44f11": {
+   "assetId": 84254205584148,
+   "bytes": 910668,
+   "file": "assets/buildings/glb/midtown_w44f11.glb",
+   "moderation": "Approved",
+   "sha1": "ef115d2e0c31f805a7e3458b03cf1ef04ca5bff0"
+  },
+  "midtown_w44f1b": {
+   "assetId": 76338017324311,
+   "bytes": 163176,
+   "file": "assets/buildings/glb/midtown_w44f1b.glb",
+   "moderation": "Approved",
+   "sha1": "f9e4cdc23bc7a4047766aa9aae8368f8396e92d2"
+  },
+  "midtown_w44f2": {
+   "assetId": 76153120481845,
+   "bytes": 311704,
+   "file": "assets/buildings/glb/midtown_w44f2.glb",
+   "moderation": "Approved",
+   "sha1": "a16ee3f9936c52918150cbe4922971fe87bc27f3"
+  },
+  "midtown_w44f3": {
+   "assetId": 126757614013350,
+   "bytes": 416844,
+   "file": "assets/buildings/glb/midtown_w44f3.glb",
+   "moderation": "Approved",
+   "sha1": "90b4e532c3d945a81c01f551666a07cc09e0e1b7"
+  },
+  "midtown_w44f4": {
+   "assetId": 119735118319873,
+   "bytes": 552396,
+   "file": "assets/buildings/glb/midtown_w44f4.glb",
+   "moderation": "Approved",
+   "sha1": "c9882a797734da4004831190fc7eec1e6fccd46d"
+  },
+  "midtown_w44f6": {
+   "assetId": 78913467088014,
+   "bytes": 521816,
+   "file": "assets/buildings/glb/midtown_w44f6.glb",
+   "moderation": "Approved",
+   "sha1": "25384305c82ec3daf51e82127a0c113a222afac0"
+  },
+  "midtown_w44f8": {
+   "assetId": 124639217904244,
+   "bytes": 911472,
+   "file": "assets/buildings/glb/midtown_w44f8.glb",
+   "moderation": "Approved",
+   "sha1": "0871b03487da4631a7eb462c617013cb2f345795"
+  },
+  "midtown_w50f0s": {
+   "assetId": 88945330078636,
+   "bytes": 72004,
+   "file": "assets/buildings/glb/midtown_w50f0s.glb",
+   "moderation": "Approved",
+   "sha1": "960b482b96e4df9e901e438fbb34fe15c5374d8a"
+  },
+  "midtown_w50f10s": {
+   "assetId": 107518181758264,
+   "bytes": 455904,
+   "file": "assets/buildings/glb/midtown_w50f10s.glb",
+   "moderation": "Approved",
+   "sha1": "36a4dccaebb3b26f8cf46aac1dc21f562aa0b80c"
+  },
+  "midtown_w50f1s": {
+   "assetId": 101102296829297,
+   "bytes": 159628,
+   "file": "assets/buildings/glb/midtown_w50f1s.glb",
+   "moderation": "Approved",
+   "sha1": "3ec593b1a33f95ed6770adfc9ecde3cd607b9a98"
+  },
+  "midtown_w50f2s": {
+   "assetId": 75436905100275,
+   "bytes": 236432,
+   "file": "assets/buildings/glb/midtown_w50f2s.glb",
+   "moderation": "Approved",
+   "sha1": "66db99e9e7ac24b0659571bc6dfc3af57fb646cc"
+  },
+  "midtown_w50f4s": {
+   "assetId": 91615535108250,
+   "bytes": 291380,
+   "file": "assets/buildings/glb/midtown_w50f4s.glb",
+   "moderation": "Approved",
+   "sha1": "48f352e11cc0a995c943ad1e4407151ba6ebec81"
+  },
+  "midtown_w50f7s": {
+   "assetId": 128177814944257,
+   "bytes": 664476,
+   "file": "assets/buildings/glb/midtown_w50f7s.glb",
+   "moderation": "Approved",
+   "sha1": "9391654d4af5ed9433e21e6be02d87f032f95b71"
+  },
+  "midtown_w60f0": {
+   "assetId": 71719604012531,
+   "bytes": 70360,
+   "file": "assets/buildings/glb/midtown_w60f0.glb",
+   "moderation": "Approved",
+   "sha1": "0c67e23e25554f5c0d1619ae13ea08c9c6d664cf"
+  },
+  "midtown_w60f0b": {
+   "assetId": 137605500160039,
+   "bytes": 67480,
+   "file": "assets/buildings/glb/midtown_w60f0b.glb",
+   "moderation": "Approved",
+   "sha1": "1effce98daab54db27b75c1e871e0ea8c521ebe9"
+  },
+  "midtown_w60f1": {
+   "assetId": 130450830676721,
+   "bytes": 190992,
+   "file": "assets/buildings/glb/midtown_w60f1.glb",
+   "moderation": "Approved",
+   "sha1": "371a3b9d3e33bc30d89c5fe545e35cd1e92939fd"
+  },
+  "midtown_w60f11": {
+   "assetId": 75173820566747,
+   "bytes": 1281472,
+   "file": "assets/buildings/glb/midtown_w60f11.glb",
+   "moderation": "Approved",
+   "sha1": "6f31d6e5a970470340cc71eee30c78520f3221b5"
+  },
+  "midtown_w60f1b": {
+   "assetId": 104253385346195,
+   "bytes": 139412,
+   "file": "assets/buildings/glb/midtown_w60f1b.glb",
+   "moderation": "Approved",
+   "sha1": "4b4beaf53024ec9402b332e315751629719abfd0"
+  },
+  "midtown_w60f2": {
+   "assetId": 120844018539286,
+   "bytes": 256404,
+   "file": "assets/buildings/glb/midtown_w60f2.glb",
+   "moderation": "Approved",
+   "sha1": "41e84f7c1253e946adb3b3bd6e3c9f8d1c2f8f53"
+  },
+  "midtown_w60f3": {
+   "assetId": 76366527817554,
+   "bytes": 491484,
+   "file": "assets/buildings/glb/midtown_w60f3.glb",
+   "moderation": "Approved",
+   "sha1": "607e9a033f75e42b8adb9cba4070b0716bed9e49"
+  },
+  "midtown_w60f4": {
+   "assetId": 90872450024414,
+   "bytes": 409364,
+   "file": "assets/buildings/glb/midtown_w60f4.glb",
+   "moderation": "Approved",
+   "sha1": "7dba09831929437cc368f20fea796302d73502f5"
+  },
+  "midtown_w60f6": {
+   "assetId": 131207886300476,
+   "bytes": 819656,
+   "file": "assets/buildings/glb/midtown_w60f6.glb",
+   "moderation": "Approved",
+   "sha1": "ac9bada0e7f8a8956ec603d255dfea836fd5b922"
+  },
+  "midtown_w60f8": {
+   "assetId": 103036633901089,
+   "bytes": 776780,
+   "file": "assets/buildings/glb/midtown_w60f8.glb",
+   "moderation": "Approved",
+   "sha1": "8c07ed83995d82d19f9ddfbdbe988d323f86c3da"
+  },
+  "midtown_w74f0s": {
+   "assetId": 137197564574727,
+   "bytes": 83936,
+   "file": "assets/buildings/glb/midtown_w74f0s.glb",
+   "moderation": "Approved",
+   "sha1": "7f5ec38445903ec5513cd4a9cb3a5bb1ac196c85"
+  },
+  "midtown_w74f10s": {
+   "assetId": 111213756626618,
+   "bytes": 826564,
+   "file": "assets/buildings/glb/midtown_w74f10s.glb",
+   "moderation": "Approved",
+   "sha1": "0388cb9ceedd624c39dd2f5f2361baa8d9b06c09"
+  },
+  "midtown_w74f1s": {
+   "assetId": 108595880783469,
+   "bytes": 192860,
+   "file": "assets/buildings/glb/midtown_w74f1s.glb",
+   "moderation": "Approved",
+   "sha1": "e87de5ea83263b5be0d90a5f5f9d43907e5100ad"
+  },
+  "midtown_w74f2s": {
+   "assetId": 84565537427674,
+   "bytes": 207284,
+   "file": "assets/buildings/glb/midtown_w74f2s.glb",
+   "moderation": "Approved",
+   "sha1": "99cbe9501ed0f27498fb8c19854df52f650c168e"
+  },
+  "midtown_w74f4s": {
+   "assetId": 95319188811035,
+   "bytes": 517832,
+   "file": "assets/buildings/glb/midtown_w74f4s.glb",
+   "moderation": "Approved",
+   "sha1": "ad14bed5c9d81d27940f2603c8b3d8b7e1881cc8"
+  },
+  "midtown_w74f7s": {
+   "assetId": 114466040086662,
+   "bytes": 755848,
+   "file": "assets/buildings/glb/midtown_w74f7s.glb",
+   "moderation": "Approved",
+   "sha1": "05a6f5e22ac165479f1237272290b3ac1e5562d4"
+  },
+  "midtown_w78f0": {
+   "assetId": 115979796495920,
+   "bytes": 88088,
+   "file": "assets/buildings/glb/midtown_w78f0.glb",
+   "moderation": "Approved",
+   "sha1": "9f6fe92d394ea065df53b318cd96cf26d567f912"
+  },
+  "midtown_w78f0b": {
+   "assetId": 113246851969068,
+   "bytes": 89996,
+   "file": "assets/buildings/glb/midtown_w78f0b.glb",
+   "moderation": "Approved",
+   "sha1": "94fd22e70b32b68caa4585556010089fbbe5e6f1"
+  },
+  "midtown_w78f1": {
+   "assetId": 130896562223954,
+   "bytes": 190012,
+   "file": "assets/buildings/glb/midtown_w78f1.glb",
+   "moderation": "Approved",
+   "sha1": "a7b47a43da9dacc243eed2ca28447e3540747bd2"
+  },
+  "midtown_w78f11": {
+   "assetId": 114436100655727,
+   "bytes": 1335324,
+   "file": "assets/buildings/glb/midtown_w78f11.glb",
+   "moderation": "Approved",
+   "sha1": "0561ce457e63c335638f2850aa5bf96908775a8e"
+  },
+  "midtown_w78f1b": {
+   "assetId": 116266903541160,
+   "bytes": 211928,
+   "file": "assets/buildings/glb/midtown_w78f1b.glb",
+   "moderation": "Approved",
+   "sha1": "c05f381ddac86d0b161c3b83aad364ec27efc16d"
+  },
+  "midtown_w78f2": {
+   "assetId": 121606969570869,
+   "bytes": 444072,
+   "file": "assets/buildings/glb/midtown_w78f2.glb",
+   "moderation": "Approved",
+   "sha1": "e65a51a7d201e9863f8480644e852d93a0149f4c"
+  },
+  "midtown_w78f3": {
+   "assetId": 93669421203575,
+   "bytes": 434612,
+   "file": "assets/buildings/glb/midtown_w78f3.glb",
+   "moderation": "Approved",
+   "sha1": "337ef4e8fcde2e01b992619b95fd72f2574fdbf3"
+  },
+  "midtown_w78f4": {
+   "assetId": 73198220777910,
+   "bytes": 772504,
+   "file": "assets/buildings/glb/midtown_w78f4.glb",
+   "moderation": "Approved",
+   "sha1": "72fa20ab6d6b383f4910c0bf1988d5ff5d8391be"
+  },
+  "midtown_w78f6": {
+   "assetId": 88366453170411,
+   "bytes": 879292,
+   "file": "assets/buildings/glb/midtown_w78f6.glb",
+   "moderation": "Approved",
+   "sha1": "c23876d8c807fd369ea681a88c66c7b6047e080a"
+  },
+  "midtown_w78f8": {
+   "assetId": 80593046060736,
+   "bytes": 1348932,
+   "file": "assets/buildings/glb/midtown_w78f8.glb",
+   "moderation": "Approved",
+   "sha1": "0dbcfd54ab5933363bb3f80e9e7221719b64cf82"
+  },
+  "office_w130f11": {
+   "assetId": 129460145651783,
+   "bytes": 428032,
+   "file": "assets/buildings/glb/office_w130f11.glb",
+   "moderation": "Approved",
+   "sha1": "0f62e7910a7672a332e1e031866821db090cf829"
+  },
+  "office_w130f4": {
+   "assetId": 90290703083920,
+   "bytes": 313324,
+   "file": "assets/buildings/glb/office_w130f4.glb",
+   "moderation": "Approved",
+   "sha1": "7fe8172ef5a62a5eea2784acd82b552c9e2b79be"
+  },
+  "office_w130f7": {
+   "assetId": 133769565452684,
+   "bytes": 423116,
+   "file": "assets/buildings/glb/office_w130f7.glb",
+   "moderation": "Approved",
+   "sha1": "380092e4de1d67d2986c2bc72a97d9fcab4ff806"
+  },
+  "office_w60f11": {
+   "assetId": 77854672366625,
+   "bytes": 259064,
+   "file": "assets/buildings/glb/office_w60f11.glb",
+   "moderation": "Approved",
+   "sha1": "00d627598e319d6f96e3c898347d972460e30ee4"
+  },
+  "office_w60f4": {
+   "assetId": 105469190635429,
+   "bytes": 193308,
+   "file": "assets/buildings/glb/office_w60f4.glb",
+   "moderation": "Approved",
+   "sha1": "4ebfbcfa95e315d93a37e6284add73171806ee58"
+  },
+  "office_w60f7": {
+   "assetId": 91054262170194,
+   "bytes": 245700,
+   "file": "assets/buildings/glb/office_w60f7.glb",
+   "moderation": "Approved",
+   "sha1": "93d15663a3fdc2a96e0f1fa535e9f974c57023ad"
+  },
+  "office_w90f11": {
+   "assetId": 128176091392703,
+   "bytes": 335268,
+   "file": "assets/buildings/glb/office_w90f11.glb",
+   "moderation": "Approved",
+   "sha1": "6ad8cd92e16f56a92f0491d353d08490e8a5f9fc"
+  },
+  "office_w90f4": {
+   "assetId": 101630117333653,
+   "bytes": 266280,
+   "file": "assets/buildings/glb/office_w90f4.glb",
+   "moderation": "Approved",
+   "sha1": "7d2a03def175f138ef95dec3232b911a46157ced"
+  },
+  "office_w90f7": {
+   "assetId": 130852794609660,
+   "bytes": 287700,
+   "file": "assets/buildings/glb/office_w90f7.glb",
+   "moderation": "Approved",
+   "sha1": "47a42040acb0c18f46b51435ea28e38b385eb831"
+  },
+  "office_w90f9": {
+   "assetId": 72237181950063,
+   "bytes": 336520,
+   "file": "assets/buildings/glb/office_w90f9.glb",
+   "moderation": "Approved",
+   "sha1": "696f57f29856cd8193053da91df1ad7b7c88c131"
+  },
+  "retail_diner64": {
+   "assetId": 103854166350938,
+   "bytes": 152208,
+   "file": "assets/buildings/glb/retail_diner64.glb",
+   "moderation": "Approved",
+   "sha1": "4713ab868ed033489684f0d35537b2c3d73b01fd"
+  },
+  "retail_diner72": {
+   "assetId": 102979772786527,
+   "bytes": 157480,
+   "file": "assets/buildings/glb/retail_diner72.glb",
+   "moderation": "Approved",
+   "sha1": "d73d4823d83ecb2830fcf27c0dff5e9965410d3c"
+  },
+  "retail_store44": {
+   "assetId": 130700212485568,
+   "bytes": 69160,
+   "file": "assets/buildings/glb/retail_store44.glb",
+   "moderation": "Approved",
+   "sha1": "3b1257a60a11a0613fb0359d8bab3c3a0cf4d7ca"
+  },
+  "retail_store50": {
+   "assetId": 132231225438386,
+   "bytes": 72388,
+   "file": "assets/buildings/glb/retail_store50.glb",
+   "moderation": "Approved",
+   "sha1": "000a9ad9142b62b61aba2f519157309d2755268c"
+  },
+  "retail_store56": {
+   "assetId": 89079930156674,
+   "bytes": 74184,
+   "file": "assets/buildings/glb/retail_store56.glb",
+   "moderation": "Approved",
+   "sha1": "be7606df637ad6db26dcd7f62d5800464bc3c988"
+  },
+  "retail_strip3": {
+   "assetId": 129820087504483,
+   "bytes": 105036,
+   "file": "assets/buildings/glb/retail_strip3.glb",
+   "moderation": "Approved",
+   "sha1": "9c2137c63466d5f681a79b6d446aa6d4a6b32f5a"
+  },
+  "retail_strip4": {
+   "assetId": 110307062727241,
+   "bytes": 129736,
+   "file": "assets/buildings/glb/retail_strip4.glb",
+   "moderation": "Approved",
+   "sha1": "5eb02c41e6c7ee1f4729f69db3d94fb70d070cfa"
+  },
+  "retail_strip5": {
+   "assetId": 118796089977867,
+   "bytes": 164940,
+   "file": "assets/buildings/glb/retail_strip5.glb",
+   "moderation": "Approved",
+   "sha1": "ca110082394cc08ee3d05f87fec26d278d028465"
+  },
+  "tower_big190": {
+   "assetId": 91244661357146,
+   "bytes": 728484,
+   "file": "assets/buildings/glb/tower_big190.glb",
+   "moderation": "Approved",
+   "sha1": "5a23382bb977b8ea9af914efa75e1d07abbe49a0"
+  },
+  "tower_big235": {
+   "assetId": 71874474846070,
+   "bytes": 845904,
+   "file": "assets/buildings/glb/tower_big235.glb",
+   "moderation": "Approved",
+   "sha1": "0262fd1be35d5f9eac1c37310cfec9e047831cc8"
+  },
+  "tower_block200": {
+   "assetId": 81808695875423,
+   "bytes": 415600,
+   "file": "assets/buildings/glb/tower_block200.glb",
+   "moderation": "Approved",
+   "sha1": "c6c953303c79e564428409a49003a600499c9ceb"
+  },
+  "tower_block245": {
+   "assetId": 100396249770907,
+   "bytes": 507148,
+   "file": "assets/buildings/glb/tower_block245.glb",
+   "moderation": "Approved",
+   "sha1": "bf7e5ffd6d80fffa122d0c5fb62a6668d7fe40f3"
+  },
+  "tower_hero350": {
+   "assetId": 77406897226856,
+   "bytes": 809980,
+   "file": "assets/buildings/glb/tower_hero350.glb",
+   "moderation": "Approved",
+   "sha1": "74bc880d3b27a62bfa5859e99f6eb6913729000d"
+  },
+  "tower_hero375": {
+   "assetId": 89056864603207,
+   "bytes": 911376,
+   "file": "assets/buildings/glb/tower_hero375.glb",
+   "moderation": "Approved",
+   "sha1": "2e731ae73ae041f4b8bb993418cc65619ad3f093"
+  },
+  "tower_hero395": {
+   "assetId": 85341803227619,
+   "bytes": 1087448,
+   "file": "assets/buildings/glb/tower_hero395.glb",
+   "moderation": "Approved",
+   "sha1": "53c47a5d3e0750b1da9bba2a646a37bc8325ee51"
+  },
+  "tower_hero415": {
+   "assetId": 128143868625204,
+   "bytes": 821712,
+   "file": "assets/buildings/glb/tower_hero415.glb",
+   "moderation": "Approved",
+   "sha1": "b1298cb5efe2388872cfb455c0b88dbccfc3bbcb"
+  },
+  "tower_hero440": {
+   "assetId": 140338895515589,
+   "bytes": 1093804,
+   "file": "assets/buildings/glb/tower_hero440.glb",
+   "moderation": "Approved",
+   "sha1": "fcdca06e37472033b1f1a222ae1fd48d5845d734"
+  },
+  "tower_hero455": {
+   "assetId": 121418605116344,
+   "bytes": 1146604,
+   "file": "assets/buildings/glb/tower_hero455.glb",
+   "moderation": "Approved",
+   "sha1": "2c0cfd67209438ad6a808d3f5d43b7c4d09e2a1e"
+  },
+  "tower_hero475": {
+   "assetId": 89577772365891,
+   "bytes": 1007348,
+   "file": "assets/buildings/glb/tower_hero475.glb",
+   "moderation": "Approved",
+   "sha1": "2affdb30b455c1e758e79863f29b46b0cdf48bbc"
+  },
+  "tower_hero495": {
+   "assetId": 133824917029460,
+   "bytes": 1027724,
+   "file": "assets/buildings/glb/tower_hero495.glb",
+   "moderation": "Approved",
+   "sha1": "c1269b94cf180e94f40fe67424b0198a98e0ebc7"
+  },
+  "tower_hero520": {
+   "assetId": 92357821856953,
+   "bytes": 1178084,
+   "file": "assets/buildings/glb/tower_hero520.glb",
+   "moderation": "Approved",
+   "sha1": "1ee0e613e87166c71310555b3a760f7193668476"
+  },
+  "tower_hero570": {
+   "assetId": 87728879754846,
+   "bytes": 1246000,
+   "file": "assets/buildings/glb/tower_hero570.glb",
+   "moderation": "Approved",
+   "sha1": "d1ed47c81271d68685985d314785e4b01b10f389"
+  },
+  "tower_hero600": {
+   "assetId": 73421804905875,
+   "bytes": 1448740,
+   "file": "assets/buildings/glb/tower_hero600.glb",
+   "moderation": "Approved",
+   "sha1": "5a13e47241038365bf524e611fc7173703099ffa"
+  },
+  "tower_hero640": {
+   "assetId": 79380051568242,
+   "bytes": 1336460,
+   "file": "assets/buildings/glb/tower_hero640.glb",
+   "moderation": "Approved",
+   "sha1": "d7e4155373b4c9a6f4cd9861c084b39e72a18af5"
+  },
+  "tower_p230a": {
+   "assetId": 91964606704979,
+   "bytes": 685976,
+   "file": "assets/buildings/glb/tower_p230a.glb",
+   "moderation": "Approved",
+   "sha1": "c599d75f2137f7cba24c7ea13c2bbe19d2355f39"
+  },
+  "tower_p230b": {
+   "assetId": 71356480879964,
+   "bytes": 700552,
+   "file": "assets/buildings/glb/tower_p230b.glb",
+   "moderation": "Approved",
+   "sha1": "9fc0d8439cbff94286985d66f82bdc15f8a7eefb"
+  },
+  "tower_p260a": {
+   "assetId": 132388387385847,
+   "bytes": 843000,
+   "file": "assets/buildings/glb/tower_p260a.glb",
+   "moderation": "Approved",
+   "sha1": "24aea8c1c43d338efcfaade34a8bb3cfce31c6a6"
+  },
+  "tower_p260b": {
+   "assetId": 122004320933908,
+   "bytes": 748880,
+   "file": "assets/buildings/glb/tower_p260b.glb",
+   "moderation": "Approved",
+   "sha1": "27ecb98b55fffb496bdb8dc29274bd5d7b8a3413"
+  },
+  "tower_p290a": {
+   "assetId": 128945459957720,
+   "bytes": 863928,
+   "file": "assets/buildings/glb/tower_p290a.glb",
+   "moderation": "Approved",
+   "sha1": "b628aeb0037a139429fca6587e34ffea8aeb42fa"
+  },
+  "tower_p290b": {
+   "assetId": 114366571422644,
+   "bytes": 786456,
+   "file": "assets/buildings/glb/tower_p290b.glb",
+   "moderation": "Approved",
+   "sha1": "0c0e10f622942de15a663f2f0874b0aa8896655f"
+  },
+  "tower_p320a": {
+   "assetId": 116058521013249,
+   "bytes": 895304,
+   "file": "assets/buildings/glb/tower_p320a.glb",
+   "moderation": "Approved",
+   "sha1": "9a90cac08e353c5c47dc22003ee27f23abb0938f"
+  },
+  "tower_p320b": {
+   "assetId": 119330105372056,
+   "bytes": 712620,
+   "file": "assets/buildings/glb/tower_p320b.glb",
+   "moderation": "Approved",
+   "sha1": "f532ec6f16ab4edec16661cf934248e39eaa1681"
+  },
+  "tower_p350a": {
+   "assetId": 131391113153370,
+   "bytes": 845916,
+   "file": "assets/buildings/glb/tower_p350a.glb",
+   "moderation": "Approved",
+   "sha1": "10f2041b771741866bfbc5b1b65b82e5f89c5014"
+  },
+  "tower_p350b": {
+   "assetId": 95050149283295,
+   "bytes": 860952,
+   "file": "assets/buildings/glb/tower_p350b.glb",
+   "moderation": "Approved",
+   "sha1": "3fbd2a4b6151b1b34d495075a2ddd36106c318ec"
+  },
+  "tower_slab170": {
+   "assetId": 75465376625419,
+   "bytes": 400644,
+   "file": "assets/buildings/glb/tower_slab170.glb",
+   "moderation": "Approved",
+   "sha1": "954936670809badc0b3387243af9eaae50823f22"
+  },
+  "tower_slab210": {
+   "assetId": 133787733123815,
+   "bytes": 533820,
+   "file": "assets/buildings/glb/tower_slab210.glb",
+   "moderation": "Approved",
+   "sha1": "4b9392f508b37857ce100b24114c1ad614d69737"
+  },
+  "tower_slab250": {
+   "assetId": 81336739203712,
+   "bytes": 605508,
+   "file": "assets/buildings/glb/tower_slab250.glb",
+   "moderation": "Approved",
+   "sha1": "b3992b56ab5b70a08f1ea86fdc3ae01659b97004"
+  },
+  "tower_slab290": {
+   "assetId": 96448549913908,
+   "bytes": 661852,
+   "file": "assets/buildings/glb/tower_slab290.glb",
+   "moderation": "Approved",
+   "sha1": "724a94397f95b6a5d89ddb31d8aad265b437df41"
+  },
+  "tower_slim170n": {
+   "assetId": 100426259810398,
+   "bytes": 232868,
+   "file": "assets/buildings/glb/tower_slim170n.glb",
+   "moderation": "Approved",
+   "sha1": "f1edf983bc409388cecb005a5ce8d2d1c9a10ec0"
+  },
+  "tower_slim185": {
+   "assetId": 137264373889403,
+   "bytes": 377752,
+   "file": "assets/buildings/glb/tower_slim185.glb",
+   "moderation": "Approved",
+   "sha1": "9d6a3f44e4af38bb9e46a0f39ad656f58b851006"
+  },
+  "tower_slim195n": {
+   "assetId": 79740026336936,
+   "bytes": 310084,
+   "file": "assets/buildings/glb/tower_slim195n.glb",
+   "moderation": "Approved",
+   "sha1": "96e4d0c6899ebc2af1ceedcc9e6e9db9ba02328c"
+  },
+  "tower_slim235": {
+   "assetId": 71095502642960,
+   "bytes": 382904,
+   "file": "assets/buildings/glb/tower_slim235.glb",
+   "moderation": "Approved",
+   "sha1": "951fa9cd1f40ab28d2fe8abc38d76b321d3461e9"
+  }
+ },
+ "note": "Hotwire City v2 buildings: Roblox asset ids (owner user 11686693147). Written by upload.py.",
+ "updated": "2026-10-27T21:12:20"
+}

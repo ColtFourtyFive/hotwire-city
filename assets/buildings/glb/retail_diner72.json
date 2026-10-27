@@ -1,0 +1,367 @@
+{
+ "name": "retail_diner72",
+ "archetype": "diner",
+ "seed": 722,
+ "footprint": [
+  112.0,
+  94.0
+ ],
+ "height": 31.4,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "commercial",
+  "building": [
+   72.0,
+   28.0
+  ]
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [
+  [
+   -45.0,
+   -12.5,
+   90.0
+  ],
+  [
+   -35.0,
+   -12.5,
+   90.0
+  ],
+  [
+   -25.0,
+   -12.5,
+   90.0
+  ],
+  [
+   -15.0,
+   -12.5,
+   90.0
+  ],
+  [
+   -5.0,
+   -12.5,
+   90.0
+  ],
+  [
+   5.0,
+   -12.5,
+   90.0
+  ],
+  [
+   15.0,
+   -12.5,
+   90.0
+  ],
+  [
+   25.0,
+   -12.5,
+   90.0
+  ],
+  [
+   35.0,
+   -12.5,
+   90.0
+  ],
+  [
+   45.0,
+   -12.5,
+   90.0
+  ],
+  [
+   -45.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   -35.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   -25.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   -15.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   -5.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   5.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   15.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   25.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   35.0,
+   -31.5,
+   -90.0
+  ],
+  [
+   45.0,
+   -31.5,
+   -90.0
+  ]
+ ],
+ "parts": {
+  "retail_diner72_Walls": {
+   "role": "Walls",
+   "tris": 1172,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.78,
+     0.79,
+     0.8
+    ],
+    "metallic": 1.0,
+    "roughness": 0.22
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Walls2": {
+   "role": "Walls2",
+   "tris": 70,
+   "material": {
+    "kind": "texture",
+    "set": "terrazzo",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Trim": {
+   "role": "Trim",
+   "tris": 240,
+   "material": {
+    "kind": "texture",
+    "set": "plaster",
+    "tint": [
+     0.93,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_diner72_Accent": {
+   "role": "Accent",
+   "tris": 132,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.05,
+     0.35,
+     0.55
+    ],
+    "metallic": 0.1,
+    "roughness": 0.35
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_diner72_Frames": {
+   "role": "Frames",
+   "tris": 602,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.8,
+     0.8,
+     0.82
+    ],
+    "metallic": 1.0,
+    "roughness": 0.15
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Glass": {
+   "role": "Glass",
+   "tris": 82,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     1,
+     1,
+     1
+    ],
+    "roughness": 0.05,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Roof": {
+   "role": "Roof",
+   "tris": 18,
+   "material": {
+    "kind": "texture",
+    "set": "roof_tar",
+    "tint": [
+     1,
+     1,
+     1
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "retail_diner72_Details": {
+   "role": "Details",
+   "tris": 184,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "retail_diner72_Sign": {
+   "role": "Sign",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "signs.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Brand": {
+   "role": "Brand",
+   "tris": 4,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.5,
+    "metallic": 0.0
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Site": {
+   "role": "Site",
+   "tris": 10,
+   "material": {
+    "kind": "texture",
+    "set": "curb",
+    "tint": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "retail_diner72_Asphalt": {
+   "role": "Asphalt",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "asphalt",
+    "tint": [
+     0.92,
+     0.92,
+     0.94
+    ]
+   },
+   "tile_studs": 24.0,
+   "night_only": false
+  },
+  "retail_diner72_Paint": {
+   "role": "Paint",
+   "tris": 44,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.9,
+     0.9,
+     0.86
+    ],
+    "metallic": 0.0,
+    "roughness": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_Lawn": {
+   "role": "Lawn",
+   "tris": 2,
+   "material": {
+    "kind": "texture",
+    "set": "grass",
+    "tint": [
+     0.8,
+     0.98,
+     0.65
+    ]
+   },
+   "tile_studs": 20.0,
+   "night_only": false
+  },
+  "retail_diner72_Neon": {
+   "role": "Neon",
+   "tris": 164,
+   "material": {
+    "kind": "neon",
+    "color": [
+     0.2,
+     0.9,
+     1.0
+    ],
+    "day_color": [
+     0.42,
+     0.8400000000000001,
+     0.8999999999999999
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "retail_diner72_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 82,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 2810,
+ "max_part_tris": 1172,
+ "glb": "retail_diner72.glb",
+ "glb_bytes": 157480,
+ "textures_embedded": false
+}

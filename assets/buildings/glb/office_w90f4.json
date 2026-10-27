@@ -1,0 +1,191 @@
+{
+ "name": "office_w90f4",
+ "archetype": "tower",
+ "seed": 435,
+ "footprint": [
+  90,
+  84
+ ],
+ "height": 61.9,
+ "base_depth": 0.0,
+ "tags": {
+  "district": "downtown",
+  "floors": 4,
+  "style": "grid",
+  "crown": "flat"
+ },
+ "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
+ "spawns": [],
+ "parts": {
+  "office_w90f4_Walls": {
+   "role": "Walls",
+   "tris": 588,
+   "material": {
+    "kind": "texture",
+    "set": "concrete",
+    "tint": [
+     0.92,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "office_w90f4_Walls2": {
+   "role": "Walls2",
+   "tris": 298,
+   "material": {
+    "kind": "texture",
+    "set": "marble",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "office_w90f4_Trim": {
+   "role": "Trim",
+   "tris": 100,
+   "material": {
+    "kind": "texture",
+    "set": "concrete",
+    "tint": [
+     0.92,
+     0.92,
+     0.9
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "office_w90f4_Accent": {
+   "role": "Accent",
+   "tris": 12,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.2,
+     0.15,
+     0.1
+    ],
+    "metallic": 0.85,
+    "roughness": 0.35
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "office_w90f4_Frames": {
+   "role": "Frames",
+   "tris": 1880,
+   "material": {
+    "kind": "color",
+    "color": [
+     0.2,
+     0.15,
+     0.1
+    ],
+    "metallic": 0.85,
+    "roughness": 0.3
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "office_w90f4_Glass": {
+   "role": "Glass",
+   "tris": 268,
+   "material": {
+    "kind": "glass",
+    "file": "windows_day.png",
+    "tint": [
+     0.78,
+     0.82,
+     0.86
+    ],
+    "roughness": 0.03,
+    "metallic": 0.7
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "office_w90f4_Roof": {
+   "role": "Roof",
+   "tris": 6,
+   "material": {
+    "kind": "texture",
+    "set": "roof_gravel",
+    "tint": [
+     0.95,
+     0.95,
+     0.95
+    ]
+   },
+   "tile_studs": 16.0,
+   "night_only": false
+  },
+  "office_w90f4_Details": {
+   "role": "Details",
+   "tris": 414,
+   "material": {
+    "kind": "texture",
+    "set": "metal",
+    "tint": [
+     0.62,
+     0.64,
+     0.66
+    ]
+   },
+   "tile_studs": 6.0,
+   "night_only": false
+  },
+  "office_w90f4_Brand": {
+   "role": "Brand",
+   "tris": 2,
+   "material": {
+    "kind": "atlas",
+    "file": "brands.png",
+    "roughness": 0.4,
+    "metallic": 0.2
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "office_w90f4_Neon": {
+   "role": "Neon",
+   "tris": 22,
+   "material": {
+    "kind": "neon",
+    "color": [
+     1.0,
+     0.9,
+     0.78
+    ],
+    "day_color": [
+     0.8999999999999999,
+     0.8400000000000001,
+     0.768
+    ]
+   },
+   "tile_studs": 8.0,
+   "night_only": false
+  },
+  "office_w90f4_WindowsLit": {
+   "role": "WindowsLit",
+   "tris": 170,
+   "material": {
+    "kind": "lit",
+    "file": "windows_lit.png"
+   },
+   "tile_studs": 8.0,
+   "night_only": true
+  }
+ },
+ "total_tris": 3760,
+ "max_part_tris": 1880,
+ "glb": "office_w90f4.glb",
+ "glb_bytes": 266280,
+ "textures_embedded": false
+}

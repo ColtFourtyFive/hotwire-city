@@ -328,7 +328,7 @@ def font(name, size):
 
 H_SIGNS = [  # text, font, fg, bg, border
     ("Sunset Diner", "Pacifico", (255, 250, 240), (196, 26, 40), (255, 210, 80)),
-    ("LUCKY LIQUOR", "Bungee", (255, 214, 64), (22, 34, 80), (255, 214, 64)),
+    ("LUCKY WIRELESS", "Bungee", (255, 214, 64), (22, 34, 80), (255, 214, 64)),
     ("PALM MART 24/7", "Righteous", (255, 255, 255), (0, 128, 128), (255, 255, 255)),
     ("OCEAN GRILL", "Limelight", (24, 40, 70), (240, 232, 214), (24, 40, 70)),
     ("NEON NOODLE", "Monoton", (255, 80, 180), (14, 10, 22), (80, 220, 255)),
@@ -529,7 +529,7 @@ def brand_atlas(atlas):
     d.rectangle([x0, y0 + 50 * S, x1, y0 + 56 * S], fill=(210, 30, 40))
     atlas["brands"]["fascia"] = rect(290, 770, 1022, 830)
     # posters 4 x (96x128) at (160+128.., 832)
-    posters = [("COLD\nBEER", (200, 30, 40), (255, 255, 255)), ("LOTTO", (250, 200, 30), (20, 20, 20)),
+    posters = [("COLD\nSODA", (200, 30, 40), (255, 255, 255)), ("SNACKS", (250, 200, 30), (20, 20, 20)),
                ("ATM", (20, 120, 60), (255, 255, 255)), ("2 FOR\n$5", (255, 255, 255), (200, 30, 40)),
                ("ICE", (30, 120, 200), (255, 255, 255)), ("OPEN", (20, 20, 20), (255, 60, 60))]
     for k, (t, bg, fg) in enumerate(posters):
