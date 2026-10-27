@@ -583,15 +583,15 @@ def scene_map(routes, out, W, H, phone):
     for (x, z), name, color, _ in POIS:
         sx, sy = ws(x, z)
         paste_center(img, icon(name, bs, color), sx, sy)
-        obs.append((sx, sy))
+        obs.append((sx, sy, bs / 2 + 2, bs / 2 + 2))
     for i, door in enumerate(GARAGES):
         sx, sy = ws(*door)
         if i == 4:
             paste_center(img, icon("garage", bs + 6, (70, 235, 110)), sx, sy)
-            obs.append((sx, sy))
+            obs.append((sx, sy, bs / 2 + 2, bs / 2 + 2))
         elif i in (1, 6):
             paste_center(img, icon("garage", bs, (150, 156, 190)), sx, sy)
-            obs.append((sx, sy))
+            obs.append((sx, sy, bs / 2 + 2, bs / 2 + 2))
     for (x, z) in [(-300, -560), (520, 260)]:  # other players
         sx, sy = ws(x, z)
         paste_center(img, icon("dot", bs * 0.5, (0, 214, 255)), sx, sy)
@@ -604,12 +604,13 @@ def scene_map(routes, out, W, H, phone):
         if tier != 1:
             continue  # tier-2 names appear once zoomed in (zoom >= 1.6)
         sx, sy = ws(x, z)
-        hw, hh, r = len(name) * size1 * 0.31, (size1 + 6) / 2, bs / 2 + 2
+        hw, hh = len(name) * size1 * 0.31, (size1 + 6) / 2
         for kk in (0, -1, 1, -2, 2):
             cy = sy + kk * (hh * 2 + 4)
-            if all(abs(ox - sx) >= hw + r or abs(oy - cy) >= hh + r for ox, oy in obs):
+            if all(abs(ox - sx) >= hw + ow or abs(oy - cy) >= hh + oh for ox, oy, ow, oh in obs):
                 d.text((sx, cy), name, font=font(FONT_HEAVY, size1), fill=(255, 255, 255), anchor="mm",
                        stroke_width=max(1, int(2 * ui)), stroke_fill=(10, 11, 22))
+                obs.append((sx, cy, hw + 2, hh + 2))
                 break
     for (x, z) in [(-470, 310), (-500, 150), (330, -90)]:
         sx, sy = ws(x, z)

@@ -42,5 +42,99 @@
   "sha256": "b84815f3ba45eadb0a79b4d66b0372fe6763436a3bdaca18febe92b714bb2705",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:09+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      4.5137,
+      2.1797,
+      1.3244
+    ],
+    "dims_m": [
+      2.18,
+      4.514,
+      1.324
+    ],
+    "front_evidence": "names(front=12,rear=12)",
+    "flipped": true,
+    "mesh_objects": 35,
+    "triangles": 24512,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "Saba95_Bodymat",
+      "UCB_BOTTOM",
+      "UCB_Interiors_1",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 13,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Saba95_WheelStock_FL_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_RL_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_FR_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_RR_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_FL_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_FR_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_RL_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "Saba95_WheelStock_FL_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_RL_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_FR_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Saba95_Hood_Badges_Carbadges_misc_U_0",
+      "Saba95_Body_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Saba95_Body_Saba95_Bodymat_0",
+      "Saba95_Hood_Saba95_Bodymat_0",
+      "Saba95_Bumper_Rear_Saba95_Bodymat_0",
+      "Saba95_Trunkdoor_UCB_BOTTOM_0",
+      "Saba95_Suspension_UCB_BOTTOM_0",
+      "Saba95_Bumper_Front_Saba95_Bodymat_0",
+      "Saba95_Body_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Interior_UCB_Interiors_1_0",
+      "Saba95_Hood_inner_UCB_BOTTOM_0",
+      "Saba95_Bumper_Rear_inner_UCB_BOTTOM_0",
+      "Saba95_Trunkdoor_glass_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Spoiler_UCB_BOTTOM_0",
+      "Saba95_Bumper_Front_inner_UCB_BOTTOM_0",
+      "Saba95_Bottom_UCB_BOTTOM_0",
+      "Saba95_Headlights_UCB_Lights_and_Glass_0",
+      "Saba95_Taillights_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Headlight_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Glass_Passanger_UCB_Lights_and_Glass_Transperent_0",
+      "Saba95_Steering_Wheel_UCB_Interiors_1_0",
+      "Saba95_Reverse_UCB_Lights_and_Glass_0",
+      "Saba95_Brakelights_UCB_Lights_and_Glass_0",
+      "Saba95_Blinkers_UCB_Lights_and_Glass_0",
+      "Saba95_WheelStock_FL_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_RL_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_FR_RB1c_Tire_1k_0",
+      "Saba95_WheelStock_RR_RB1c_Tire_1k_0",
+      "Saba95_Rear_Bumper_Numberplates_Numberplates_Misk_U_0",
+      "Saba95_Hood_Badges_Carbadges_misc_U_0",
+      "Saba95_Body_Badges_Carbadges_misc_U_0",
+      "Saba95_CaliperStock_FL_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_FR_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_RL_RB1c_Tire_1k_0",
+      "Saba95_CaliperStock_RR_RB1c_Tire_1k_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 25.9
+  }
 }

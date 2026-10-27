@@ -47,5 +47,77 @@
   "sha256": "9e9c3e082c502bffc45b9313e9cfc1998a6a50339fda5763d9d04f6aedf129eb",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:10:04+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      0.0565,
+      0.1181,
+      0.0301
+    ],
+    "dims_m": [
+      0.057,
+      0.118,
+      0.03
+    ],
+    "front_evidence": "names(front=6,rear=0)",
+    "flipped": true,
+    "mesh_objects": 15,
+    "triangles": 86588,
+    "materials": 4,
+    "material_names": [
+      "car_body",
+      "car_glass",
+      "car_tire",
+      "clearcoat"
+    ],
+    "textures": 11,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "car_wheel_BL_car_tire_0",
+      "car_wheel_BL_car_body_0",
+      "car_wheel_BR_car_body_0",
+      "car_wheel_BR_car_tire_0",
+      "car_wheel_FL_car_body_0",
+      "car_wheel_FL_car_tire_0",
+      "car_wheel_FR_car_tire_0",
+      "car_wheel_FR_car_body_0"
+    ],
+    "wheel_geom": [
+      "car_wheel_BL_car_tire_0",
+      "car_wheel_BL_car_body_0",
+      "car_wheel_BR_car_body_0",
+      "car_wheel_BR_car_tire_0",
+      "car_wheel_FL_car_body_0",
+      "car_wheel_FL_car_tire_0",
+      "car_wheel_FR_car_tire_0",
+      "car_wheel_FR_car_body_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [
+      "car_glass"
+    ],
+    "animations": 0,
+    "object_names": [
+      "car_wheel_BL_car_tire_0",
+      "car_wheel_BL_car_body_0",
+      "car_brake_BL_car_body_0",
+      "car_wheel_BR_car_body_0",
+      "car_wheel_BR_car_tire_0",
+      "car_brake_BR_car_body_0",
+      "car_wheel_FL_car_body_0",
+      "car_wheel_FL_car_tire_0",
+      "car_brake_FL_car_body_0",
+      "car_wheel_FR_car_tire_0",
+      "car_wheel_FR_car_body_0",
+      "car_brake_FR_car_body_0",
+      "car_glass_car_glass_0",
+      "clearcoat_clearcoat_0",
+      "car_body_car_body_0"
+    ],
+    "hidden_helpers": [
+      "car_shadow_car_shadow_0"
+    ],
+    "render_s": 27.8
+  }
 }

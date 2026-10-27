@@ -78,6 +78,7 @@
       "Cylinder_Blade_0",
       "Cylinder_Metal_0"
     ],
-    "render_s": 10.0
+    "hidden_helpers": [],
+    "render_s": 25.4
   }
 }
