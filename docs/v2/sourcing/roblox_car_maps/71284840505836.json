@@ -1,0 +1,197 @@
+{
+ "assetId": 71284840505836,
+ "name": "Panal Van (Model made by Gutzow)",
+ "depicts": "1980s panel van",
+ "forward": {
+  "method": "default(-Z)",
+  "lookVector": [
+   0.0,
+   0.0,
+   -1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 19.08,
+  "width": 6.41,
+  "height": 7.71
+ },
+ "real_length_m": 4.9,
+ "suggested_uniform_scale": 0.917,
+ "counts": {
+  "instances": 22,
+  "baseParts": 15,
+  "visibleParts": 15,
+  "meshParts": 15,
+  "uniqueMeshes": 15,
+  "approxTris": 5294,
+  "hiddenParts": 0,
+  "decals": 0,
+  "images": 0,
+  "imagesOk": 0,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 0
+ },
+ "wheelMethod": "names",
+ "hubs": {
+  "FL": {
+   "center": [
+    -2.488,
+    -2.579,
+    6.825
+   ],
+   "radius": 1.276,
+   "width": 0.757,
+   "parts": 3
+  },
+  "FR": {
+   "center": [
+    0.012,
+    -2.579,
+    6.825
+   ],
+   "radius": 2.789,
+   "width": 1.344,
+   "parts": 2
+  },
+  "RL": {
+   "center": [
+    -2.488,
+    -2.579,
+    -4.517
+   ],
+   "radius": 1.276,
+   "width": 0.757,
+   "parts": 1
+  },
+  "RR": {
+   "center": [
+    0.012,
+    -2.579,
+    -4.517
+   ],
+   "radius": 2.789,
+   "width": 1.344,
+   "parts": 2
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   159,
+   161,
+   172
+  ],
+  "method": "area-dominant colour",
+  "parts": 1,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {},
+ "groups": {
+  "Body": {
+   "count": 2,
+   "rules": {
+    "default": 2
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/extras/backdoor handles",
+    "Panal Van (Model made by Gutzow)/extras/spine"
+   ]
+  },
+  "Glass": {
+   "count": 1,
+   "rules": {
+    "glass: name": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/windows/windows"
+   ]
+  },
+  "Lights_Head": {
+   "count": 1,
+   "rules": {
+    "light: Neon": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/lights/headlights"
+   ]
+  },
+  "Lights_Indicator_L": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/lights/blinker"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/lights/backlights"
+   ]
+  },
+  "Paint": {
+   "count": 1,
+   "rules": {
+    "Color == rgb(159, 161, 172)": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/base (CHANGE COLOR HERE)/base"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 3,
+   "rules": {
+    "wheel-ish name: rim of headlights": 1,
+    "wheel-ish name: tires": 1,
+    "wheel-ish name: rotor": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/extras/rotor",
+    "Panal Van (Model made by Gutzow)/lights/rim of headlights",
+    "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.005"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 2,
+   "rules": {
+    "wheel-ish name: tires": 1,
+    "wheel-ish name: rim": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/rim/Meshes/panal van_Cylinder.006",
+    "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.009"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: tires": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.007"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 2,
+   "rules": {
+    "wheel-ish name: tires": 1,
+    "wheel-ish name: rim": 1
+   },
+   "paths": [
+    "Panal Van (Model made by Gutzow)/rim/Meshes/panal van_Cylinder.012",
+    "Panal Van (Model made by Gutzow)/tires/Meshes/panal van_Cylinder.011"
+   ]
+  }
+ },
+ "decals": [],
+ "brandHints": []
+}

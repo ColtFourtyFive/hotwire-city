@@ -1,0 +1,438 @@
+{
+ "assetId": 11881862706,
+ "name": "XKR-S GT",
+ "depicts": "Jaguar XKR-S GT",
+ "forward": {
+  "method": "seat:DriveSeat",
+  "lookVector": [
+   -0.0,
+   0.0,
+   1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 19.14,
+  "width": 7.99,
+  "height": 5.25
+ },
+ "real_length_m": 4.79,
+ "suggested_uniform_scale": 0.894,
+ "counts": {
+  "instances": 476,
+  "baseParts": 230,
+  "visibleParts": 210,
+  "meshParts": 206,
+  "uniqueMeshes": 185,
+  "approxTris": 107060,
+  "hiddenParts": 20,
+  "decals": 0,
+  "images": 93,
+  "imagesOk": 93,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 24
+ },
+ "wheelMethod": "containers:XKR-S GT/Wheels/FL,XKR-S GT/Wheels/FR,XKR-S GT/Wheels/RL,XKR-S GT/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -3.048,
+    -1.26,
+    5.72
+   ],
+   "radius": 1.364,
+   "width": 0.916,
+   "parts": 7
+  },
+  "FR": {
+   "center": [
+    3.03,
+    -1.26,
+    5.72
+   ],
+   "radius": 1.364,
+   "width": 0.916,
+   "parts": 7
+  },
+  "RL": {
+   "center": [
+    -3.27,
+    -1.26,
+    -5.234
+   ],
+   "radius": 1.364,
+   "width": 0.916,
+   "parts": 7
+  },
+  "RR": {
+   "center": [
+    3.26,
+    -1.26,
+    -5.234
+   ],
+   "radius": 1.364,
+   "width": 0.916,
+   "parts": 7
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "named paint/body parts",
+  "parts": 52,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "NumberValue": 15,
+  "Script": 13,
+  "Sound": 9,
+  "LocalScript": 8,
+  "BoolValue": 8,
+  "ClickDetector": 4,
+  "ModuleScript": 3,
+  "RemoteEvent": 1,
+  "ScreenGui": 1,
+  "ObjectValue": 1,
+  "Folder": 1,
+  "StringValue": 1,
+  "Vector3Value": 1,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 56,
+   "rules": {
+    "default": 56
+   },
+   "paths": [
+    "XKR-S GT/Body/Model/Meshes/Paint (4)",
+    "XKR-S GT/Body/Model/Meshes/Paint.002 (1)",
+    "XKR-S GT/Body/Model/Meshes/Paint.003 (1)",
+    "XKR-S GT/Body/Model/Meshes/Paint.004 (1)",
+    "XKR-S GT/Body/Model/Meshes/Paint.005 (1)",
+    "XKR-S GT/Body/Model/Meshes/Paint_Transparency.006_bonnet_ok.003",
+    "XKR-S GT/Body/Model/Meshes/Transparency",
+    "XKR-S GT/Body/Model/Meshes/Transparency.008",
+    "XKR-S GT/Body/Model/Meshes/Transparency.009",
+    "XKR-S GT/Body/Model/Meshes/XKRS_Badges_Transparency.006_bonnet_ok",
+    "XKR-S GT/Body/Model/Meshes/alpha",
+    "XKR-S GT/Body/Model/Meshes/boot_ok.004",
+    "XKR-S GT/Body/Model/Meshes/bump_front_ok.004",
+    "XKR-S GT/Body/Model/Meshes/bump_front_ok.009",
+    "XKR-S GT/Body/Model/Meshes/bump_front_ok.011",
+    "XKR-S GT/Body/Model/Meshes/bump_rear_ok",
+    "XKR-S GT/Body/Model/Meshes/bump_rear_ok.004",
+    "XKR-S GT/Body/Model/Meshes/exhaust_ok.013",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Paint.006 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Paint.007 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Silver (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Transparency.010",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.004",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.005 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.006 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.007",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.009",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.010 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.013",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.014",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.017",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/door_lf_ok.019",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Paint.008 (1)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Paint.009 (1)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Silver.001 (1)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.004 (1)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.005",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.006",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.007",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.009",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.010",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.013",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.014",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.017",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/door_rf_ok.019",
+    "XKR-S GT/Misc/HK/Model/Meshes/Paint.001_Transparency.006_bonnet_ok.001",
+    "XKR-S GT/Misc/HK/Model/Meshes/Stripes_Transparency.006_bonnet_ok.004",
+    "XKR-S GT/Misc/TK/Model/Meshes/LP Boot",
+    "XKR-S GT/Misc/TK/Model/Meshes/LP Boot.001",
+    "XKR-S GT/Misc/TK/Model/Meshes/Paint.001 (1)",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.019",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.023",
+    "XKR-S GT/Misc/TK/Model/Meshes/Transparency.004",
+    "XKR-S GT/Misc/TK/Model/Meshes/boot_ok.006",
+    "XKR-S GT/Misc/TK/Model/Meshes/boot_ok.015",
+    "XKR-S GT/Misc/TK/Model/Meshes/boot_ok.023"
+   ]
+  },
+  "Glass": {
+   "count": 10,
+   "rules": {
+    "glass: name": 7,
+    "glass: Material=Glass": 3
+   },
+   "paths": [
+    "XKR-S GT/Body/Model/Meshes/F Glass (1)",
+    "XKR-S GT/Body/Model/Meshes/Glass",
+    "XKR-S GT/Body/Model/Meshes/Window (1)",
+    "XKR-S GT/Body/Model/Meshes/Windows (5)",
+    "XKR-S GT/Body/Model/Meshes/windscreen_ok.001",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Window.001 (1)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Window.002 (1)",
+    "XKR-S GT/Misc/TK/Model/Meshes/Glass.001",
+    "XKR-S GT/Misc/TK/Model/Meshes/Red Glass (1)",
+    "XKR-S GT/Misc/TK/Model/Meshes/Window.003 (1)"
+   ]
+  },
+  "Interior": {
+   "count": 26,
+   "rules": {
+    "interior name": 26
+   },
+   "paths": [
+    "XKR-S GT/Body/Model/Meshes/XK_Interior",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.001",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.002",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.003",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.004",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.005",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.006",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.007",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.009",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.010",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.011",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.012",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.016",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.017",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.019",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.020",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.023",
+    "XKR-S GT/Body/Model/Meshes/XK_Interior.024",
+    "XKR-S GT/Misc/Speedo/Parts/Needle",
+    "XKR-S GT/Misc/Tach/Parts/Needle",
+    "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok",
+    "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.001",
+    "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.002",
+    "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.003",
+    "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.005",
+    "XKR-S GT/Misc/Wheel/Parts/Model/Model/Meshes/steering_ok.007"
+   ]
+  },
+  "Lights_Head": {
+   "count": 13,
+   "rules": {
+    "light: name/light child": 13
+   },
+   "paths": [
+    "XKR-S GT/Body/Model/Meshes/Light(s).003 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).005 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).006 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).007 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).008 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).009 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).020",
+    "XKR-S GT/Body/Model/Meshes/Light(s).021",
+    "XKR-S GT/Body/Model/Meshes/XK_Lights.004",
+    "XKR-S GT/Body/Model/Meshes/XK_Lights.017",
+    "XKR-S GT/Body/Model/Meshes/XK_Lights.019",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Light (2)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Light.001 (2)"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 17,
+   "rules": {
+    "light: name/light child": 17
+   },
+   "paths": [
+    "XKR-S GT/Body/Model/Meshes/Light(s) (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).001 (1)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).002 (1)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).004 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).010 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).011 (2)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).012 (1)",
+    "XKR-S GT/Body/Model/Meshes/Light(s).013 (2)",
+    "XKR-S GT/Body/Model/Meshes/XK_Lights.007",
+    "XKR-S GT/Body/Model/Meshes/XK_Lights.008",
+    "XKR-S GT/Body/Model/Meshes/XK_Lights.018",
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).014 (1)",
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).015 (1)",
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).016",
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).017",
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).018",
+    "XKR-S GT/Misc/TK/Model/Meshes/Light(s).019"
+   ]
+  },
+  "Paint": {
+   "count": 52,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 52
+   },
+   "paths": [
+    "XKR-S GT/Body/Model/Meshes/Black (5)",
+    "XKR-S GT/Body/Model/Meshes/Black.001 (3)",
+    "XKR-S GT/Body/Model/Meshes/Black.002 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.004 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.005 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.006 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.007 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.008 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.009 (2)",
+    "XKR-S GT/Body/Model/Meshes/Black.010 (1)",
+    "XKR-S GT/Body/Model/Meshes/Black.013",
+    "XKR-S GT/Body/Model/Meshes/Black.014",
+    "XKR-S GT/Body/Model/Meshes/F Black Refl",
+    "XKR-S GT/Body/Model/Meshes/Mirror (1)",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.001",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.002",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.003",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.004",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.005",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.006",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.007",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.008",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.009",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.015",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.016",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.017",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.032",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.033",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.034",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.035",
+    "XKR-S GT/Body/Model/Meshes/Tex TR.036",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Black.011 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Mirror.001 (1)",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Tex TR.024",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Tex TR.025",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Tex TR.026",
+    "XKR-S GT/Misc/FL/Door/Model/Meshes/Tex TR.027",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Black.012",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Mirror.002 (1)",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Tex TR.028",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Tex TR.029",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Tex TR.030",
+    "XKR-S GT/Misc/FR/Door/Model/Meshes/Tex TR.031",
+    "XKR-S GT/Misc/HK/Model/Meshes/Black_Transparency.006_bonnet_ok.002",
+    "XKR-S GT/Misc/Speedo/Parts/Part",
+    "XKR-S GT/Misc/TK/Model/Meshes/Black.003 (2)",
+    "XKR-S GT/Misc/TK/Model/Meshes/LP Black",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.018",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.020",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.021",
+    "XKR-S GT/Misc/TK/Model/Meshes/Tex TR.022",
+    "XKR-S GT/Misc/Tach/Parts/Part"
+   ]
+  },
+  "WheelStatic_FL": {
+   "count": 2,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/FL (static)": 2
+   },
+   "paths": [
+    "XKR-S GT/Wheels/FL/WheelFixed/Meshes/Tex TR.012",
+    "XKR-S GT/Wheels/FL/WheelFixed/Meshes/Transparency.001"
+   ]
+  },
+  "WheelStatic_FR": {
+   "count": 2,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/FR (static)": 2
+   },
+   "paths": [
+    "XKR-S GT/Wheels/FR/WheelFixed/Meshes/Tex TR.011",
+    "XKR-S GT/Wheels/FR/WheelFixed/Meshes/Transparency.007"
+   ]
+  },
+  "WheelStatic_RL": {
+   "count": 2,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/RL (static)": 2
+   },
+   "paths": [
+    "XKR-S GT/Wheels/RL/WheelFixed/Meshes/Tex TR.013",
+    "XKR-S GT/Wheels/RL/WheelFixed/Meshes/Transparency.002"
+   ]
+  },
+  "WheelStatic_RR": {
+   "count": 2,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/RR (static)": 2
+   },
+   "paths": [
+    "XKR-S GT/Wheels/RR/WheelFixed/Meshes/Tex TR.014",
+    "XKR-S GT/Wheels/RR/WheelFixed/Meshes/Transparency.003"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 7,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/FL": 7
+   },
+   "paths": [
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/Black.015",
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/Tex TR.010",
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel (1)",
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.003 (1)",
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.004",
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.005",
+    "XKR-S GT/Wheels/FL/Parts/Model/Meshes/wheel.006"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 7,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/FR": 7
+   },
+   "paths": [
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/Black.015",
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/Tex TR.010",
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel (1)",
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.003 (1)",
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.004",
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.005",
+    "XKR-S GT/Wheels/FR/Parts/Model/Meshes/wheel.006"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 7,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/RL": 7
+   },
+   "paths": [
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/Black.015",
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/Tex TR.010",
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel (1)",
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.003 (1)",
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.004",
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.005",
+    "XKR-S GT/Wheels/RL/Parts/Model/Meshes/wheel.006"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 7,
+   "rules": {
+    "under wheel container XKR-S GT/Wheels/RR": 7
+   },
+   "paths": [
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/Black.015",
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/Tex TR.010",
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel (1)",
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.003 (1)",
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.004",
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.005",
+    "XKR-S GT/Wheels/RR/Parts/Model/Meshes/wheel.006"
+   ]
+  }
+ },
+ "decals": [],
+ "brandHints": [
+  "XKR-S GT/Body/Model/Meshes/XKRS_Badges_Transparency.006_bonnet_ok"
+ ]
+}

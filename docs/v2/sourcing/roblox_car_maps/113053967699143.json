@@ -1,0 +1,472 @@
+{
+ "assetId": 113053967699143,
+ "name": "Model",
+ "depicts": "Ford Explorer Police Interceptor-style SUV",
+ "forward": {
+  "method": "seat:VehicleSeat",
+  "lookVector": [
+   -0.0,
+   0.0,
+   1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 27.0,
+  "width": 14.05,
+  "height": 9.38
+ },
+ "real_length_m": 5.04,
+ "suggested_uniform_scale": 0.667,
+ "counts": {
+  "instances": 581,
+  "baseParts": 185,
+  "visibleParts": 183,
+  "meshParts": 0,
+  "uniqueMeshes": 1,
+  "approxTris": 2504,
+  "hiddenParts": 2,
+  "decals": 23,
+  "images": 9,
+  "imagesOk": 8,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 13
+ },
+ "wheelMethod": null,
+ "hubs": {},
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "area-dominant colour",
+  "parts": 105,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [
+   {
+    "path": "Model/BloomDefect/ExtraData/Shifter/PoseLink",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
+ },
+ "strip": {
+  "Fire": 170,
+  "Script": 13,
+  "ClickDetector": 6,
+  "BillboardGui": 4,
+  "ImageLabel": 4,
+  "IntValue": 3,
+  "BloomEffect": 2,
+  "BoolValue": 2,
+  "Color3Value": 1,
+  "BodyGyro": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 57,
+   "rules": {
+    "default": 57
+   },
+   "paths": [
+    "Model/2#1",
+    "Model/2#2",
+    "Model/A",
+    "Model/J",
+    "Model/Part#101",
+    "Model/Part#102",
+    "Model/Part#104",
+    "Model/Part#106",
+    "Model/Part#107",
+    "Model/Part#13",
+    "Model/Part#136",
+    "Model/Part#14",
+    "Model/Part#15",
+    "Model/Part#17",
+    "Model/Part#19",
+    "Model/Part#22",
+    "Model/Part#26",
+    "Model/Part#27",
+    "Model/Part#29",
+    "Model/Part#34",
+    "Model/Part#38",
+    "Model/Part#39",
+    "Model/Part#40",
+    "Model/Part#42",
+    "Model/Part#48",
+    "Model/Part#49",
+    "Model/Part#5",
+    "Model/Part#50",
+    "Model/Part#57",
+    "Model/Part#61",
+    "Model/Part#62",
+    "Model/Part#65",
+    "Model/Part#66",
+    "Model/Part#68",
+    "Model/Part#69",
+    "Model/Part#70",
+    "Model/Part#71",
+    "Model/Part#73",
+    "Model/Part#74",
+    "Model/Part#76",
+    "Model/Part#78",
+    "Model/Part#79",
+    "Model/Part#80",
+    "Model/Part#81",
+    "Model/Part#83",
+    "Model/Part#85",
+    "Model/Part#87",
+    "Model/Part#88",
+    "Model/Part#9",
+    "Model/Part#93",
+    "Model/Part#96",
+    "Model/Part#97",
+    "Model/Wedge#1",
+    "Model/Wedge#12",
+    "Model/Wedge#13",
+    "Model/Wedge#14",
+    "Model/Wedge#4"
+   ]
+  },
+  "Glass": {
+   "count": 12,
+   "rules": {
+    "glass: T=0.3": 9,
+    "glass: T=0.5": 3
+   },
+   "paths": [
+    "Model/B",
+    "Model/C",
+    "Model/Part#111",
+    "Model/Part#118",
+    "Model/Part#20",
+    "Model/Part#25",
+    "Model/Part#32",
+    "Model/Wedge#16",
+    "Model/Wedge#23",
+    "Model/Wedge#25",
+    "Model/Wedge#26",
+    "Model/Wedge#28"
+   ]
+  },
+  "Interior": {
+   "count": 5,
+   "rules": {
+    "interior name": 5
+   },
+   "paths": [
+    "Model/Seat#1",
+    "Model/Seat#2",
+    "Model/Seat#3",
+    "Model/Seat#4",
+    "Model/VehicleSeat"
+   ]
+  },
+  "Lights_Head": {
+   "count": 2,
+   "rules": {
+    "light: name/light child": 2
+   },
+   "paths": [
+    "Model/Light#1",
+    "Model/Light#2"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 2,
+   "rules": {
+    "light: name/light child": 2
+   },
+   "paths": [
+    "Model/Light#3",
+    "Model/Light#4"
+   ]
+  },
+  "Paint": {
+   "count": 105,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 105
+   },
+   "paths": [
+    "Model/Part#1",
+    "Model/Part#10",
+    "Model/Part#100",
+    "Model/Part#103",
+    "Model/Part#105",
+    "Model/Part#108",
+    "Model/Part#109",
+    "Model/Part#11",
+    "Model/Part#110",
+    "Model/Part#112",
+    "Model/Part#113",
+    "Model/Part#114",
+    "Model/Part#115",
+    "Model/Part#116",
+    "Model/Part#117",
+    "Model/Part#119",
+    "Model/Part#12",
+    "Model/Part#120",
+    "Model/Part#121",
+    "Model/Part#122",
+    "Model/Part#123",
+    "Model/Part#124",
+    "Model/Part#125",
+    "Model/Part#126",
+    "Model/Part#127",
+    "Model/Part#128",
+    "Model/Part#129",
+    "Model/Part#130",
+    "Model/Part#131",
+    "Model/Part#132",
+    "Model/Part#133",
+    "Model/Part#134",
+    "Model/Part#135",
+    "Model/Part#137",
+    "Model/Part#138",
+    "Model/Part#139",
+    "Model/Part#140",
+    "Model/Part#16",
+    "Model/Part#18",
+    "Model/Part#2",
+    "Model/Part#21",
+    "Model/Part#23",
+    "Model/Part#24",
+    "Model/Part#28",
+    "Model/Part#30",
+    "Model/Part#31",
+    "Model/Part#33",
+    "Model/Part#35",
+    "Model/Part#36",
+    "Model/Part#37",
+    "Model/Part#4",
+    "Model/Part#41",
+    "Model/Part#44",
+    "Model/Part#45",
+    "Model/Part#46",
+    "Model/Part#47",
+    "Model/Part#51",
+    "Model/Part#52",
+    "Model/Part#53",
+    "Model/Part#54",
+    "Model/Part#55",
+    "Model/Part#56",
+    "Model/Part#58",
+    "Model/Part#59",
+    "Model/Part#6",
+    "Model/Part#60",
+    "Model/Part#63",
+    "Model/Part#64",
+    "Model/Part#67",
+    "Model/Part#7",
+    "Model/Part#72",
+    "Model/Part#75",
+    "Model/Part#77",
+    "Model/Part#8",
+    "Model/Part#82",
+    "Model/Part#84",
+    "Model/Part#86",
+    "Model/Part#89",
+    "Model/Part#90",
+    "Model/Part#91",
+    "Model/Part#92",
+    "Model/Part#94",
+    "Model/Part#95",
+    "Model/Part#98",
+    "Model/Part#99",
+    "Model/Wedge#10",
+    "Model/Wedge#11",
+    "Model/Wedge#15",
+    "Model/Wedge#17",
+    "Model/Wedge#18",
+    "Model/Wedge#19",
+    "Model/Wedge#2",
+    "Model/Wedge#20",
+    "Model/Wedge#21",
+    "Model/Wedge#22",
+    "Model/Wedge#24",
+    "Model/Wedge#27",
+    "Model/Wedge#29",
+    "Model/Wedge#3",
+    "Model/Wedge#30",
+    "Model/Wedge#5",
+    "Model/Wedge#6",
+    "Model/Wedge#7",
+    "Model/Wedge#8",
+    "Model/Wedge#9"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "Model/Part#6/Decal",
+   "face": "Top",
+   "image": 34351358,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#13/Decal",
+   "face": "Back",
+   "image": 7578568,
+   "parentGroup": "Body",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#14/Decal",
+   "face": "Back",
+   "image": 7578568,
+   "parentGroup": "Body",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Wedge#11/Decal#1",
+   "face": "Top",
+   "image": 28749523,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Wedge#11/Decal#2",
+   "face": "Front",
+   "image": 31161332,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#23/Decal",
+   "face": "Back",
+   "image": 7578568,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#37/Decal",
+   "face": "Front",
+   "image": 58407478,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#59/Decal",
+   "face": "Top",
+   "image": 34351358,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#63/Decal",
+   "face": "Back",
+   "image": 7578568,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#64/Decal",
+   "face": "Front",
+   "image": 32563199,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#67/Decal",
+   "face": "Front",
+   "image": 32818559,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#75/Decal",
+   "face": "Back",
+   "image": 58407686,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#77/Decal",
+   "face": "Front",
+   "image": 58407686,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#82/Decal",
+   "face": "Front",
+   "image": 58407478,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#90/Decal",
+   "face": "Front",
+   "image": 32563199,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#94/Decal",
+   "face": "Back",
+   "image": 32818559,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#99/Decal",
+   "face": "Front",
+   "image": 32563199,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/J/Decal",
+   "face": "Top",
+   "image": 58407841,
+   "parentGroup": "Body",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#105/Decal",
+   "face": "Front",
+   "image": 32563199,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#108/Decal",
+   "face": "Top",
+   "image": 34351358,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#111/Decal",
+   "face": "Front",
+   "image": 31161332,
+   "parentGroup": "Glass",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#124/Decal",
+   "face": "Top",
+   "image": 34351358,
+   "parentGroup": "Paint",
+   "transparency": 0
+  },
+  {
+   "path": "Model/Part#139/Decal",
+   "face": "Top",
+   "image": 31161332,
+   "parentGroup": "Paint",
+   "transparency": 0
+  }
+ ],
+ "brandHints": []
+}

@@ -1,0 +1,176 @@
+{
+ "assetId": 3204824887,
+ "name": "Chrysler ME412",
+ "depicts": "Chrysler ME Four-Twelve",
+ "forward": {
+  "method": "seat:VehicleSeat",
+  "lookVector": [
+   1.0,
+   0.0,
+   -0.0001
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 19.35,
+  "width": 9.89,
+  "height": 5.19
+ },
+ "real_length_m": 4.57,
+ "suggested_uniform_scale": 0.843,
+ "counts": {
+  "instances": 300,
+  "baseParts": 30,
+  "visibleParts": 18,
+  "meshParts": 16,
+  "uniqueMeshes": 10,
+  "approxTris": 23432,
+  "hiddenParts": 12,
+  "decals": 3,
+  "images": 4,
+  "imagesOk": 4,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 64
+ },
+ "wheelMethod": "names",
+ "hubs": {
+  "FL": {
+   "center": [
+    -3.481,
+    -1.071,
+    5.499
+   ],
+   "radius": 1.464,
+   "width": 2.927,
+   "parts": 1
+  },
+  "FR": {
+   "center": [
+    3.482,
+    -1.071,
+    5.498
+   ],
+   "radius": 1.464,
+   "width": 2.927,
+   "parts": 1
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   91,
+   93,
+   105
+  ],
+  "method": "named paint/body parts",
+  "parts": 4,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "LocalScript": 45,
+  "Frame": 31,
+  "ImageLabel": 31,
+  "BoolValue": 23,
+  "Script": 19,
+  "TextLabel": 11,
+  "NumberValue": 10,
+  "Sound": 9,
+  "ParticleEmitter": 1,
+  "ScreenGui": 1,
+  "TextButton": 1,
+  "ObjectValue": 1,
+  "Humanoid": 1,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 11,
+   "rules": {
+    "default": 11
+   },
+   "paths": [
+    "Chrysler ME412/Body/MeshPart#1",
+    "Chrysler ME412/Body/MeshPart#2",
+    "Chrysler ME412/Body/MeshPart#4",
+    "Chrysler ME412/FL/Parts/Parts/MeshPart#1",
+    "Chrysler ME412/FL/Parts/Parts/MeshPart#2",
+    "Chrysler ME412/FR/Parts/Parts/MeshPart#1",
+    "Chrysler ME412/FR/Parts/Parts/MeshPart#2",
+    "Chrysler ME412/RL/Parts/Parts/MeshPart#1",
+    "Chrysler ME412/RL/Parts/Parts/MeshPart#2",
+    "Chrysler ME412/RR/Parts/Parts/MeshPart#1",
+    "Chrysler ME412/RR/Parts/Parts/MeshPart#2"
+   ]
+  },
+  "Glass": {
+   "count": 1,
+   "rules": {
+    "glass: Material=Glass": 1
+   },
+   "paths": [
+    "Chrysler ME412/Body/MeshPart#3"
+   ]
+  },
+  "Paint": {
+   "count": 4,
+   "rules": {
+    "Color == rgb(91, 93, 105)": 4
+   },
+   "paths": [
+    "Chrysler ME412/Body/Paint/Paint#1",
+    "Chrysler ME412/Body/Paint/Paint#2",
+    "Chrysler ME412/Body/Paint/Paint#3",
+    "Chrysler ME412/Body/Paint/Paint#4"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: Wheel": 1
+   },
+   "paths": [
+    "Chrysler ME412/FL/Wheel"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: Wheel": 1
+   },
+   "paths": [
+    "Chrysler ME412/FR/Wheel"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "Chrysler ME412/Body/VehicleSeat/Set/Assets/Screen/StockUI/Right/Mode/Ice?",
+   "face": "Front",
+   "image": 741350718,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "Chrysler ME412/Body/VehicleSeat/Set/Assets/Screen/StockUI/Right/Mode/Road(man)",
+   "face": "Front",
+   "image": 741350688,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "Chrysler ME412/Body/VehicleSeat/Set/Assets/Screen/StockUI/Right/Mode/Race",
+   "face": "Front",
+   "image": 741350702,
+   "parentGroup": null,
+   "transparency": 0
+  }
+ ],
+ "brandHints": [
+  "Chrysler ME412",
+  "Chrysler ME412/Body/VehicleSeat/Set/Plugins/_Template"
+ ]
+}

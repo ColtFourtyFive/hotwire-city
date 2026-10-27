@@ -1,0 +1,81 @@
+{
+ "assetId": 131180706902259,
+ "name": "TruckProp",
+ "depicts": "Isuzu NPR-style 16 ft box truck",
+ "forward": {
+  "method": "default(-Z)",
+  "lookVector": [
+   0.0,
+   0.0,
+   -1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 25.59,
+  "width": 9.14,
+  "height": 12.24
+ },
+ "real_length_m": 7.0,
+ "suggested_uniform_scale": 0.977,
+ "counts": {
+  "instances": 11,
+  "baseParts": 3,
+  "visibleParts": 3,
+  "meshParts": 1,
+  "uniqueMeshes": 1,
+  "approxTris": 5023,
+  "hiddenParts": 0,
+  "decals": 0,
+  "images": 1,
+  "imagesOk": 1,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 2
+ },
+ "wheelMethod": null,
+ "hubs": {},
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "area-dominant colour",
+  "parts": 2,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "Script": 1,
+  "ScreenGui": 1,
+  "LocalScript": 1,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 1,
+   "rules": {
+    "default": 1
+   },
+   "paths": [
+    "TruckProp/MeshPart"
+   ]
+  },
+  "Paint": {
+   "count": 2,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 2
+   },
+   "paths": [
+    "TruckProp/Part",
+    "TruckProp/Wedge"
+   ]
+  }
+ },
+ "decals": [],
+ "brandHints": []
+}

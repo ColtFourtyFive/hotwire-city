@@ -1,0 +1,456 @@
+{
+ "assetId": 89890547548224,
+ "name": "Ford F-150 XLT Supercrew",
+ "depicts": "2009-14 Ford F-150 SuperCrew 5.5 ft bed",
+ "forward": {
+  "method": "seat:DriveSeat",
+  "lookVector": [
+   0.0199,
+   0.0,
+   -0.9998
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 24.4,
+  "width": 10.56,
+  "height": 8.03
+ },
+ "real_length_m": 5.89,
+ "suggested_uniform_scale": 0.862,
+ "counts": {
+  "instances": 220,
+  "baseParts": 41,
+  "visibleParts": 24,
+  "meshParts": 24,
+  "uniqueMeshes": 11,
+  "approxTris": 19523,
+  "hiddenParts": 17,
+  "decals": 32,
+  "images": 8,
+  "imagesOk": 8,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 27
+ },
+ "wheelMethod": "containers:Ford F-150 XLT Supercrew/Wheels/FL,Ford F-150 XLT Supercrew/Wheels/FR,Ford F-150 XLT Supercrew/Wheels/RL,Ford F-150 XLT Supercrew/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -3.502,
+    -2.269,
+    8.102
+   ],
+   "radius": 1.74,
+   "width": 1.211,
+   "parts": 3
+  },
+  "FR": {
+   "center": [
+    3.292,
+    -2.269,
+    8.237
+   ],
+   "radius": 1.74,
+   "width": 1.211,
+   "parts": 3
+  },
+  "RL": {
+   "center": [
+    -3.334,
+    -2.274,
+    -7.097
+   ],
+   "radius": 1.74,
+   "width": 1.211,
+   "parts": 3
+  },
+  "RR": {
+   "center": [
+    3.663,
+    -2.274,
+    -6.958
+   ],
+   "radius": 1.74,
+   "width": 1.211,
+   "parts": 3
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   163,
+   162,
+   165
+  ],
+  "method": "named paint/body parts",
+  "parts": 1,
+  "sameColourButTextured": 4
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "Sound": 22,
+  "NumberValue": 15,
+  "LocalScript": 14,
+  "Script": 10,
+  "BoolValue": 9,
+  "ScreenGui": 4,
+  "RemoteEvent": 4,
+  "BodyThrust": 3,
+  "ObjectValue": 3,
+  "Frame": 3,
+  "ModuleScript": 3,
+  "StringValue": 2,
+  "ImageLabel": 2,
+  "TextLabel": 2,
+  "Humanoid": 1,
+  "Folder": 1,
+  "Vector3Value": 1,
+  "ParticleEmitter": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 6,
+   "rules": {
+    "default": 6
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Body/MeshPart#2",
+    "Ford F-150 XLT Supercrew/Body/MeshPart#3",
+    "Ford F-150 XLT Supercrew/Body/MeshPart#4",
+    "Ford F-150 XLT Supercrew/Body/Model/Paint",
+    "Ford F-150 XLT Supercrew/Body/Texture",
+    "Ford F-150 XLT Supercrew/Body/Underbody"
+   ]
+  },
+  "Glass": {
+   "count": 1,
+   "rules": {
+    "glass: T=0.5": 1
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Body/MeshPart#1"
+   ]
+  },
+  "Paint": {
+   "count": 1,
+   "rules": {
+    "Color == rgb(163, 162, 165)": 1
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Body/Chrome"
+   ]
+  },
+  "WheelStatic_FL": {
+   "count": 1,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/FL (static)": 1
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/FL/Fixed/Caliper"
+   ]
+  },
+  "WheelStatic_FR": {
+   "count": 1,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/FR (static)": 1
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/FR/Fixed/Caliper"
+   ]
+  },
+  "WheelStatic_RL": {
+   "count": 1,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/RL (static)": 1
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/RL/Fixed/Caliper"
+   ]
+  },
+  "WheelStatic_RR": {
+   "count": 1,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/RR (static)": 1
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/RR/Fixed/Caliper"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 3,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/FL": 3
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Disk",
+    "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Rim",
+    "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 3,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/FR": 3
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Disk",
+    "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Rim",
+    "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 3,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/RL": 3
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Disk",
+    "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Rim",
+    "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 3,
+   "rules": {
+    "under wheel container Ford F-150 XLT Supercrew/Wheels/RR": 3
+   },
+   "paths": [
+    "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Disk",
+    "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Rim",
+    "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre/Decal#1",
+   "face": "Right",
+   "image": 323779525,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre/Decal#2",
+   "face": "Left",
+   "image": 323779525,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre/M5E39_03_TREAD#1",
+   "face": "Top",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre/M5E39_03_TREAD#2",
+   "face": "Back",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre/M5E39_03_TREAD#3",
+   "face": "Front",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Tyre/M5E39_03_TREAD#4",
+   "face": "Bottom",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Disk/Decal#1",
+   "face": "Right",
+   "image": 3829405740,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FL/Parts/Wheel/Disk/Decal#2",
+   "face": "Left",
+   "image": 3829405740,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre/Decal#1",
+   "face": "Right",
+   "image": 323779525,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre/Decal#2",
+   "face": "Left",
+   "image": 323779525,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre/M5E39_03_TREAD#1",
+   "face": "Top",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre/M5E39_03_TREAD#2",
+   "face": "Back",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre/M5E39_03_TREAD#3",
+   "face": "Front",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Tyre/M5E39_03_TREAD#4",
+   "face": "Bottom",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Disk/Decal#1",
+   "face": "Right",
+   "image": 3829405740,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RL/Parts/Wheel/Disk/Decal#2",
+   "face": "Left",
+   "image": 3829405740,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre/Decal#1",
+   "face": "Right",
+   "image": 323779525,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre/Decal#2",
+   "face": "Left",
+   "image": 323779525,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre/M5E39_03_TREAD#1",
+   "face": "Top",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre/M5E39_03_TREAD#2",
+   "face": "Back",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre/M5E39_03_TREAD#3",
+   "face": "Front",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Tyre/M5E39_03_TREAD#4",
+   "face": "Bottom",
+   "image": 3969977390,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Disk/Decal#1",
+   "face": "Right",
+   "image": 3829405740,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/RR/Parts/Wheel/Disk/Decal#2",
+   "face": "Left",
+   "image": 3829405740,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre/Decal#1",
+   "face": "Right",
+   "image": 323779525,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre/Decal#2",
+   "face": "Left",
+   "image": 323779525,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0.5
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre/M5E39_03_TREAD#1",
+   "face": "Top",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre/M5E39_03_TREAD#2",
+   "face": "Back",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre/M5E39_03_TREAD#3",
+   "face": "Front",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Tyre/M5E39_03_TREAD#4",
+   "face": "Bottom",
+   "image": 3969977390,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Disk/Decal#1",
+   "face": "Right",
+   "image": 3829405740,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0.3
+  },
+  {
+   "path": "Ford F-150 XLT Supercrew/Wheels/FR/Parts/Wheel/Disk/Decal#2",
+   "face": "Left",
+   "image": 3829405740,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0.3
+  }
+ ],
+ "brandHints": [
+  "Ford F-150 XLT Supercrew"
+ ]
+}

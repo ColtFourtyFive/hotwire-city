@@ -1,0 +1,379 @@
+{
+ "assetId": 73893179863762,
+ "name": "2005 Nissan Murano",
+ "depicts": "Nissan Murano Z50 2005",
+ "forward": {
+  "method": "seat:1",
+  "lookVector": [
+   0.0001,
+   0.0,
+   -1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 16.69,
+  "width": 9.06,
+  "height": 6.41
+ },
+ "real_length_m": 4.77,
+ "suggested_uniform_scale": 1.021,
+ "counts": {
+  "instances": 110,
+  "baseParts": 24,
+  "visibleParts": 20,
+  "meshParts": 16,
+  "uniqueMeshes": 16,
+  "approxTris": 38901,
+  "hiddenParts": 4,
+  "decals": 20,
+  "images": 2,
+  "imagesOk": 2,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 16
+ },
+ "wheelMethod": "containers:2005 Nissan Murano/Wheels/FL,2005 Nissan Murano/Wheels/FR,2005 Nissan Murano/Wheels/RL,2005 Nissan Murano/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -3.109,
+    -1.804,
+    5.136
+   ],
+   "radius": 1.396,
+   "width": 2.792,
+   "parts": 1
+  },
+  "FR": {
+   "center": [
+    3.139,
+    -1.833,
+    5.145
+   ],
+   "radius": 1.365,
+   "width": 2.731,
+   "parts": 1
+  },
+  "RL": {
+   "center": [
+    -2.986,
+    -1.83,
+    -5.075
+   ],
+   "radius": 1.374,
+   "width": 2.748,
+   "parts": 1
+  },
+  "RR": {
+   "center": [
+    3.085,
+    -1.836,
+    -5.041
+   ],
+   "radius": 1.365,
+   "width": 2.731,
+   "parts": 1
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   248,
+   248,
+   248
+  ],
+  "method": "named paint/body parts",
+  "parts": 4,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "Script": 12,
+  "ParticleEmitter": 4,
+  "Sound": 4,
+  "ScreenGui": 4,
+  "ObjectValue": 4,
+  "LocalScript": 4,
+  "Frame": 4,
+  "TextButton": 4,
+  "StringValue": 4,
+  "BodyForce": 2,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 3,
+   "rules": {
+    "default": 3
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Badges",
+    "2005 Nissan Murano/Body/Chassis+Trim",
+    "2005 Nissan Murano/Body/Chrome"
+   ]
+  },
+  "Glass": {
+   "count": 3,
+   "rules": {
+    "glass: Material=Glass": 2,
+    "glass: name": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Windows Trim",
+    "2005 Nissan Murano/Body/Windshield/Windshield(Front)",
+    "2005 Nissan Murano/Body/Windshield/Windshield(Rear)"
+   ]
+  },
+  "Interior": {
+   "count": 1,
+   "rules": {
+    "interior name": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Interior"
+   ]
+  },
+  "Lights_Brake": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Lights/Taillights/Brakelight"
+   ]
+  },
+  "Lights_Head": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Lights/Headlights/Headlights Cover"
+   ]
+  },
+  "Lights_Indicator_R": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Lights/Headlights/Indicators"
+   ]
+  },
+  "Lights_Reverse": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Lights/Taillights/Reverse Lights"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Lights/Taillights/Taillights"
+   ]
+  },
+  "Paint": {
+   "count": 4,
+   "rules": {
+    "Color == rgb(248, 248, 248)": 4
+   },
+   "paths": [
+    "2005 Nissan Murano/Body/Paint/Paint#1",
+    "2005 Nissan Murano/Body/Paint/Paint#2",
+    "2005 Nissan Murano/Body/Paint/Paint#3",
+    "2005 Nissan Murano/Body/Paint/Paint#4"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 1,
+   "rules": {
+    "under wheel container 2005 Nissan Murano/Wheels/FL": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Wheels/FL"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 1,
+   "rules": {
+    "under wheel container 2005 Nissan Murano/Wheels/FR": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Wheels/FR"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 1,
+   "rules": {
+    "under wheel container 2005 Nissan Murano/Wheels/RL": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Wheels/RL"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 1,
+   "rules": {
+    "under wheel container 2005 Nissan Murano/Wheels/RR": 1
+   },
+   "paths": [
+    "2005 Nissan Murano/Wheels/RR"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "2005 Nissan Murano/Wheels/FL/Decal#1",
+   "face": "Right",
+   "image": 266213021,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FL/Decal#2",
+   "face": "Front",
+   "image": 266213021,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FL/Decal#3",
+   "face": "Left",
+   "image": 266213021,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FL/Decal#4",
+   "face": "Back",
+   "image": 266213021,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FL/Decal#5",
+   "face": "Top",
+   "image": 899081061,
+   "parentGroup": "Wheel_FL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RR/Decal#1",
+   "face": "Right",
+   "image": 266213021,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RR/Decal#2",
+   "face": "Front",
+   "image": 266213021,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RR/Decal#3",
+   "face": "Left",
+   "image": 266213021,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RR/Decal#4",
+   "face": "Back",
+   "image": 266213021,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RR/Decal#5",
+   "face": "Top",
+   "image": 899081061,
+   "parentGroup": "Wheel_RR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FR/Decal#1",
+   "face": "Right",
+   "image": 266213021,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FR/Decal#2",
+   "face": "Front",
+   "image": 266213021,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FR/Decal#3",
+   "face": "Left",
+   "image": 266213021,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FR/Decal#4",
+   "face": "Back",
+   "image": 266213021,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/FR/Decal#5",
+   "face": "Top",
+   "image": 899081061,
+   "parentGroup": "Wheel_FR",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RL/Decal#1",
+   "face": "Right",
+   "image": 266213021,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RL/Decal#2",
+   "face": "Front",
+   "image": 266213021,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RL/Decal#3",
+   "face": "Left",
+   "image": 266213021,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RL/Decal#4",
+   "face": "Back",
+   "image": 266213021,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  },
+  {
+   "path": "2005 Nissan Murano/Wheels/RL/Decal#5",
+   "face": "Top",
+   "image": 899081061,
+   "parentGroup": "Wheel_RL",
+   "transparency": 0
+  }
+ ],
+ "brandHints": [
+  "2005 Nissan Murano",
+  "2005 Nissan Murano/Body/Badges"
+ ]
+}

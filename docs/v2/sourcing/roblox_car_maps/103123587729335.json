@@ -1,0 +1,314 @@
+{
+ "assetId": 103123587729335,
+ "name": "LeoRosa44's Car",
+ "depicts": "Peugeot 308-style hatchback",
+ "forward": {
+  "method": "seat:Seat3",
+  "lookVector": [
+   -0.0571,
+   0.0,
+   0.9984
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 19.39,
+  "width": 9.96,
+  "height": 8.9
+ },
+ "real_length_m": 4.25,
+ "suggested_uniform_scale": 0.783,
+ "counts": {
+  "instances": 365,
+  "baseParts": 127,
+  "visibleParts": 57,
+  "meshParts": 48,
+  "uniqueMeshes": 35,
+  "approxTris": 29693,
+  "hiddenParts": 70,
+  "decals": 5,
+  "images": 3,
+  "imagesOk": 3,
+  "surfaceAppearances": 1,
+  "unions": 0,
+  "scripts": 5
+ },
+ "wheelMethod": "containers:LeoRosa44's Car/Wheels/FL,LeoRosa44's Car/Wheels/FR,LeoRosa44's Car/Wheels/RL,LeoRosa44's Car/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -3.562,
+    -2.467,
+    5.277
+   ],
+   "radius": 1.409,
+   "width": 1.091,
+   "parts": 4
+  },
+  "FR": {
+   "center": [
+    3.252,
+    -2.468,
+    5.28
+   ],
+   "radius": 1.409,
+   "width": 1.091,
+   "parts": 4
+  },
+  "RL": {
+   "center": [
+    -3.352,
+    -2.465,
+    -6.15
+   ],
+   "radius": 1.409,
+   "width": 1.091,
+   "parts": 4
+  },
+  "RR": {
+   "center": [
+    3.012,
+    -2.468,
+    -6.144
+   ],
+   "radius": 1.409,
+   "width": 1.091,
+   "parts": 4
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "named paint/body parts",
+  "parts": 11,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [
+   {
+    "path": "LeoRosa44's Car/PoseTexture",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     140312253726156
+    ]
+   },
+   {
+    "path": "LeoRosa44's Car/PoseTexture/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
+ },
+ "strip": {
+  "Attachment": 64,
+  "Weld": 31,
+  "Beam": 20,
+  "BodyGyro": 10,
+  "SurfaceGui": 9,
+  "TextLabel": 9,
+  "HingeConstraint": 8,
+  "ProximityPrompt": 4,
+  "SpringConstraint": 4,
+  "ParticleEmitter": 4,
+  "ModuleScript": 3,
+  "Script": 2,
+  "BillboardGui": 2,
+  "ImageLabel": 2,
+  "Camera": 1,
+  "AlignPosition": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 16,
+   "rules": {
+    "default": 16
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Body/Carrosserie",
+    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration",
+    "LeoRosa44's Car/Body/Body/Phare d\u00e9coration 2",
+    "LeoRosa44's Car/Body/Body/Si\u00e8ges",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/Part",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#1/[UnionOperation] Union",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_52",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_54.003",
+    "LeoRosa44's Car/Body/Emergency/Antennes/Model#2/Meshes/GYRO3_MESHgroup_58.001",
+    "LeoRosa44's Car/Body/Plaques/Plaque#1/Left/Part",
+    "LeoRosa44's Car/Body/Plaques/Plaque#1/PlaqueNumber",
+    "LeoRosa44's Car/Body/Plaques/Plaque#1/Right/Part",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#1",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/Part#2",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/PlaqueNumber",
+    "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Part"
+   ]
+  },
+  "Glass": {
+   "count": 4,
+   "rules": {
+    "glass: T=0.5": 2,
+    "glass: T=0.85": 1,
+    "glass: name": 1
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Body/Vitre de phare arri\u00e8re",
+    "LeoRosa44's Car/Body/Body/Vitre de phare avant",
+    "LeoRosa44's Car/Body/Body/Vitres",
+    "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Glass"
+   ]
+  },
+  "Lights_Emergency": {
+   "count": 4,
+   "rules": {
+    "light: name/light child": 4
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Lights#1",
+    "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Lights#2",
+    "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Support",
+    "LeoRosa44's Car/Body/Emergency/Lightbar/Model/Top"
+   ]
+  },
+  "Lights_Head": {
+   "count": 4,
+   "rules": {
+    "light: name/light child": 4
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Lights/HeadLight",
+    "LeoRosa44's Car/Body/Lights/HeadLightLeft",
+    "LeoRosa44's Car/Body/Lights/LeftF",
+    "LeoRosa44's Car/Body/Lights/RightF"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 2,
+   "rules": {
+    "light: name/light child": 2
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Lights/LeftB",
+    "LeoRosa44's Car/Body/Lights/RightB"
+   ]
+  },
+  "Paint": {
+   "count": 11,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 11
+   },
+   "paths": [
+    "LeoRosa44's Car/Body/Body/Avant 1",
+    "LeoRosa44's Car/Body/Body/Avant 2",
+    "LeoRosa44's Car/Body/Body/Avant 3",
+    "LeoRosa44's Car/Body/Body/Contours de vitre",
+    "LeoRosa44's Car/Body/Body/Interieur",
+    "LeoRosa44's Car/Body/Body/Interieur 2",
+    "LeoRosa44's Car/Body/Body/Phare",
+    "LeoRosa44's Car/Body/Body/Phare arri\u00e8re",
+    "LeoRosa44's Car/Body/Body/R\u00e9troviseurs",
+    "LeoRosa44's Car/Body/Body/Soubassement",
+    "LeoRosa44's Car/Body/Body/Volant"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 4,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/FL": 4
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/FL/Parts/Disque",
+    "LeoRosa44's Car/Wheels/FL/Parts/Jante",
+    "LeoRosa44's Car/Wheels/FL/Parts/Plaquette",
+    "LeoRosa44's Car/Wheels/FL/Parts/Pneu"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 4,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/FR": 4
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/FR/Parts/Disque",
+    "LeoRosa44's Car/Wheels/FR/Parts/Jante",
+    "LeoRosa44's Car/Wheels/FR/Parts/Plaquette",
+    "LeoRosa44's Car/Wheels/FR/Parts/Pneu"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 4,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/RL": 4
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/RL/Parts/Disque",
+    "LeoRosa44's Car/Wheels/RL/Parts/Jante",
+    "LeoRosa44's Car/Wheels/RL/Parts/Plaquette",
+    "LeoRosa44's Car/Wheels/RL/Parts/Pneu"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 4,
+   "rules": {
+    "under wheel container LeoRosa44's Car/Wheels/RR": 4
+   },
+   "paths": [
+    "LeoRosa44's Car/Wheels/RR/Parts/Disque",
+    "LeoRosa44's Car/Wheels/RR/Parts/Jante",
+    "LeoRosa44's Car/Wheels/RR/Parts/Plaquette",
+    "LeoRosa44's Car/Wheels/RR/Parts/Pneu"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "LeoRosa44's Car/Body/Plaques/Plaque#1/Right/Logo/Decal",
+   "face": "Back",
+   "image": null,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "LeoRosa44's Car/Body/Plaques/Plaque#1/Left/European/Decal",
+   "face": "Back",
+   "image": 124053905511758,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Logo/Decal",
+   "face": "Back",
+   "image": null,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "LeoRosa44's Car/Body/Plaques/Plaque#2/Left/European/Decal",
+   "face": "Back",
+   "image": 124053905511758,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "LeoRosa44's Car/Body/Emergency/LedL/Light/Texture",
+   "face": "Right",
+   "image": 18187898414,
+   "parentGroup": null,
+   "transparency": 1
+  }
+ ],
+ "brandHints": [
+  "LeoRosa44's Car/Body/Plaques/Plaque#1/Right/Logo",
+  "LeoRosa44's Car/Body/Plaques/Plaque#2/Right/Logo"
+ ]
+}

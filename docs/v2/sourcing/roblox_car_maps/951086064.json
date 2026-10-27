@@ -1,0 +1,279 @@
+{
+ "assetId": 951086064,
+ "name": "Maxima",
+ "depicts": "Nissan Maxima A35 2009",
+ "forward": {
+  "method": "seat:VehicleSeat",
+  "lookVector": [
+   -1.0,
+   0.0,
+   0.0001
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 18.02,
+  "width": 7.49,
+  "height": 5.54
+ },
+ "real_length_m": 4.84,
+ "suggested_uniform_scale": 0.959,
+ "counts": {
+  "instances": 402,
+  "baseParts": 56,
+  "visibleParts": 45,
+  "meshParts": 45,
+  "uniqueMeshes": 39,
+  "approxTris": 103524,
+  "hiddenParts": 11,
+  "decals": 3,
+  "images": 3,
+  "imagesOk": 3,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 71
+ },
+ "wheelMethod": "names",
+ "hubs": {
+  "FL": {
+   "center": [
+    -2.836,
+    -1.438,
+    5.459
+   ],
+   "radius": 1.331,
+   "width": 0.968,
+   "parts": 2
+  },
+  "FR": {
+   "center": [
+    2.834,
+    -1.438,
+    5.459
+   ],
+   "radius": 1.331,
+   "width": 0.968,
+   "parts": 2
+  },
+  "RL": {
+   "center": [
+    -2.837,
+    -1.438,
+    -5.047
+   ],
+   "radius": 1.331,
+   "width": 0.968,
+   "parts": 2
+  },
+  "RR": {
+   "center": [
+    2.833,
+    -1.438,
+    -5.047
+   ],
+   "radius": 1.331,
+   "width": 0.968,
+   "parts": 2
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "named paint/body parts",
+  "parts": 8,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "LocalScript": 47,
+  "NumberValue": 41,
+  "BoolValue": 26,
+  "ImageLabel": 26,
+  "Script": 24,
+  "Frame": 22,
+  "TextLabel": 14,
+  "StringValue": 11,
+  "IntValue": 10,
+  "TextButton": 8,
+  "ObjectValue": 7,
+  "ImageButton": 7,
+  "Sound": 6,
+  "ScreenGui": 2,
+  "SurfaceGui": 2,
+  "ParticleEmitter": 1,
+  "ScrollingFrame": 1,
+  "Humanoid": 1,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 24,
+   "rules": {
+    "default": 24
+   },
+   "paths": [
+    "Maxima/Body/BL",
+    "Maxima/Body/HLH",
+    "Maxima/Body/HLL",
+    "Maxima/Body/Li",
+    "Maxima/Body/MeshPart#1",
+    "Maxima/Body/MeshPart#11",
+    "Maxima/Body/MeshPart#14",
+    "Maxima/Body/MeshPart#15",
+    "Maxima/Body/MeshPart#16",
+    "Maxima/Body/MeshPart#3",
+    "Maxima/Body/MeshPart#4",
+    "Maxima/Body/MeshPart#5",
+    "Maxima/Body/MeshPart#9",
+    "Maxima/Body/Paint/Paint#1",
+    "Maxima/Body/Paint/Paint#2",
+    "Maxima/Body/Paint/Paint#3",
+    "Maxima/Body/Paint/Paint#4",
+    "Maxima/Body/Paint/Paint#5",
+    "Maxima/Body/Paint/Paint#6",
+    "Maxima/Body/Paint/Paint#7",
+    "Maxima/Body/Paint/Paint#8",
+    "Maxima/Body/RRL",
+    "Maxima/Body/RevL",
+    "Maxima/Body/Ri"
+   ]
+  },
+  "Glass": {
+   "count": 1,
+   "rules": {
+    "glass: T=0.6": 1
+   },
+   "paths": [
+    "Maxima/Body/MeshPart#17"
+   ]
+  },
+  "Paint": {
+   "count": 8,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 8
+   },
+   "paths": [
+    "Maxima/Body/MeshPart#10",
+    "Maxima/Body/MeshPart#12",
+    "Maxima/Body/MeshPart#13",
+    "Maxima/Body/MeshPart#18",
+    "Maxima/Body/MeshPart#2",
+    "Maxima/Body/MeshPart#6",
+    "Maxima/Body/MeshPart#7",
+    "Maxima/Body/MeshPart#8"
+   ]
+  },
+  "WheelStatic_FL": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: brakedisc": 1
+   },
+   "paths": [
+    "Maxima/FL/brakedisc"
+   ]
+  },
+  "WheelStatic_FR": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: brakedisc": 1
+   },
+   "paths": [
+    "Maxima/FR/brakedisc"
+   ]
+  },
+  "WheelStatic_RL": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: brakedisc": 1
+   },
+   "paths": [
+    "Maxima/RL/brakedisc"
+   ]
+  },
+  "WheelStatic_RR": {
+   "count": 1,
+   "rules": {
+    "wheel-ish name: brakedisc": 1
+   },
+   "paths": [
+    "Maxima/RR/brakedisc"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 2,
+   "rules": {
+    "wheel-ish name: rim": 1,
+    "wheel-ish name: tire": 1
+   },
+   "paths": [
+    "Maxima/FL/rim",
+    "Maxima/FL/tire"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 2,
+   "rules": {
+    "wheel-ish name: tire": 1,
+    "wheel-ish name: rim": 1
+   },
+   "paths": [
+    "Maxima/FR/rim",
+    "Maxima/FR/tire"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 2,
+   "rules": {
+    "wheel-ish name: tire": 1,
+    "wheel-ish name: rim": 1
+   },
+   "paths": [
+    "Maxima/RL/rim",
+    "Maxima/RL/tire"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 2,
+   "rules": {
+    "wheel-ish name: tire": 1,
+    "wheel-ish name: rim": 1
+   },
+   "paths": [
+    "Maxima/RR/rim",
+    "Maxima/RR/tire"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "Maxima/Body/VehicleSeat/Set/Assets/Screen/StockUI/Right/Mode/Race",
+   "face": "Front",
+   "image": 741350702,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "Maxima/Body/VehicleSeat/Set/Assets/Screen/StockUI/Right/Mode/Road(man)",
+   "face": "Front",
+   "image": 741350688,
+   "parentGroup": null,
+   "transparency": 0
+  },
+  {
+   "path": "Maxima/Body/VehicleSeat/Set/Assets/Screen/StockUI/Right/Mode/Ice?",
+   "face": "Front",
+   "image": 741350718,
+   "parentGroup": null,
+   "transparency": 0
+  }
+ ],
+ "brandHints": [
+  "Maxima/Body/VehicleSeat/Set/Plugins/_Template"
+ ]
+}

@@ -1,0 +1,443 @@
+{
+ "assetId": 16390639371,
+ "name": "T488",
+ "depicts": "Ford Taurus PI-style sedan",
+ "forward": {
+  "method": "seat:DriveSeat",
+  "lookVector": [
+   0.0005,
+   0.0,
+   -1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 19.03,
+  "width": 8.27,
+  "height": 6.46
+ },
+ "real_length_m": 5.1,
+ "suggested_uniform_scale": 0.957,
+ "counts": {
+  "instances": 768,
+  "baseParts": 237,
+  "visibleParts": 202,
+  "meshParts": 150,
+  "uniqueMeshes": 99,
+  "approxTris": 304637,
+  "hiddenParts": 35,
+  "decals": 1,
+  "images": 45,
+  "imagesOk": 40,
+  "surfaceAppearances": 0,
+  "unions": 3,
+  "scripts": 114
+ },
+ "wheelMethod": "containers:T488/Wheels/FL,T488/Wheels/FR,T488/Wheels/RL,T488/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -3.05,
+    -1.765,
+    5.815
+   ],
+   "radius": 1.467,
+   "width": 0.982,
+   "parts": 3
+  },
+  "FR": {
+   "center": [
+    3.045,
+    -1.764,
+    5.818
+   ],
+   "radius": 1.467,
+   "width": 0.982,
+   "parts": 3
+  },
+  "RL": {
+   "center": [
+    -3.118,
+    -1.765,
+    -5.095
+   ],
+   "radius": 1.467,
+   "width": 0.982,
+   "parts": 3
+  },
+  "RR": {
+   "center": [
+    3.051,
+    -1.764,
+    -5.092
+   ],
+   "radius": 1.467,
+   "width": 0.982,
+   "parts": 3
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   163,
+   162,
+   165
+  ],
+  "method": "named paint/body parts",
+  "parts": 7,
+  "sameColourButTextured": 55
+ },
+ "security": {
+  "flaggedScripts": [],
+  "verdict": "no backdoor pattern found (still strip all scripts)"
+ },
+ "strip": {
+  "Script": 95,
+  "BoolValue": 19,
+  "TextLabel": 18,
+  "Frame": 16,
+  "LocalScript": 16,
+  "Sound": 15,
+  "RemoteEvent": 11,
+  "NumberValue": 10,
+  "SurfaceGui": 8,
+  "Folder": 5,
+  "IntValue": 3,
+  "Attachment": 3,
+  "ModuleScript": 3,
+  "SpringConstraint": 2,
+  "ImageLabel": 2,
+  "ScreenGui": 2,
+  "StringValue": 2,
+  "ObjectValue": 1,
+  "Vector3Value": 1,
+  "ParticleEmitter": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 84,
+   "rules": {
+    "default": 84
+   },
+   "paths": [
+    "T488/Body/CarShell/MeshPart#1",
+    "T488/Body/CarShell/MeshPart#11",
+    "T488/Body/CarShell/MeshPart#12",
+    "T488/Body/CarShell/MeshPart#13",
+    "T488/Body/CarShell/MeshPart#14",
+    "T488/Body/CarShell/MeshPart#15",
+    "T488/Body/CarShell/MeshPart#16",
+    "T488/Body/CarShell/MeshPart#17",
+    "T488/Body/CarShell/MeshPart#19",
+    "T488/Body/CarShell/MeshPart#20",
+    "T488/Body/CarShell/MeshPart#21",
+    "T488/Body/CarShell/MeshPart#22",
+    "T488/Body/CarShell/MeshPart#23",
+    "T488/Body/CarShell/MeshPart#24",
+    "T488/Body/CarShell/MeshPart#25",
+    "T488/Body/CarShell/MeshPart#26",
+    "T488/Body/CarShell/MeshPart#27",
+    "T488/Body/CarShell/MeshPart#28",
+    "T488/Body/CarShell/MeshPart#5",
+    "T488/Body/CarShell/MeshPart#6",
+    "T488/Body/CarShell/MeshPart#7",
+    "T488/Body/CarShell/MeshPart#8",
+    "T488/Body/CarShell/MeshPart#9",
+    "T488/Body/CarShell/TS",
+    "T488/Body/Feniex#1",
+    "T488/Body/Feniex#2",
+    "T488/Body/Interior oufit/Cage/MeshPart#2",
+    "T488/Body/Interior oufit/Motorola XTL 5000/Mic",
+    "T488/Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#1",
+    "T488/Body/Interior oufit/Motorola XTL 5000/Radio",
+    "T488/Body/Interior oufit/PolicePad/MeshPart#1",
+    "T488/Body/Interior oufit/PolicePad/MeshPart#2",
+    "T488/Body/Interior oufit/PolicePad/MeshPart#3",
+    "T488/Body/Interior oufit/PolicePad/MeshPart#4",
+    "T488/Body/Interior oufit/PolicePad/MeshPart#5",
+    "T488/Body/Interior oufit/Printer/MeshPart#1",
+    "T488/Body/Interior oufit/Printer/MeshPart#2",
+    "T488/Body/Interior oufit/Printer/MeshPart#3",
+    "T488/Body/Model#1/Feniex#1",
+    "T488/Body/Model#1/Feniex#2",
+    "T488/Body/Model#1/Feniex#3",
+    "T488/Body/Model#1/Feniex#4",
+    "T488/Body/Model#1/Feniex#5",
+    "T488/Body/Model#1/Feniex#6",
+    "T488/Body/Model#1/MeshPart#1",
+    "T488/Body/Model#1/MeshPart#10",
+    "T488/Body/Model#1/MeshPart#11",
+    "T488/Body/Model#1/MeshPart#12",
+    "T488/Body/Model#1/MeshPart#13",
+    "T488/Body/Model#1/MeshPart#14",
+    "T488/Body/Model#1/MeshPart#15",
+    "T488/Body/Model#1/MeshPart#16",
+    "T488/Body/Model#1/MeshPart#17",
+    "T488/Body/Model#1/MeshPart#19",
+    "T488/Body/Model#1/MeshPart#2",
+    "T488/Body/Model#1/MeshPart#21",
+    "T488/Body/Model#1/MeshPart#22",
+    "T488/Body/Model#1/MeshPart#24",
+    "T488/Body/Model#1/MeshPart#25",
+    "T488/Body/Model#1/MeshPart#3",
+    "T488/Body/Model#1/MeshPart#4",
+    "T488/Body/Model#1/MeshPart#5",
+    "T488/Body/Model#1/MeshPart#6",
+    "T488/Body/Model#1/MeshPart#7",
+    "T488/Body/Model#1/MeshPart#9",
+    "T488/Body/Model#1/Meshes/1",
+    "T488/Body/Model#2/Part#1",
+    "T488/Body/Model#2/Part#2",
+    "T488/Body/Model#2/Part#3",
+    "T488/Body/Municipal Gov. License Plates (New Format)/FrontPlate/Plate",
+    "T488/Body/Municipal Gov. License Plates (New Format)/RearPlate/Plate",
+    "T488/Body/Paint/Armor#1",
+    "T488/Body/Paint/Armor#2",
+    "T488/Body/Paint/Armor#3",
+    "T488/Body/Paint/Armor#4",
+    "T488/Body/Paint/Armor#5",
+    "T488/Body/Paint/Armor#6",
+    "T488/Body/Paint/Armor#7",
+    "T488/Body/radio1/MeshPart",
+    "T488/Body/radio1/Radio1/MeshPart",
+    "T488/Body/radio1/Radio1/PalmMic",
+    "T488/Misc/Wheel/Parts/MeshPart#2",
+    "T488/Misc/Wheel/Parts/MeshPart#3",
+    "T488/Misc/Wheel/Parts/MeshPart#4"
+   ]
+  },
+  "Glass": {
+   "count": 6,
+   "rules": {
+    "glass: Material=Glass": 3,
+    "glass: T=0.2": 2,
+    "glass: T=0.15": 1
+   },
+   "paths": [
+    "T488/Body/CarShell/Armor#1",
+    "T488/Body/CarShell/Armor#2",
+    "T488/Body/CarShell/MeshPart#18",
+    "T488/Body/Interior oufit/Motorola XTL 5000/Mic/Model/Union#2",
+    "T488/Body/Model#1/MeshPart#18",
+    "T488/Body/Model#1/MeshPart#20"
+   ]
+  },
+  "Interior": {
+   "count": 10,
+   "rules": {
+    "interior name": 10
+   },
+   "paths": [
+    "T488/Body/Interior oufit/MeshPart",
+    "T488/Body/Interior oufit/Meshes/Cargo",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#1",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#2",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#3",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#4",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#5",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#6",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#7",
+    "T488/Body/Interior oufit/Panasonic Dashcam Front/MeshPart#8"
+   ]
+  },
+  "Lights_Brake": {
+   "count": 4,
+   "rules": {
+    "light: Neon": 4
+   },
+   "paths": [
+    "T488/Body/Brakes/G1/B1",
+    "T488/Body/Brakes/G1/B2",
+    "T488/Body/Brakes/G1/B3",
+    "T488/Body/Brakes/G1/B4"
+   ]
+  },
+  "Lights_Emergency": {
+   "count": 69,
+   "rules": {
+    "light: Neon": 69
+   },
+   "paths": [
+    "T488/Body/Lightbar/Alley1",
+    "T488/Body/Lightbar/Alley2",
+    "T488/Body/Lightbar/B1",
+    "T488/Body/Lightbar/B2",
+    "T488/Body/Lightbar/B3",
+    "T488/Body/Lightbar/B4",
+    "T488/Body/Lightbar/CRSE2",
+    "T488/Body/Lightbar/CRSE3",
+    "T488/Body/Lightbar/CRSE4",
+    "T488/Body/Lightbar/F1",
+    "T488/Body/Lightbar/F2",
+    "T488/Body/Lightbar/F3",
+    "T488/Body/Lightbar/F4",
+    "T488/Body/Lightbar/F5",
+    "T488/Body/Lightbar/F6",
+    "T488/Body/Lightbar/FB1",
+    "T488/Body/Lightbar/FB2",
+    "T488/Body/Lightbar/FB3",
+    "T488/Body/Lightbar/FB4",
+    "T488/Body/Lightbar/G1",
+    "T488/Body/Lightbar/G2",
+    "T488/Body/Lightbar/G3",
+    "T488/Body/Lightbar/G4",
+    "T488/Body/Lightbar/H1",
+    "T488/Body/Lightbar/H2",
+    "T488/Body/Lightbar/HL1",
+    "T488/Body/Lightbar/HL2",
+    "T488/Body/Lightbar/HL3",
+    "T488/Body/Lightbar/HL4",
+    "T488/Body/Lightbar/L1",
+    "T488/Body/Lightbar/L2",
+    "T488/Body/Lightbar/R1",
+    "T488/Body/Lightbar/R10",
+    "T488/Body/Lightbar/R11",
+    "T488/Body/Lightbar/R12",
+    "T488/Body/Lightbar/R2",
+    "T488/Body/Lightbar/R3",
+    "T488/Body/Lightbar/R4",
+    "T488/Body/Lightbar/R5",
+    "T488/Body/Lightbar/R6",
+    "T488/Body/Lightbar/R7",
+    "T488/Body/Lightbar/R8",
+    "T488/Body/Lightbar/R9",
+    "T488/Body/Lightbar/RB1",
+    "T488/Body/Lightbar/RB2",
+    "T488/Body/Lightbar/RB3",
+    "T488/Body/Lightbar/RB4",
+    "T488/Body/Lightbar/RB5",
+    "T488/Body/Lightbar/RB6",
+    "T488/Body/Lightbar/RW1",
+    "T488/Body/Lightbar/RW2",
+    "T488/Body/Lightbar/SB1",
+    "T488/Body/Lightbar/SB2",
+    "T488/Body/Lightbar/SB3",
+    "T488/Body/Lightbar/SB4",
+    "T488/Body/Lightbar/T1",
+    "T488/Body/Lightbar/T2",
+    "T488/Body/Lightbar/T3",
+    "T488/Body/Lightbar/T4",
+    "T488/Body/Lightbar/TD1",
+    "T488/Body/Lightbar/TD2",
+    "T488/Body/Lightbar/TD3",
+    "T488/Body/Lightbar/TD4",
+    "T488/Body/Lightbar/TD5",
+    "T488/Body/Lightbar/TD6",
+    "T488/Body/Lightbar/TK1",
+    "T488/Body/Lightbar/TK2",
+    "T488/Body/Lightbar/WL1",
+    "T488/Body/Lightbar/WL2"
+   ]
+  },
+  "Lights_Head": {
+   "count": 1,
+   "rules": {
+    "light: name/light child": 1
+   },
+   "paths": [
+    "T488/Body/Fog Lights/Glass/MeshPart"
+   ]
+  },
+  "Lights_Indicator_L": {
+   "count": 7,
+   "rules": {
+    "light: name/light child": 6,
+    "light: Neon": 1
+   },
+   "paths": [
+    "T488/Body/MeshPart",
+    "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/Head/MeshPart#1",
+    "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/Head/MeshPart#2",
+    "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/Head/MeshPart#3",
+    "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/MeshPart#1",
+    "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/MeshPart#2",
+    "T488/Body/Unity 335 Series With Soundoff Signal PAR46 LED Insert V1.0/MeshPart#3"
+   ]
+  },
+  "Lights_Tail": {
+   "count": 2,
+   "rules": {
+    "light: Neon": 2
+   },
+   "paths": [
+    "T488/Body/CarShell/MeshPart#10",
+    "T488/Body/CarShell/MeshPart#2"
+   ]
+  },
+  "Paint": {
+   "count": 7,
+   "rules": {
+    "Color == rgb(163, 162, 165)": 7
+   },
+   "paths": [
+    "T488/Body/CarShell/MeshPart#3",
+    "T488/Body/CarShell/MeshPart#4",
+    "T488/Body/Interceptor Badge/MeshPart",
+    "T488/Body/Interior oufit/Cage/MeshPart#1",
+    "T488/Body/Model#1/MeshPart#23",
+    "T488/Body/Model#1/MeshPart#8",
+    "T488/Misc/Wheel/Parts/MeshPart#1"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 3,
+   "rules": {
+    "under wheel container T488/Wheels/FL": 3
+   },
+   "paths": [
+    "T488/Wheels/FL/Parts/MeshPart#1",
+    "T488/Wheels/FL/Parts/MeshPart#2",
+    "T488/Wheels/FL/Parts/MeshPart#3"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 3,
+   "rules": {
+    "under wheel container T488/Wheels/FR": 3
+   },
+   "paths": [
+    "T488/Wheels/FR/Parts/MeshPart#1",
+    "T488/Wheels/FR/Parts/MeshPart#2",
+    "T488/Wheels/FR/Parts/MeshPart#3"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 3,
+   "rules": {
+    "under wheel container T488/Wheels/RL": 3
+   },
+   "paths": [
+    "T488/Wheels/RL/Parts/MeshPart#1",
+    "T488/Wheels/RL/Parts/MeshPart#2",
+    "T488/Wheels/RL/Parts/MeshPart#3"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 3,
+   "rules": {
+    "under wheel container T488/Wheels/RR": 3
+   },
+   "paths": [
+    "T488/Wheels/RR/Parts/MeshPart#1",
+    "T488/Wheels/RR/Parts/MeshPart#2",
+    "T488/Wheels/RR/Parts/MeshPart#3"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "T488/Body/Model#1/Meshes/1/Decal",
+   "face": "Back",
+   "image": null,
+   "parentGroup": "Body",
+   "transparency": 0
+  }
+ ],
+ "brandHints": [
+  "T488/Body/Interceptor Badge",
+  "T488/Body/Municipal Gov. License Plates (New Format)",
+  "T488/Body/Municipal Gov. License Plates (New Format)/FrontPlate",
+  "T488/Body/Municipal Gov. License Plates (New Format)/FrontPlate/Plate",
+  "T488/Body/Municipal Gov. License Plates (New Format)/RearPlate",
+  "T488/Body/Municipal Gov. License Plates (New Format)/RearPlate/Plate"
+ ]
+}

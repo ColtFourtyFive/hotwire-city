@@ -1,0 +1,329 @@
+{
+ "assetId": 97965573521866,
+ "name": "Model",
+ "depicts": "Mercedes-AMG GLE 53 4MATIC+ coupe SUV",
+ "forward": {
+  "method": "seat:DriveSeat",
+  "lookVector": [
+   1.0,
+   0.0,
+   0.0003
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 17.92,
+  "width": 7.88,
+  "height": 6.14
+ },
+ "real_length_m": 4.94,
+ "suggested_uniform_scale": 0.985,
+ "counts": {
+  "instances": 342,
+  "baseParts": 115,
+  "visibleParts": 107,
+  "meshParts": 107,
+  "uniqueMeshes": 95,
+  "approxTris": 422046,
+  "hiddenParts": 8,
+  "decals": 0,
+  "images": 1,
+  "imagesOk": 1,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 25
+ },
+ "wheelMethod": "containers:Model/Model/Model/GLE 53 4MATIC+/Wheels/FL,Model/Model/Model/GLE 53 4MATIC+/Wheels/FR,Model/Model/Model/GLE 53 4MATIC+/Wheels/RL,Model/Model/Model/GLE 53 4MATIC+/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -2.994,
+    -1.667,
+    5.585
+   ],
+   "radius": 1.409,
+   "width": 1.099,
+   "parts": 4
+  },
+  "FR": {
+   "center": [
+    3.016,
+    -1.667,
+    5.587
+   ],
+   "radius": 1.409,
+   "width": 1.099,
+   "parts": 4
+  },
+  "RL": {
+   "center": [
+    -3.061,
+    -1.667,
+    -5.065
+   ],
+   "radius": 1.409,
+   "width": 1.099,
+   "parts": 4
+  },
+  "RR": {
+   "center": [
+    3.09,
+    -1.667,
+    -5.063
+   ],
+   "radius": 1.409,
+   "width": 1.099,
+   "parts": 4
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "named paint/body parts",
+  "parts": 32,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [
+   {
+    "path": "Model/BloomDefect/CoreTextureSystem",
+    "class": "Script",
+    "flags": [
+     "require-by-attribute",
+     "backdoor-family:TextureConfiguration",
+     "odd-parent:BloomEffect"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     74145699488273
+    ]
+   },
+   {
+    "path": "Model/BloomDefect/CoreTextureSystem/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "Model/BloomDefect/CoreTextureSystem/LocalScript",
+    "class": "LocalScript",
+    "flags": [
+     "self-hide",
+     "coregui-toggle"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
+ },
+ "strip": {
+  "Script": 15,
+  "NumberValue": 13,
+  "BoolValue": 11,
+  "LocalScript": 7,
+  "ScreenGui": 5,
+  "ObjectValue": 5,
+  "StringValue": 4,
+  "ModuleScript": 3,
+  "Sound": 2,
+  "BloomEffect": 1,
+  "RemoteEvent": 1,
+  "ParticleEmitter": 1,
+  "Folder": 1,
+  "Vector3Value": 1,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 50,
+   "rules": {
+    "default": 50
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#1",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#2",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#3",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#4",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#5",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#6",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#7",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#8",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/Color/MeshPart#9",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#13",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#15",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#19",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#2",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#23",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#24",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#27",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#29",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#30",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#32",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#34",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#35",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#38",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#39",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#40",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#43",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#44",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#46",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#49",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#5",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#50",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#52",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#53",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#56",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#57",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#59",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#60",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#61",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#62",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#67",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#68",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#74",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#75",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#76",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#77",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#79",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#8",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#80",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#81",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#82",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#9"
+   ]
+  },
+  "Glass": {
+   "count": 5,
+   "rules": {
+    "glass: T=0.7": 2,
+    "glass: T=0.75": 1,
+    "glass: T=0.6": 1,
+    "glass: T=0.3": 1
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#21",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#3",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#31",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#4",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#7"
+   ]
+  },
+  "Lights_Head": {
+   "count": 2,
+   "rules": {
+    "light: Neon": 2
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#18",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#41"
+   ]
+  },
+  "Lights_Indicator_L": {
+   "count": 2,
+   "rules": {
+    "light: Neon": 2
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#28",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#69"
+   ]
+  },
+  "Paint": {
+   "count": 32,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 32
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#1",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#10",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#11",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#12",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#14",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#16",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#17",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#20",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#22",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#25",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#26",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#33",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#36",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#37",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#42",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#45",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#47",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#48",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#51",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#54",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#55",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#58",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#6",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#63",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#64",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#65",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#66",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#70",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#71",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#72",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#73",
+    "Model/Model/Model/GLE 53 4MATIC+/Body/MeshPart#78"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 4,
+   "rules": {
+    "under wheel container Model/Model/Model/GLE 53 4MATIC+/Wheels/FL": 4
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#1",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#2",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#3",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FL/Parts/Rim/MeshPart#4"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 4,
+   "rules": {
+    "under wheel container Model/Model/Model/GLE 53 4MATIC+/Wheels/FR": 4
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#1",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#2",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#3",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/FR/Parts/Rim/MeshPart#4"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 4,
+   "rules": {
+    "under wheel container Model/Model/Model/GLE 53 4MATIC+/Wheels/RL": 4
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#1",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#2",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#3",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RL/Parts/Rim/MeshPart#4"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 4,
+   "rules": {
+    "under wheel container Model/Model/Model/GLE 53 4MATIC+/Wheels/RR": 4
+   },
+   "paths": [
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#1",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#2",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#3",
+    "Model/Model/Model/GLE 53 4MATIC+/Wheels/RR/Parts/Rim/MeshPart#4"
+   ]
+  }
+ },
+ "decals": [],
+ "brandHints": []
+}

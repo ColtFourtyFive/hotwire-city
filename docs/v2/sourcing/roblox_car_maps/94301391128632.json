@@ -1,0 +1,169 @@
+{
+ "assetId": 94301391128632,
+ "name": "Model",
+ "depicts": "Ford Crown Victoria taxi",
+ "forward": {
+  "method": "default(-Z)",
+  "lookVector": [
+   0.0,
+   0.0,
+   -1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 18.99,
+  "width": 7.52,
+  "height": 5.71
+ },
+ "real_length_m": 5.38,
+ "suggested_uniform_scale": 1.012,
+ "counts": {
+  "instances": 34,
+  "baseParts": 2,
+  "visibleParts": 2,
+  "meshParts": 2,
+  "uniqueMeshes": 2,
+  "approxTris": 2822,
+  "hiddenParts": 0,
+  "decals": 0,
+  "images": 2,
+  "imagesOk": 2,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 10
+ },
+ "wheelMethod": null,
+ "hubs": {},
+ "paint": {
+  "color_rgb255": null,
+  "method": null,
+  "parts": 0,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [
+   {
+    "path": "Model/Object.5240/qTexture",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     115188487528112
+    ]
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     115188487528112
+    ]
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/qTexture",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     115188487528112
+    ]
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/qTexture/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     115188487528112
+    ]
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/PoseTexture",
+    "class": "Script",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": [
+     140312253726156
+    ]
+   },
+   {
+    "path": "Model/Object.5240/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/qTexture/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/Package/TextureConfiguration/Texture/Extras/RigidConstraint/Pose/PoseTexture/TextureConfiguration",
+    "class": "ModuleScript",
+    "flags": [
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
+ },
+ "strip": {
+  "Script": 5,
+  "ModuleScript": 5,
+  "AlignPosition": 5,
+  "Camera": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 2,
+   "rules": {
+    "default": 2
+   },
+   "paths": [
+    "Model/Object.5240",
+    "Model/Part.6377"
+   ]
+  }
+ },
+ "decals": [],
+ "brandHints": []
+}

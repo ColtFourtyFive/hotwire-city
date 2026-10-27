@@ -1,0 +1,275 @@
+{
+ "assetId": 126180570128588,
+ "name": "2022 Vellfire Prairie",
+ "depicts": "Toyota Vellfire AH30 (listed as Tundra)",
+ "forward": {
+  "method": "default(-Z)",
+  "lookVector": [
+   0.0,
+   0.0,
+   -1.0
+  ]
+ },
+ "frame": "car-local: x = right, y = up, z = forward, origin = visible-geometry bbox centre",
+ "dims_studs": {
+  "length": 8.76,
+  "width": 22.08,
+  "height": 7.27
+ },
+ "real_length_m": 4.94,
+ "suggested_uniform_scale": 2.014,
+ "counts": {
+  "instances": 205,
+  "baseParts": 59,
+  "visibleParts": 41,
+  "meshParts": 41,
+  "uniqueMeshes": 35,
+  "approxTris": 41886,
+  "hiddenParts": 18,
+  "decals": 6,
+  "images": 4,
+  "imagesOk": 4,
+  "surfaceAppearances": 0,
+  "unions": 0,
+  "scripts": 1
+ },
+ "wheelMethod": "containers:2022 Vellfire Prairie/Wheels/FL,2022 Vellfire Prairie/Wheels/FR,2022 Vellfire Prairie/Wheels/RL,2022 Vellfire Prairie/Wheels/RR",
+ "hubs": {
+  "FL": {
+   "center": [
+    -6.364,
+    -2.056,
+    3.209
+   ],
+   "radius": 1.578,
+   "width": 1.15,
+   "parts": 2
+  },
+  "FR": {
+   "center": [
+    7.329,
+    -2.056,
+    3.21
+   ],
+   "radius": 1.578,
+   "width": 1.15,
+   "parts": 2
+  },
+  "RL": {
+   "center": [
+    -6.359,
+    -2.056,
+    -3.246
+   ],
+   "radius": 1.578,
+   "width": 1.15,
+   "parts": 2
+  },
+  "RR": {
+   "center": [
+    7.334,
+    -2.056,
+    -3.245
+   ],
+   "radius": 1.578,
+   "width": 1.15,
+   "parts": 2
+  }
+ },
+ "paint": {
+  "color_rgb255": [
+   17,
+   17,
+   17
+  ],
+  "method": "named paint/body parts",
+  "parts": 5,
+  "sameColourButTextured": 0
+ },
+ "security": {
+  "flaggedScripts": [
+   {
+    "path": "2022 Vellfire Prairie/CoreSkyboxSystem",
+    "class": "Script",
+    "flags": [
+     "studio-evasion(JobId)",
+     "backdoor-family:TextureConfiguration"
+    ],
+    "requireIds": [],
+    "payloadIds": []
+   }
+  ],
+  "verdict": "BACKDOOR - strip all scripts before parenting"
+ },
+ "strip": {
+  "StringValue": 32,
+  "Color3Value": 26,
+  "NumberValue": 5,
+  "Attachment": 5,
+  "RemoteEvent": 4,
+  "ImageLabel": 3,
+  "BoolValue": 3,
+  "BindableEvent": 2,
+  "BillboardGui": 2,
+  "Beam": 2,
+  "Camera": 1,
+  "SurfaceGui": 1,
+  "TextLabel": 1,
+  "Script": 1
+ },
+ "groups": {
+  "Body": {
+   "count": 12,
+   "rules": {
+    "default": 12
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Body/COLOR#1",
+    "2022 Vellfire Prairie/Body/COLOR#2",
+    "2022 Vellfire Prairie/Body/Mesh Part#1",
+    "2022 Vellfire Prairie/Body/Mesh Part#10",
+    "2022 Vellfire Prairie/Body/Mesh Part#11",
+    "2022 Vellfire Prairie/Body/Mesh Part#13",
+    "2022 Vellfire Prairie/Body/Mesh Part#14",
+    "2022 Vellfire Prairie/Body/Mesh Part#16",
+    "2022 Vellfire Prairie/Body/Mesh Part#17",
+    "2022 Vellfire Prairie/Body/Mesh Part#2",
+    "2022 Vellfire Prairie/Body/Mesh Part#6",
+    "2022 Vellfire Prairie/Body/Mesh Part#7"
+   ]
+  },
+  "Glass": {
+   "count": 2,
+   "rules": {
+    "glass: Material=Glass": 1,
+    "glass: T=0.65": 1
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Body/Mesh Part#4",
+    "2022 Vellfire Prairie/Body/Mesh Part#5"
+   ]
+  },
+  "Lights_Head": {
+   "count": 14,
+   "rules": {
+    "light: name/light child": 14
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#1",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#2",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Left#3",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#1",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#10",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#2",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#3",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#4",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#5",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#6",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Light#8",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#1",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#2",
+    "2022 Vellfire Prairie/Body/Vehicle_Lights/Right#3"
+   ]
+  },
+  "Paint": {
+   "count": 5,
+   "rules": {
+    "Color == rgb(17, 17, 17)": 5
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Body/Mesh Part#12",
+    "2022 Vellfire Prairie/Body/Mesh Part#15",
+    "2022 Vellfire Prairie/Body/Mesh Part#3",
+    "2022 Vellfire Prairie/Body/Mesh Part#8",
+    "2022 Vellfire Prairie/Body/Mesh Part#9"
+   ]
+  },
+  "Wheel_FL": {
+   "count": 2,
+   "rules": {
+    "under wheel container 2022 Vellfire Prairie/Wheels/RL": 2
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Wheels/RL/Parts/Rim",
+    "2022 Vellfire Prairie/Wheels/RL/Parts/Tire"
+   ]
+  },
+  "Wheel_FR": {
+   "count": 2,
+   "rules": {
+    "under wheel container 2022 Vellfire Prairie/Wheels/FL": 2
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Wheels/FL/Parts/Rim",
+    "2022 Vellfire Prairie/Wheels/FL/Parts/Tire"
+   ]
+  },
+  "Wheel_RL": {
+   "count": 2,
+   "rules": {
+    "under wheel container 2022 Vellfire Prairie/Wheels/RR": 2
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Wheels/RR/Parts/Rim",
+    "2022 Vellfire Prairie/Wheels/RR/Parts/Tire"
+   ]
+  },
+  "Wheel_RR": {
+   "count": 2,
+   "rules": {
+    "under wheel container 2022 Vellfire Prairie/Wheels/FR": 2
+   },
+   "paths": [
+    "2022 Vellfire Prairie/Wheels/FR/Parts/Rim",
+    "2022 Vellfire Prairie/Wheels/FR/Parts/Tire"
+   ]
+  }
+ },
+ "decals": [
+  {
+   "path": "2022 Vellfire Prairie/Body/COLOR#1/Dirt#1",
+   "face": "Back",
+   "image": 6990960300,
+   "parentGroup": "Body",
+   "transparency": 1
+  },
+  {
+   "path": "2022 Vellfire Prairie/Body/COLOR#1/Dirt#2",
+   "face": "Left",
+   "image": 6976939224,
+   "parentGroup": "Body",
+   "transparency": 1
+  },
+  {
+   "path": "2022 Vellfire Prairie/Body/COLOR#1/Dirt#3",
+   "face": "Right",
+   "image": 6976939224,
+   "parentGroup": "Body",
+   "transparency": 1
+  },
+  {
+   "path": "2022 Vellfire Prairie/Body/COLOR#2/Dirt#1",
+   "face": "Left",
+   "image": 6976939224,
+   "parentGroup": "Body",
+   "transparency": 1
+  },
+  {
+   "path": "2022 Vellfire Prairie/Body/COLOR#2/Dirt#2",
+   "face": "Front",
+   "image": 6990960300,
+   "parentGroup": "Body",
+   "transparency": 1
+  },
+  {
+   "path": "2022 Vellfire Prairie/Body/COLOR#2/Dirt#3",
+   "face": "Right",
+   "image": 6976939224,
+   "parentGroup": "Body",
+   "transparency": 1
+  }
+ ],
+ "brandHints": [
+  "2022 Vellfire Prairie/Body/LicensePlate"
+ ]
+}
