@@ -1,0 +1,46 @@
+{
+  "source": "sketchfab",
+  "uid": "48581e4c3ca14d25bca7cdff42db9ef3",
+  "slug": "v-motorcycle--superbike-low-poly-downloadable-48581e",
+  "name": "Superbike Low Poly (Downloadable)",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "rhcreations",
+    "displayName": "rhcreations",
+    "profileUrl": "https://sketchfab.com/rhcreations"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/superbike-low-poly-downloadable-48581e4c3ca14d25bca7cdff42db9ef3",
+  "faceCount": 10473,
+  "vertexCount": 5379,
+  "materialCount": 16,
+  "textureCount": 9,
+  "animationCount": 0,
+  "likeCount": 11,
+  "tags": [
+    "bike",
+    "motorbike",
+    "motorcycle",
+    "superbike",
+    "vehicle"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "A low poly version of the Superbike made using Blender\n\nThe texture sizes are from 512X 512 to 2048 X 2048\n\nI have a blog at: https://rhcreations.tumblr.com/",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--superbike-low-poly-downloadable-48581e/model.glb",
+  "fileBytes": 5898648,
+  "sha256": "0c721c20cb5c77ef370cb4d31ef86715edd5f363832a8e04da5dce20564222cf",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:02:39+00:00",
+  "notes": null
+}

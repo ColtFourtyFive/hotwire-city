@@ -261,7 +261,10 @@
         6.5379,
         8.9128
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/shvan_van_Body_normal.png",
+        "ao": "textures/shvan_van_Body_ao.png"
+      }
     },
     "Glass": {
       "tris": 136,
@@ -289,7 +292,11 @@
         3.4349,
         -7.2895
       ],
-      "textures": {}
+      "textures": {
+        "emit": "textures/shvan_van_Lights_emit.png",
+        "base": "textures/shvan_van_Lights_base.png",
+        "normal": "textures/shvan_van_Lights_normal.png"
+      }
     },
     "LightsRear": {
       "tris": 340,
@@ -303,7 +310,11 @@
         3.4184,
         8.9353
       ],
-      "textures": {}
+      "textures": {
+        "emit": "textures/shvan_van_Lights_emit.png",
+        "base": "textures/shvan_van_Lights_base.png",
+        "normal": "textures/shvan_van_Lights_normal.png"
+      }
     },
     "Trim": {
       "tris": 2600,
@@ -317,7 +328,13 @@
         6.22,
         9.0361
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/shvan_van_Trim_normal.png",
+        "rough": "textures/shvan_van_Trim_rough.png",
+        "metal": "textures/shvan_van_Trim_metal.png",
+        "base": "textures/shvan_van_Trim_base.png",
+        "ao": "textures/shvan_van_Trim_ao.png"
+      }
     },
     "Interior": {
       "tris": 1500,
@@ -331,7 +348,13 @@
         6.3575,
         8.5917
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/shvan_van_Interior_normal.png",
+        "rough": "textures/shvan_van_Interior_rough.png",
+        "metal": "textures/shvan_van_Interior_metal.png",
+        "base": "textures/shvan_van_Interior_base.png",
+        "ao": "textures/shvan_van_Interior_ao.png"
+      }
     },
     "WheelFR": {
       "tris": 837,
@@ -345,7 +368,13 @@
         2.3641,
         -4.1399
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "base": "textures/shvan_van_Wheel_base.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
     },
     "WheelFL": {
       "tris": 837,
@@ -359,7 +388,13 @@
         2.405,
         -4.1399
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "base": "textures/shvan_van_Wheel_base.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
     },
     "WheelRR": {
       "tris": 789,
@@ -373,7 +408,13 @@
         2.3641,
         6.5199
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "base": "textures/shvan_van_Wheel_base.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
     },
     "WheelRL": {
       "tris": 789,
@@ -387,7 +428,13 @@
         2.405,
         6.5199
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/shvan_van_Wheel_metal.png",
+        "base": "textures/shvan_van_Wheel_base.png",
+        "normal": "textures/shvan_van_Wheel_normal.png",
+        "rough": "textures/shvan_van_Wheel_rough.png",
+        "ao": "textures/shvan_van_Wheel_ao.png"
+      }
     }
   },
   "triangles": {

@@ -53,5 +53,69 @@
   "sha256": "ea58a0f5a0a6045ced012104624511a55e3b925cbcd3644f14a8ce0cd7bfbbb4",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:09:37+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      2.9484,
+      5.6454,
+      1.7479
+    ],
+    "dims_m": [
+      2.948,
+      5.645,
+      1.748
+    ],
+    "front_evidence": "names(front=2,rear=2)",
+    "flipped": false,
+    "mesh_objects": 12,
+    "triangles": 9042,
+    "materials": 7,
+    "material_names": [
+      "Body",
+      "Glass",
+      "Interior",
+      "Police_Glass_Blue",
+      "Police_Glass_Red",
+      "Shadow",
+      "Texture"
+    ],
+    "textures": 5,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Wheel_FL_Texture_0",
+      "Wheel_FR_Texture_0",
+      "Wheel_RL_Texture_0",
+      "Wheel_RR_Texture_0"
+    ],
+    "wheel_geom": [
+      "Wheel_FL_Texture_0",
+      "Wheel_FR_Texture_0",
+      "Wheel_RL_Texture_0",
+      "Wheel_RR_Texture_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [],
+    "glass_materials": [
+      "Glass",
+      "Police_Glass_Blue",
+      "Police_Glass_Red"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Interior_Interior_0",
+      "Glass_Glass_0",
+      "Wheel_FL_Texture_0",
+      "Body_Body_0",
+      "Body_Texture_0",
+      "Body_Police_Glass_Red_0",
+      "Body_Police_Glass_Blue_0",
+      "Wheel_FR_Texture_0",
+      "Wheel_RL_Texture_0",
+      "Wheel_RR_Texture_0",
+      "Shadow_Shadow_0",
+      "Details_Texture_0"
+    ],
+    "hidden_helpers": [],
+    "render_s": 37.1
+  }
 }

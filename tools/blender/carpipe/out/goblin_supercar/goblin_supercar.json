@@ -12,42 +12,42 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "goblin_supercar.glb",
   "dimensions": {
-    "length": 17.0,
-    "width": 8.351,
-    "height": 4.333,
-    "wheelbase": 9.737,
-    "track_front": 5.923,
-    "track_rear": 6.715,
+    "length": 15.5,
+    "width": 7.614,
+    "height": 3.951,
+    "wheelbase": 8.878,
+    "track_front": 5.401,
+    "track_rear": 6.123,
     "bbox_min": [
-      -4.1796,
-      -0.0085,
-      -8.8663
+      -3.8108,
+      -0.0077,
+      -8.084
     ],
     "bbox_max": [
-      4.1712,
-      4.3245,
-      8.1337
+      3.8031,
+      3.9429,
+      7.416
     ]
   },
   "wheels": {
     "FL": {
       "object": "WheelFL",
       "center": [
-        -2.9616,
-        1.2945,
-        -4.8684
+        -2.7003,
+        1.1803,
+        -4.4388
       ],
-      "radius": 1.2875,
-      "width": 1.588,
+      "radius": 1.1739,
+      "width": 1.4479,
       "part_center": [
-        -2.9677,
-        1.2948,
-        -4.8668
+        -2.7059,
+        1.1805,
+        -4.4374
       ],
       "attachment_offset": [
-        0.0062,
+        0.0056,
         -0.0002,
-        -0.0015
+        -0.0014
       ],
       "axle": [
         1,
@@ -60,21 +60,21 @@
     "FR": {
       "object": "WheelFR",
       "center": [
-        2.9616,
-        1.279,
-        -4.8683
+        2.7003,
+        1.1662,
+        -4.4388
       ],
-      "radius": 1.2875,
-      "width": 1.5644,
+      "radius": 1.1739,
+      "width": 1.4264,
       "part_center": [
-        2.9668,
-        1.2793,
-        -4.8662
+        2.705,
+        1.1664,
+        -4.4369
       ],
       "attachment_offset": [
-        -0.0052,
+        -0.0048,
         -0.0002,
-        -0.0021
+        -0.0019
       ],
       "axle": [
         1,
@@ -87,21 +87,21 @@
     "RL": {
       "object": "WheelRL",
       "center": [
-        -3.3576,
-        1.3525,
-        4.8684
+        -3.0613,
+        1.2332,
+        4.4388
       ],
-      "radius": 1.3513,
-      "width": 1.6441,
+      "radius": 1.2321,
+      "width": 1.499,
       "part_center": [
-        -3.3606,
-        1.3521,
-        4.8614
+        -3.064,
+        1.2328,
+        4.4325
       ],
       "attachment_offset": [
-        0.003,
-        0.0004,
-        0.0069
+        0.0027,
+        0.0003,
+        0.0063
       ],
       "axle": [
         1,
@@ -114,21 +114,21 @@
     "RR": {
       "object": "WheelRR",
       "center": [
-        3.3575,
-        1.3516,
-        4.8683
+        3.0613,
+        1.2324,
+        4.4387
       ],
-      "radius": 1.3513,
-      "width": 1.6272,
+      "radius": 1.2321,
+      "width": 1.4836,
       "part_center": [
-        3.3611,
-        1.3512,
-        4.861
+        3.0645,
+        1.232,
+        4.4321
       ],
       "attachment_offset": [
-        -0.0035,
-        0.0004,
-        0.0073
+        -0.0032,
+        0.0003,
+        0.0066
       ],
       "axle": [
         1,
@@ -142,17 +142,17 @@
   "seats": {
     "driver": {
       "position": [
-        -1.5866,
-        1.5599,
-        0.7789
+        -1.4466,
+        1.4222,
+        0.7102
       ],
       "estimated": true
     },
     "passenger": {
       "position": [
-        1.5866,
-        1.5599,
-        0.7789
+        1.4466,
+        1.4222,
+        0.7102
       ],
       "estimated": true
     },
@@ -162,9 +162,9 @@
     "front": [
       {
         "position": [
-          -3.0063,
-          1.8199,
-          -8.33
+          -2.741,
+          1.6593,
+          -7.595
         ],
         "direction": [
           0,
@@ -175,9 +175,9 @@
       },
       {
         "position": [
-          3.0063,
-          1.8199,
-          -8.33
+          2.741,
+          1.6593,
+          -7.595
         ],
         "direction": [
           0,
@@ -190,9 +190,9 @@
     "rear": [
       {
         "position": [
-          -3.0063,
-          2.2532,
-          8.33
+          -2.741,
+          2.0544,
+          7.595
         ],
         "direction": [
           0,
@@ -203,9 +203,9 @@
       },
       {
         "position": [
-          3.0063,
-          2.2532,
-          8.33
+          2.741,
+          2.0544,
+          7.595
         ],
         "direction": [
           0,
@@ -219,147 +219,191 @@
   "exhausts": [
     {
       "position": [
-        -2.5052,
-        0.52,
-        7.9637
+        -2.2842,
+        0.4741,
+        7.261
       ],
       "estimated": true
     }
   ],
   "center_of_mass_hint": [
     0.0,
-    1.3866,
+    1.2642,
     -0.0
   ],
   "paint": {
-    "route": "strip",
+    "route": "tintmask",
     "primary": {
       "object": "Body",
       "material": "car_body",
       "color_srgb": [
-        0.0522,
-        0.0429,
-        0.0401
+        0.0,
+        0.0,
+        0.0
       ],
       "textured": true,
       "metallic": 0.0,
-      "roughness": 0.5
+      "roughness": 0.5,
+      "mask_coverage": 0.542
     },
     "secondary": null,
-    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
   },
   "objects": {
     "Body": {
       "tris": 6999,
       "bbox_min": [
-        -4.0311,
-        0.179,
-        -8.8656
+        -3.6754,
+        0.1632,
+        -8.0834
       ],
       "bbox_max": [
-        4.0315,
-        4.3215,
-        8.1342
+        3.6758,
+        3.9402,
+        7.4165
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/goblin_supercar_Body_normal.png",
+        "rough": "textures/goblin_supercar_Body_rough.png",
+        "metal": "textures/goblin_supercar_Body_metal.png",
+        "base": "textures/goblin_supercar_Body_base.png",
+        "tintmask": "textures/goblin_supercar_Body_tintmask.png",
+        "overlay": "textures/goblin_supercar_Body_overlay.png"
+      }
     },
     "Glass": {
       "tris": 700,
       "bbox_min": [
-        -3.4231,
-        1.6083,
-        -8.2631
+        -3.121,
+        1.4664,
+        -7.534
       ],
       "bbox_max": [
-        3.4304,
-        3.9858,
-        7.6755
+        3.1278,
+        3.6341,
+        6.9982
       ],
       "textures": {}
     },
     "Trim": {
       "tris": 2600,
       "bbox_min": [
-        -4.001,
-        0.2027,
-        -8.4469
+        -3.648,
+        0.1849,
+        -7.7016
       ],
       "bbox_max": [
-        4.0015,
-        4.3251,
-        7.787
+        3.6484,
+        3.9434,
+        7.0999
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/goblin_supercar_Trim_normal.png",
+        "rough": "textures/goblin_supercar_Trim_rough.png",
+        "metal": "textures/goblin_supercar_Trim_metal.png",
+        "base": "textures/goblin_supercar_Trim_base.png",
+        "ao": "textures/goblin_supercar_Trim_ao.png"
+      }
     },
     "Interior": {
       "tris": 1500,
       "bbox_min": [
-        -3.4059,
-        0.7914,
-        -8.3464
+        -3.1053,
+        0.7216,
+        -7.61
       ],
       "bbox_max": [
-        3.4132,
-        3.7517,
-        7.6701
+        3.112,
+        3.4207,
+        6.9934
       ],
-      "textures": {}
+      "textures": {
+        "normal": "textures/goblin_supercar_Interior_normal.png",
+        "rough": "textures/goblin_supercar_Interior_rough.png",
+        "metal": "textures/goblin_supercar_Interior_metal.png",
+        "base": "textures/goblin_supercar_Interior_base.png",
+        "ao": "textures/goblin_supercar_Interior_ao.png"
+      }
     },
     "WheelFL": {
       "tris": 899,
       "bbox_min": [
-        -3.7617,
-        0.0076,
-        -6.1934
+        -3.4298,
+        0.0069,
+        -5.6469
       ],
       "bbox_max": [
-        -2.1738,
-        2.582,
-        -3.5403
+        -1.982,
+        2.3542,
+        -3.2279
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
+        "base": "textures/goblin_supercar_Wheel_base.png",
+        "rough": "textures/goblin_supercar_Wheel_rough.png",
+        "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "ao": "textures/goblin_supercar_Wheel_ao.png"
+      }
     },
     "WheelFR": {
       "tris": 899,
       "bbox_min": [
-        2.1857,
-        -0.008,
-        -6.1885
+        1.9928,
+        -0.0073,
+        -5.6425
       ],
       "bbox_max": [
-        3.748,
-        2.5665,
-        -3.5439
+        3.4173,
+        2.34,
+        -3.2312
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
+        "base": "textures/goblin_supercar_Wheel_base.png",
+        "rough": "textures/goblin_supercar_Wheel_rough.png",
+        "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "ao": "textures/goblin_supercar_Wheel_ao.png"
+      }
     },
     "WheelRL": {
       "tris": 900,
       "bbox_min": [
-        -4.1784,
-        0.0017,
-        3.4696
+        -3.8097,
+        0.0016,
+        3.1635
       ],
       "bbox_max": [
-        -2.5427,
-        2.7025,
-        6.2532
+        -2.3184,
+        2.4641,
+        5.7015
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
+        "base": "textures/goblin_supercar_Wheel_base.png",
+        "rough": "textures/goblin_supercar_Wheel_rough.png",
+        "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "ao": "textures/goblin_supercar_Wheel_ao.png"
+      }
     },
     "WheelRR": {
       "tris": 900,
       "bbox_min": [
-        2.5514,
-        0.0009,
-        3.4722
+        2.3263,
+        0.0008,
+        3.1659
       ],
       "bbox_max": [
-        4.1708,
-        2.7016,
-        6.2498
+        3.8028,
+        2.4633,
+        5.6983
       ],
-      "textures": {}
+      "textures": {
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
+        "base": "textures/goblin_supercar_Wheel_base.png",
+        "rough": "textures/goblin_supercar_Wheel_rough.png",
+        "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "ao": "textures/goblin_supercar_Wheel_ao.png"
+      }
     }
   },
   "triangles": {
@@ -385,54 +429,54 @@
   },
   "scale": {
     "source_length": 0.11811286211013794,
-    "factor": 143.93013340196458,
-    "target_length": 17.0
+    "factor": 131.23041574885005,
+    "target_length": 15.5
   },
   "classes": {
     "Body": {
       "islands": 103,
       "faces": 39805,
-      "area": 597.593
+      "area": 496.788
     },
     "Glass": {
       "islands": 9,
       "faces": 820,
-      "area": 21.572
+      "area": 17.933
     },
     "Trim": {
       "islands": 10,
       "faces": 11737,
-      "area": 123.735
+      "area": 102.862
     },
     "Interior": {
       "islands": 29,
       "faces": 2896,
-      "area": 50.595
+      "area": 42.06
     },
     "Discard": {
       "islands": 18,
       "faces": 9628,
-      "area": 84.518
+      "area": 70.261
     },
     "WheelFL": {
       "islands": 4,
       "faces": 5391,
-      "area": 32.166
+      "area": 26.74
     },
     "WheelFR": {
       "islands": 4,
       "faces": 5421,
-      "area": 32.168
+      "area": 26.742
     },
     "WheelRL": {
       "islands": 4,
       "faces": 5445,
-      "area": 35.242
+      "area": 29.297
     },
     "WheelRR": {
       "islands": 4,
       "faces": 5445,
-      "area": 35.242
+      "area": 29.297
     }
   },
   "warnings": []

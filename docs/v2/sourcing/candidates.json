@@ -297,6 +297,42 @@
   "glb_mb": 12.2
  },
  {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "uid": "48581e4c3ca14d25bca7cdff42db9ef3",
+  "name": "Superbike Low Poly (Downloadable)",
+  "author": "rhcreations",
+  "faces": 10473,
+  "glb_mb": 0
+ },
+ {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "uid": "82b69feb0d314d2f8d4dfab29046a58f",
+  "name": "Superbike v1.1 (Free Download)",
+  "author": "rhcreations",
+  "faces": 93572,
+  "glb_mb": 0
+ },
+ {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "uid": "6c576c901a094b0d83e490a10c7b8021",
+  "name": "Mid-poly street motorcycle",
+  "author": "tonycheuk",
+  "faces": 15120,
+  "glb_mb": 0
+ },
+ {
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "uid": "2c2e5e2b36164fa69ba40b9d3be6ef4c",
+  "name": "Kawasaki H2R Model",
+  "author": "santunihu",
+  "faces": 60532,
+  "glb_mb": 0
+ },
+ {
   "class": "muscle",
   "kind": "vehicle",
   "uid": "955edc733c6d44fabc0ad7c246a15896",

@@ -1008,5 +1008,25 @@
   "mb": 3.4,
   "license": "by",
   "conversion": "none"
+ },
+ "48581e4c3ca14d25bca7cdff42db9ef3": {
+  "status": "ok",
+  "slug": "v-motorcycle--superbike-low-poly-downloadable-48581e",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "name": "Superbike Low Poly (Downloadable)",
+  "mb": 5.9,
+  "license": "by",
+  "conversion": "none"
+ },
+ "82b69feb0d314d2f8d4dfab29046a58f": {
+  "status": "ok",
+  "slug": "v-motorcycle--superbike-v1-1-free-download-82b69f",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "name": "Superbike v1.1 (Free Download)",
+  "mb": 15.0,
+  "license": "by",
+  "conversion": "none"
  }
 }

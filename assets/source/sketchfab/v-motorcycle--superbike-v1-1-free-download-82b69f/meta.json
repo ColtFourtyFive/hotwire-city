@@ -1,0 +1,46 @@
+{
+  "source": "sketchfab",
+  "uid": "82b69feb0d314d2f8d4dfab29046a58f",
+  "slug": "v-motorcycle--superbike-v1-1-free-download-82b69f",
+  "name": "Superbike v1.1 (Free Download)",
+  "class": "motorcycle",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "rhcreations",
+    "displayName": "rhcreations",
+    "profileUrl": "https://sketchfab.com/rhcreations"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/superbike-v11-free-download-82b69feb0d314d2f8d4dfab29046a58f",
+  "faceCount": 93572,
+  "vertexCount": 48102,
+  "materialCount": 24,
+  "textureCount": 21,
+  "animationCount": 0,
+  "likeCount": 4,
+  "tags": [
+    "bike",
+    "motorbike",
+    "motorcycle",
+    "superbike",
+    "vehicle"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "A generic Superbike made using Blender 2.79b and the Cycles render engine\n\nThe textures are of sizes: 420 X 420 to 2048 X 2048\n\nimages:\n\n![](http://oi66.tinypic.com/id6hwm.jpg)\n\n![](http://i65.tinypic.com/auxogz.png)\n\n![](http://i63.tinypic.com/15ydxs4.png)",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-motorcycle--superbike-v1-1-free-download-82b69f/model.glb",
+  "fileBytes": 15017456,
+  "sha256": "e14cb5abdd17f4f8bcc684423d6be4a3ad9f82e558b28db91a6988c0989837ee",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:02:47+00:00",
+  "notes": null
+}
