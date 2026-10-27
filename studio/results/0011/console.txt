@@ -1,0 +1,50 @@
+# Job 0011 Server Output (LogService:GetLogHistory, 487 lines at 21:50 UTC; Play session started 21:40:34)
+# All non-asset lines are verbatim. The asset-load failures (repetitive ContentId / sound lines) are collapsed
+# to one line per asset id with a count. HTTP is disabled in Play, so the raw log could not be posted out.
+# The pre-reconnect Play attempt (the MCP connection dropped) showed the same pattern: MaterialOverrides 16/16 and the same 403s.
+
+## Non-asset lines (verbatim)
+21:40:34 [MessageOutput] [MaterialOverrides] server: 16 active (0 set, 16 already)
+21:40:34 [MessageOutput] [Server] Hotwire City booted with 24 systems
+21:40:36 [MessageWarning] [DataService] illintent1's profile is locked by another server (attempt 1/6)
+21:40:42 [MessageWarning] [DataService] illintent1's profile is locked by another server (attempt 2/6)
+21:40:43 [MessageWarning] [AssetLibrary] Props/flower_bed unavailable; using procedural fallback
+21:40:48 [MessageWarning] [DataService] illintent1's profile is locked by another server (attempt 3/6)
+21:40:55 [MessageWarning] [DataService] illintent1's profile is locked by another server (attempt 4/6)
+21:41:01 [MessageWarning] [DataService] illintent1's profile is locked by another server (attempt 5/6)
+21:41:07 [MessageWarning] [DataService] illintent1's profile is locked by another server (attempt 6/6)
+21:41:16 [MessageWarning] [DataService] stole a live-looking lock for illintent1 after retries
+21:41:55 [MessageError] Unable to load MaterialService.HC_Sidewalk - NormalMap 'rbxassetid://110858632664595' (Error: HTTP 403 (Forbidden)).
+21:41:55 [MessageError] Unable to load MaterialService.HC_Sidewalk - RoughnessMap 'rbxassetid://134979087290717' (Error: HTTP 403 (Forbidden)).
+21:41:55 [MessageError] Unable to load MaterialService.HC_Asphalt - NormalMap 'rbxassetid://82395533791334' (Error: HTTP 403 (Forbidden)).
+21:41:55 [MessageError] Unable to load MaterialService.HC_Asphalt - ColorMap 'rbxassetid://112223103107268' (Error: HTTP 403 (Forbidden)).
+21:41:55 [MessageError] Unable to load MaterialService.HC_Sidewalk - ColorMap 'rbxassetid://86008103423825' (Error: HTTP 403 (Forbidden)).
+21:41:55 [MessageError] Unable to generate 'MaterialService.HC_Sidewalk' due to some of the textures being unavailable. Change a TextureId property to retry.
+21:41:55 [MessageError] Unable to load MaterialService.HC_Asphalt - RoughnessMap 'rbxassetid://121272890641417' (Error: HTTP 403 (Forbidden)).
+21:41:55 [MessageError] Unable to generate 'MaterialService.HC_Asphalt' due to some of the textures being unavailable. Change a TextureId property to retry.
+21:42:24 [MessageWarning] [DataService] save failed for 11686693147 (attempt 1/3): HTTP 403
+21:42:30 [MessageWarning] [DataService] save failed for 11686693147 (attempt 2/3): HTTP 403
+21:42:36 [MessageError] DataStoreService: AccessForbidden: Access forbidden. API: GetSortedAsync, Data Store: LB_totalEarned_v1
+21:42:36 [MessageWarning] [Leaderboard] read totalEarned failed: 502: API Services rejected request with error. Error code: 0 Reason: Access forbidden.
+21:42:36 [MessageError] DataStoreService: AccessForbidden: Access forbidden. API: GetSortedAsync, Data Store: LB_steals_v1
+21:42:36 [MessageWarning] [Leaderboard] read steals failed: 502: API Services rejected request with error. Error code: 0 Reason: Access forbidden.
+21:42:36 [MessageWarning] [DataService] save failed for 11686693147 (attempt 3/3): HTTP 403
+21:44:12 [MessageError] DataStoreService: N/A: HTTP 403 API: SetAsync, Data Store: LB_totalEarned_v1
+21:44:12 [MessageWarning] [Leaderboard] write totalEarned for 11686693147 failed: HTTP 403
+(the DataService save-failed x3 cycle and the Leaderboard read/write 403s repeat every ~2 min: 21:44, 21:46, 21:48, 21:49, 21:50)
+21:50:46 [MessageError] HTTP requests are not enabled. Enable via Experience Settings   <- my own log-export attempt, not a game error
+
+## Client
+[MaterialOverrides] client: 16 active (0 set, 16 already)
+[Client] illintent1 ready with 19 controllers
+Insufficient permissions to set SavedQualityLevel   <- my own test command, not a game error
+
+## Asset load failures (asset id: count)
+Pre-existing "Asset type does not match requested type" (1 each): 9119165131 9116546593 9114590297 9112891352 9113726510 9114402206 125094987563505 9119165140 9112758500 80317022777602 9113728042 9113661285 9117969584 9114402205 87646813759701 9119186024 9118708982 78270463799678 203785492
+Pre-existing: 81504106 "Request asset was not found"; 4542793421 "User is not authorized to access Asset" x2
+NEW, HTTP 403 (Forbidden), from 21:41:23 on (126 distinct ids, ~400 lines):
+  HC_ material maps: 112223103107268 x5, 82395533791334 x2, 121272890641417 x2, 86008103423825 x2, 110858632664595 x2, 134979087290717, 88103143620940, 130389958232148
+  Skies: 109667193500398 (day HDRI) x3, 98461351795375 (night Ft), 122246640713360 (blue-hour/night set) + 117299015005250 79579945003167 88562914711616 128421368724949 96569696092312 71763556424955 79552634608475 90717854341912 80685099604519 79230279114248
+  Sounds: 80317022777602 x155, 9119186024 x15, 15675028888 x3, 15675032796 x4
+  Other (vehicles/props/UI), 1-6 each: 83551217156102 120372093537538 89657957799975 9920580094 9438410548 9930003180 125749046034308 77915306832676 91151786791158 96526623600845 109068994523899 10475580 73334246486799 9920517963 84562406246641 103854628839649 73649606519428 108612117752002 135029095694809 133461335728312 98840970422607 132947325550302 138295932795839 113829047157450 94554913799495 138148342819336 376189070 2907184367 75225294617477 111869334558231 134605258468282 80732619274146 93725101722578 100990569298014 135704784587342 120644505908876 71919480030926 73501237525325 140346328000610 106195631576464 131286580059214 9114402205 136028708103913 103451857953217 93828162272091 114293391013152 117289194505943 134336914585056 140136782335427 127601396734447 112920749392871 121291682280773 9438410239 84232303327804 84991053857530 124185930037647 120159066119167 105061267454335 99439881296609 119464967751911 108757670563698 123664518481108 9873266399 98225971335967 109044232363050 81393827777602 123726298524383 75191033196532 81577505740546 9114402206 70828020326332 18987684 132467235584597 99804051733745 125287203683449 117824835316797 115890025301757 95147798390796 88217219073950 122238341761084 138472600123594 9113726510 135447743107332 140453079716506 80074989078758 75271965678930 77773887156793 94430919143951 126228742600596
+Even old Roblox catalog ids (10475580, 18987684, 376189070) return 403, so this is account-level, not per-asset permissions.
