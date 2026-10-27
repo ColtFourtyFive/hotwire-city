@@ -44,5 +44,39 @@
   "sha256": "0b5f4d5b429c92a02b69b20cbb0ae39f154d1a0612fd431730807be459adc2a1",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:12:16+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      0.2808,
+      0.5622,
+      0.1945
+    ],
+    "dims_m": [
+      0.562,
+      0.194,
+      0.281
+    ],
+    "front_evidence": "upright_band",
+    "flipped": false,
+    "mesh_objects": 2,
+    "triangles": 20382,
+    "materials": 2,
+    "material_names": [
+      "Glock_Mat4",
+      "material"
+    ],
+    "textures": 7,
+    "texture_max_px": 1024,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Display1_mm1_0",
+      "Display1_Glock_Mat4_0"
+    ],
+    "render_s": 41.5
+  }
 }

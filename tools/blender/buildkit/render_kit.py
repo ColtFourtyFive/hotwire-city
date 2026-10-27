@@ -177,21 +177,21 @@ def sc_single_lot(a, arch, seed, name, cam, target, lens=22, sun=-130.0, neighbo
 
 
 def sc_strip(a):
-    return sc_single_lot(a, "strip", 2, "strip_mall", (-95, -38, 6.5), (10, 60, 16), lens=22,
+    return sc_single_lot(a, "strip", 2, "strip_mall", (-78, 31, 6.0), (6, 112, 13), lens=22,
                          neighbours=(("corner_store", 1),), kw={"units": 5})
 
 
 def sc_gas(a):
-    return sc_single_lot(a, "gas", 1, "gas_station", (-110, -30, 6.0), (0, 60, 12), lens=22, neighbours=(("diner", 2),),
+    return sc_single_lot(a, "gas", 1, "gas_station", (-82, 31, 6.0), (4, 96, 11), lens=22, neighbours=(("diner", 2),),
                          cars_frac=0.4)
 
 
 def sc_diner(a):
-    return sc_single_lot(a, "diner", 1, "diner", (-60, -26, 5.5), (5, 62, 14), lens=22, neighbours=(("gas", 3),))
+    return sc_single_lot(a, "diner", 1, "diner", (-52, 32, 5.5), (2, 96, 11), lens=22, neighbours=(("gas", 3),))
 
 
 def sc_store(a):
-    return sc_single_lot(a, "corner_store", 2, "corner_store", (-55, -28, 5.5), (0, 62, 9), lens=24,
+    return sc_single_lot(a, "corner_store", 2, "corner_store", (-46, 32, 5.5), (2, 92, 9), lens=22,
                          neighbours=(("strip", 4), ("diner", 3)))
 
 

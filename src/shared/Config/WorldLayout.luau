@@ -2317,7 +2317,7 @@ local RESERVED_AREAS: { { poly: { P2 }, name: string } } = {
 	{ name = "Rail Yard", poly = poly({ { 2110, 1180 }, { 3700, 1180 }, { 3700, 1520 }, { 2110, 1520 } }) },
 	{ name = "Hotwire Plaza", poly = poly({ { 175, -240 }, { 470, -240 }, { 470, 55 }, { 175, 55 } }) },
 	{ name = "Echo Park", poly = poly({ { -2050, 1600 }, { -1450, 1600 }, { -1450, 2000 }, { -2050, 2000 } }) },
-	{ name = "Iron Bay Arena", poly = poly({ { 1000, 2340 }, { 1480, 2340 }, { 1480, 2800 }, { 1000, 2800 } }) },
+	{ name = "Iron Bay Arena", poly = poly({ { 1000, 2080 }, { 1480, 2080 }, { 1480, 2800 }, { 1000, 2800 } }) },
 }
 do
 	local ch = WorldLayout.Channel
@@ -3411,6 +3411,9 @@ local function placeOnFrontage(
 				local entrance = Vector3.new(px + nx * curb, py, pz + nz * curb)
 				local obb: WorldGen.OBB = { cx = cx, cz = cz, ux = tx, uz = tz, hw = w / 2, hd = d / 2 }
 				local clear, why = footprintClear(obb)
+				if _G.WL_DEBUG_PLACE == label then
+					print(label, Edges[ei].name, math.floor(s), side, math.floor(cx), math.floor(cz), why)
+				end
 				if firstCf == nil then
 					firstCf, firstEntrance, firstEdge, firstObb = cf, entrance, ei, obb
 					firstWhy = why
