@@ -92,6 +92,17 @@ return function(t)
 		t.ok(not CombatService.shouldAddAssaultHeat(with("victimWanted", 2)), "wanted criminal")
 	end)
 
+	t.test("defend contract: any thief bonked out of a Stolen car, or a wanted Loot driver", function()
+		local counts = CombatService.countsAsThiefBonk
+		t.ok(counts("Stolen", 0), "player thief (any attacker, not just the victim)")
+		t.ok(counts("Stolen", 3))
+		t.ok(counts("Loot", 1), "wanted car thief")
+		t.ok(not counts("Loot", 0), "clean loot driver")
+		t.ok(not counts("Owned", 5), "own car")
+		t.ok(not counts("Traffic", 2))
+		t.ok(not counts(nil, 2))
+	end)
+
 	t.test("segmentCrossesStrip: swept crossing, misses and height", function()
 		local hw, hd, h = 8.5, 2.5, 9
 		-- driving straight across the strip between two samples (never inside the footprint at a sample)

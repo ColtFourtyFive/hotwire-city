@@ -9,7 +9,8 @@
 --  * Engine loop: the ≤ 6 closest "Vehicle"-tagged cars that are actually being driven (a seated driver, or AI-driven
 --    Traffic/Police) get a looping engine Sound in their chassis, PlaybackSpeed = 0.7 + 1.1 × speed / topSpeed
 --    (topSpeed from Config/Cars by the CarId attribute, Cars.Police for police), smoothed per frame.
---  * Police sirens: the ≤ 3 closest "Police"-tagged cars within 250 studs carry a looping siren.
+--  * Police sirens: the ≤ 3 closest "Police"-tagged cars within 250 studs carry a looping siren (skipped while the
+--    server marks the unit Siren=false: leaving or wrecked).
 --  * City ambience loop at low volume (ducked while driving).
 --  * Settings: snapshot settings.sfx / settings.music drive two SoundGroups (HC_SFX, HC_Music); ambience counts as
 --    "music". setEnabled / setVolume let other controllers (e.g. Settings menu previews) override locally.
@@ -621,6 +622,10 @@ local function scan()
 	for model in policeModels do
 		if model.Parent == nil then
 			policeModels[model] = nil
+			continue
+		end
+		-- PoliceService sets Siren=false on units that are leaving or wrecked (nil = on: older/unreplicated units)
+		if model:GetAttribute("Siren") == false then
 			continue
 		end
 		local chassis = chassisOfCar(model)

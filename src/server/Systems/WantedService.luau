@@ -4,18 +4,27 @@
 -- Public API (docs/SPEC.md §6):
 --   addHeat(player, stars, reason)      raise wanted level (ignored during post-bust grace; halved for brand-new players)
 --   getStars(player): number
---   clear(player, reason)               drop to 0 stars ("decay"/"spray" count as an escape for contracts)
---   bust(player): boolean               BUSTED: cash penalty, car handling, release at Police HQ
+--   clear(player, reason): boolean      drop to 0 stars ("decay"/"spray" count as an escape for contracts); returns
+--                                       true only when there were stars to clear (paid products check this)
+--   bust(player, reason?): boolean      BUSTED: theft fails / loot impounded, cash penalty, release at Police HQ
 --   Changed: Signal(player, stars, old)
 --   Busted: Signal(player)
--- Extra helpers: set(player, stars, reason), isInGrace(player), getPeak(player)
--- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickDecay
+-- Extra helpers: set(player, stars, reason), isInGrace(player), getPeak(player),
+--   consumeRespawnAtHQ(player): boolean  true once after a wanted player died (reset) and was busted for it;
+--                                       PlotService spawns that character at Police HQ instead of the garage
+-- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickDecay, _sprayCost
 --
+-- Remotes: Busted(lostCash: number, carLabel: string?) carLabel = the impounded car (failed theft / loot) if any.
 -- Player attributes written here: Wanted (0..5), WantedSeen (bool: a cop currently sees you; HUD can flash the
--- stars GTA-style while you are hidden and the decay timer is running).
+-- stars GTA-style while you are hidden and the decay timer is running), WantedDecayAt (number: server time
+-- (Workspace:GetServerTimeNow) when the next star drops if you stay hidden; 0 while seen / not wanted).
+--
+-- Spray Shops only work while no cop sees you: a seen car waiting in the booth is sprayed as soon as they lose you.
+-- Dying while wanted (e.g. resetting to get home) is a bust, unless it happens inside your own garage.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
 local Net = require(Shared.Net)
@@ -24,6 +33,8 @@ local MapLayout = require(Shared.Util.MapLayout)
 local PoliceConfig = require(Shared.Config.Police)
 local Economy = require(Shared.Config.Economy)
 local VehicleConfig = require(Shared.Config.Vehicle)
+local Cars = require(Shared.Config.Cars)
+local Rarity = require(Shared.Config.Rarity)
 
 local WantedService = {}
 
@@ -35,8 +46,11 @@ local BUST_GRACE = 8 -- seconds after a bust during which no heat can be added
 local NEW_PLAYER_WINDOW = 30 -- brand-new players get halved heat for this long after joining
 local DECAY_INTERVAL = 0.25
 local RELEASE_DELAY = 1.1 -- seconds between the BUSTED stamp and the teleport to Police HQ
+local RELEASE_STUN_EXTRA = 0.3 -- busted players stay stunned a moment past the teleport (no hopping into cars)
+local RESPAWN_AT_HQ_WINDOW = 60 -- a died-while-wanted bust sends the next spawn within this long to Police HQ
 local SPRAY_COOLDOWN = 1.5
 local SPRAY_FAIL_NOTIFY_COOLDOWN = 4
+local DECAY_ATTR_EPSILON = 0.5 -- rewrite WantedDecayAt only when it moves by more than this (seconds)
 
 type State = {
 	stars: number,
@@ -48,6 +62,10 @@ type State = {
 	hintedWanted: boolean,
 	lastSprayAt: number,
 	lastSprayFailNotify: number,
+	lastSprayWatchNotify: number,
+	pendingSpray: any?, -- car waiting in a Spray Shop for the cops to lose sight of it
+	decayAttr: number, -- last WantedDecayAt written
+	respawnAtHQ: number?, -- clock time of a died-while-wanted bust (consumed by PlotService on respawn)
 	busting: boolean,
 }
 
@@ -84,6 +102,13 @@ local hooks = {
 	end,
 	fireNear = function(name: string, position: Vector3, radius: number, ...: any)
 		Net.fireNear(name, position, radius, ...)
+	end,
+	-- shared clock for client countdowns (WantedDecayAt)
+	serverNow = function(): number
+		local ok, t = pcall(function()
+			return Workspace:GetServerTimeNow()
+		end)
+		return if ok and typeof(t) == "number" then t else os.clock()
 	end,
 }
 
@@ -156,6 +181,31 @@ function WantedService._tickDecay(st: { stars: number, nextDecayAt: number }, no
 	return st.stars
 end
 
+-- Spray Shop price (docs/integration/DECISIONS.md): stars * max(SPRAY_COST_PER_STAR, income/s * SPRAY_INCOME_SECONDS),
+-- whole dollars, so a fresh paint job stays a real cost at every stage of the game.
+function WantedService._sprayCost(stars: number, incomePerSec: number): number
+	if stars ~= stars or stars <= 0 then
+		return 0
+	end
+	local income = if incomePerSec == incomePerSec and incomePerSec > 0 then incomePerSec else 0
+	local perStar = math.max(Economy.SPRAY_COST_PER_STAR, income * Economy.SPRAY_INCOME_SECONDS)
+	return math.floor(math.floor(stars) * perStar)
+end
+
+-- "GOLD Phantom GT" style label for a car record (nil when the record has no known car id).
+function WantedService._carLabel(car: any): string?
+	if typeof(car) ~= "table" or typeof(car.carId) ~= "string" then
+		return nil
+	end
+	local def = Cars.get(car.carId)
+	local name = if def then def.name else car.carId
+	local mut = Rarity.getMutation(if typeof(car.mutation) == "string" then car.mutation :: any else "None")
+	if mut.label ~= "" then
+		return mut.label .. " " .. name
+	end
+	return name
+end
+
 -- STATE -------------------------------------------------------------------------------------------------
 
 local function newState(): State
@@ -169,6 +219,10 @@ local function newState(): State
 		hintedWanted = false,
 		lastSprayAt = -math.huge,
 		lastSprayFailNotify = -math.huge,
+		lastSprayWatchNotify = -math.huge,
+		pendingSpray = nil,
+		decayAttr = 0,
+		respawnAtHQ = nil,
 		busting = false,
 	}
 end
@@ -247,8 +301,11 @@ local function applyStars(player: Player, st: State, newStars: number, reason: s
 		local peak = st.peak
 		st.peak = 0
 		st.seen = false
+		st.pendingSpray = nil
+		st.decayAttr = 0
 		pcall(function()
 			player:SetAttribute("WantedSeen", false)
+			player:SetAttribute("WantedDecayAt", 0)
 		end)
 		if old >= 1 and (reason == "decay" or reason == "spray") then
 			progress(player, "escape", 1)
@@ -346,12 +403,14 @@ function WantedService.set(player: Player, stars: number, reason: string?)
 	applyStars(player, st, stars, reason or "admin")
 end
 
-function WantedService.clear(player: Player, reason: string?)
+-- Returns true when stars were actually cleared (false: the player was not wanted, nothing changed).
+function WantedService.clear(player: Player, reason: string?): boolean
 	local st = states[player]
 	if not st or st.stars == 0 then
-		return
+		return false
 	end
 	applyStars(player, st, 0, reason or "clear")
+	return true
 end
 
 local function getIncome(player: Player): number
@@ -400,18 +459,21 @@ local function takePenalty(player: Player): number
 	return penalty
 end
 
--- Ejects the busted player and deals with the car they were driving.
-local function handleCar(player: Player)
+-- Ejects the busted player and deals with the car they were driving. Returns the impounded car's label (a failed
+-- theft or a destroyed Loot car) for the Busted overlay, nil when nothing was taken.
+local function handleCar(player: Player): string?
 	local VehicleService = sys("VehicleService")
 	if not VehicleService or typeof(VehicleService.getDriving) ~= "function" then
-		return
+		return nil
 	end
 	local ok, car = pcall(VehicleService.getDriving, player)
 	if not ok or not car then
-		return
+		return nil
 	end
-	pcall(VehicleService.eject, car)
+	local label = WantedService._carLabel(car)
 	if car.kind == "Stolen" then
+		-- end the theft BEFORE the eject: ejecting first makes TheftService treat it as a dropped car
+		-- ("Grab it back!" / "Get back in!") a moment before it fails (DECISIONS.md: fail, then eject)
 		local TheftService = sys("TheftService")
 		if TheftService and typeof(TheftService.fail) == "function" then
 			local okF, err = pcall(TheftService.fail, car, "busted")
@@ -419,12 +481,34 @@ local function handleCar(player: Player)
 				warn("[WantedService] TheftService.fail errored: " .. tostring(err))
 			end
 		end
-	elseif car.kind == "Loot" then
+		pcall(VehicleService.eject, car) -- usually a no-op by now (fail sends the car home)
+		return label
+	end
+	pcall(VehicleService.eject, car)
+	if car.kind == "Loot" then
 		local okD, err = pcall(VehicleService.destroy, car, "busted")
 		if not okD then
 			warn("[WantedService] VehicleService.destroy errored: " .. tostring(err))
 		end
+		return label
 	end
+	return nil
+end
+
+-- Busted players are stunned until just after the teleport (no prompts / no hopping into another car).
+local function stunForRelease(player: Player): boolean
+	local CombatService = sys("CombatService")
+	if CombatService and typeof(CombatService.stun) == "function" then
+		local ok = pcall(CombatService.stun, player, RELEASE_DELAY + RELEASE_STUN_EXTRA)
+		if ok then
+			return false
+		end
+	end
+	-- fallback: raw attribute (the clients freeze on it); the caller clears it after the release
+	pcall(function()
+		player:SetAttribute("Stunned", true)
+	end)
+	return true
 end
 
 local function releaseCharacter(player: Player)
@@ -456,8 +540,9 @@ local function releaseCharacter(player: Player)
 	end
 end
 
--- BUSTED. Returns true if the bust happened.
-function WantedService.bust(player: Player): boolean
+-- BUSTED. Returns true if the bust happened. reason "died": the wanted player died (reset); the character is
+-- already gone, so instead of the stun + teleport the next spawn goes to Police HQ (consumeRespawnAtHQ).
+function WantedService.bust(player: Player, reason: string?): boolean
 	local st = states[player]
 	if not st or st.stars <= 0 or st.busting then
 		return false
@@ -466,10 +551,12 @@ function WantedService.bust(player: Player): boolean
 		return false
 	end
 	st.busting = true
+	local died = reason == "died"
 	local peak = math.max(st.peak, st.stars)
 
+	local carLabel: string? = nil
 	local ok, err = pcall(function()
-		handleCar(player)
+		carLabel = handleCar(player)
 	end)
 	if not ok then
 		warn("[WantedService] bust car handling failed: " .. tostring(err))
@@ -485,7 +572,11 @@ function WantedService.bust(player: Player): boolean
 	applyStars(player, st, 0, "busted")
 	st.busting = false
 
-	pcall(hooks.fireClient, "Busted", player, lost)
+	pcall(hooks.fireClient, "Busted", player, lost, carLabel)
+	if died then
+		st.respawnAtHQ = hooks.clock()
+		notify(player, "warning", "🚔 Bailing out doesn't lose the cops - you got BUSTED!", 4)
+	end
 	if peak >= 3 then
 		pcall(
 			hooks.fireAll,
@@ -498,13 +589,51 @@ function WantedService.bust(player: Player): boolean
 	end
 	WantedService.Busted:Fire(player)
 
+	if died then
+		return true -- no body to stun or move; the respawn goes to Police HQ
+	end
+	local rawStun = stunForRelease(player)
 	task.delay(RELEASE_DELAY, function()
 		local okR, errR = pcall(releaseCharacter, player)
 		if not okR then
 			warn("[WantedService] release failed: " .. tostring(errR))
 		end
+		if rawStun then
+			task.delay(RELEASE_STUN_EXTRA, function()
+				pcall(function()
+					player:SetAttribute("Stunned", false)
+				end)
+			end)
+		end
 	end)
 	return true
+end
+
+-- True once after a died-while-wanted bust (within RESPAWN_AT_HQ_WINDOW): spawn this character at Police HQ.
+function WantedService.consumeRespawnAtHQ(player: Player): boolean
+	local st = states[player]
+	local at = st and st.respawnAtHQ
+	if not st or at == nil then
+		return false
+	end
+	st.respawnAtHQ = nil
+	return hooks.clock() - at <= RESPAWN_AT_HQ_WINDOW
+end
+
+-- A wanted player's character died (Humanoid.Died; resets included). Resetting must not be a free escape to the
+-- garage, so it counts as a bust. Dying inside your own garage (already a safe house) gains nothing: no bust.
+function WantedService._onDied(player: Player, position: Vector3?): boolean
+	local st = states[player]
+	if not st or st.stars <= 0 or st.busting then
+		return false
+	end
+	if position then
+		local plot = player:GetAttribute("PlotIndex")
+		if typeof(plot) == "number" and MapLayout.plotAt(position) == plot then
+			return false
+		end
+	end
+	return WantedService.bust(player, "died")
 end
 
 -- SPRAY SHOP --------------------------------------------------------------------------------------------
@@ -515,14 +644,38 @@ local function brightColor(): Color3
 	return Color3.fromHSV(sprayRng:NextNumber(), sprayRng:NextNumber(0.6, 0.95), sprayRng:NextNumber(0.9, 1))
 end
 
--- Repaints Paint="primary" parts with one bright random color, repairs health and tires.
+local carBuilderModule: any = nil -- false once known to be unavailable
+local function getCarBuilder(): any
+	if carBuilderModule == nil then
+		carBuilderModule = false
+		local folder = Shared:FindFirstChild("Vehicle")
+		local m = folder and folder:FindFirstChild("CarBuilder")
+		if m then
+			local ok, mod = pcall(require, m :: any)
+			if ok and typeof(mod) == "table" then
+				carBuilderModule = mod
+			end
+		end
+	end
+	return carBuilderModule or nil
+end
+
+-- Repaints Paint="primary" parts with one bright random color, repairs health and tires. CarBuilder.repaint keeps a
+-- mutation's look (a Gold / Diamond / Galaxy car stays gold / diamond / galaxy; only its base paint changes).
 function WantedService._repaint(car: any): Color3
 	local color = brightColor()
 	local model = car.model
 	if typeof(model) == "Instance" then
-		for _, d in model:GetDescendants() do
-			if d:IsA("BasePart") and d:GetAttribute("Paint") == "primary" then
-				d.Color = color
+		local CarBuilder = getCarBuilder()
+		local repainted = false
+		if model:IsA("Model") and CarBuilder and typeof(CarBuilder.repaint) == "function" then
+			repainted = pcall(CarBuilder.repaint, model, color)
+		end
+		if not repainted then
+			for _, d in model:GetDescendants() do
+				if d:IsA("BasePart") and d:GetAttribute("Paint") == "primary" then
+					d.Color = color
+				end
 			end
 		end
 		model:SetAttribute("Health", VehicleConfig.MAX_HEALTH)
@@ -538,20 +691,42 @@ function WantedService._repaint(car: any): Color3
 	return color
 end
 
-local function onSprayAttempt(player: Player, car: any)
+local function isSeen(player: Player): boolean
+	local PoliceService = sys("PoliceService")
+	if PoliceService and typeof(PoliceService.isSeen) == "function" then
+		local ok, res = pcall(PoliceService.isSeen, player)
+		return ok and res == true
+	end
+	return false
+end
+
+-- Result of a spray attempt: "sprayed" | "seen" (cops watching; kept pending while the car waits in the booth)
+-- | "broke" | "skip" (not wanted / cooldown / bad call).
+local function onSprayAttempt(player: Player, car: any, seenKnown: boolean?): string
 	-- SprayAttempt comes from VehicleService (server code), so only sanity-check the shape
 	if player == nil or typeof(car) ~= "table" then
-		return
+		return "skip"
 	end
 	local st = states[player]
 	if not st or st.stars <= 0 or st.busting then
-		return
+		return "skip"
 	end
 	local now = hooks.clock()
 	if now - st.lastSprayAt < SPRAY_COOLDOWN then
-		return
+		return "skip"
 	end
-	local cost = Economy.SPRAY_COST_PER_STAR * st.stars
+	local seen = if seenKnown ~= nil then seenKnown else isSeen(player)
+	if seen then
+		-- no paint job with a cruiser on your bumper: lose them first (the booth sprays you once they do)
+		st.pendingSpray = car
+		if now - st.lastSprayWatchNotify > SPRAY_FAIL_NOTIFY_COOLDOWN then
+			st.lastSprayWatchNotify = now
+			notify(player, "warning", "🚔 They're watching! Break line of sight and the booth sprays you.", 3)
+		end
+		return "seen"
+	end
+	st.pendingSpray = nil
+	local cost = WantedService._sprayCost(st.stars, getIncome(player))
 	local DataService = sys("DataService")
 	local paid = false
 	if DataService and typeof(DataService.spendCash) == "function" then
@@ -563,7 +738,7 @@ local function onSprayAttempt(player: Player, car: any)
 			st.lastSprayFailNotify = now
 			notify(player, "error", ("🎨 A fresh paint job costs $%d. Get some cash first!"):format(cost), 3)
 		end
-		return
+		return "broke"
 	end
 	st.lastSprayAt = now
 	WantedService.clear(player, "spray")
@@ -575,17 +750,75 @@ local function onSprayAttempt(player: Player, car: any)
 		local pos = chassis.CFrame.Position
 		pcall(hooks.fireNear, "Effect", pos, 400, "Confetti", { position = pos })
 	end
+	return "sprayed"
+end
+
+local sprayZoneCache: { { cframe: CFrame, size: Vector3 } }? = nil
+local function inSprayZone(pos: Vector3): boolean
+	local zones = sprayZoneCache
+	if not zones then
+		zones = MapLayout.sprayZones()
+		sprayZoneCache = zones
+	end
+	for _, z in zones do
+		if MapLayout.isInBox(z.cframe, z.size, pos) then
+			return true
+		end
+	end
+	return false
+end
+
+-- A car refused because cops were watching keeps waiting in the booth: spray it the moment nobody sees it.
+-- Dropped when the player leaves the booth, leaves the car, or the car is flagged by VehicleService's watchdog.
+local function retryPendingSpray(player: Player, st: State, seen: boolean)
+	local car = st.pendingSpray
+	if car == nil or seen then
+		return
+	end
+	local VehicleService = sys("VehicleService")
+	local okD: boolean, driving: any = false, nil
+	if VehicleService and typeof(VehicleService.getDriving) == "function" then
+		okD, driving = pcall(VehicleService.getDriving, player)
+	end
+	local chassis = car.chassis
+	local valid = okD
+		and driving == car
+		and not car.destroyed
+		and not car.wrecked
+		and typeof(chassis) == "Instance"
+		and chassis:IsA("BasePart")
+		and inSprayZone(chassis.CFrame.Position)
+	if valid and VehicleService and typeof(VehicleService.isTainted) == "function" then
+		local okT, tainted = pcall(VehicleService.isTainted, car)
+		valid = okT and tainted ~= true
+	end
+	if not valid then
+		st.pendingSpray = nil
+		return
+	end
+	if onSprayAttempt(player, car, false) ~= "seen" then
+		st.pendingSpray = nil
+	end
 end
 
 -- LIFECYCLE ---------------------------------------------------------------------------------------------
 
-local function isSeen(player: Player): boolean
-	local PoliceService = sys("PoliceService")
-	if PoliceService and typeof(PoliceService.isSeen) == "function" then
-		local ok, res = pcall(PoliceService.isSeen, player)
-		return ok and res == true
+-- WantedDecayAt: server time of the next star loss while hidden (0 while seen / not wanted). Written only when it
+-- moves (a star drops, a crime refreshes the timer, seen <-> hidden), not every pass.
+local function publishDecayAt(player: Player, st: State, now: number)
+	local value = 0
+	if st.stars > 0 and not st.seen then
+		value = hooks.serverNow() + math.max(0, st.nextDecayAt - now)
 	end
-	return false
+	local changed = if value == 0 or st.decayAttr == 0
+		then value ~= st.decayAttr
+		else math.abs(value - st.decayAttr) > DECAY_ATTR_EPSILON
+	if changed then
+		st.decayAttr = value
+		pcall(function()
+			player:SetAttribute("WantedDecayAt", value)
+		end)
+	end
 end
 
 -- One pass of the decay loop (public for tests via _decayPass).
@@ -604,6 +837,14 @@ function WantedService._decayPass()
 			if newStars ~= st.stars then
 				applyStars(player, st, newStars, "decay")
 			end
+			if st.pendingSpray ~= nil and st.stars > 0 then
+				local ok, err = pcall(retryPendingSpray, player, st, seen)
+				if not ok then
+					st.pendingSpray = nil
+					warn("[WantedService] pending spray failed: " .. tostring(err))
+				end
+			end
+			publishDecayAt(player, st, now)
 		end
 	end
 end
@@ -613,6 +854,7 @@ local function onPlayerAdded(player: Player)
 	pcall(function()
 		player:SetAttribute("Wanted", st.stars)
 		player:SetAttribute("WantedSeen", false)
+		player:SetAttribute("WantedDecayAt", 0)
 	end)
 end
 
@@ -622,6 +864,38 @@ end
 
 function WantedService._removePlayer(player: Player)
 	states[player] = nil
+end
+
+-- Humanoid.Died hook per character (one live connection per player; the old one goes with the old character).
+local diedConns: { [Player]: RBXScriptConnection } = {}
+local function watchCharacter(player: Player, character: Model)
+	local old = diedConns[player]
+	if old then
+		old:Disconnect()
+		diedConns[player] = nil
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid") or character:WaitForChild("Humanoid", 10)
+	if not humanoid or not humanoid:IsA("Humanoid") or player.Character ~= character then
+		return
+	end
+	diedConns[player] = humanoid.Died:Connect(function()
+		local root = character:FindFirstChild("HumanoidRootPart")
+		local pos = if root and root:IsA("BasePart") then root.Position else nil
+		local ok, err = pcall(WantedService._onDied, player, pos)
+		if not ok then
+			warn("[WantedService] died-while-wanted bust failed: " .. tostring(err))
+		end
+	end)
+end
+
+local function onRealPlayerAdded(player: Player)
+	onPlayerAdded(player)
+	player.CharacterAdded:Connect(function(character: Model)
+		watchCharacter(player, character)
+	end)
+	if player.Character then
+		task.spawn(watchCharacter, player, player.Character)
+	end
 end
 
 function WantedService.init()
@@ -639,12 +913,17 @@ function WantedService.init()
 end
 
 function WantedService.start()
-	Players.PlayerAdded:Connect(onPlayerAdded)
+	Players.PlayerAdded:Connect(onRealPlayerAdded)
 	for _, p in Players:GetPlayers() do
-		onPlayerAdded(p)
+		onRealPlayerAdded(p)
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		states[player] = nil
+		local conn = diedConns[player]
+		if conn then
+			conn:Disconnect()
+			diedConns[player] = nil
+		end
 	end)
 	while true do
 		task.wait(DECAY_INTERVAL)

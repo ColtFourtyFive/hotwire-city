@@ -35,10 +35,15 @@ Theme.TweenFast = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirectio
 Theme.TweenMedium = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 Theme.TweenPop = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
+-- Kit.screen(..., { touchMin = Theme.TouchMinScale }): phones otherwise sit at the 0.55 UIScale floor, where 20 px design
+-- text renders at ~11 real px. 0.72 keeps 20 px text at ~14 real px.
+Theme.TouchMinScale = 0.72
+
 -- ZIndex/DisplayOrder layers (ScreenGui.DisplayOrder)
 Theme.Layers = {
 	World = 0, -- billboards are not ScreenGuis, listed for reference
 	HUD = 10,
+	HUDTop = 12, -- non-interactive guidance that must draw over the driving/combat HUD (waypoint edge arrows)
 	Menus = 20,
 	Banners = 30,
 	Toasts = 40,

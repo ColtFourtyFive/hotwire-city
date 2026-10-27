@@ -88,6 +88,11 @@ end
 -- per-player, per-remote token buckets
 local buckets: { [Player]: { [string]: { tokens: number, last: number } } } = {}
 
+-- Bucket capacity: 2 seconds' worth, but never below 1 token so a sub-1/s rate can still fire.
+function Net._bucketCap(perSecond: number): number
+	return math.max(1, perSecond * 2)
+end
+
 local function allow(player: Player, name: string, perSecond: number): boolean
 	local byPlayer = buckets[player]
 	if not byPlayer then
@@ -97,10 +102,11 @@ local function allow(player: Player, name: string, perSecond: number): boolean
 	local now = os.clock()
 	local b = byPlayer[name]
 	if not b then
-		b = { tokens = perSecond, last = now }
+		-- new buckets start with at least 1 token: the first call of any remote always goes through
+		b = { tokens = math.max(1, perSecond), last = now }
 		byPlayer[name] = b
 	end
-	b.tokens = math.min(perSecond * 2, b.tokens + (now - b.last) * perSecond)
+	b.tokens = math.min(Net._bucketCap(perSecond), b.tokens + (now - b.last) * perSecond)
 	b.last = now
 	if b.tokens < 1 then
 		return false

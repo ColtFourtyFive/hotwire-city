@@ -892,7 +892,9 @@ return function(t)
 		local p = fakePlayer("Crook", 4)
 		datas[p] = newData(20000, true) -- 10% = 2000, income cap 10*600 = 6000 -> 2000
 		Wanted._addPlayer(p)
-		local car = { kind = "Stolen" }
+		local Cars = H.require("src/shared/Config/Cars")
+		local carDef = Cars.List[1]
+		local car = { kind = "Stolen", carId = carDef.id, mutation = "Gold" }
 		driving[p] = car
 		Wanted.addHeat(p, 4, "playerTheft")
 		local bustedSignal = 0
@@ -906,9 +908,10 @@ return function(t)
 		t.eq(datas[p].stats.busted, 1)
 		t.eq(Wanted.getStars(p), 0)
 		t.eq(bustedSignal, 1)
-		t.eq(calls[1][1], "eject")
-		t.eq(calls[2][1], "fail")
-		t.eq(calls[2][3], "busted")
+		-- the theft ends BEFORE the eject (no spurious "dropped car" state)
+		t.eq(calls[1][1], "fail")
+		t.eq(calls[1][3], "busted")
+		t.eq(calls[2][1], "eject")
 		local bustedRemote
 		for _, f in fired do
 			if f.name == "Busted" then
@@ -916,6 +919,8 @@ return function(t)
 			end
 		end
 		t.ok(bustedRemote and bustedRemote.args[1] == 2000, "Busted remote carries lost cash")
+		t.eq(bustedRemote.args[2], "GOLD " .. carDef.name, "Busted remote carries the impounded car")
+		t.eq(p._attrs.Stunned, true, "stunned until the release teleport (no CombatService: raw attribute)")
 		Wanted.addHeat(p, 2, "carjack")
 		t.eq(Wanted.getStars(p), 0, "grace period")
 		t.eq(Wanted.bust(p), false, "can't bust with 0 stars")
@@ -926,10 +931,109 @@ return function(t)
 		driving[p] = { kind = "Loot" }
 		table.clear(calls)
 		t.eq(Wanted.bust(p), true)
+		t.eq(calls[1][1], "eject")
 		t.eq(calls[2][1], "destroy")
+		-- own cars are only ejected: nothing impounded, no car line on the overlay
+		clock += 9
+		Wanted.addHeat(p, 1, "carjack")
+		driving[p] = { kind = "Owned", carId = carDef.id, mutation = "None" }
+		table.clear(calls)
+		table.clear(fired)
+		t.eq(Wanted.bust(p), true)
+		t.eq(#calls, 1)
+		t.eq(calls[1][1], "eject")
+		for _, f in fired do
+			if f.name == "Busted" then
+				t.eq(f.args[2], nil, "no impound label for an owned car")
+			end
+		end
 		conn:Disconnect()
 		driving[p] = nil
 		Wanted._removePlayer(p)
+	end)
+
+	t.test("clear reports whether there was anything to clear", function()
+		clock = 6000
+		local p = fakePlayer("Clean", 6)
+		datas[p] = newData(100, true)
+		Wanted._addPlayer(p)
+		t.eq(Wanted.clear(p, "product"), false, "0 stars: nothing to clear")
+		Wanted.addHeat(p, 2, "carjack")
+		t.eq(Wanted.clear(p, "product"), true)
+		t.eq(Wanted.getStars(p), 0)
+		t.eq(Wanted.clear(p, "product"), false)
+		Wanted._removePlayer(p)
+	end)
+
+	t.test("dying while wanted is a bust (respawn at HQ), except inside your own garage", function()
+		clock = 6500
+		table.clear(fired)
+		local p = fakePlayer("Resetter", 7)
+		datas[p] = newData(1000, true)
+		Wanted._addPlayer(p)
+		p._attrs.PlotIndex = 1
+		t.eq(Wanted._onDied(p, Vector3.new(0, 5, 0)), false, "not wanted: nothing happens")
+		t.eq(Wanted.consumeRespawnAtHQ(p), false)
+		Wanted.addHeat(p, 3, "dealerSteal")
+		-- dying inside your own garage gains nothing: no bust
+		local interior = MapLayout.plotInteriorZone(1)
+		t.eq(MapLayout.plotAt(interior.Position), 1, "fixture: point is inside plot 1")
+		t.eq(Wanted._onDied(p, interior.Position), false, "own garage is a safe house")
+		t.eq(Wanted.getStars(p), 3)
+		-- anywhere else: busted
+		local street = Vector3.new(MapConfig.GRID_SPACING, MapConfig.ROAD_Y, 7)
+		t.eq(Wanted._onDied(p, street), true)
+		t.eq(Wanted.getStars(p), 0)
+		t.eq(datas[p].cash, 900, "normal bust penalty")
+		t.eq(countFired("Busted"), 1)
+		t.ok(p._attrs.Stunned ~= true, "no stun on a dead body")
+		t.eq(Wanted.consumeRespawnAtHQ(p), true, "next spawn goes to Police HQ")
+		t.eq(Wanted.consumeRespawnAtHQ(p), false, "only once")
+		-- a stale flag (no respawn for a long time) expires
+		clock += 9
+		Wanted.addHeat(p, 1, "carjack")
+		t.eq(Wanted._onDied(p, street), true)
+		clock += 120
+		t.eq(Wanted.consumeRespawnAtHQ(p), false, "expired")
+		Wanted._removePlayer(p)
+	end)
+
+	t.test("WantedDecayAt: server time of the next star loss while hidden, 0 while seen", function()
+		clock = 6800
+		local serverOffset = 50000
+		Wanted._setHooks({
+			serverNow = function()
+				return clock + serverOffset
+			end,
+		})
+		local p = fakePlayer("Hider", 8)
+		datas[p] = newData(1000, true)
+		Wanted._addPlayer(p)
+		t.eq(p._attrs.WantedDecayAt, 0)
+		Wanted.addHeat(p, 2, "carjack")
+		seenMap[p] = true
+		Wanted._decayPass()
+		t.eq(p._attrs.WantedDecayAt, 0, "seen: no countdown")
+		seenMap[p] = false
+		clock += 0.25
+		Wanted._decayPass()
+		local at = p._attrs.WantedDecayAt
+		t.near(at, clock + serverOffset + PoliceConfig.DECAY_DELAY[2] - 0.25, 0.3, "countdown to the next star")
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(p._attrs.WantedDecayAt, at, "not rewritten while it holds")
+		Wanted.clear(p, "admin")
+		t.eq(p._attrs.WantedDecayAt, 0)
+		seenMap[p] = nil
+		Wanted._removePlayer(p)
+	end)
+
+	t.test("spray price scales with income: stars * max(min, income * SPRAY_INCOME_SECONDS)", function()
+		t.eq(Wanted._sprayCost(0, 1000), 0)
+		t.eq(Wanted._sprayCost(1, 0), Economy.SPRAY_COST_PER_STAR, "floor for new players")
+		t.eq(Wanted._sprayCost(3, 1), 3 * Economy.SPRAY_COST_PER_STAR)
+		t.eq(Wanted._sprayCost(2, 900), 2 * 900 * Economy.SPRAY_INCOME_SECONDS, "mid game: seconds of income")
+		t.eq(Wanted._sprayCost(1, 0 / 0), Economy.SPRAY_COST_PER_STAR, "NaN income is ignored")
 	end)
 
 	t.test("spray: pay per star, clear, repaint + repair; broke players are told", function()
@@ -979,6 +1083,57 @@ return function(t)
 		end
 		t.ok(escaped, "spray counts as an escape")
 		mocks.VehicleService.SprayAttempt = nil
+		Wanted._removePlayer(p)
+	end)
+
+	t.test("spray: refused while a cop sees you, then sprays in the booth once they lose you", function()
+		clock = 8000
+		table.clear(fired)
+		local p = fakePlayer("Booth", 9)
+		datas[p] = newData(100000, true)
+		Wanted._addPlayer(p)
+		Wanted.addHeat(p, 2, "carjack")
+		local Instance = H.roblox.Instance
+		local model = Instance.new("Model")
+		local chassis = Instance.new("Part")
+		chassis.Parent = model
+		local zone = MapLayout.sprayZones()[1]
+		chassis.CFrame = zone.cframe
+		local car = { model = model, chassis = chassis, health = 50 }
+		driving[p] = car
+		local Signal = H.require("src/shared/Util/Signal")
+		mocks.VehicleService.SprayAttempt = Signal.new()
+		Wanted.init()
+		local spray = mocks.VehicleService.SprayAttempt
+		seenMap[p] = true
+		spray:Fire(p, car)
+		t.eq(Wanted.getStars(p), 2, "seen: no paint job")
+		t.eq(datas[p].cash, 100000, "not charged")
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(Wanted.getStars(p), 2, "still seen: still waiting")
+		seenMap[p] = false
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(Wanted.getStars(p), 0, "sprayed as soon as nobody sees the car")
+		t.eq(datas[p].cash, 100000 - Wanted._sprayCost(2, 10))
+		-- leaving the booth drops the pending spray
+		clock += 10
+		Wanted.addHeat(p, 1, "carjack")
+		seenMap[p] = true
+		spray:Fire(p, car)
+		chassis.CFrame = zone.cframe * CFrame.new(0, 0, 200)
+		seenMap[p] = false
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(Wanted.getStars(p), 1, "left the booth: no spray")
+		chassis.CFrame = zone.cframe
+		clock += 0.25
+		Wanted._decayPass()
+		t.eq(Wanted.getStars(p), 1, "pending spray was dropped; needs a new entry")
+		mocks.VehicleService.SprayAttempt = nil
+		driving[p] = nil
+		seenMap[p] = nil
 		Wanted._removePlayer(p)
 	end)
 end

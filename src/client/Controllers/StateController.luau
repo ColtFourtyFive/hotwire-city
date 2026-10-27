@@ -26,7 +26,16 @@ export type HotDropState = {
 	endsAt: number?,
 	startsAt: number?,
 }
-export type TheftState = { active: boolean, endsAt: number?, carId: string?, targetPlot: number? }
+-- TheftState (thief only): delivery deadline + the dropped-car deadline while the thief is out of the car.
+export type TheftState = {
+	active: boolean,
+	endsAt: number?,
+	carId: string?,
+	mutation: string?,
+	targetPlot: number?,
+	dropped: boolean,
+	droppedEndsAt: number?,
+}
 
 local StateController = {}
 
@@ -46,7 +55,7 @@ local WARN_AFTER_ATTEMPTS = 20
 local snapshot: Snapshot? = nil
 local eventState: EventState = {}
 local hotDrop: HotDropState = { active = false }
-local theft: TheftState = { active = false }
+local theft: TheftState = { active = false, dropped = false }
 local readyQueue: { (Snapshot) -> () } = {}
 local started = false
 
@@ -85,13 +94,20 @@ end
 
 function StateController.sanitizeTheft(raw: any): TheftState
 	if typeof(raw) ~= "table" then
-		return { active = false }
+		return { active = false, dropped = false }
+	end
+	local function num(v: any): number?
+		return if typeof(v) == "number" and v == v then v else nil
 	end
 	return {
 		active = raw.active == true,
-		endsAt = if typeof(raw.endsAt) == "number" and raw.endsAt == raw.endsAt then raw.endsAt else nil,
+		endsAt = num(raw.endsAt),
 		carId = if typeof(raw.carId) == "string" then raw.carId else nil,
-		targetPlot = if typeof(raw.targetPlot) == "number" then raw.targetPlot else nil,
+		mutation = if typeof(raw.mutation) == "string" then raw.mutation else nil,
+		targetPlot = num(raw.targetPlot),
+		-- the thief got knocked out of the car: it is towed home at droppedEndsAt unless they get back in
+		dropped = raw.dropped == true,
+		droppedEndsAt = num(raw.droppedEndsAt),
 	}
 end
 

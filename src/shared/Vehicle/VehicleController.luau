@@ -6,6 +6,13 @@
 --     CarBuilder wheel attachments, one center VectorForce "Drive" (ApplyAtCenterOfMass=true) summing
 --     drive/brake/drag/grip/downforce, yaw written straight into AssemblyAngularVelocity, and an "Upright"
 --     AlignOrientation that is only enabled while airborne / tipped over.
+--   * Server controllers (police AI, VehicleService's settling cars) create NO VectorForces: the same forces are
+--     applied as impulses (force * frame dt) on the server-owned assembly. A server write to VectorForce.Force is a
+--     replicated property change, every frame, to every client (PERF-01); impulses are not replicated.
+--   * While a controller runs, CarBuilder's "BumpStop" balls are non-collidable (they ride below the 0.6 curb and
+--     would snag every curb, F1); destroy() restores them for cars resting without a controller.
+--   * Frames longer than Config.Vehicle.MAX_DT soften the spring around the static load so the held force can't
+--     pump the suspension on a low-FPS device (F13, see VMath.suspensionAccel).
 --   * Every acceleration is multiplied by the live Chassis.AssemblyMass, so tuning is mass-independent.
 --   * Pure math lives in VehicleController.math (unit-tested in Lune: tests/spec/vehicle.spec.luau).
 --
@@ -48,7 +55,9 @@ local MAX_VISUAL_DROOP = 0.7 -- wheel visual offsets (studs) relative to the bui
 local MAX_VISUAL_BUMP = 0.6
 local ATTRIBUTE_POLL = 0.2 -- seconds between TiresPopped / SpeedMultiplier reads
 local FILTER_REFRESH = 1 -- seconds between raycast filter rebuilds (characters come and go)
+local MAX_FRAME_DT = 0.5 -- sanity bound on the real frame time (impulse length / low-FPS spring scaling)
 local MOVER_ATTRIBUTE = "HCVehicleMover" -- marks instances created by a controller
+local BUMP_STOP_NAME = "BumpStop" -- CarBuilder's collidable balls under the axles
 
 local WHEEL_NAMES = { "FL", "FR", "RL", "RR" }
 
@@ -99,11 +108,41 @@ function VMath.mountOffset(rest: number, staticComp: number, lift: number): numb
 end
 
 -- Spring + damper acceleration of one wheel (studs/s^2, multiply by mass for force). compVel > 0 = compressing.
-function VMath.suspensionAccel(comp: number, compVel: number, k: number, c: number, maxAccel: number): number
+-- Low FPS (F13): the force is computed once per frame and held for the whole frame, so above ~9 FPS-long frames the
+-- sampled spring pumps energy in. With stiffScale s = MAX_DT/frameDt < 1 the spring is evaluated as
+--   K*staticComp + K*(comp - staticComp)*s^2 + C*compVel*s
+-- i.e. the static load is carried unchanged while omega*frameDt and c*frameDt stay at their MAX_DT (30 FPS) values.
+-- staticComp/stiffScale omitted (or s >= 1) = the plain K*comp + C*compVel.
+function VMath.suspensionAccel(
+	comp: number,
+	compVel: number,
+	k: number,
+	c: number,
+	maxAccel: number,
+	staticComp: number?,
+	stiffScale: number?
+): number
 	if comp <= 0 then
 		return 0
 	end
-	return clamp(k * comp + c * compVel, 0, maxAccel)
+	local s = stiffScale or 1
+	if staticComp == nil or s >= 1 then
+		return clamp(k * comp + c * compVel, 0, maxAccel)
+	end
+	return clamp(k * staticComp + k * (comp - staticComp) * s * s + c * compVel * s, 0, maxAccel)
+end
+
+-- Spring softening factor for a frame of `frameDt` seconds (1 at or below maxDt). See suspensionAccel.
+function VMath.lowFpsScale(frameDt: number, maxDt: number): number
+	if frameDt <= maxDt or frameDt ~= frameDt then
+		return 1
+	end
+	return maxDt / frameDt
+end
+
+-- Arcade drift test shared by the driving controller and observers' cosmetic FX (WheelAnimator).
+function VMath.isDrifting(vF: number, vR: number, grounded: boolean): boolean
+	return grounded and math.abs(vR) > Tuning.DRIFT_SLIP_SPEED and math.abs(vF) > DRIFT_MIN_FORWARD
 end
 
 -- Vertical offset (studs, along chassis up) of the visual wheel center relative to its built hub position.
@@ -265,7 +304,7 @@ end
 type Wheel = {
 	name: string,
 	attachment: Attachment,
-	force: VectorForce,
+	force: VectorForce?, -- nil on the server (impulses instead, PERF-01)
 }
 
 local Controller = {}
@@ -318,10 +357,13 @@ local function numAttr(inst: Instance, name: string, default: number): number
 	return if typeof(v) == "number" and v == v then v else default
 end
 
+local function getServerTime(): number
+	return Workspace:GetServerTimeNow()
+end
+
 local function serverNow(): number
-	local ok, t = pcall(function()
-		return Workspace:GetServerTimeNow()
-	end)
+	-- pcall keeps the controller usable in the Lune harness; the function is hoisted (no closure per call)
+	local ok, t = pcall(getServerTime)
 	return if ok and typeof(t) == "number" then t else os.time()
 end
 
@@ -343,6 +385,7 @@ VehicleController.math = VMath
 VehicleController.WHEEL_NAMES = WHEEL_NAMES
 VehicleController.MOVER_ATTRIBUTE = MOVER_ATTRIBUTE
 VehicleController.RIDE_LIFT = RIDE_LIFT
+VehicleController.BUMP_STOP_NAME = BUMP_STOP_NAME
 
 function VehicleController.new(model: Model, def: CarDef, opts: Options?): Controller
 	local o: Options = opts or { isServer = false }
@@ -360,6 +403,7 @@ function VehicleController.new(model: Model, def: CarDef, opts: Options?): Contr
 	self.input = { throttle = 0, steer = 0, handbrake = false, nitro = false }
 	self.wheelRadius = wheelRadius
 	self.rayLength = VMath.rayLength(Tuning.SUSPENSION_REST, wheelRadius)
+	self.staticComp = staticComp
 	self.mountOffset = VMath.mountOffset(Tuning.SUSPENSION_REST, staticComp, RIDE_LIFT)
 	self.nitroSeconds = math.max(o.nitroSeconds or 2.5, 0.1)
 	self.infiniteNitro = o.infiniteNitro == true
@@ -392,6 +436,18 @@ function VehicleController.new(model: Model, def: CarDef, opts: Options?): Contr
 	self._foreign = {} :: { Instance }
 	self._filterList = {} :: { Instance }
 	self._params = newRaycastParams()
+	-- server impulses are applied after every velocity read of the step (see step); buffers reused per frame
+	self._wheelForce = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero } :: { Vector3 }
+	self._wheelAt = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero } :: { Vector3 }
+	self._driveForce = Vector3.zero
+	-- F1: CarBuilder's bump-stop balls (model children) and the ones this controller made non-collidable
+	self._bumpStops = {} :: { BasePart }
+	self._bumpOff = {} :: { BasePart }
+	for _, child in model:GetChildren() do
+		if child.Name == BUMP_STOP_NAME and child:IsA("BasePart") then
+			table.insert(self._bumpStops, child)
+		end
+	end
 
 	-- Wheels (CarBuilder contract: Attachments WheelFL/FR/RL/RR in the Chassis at the hub centers).
 	local length = numAttr(model, "Length", chassis.Size.Z)
@@ -416,26 +472,33 @@ function VehicleController.new(model: Model, def: CarDef, opts: Options?): Contr
 			table.insert(self._created, fallback)
 			att = fallback
 		end
-		local force = makeMover("VectorForce", "Suspension_" .. name, chassis) :: VectorForce
-		force.RelativeTo = Enum.ActuatorRelativeTo.World
-		force.ApplyAtCenterOfMass = false
-		force.Force = Vector3.zero
-		force.Attachment0 = att :: Attachment
-		table.insert(self._created, force)
+		local force: VectorForce? = nil
+		if not self.isServer then
+			local f = makeMover("VectorForce", "Suspension_" .. name, chassis) :: VectorForce
+			f.RelativeTo = Enum.ActuatorRelativeTo.World
+			f.ApplyAtCenterOfMass = false
+			f.Force = Vector3.zero
+			f.Attachment0 = att :: Attachment
+			table.insert(self._created, f)
+			force = f
+		end
 		wheels[i] = { name = name, attachment = att :: Attachment, force = force }
 	end
 	self.wheels = wheels
 
-	-- Center drive force.
-	local driveAttachment = makeMover("Attachment", "DriveAttachment", chassis) :: Attachment
-	table.insert(self._created, driveAttachment)
-	local drive = makeMover("VectorForce", "Drive", chassis) :: VectorForce
-	drive.RelativeTo = Enum.ActuatorRelativeTo.World
-	drive.ApplyAtCenterOfMass = true
-	drive.Force = Vector3.zero
-	drive.Attachment0 = driveAttachment
-	table.insert(self._created, drive)
-	self.drive = drive
+	-- Center drive force (client only; the server applies it as an impulse at the center of mass).
+	self.drive = nil :: VectorForce?
+	if not self.isServer then
+		local driveAttachment = makeMover("Attachment", "DriveAttachment", chassis) :: Attachment
+		table.insert(self._created, driveAttachment)
+		local drive = makeMover("VectorForce", "Drive", chassis) :: VectorForce
+		drive.RelativeTo = Enum.ActuatorRelativeTo.World
+		drive.ApplyAtCenterOfMass = true
+		drive.Force = Vector3.zero
+		drive.Attachment0 = driveAttachment
+		table.insert(self._created, drive)
+		self.drive = drive
+	end
 
 	-- Upright: the attachment's primary axis (its X axis) points along chassis up, aligned to world up.
 	local uprightAttachment = makeMover("Attachment", "UprightAttachment", chassis) :: Attachment
@@ -491,12 +554,32 @@ function Controller._pollAttributes(self: Controller)
 	local popped = model:GetAttribute("TiresPopped")
 	self._poppedUntil = if typeof(popped) == "number" then popped else 0
 	self:_suppressForeignMovers()
+	self:_disableBumpStops()
 end
 
--- Movers left on the chassis by ANOTHER controller (e.g. a server-side settling controller whose instances
--- replicated to the driver's client) would double the forces in the owner's simulation. Disable them locally
--- (re-checked every attribute poll, since the other side may toggle Enabled) and restore them on destroy.
+-- F1: the bump stops sit 0.25 above the ground in the built pose (0.45 at ride height), below the 0.6 curb, so a
+-- collidable ball hits every curb edge before the suspension rays climb it. While a controller holds the car up
+-- they are not needed: turn them off (re-checked every poll, e.g. if the server's settle controller restored them
+-- after this one started) and turn back on only the ones this controller turned off (destroy()).
+function Controller._disableBumpStops(self: Controller)
+	for _, stop in self._bumpStops do
+		if stop.CanCollide and stop.Parent then
+			stop.CanCollide = false
+			if not table.find(self._bumpOff, stop) then
+				table.insert(self._bumpOff, stop)
+			end
+		end
+	end
+end
+
+-- Movers left on the chassis by ANOTHER controller (e.g. a server-side controller's Upright, which replicates to
+-- the driver's client) would double the forces in the owner's simulation. Disable them locally (re-checked every
+-- attribute poll, since the other side may toggle Enabled) and restore them on destroy. Nothing a client creates
+-- replicates, so the server never has foreign movers to suppress.
 function Controller._suppressForeignMovers(self: Controller)
+	if self.isServer then
+		return
+	end
 	local createdSet = self._createdSet
 	for _, child in self.chassis:GetChildren() do
 		if
@@ -534,12 +617,37 @@ end
 
 function Controller._zeroForces(self: Controller)
 	for _, w in self.wheels do
-		w.force.Force = Vector3.zero
+		local force = w.force
+		if force then
+			force.Force = Vector3.zero
+		end
 	end
-	self.drive.Force = Vector3.zero
+	local drive = self.drive
+	if drive then
+		drive.Force = Vector3.zero
+	end
 	if self.upright.Enabled then
 		self.upright.Enabled = false
 	end
+end
+
+-- Server: this step's forces as impulses held for the real frame (force * frameDt). Wheel impulses act at the hubs
+-- (suspension torques, like the client's attachment VectorForces), the drive at the center of mass.
+function Controller._applyServerImpulses(self: Controller, frameDt: number)
+	local chassis = self.chassis
+	local wheelForce, wheelAt = self._wheelForce, self._wheelAt
+	for i = 1, #self.wheels do
+		local f = wheelForce[i]
+		if f.Magnitude > 0 then
+			chassis:ApplyImpulseAtPosition(f * frameDt, wheelAt[i])
+		end
+		wheelForce[i] = Vector3.zero
+	end
+	local d = self._driveForce
+	if d.Magnitude > 0 then
+		chassis:ApplyImpulse(d * frameDt)
+	end
+	self._driveForce = Vector3.zero
 end
 
 -- Pick the car back up onto its wheels (auto-flip; also callable from a "flip" button or by police AI).
@@ -566,7 +674,11 @@ function Controller.step(self: Controller, dtIn: number)
 	if chassis.Parent == nil or model.Parent == nil then
 		return
 	end
-	local dt = clamp(dtIn, 1 / 240, Tuning.MAX_DT)
+	-- frameDt: how long this step's forces really act (impulse length on the server, low-FPS spring scaling);
+	-- dt: the clamped step the arcade math integrates with.
+	local frameDt = clamp(finite(dtIn), 1 / 240, MAX_FRAME_DT)
+	local dt = math.min(frameDt, Tuning.MAX_DT)
+	local stiffScale = VMath.lowFpsScale(frameDt, Tuning.MAX_DT)
 
 	self._attrTimer += dt
 	if self._attrTimer >= ATTRIBUTE_POLL then
@@ -607,24 +719,43 @@ function Controller.step(self: Controller, dtIn: number)
 	-- 1) Suspension -------------------------------------------------------------------------------------------
 	local grounded = 0
 	local normalSum = Vector3.zero
+	local staticComp = self.staticComp
+	local wheelForce, wheelAt = self._wheelForce, self._wheelAt
 	for i, w in self.wheels do
 		local hub = w.attachment.WorldPosition
 		local hit = Workspace:Raycast(hub + up * mount, rayVector, params)
+		local force = Vector3.zero
 		if hit and hit.Normal:Dot(up) > MIN_GROUND_NORMAL_DOT then
 			local comp = rayLength - hit.Distance
 			local compVel = -chassis:GetVelocityAtPosition(hub):Dot(up)
-			local a = VMath.suspensionAccel(comp, compVel, Tuning.SPRING_K, Tuning.SPRING_C, maxSuspension)
-			w.force.Force = up * (mass * a)
+			local a = VMath.suspensionAccel(
+				comp,
+				compVel,
+				Tuning.SPRING_K,
+				Tuning.SPRING_C,
+				maxSuspension,
+				staticComp,
+				stiffScale
+			)
+			force = up * (mass * a)
 			grounded += 1
 			normalSum += hit.Normal
 			self.wheelCompression[i] = comp
 			self.wheelOffset[i] = VMath.wheelVisualOffset(hit.Distance, mount, Tuning.SUSPENSION_REST, self.wheelRadius)
 			self.wheelGrounded[i] = true
 		else
-			w.force.Force = Vector3.zero
 			self.wheelCompression[i] = 0
 			self.wheelOffset[i] = VMath.wheelVisualOffset(nil, mount, Tuning.SUSPENSION_REST, self.wheelRadius)
 			self.wheelGrounded[i] = false
+		end
+		local mover = w.force
+		if mover then
+			mover.Force = force
+		else
+			-- server: applied as an impulse after all velocity reads (an immediate impulse would skew the next
+			-- wheel's damping and the drive/yaw velocities read below)
+			wheelForce[i] = force
+			wheelAt[i] = hub
 		end
 	end
 
@@ -646,7 +777,7 @@ function Controller.step(self: Controller, dtIn: number)
 	local wantBoost = input.nitro and throttle > 0.1
 	local canBoost = self.infiniteNitro or (self.nitro > (if self.boosting then 0 else MIN_NITRO_TO_START))
 	local boosting = wantBoost and canBoost
-	local driftingNow = onGround and math.abs(vR) > Tuning.DRIFT_SLIP_SPEED and math.abs(vF) > DRIFT_MIN_FORWARD
+	local driftingNow = VMath.isDrifting(vF, vR, onGround)
 	self.nitro = VMath.nitroStep(self.nitro, boosting, driftingNow, dt, self.nitroSeconds, self.infiniteNitro)
 	self.boosting = boosting
 
@@ -661,6 +792,7 @@ function Controller.step(self: Controller, dtIn: number)
 	local handbrake = input.handbrake
 	self._gripFactor = VMath.gripFactorStep(self._gripFactor, handbrake, dt)
 	local av = chassis.AssemblyAngularVelocity
+	local driveForce = Vector3.zero
 	if onGround then
 		local scale = grounded / 4
 		local aF = VMath.driveAccel(throttle, vF, vMax, accel, dt)
@@ -676,7 +808,7 @@ function Controller.step(self: Controller, dtIn: number)
 			aF += math.min(math.abs(aLat) * DRIFT_SPEED_KEEP, accel * DRIFT_KEEP_MAX_ACCEL)
 		end
 		local aDown = VMath.downforce(g, vF)
-		self.drive.Force = (fwd * aF + right * aLat - groundUp * aDown) * (mass * scale)
+		driveForce = (fwd * aF + right * aLat - groundUp * aDown) * (mass * scale)
 
 		local target = VMath.targetYaw(input.steer, vF, vMax, handbrake and math.abs(vF) > 10)
 		local yawNow = av:Dot(groundUp)
@@ -685,7 +817,6 @@ function Controller.step(self: Controller, dtIn: number)
 		chassis.AssemblyAngularVelocity = av
 		self.yawRate = newYaw
 	else
-		self.drive.Force = Vector3.zero
 		local yawNow = av:Dot(Vector3.yAxis)
 		if math.abs(input.steer) > 0.05 then
 			local newYaw = VMath.approachYaw(yawNow, -input.steer * Tuning.AIR_YAW_RATE, AIR_YAW_RESPONSE, dt)
@@ -693,6 +824,13 @@ function Controller.step(self: Controller, dtIn: number)
 			yawNow = newYaw
 		end
 		self.yawRate = yawNow
+	end
+	self._driveForce = driveForce
+	local drive = self.drive
+	if drive then
+		drive.Force = driveForce
+	else
+		self:_applyServerImpulses(frameDt)
 	end
 
 	-- 5) Anti-flip -----------------------------------------------------------------------------------------------

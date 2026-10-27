@@ -191,6 +191,7 @@ local function makeTemplate(): PlayerData
 		exclusives = {},
 		contracts = { day = 0, list = {} },
 		referralRewarded = false,
+		playtime = { day = 0, seconds = 0, claimed = {} },
 	}
 end
 
@@ -374,6 +375,20 @@ local function sanitize(data: { [string]: any }, now: number): { [string]: any }
 		end
 	end
 	data.contracts = { day = nonNegInt(data.contracts.day, 0), list = list }
+
+	-- playtime gifts (per UTC day): claimed keys are reward indexes as strings ("1".."N")
+	local claimed = {}
+	for k in boolMap(data.playtime.claimed) do
+		local i = tonumber(k)
+		if i and i % 1 == 0 and i >= 1 and i <= #Economy.PLAYTIME_REWARDS then
+			claimed[tostring(i)] = true
+		end
+	end
+	data.playtime = {
+		day = nonNegInt(data.playtime.day, 0),
+		seconds = math.clamp(finite(data.playtime.seconds, 0), 0, 86400),
+		claimed = claimed,
+	}
 
 	return data
 end
@@ -997,7 +1012,13 @@ function DataService.buildSnapshot(player: Player): Snapshot
 	end
 	local okPlay, playtime = callSystem("RewardsService", "getPlaytimeView", player)
 	if not okPlay or typeof(playtime) ~= "table" then
-		playtime = { claimed = {}, sessionSeconds = math.floor(os.clock() - profile.joinedAt) }
+		-- fallback: today's stored playtime (seconds played today; RewardsService banks the live session)
+		local pt = data.playtime
+		local isToday = typeof(pt) == "table" and pt.day == today
+		playtime = {
+			claimed = if isToday then table.clone(pt.claimed) else {},
+			sessionSeconds = if isToday then math.floor(pt.seconds) else 0,
+		}
 	end
 	local okContracts, contracts = callSystem("RewardsService", "getContractsView", player)
 	if not okContracts or typeof(contracts) ~= "table" then

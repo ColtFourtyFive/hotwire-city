@@ -6,17 +6,21 @@
 --     Skipped under 60s. Paid 3s after load + OfflineEarnings remote ("While you were away...").
 --   * Daily streak - 7-day cycle on UTC days (EconomyMath.dayNumber). Claiming the day after your last claim
 --     continues the streak; missing a day resets it to 1. ClaimDaily remote.
---   * Playtime gifts - session-based (not persisted). ClaimPlaytime(index) once the session is long enough.
---   * Codes - RedeemCode(code): case/space-insensitive, once per account.
+--   * Playtime gifts - minutes played per UTC DAY, persisted in data.playtime = { day, seconds, claimed }
+--     (rejoining does not reset them). Session seconds are banked into data.playtime every few seconds and on
+--     leave (DataService.Releasing); ClaimPlaytime(index) is checked against stored + unbanked session seconds.
+--   * Codes - RedeemCode(code): case/space-insensitive, once per account. The code table is SERVER-ONLY
+--     (ServerScriptService.Server.Config.Codes) so clients can't datamine unreleased codes.
+--   * Rewards - "cash" (flat), "incomeMinutes" (minutes of current income, never less than the entry's `min`,
+--     default MIN_INCOME_REWARD) or "car" (random car of a rarity; cash fallback when the garage is full).
 --   * Contracts - 3 per UTC day, deterministic per player+day (Random.new(userId * 7 + day)), no two share a stat.
---     progress(player, stat, amount) is called by every system; completed contracts auto-claim with cash
---     (max($500, reward seconds of income)) + Notify + Sound.
---     Stats that no system reports explicitly are derived here: "steal"/"playerSteal" from the persisted stats
---     counters, "driftSeconds"/"topSpeedHit" by sampling the player's car. An explicit progress() call for one of
---     those stats switches its fallback off (no double counting).
+--     progress(player, stat, amount) is called by every system (the single entry point); completed contracts
+--     auto-claim with cash (max($500, reward seconds of income)) + Notify + Sound. "driftSeconds"/"topSpeedHit"
+--     are derived here by sampling the player's car unless some system reports them explicitly.
 --   * Group / friends - isInGroup(player) and friendsInServer(player) are cached (never yield) for the multiplier.
---   * Referral - GetJoinData().ReferredByPlayerId: invitee + inviter (if in this server) each get a random
---     REFERRAL_REWARD_RARITY car, once per invitee account.
+--   * Referral - GetJoinData().ReferredByPlayerId: the invitee gets a random REFERRAL_REWARD_RARITY car once per
+--     account. The inviter (if in this server) gets one after the invitee has played REFERRAL_INVITER_MIN_SECONDS,
+--     at most REFERRAL_INVITER_DAILY_CAP per UTC day (data.referralsPaid = { day, count }) so alts can't farm it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -32,6 +36,9 @@ local Rarity = require(Shared.Config.Rarity)
 local Rolls = require(Shared.Util.Rolls)
 local VehicleConfig = require(Shared.Config.Vehicle)
 
+-- server-only (ServerScriptService.Server.Config.Codes); never in ReplicatedStorage
+local Codes = require(script.Parent.Parent.Config.Codes)
+
 local RewardsService = {}
 
 RewardsService.MIN_OFFLINE_SECONDS = 60
@@ -42,6 +49,11 @@ RewardsService.CAR_FALLBACK_FRACTION = 0.5
 RewardsService.CODE_MAX_LENGTH = 32
 RewardsService.TOP_SPEED_FRACTION = 1 + (VehicleConfig.NITRO_SPEED_MULT - 1) * 0.6 -- needs nitro to reach
 RewardsService.DRIFT_MIN_SPEED = 25
+RewardsService.PLAYTIME_BANK_INTERVAL = 5 -- session seconds are banked into data.playtime at least this often
+RewardsService.PLAYTIME_DAY_CAP = 86400
+RewardsService.PASS_WAIT = 10 -- offline earnings wait up to this long for the VIP pass lookup to finish
+RewardsService.REFERRAL_INVITER_MIN_SECONDS = 600 -- the invitee must play this long before the inviter is paid
+RewardsService.REFERRAL_INVITER_DAILY_CAP = 3 -- inviter car rewards per UTC day
 
 -- Lazy system access (no require cycles; tolerant of a missing/broken system) -------------------------------------
 local systemCache: { [string]: any } = {}
@@ -138,6 +150,24 @@ function RewardsService._canClaimPlaytime(
 	return true, nil
 end
 
+export type PlaytimeState = { day: number, seconds: number, claimed: { [string]: boolean } }
+
+-- data.playtime for `day`: the same table when it already belongs to that day (fields coerced), else a fresh
+-- { day, seconds = 0, claimed = {} } (a new UTC day starts a new gift ladder).
+function RewardsService._playtimeFor(pt: any, day: number): PlaytimeState
+	if typeof(pt) ~= "table" or pt.day ~= day then
+		return { day = day, seconds = 0, claimed = {} }
+	end
+	if not finite(pt.seconds) or pt.seconds < 0 then
+		pt.seconds = 0
+	end
+	pt.seconds = math.min(pt.seconds, RewardsService.PLAYTIME_DAY_CAP)
+	if typeof(pt.claimed) ~= "table" then
+		pt.claimed = {}
+	end
+	return pt :: PlaytimeState
+end
+
 -- Codes are case-insensitive and ignore spaces. Returns nil for junk input.
 function RewardsService._normalizeCode(code: any): string?
 	if typeof(code) ~= "string" or #code == 0 or #code > RewardsService.CODE_MAX_LENGTH * 2 then
@@ -172,9 +202,23 @@ function RewardsService._contractReward(rewardSeconds: number, incomePerSec: num
 	return math.max(RewardsService.MIN_CONTRACT_REWARD, math.floor(rewardSeconds * income))
 end
 
-function RewardsService._incomeMinutesReward(minutes: number, incomePerSec: number): number
+-- `minimum` = the reward entry's `min` floor (default MIN_INCOME_REWARD).
+function RewardsService._incomeMinutesReward(minutes: number, incomePerSec: number, minimum: number?): number
 	local income = if finite(incomePerSec) then math.max(0, incomePerSec) else 0
-	return math.max(RewardsService.MIN_INCOME_REWARD, math.floor(minutes * 60 * income))
+	local floor = if finite(minimum) then math.max(0, minimum :: number) else RewardsService.MIN_INCOME_REWARD
+	return math.max(floor, math.floor(minutes * 60 * income))
+end
+
+-- Inviter referral cap (pure): (canPay, newState). state = data.referralsPaid ({ day, count }) or nil.
+function RewardsService._referralAllowance(state: any, day: number, cap: number): (boolean, { day: number, count: number })
+	local count = 0
+	if typeof(state) == "table" and state.day == day and finite(state.count) then
+		count = math.max(0, math.floor(state.count))
+	end
+	if count >= cap then
+		return false, { day = day, count = count }
+	end
+	return true, { day = day, count = count + 1 }
 end
 
 -- Cash given instead of a reward car when the garage is full.
@@ -239,12 +283,13 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 
 type PState = {
-	sessionStart: number,
-	playtimeClaimed: { [string]: boolean },
+	bankedAt: number, -- os.clock() up to which session playtime is already in data.playtime.seconds
+	loadedAt: number, -- os.clock() when this session's data finished loading
+	playtimeDay: number, -- UTC day playtimeNotified belongs to
 	playtimeNotified: { [number]: boolean },
 	loadedHandled: boolean,
 	day: number,
-	statBase: { [string]: number },
+	pendingReferrer: number?, -- inviter userId, paid once this invitee has played long enough
 	driftAcc: number,
 	topSpeedAt: number,
 	inGroup: boolean,
@@ -253,22 +298,23 @@ type PState = {
 
 local pstates: { [Player]: PState } = {}
 local friendPairs: { [string]: boolean } = {} -- "minUserId:maxUserId" -> friends?
-local explicitStats: { [string]: boolean } = {} -- stats some other system reports via progress()
+-- stats some other system reports via progress() for every player (switches off the local car-sampling fallback)
+local explicitStats: { [string]: boolean } = {}
 local friendsBusy = false
 local friendsAgain = false
-
-local DERIVED_COUNTERS: { [string]: string } = { steal = "steals", playerSteal = "playerSteals" }
 
 local function getPS(player: Player): PState
 	local ps = pstates[player]
 	if not ps then
+		local t = os.clock()
 		ps = {
-			sessionStart = os.clock(),
-			playtimeClaimed = {},
+			bankedAt = t,
+			loadedAt = t,
+			playtimeDay = -1,
 			playtimeNotified = {},
 			loadedHandled = false,
 			day = -1,
-			statBase = {},
+			pendingReferrer = nil,
 			driftAcc = 0,
 			topSpeedAt = -math.huge,
 			inGroup = false,
@@ -341,11 +387,27 @@ local function rootPosition(player: Player): Vector3?
 	return if root and root:IsA("BasePart") then root.Position else nil
 end
 
+-- Moves this session's unbanked play seconds into data.playtime (rolling it over on a new UTC day) and returns it.
+-- Mutates data without markDirty on purpose: autosave / the leave save persist it, no snapshot push needed.
+local function bankPlaytime(ps: PState, data: any): PlaytimeState
+	local t = os.clock()
+	local add = math.max(0, t - ps.bankedAt)
+	ps.bankedAt = t
+	local pt = RewardsService._playtimeFor(data.playtime, today())
+	data.playtime = pt
+	if ps.playtimeDay ~= pt.day then
+		ps.playtimeDay = pt.day
+		table.clear(ps.playtimeNotified)
+	end
+	pt.seconds = math.min(RewardsService.PLAYTIME_DAY_CAP, pt.seconds + add)
+	return pt
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Reward granting (shared by daily / playtime / codes / referral)
 ---------------------------------------------------------------------------------------------------------------------
 
-type Reward = { kind: string, amount: number?, rarity: string? }
+type Reward = { kind: string, amount: number?, min: number?, rarity: string? }
 
 local function giveCash(player: Player, amount: number, reason: string)
 	call("DataService", "addCash", player, amount, reason)
@@ -398,7 +460,7 @@ function RewardsService.grant(player: Player, reward: Reward, reason: string): s
 		giveCash(player, amount, reason)
 		return Format.cash(amount)
 	elseif kind == "incomeMinutes" then
-		local amount = RewardsService._incomeMinutesReward(reward.amount or 1, incomeOf(player))
+		local amount = RewardsService._incomeMinutesReward(reward.amount or 1, incomeOf(player), reward.min)
 		giveCash(player, amount, reason)
 		return Format.cash(amount)
 	elseif kind == "car" then
@@ -492,15 +554,19 @@ function RewardsService.getDailyView(player: Player): DailyView
 	return RewardsService._dailyView(data.daily.streak or 0, data.daily.lastClaimDay or 0, today())
 end
 
+-- sessionSeconds = seconds played TODAY (UTC), stored + this session (field name kept for the client).
 function RewardsService.getPlaytimeView(player: Player): { claimed: { [string]: boolean }, sessionSeconds: number }
+	local data = getData(player)
 	local ps = pstates[player]
-	if not ps then
-		if player.Parent ~= Players then
-			return { claimed = {}, sessionSeconds = 0 }
-		end
-		ps = getPS(player)
+	if not data or not ps or not ps.loadedHandled then
+		local pt = if data then RewardsService._playtimeFor(data.playtime, today()) else nil
+		return {
+			claimed = if pt then table.clone(pt.claimed) else {},
+			sessionSeconds = if pt then math.floor(pt.seconds) else 0,
+		}
 	end
-	return { claimed = table.clone(ps.playtimeClaimed), sessionSeconds = math.floor(os.clock() - ps.sessionStart) }
+	local pt = bankPlaytime(ps, data)
+	return { claimed = table.clone(pt.claimed), sessionSeconds = math.floor(pt.seconds) }
 end
 
 function RewardsService.getContractsView(player: Player): { day: number, list: { any } }
@@ -555,14 +621,16 @@ function RewardsService.claimPlaytime(player: Player, index: any): (boolean, str
 		return false, "loading"
 	end
 	local ps = getPS(player)
-	local ok, reason = RewardsService._canClaimPlaytime(index, os.clock() - ps.sessionStart, ps.playtimeClaimed)
+	-- stored seconds for today + this session's unbanked seconds, all server-side
+	local pt = bankPlaytime(ps, data)
+	local ok, reason = RewardsService._canClaimPlaytime(index, pt.seconds, pt.claimed)
 	if not ok then
 		if reason == "early" then
 			notify(player, "error", "Not yet! Keep playing to unlock this gift ⏳")
 		end
 		return false, reason
 	end
-	ps.playtimeClaimed[tostring(index)] = true
+	pt.claimed[tostring(index)] = true
 	local label = RewardsService.grant(player, Economy.PLAYTIME_REWARDS[index], "playtime")
 	notify(player, "money", `🎁 PLAYTIME GIFT: {label}`, 4)
 	sound(player, "Purchase")
@@ -576,7 +644,7 @@ function RewardsService.redeemCode(player: Player, code: any): (boolean, string?
 		return false, "loading"
 	end
 	local norm = RewardsService._normalizeCode(code)
-	local def = if norm then Economy.Codes[norm] else nil
+	local def = if norm then Codes[norm] else nil
 	if not norm or not def then
 		notify(player, "error", "Invalid code ❌")
 		return false, "invalid"
@@ -693,6 +761,18 @@ local function grantOffline(player: Player, data: any)
 		return
 	end
 	task.wait(RewardsService.OFFLINE_DELAY)
+	-- VIP doubles offline earnings: give a slow/retrying gamepass lookup time to finish (bounded)
+	local deadline = os.clock() + RewardsService.PASS_WAIT
+	while os.clock() < deadline do
+		local okReady, ready = call("MonetizationService", "passesReady", player)
+		if not okReady or ready ~= false then
+			break
+		end
+		task.wait(0.25)
+		if player.Parent ~= Players then
+			return
+		end
+	end
 	if player.Parent ~= Players or getData(player) ~= data then
 		return
 	end
@@ -729,16 +809,41 @@ local function handleReferral(player: Player, data: any)
 	local label = grantCar(player, rarity, "referral")
 	notify(player, "success", `🎉 You joined from a friend's invite! FREE car: {label}`, 6)
 	sound(player, "CashBig")
-	local inviter = Players:GetPlayerByUserId(referrer)
-	if inviter and getData(inviter) then
-		local label2 = grantCar(inviter, rarity, "referral")
-		notify(inviter, "success", `🎉 {player.DisplayName} joined from your invite! FREE car: {label2}`, 6)
-		sound(inviter, "CashBig")
-		Net.fireAll(
-			"EventFeed",
-			`🎉 <b>{richEscape(inviter.DisplayName)}</b> brought <b>{richEscape(player.DisplayName)}</b> to Hotwire City!`
-		)
+	-- the inviter is paid later (slowLoop -> payInviter) once this invitee has really played a while
+	local ps = pstates[player]
+	if ps then
+		ps.pendingReferrer = referrer
 	end
+end
+
+-- Inviter reward: only while both are in this server, after the invitee played REFERRAL_INVITER_MIN_SECONDS,
+-- capped per inviter per UTC day.
+local function payInviter(player: Player, ps: PState)
+	local referrer = ps.pendingReferrer
+	ps.pendingReferrer = nil
+	if not referrer then
+		return
+	end
+	local inviter = Players:GetPlayerByUserId(referrer)
+	local idata = if inviter then getData(inviter) else nil
+	if not inviter or not idata then
+		return
+	end
+	local allowed, newState =
+		RewardsService._referralAllowance(idata.referralsPaid, today(), RewardsService.REFERRAL_INVITER_DAILY_CAP)
+	if not allowed then
+		notify(inviter, "info", `🎉 Thanks for bringing {player.DisplayName}! (Daily invite gifts used up)`, 5)
+		return
+	end
+	idata.referralsPaid = newState
+	markDirty(inviter)
+	local label = grantCar(inviter, Economy.REFERRAL_REWARD_RARITY, "referral")
+	notify(inviter, "success", `🎉 {player.DisplayName} joined from your invite! FREE car: {label}`, 6)
+	sound(inviter, "CashBig")
+	Net.fireAll(
+		"EventFeed",
+		`🎉 <b>{richEscape(inviter.DisplayName)}</b> brought <b>{richEscape(player.DisplayName)}</b> to Hotwire City!`
+	)
 end
 
 local function onLoaded(player: Player, data: any)
@@ -748,12 +853,13 @@ local function onLoaded(player: Player, data: any)
 	end
 	ps.loadedHandled = true
 	ps.day = today()
+	-- playtime counts from the moment the data is in (not while loading)
+	local t = os.clock()
+	ps.loadedAt = t
+	ps.bankedAt = t
+	bankPlaytime(ps, data)
 	if ensureContracts(player, data) then
 		markDirty(player)
-	end
-	local stats = data.stats or {}
-	for _, field in DERIVED_COUNTERS do
-		ps.statBase[field] = stats[field] or 0
 	end
 	task.spawn(grantOffline, player, data)
 	task.spawn(handleReferral, player, data)
@@ -761,8 +867,12 @@ local function onLoaded(player: Player, data: any)
 		if player.Parent ~= Players or getData(player) ~= data then
 			return
 		end
+		-- new players are mid-tutorial (menu buttons hidden); the HUD's DAILY badge advertises it afterwards
+		if data.tutorialDone ~= true then
+			return
+		end
 		if RewardsService.getDailyView(player).canClaim then
-			notify(player, "info", "📅 Your DAILY REWARD is ready! Tap 📅 to claim.", 6)
+			notify(player, "info", "🎁 Your DAILY REWARD is ready! Tap 🎁 DAILY to claim.", 6)
 		end
 	end)
 end
@@ -770,25 +880,6 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Background loops
 ---------------------------------------------------------------------------------------------------------------------
-
--- Derives "steal"/"playerSteal" contract progress from the persisted counters (unless reported explicitly).
-local function statWatch(player: Player, ps: PState, data: any)
-	local stats = data.stats
-	if typeof(stats) ~= "table" then
-		return
-	end
-	for stat, field in DERIVED_COUNTERS do
-		local cur = stats[field]
-		if typeof(cur) ~= "number" then
-			continue
-		end
-		local base = ps.statBase[field]
-		ps.statBase[field] = cur
-		if base ~= nil and cur > base and not explicitStats[stat] then
-			applyProgress(player, stat, cur - base)
-		end
-	end
-end
 
 -- Samples the player's car for drift seconds + top speed (only while such a contract is open).
 local function driveSample(player: Player, ps: PState, dt: number)
@@ -833,39 +924,47 @@ local function driveSample(player: Player, ps: PState, dt: number)
 	end
 end
 
+local function slowTick(player: Player, ps: PState, day: number)
+	local data = getData(player)
+	if not data then
+		return
+	end
+	if not ps.loadedHandled then
+		onLoaded(player, data)
+	end
+	-- UTC day rollover while online: fresh contracts + daily reward (+ a new playtime gift ladder)
+	if ps.day ~= day then
+		ps.day = day
+		ensureContracts(player, data)
+		markDirty(player)
+		notify(player, "info", "🌅 New day! Fresh contracts + your daily reward are ready.", 6)
+	end
+	-- bank today's playtime + gift ready reminders (the reminder also refreshes the snapshot)
+	local pt = bankPlaytime(ps, data)
+	for i, def in Economy.PLAYTIME_REWARDS do
+		if not ps.playtimeNotified[i] and not pt.claimed[tostring(i)] and pt.seconds >= def.minutes * 60 then
+			ps.playtimeNotified[i] = true
+			notify(player, "info", "⏰ A playtime gift is ready! Tap ⏰ GIFTS to open it.", 5)
+			markDirty(player)
+			break
+		end
+	end
+	if ps.pendingReferrer and os.clock() - ps.loadedAt >= RewardsService.REFERRAL_INVITER_MIN_SECONDS then
+		payInviter(player, ps)
+	end
+end
+
 local function slowLoop()
 	while true do
-		task.wait(5)
+		task.wait(RewardsService.PLAYTIME_BANK_INTERVAL)
 		local day = today()
 		for player, ps in table.clone(pstates) do
-			if player.Parent ~= Players then
-				continue
-			end
-			local data = getData(player)
-			if not data then
-				continue
-			end
-			if not ps.loadedHandled then
-				onLoaded(player, data)
-			end
-			-- UTC day rollover while online: fresh contracts + daily reward
-			if ps.day ~= day then
-				ps.day = day
-				ensureContracts(player, data)
-				markDirty(player)
-				notify(player, "info", "🌅 New day! Fresh contracts + your daily reward are ready.", 6)
-			end
-			-- playtime gift ready reminders (also refreshes the snapshot's sessionSeconds)
-			local secs = os.clock() - ps.sessionStart
-			for i, def in Economy.PLAYTIME_REWARDS do
-				if not ps.playtimeNotified[i] and not ps.playtimeClaimed[tostring(i)] and secs >= def.minutes * 60 then
-					ps.playtimeNotified[i] = true
-					notify(player, "info", "🎁 A playtime gift is ready! Tap 🎁 to open it.", 5)
-					markDirty(player)
-					break
+			if player.Parent == Players then
+				local ok, err = pcall(slowTick, player, ps, day)
+				if not ok then
+					warn("[RewardsService] slow tick failed: " .. tostring(err))
 				end
 			end
-			statWatch(player, ps, data)
 		end
 	end
 end
@@ -914,6 +1013,15 @@ function RewardsService.init()
 			end
 		end)
 	end
+	if DataService and DataService.Releasing then
+		-- fired right before the final save on leave / shutdown: bank the last seconds of playtime
+		DataService.Releasing:Connect(function(player: Player, data: any)
+			local ps = pstates[player]
+			if ps and ps.loadedHandled and typeof(data) == "table" then
+				bankPlaytime(ps, data)
+			end
+		end)
+	end
 end
 
 function RewardsService.start()
@@ -928,6 +1036,12 @@ function RewardsService.start()
 	end
 	Players.PlayerAdded:Connect(onJoin)
 	Players.PlayerRemoving:Connect(function(player: Player)
+		local ps = pstates[player]
+		local DataService = sys("DataService")
+		local data = if DataService and typeof(DataService.get) == "function" then DataService.get(player) else nil
+		if ps and ps.loadedHandled and typeof(data) == "table" then
+			bankPlaytime(ps, data) -- before the final save (DataService.Releasing also banks; idempotent)
+		end
 		pstates[player] = nil
 		local uid = player.UserId
 		for key in table.clone(friendPairs) do

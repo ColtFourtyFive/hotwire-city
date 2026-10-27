@@ -191,22 +191,26 @@ local function callSystem(name: string, fnName: string, ...: any): (boolean, ...
 end
 
 -- Try a list of candidate function names on a system (for APIs the spec does not pin down).
-local function callFirst(name: string, fnNames: { string }, ...: any): (boolean, string)
+-- Returns (ok, message, found). A function that returns `false[, reason]` REFUSED: that is a failure, not a success
+-- (found = true, so callers don't fall back to another API that would try the same thing again).
+local function callFirst(name: string, fnNames: { string }, ...: any): (boolean, string, boolean)
 	local mod = trySystem(name)
 	if not mod then
-		return false, name .. " is not available"
+		return false, name .. " is not available", false
 	end
 	for _, fnName in fnNames do
 		local fn = mod[fnName]
 		if typeof(fn) == "function" then
-			local ok, err = pcall(fn, ...)
-			if ok then
-				return true, name .. "." .. fnName
+			local ok, res, why = pcall(fn, ...)
+			if not ok then
+				return false, ("%s.%s failed: %s"):format(name, fnName, tostring(res)), true
+			elseif res == false then
+				return false, ("%s.%s refused: %s"):format(name, fnName, tostring(why or "already running")), true
 			end
-			return false, ("%s.%s failed: %s"):format(name, fnName, tostring(err))
+			return true, name .. "." .. fnName, true
 		end
 	end
-	return false, ("%s has none of: %s"):format(name, table.concat(fnNames, ", "))
+	return false, ("%s has none of: %s"):format(name, table.concat(fnNames, ", ")), false
 end
 
 local function rootPart(player: Player): BasePart?
@@ -357,9 +361,11 @@ command("spawn", "spawn <carId> [mutation]", function(player, args)
 	if not ok or typeof(car) ~= "table" then
 		return false, "VehicleService.spawn failed: " .. tostring(car)
 	end
-	local okSeat, err = callSystem("VehicleService", "seat", car, player)
-	if not okSeat then
-		return true, "Spawned " .. carId .. " (could not seat you: " .. tostring(err) .. ")"
+	-- seat() never throws: it returns (false, reason) when it can't seat you
+	local okSeat, seated, why = callSystem("VehicleService", "seat", car, player)
+	if not okSeat or seated ~= true then
+		local reason = if okSeat then why else seated
+		return true, "Spawned " .. carId .. " (could not seat you: " .. tostring(reason or "unknown") .. ")"
 	end
 	return true, "Spawned " .. carId .. " - drive it home to keep it!"
 end)
@@ -415,14 +421,19 @@ local GENERIC_EVENT_FUNCTIONS = { "startEvent", "forceEvent", "triggerEvent" }
 
 local function runEvent(player: Player, eventName: string): (boolean, string)
 	if eventName == "serverLuck" then
-		local ok, err = callSystem("EventService", "activateServerLuck", player)
-		return ok, if ok then "Server Luck x2 activated" else "activateServerLuck: " .. tostring(err)
+		local ok, res = callSystem("EventService", "activateServerLuck", player)
+		if ok and res ~= false then
+			return true, "Server Luck x2 activated"
+		end
+		return false, "activateServerLuck: " .. tostring(if ok then "refused" else res)
 	end
 	local specific = EVENT_FUNCTIONS[eventName]
 	if specific then
-		local ok, used = callFirst("EventService", specific)
+		local ok, used, found = callFirst("EventService", specific)
 		if ok then
 			return true, eventName .. " started via " .. used
+		elseif found then
+			return false, "Could not start " .. eventName .. " (" .. used .. ")"
 		end
 	end
 	local ok, used = callFirst("EventService", GENERIC_EVENT_FUNCTIONS, eventName)
@@ -453,9 +464,11 @@ command("rebirth", "rebirth", function(player, _args)
 	if data.cash < cost then
 		DataService.addCash(player, cost - data.cash, "admin")
 	end
-	local ok, used = callFirst("RebirthService", { "rebirth", "doRebirth", "performRebirth", "forceRebirth" }, player)
+	local ok, used, found = callFirst("RebirthService", { "rebirth", "doRebirth", "performRebirth", "forceRebirth" }, player)
 	if ok then
 		return true, "Rebirthed via " .. used
+	elseif found then
+		return false, "Rebirth failed (" .. used .. ")" -- e.g. a car is out driving; the player also got a toast
 	end
 	return true, ("Cash topped up to %s - open the Rebirth menu to rebirth (%s)"):format(Format.cash(cost), used)
 end)

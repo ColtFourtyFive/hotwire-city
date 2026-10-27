@@ -38,6 +38,7 @@ CombatService.Hit = Signal.new()
 local BAT_RANGE_SLACK = 2 -- lag compensation on top of Economy.BAT_RANGE
 local BAT_MIN_DOT = 0.3 -- "in front" cone (horizontal)
 local BAT_POINT_BLANK = 3 -- closer than this always counts as "in front" (players overlapping)
+local BAT_LOS_HEIGHT = 1.5 -- line-of-sight ray starts this far above the root when there is no Head
 local BAT_UP = 35
 local TASER_KNOCK = 28
 local TASER_UP = 22
@@ -191,6 +192,15 @@ function CombatService.segmentCrossesStrip(
 	local x = p0.X + (p1.X - p0.X) * t
 	local y = p0.Y + (p1.Y - p0.Y) * t
 	return math.abs(x) <= halfWidth and y >= -2 and y <= height
+end
+
+-- Daily contract "defend" (bonk3, docs/integration/DECISIONS.md #6): a hit that ejects the driver of a Stolen car, or
+-- of a Loot car while that driver is wanted (>= 1 star), counts, whoever the attacker is.
+function CombatService.countsAsThiefBonk(carKind: any, victimWanted: number): boolean
+	if carKind == "Stolen" then
+		return true
+	end
+	return carKind == "Loot" and victimWanted >= 1
 end
 
 -- Is `value` (Player, userId number, or nil) the given player?
@@ -602,6 +612,7 @@ local strips: { Strip } = {}
 local prevChassisPos: { [Model]: Vector3 } = {}
 
 local zapParams: RaycastParams? = nil
+local batParams: RaycastParams? = nil
 local groundParams: RaycastParams? = nil
 
 -- Lazy system access (require inside functions; see SPEC §4). Cached once a system loaded successfully.
@@ -869,22 +880,29 @@ local function applyHit(attacker: Player, victim: Player, opts: HitOptions)
 	local stealingFromAttacker = isStealingFrom(victim, attacker, car)
 	local defended = car ~= nil and car.kind == "Stolen" and stealingFromAttacker
 	local wanted = victim:GetAttribute("Wanted")
+	local victimWanted = if typeof(wanted) == "number" then wanted else 0
+	local thiefBonk = car ~= nil and CombatService.countsAsThiefBonk(car.kind, victimWanted)
 	local heat = CombatService.shouldAddAssaultHeat({
 		attackerInOwnGarage = isInOwnGarage(attacker, attackerRoot.Position),
 		victimInAttackerGarage = isInOwnGarage(attacker, victimRoot.Position),
 		victimStealingFromAttacker = stealingFromAttacker,
-		victimWanted = if typeof(wanted) == "number" then wanted else 0,
+		victimWanted = victimWanted,
 	})
 
 	CombatService.stun(victim, opts.stunSeconds)
+	-- TheftService records the hit BEFORE the eject: the eject drops a stolen car synchronously, and the knockout feed
+	-- line / revenge read the hitter it stores (DECISIONS.md: onThiefHit is called before any eject)
+	callSystem("TheftService", "onThiefHit", attacker, victim)
+	local ejected = false
 	if car then
-		callSystem("VehicleService", "eject", car)
+		ejected = callSystem("VehicleService", "eject", car)
 	end
 	Net.fireClient("Knockback", victim, opts.knockback, opts.stunSeconds)
 
-	callSystem("TheftService", "onThiefHit", attacker, victim)
-	if defended then
+	if thiefBonk and ejected then
 		callSystem("RewardsService", "progress", attacker, "defend", 1)
+	end
+	if defended then
 		notify(attacker, "success", "THIEF BONKED! Go grab your car back!")
 	end
 	if heat and now - (lastAssaultHeat[attacker] or -math.huge) >= ASSAULT_HEAT_COOLDOWN then
@@ -897,6 +915,42 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 -- Tool actions
 -------------------------------------------------------------------------------------------------------------------------
+
+-- Melee line of sight: no bonks through garage walls, glass or buildings. Characters, the effects folder and both
+-- players' cars are ignored (a driver is hit through their own car door; you can swing from your own seat).
+local function batLineOfSight(attacker: Player, attackerRoot: BasePart, victim: Player, victimRoot: BasePart): boolean
+	local params = batParams
+	if not params then
+		params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.IgnoreWater = true
+		params.RespectCanCollide = true -- decorative / trigger volumes never block a swing
+		batParams = params
+	end
+	local exclude: { Instance } = { getEffectsFolder() }
+	for _, p in Players:GetPlayers() do
+		if p.Character then
+			table.insert(exclude, p.Character)
+		end
+	end
+	for _, p in { attacker, victim } do
+		local car = getDrivingCar(p)
+		if car and typeof(car.model) == "Instance" then
+			table.insert(exclude, car.model)
+		end
+	end
+	params.FilterDescendantsInstances = exclude
+	local character = attacker.Character
+	local head = character and character:FindFirstChild("Head")
+	local origin = if head and head:IsA("BasePart")
+		then head.Position
+		else attackerRoot.Position + Vector3.new(0, BAT_LOS_HEIGHT, 0)
+	local dir = victimRoot.Position - origin
+	if dir.Magnitude < 0.5 then
+		return true
+	end
+	return Workspace:Raycast(origin, dir, params) == nil
+end
 
 local function doBat(player: Player, root: BasePart, aim: Vector3?)
 	local origin = root.Position
@@ -917,20 +971,35 @@ local function doBat(player: Player, root: BasePart, aim: Vector3?)
 			end
 		end
 	end
-	local target = CombatService.selectTarget(
-		origin,
-		forwards,
-		candidates,
-		Economy.BAT_RANGE + BAT_RANGE_SLACK,
-		BAT_MIN_DOT,
-		BAT_POINT_BLANK
-	)
-	if not target then
-		return
+	-- nearest valid target in the cone that is not behind a wall (a blocked one falls through to the next nearest)
+	local victim: Player? = nil
+	local victimRoot: BasePart? = nil
+	while #candidates > 0 do
+		local target = CombatService.selectTarget(
+			origin,
+			forwards,
+			candidates,
+			Economy.BAT_RANGE + BAT_RANGE_SLACK,
+			BAT_MIN_DOT,
+			BAT_POINT_BLANK
+		)
+		if not target then
+			return
+		end
+		local p = target :: Player
+		local pRoot = getRoot(p)
+		if pRoot and batLineOfSight(player, root, p, pRoot) then
+			victim, victimRoot = p, pRoot
+			break
+		end
+		for i, c in candidates do
+			if c.key == target then
+				table.remove(candidates, i)
+				break
+			end
+		end
 	end
-	local victim = target :: Player
-	local victimRoot = getRoot(victim)
-	if not victimRoot then
+	if not victim or not victimRoot then
 		return
 	end
 	local flat = Vector3.new(victimRoot.Position.X - origin.X, 0, victimRoot.Position.Z - origin.Z)

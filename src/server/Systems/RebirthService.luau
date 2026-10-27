@@ -1,11 +1,13 @@
 --!strict
--- RebirthService (SPEC §6): trade everything for a permanent +50% income (and luck) multiplier.
+-- RebirthService (SPEC §6): trade everything for a permanent +50% income multiplier (and +10s laser lock).
+-- Rebirths never change spawn luck (world spawns are shared), so nothing here or in the UI may promise luck.
 --
 -- Rebirth remote / rebirth(player): requires cash >= EconomyMath.rebirthCost(rebirths) and every garage car parked
--- (none out driving / being stolen). Resets cash to STARTING_CASH, the garage to just the single best car (by income)
--- and slotsUnlocked to START_SLOTS. Upgrades, tools, discovered cars, stats, streaks and codes are kept.
--- Robux-bought Exclusive cars are never taken away: they stay parked (or go to data.exclusives, which
--- MonetizationService delivers as soon as a slot frees up). Announce + confetti for the whole server.
+-- (none out driving / being stolen). Uncollected garage cash is paid out first (counts toward totalEarned), then cash
+-- resets to STARTING_CASH, the garage keeps the best Economy.REBIRTH_KEEP_CARS cars (by income) and slotsUnlocked
+-- goes back to START_SLOTS. Upgrades, tools, discovered cars, stats, streaks and codes are kept.
+-- Robux-bought Exclusive cars are never taken away and never count toward the keep limit: they stay parked (or go to
+-- data.exclusives, which MonetizationService delivers as soon as a slot frees up). Announce + confetti for the server.
 -- PlotService reads data.rebirths for the +10s/rebirth lock bonus; GarageService reads it for the income multiplier.
 
 local Players = game:GetService("Players")
@@ -77,39 +79,57 @@ local function isExclusive(carId: string): boolean
 	return def ~= nil and def.rarity == "Exclusive"
 end
 
--- Which cars survive a rebirth, in slot order: the best car by income first (ties -> lowest slot), then every
--- other Exclusive (Robux) car. Unknown car ids are dropped.
-function RebirthService._plan(garage: { [string]: SlotRecord }): { SlotRecord }
-	local entries: { { slot: number, rec: SlotRecord, income: number } } = {}
+-- Which cars survive a rebirth: the best `keep` (default Economy.REBIRTH_KEEP_CARS) non-Exclusive cars by income
+-- (ties -> lowest slot), then every Exclusive (Robux) car in slot order (exclusives never count toward `keep`).
+-- Unknown car ids are dropped; an empty result keeps the starter car.
+function RebirthService._plan(garage: { [string]: SlotRecord }, keep: number?): { SlotRecord }
+	local regular: { { slot: number, rec: SlotRecord, income: number } } = {}
+	local exclusives: { { slot: number, rec: SlotRecord, income: number } } = {}
 	for key, rec in garage do
 		local slot = tonumber(key)
 		if slot and typeof(rec) == "table" and Cars.get(rec.carId) then
-			table.insert(entries, { slot = slot, rec = rec, income = EconomyMath.carIncome(rec.carId, rec.mutation) })
+			local entry = { slot = slot, rec = rec, income = EconomyMath.carIncome(rec.carId, rec.mutation) }
+			table.insert(if isExclusive(rec.carId) then exclusives else regular, entry)
 		end
 	end
-	table.sort(entries, function(a, b)
+	table.sort(regular, function(a, b)
+		if a.income ~= b.income then
+			return a.income > b.income
+		end
 		return a.slot < b.slot
 	end)
-	local bestIdx: number? = nil
-	for i, e in entries do
-		if bestIdx == nil or e.income > entries[bestIdx].income then
-			bestIdx = i
-		end
-	end
+	table.sort(exclusives, function(a, b)
+		return a.slot < b.slot
+	end)
+	local limit = math.max(1, math.floor(keep or Economy.REBIRTH_KEEP_CARS))
 	local kept: { SlotRecord } = {}
-	if bestIdx then
-		local best = entries[bestIdx].rec
-		table.insert(kept, { carId = best.carId, mutation = best.mutation, uncollected = 0 })
-	end
-	for i, e in entries do
-		if i ~= bestIdx and isExclusive(e.rec.carId) then
-			table.insert(kept, { carId = e.rec.carId, mutation = e.rec.mutation, uncollected = 0 })
+	for i, e in regular do
+		if i > limit then
+			break
 		end
+		table.insert(kept, { carId = e.rec.carId, mutation = e.rec.mutation, uncollected = 0 })
+	end
+	for _, e in exclusives do
+		table.insert(kept, { carId = e.rec.carId, mutation = e.rec.mutation, uncollected = 0 })
 	end
 	if #kept == 0 then
 		table.insert(kept, { carId = Economy.STARTER_CAR, mutation = "None", uncollected = 0 })
 	end
 	return kept
+end
+
+-- Whole dollars of uncollected garage cash (paid out before a rebirth resets cash).
+function RebirthService._uncollectedTotal(garage: { [string]: SlotRecord }): number
+	local total = 0
+	for _, rec in garage do
+		if typeof(rec) == "table" then
+			local u = rec.uncollected
+			if typeof(u) == "number" and u == u and u > 0 and u ~= math.huge then
+				total += u
+			end
+		end
+	end
+	return math.floor(total)
 end
 
 -- Adds an owed exclusive car using MonetizationService's key format ("<carId>" or "<carId>#<n>").
@@ -125,11 +145,15 @@ function RebirthService._addPendingExclusive(data: any, carId: string)
 end
 
 -- Pure data reset (used directly when GarageService is unavailable, and by tests). Mutates `data`:
--- rebirths+1, cash = STARTING_CASH, slotsUnlocked = START_SLOTS, garage = kept cars in slots 1..capacity; kept
--- exclusives beyond capacity become pending exclusives. Returns the kept list.
+-- uncollected garage cash -> totalEarned, rebirths+1, cash = STARTING_CASH, slotsUnlocked = START_SLOTS,
+-- garage = kept cars in slots 1..capacity; kept exclusives beyond capacity become pending exclusives (a regular car
+-- beyond capacity can only happen with capacity < REBIRTH_KEEP_CARS and is dropped). Returns the kept list.
 function RebirthService._applyReset(data: any, capacity: number?): { SlotRecord }
-	local kept = RebirthService._plan(data.garage or {})
+	local garageIn = data.garage or {}
+	local kept = RebirthService._plan(garageIn)
+	local payout = RebirthService._uncollectedTotal(garageIn)
 	local cap = math.max(1, capacity or Economy.START_SLOTS)
+	data.totalEarned = (tonumber(data.totalEarned) or 0) + payout
 	data.rebirths = (data.rebirths or 0) + 1
 	data.cash = Economy.STARTING_CASH
 	data.slotsUnlocked = Economy.START_SLOTS
@@ -137,12 +161,29 @@ function RebirthService._applyReset(data: any, capacity: number?): { SlotRecord 
 	for i, rec in kept do
 		if i <= cap then
 			garage[tostring(i)] = rec
-		else
+		elseif isExclusive(rec.carId) then
 			RebirthService._addPendingExclusive(data, rec.carId)
 		end
 	end
 	data.garage = garage
 	return kept
+end
+
+-- "Gold Hot Hatch + Rustbucket" (the non-exclusive cars a rebirth kept, for the success toast).
+function RebirthService._keptLabel(kept: { SlotRecord }): string
+	local names: { string } = {}
+	for _, rec in kept do
+		if not isExclusive(rec.carId) then
+			local def = Cars.get(rec.carId)
+			local name = if def then def.name else rec.carId
+			local mut = Rarity.getMutation(rec.mutation :: any)
+			table.insert(names, if mut.label ~= "" then mut.label .. " " .. name else name)
+		end
+	end
+	if #names == 0 then
+		return "Robux cars"
+	end
+	return table.concat(names, " + ")
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -157,16 +198,6 @@ end
 
 local function richEscape(s: string): string
 	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
-end
-
-local function carLabel(carId: string, mutation: string): string
-	local def = Cars.get(carId)
-	local name = if def then def.name else carId
-	local mut = Rarity.getMutation(mutation :: any)
-	if mut.label ~= "" then
-		return mut.label .. " " .. name
-	end
-	return name
 end
 
 -- Why the player can't rebirth right now (nil = they can). Does not check cash.
@@ -254,6 +285,11 @@ function RebirthService.rebirth(player: Player): (boolean, string?)
 			and typeof(Garage.removeSlot) == "function"
 			and typeof(Garage.storeCar) == "function"
 		if canUseGarage then
+			-- uncollected garage cash is paid out first (it counts toward totalEarned), then cash resets below
+			local payout = RebirthService._uncollectedTotal(data.garage)
+			if payout > 0 then
+				DataService.addCash(player, payout, "rebirth")
+			end
 			-- through GarageService so displays/pads/income stay in sync (no yields between steps)
 			for key in table.clone(data.garage) do
 				local slot = tonumber(key)
@@ -269,8 +305,8 @@ function RebirthService.rebirth(player: Player): (boolean, string?)
 			data.slotsUnlocked = Economy.START_SLOTS
 			for _, rec in kept do
 				local stored = Garage.storeCar(player, rec.carId, rec.mutation)
-				if not stored then
-					RebirthService._addPendingExclusive(data, rec.carId)
+				if not stored and isExclusive(rec.carId) then
+					RebirthService._addPendingExclusive(data, rec.carId) -- delivered when a slot frees up
 				end
 			end
 			if typeof(Garage.refresh) == "function" then
@@ -281,8 +317,7 @@ function RebirthService.rebirth(player: Player): (boolean, string?)
 		end
 		DataService.markDirty(player)
 		player:SetAttribute("Rebirths", data.rebirths)
-		local best = kept[1]
-		local keptName = carLabel(best.carId, best.mutation)
+		local keptName = RebirthService._keptLabel(kept)
 		local multText = RebirthService._formatMultiplier(data.rebirths)
 		notify(player, "success", `🌟 REBIRTH x{data.rebirths}! You kept your {keptName}. Income {multText}!`, 6)
 		Net.fireClient("Sound", player, "CashBig")
@@ -300,9 +335,10 @@ function RebirthService.rebirth(player: Player): (boolean, string?)
 end
 
 function RebirthService.init()
+	-- 1/s: busy[] + the cash check already stop double rebirths (Net buckets always allow the first call)
 	Net.on("Rebirth", function(player: Player)
 		RebirthService.rebirth(player)
-	end, 0.5)
+	end, 1)
 end
 
 function RebirthService.start()

@@ -53,6 +53,11 @@ EventService.BAG_LINGER = 15 -- seconds leftover bags stay after the rain ends
 EventService.BAG_ANCHOR_AFTER = 4 -- landed bags are anchored after this long (no physics cost)
 EventService.BAG_PICKUP_RADIUS = 5.5
 EventService.MIN_BAG_VALUE = 250
+EventService.LUCK_REROLL_FRACTION = 0.5 -- share of out-of-view parked cars re-rolled when a luck event starts
+EventService.LANDING_CLEAR_PLAYERS = 10 -- players on foot this close to the landing spot are nudged out...
+EventService.LANDING_PUSH_PLAYERS = 14 -- ...to this distance
+EventService.LANDING_CLEAR_CARS = 16 -- driverless cars this close are cleared / moved aside...
+EventService.LANDING_PUSH_CARS = 18 -- ...to this distance (still inside the 40-stud intersection)
 
 -- Lazy system access (no require cycles; tolerant of a missing/broken system) -------------------------------------
 local systemCache: { [string]: any } = {}
@@ -131,6 +136,16 @@ end
 -- New end time when a duration is added to a (possibly running) timer: stacks onto the remaining time.
 function EventService._stack(currentEndsAt: number, t: number, duration: number): number
 	return math.max(currentEndsAt, t) + duration
+end
+
+-- Server-side hold check for a hold prompt: the hold began (t0), lasted at least ~`required` seconds and is not a
+-- stale arm from long ago (a tap now + a Triggered much later with a locally zeroed HoldDuration).
+function EventService._holdValid(t0: number?, t: number, required: number): boolean
+	if t0 == nil then
+		return false
+	end
+	local held = t - t0
+	return held >= required * 0.9 and held <= required / 0.9 + 1.5
 end
 
 -- Cash one bag pays: CASH_RAIN_BAG_SECONDS of income, at least MIN_BAG_VALUE.
@@ -706,20 +721,21 @@ local function removeClaimPrompts(hd: HotDrop)
 	end
 end
 
+-- Refusal reasons are shown to the player as toasts, so internal races (already claimed, stunned) refuse silently.
 local function canClaim(hd: HotDrop, player: Player): (boolean, string?)
 	if hotDrop ~= hd or hd.claimed or hd.phase ~= "live" then
-		return false, "gone"
+		return false, nil
 	end
 	local car = hd.car
 	if not car or not car.model or car.model.Parent == nil or car.kind ~= "HotDrop" then
-		return false, "gone"
+		return false, nil
 	end
 	if player:GetAttribute("Stunned") == true then
-		return false, "stunned"
+		return false, nil
 	end
 	local DataService = sys("DataService")
 	if DataService and typeof(DataService.isLoaded) == "function" and not DataService.isLoaded(player) then
-		return false, "loading"
+		return false, "Still loading. Try again in a sec!"
 	end
 	local V = sys("VehicleService")
 	if V and typeof(V.getDriving) == "function" then
@@ -730,6 +746,8 @@ local function canClaim(hd: HotDrop, player: Player): (boolean, string?)
 	end
 	return true, nil
 end
+
+local addClaimPrompt: (hd: HotDrop) -> ()
 
 local function claimHotDrop(hd: HotDrop, player: Player)
 	local ok = canClaim(hd, player)
@@ -747,9 +765,20 @@ local function claimHotDrop(hd: HotDrop, player: Player)
 	if car.chassis and car.chassis:IsA("BasePart") then
 		car.chassis.Anchored = false
 	end
-	local seated = call("VehicleService", "seat", car, player)
-	if not seated then
-		warn("[EventService] could not seat hot drop claimer")
+	-- seat() never throws; it returns (false, reason). On failure the drop stays claimable: no heat/stats/contract.
+	local okCall, seated = call("VehicleService", "seat", car, player)
+	if not okCall or seated ~= true then
+		warn("[EventService] could not seat hot drop claimer; drop stays claimable")
+		hd.claimed = false
+		car.data.hotDropClaimer = nil
+		setKind(car, "HotDrop")
+		if car.chassis and car.chassis:IsA("BasePart") then
+			car.chassis.Anchored = true
+		end
+		if hotDrop == hd and car.model and car.model.Parent then
+			addClaimPrompt(hd)
+		end
+		return
 	end
 
 	call("WantedService", "addHeat", player, Police.Heat.hotDrop, "hotDrop")
@@ -776,11 +805,22 @@ local function claimHotDrop(hd: HotDrop, player: Player)
 	)
 	Net.fireClient("Sound", player, "CashBig", hd.position)
 	Net.fireNear("Effect", hd.position, 400, "Confetti", { position = hd.position + Vector3.new(0, 4, 0) })
+	-- warn now (not at the drop-off) when there is nowhere to park it; the claim itself is never blocked
+	local okFree, free = call("GarageService", "freeSlots", player)
+	if okFree and typeof(free) == "number" and free <= 0 then
+		Net.fireClient(
+			"Notify",
+			player,
+			"warning",
+			"📦 Your garage is full! Sell a car first, or chop this one at the Chop Shop.",
+			6
+		)
+	end
 	EventService.HotDropClaimed:Fire(player, car)
 	clearHotDrop(hd)
 end
 
-local function addClaimPrompt(hd: HotDrop)
+function addClaimPrompt(hd: HotDrop)
 	local car = hd.car
 	if not car then
 		return
@@ -809,7 +849,7 @@ local function addClaimPrompt(hd: HotDrop)
 		end
 		warn("[EventService] addStealPrompt failed: " .. tostring(res))
 	end
-	-- Fallback: our own prompt (server re-validates; hold enforced by the engine only).
+	-- Fallback: our own prompt (server re-validates the hold window and the distance).
 	local chassis = car.chassis
 	if not chassis or not chassis:IsA("BasePart") then
 		return
@@ -822,14 +862,31 @@ local function addClaimPrompt(hd: HotDrop)
 	prompt.MaxActivationDistance = 12
 	prompt.RequiresLineOfSight = false
 	prompt:SetAttribute("HotDropClaim", true)
-	local began: { [Player]: number } = {}
+	local began: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any -- weak: leavers drop out
 	prompt.PromptButtonHoldBegan:Connect(function(player: Player)
 		began[player] = os.clock()
+	end)
+	prompt.PromptButtonHoldEnded:Connect(function(player: Player)
+		-- released early: the arm is void (a later Triggered without a fresh HoldBegan must not pass)
+		local t0 = began[player]
+		if t0 and os.clock() - t0 < Events.HOT_DROP_HOLD * 0.9 then
+			began[player] = nil
+		end
 	end)
 	prompt.Triggered:Connect(function(player: Player)
 		local t0 = began[player]
 		began[player] = nil
-		if not t0 or os.clock() - t0 < Events.HOT_DROP_HOLD * 0.9 then
+		if not EventService._holdValid(t0, os.clock(), Events.HOT_DROP_HOLD) then
+			return
+		end
+		local char = player.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if
+			not root
+			or not root:IsA("BasePart")
+			or chassis.Parent == nil
+			or (root.Position - chassis.Position).Magnitude > prompt.MaxActivationDistance + 6
+		then
 			return
 		end
 		claimHotDrop(hd, player)
@@ -874,6 +931,67 @@ local function isPointBlocked(cf: CFrame): boolean
 	return false
 end
 
+-- Where something standing at `pos` is moved so the landing car doesn't spawn inside it: straight out from
+-- `center` to `radius` studs (random direction when it stands dead center), keeping its height.
+function EventService._pushOut(center: Vector3, pos: Vector3, radius: number, r: Random?): Vector3
+	local flatOff = Vector3.new(pos.X - center.X, 0, pos.Z - center.Z)
+	local dir: Vector3
+	if flatOff.Magnitude > 0.5 then
+		dir = flatOff.Unit
+	else
+		local a = (r or rng):NextNumber(0, math.pi * 2)
+		dir = Vector3.new(math.cos(a), 0, math.sin(a))
+	end
+	return Vector3.new(center.X, pos.Y, center.Z) + dir * radius
+end
+
+-- Right before the drop lands: nudge players off the spot and clear parked junk that drove/rolled in during the
+-- countdown. Driverless traffic/unowned loot is removed; a player's own parked car is moved aside, never deleted.
+local function clearLandingSpot(center: Vector3)
+	for _, p in Players:GetPlayers() do
+		local char = p.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+		if
+			char
+			and root
+			and root:IsA("BasePart")
+			and not (humanoid and humanoid.SeatPart)
+			and (Vector3.new(root.Position.X - center.X, 0, root.Position.Z - center.Z)).Magnitude
+				< EventService.LANDING_CLEAR_PLAYERS
+		then
+			local target = EventService._pushOut(center, root.Position, EventService.LANDING_PUSH_PLAYERS)
+			char:PivotTo(CFrame.new(target) * root.CFrame.Rotation)
+		end
+	end
+	local V = sys("VehicleService")
+	if not V or typeof(V.all) ~= "function" then
+		return
+	end
+	local ok, list = pcall(V.all)
+	if not ok or typeof(list) ~= "table" then
+		return
+	end
+	for _, car in list do
+		local model = car.model
+		if car.driver ~= nil or car.destroyed or not model or model.Parent == nil then
+			continue
+		end
+		local pivot = model:GetPivot()
+		local flatDist = Vector3.new(pivot.Position.X - center.X, 0, pivot.Position.Z - center.Z).Magnitude
+		if flatDist >= EventService.LANDING_CLEAR_CARS then
+			continue
+		end
+		if car.kind == "Traffic" or (car.kind == "Loot" and car.ownerUserId == nil) then
+			call("TrafficService", "release", car, "cleared")
+			call("VehicleService", "destroy", car, "cleared")
+		elseif car.kind == "Owned" or car.kind == "Loot" then
+			local target = EventService._pushOut(center, pivot.Position, EventService.LANDING_PUSH_CARS)
+			call("VehicleService", "teleport", car, CFrame.new(target) * pivot.Rotation)
+		end
+	end
+end
+
 local function runHotDrop(hd: HotDrop)
 	local color = rarityColor(hd.rarity)
 	local label = carLabel(hd.carId, hd.mutation)
@@ -906,6 +1024,10 @@ local function runHotDrop(hd: HotDrop)
 		warn("[EventService] VehicleService.spawn unavailable; hot drop cancelled")
 		clearHotDrop(hd)
 		return
+	end
+	local okClear, clearErr = pcall(clearLandingSpot, hd.position)
+	if not okClear then
+		warn("[EventService] clearing the landing spot failed: " .. tostring(clearErr))
 	end
 	local ok, car = pcall(V.spawn, hd.carId, hd.mutation, hd.cframe, "HotDrop")
 	if not ok or typeof(car) ~= "table" or not car.model then
@@ -1196,6 +1318,12 @@ end
 -- Timed events
 ---------------------------------------------------------------------------------------------------------------------
 
+-- Luck only affects NEW rolls: when a luck event starts, ask StreetSpawnService to re-roll a share of the parked cars
+-- nobody is looking at, so "rare cars are everywhere" is visible. Optional API (no-op when it doesn't exist).
+local function rerollStreet()
+	call("StreetSpawnService", "rerollOutOfView", EventService.LUCK_REROLL_FRACTION)
+end
+
 function EventService.startRushHour(): boolean
 	local t = now()
 	timers.rushHour = EventService._stack(timers.rushHour, t, Events.RUSH_HOUR_DURATION)
@@ -1208,6 +1336,7 @@ function EventService.startRushHour(): boolean
 	feed("🚦 <b>RUSH HOUR</b> — more traffic, rarer cars!")
 	nextAt.rushHour = timers.rushHour + rng:NextNumber(Events.RUSH_HOUR_INTERVAL[1], Events.RUSH_HOUR_INTERVAL[2])
 	broadcastEventState()
+	rerollStreet()
 	return true
 end
 
@@ -1241,6 +1370,7 @@ function EventService.activateServerLuck(player: Player?): boolean
 	)
 	feed(`🍀 <b>{richEscape(who)}</b> boosted <b>SERVER LUCK</b> for everyone!`)
 	broadcastEventState()
+	rerollStreet()
 	return true
 end
 

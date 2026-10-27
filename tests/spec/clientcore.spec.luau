@@ -92,6 +92,21 @@ return function(t)
 		local th = StateController.sanitizeTheft({ active = true, endsAt = 99, carId = "c", targetPlot = 3 })
 		t.eq(th.active, true)
 		t.eq(th.targetPlot, 3)
+		t.eq(th.dropped, false, "not dropped by default")
+		t.eq(th.droppedEndsAt, nil)
+		local dr = StateController.sanitizeTheft({
+			active = true,
+			endsAt = 99,
+			carId = "c",
+			mutation = "Gold",
+			dropped = true,
+			droppedEndsAt = 42,
+		})
+		t.eq(dr.dropped, true, "dropped survives sanitizing")
+		t.eq(dr.droppedEndsAt, 42)
+		t.eq(dr.mutation, "Gold")
+		t.eq(StateController.sanitizeTheft({ active = true, dropped = "yes", droppedEndsAt = 0 / 0 }).dropped, false)
+		t.eq(StateController.sanitizeTheft({ active = true, droppedEndsAt = 0 / 0 }).droppedEndsAt, nil, "NaN dropped")
 		StateController.applyTheft(nil)
 		t.eq(StateController.getTheft().active, false)
 		StateController.applyEventState({ cashRain = 10 })

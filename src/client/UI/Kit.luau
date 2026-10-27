@@ -4,6 +4,7 @@
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Theme = require(script.Parent.Theme)
@@ -78,8 +79,38 @@ function Kit.list(
 	})
 end
 
+-- True when the player is (primarily) on a touch screen. PreferredInput when the engine has it, else the classic
+-- "touch without a mouse" test.
+function Kit.isTouch(): boolean
+	local ok, preferred = pcall(function()
+		return (UserInputService :: any).PreferredInput
+	end)
+	if ok and typeof(preferred) == "EnumItem" then
+		return preferred.Name == "Touch"
+	end
+	return UserInputService.TouchEnabled == true and UserInputService.MouseEnabled ~= true
+end
+
+-- The UIScale every Kit.screen uses: 1280x720 design canvas fit into the viewport, clamped to 0.55..1.6.
+-- touchMin raises the floor on touch devices so text stays >= ~14 real px on phones (Theme.TouchMinScale).
+function Kit.uiScale(touchMin: number?): number
+	local cam = Workspace.CurrentCamera
+	local s = 1
+	if cam then
+		local vp = cam.ViewportSize
+		s = math.clamp(math.min(vp.X / 1280, vp.Y / 720), 0.55, 1.6)
+	end
+	if touchMin and Kit.isTouch() then
+		s = math.max(s, touchMin)
+	end
+	return s
+end
+
+export type ScreenOpts = { touchMin: number? }
+
 -- ScreenGui with automatic UIScale so a 1280x720 design looks right on phones and 4K.
-function Kit.screen(name: string, displayOrder: number): ScreenGui
+-- opts.touchMin: minimum scale on touch devices (phones otherwise sit at the 0.55 floor where 20 px text is ~11 px).
+function Kit.screen(name: string, displayOrder: number, opts: ScreenOpts?): ScreenGui
 	local gui = Kit.new("ScreenGui", {
 		Name = name,
 		ResetOnSpawn = false,
@@ -89,19 +120,23 @@ function Kit.screen(name: string, displayOrder: number): ScreenGui
 		Parent = player:WaitForChild("PlayerGui"),
 	})
 	local scale = Kit.new("UIScale", { Parent = gui })
+	local touchMin = if opts then opts.touchMin else nil
 	local function update()
 		local cam = Workspace.CurrentCamera
 		if not cam then
 			return
 		end
-		local vp = cam.ViewportSize
-		local s = math.min(vp.X / 1280, vp.Y / 720)
-		scale.Scale = math.clamp(s, 0.55, 1.6)
+		scale.Scale = Kit.uiScale(touchMin)
 	end
 	update()
 	local cam = Workspace.CurrentCamera
 	if cam then
 		cam:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+	end
+	if touchMin then
+		pcall(function()
+			UserInputService.LastInputTypeChanged:Connect(update)
+		end)
 	end
 	return gui
 end

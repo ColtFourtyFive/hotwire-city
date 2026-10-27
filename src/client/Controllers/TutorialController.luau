@@ -4,18 +4,25 @@
 -- bottom-center (only its small SKIP button takes touches), guidance is world waypoints + a highlighted target car.
 --
 --   1 💰 YOUR CAR MAKES MONEY!     waypoint -> own CollectPad, auto-advances after 4s
---   2 🚗 STEAL A CAR!              waypoint + pulsing outline on the nearest Parked street car (re-picked every 2s);
---                                  advances when the local player is driving a non-owned car
+--   2 🚗 STEAL A CAR!              waypoint + pulsing outline on the street car StreetSpawnService reserved for us
+--                                  (TutorialForUserId), else the nearest Parked car on the street side of our garage
+--                                  door (re-picked every 2s). If we already hotwired a car and hopped out, it points
+--                                  back at that car instead ("GET BACK IN!", the F / Y / tap enter prompt).
+--                                  Advances when the local player is driving a non-owned car
 --   3 🏠 DRIVE IT HOME!            WaypointController's automatic "home" waypoint guides; advances when the garage
 --                                  gains a car (garage count or steals stat rises); back to 2 if you leave the car
 --   4 💵 COLLECT YOUR CASH!        waypoint -> CollectPad; advances when Cash jumps while near the pad, or after 20s
---   5 🏎️ BETTER CARS AT THE DEALERSHIP!   waypoint -> Dealership for 8s, then Net.fire("TutorialDone") + confetti
+--   5 🏎️ BETTER CARS AT THE DEALERSHIP!   waypoint -> Dealership until you arrive (or 90s), then
+--                                  Net.fire("TutorialDone") + confetti
 -- During steps 1-3 the HUD is in focus mode (menus/HOME hidden); they pop back in at step 4.
+-- Returning players who already delivered a car (stats.steals > 0) never replay it: TutorialDone is sent instead.
+-- Streamer mode (HUDController.VisibilityChanged) hides the card.
 --
 -- Public API: isActive(): boolean, getStep(): (number, string?), skip(),
 --   StepChanged: Signal(index, id), Finished: Signal(skipped: boolean)
 -- Pure helpers (tests): STEPS, DONE, transition(step, ctx), pickNearest(candidates, origin, maxDistance?), keyFor,
---   shouldRun(snapshot), hintFor(stepDef, inputKind), garageCount(snapshot), stealCount(snapshot)
+--   enterKeyFor, shouldRun(snapshot), alreadyDelivered(snapshot), hintFor(stepDef, inputKind), garageCount(snapshot),
+--   stealCount(snapshot), inFrontOfDoor(pos, door, face)
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -95,9 +102,9 @@ TutorialController.STEPS = {
 		id = "dealer",
 		icon = "🏎️",
 		title = "BETTER CARS AT THE DEALERSHIP!",
-		hint = "Rarer cars = way more $/s",
+		hint = "Follow the arrow • rarer cars = way more $/s",
+		hintTouch = "Rarer cars = way more $/s",
 		color = Theme.Colors.Gold,
-		timed = 8,
 	},
 } :: { StepDef }
 
@@ -108,7 +115,11 @@ local DONE = TutorialController.DONE
 
 local MONEY_SECONDS = 4
 local COLLECT_TIMEOUT = 20
-local DEALER_SECONDS = 8
+local DEALER_TIMEOUT = 90 -- the dealership step ends on arrival, or after this long
+local DEALER_NEAR = 70 -- flat studs from the Dealership block center that count as "arrived"
+local TARGET_MAX_DISTANCE = 220 -- street-side cars farther than this are ignored while a closer one exists
+local REENTER_RADIUS = 150 -- our own hotwired-then-abandoned car within this range is the target again
+local DOOR_FACE_SLACK = -4 -- same street-side test as StreetSpawnService._inFrontOfDoor
 local DELIVER_GRACE = 2.5 -- seconds out of the car (e.g. busted / wrecked) before "steal a car" comes back
 local RETARGET_EVERY = 2
 local RETARGET_HYSTERESIS = 25 -- a new car must be this many studs closer to replace the current target
@@ -132,6 +143,7 @@ export type Ctx = {
 	notDrivingFor: number, -- seconds since the player stopped driving (0 while driving)
 	delivered: boolean, -- the garage gained a car since the tutorial began
 	collected: boolean, -- cash jumped while standing near the collect pad (since this step began)
+	nearDealer: boolean?, -- standing (or driving) within DEALER_NEAR of the Dealership
 }
 
 -- The whole tutorial state machine. Returns the next step index (DONE when finished). Steps can be skipped ahead
@@ -162,7 +174,7 @@ function TutorialController.transition(step: number, ctx: Ctx): number
 			return STEP_DEALER
 		end
 	elseif step == STEP_DEALER then
-		if ctx.elapsed >= DEALER_SECONDS then
+		if ctx.nearDealer == true or ctx.elapsed >= DEALER_TIMEOUT then
 			return DONE
 		end
 	end
@@ -191,6 +203,12 @@ function TutorialController.shouldRun(snapshot: any): boolean
 	return typeof(snapshot) == "table" and snapshot.tutorialDone == false
 end
 
+-- Street-side test (same as StreetSpawnService._inFrontOfDoor): door = door position, face = flat unit vector out of
+-- the door. Cars behind/beside the garage walls fail it, so the arrow never points a newbie through a wall.
+function TutorialController.inFrontOfDoor(pos: Vector3, door: Vector3, face: Vector3): boolean
+	return (pos - door):Dot(face) > DOOR_FACE_SLACK
+end
+
 export type InputKind = "touch" | "gamepad" | "keyboard"
 
 function TutorialController.hintFor(step: StepDef, input: InputKind): string
@@ -212,6 +230,16 @@ function TutorialController.keyFor(input: InputKind): string
 	return "E"
 end
 
+-- Keycap glyph for VehicleService's "Get in" EnterPrompt (F / ButtonY / on-screen button) on our own hotwired car.
+function TutorialController.enterKeyFor(input: InputKind): string
+	if input == "touch" then
+		return "👆"
+	elseif input == "gamepad" then
+		return "Y"
+	end
+	return "F"
+end
+
 function TutorialController.garageCount(snapshot: any): number
 	if typeof(snapshot) ~= "table" or typeof(snapshot.garage) ~= "table" then
 		return 0
@@ -229,6 +257,12 @@ function TutorialController.stealCount(snapshot: any): number
 	end
 	local v = snapshot.stats.steals
 	return if typeof(v) == "number" then v else 0
+end
+
+-- A tutorial-pending profile that already delivered a car (stats.steals only rises on delivery): the player left
+-- mid-tutorial last session. Don't replay it from step 1 with the menus hidden.
+function TutorialController.alreadyDelivered(snapshot: any): boolean
+	return TutorialController.shouldRun(snapshot) and TutorialController.stealCount(snapshot) > 0
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -330,6 +364,48 @@ local function dropoffPosition(): Vector3?
 	end
 	local ok, cf = pcall(MapLayout.plotDropoffZone, idx)
 	return if ok then cf.Position else nil
+end
+
+-- Our garage door (world) + the flat unit vector pointing out of it, for the street-side test.
+local function doorInfo(): (Vector3?, Vector3?)
+	local idx = plotIndex()
+	if not idx then
+		return nil, nil
+	end
+	local ok, origin = pcall(MapLayout.plotOrigin, idx)
+	if not ok then
+		return nil, nil
+	end
+	local look = (origin :: CFrame).LookVector
+	local flat = Vector3.new(look.X, 0, look.Z)
+	if flat.Magnitude < 1e-3 then
+		return nil, nil
+	end
+	local door = ((origin :: CFrame) * CFrame.new(0, 0, MapConfig.Garage.FRONT_Z)).Position
+	return door, flat.Unit
+end
+
+local function insideOwnGarage(): boolean
+	local idx = plotIndex()
+	local root = rootPart()
+	if not idx or not root then
+		return false
+	end
+	local ok, cf, size = pcall(MapLayout.plotInteriorZone, idx)
+	return ok and MapLayout.isInBox(cf, size, root.Position)
+end
+
+local function nearDealer(): boolean
+	local root = rootPart()
+	if not root then
+		return false
+	end
+	local ok, center = pcall(MapLayout.poiCenter, "Dealership")
+	if not ok then
+		return false
+	end
+	local d = root.Position - (center :: Vector3)
+	return Vector3.new(d.X, 0, d.Z).Magnitude <= DEALER_NEAR
 end
 
 local function nearPad(): boolean
@@ -556,11 +632,13 @@ type CardUI = {
 	skip: TextButton,
 	key: Frame,
 	keyLabel: TextLabel,
+	keyHold: TextLabel,
 }
 
 local card: CardUI? = nil
 local renderToken = 0
 local cardBottom = CARD_BOTTOM
+local reenterMode = false -- step 2 is pointing back at our own hotwired car ("GET BACK IN!")
 
 local function buildCard(onSkip: () -> ()): CardUI
 	local gui = Kit.screen("HC_Tutorial", Theme.Layers.HUD + 2)
@@ -712,8 +790,6 @@ local function buildCard(onSkip: () -> ()): CardUI
 		Parent = frame,
 	})
 	Kit.corner(UDim.new(0, 14)).Parent = key
-	local keyScale = Kit.new("UIScale", { Parent = key })
-	tween(keyScale, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true), { Scale = 0.9 })
 	local keyTop = Kit.new("Frame", {
 		Name = "Top",
 		Size = UDim2.new(1, 0, 1, -7),
@@ -722,6 +798,10 @@ local function buildCard(onSkip: () -> ()): CardUI
 		ZIndex = 4,
 		Parent = key,
 	})
+	-- the "press" pulse lives on the key top: Kit.pop(key) owns the key's own UIScale, and a pop tween on the same
+	-- UIScale would cancel this infinite one
+	local keyScale = Kit.new("UIScale", { Parent = keyTop })
+	tween(keyScale, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true), { Scale = 0.9 })
 	Kit.corner(UDim.new(0, 14)).Parent = keyTop
 	Kit.stroke(Theme.Colors.Stroke, 3).Parent = keyTop
 	Kit.gradient(Color3.new(1, 1, 1), Color3.fromRGB(200, 205, 225)).Parent = keyTop
@@ -735,7 +815,7 @@ local function buildCard(onSkip: () -> ()): CardUI
 		ZIndex = 5,
 		Parent = keyTop,
 	})
-	Kit.label("HOLD", 13, {
+	local keyHold = Kit.label("HOLD", 13, {
 		Name = "Hold",
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 1, 2),
@@ -771,6 +851,7 @@ local function buildCard(onSkip: () -> ()): CardUI
 		skip = skip,
 		key = key,
 		keyLabel = keyLabel,
+		keyHold = keyHold,
 	}
 end
 
@@ -798,12 +879,14 @@ local function renderStep(index: number, forward: boolean)
 			return
 		end
 		local input = inputKind()
+		local reenter = index == STEP_STEAL and reenterMode
 		c.icon.Text = def.icon
-		c.title.Text = def.title
-		c.hint.Text = TutorialController.hintFor(def, input)
+		c.title.Text = if reenter then "GET BACK IN!" else def.title
+		c.hint.Text = if reenter then "Hop back in your glowing car" else TutorialController.hintFor(def, input)
 		local showKey = def.key == true
 		c.key.Visible = showKey
-		c.keyLabel.Text = TutorialController.keyFor(input)
+		c.keyLabel.Text = if reenter then TutorialController.enterKeyFor(input) else TutorialController.keyFor(input)
+		c.keyHold.Visible = not reenter -- the enter prompt is a tap/press, not a hold
 		local textWidth = if showKey then UDim.new(1, -210) else UDim.new(1, -130)
 		c.title.Size = UDim2.new(textWidth, UDim.new(0, 38))
 		c.hint.Size = UDim2.new(textWidth, UDim.new(0, 26))
@@ -919,38 +1002,122 @@ local function validParked(model: Model?): boolean
 	return model ~= nil and model.Parent ~= nil and model:GetAttribute("Kind") == "Parked"
 end
 
--- Step 2 target: nearest Parked street car (sticky unless another is clearly closer).
+-- Our own hotwired car with nobody in it (VehicleService: Kind Loot, OwnerUserId = the claimer, DriverUserId 0).
+local function isOwnIdleLoot(model: Model?): boolean
+	if model == nil or model.Parent == nil or model:GetAttribute("Kind") ~= "Loot" then
+		return false
+	end
+	if model:GetAttribute("OwnerUserId") ~= player.UserId then
+		return false
+	end
+	local driver = model:GetAttribute("DriverUserId")
+	return driver == nil or driver == 0
+end
+
+local function validTarget(model: Model?): boolean
+	return if reenterMode then isOwnIdleLoot(model) else validParked(model)
+end
+
+-- The car we hotwired and hopped out of, if it is still close.
+local function ownLootCar(origin: Vector3): Model?
+	local best: Model? = nil
+	local bestDist = REENTER_RADIUS
+	for _, inst in CollectionService:GetTagged("Vehicle") do
+		if inst:IsA("Model") and isOwnIdleLoot(inst) then
+			local d = (inst:GetPivot().Position - origin).Magnitude
+			if d <= bestDist then
+				best = inst
+				bestDist = d
+			end
+		end
+	end
+	return best
+end
+
+local function setReenter(on: boolean)
+	if on == reenterMode then
+		return
+	end
+	reenterMode = on
+	if stepIndex == STEP_STEAL and card then
+		renderStep(STEP_STEAL, false)
+	end
+end
+
+-- Step 2 target, in order: our own abandoned hotwired car; the newbie car StreetSpawnService tagged for us
+-- (TutorialForUserId); the nearest Parked car on the street side of our garage door (sticky unless another is clearly
+-- closer); any Parked car. While we are still inside the garage the arrow points at the door (the highlight stays on
+-- the car) so it never leads through a wall.
 local function retarget()
 	lastRetarget = os.clock()
 	local root = rootPart()
 	if not root then
 		return
 	end
+	local origin = root.Position
+	local own = ownLootCar(origin)
+	if own then
+		setReenter(true)
+		targetCar = own
+		highlightCar(own)
+		setWaypoint(own, Theme.Colors.Secondary, "GET IN")
+		return
+	end
+	setReenter(false)
+
+	local door, face = doorInfo()
+	local reserved: Model? = nil
 	local models: { Model } = {}
 	local candidates: { Candidate } = {}
+	local frontModels: { Model } = {}
+	local frontCandidates: { Candidate } = {}
 	for _, inst in CollectionService:GetTagged("Vehicle") do
-		if inst:IsA("Model") and inst.Parent then
-			local kind = inst:GetAttribute("Kind")
-			if kind == "Parked" then
-				table.insert(models, inst)
-				table.insert(candidates, { position = inst:GetPivot().Position, kind = "Parked" })
+		if inst:IsA("Model") and inst.Parent and inst:GetAttribute("Kind") == "Parked" then
+			local pos = inst:GetPivot().Position
+			local cand: Candidate = { position = pos, kind = "Parked" }
+			table.insert(models, inst)
+			table.insert(candidates, cand)
+			if inst:GetAttribute("TutorialForUserId") == player.UserId then
+				reserved = inst
+			end
+			if door and face and TutorialController.inFrontOfDoor(pos, door, face) then
+				table.insert(frontModels, inst)
+				table.insert(frontCandidates, cand)
 			end
 		end
 	end
-	local idx = TutorialController.pickNearest(candidates, root.Position)
-	local best = if idx then models[idx] else nil
-	local current = targetCar
-	if best and validParked(current) and current ~= best then
-		local dCur = ((current :: Model):GetPivot().Position - root.Position).Magnitude
-		local dBest = (best:GetPivot().Position - root.Position).Magnitude
-		if dCur - dBest < RETARGET_HYSTERESIS then
-			best = current
+
+	local best: Model? = reserved
+	if not best then
+		local idx = TutorialController.pickNearest(frontCandidates, origin, TARGET_MAX_DISTANCE)
+		if idx then
+			best = frontModels[idx]
+		else
+			idx = TutorialController.pickNearest(candidates, origin)
+			best = if idx then models[idx] else nil
+		end
+		local current = targetCar
+		if best and validParked(current) and current ~= best then
+			local dCur = ((current :: Model):GetPivot().Position - origin).Magnitude
+			local dBest = (best:GetPivot().Position - origin).Magnitude
+			local currentFront = door ~= nil
+				and face ~= nil
+				and TutorialController.inFrontOfDoor((current :: Model):GetPivot().Position, door, face)
+			local bestFront = table.find(frontModels, best) ~= nil
+			if dCur - dBest < RETARGET_HYSTERESIS and (currentFront or not bestFront) then
+				best = current
+			end
 		end
 	end
+
 	if best then
 		targetCar = best
 		highlightCar(best)
-		setWaypoint(best, Theme.Colors.Secondary, "STEAL!")
+		if door and face and insideOwnGarage() then
+			setWaypoint(door + face * 6, Theme.Colors.Secondary, "GO OUT")
+		else
+			setWaypoint(best, Theme.Colors.Secondary, "STEAL!")
+		end
 	else
 		targetCar = nil
 		clearHighlight()
@@ -969,6 +1136,7 @@ local function enterStep(index: number)
 	elseif index == STEP_STEAL then
 		setHudFocus(not focusReleased)
 		targetCar = nil
+		reenterMode = false
 		retarget()
 	elseif index == STEP_DELIVER then
 		clearHighlight()
@@ -1084,13 +1252,14 @@ local function tick()
 		notDrivingFor = if notDrivingSince then now - notDrivingSince else 0,
 		delivered = delivered,
 		collected = collected,
+		nearDealer = stepIndex == STEP_DEALER and nearDealer(),
 	})
 	if nextIndex ~= stepIndex then
 		goTo(nextIndex)
 		return
 	end
 	local since = now - lastRetarget
-	if stepIndex == STEP_STEAL and (since >= RETARGET_EVERY or (since >= 0.5 and not validParked(targetCar))) then
+	if stepIndex == STEP_STEAL and (since >= RETARGET_EVERY or (since >= 0.5 and not validTarget(targetCar))) then
 		retarget()
 	end
 	local c = card
@@ -1152,6 +1321,19 @@ local function begin()
 		playSound("Click")
 		finish(true, true)
 	end)
+	-- streamer mode hides the card with the rest of the HUD
+	local hud = lazy("HUDController")
+	if hud and hud.VisibilityChanged and typeof(hud.isHidden) == "function" then
+		local function applyHidden(hidden: boolean)
+			local c = card
+			if c then
+				c.gui.Enabled = not hidden
+			end
+		end
+		table.insert(connections, hud.VisibilityChanged:Connect(applyHidden))
+		local ok, hidden = pcall(hud.isHidden)
+		applyHidden(ok and hidden == true)
+	end
 	cardIn()
 	stepIndex = 0
 	goTo(STEP_MONEY)
@@ -1190,6 +1372,11 @@ function TutorialController.init() end
 
 function TutorialController.start()
 	StateController.onReady(function(snap: any)
+		if TutorialController.alreadyDelivered(snap) then
+			-- left mid-tutorial last session after delivering a car: persist "done" instead of replaying step 1
+			pcall(Net.fire, "TutorialDone")
+			return
+		end
 		if not TutorialController.shouldRun(snap) then
 			return
 		end

@@ -20,6 +20,7 @@
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage.Shared
 local Monetization = require(Shared.Config.Monetization)
@@ -40,6 +41,7 @@ local overrides: { [Player]: { [string]: boolean } } = {} -- admin/Studio testin
 local handlers: { [string]: ProductHandler } = {}
 local inFlight: { [string]: boolean } = {} -- purchaseId -> being processed
 local unconfirmed: { [Player]: { [string]: boolean } } = {} -- granted this session, save not confirmed yet
+local passesReady: { [Player]: boolean } = {} -- the join-time gamepass lookup finished (or gave up)
 
 local RECEIPT_CAP = 50
 local EXCLUSIVE_CHECK_INTERVAL = 5
@@ -78,6 +80,29 @@ function MonetizationService._receiptAction(
 		return "alreadyGranted"
 	end
 	return "grant"
+end
+
+-- One-per-account exclusive (pure): true if `carId` is parked in the garage or still owed in data.exclusives
+-- (keys "<carId>" or "<carId>#<n>").
+function MonetizationService._ownsExclusive(data: any, carId: string): boolean
+	if typeof(data) ~= "table" then
+		return false
+	end
+	if typeof(data.garage) == "table" then
+		for _, rec in data.garage do
+			if typeof(rec) == "table" and rec.carId == carId then
+				return true
+			end
+		end
+	end
+	if typeof(data.exclusives) == "table" then
+		for key, flag in data.exclusives do
+			if flag and typeof(key) == "string" and string.match(key, "^([^#]+)") == carId then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 -- Cash product amounts (pure): income-scaled with minimums.
@@ -215,6 +240,12 @@ function MonetizationService.hasPass(player: Player, key: string): boolean
 	return map ~= nil and map[key] == true
 end
 
+-- Extra: true once this session's gamepass lookup has finished (or given up), so join-time rewards that depend on
+-- a pass (VIP offline earnings) can wait for it instead of reading an empty cache.
+function MonetizationService.passesReady(player: Player): boolean
+	return passesReady[player] == true
+end
+
 -- Extra: { [passKey]: boolean } for every key in Monetization.PassOrder.
 function MonetizationService.getPasses(player: Player): { [string]: boolean }
 	local out = {}
@@ -329,8 +360,8 @@ local function registerBuiltIns()
 		if not okIdx or typeof(index) ~= "number" then
 			return false
 		end
-		local ok = callSystem("PlotService", "lockFor", index, Monetization.LOCKDOWN_DURATION)
-		if not ok then
+		local ok, res = callSystem("PlotService", "lockFor", index, Monetization.LOCKDOWN_DURATION)
+		if not ok or res == false then
 			return false
 		end
 		notify(player, "success", "🔒 LOCKDOWN! Your garage is sealed for 10 minutes.", 4)
@@ -339,6 +370,12 @@ local function registerBuiltIns()
 	end)
 
 	MonetizationService.registerProduct("clear_wanted", function(player: Player): boolean
+		-- never charge for nothing: with 0 stars the receipt stays NotProcessedYet (the Store disables the button)
+		local okStars, stars = callSystem("WantedService", "getStars", player)
+		if not okStars or typeof(stars) ~= "number" or stars <= 0 then
+			notify(player, "info", "😇 You're not wanted right now - nothing to clear!", 4)
+			return false
+		end
 		local ok = callSystem("WantedService", "clear", player, "purchase")
 		if not ok then
 			return false
@@ -349,8 +386,8 @@ local function registerBuiltIns()
 	end)
 
 	MonetizationService.registerProduct("server_luck", function(player: Player): boolean
-		local ok = callSystem("EventService", "activateServerLuck", player)
-		if not ok then
+		local ok, res = callSystem("EventService", "activateServerLuck", player)
+		if not ok or res == false then
 			return false
 		end
 		celebrate(player, "Purchase")
@@ -360,6 +397,11 @@ local function registerBuiltIns()
 	MonetizationService.registerProduct("diamond_dragster", function(player: Player): boolean
 		local data = DataService.get(player)
 		if not data then
+			return false
+		end
+		-- one per account: refuse (never charge) while one is parked or still owed
+		if MonetizationService._ownsExclusive(data, "diamond_dragster") then
+			notify(player, "info", "💎 You already own the Diamond Dragster!", 4)
 			return false
 		end
 		local ok, stored = callSystem("GarageService", "storeCar", player, "diamond_dragster", "None")
@@ -495,7 +537,7 @@ MonetizationService._processWhileLocked = processWhileLocked
 -- Gamepasses
 ---------------------------------------------------------------------------------------------------------------
 
-local function refreshPasses(player: Player)
+local function lookupPasses(player: Player)
 	for _, key in Monetization.PassOrder do
 		local id = MonetizationService.passIdFor(key)
 		if id ~= 0 then
@@ -522,6 +564,15 @@ local function refreshPasses(player: Player)
 		end
 	end
 	applyPassAttributes(player)
+end
+
+local function refreshPasses(player: Player)
+	local ok, err = pcall(lookupPasses, player)
+	if not ok then
+		warn("[Monetization] pass lookup failed: " .. tostring(err))
+	end
+	-- always released (even on errors) so nothing waits on it forever
+	passesReady[player] = true
 end
 
 local function onPlayerAdded(player: Player)
@@ -559,8 +610,31 @@ function MonetizationService.init()
 	registerBuiltIns()
 end
 
+-- Live servers with unset (0) ids: say so once, so a release without the Creator Dashboard ids is noticed.
+local function warnUnsetIds()
+	if RunService:IsStudio() then
+		return
+	end
+	local missing: { string } = {}
+	for key, def in Monetization.Passes do
+		if def.id == 0 then
+			table.insert(missing, "pass:" .. key)
+		end
+	end
+	for key, def in Monetization.Products do
+		if def.id == 0 then
+			table.insert(missing, "product:" .. key)
+		end
+	end
+	if #missing > 0 then
+		table.sort(missing)
+		warn("[Monetization] id 0 (hidden, not purchasable): " .. table.concat(missing, ", "))
+	end
+end
+
 function MonetizationService.start()
 	MarketplaceService.ProcessReceipt = processReceipt
+	warnUnsetIds()
 
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(
 		function(player: Player, passId: number, wasPurchased: boolean)
