@@ -321,8 +321,8 @@
       ],
       "textures": {
         "emit": "textures/carconcept_Lights_emit.png",
-        "normal": "textures/carconcept_Lights_normal.png",
-        "base": "textures/carconcept_Lights_base.png"
+        "base": "textures/carconcept_Lights_base.png",
+        "normal": "textures/carconcept_Lights_normal.png"
       }
     },
     "LightsRear": {
@@ -339,12 +339,12 @@
       ],
       "textures": {
         "emit": "textures/carconcept_Lights_emit.png",
-        "normal": "textures/carconcept_Lights_normal.png",
-        "base": "textures/carconcept_Lights_base.png"
+        "base": "textures/carconcept_Lights_base.png",
+        "normal": "textures/carconcept_Lights_normal.png"
       }
     },
     "Trim": {
-      "tris": 2464,
+      "tris": 2462,
       "bbox_min": [
         -3.5946,
         -1.4457,
@@ -356,30 +356,30 @@
         6.8244
       ],
       "textures": {
-        "base": "textures/carconcept_Trim_base.png",
         "normal": "textures/carconcept_Trim_normal.png",
-        "rough": "textures/carconcept_Trim_rough.png",
         "metal": "textures/carconcept_Trim_metal.png",
+        "base": "textures/carconcept_Trim_base.png",
+        "rough": "textures/carconcept_Trim_rough.png",
         "ao": "textures/carconcept_Trim_ao.png"
       }
     },
     "Interior": {
-      "tris": 1495,
+      "tris": 1496,
       "bbox_min": [
         -3.802,
         0.341,
-        -7.8505
+        -5.7833
       ],
       "bbox_max": [
         3.8013,
         3.8662,
-        6.6285
+        6.6036
       ],
       "textures": {
-        "base": "textures/carconcept_Interior_base.png",
         "normal": "textures/carconcept_Interior_normal.png",
-        "rough": "textures/carconcept_Interior_rough.png",
         "metal": "textures/carconcept_Interior_metal.png",
+        "base": "textures/carconcept_Interior_base.png",
+        "rough": "textures/carconcept_Interior_rough.png",
         "ao": "textures/carconcept_Interior_ao.png"
       }
     },
@@ -396,10 +396,10 @@
         -3.4519
       ],
       "textures": {
-        "rough": "textures/carconcept_Wheel_rough.png",
-        "normal": "textures/carconcept_Wheel_normal.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
@@ -416,10 +416,10 @@
         -3.4344
       ],
       "textures": {
-        "rough": "textures/carconcept_Wheel_rough.png",
-        "normal": "textures/carconcept_Wheel_normal.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
@@ -436,10 +436,10 @@
         6.0517
       ],
       "textures": {
-        "rough": "textures/carconcept_Wheel_rough.png",
-        "normal": "textures/carconcept_Wheel_normal.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     },
@@ -456,17 +456,17 @@
         6.0515
       ],
       "textures": {
-        "rough": "textures/carconcept_Wheel_rough.png",
-        "normal": "textures/carconcept_Wheel_normal.png",
         "base": "textures/carconcept_Wheel_base.png",
         "metal": "textures/carconcept_Wheel_metal.png",
+        "normal": "textures/carconcept_Wheel_normal.png",
+        "rough": "textures/carconcept_Wheel_rough.png",
         "ao": "textures/carconcept_Wheel_ao.png"
       }
     }
   },
   "triangles": {
     "source": 212407,
-    "total": 16995,
+    "total": 16994,
     "limits": {
       "car": 18000,
       "body": 5704,
@@ -517,14 +517,14 @@
       "area": 3.006
     },
     "Trim": {
-      "islands": 114,
-      "faces": 38901,
-      "area": 157.029
+      "islands": 117,
+      "faces": 42483,
+      "area": 190.32
     },
     "Interior": {
-      "islands": 87,
-      "faces": 41041,
-      "area": 404.066
+      "islands": 84,
+      "faces": 37459,
+      "area": 370.775
     },
     "Discard": {
       "islands": 26,
