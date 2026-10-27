@@ -63,7 +63,7 @@ def deco(seed=0, **kw):
                 # double window with a centre mullion: one opening, frame subdivides
                 B.window(F, a, b_, z0, z1, dict(style, mullion="cross" if b_ - a > 7 else "t"), ops_up)
                 # eyebrow: thin projecting ledge over the window group (the deco signature)
-                F.box(ac if r.random() < 0.0 else tr, a - 1.2, b_ + 1.2, 0.0, 2.2, z1 + 0.6, z1 + 1.0)
+                F.box(tr, a - 1.2, b_ + 1.2, 0.0, 2.2, z1 + 0.6, z1 + 1.0)
                 if side != "back" and r.random() < 0.3:
                     B.grime(F, a, b_, z0 - 4.0, z0 - 0.4, "streak", n=0.03)
             # racing stripes between floors on the outer bays
@@ -115,27 +115,21 @@ def deco(seed=0, **kw):
             uvs = [(rect[0] + (rect[2] - rect[0]) * (0.5 + 0.5 * math.cos(2 * math.pi * k / n)),
                     rect[1] + (rect[3] - rect[1]) * (0.5 + 0.5 * math.sin(2 * math.pi * k / n))) for k in range(n)]
             B.b("Glass").add(pts, [tuple(range(n))], [uvs])
-            G.sweep(fr, [(p[0], p[1]) for p in pts][::1], [(0.0, 0.0), (0.0, 0.0)], closed=True) if False else None
             ring = [F.p(uc + 1.7 * math.cos(2 * math.pi * k / n), zc + 1.7 * math.sin(2 * math.pi * k / n), 1.52) for k in range(n)]
             for k in range(n):
                 a, b_ = pts[k], pts[(k + 1) % n]
                 c, d = ring[(k + 1) % n], ring[k]
-                G.quad(fr, a, b_, (c[0], c[1] + (-0.25 if True else 0), c[2]) if False else c, d)
+                G.quad(fr, a, d, c, b_)
     # blade sign on the tower face (vertical name)
     blade = "blade%d" % kw.get("blade", r.randrange(4))
     bu0, bv0, bu1, bv1 = ATLAS["brands"][blade]
     bh = min(zt - gf - 4.0, 30.0)
     bwid = bh * (bu1 - bu0) / (bv1 - bv0)
     zb = zt - 2.0 - bh
-    Fb = G.Facade(F.p(W / 2 - bwid / 2, 0, 3.05), (1, 0, 0), (0, -1, 0), bwid)
     # the blade sits between the fins, proud of them
     F.box(ac, W / 2 - bwid / 2 - 0.4, W / 2 + bwid / 2 + 0.4, 1.5, 3.1, zb - 0.4, zb + bh + 0.4)
     F.quad(B.b("Brand"), W / 2 - bwid / 2, W / 2 + bwid / 2, zb, zb + bh, 3.12, uv=(bu0, bv0, bu1, bv1))
     # tower roof + flagpole
-    G.cap(B.b("Roof"), [F.p(u0, 0, -6.0)[:2], F.p(u1, 0, -6.0)[:2], F.p(u1, 0, 1.5)[:2], F.p(u0, 0, 1.5)[:2]][::-1], zt + 0.01) if False else None
-    tl = [F.p(u0, 0, 1.5)[:2], F.p(u1, 0, 1.5)[:2], F.p(u1, 0, -6.0)[:2], F.p(u0, 0, -6.0)[:2]]
-    tl = [(p[0], p[1]) for p in tl]
-    tl = [tl[0], tl[1], tl[2], tl[3]] if True else tl
     # tower behind the facade plane (rises above the roof)
     G.box(wa, u0 - W / 2, -D / 2 + 1.5, top, u1 - W / 2, -D / 2 + 8.0, zt, skip=("bottom", "-y"))
     G.cylinder(B.b("Details"), 0.0, -D / 2 + 4.5, zt + 6.0, zt + 18.0, 0.15, seg=6)
@@ -150,9 +144,6 @@ def deco(seed=0, **kw):
         Ft.box(ac, a, b_, -0.02, 0.0, 0.3, 1.2, skip=("back",))
     for k in range(3):
         Ft.box(B.b("Walls2"), (W - 2.0) / 2 - sw / 2, (W - 2.0) / 2 + sw / 2, -0.0 - (k + 1) * 1.2, 0.0 - k * 1.2, 0.0, 2.0 - (k + 1) * 0.66, skip=("bottom",))
-    for side_u in (0.0, W - 2.0):
-        for sgn in ((1,) if side_u == 0.0 else (-1,)):
-            pass
     G.box(wa, -W / 2 + 1.0, -D / 2 - td, 2.0, -W / 2 + 1.8, -D / 2, 4.6)
     G.box(wa, W / 2 - 1.8, -D / 2 - td, 2.0, W / 2 - 1.0, -D / 2, 4.6)
     aw = B.b("Awning")
@@ -172,8 +163,9 @@ def deco(seed=0, **kw):
             a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
             pa = (ux + rr * math.cos(a0), uy + rr * math.sin(a0), 8.2)
             pb = (ux + rr * math.cos(a1), uy + rr * math.sin(a1), 8.2)
-            G.tri(aw, pa, pb, (ux, uy, 9.9))
-            aw.uv[-1] = [(au0 + (j % 2) * 0.06, av0), (au0 + (j % 2) * 0.06 + 0.06, av0), (au0 + (j % 2) * 0.06 + 0.03, av1)]
+            uu = au0 + (j % 2) * 0.0625
+            aw.add([pa, pb, (ux, uy, 9.9)], [(0, 1, 2)], [[(uu, av0), (uu + 0.06, av0), (uu + 0.03, av1)]])
+            aw.add([pb, pa, (ux, uy, 9.9)], [(0, 1, 2)], [[(uu + 0.06, av0), (uu, av0), (uu + 0.03, av1)]])  # underside
         G.cylinder(B.b("Details"), ux, uy, 2.0, 4.8, 1.6, seg=10, caps=(False, True), r1=1.6)
     B.tags = {"district": "beach", "floors": floors, "accent": accent_name}
     return B
