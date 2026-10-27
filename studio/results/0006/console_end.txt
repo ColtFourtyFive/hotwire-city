@@ -1,0 +1,50 @@
+# Job 0006 console_end: LogService, Server and Client, solo Play 22:38–22:49 UTC.
+# The repeating pre-existing "Asset type does not match requested type" lines (the same ids as console_start),
+# 81504106 "not found" and 4542793421 "not authorized" are omitted; see console_start.txt.
+## Server
+22:38:16 [MessageOutput] [MaterialOverrides] server: 16 active (0 set, 16 already)
+22:38:16 [MessageOutput] [Server] Hotwire City booted with 28 systems
+22:38:21 [MessageWarning] [AssetLibrary] Props/flower_bed unavailable; using procedural fallback
+22:38:46 [MessageWarning] [ShopService] no part tagged GunStoreCounter; placing fallback FREEDOM ARMS counters (MapLayout)
+22:39:22 [MessageOutput] [Admin] illintent1 (11686693147): tp spawnplaza
+22:40:23 [MessageOutput] [Admin] illintent1 (11686693147): weapon all
+22:40:24 [MessageOutput] [Admin] illintent1 (11686693147): armor 100
+22:40:24 [MessageOutput] [Admin] illintent1 (11686693147): cash 50000
+22:40:52 [MessageOutput] [Admin] illintent1 (11686693147): cash 1000
+22:42:22 [MessageOutput] [Admin] illintent1 (11686693147): tp spawnplaza
+22:42:23 [MessageOutput] [Admin] illintent1 (11686693147): weapon all
+22:42:23 [MessageOutput] [Admin] illintent1 (11686693147): armor 100
+22:44:41 [MessageOutput] [Admin] illintent1 (11686693147): tp spawnplaza
+22:44:43 [MessageOutput] [Admin] illintent1 (11686693147): god on
+22:44:43 [MessageOutput] [Admin] illintent1 (11686693147): rookie off
+22:44:43 [MessageOutput] [Admin] illintent1 (11686693147): wanted 3
+22:45:14 [MessageWarning] ContentId: rbxassetid://92326460960108 failed due to: Asset content representation is being generated
+22:45:14 [MessageWarning] ContentId: rbxassetid://77373203636884 failed due to: Asset content representation is being generated
+22:45:54 [MessageOutput] [Admin] illintent1 (11686693147): ammo
+22:46:31 [MessageOutput] [Admin] illintent1 (11686693147): wanted 0
+22:46:36 [MessageOutput] [Admin] illintent1 (11686693147): tp spawnplaza
+22:46:37 [MessageOutput] [Admin] illintent1 (11686693147): spawn hot_hatch
+22:46:39 [MessageOutput] [Admin] illintent1 (11686693147): wanted 2
+22:47:30 [MessageOutput] [Admin] illintent1 (11686693147): wanted 2
+22:48:19 [MessageOutput] [Admin] illintent1 (11686693147): wanted 0
+22:48:20 [MessageOutput] [Admin] illintent1 (11686693147): god off
+## Client
+22:38:17 [MessageOutput] [MaterialOverrides] client: 16 active (0 set, 16 already)
+22:38:17 [MessageOutput] [Client] illintent1 ready with 27 controllers
+22:39:22 [MessageWarning] [MinimapController] slow GPS route: 11.1 ms
+22:39:23 [MessageWarning] [MinimapController] slow GPS route: 7.8 ms
+22:40:40 [MessageWarning] [MinimapController] slow GPS route: 10.6 ms
+22:41:36 [MessageError] Players.illintent1.PlayerScripts.Client.Controllers.PhoneController:591: attempt to call a Instance value
+22:41:36 [MessageInfo] Stack Begin
+22:41:36 [MessageInfo] Script 'Players.illintent1.PlayerScripts.Client.Controllers.PhoneController', Line 591 - function openApp
+22:41:36 [MessageInfo] Script 'Players.illintent1.PlayerScripts.Client.Controllers.PhoneController', Line 894
+22:41:36 [MessageInfo] Stack End
+22:41:47 [MessageError] Visible is not a valid member of UIGradient "Players.illintent1.PlayerGui.HC_Phone.Phone.Screen.UIGradient"   <- my own probe script (AssistantCommand), not a game error
+22:43:34 [MessageError] Players.illintent1.PlayerScripts.Client.Controllers.PhoneController:673: attempt to call a Instance value
+22:43:34 [MessageInfo] Stack Begin
+22:43:34 [MessageInfo] Script 'Players.illintent1.PlayerScripts.Client.Controllers.PhoneController', Line 673 - function openApp
+22:43:34 [MessageInfo] Script 'Players.illintent1.PlayerScripts.Client.Controllers.PhoneController', Line 894
+22:43:34 [MessageInfo] Stack End
+22:45:14 [MessageWarning] ContentId: rbxassetid://92326460960108 failed due to: Asset content representation is being generated
+22:45:14 [MessageWarning] ContentId: rbxassetid://77373203636884 failed due to: Asset content representation is being generated
+22:45:34 [MessageWarning] [MinimapController] slow GPS route: 22.3 ms

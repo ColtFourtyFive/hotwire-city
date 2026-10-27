@@ -1,0 +1,20 @@
+# Job 0006 console_start (get_console_output after 45 s solo Play; place v32+ from Roblox, Rojo NOT connected)
+[MaterialOverrides] server: 16 active (0 set, 16 already)
+[Server] Hotwire City booted with 28 systems
+[MaterialOverrides] client: 16 active (0 set, 16 already)
+[Client] illintent1 ready with 27 controllers
+ContentId: rbxassetid://81504106 failed due to: Request asset was not found   (x3)
+"ContentId: rbxassetid://N failed due to: Asset type does not match requested type", each logged about 3 times, for these ids:
+  79289354458541 9116361236 86903016850225 82409501948316 9119186024 78270463799678 9117798202 9117399029 70527882874881
+  9113480915 9118168291 9119165140 9114402206 9112910245 125311341637563 9118708982 9114764435 9113634444 9120704346
+  84039532799719 127619198178554 9116546593 9118173988 9125774594 9113728042 99323994116525 9112891352 9113632506
+  9113661285 9118169272 9112913564 72333449737130 9125380872 9120962232 87646813759701 9118168612 9113726510
+  90852446208160 9113180776 9114402205 9114729252 75302784250672 106454770387605 9117969717 9114590297 128650101411844
+  125094987563505 80317022777602 9113728049 9117969584 9113632396 109431560870225 9113104176 9113634361 116468550696572
+  9125404320 9117969687 9113948676 111187749925677 9112758500 9119165131 99008924129683 9113198012 203785492
+ContentId: rbxassetid://4542793421 failed due to: User is not authorized to access Asset.   (x6)
+[AssetLibrary] Props/flower_bed unavailable; using procedural fallback
+[ShopService] no part tagged GunStoreCounter; placing fallback FREEDOM ARMS counters (MapLayout)
+# No errors or warnings mention HUDController, MenuController, PhoneController, MinimapController, CombatHUD, CombatClient,
+# WeaponClient, WeaponWheel, ShoulderCamera, ShotFxController, DeathScreenController, GunShopUI, WeaponService,
+# DamageService, PoliceCombatService, Shard or Kit. No 403, no "moderated", no "Asset content representation is being generated".
