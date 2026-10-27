@@ -152,8 +152,10 @@ def bake_channels(lo, hi_objs, size, outdir, prefix, channels, extrusion, ray):
     return res
 
 
-def bake_ao(lo, size, outdir, prefix, distance):
+def bake_ao(lo, size, outdir, prefix, distance, hide=()):
     _cycles(16)
+    for h in hide:
+        h.hide_render = True
     img = new_image(f"{prefix}_ao", size, data=True, fill=(1, 1, 1, 1))
     _target_material(lo, img)
     bpy.context.scene.world = bpy.context.scene.world or bpy.data.worlds.new("w")
@@ -161,6 +163,8 @@ def bake_ao(lo, size, outdir, prefix, distance):
     select_only([lo], lo)
     bpy.ops.object.bake(type="AO", use_selected_to_active=False, margin=4, margin_type="EXTEND", use_clear=True,
                         target="IMAGE_TEXTURES")
+    for h in hide:
+        h.hide_render = False
     path = os.path.join(outdir, f"{prefix}_ao.png")
     save_png(img, path)
     log(f"baked {prefix}_ao")

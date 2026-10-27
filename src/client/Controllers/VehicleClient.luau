@@ -9,8 +9,12 @@
 --   * Driving HUD ("DrivingUI"): speedometer (MPH), rev bar, nitro bar, car health, drift banner, touch buttons.
 --     The CoreGui backpack hotbar is hidden while driving (it sat on top of the speedometer; tools can't be used
 --     from the seat, spikes have their own button/key) and restored on exit.
---   * Feel: FOV kick with speed + nitro, camera shake on crashes, tire smoke + screech while drifting,
---     nitro flame + glow while boosting. Other players' drift smoke and screech come from WheelAnimator (derived from
+--   * Feel: FOV kick with speed + nitro, camera shake on crashes, screech while drifting. Effects come from the
+--     shared VFXLibrary (Config/VFX presets, quality-scaled + budgeted): flipbook tire smoke from the rear wheels and
+--     skid-mark Trails that only draw while they slide, nitro = flipbook flame + hot core + shock-diamond jet beam
+--     with a flickering light, backfire pops on nitro start and on upshifts (arcade gear points), collision sparks
+--     at the contact point on hard hits, surface dust off-road (grass / sand / dirt) and water spray, and speed lines
+--     around the camera while boosting. Other players' drift smoke and screech come from WheelAnimator (derived from
 --     the replicated chassis velocity); their nitro flames and horn come from the VehicleFx remote: nitro start/stop
 --     and horn presses are sent as state changes only (>= FX_MIN_INTERVAL apart, coalesced), the server relays them to
 --     nearby clients as VehicleFxState and EffectsController renders them.
@@ -44,6 +48,7 @@ local Net = require(Shared.Net)
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI.Kit)
 local Theme = require(UI.Theme)
+local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
 local VMath = VehicleController.math
 
@@ -98,6 +103,16 @@ local RADIO_TOUCH_MIN_WIDTH = 100 -- narrowest compact pill (design px before it
 local RADIO_TOUCH_TEXT = 20
 local SPEEDO_HALF_WIDTH = 170
 local TOUCH_CLUSTER_LEFT = 256
+-- Local VFX
+local SURFACE_SAMPLE = 0.2 -- s between ground-material rays (dust / spray)
+local DUST_MIN_SPEED = 14
+local SPRAY_MIN_SPEED = 8
+local BACKFIRE_COOLDOWN = 0.6
+local SPARK_PROBE = 4 -- studs past the bumper the crash ray looks for the contact point
+local SPEED_LINE_RING = 8
+local SPEED_LINE_RADIUS = 7.5
+local SPEED_LINE_AHEAD = 28
+local SPEED_LINE_FRACTION = 0.9 -- of top speed: speed lines (lighter) without nitro too
 
 type Session = {
 	model: Model,
@@ -130,14 +145,32 @@ type Session = {
 	fxHonk: boolean, -- a horn press waiting to be sent
 	fxAt: number, -- os.clock() of the last VehicleFx send
 	fx: {
-		smoke: { ParticleEmitter },
-		flame: ParticleEmitter?,
+		smoke: { VFXLibrary.Stream }, -- rear-left, rear-right
+		skids: { VFXLibrary.TrailRig },
+		dust: { VFXLibrary.Stream },
+		spray: VFXLibrary.Stream?,
+		flame: VFXLibrary.Stream?,
+		core: VFXLibrary.Stream?,
+		jet: VFXLibrary.BeamRig?,
 		light: PointLight?,
-		glow: BasePart?,
 		exhaust: Attachment?,
+		speedHost: BasePart?,
+		speedLines: { VFXLibrary.Stream },
+		rayParams: RaycastParams?,
 		screech: Sound?,
 		horn: Sound?,
 	},
+	fxSlideOn: boolean,
+	fxSlideLevel: number,
+	fxGear: number,
+	fxBackfireAt: number,
+	fxSurfaceT: number,
+	fxDust: Color3?,
+	fxWater: boolean,
+	fxDustOn: boolean,
+	fxSprayOn: boolean,
+	fxLinesLevel: number,
+	prevVel: Vector3,
 }
 
 local session: Session? = nil
@@ -847,6 +880,7 @@ local function buildFx(s: Session)
 	local radius = s.controller.wheelRadius or 1.2
 	local wheels = s.controller.wheels or {}
 
+	-- rear wheels: tire smoke + dust streams, skid-mark trails at the contact patch
 	for i = 3, 4 do
 		local w = wheels[i]
 		local base = if w then w.attachment.Position else Vector3.new(if i == 3 then -2.5 else 2.5, -1, 4)
@@ -854,26 +888,27 @@ local function buildFx(s: Session)
 		att.Name = "HC_Smoke" .. i
 		att.Position = base - Vector3.new(0, radius * 0.85, 0)
 		att.Parent = chassis
-		local pe = Instance.new("ParticleEmitter")
-		pe.Name = "TireSmoke"
-		pe.Texture = "rbxasset://textures/particles/smoke_main.dds"
-		pe.Color = ColorSequence.new(Color3.fromRGB(240, 240, 245), Color3.fromRGB(185, 185, 200))
-		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 6) })
-		pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) })
-		pe.Lifetime = NumberRange.new(0.7, 1.3)
-		pe.Rate = 45
-		pe.Speed = NumberRange.new(2, 6)
-		pe.SpreadAngle = Vector2.new(35, 35)
-		pe.Acceleration = Vector3.new(0, 4, 0)
-		pe.Drag = 2
-		pe.Rotation = NumberRange.new(0, 360)
-		pe.RotSpeed = NumberRange.new(-60, 60)
-		pe.LightInfluence = 0.6
-		pe.EmissionDirection = Enum.NormalId.Back
-		pe.Enabled = false
-		pe.Parent = att
-		table.insert(s.fx.smoke, pe)
+		local smoke = VFXLibrary.stream("TireSmoke", att)
+		if smoke then
+			table.insert(s.fx.smoke, smoke)
+		end
+		local dust = VFXLibrary.stream("Dust", att)
+		if dust then
+			table.insert(s.fx.dust, dust)
+		end
+		local skid = VFXLibrary.trail("SkidMark", chassis, base - Vector3.new(0, radius - 0.08, 0))
+		if skid then
+			trove:Add(skid.trail)
+			trove:Add(skid.a0)
+			trove:Add(skid.a1)
+			table.insert(s.fx.skids, skid)
+		end
 	end
+	local sprayAtt = trove:Add(Instance.new("Attachment"))
+	sprayAtt.Name = "HC_Spray"
+	sprayAtt.Position = Vector3.new(0, -radius * 0.6, 0)
+	sprayAtt.Parent = chassis
+	s.fx.spray = VFXLibrary.stream("WaterSpray", sprayAtt)
 
 	local length = s.model:GetAttribute("Length")
 	local halfLength = math.max(chassis.Size.Z / 2, (if typeof(length) == "number" then length / 2 - 0.3 else 0))
@@ -882,29 +917,15 @@ local function buildFx(s: Session)
 	exhaust.Position = Vector3.new(0, 0, halfLength + 0.3)
 	exhaust.Parent = chassis
 	s.fx.exhaust = exhaust
-
-	local flame = Instance.new("ParticleEmitter")
-	flame.Name = "NitroFlame"
-	flame.Texture = "rbxasset://textures/particles/fire_main.dds"
-	flame.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-		ColorSequenceKeypoint.new(0.25, Theme.Colors.Secondary),
-		ColorSequenceKeypoint.new(0.7, Theme.Colors.Primary),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 40, 255)),
-	})
-	flame.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.8), NumberSequenceKeypoint.new(1, 0.2) })
-	flame.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(1, 1) })
-	flame.Lifetime = NumberRange.new(0.12, 0.26)
-	flame.Rate = 140
-	flame.Speed = NumberRange.new(28, 40)
-	flame.SpreadAngle = Vector2.new(8, 8)
-	flame.LightEmission = 1
-	flame.LightInfluence = 0
-	flame.EmissionDirection = Enum.NormalId.Back
-	flame.ZOffset = 1
-	flame.Enabled = false
-	flame.Parent = exhaust
-	s.fx.flame = flame
+	s.fx.flame = VFXLibrary.stream("NitroFlame", exhaust)
+	s.fx.core = VFXLibrary.stream("NitroCore", exhaust)
+	local jet = VFXLibrary.beam("NitroJet", chassis, exhaust.Position, Vector3.new(0, 0, 1))
+	if jet then
+		trove:Add(jet.beam)
+		trove:Add(jet.a0)
+		trove:Add(jet.a1)
+		s.fx.jet = jet
+	end
 
 	local light = Instance.new("PointLight")
 	light.Name = "NitroLight"
@@ -915,20 +936,42 @@ local function buildFx(s: Session)
 	light.Parent = exhaust
 	s.fx.light = light
 
-	local glow = trove:Add(Instance.new("Part"))
-	glow.Name = "HC_NitroGlow"
-	glow.Shape = Enum.PartType.Ball
-	glow.Size = Vector3.new(1.6, 1.6, 1.6)
-	glow.Material = Enum.Material.Neon
-	glow.Color = Theme.Colors.Secondary
-	glow.Anchored = true
-	glow.CanCollide = false
-	glow.CanQuery = false
-	glow.CanTouch = false
-	glow.CastShadow = false
-	glow.Transparency = 1
-	glow.Parent = Workspace.CurrentCamera or Workspace
-	s.fx.glow = glow
+	-- speed lines: a ring of emitters on a camera-following host (moved only while they show)
+	if VFXLibrary.tier().extras then
+		local host = trove:Add(Instance.new("Part"))
+		host.Name = "HC_SpeedLines"
+		host.Anchored = true
+		host.CanCollide = false
+		host.CanQuery = false
+		host.CanTouch = false
+		host.CastShadow = false
+		host.Transparency = 1
+		host.Size = Vector3.new(0.2, 0.2, 0.2)
+		host.Parent = Workspace.CurrentCamera or Workspace
+		for k = 1, SPEED_LINE_RING do
+			local a = (k - 0.5) * 2 * math.pi / SPEED_LINE_RING
+			local att = Instance.new("Attachment")
+			att.Name = "Line" .. k
+			att.Position =
+				Vector3.new(math.cos(a) * SPEED_LINE_RADIUS, math.sin(a) * SPEED_LINE_RADIUS * 0.62, -SPEED_LINE_AHEAD)
+			att.Parent = host
+			local line = VFXLibrary.stream("SpeedLines", att)
+			if line then
+				table.insert(s.fx.speedLines, line)
+			end
+		end
+		s.fx.speedHost = host
+	end
+
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.IgnoreWater = false
+	local exclude: { Instance } = { s.model }
+	if player.Character then
+		table.insert(exclude, player.Character)
+	end
+	params.FilterDescendantsInstances = exclude
+	s.fx.rayParams = params
 
 	local screech = makeLocalSound("TireScreech", chassis)
 	if screech then
@@ -936,6 +979,64 @@ local function buildFx(s: Session)
 		screech.Volume = 0
 		s.fx.screech = screech
 	end
+end
+
+-- All local streams off and forgotten (the trove destroys the instances).
+local function releaseFx(s: Session)
+	local fx = s.fx
+	for _, st in fx.smoke do
+		VFXLibrary.releaseStream(st)
+	end
+	for _, st in fx.dust do
+		VFXLibrary.releaseStream(st)
+	end
+	for _, st in fx.speedLines do
+		VFXLibrary.releaseStream(st)
+	end
+	VFXLibrary.releaseStream(fx.spray)
+	VFXLibrary.releaseStream(fx.flame)
+	VFXLibrary.releaseStream(fx.core)
+end
+
+-- Exhaust pop: flame burst out of the tailpipe + a light blink.
+local function backfire(s: Session, big: boolean)
+	local exhaust = s.fx.exhaust
+	if not exhaust or not exhaust.Parent then
+		return
+	end
+	s.fxBackfireAt = os.clock()
+	local cf = exhaust.WorldCFrame
+	VFXLibrary.burst("Backfire", cf.Position, { direction = -s.chassis.CFrame.LookVector, count = if big then 3 else 2 })
+	local light = s.fx.light
+	if light and not light.Enabled then
+		light.Color = Color3.fromRGB(255, 160, 60)
+		light.Brightness = if big then 5 else 3.5
+		light.Enabled = true
+		task.delay(0.08, function()
+			if session == s and not (s.controller.boosting == true) and light.Parent then
+				light.Enabled = false
+				light.Color = Theme.Colors.Secondary
+			end
+		end)
+	end
+end
+
+-- Ground material under the car (every SURFACE_SAMPLE s): dust color for dirt / grass / sand, water flag.
+local function sampleSurface(s: Session)
+	local params = s.fx.rayParams
+	if not params then
+		return
+	end
+	local origin = s.chassis.Position
+	local hit = Workspace:Raycast(origin, Vector3.new(0, -(s.controller.rayLength or 6) - 3, 0), params)
+	if not hit then
+		s.fxDust = nil
+		s.fxWater = false
+		return
+	end
+	local name = hit.Material.Name
+	s.fxWater = name == "Water"
+	s.fxDust = VFXLibrary.dustColor(name)
 end
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -1039,8 +1140,31 @@ end
 ----------------------------------------------------------------------------------------------------------------------
 local exitVehicle: () -> ()
 
+-- Sparks where we hit: a ray along the pre-impact velocity finds the contact point (else the leading bumper).
+local function crashSparks(s: Session, drop: number)
+	local vel = s.prevVel
+	local flat = Vector3.new(vel.X, 0, vel.Z)
+	if flat.Magnitude < 5 then
+		return
+	end
+	local dir = flat.Unit
+	local cf = s.chassis.CFrame
+	local half = math.max(s.chassis.Size.Z, s.chassis.Size.X) / 2
+	local params = s.fx.rayParams
+	local hit = if params then Workspace:Raycast(cf.Position, dir * (half + SPARK_PROBE), params) else nil
+	local at = if hit then hit.Position else cf.Position + dir * half
+	local normal = if hit then hit.Normal else -dir
+	local k = math.clamp(drop / 70, 0.6, 1.6)
+	VFXLibrary.burst("Sparks", at, { count = math.floor(18 * k + 0.5), direction = normal + Vector3.new(0, 0.6, 0) })
+	VFXLibrary.burst("Flash", at, { scale = 0.45 * k, color = Color3.fromRGB(255, 210, 140) })
+	if drop > 90 then
+		VFXLibrary.burst("Debris", at, { count = 5, scale = 0.6, direction = normal + Vector3.new(0, 1, 0) })
+	end
+end
+
 local function onCrash(s: Session, drop: number)
 	s.lastCrash = os.clock()
+	pcall(crashSparks, s, drop)
 	s.shake = math.max(s.shake, Tuning.CAMERA_SHAKE_ON_CRASH * math.clamp(drop / 70, 0.5, 1.6))
 	if s.sfx and not playViaController("Crash", s.chassis.Position) then
 		local snd = makeLocalSound("Crash", s.chassis)
@@ -1117,6 +1241,11 @@ local function simStep(s: Session, dt: number)
 		onCrash(s, drop)
 		s.recentMax = speed
 	end
+	-- pre-impact velocity for the next crash's spark ray (only kept while moving fast enough to matter)
+	local vel = s.chassis.AssemblyLinearVelocity
+	if vel.Magnitude > s.prevVel.Magnitude * 0.6 or os.clock() - s.lastCrash > 0.3 then
+		s.prevVel = vel
+	end
 end
 
 local function renderStep(s: Session, dt: number)
@@ -1144,9 +1273,7 @@ local function renderStep(s: Session, dt: number)
 		ui.speed.TextColor3 = if boosting then Theme.Colors.Secondary else Theme.Colors.Text
 		if boosting then
 			Kit.pop(ui.speed, 1.25)
-			if s.fx.flame then
-				s.fx.flame:Emit(25)
-			end
+			backfire(s, true)
 			if s.sfx then
 				playViaController("Whoosh", s.chassis.Position)
 			end
@@ -1200,28 +1327,92 @@ local function renderStep(s: Session, dt: number)
 		cam.FieldOfView += (target - cam.FieldOfView) * math.min(1, FOV_RESPONSE * dt)
 	end
 
-	-- FX
+	-- FX (VFXLibrary streams: state changes only, intensity in 0.1 steps)
 	local fx = s.fx
-	for i, pe in fx.smoke do
-		local on = drifting and c.wheelGrounded[i + 2] == true
-		if pe.Enabled ~= on then
-			pe.Enabled = on
+	local frac = math.clamp(c.speed / math.max(def.topSpeed, 1), 0, 1.5)
+	local slideLevel = if drifting then math.clamp(math.floor(math.abs(c.lateralSpeed) / 6) / 10 + 0.5, 0.5, 1.3) else 0
+	if drifting ~= s.fxSlideOn or slideLevel ~= s.fxSlideLevel then
+		s.fxSlideOn = drifting
+		s.fxSlideLevel = slideLevel
+		for _, st in fx.smoke do
+			VFXLibrary.setStream(st, drifting, slideLevel)
 		end
 	end
-	if fx.flame and fx.flame.Enabled ~= boosting then
-		fx.flame.Enabled = boosting
+	for i, skid in fx.skids do
+		-- marks only where that rear tyre is on the ground and sliding
+		local want = drifting and c.wheelGrounded[i + 2] == true
+		if skid.trail.Enabled ~= want then
+			skid.trail.Enabled = want
+		end
 	end
-	if fx.light and fx.light.Enabled ~= boosting then
-		fx.light.Enabled = boosting
+	-- surface dust / water spray
+	s.fxSurfaceT += dt
+	if s.fxSurfaceT >= SURFACE_SAMPLE then
+		s.fxSurfaceT = 0
+		sampleSurface(s)
 	end
-	if fx.glow and fx.exhaust then
-		if boosting then
-			local flicker = 0.85 + math.random() * 0.35
-			fx.glow.Size = Vector3.new(1.6, 1.6, 1.6) * flicker
-			fx.glow.CFrame = fx.exhaust.WorldCFrame
-			fx.glow.Transparency = 0.15
-		elseif fx.glow.Transparency < 1 then
-			fx.glow.Transparency = 1
+	local grounded = (c.grounded or 0) >= 2
+	local dustColor = s.fxDust
+	local dustOn = dustColor ~= nil and grounded and c.speed > DUST_MIN_SPEED
+	if dustOn ~= s.fxDustOn then
+		s.fxDustOn = dustOn
+		for _, st in fx.dust do
+			if dustOn and dustColor then
+				st.emitter.Color = ColorSequence.new(dustColor)
+			end
+			VFXLibrary.setStream(st, dustOn, math.clamp(frac, 0.4, 1.2))
+		end
+	end
+	local sprayOn = s.fxWater and c.speed > SPRAY_MIN_SPEED
+	if sprayOn ~= s.fxSprayOn and fx.spray then
+		s.fxSprayOn = sprayOn
+		VFXLibrary.setStream(fx.spray, sprayOn, math.clamp(frac + 0.3, 0.5, 1.3))
+	end
+	-- nitro: flame + core streams, jet beam + light flicker
+	if boosting ~= s.wasBoosting then
+		if fx.flame then
+			VFXLibrary.setStream(fx.flame, boosting)
+		end
+		if fx.core then
+			VFXLibrary.setStream(fx.core, boosting)
+		end
+		if fx.jet then
+			fx.jet.beam.Enabled = boosting
+		end
+		if fx.light then
+			fx.light.Color = Theme.Colors.Secondary
+			fx.light.Enabled = boosting
+		end
+	end
+	if boosting then
+		local flicker = 0.82 + math.random() * 0.36
+		if fx.light then
+			fx.light.Brightness = 3 * flicker
+		end
+		local jet = fx.jet
+		if jet then
+			jet.beam.Width0 = 1.35 * flicker
+			jet.a1.Position = jet.a0.Position + Vector3.new(0, 0, 4.5 * (0.75 + math.random() * 0.4))
+		end
+	end
+	-- backfire pops on upshifts under throttle (not while boosting: the flame covers it)
+	local gear, up = VFXLibrary.nextGear(s.fxGear, frac)
+	s.fxGear = gear
+	if up and not boosting and s.input.throttle > 0.5 and grounded and os.clock() - s.fxBackfireAt > BACKFIRE_COOLDOWN then
+		backfire(s, false)
+	end
+	-- speed lines around the camera while boosting (lighter near top speed)
+	local host = fx.speedHost
+	if host and cam then
+		local level = if boosting then 1 elseif frac >= SPEED_LINE_FRACTION then 0.5 else 0
+		if level ~= s.fxLinesLevel then
+			s.fxLinesLevel = level
+			for _, st in fx.speedLines do
+				VFXLibrary.setStream(st, level > 0, level)
+			end
+		end
+		if level > 0 then
+			host.CFrame = cam.CFrame
 		end
 	end
 	local screech = fx.screech
@@ -1304,6 +1495,7 @@ exitVehicle = function()
 		RunService:UnbindFromRenderStep(SHAKE_APPLY_BIND)
 	end)
 	shakeUndo(s)
+	releaseFx(s)
 	s.trove:Destroy()
 	radioCall("setRadioOn", false)
 	if s.fxBoost then
@@ -1393,7 +1585,18 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 		fxBoost = false,
 		fxHonk = false,
 		fxAt = 0,
-		fx = { smoke = {} },
+		fx = { smoke = {}, skids = {}, dust = {}, speedLines = {} },
+		fxSlideOn = false,
+		fxSlideLevel = 0,
+		fxGear = 0,
+		fxBackfireAt = 0,
+		fxSurfaceT = 0,
+		fxDust = nil,
+		fxWater = false,
+		fxDustOn = false,
+		fxSprayOn = false,
+		fxLinesLevel = 0,
+		prevVel = Vector3.zero,
 	}
 	session = s
 

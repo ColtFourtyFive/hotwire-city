@@ -98,8 +98,12 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
         optimize.atlas_uv(objs, margin=0.006 if size >= 512 else 0.012)
     if cfg["bake"]:
         for gname, members, size in groups:
-            textured_paint = gname in ("Body", "Body2") and paint.get("textured") if gname == "Body" else \
-                (gname == "Body2" and (getattr(car, "paint2", None) or {}).get("textured"))
+            if gname == "Body":
+                textured_paint = bool(paint.get("textured"))
+            elif gname == "Body2":
+                textured_paint = bool((getattr(car, "paint2", None) or {}).get("textured"))
+            else:
+                textured_paint = False
             if gname in ("Body", "Body2") and not textured_paint:
                 chans = ["normal"] if cfg["body_maps"] else []
             elif gname == "Lights":
@@ -117,12 +121,14 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
             if gname in ("Trim", "Interior", "Wheel") and "base" in merged:
                 aos = []
                 for m in members:
-                    aos.append(bake.bake_ao(lows[m], size, tex_dir, f"{name}_{m}", distance=0.04 * L))
+                    aos.append(bake.bake_ao(lows[m], size, tex_dir, f"{name}_{m}", distance=0.04 * L,
+                                            hide=list(his.values())))
                 ao = _merge_paths(aos, members, lows, size, os.path.join(tex_dir, f"{name}_{gname}_ao.png"), data=True)
                 bake.multiply_ao(merged["base"], ao, strength=0.75 if gname == "Interior" else 0.6)
                 merged["ao"] = ao
             if gname == "Body" and cfg["body_maps"] and not paint.get("textured"):
-                ao = bake.bake_ao(lows["Body"], size, tex_dir, f"{name}_Body", distance=0.05 * L)
+                ao = bake.bake_ao(lows["Body"], size, tex_dir, f"{name}_Body", distance=0.05 * L,
+                                  hide=list(his.values()))
                 merged["ao"] = ao
             if gname == "Body" and paint.get("textured") and "base" in merged:
                 route = "tintmask"
@@ -229,7 +235,7 @@ def _translate(v):
     return Matrix.Translation(Vector(v))
 
 
-def _uv_coverage(lo, size):
+def _uv_coverage(lo, size, dilate=False):
     """Boolean (size,size) mask of texels covered by the atlas UV islands (rasterised triangles)."""
     from PIL import Image, ImageDraw
     me = lo.data
@@ -241,7 +247,15 @@ def _uv_coverage(lo, size):
     for p in me.polygons:
         pts = [(uv[li, 0] * size, (1 - uv[li, 1]) * size) for li in p.loop_indices]
         dr.polygon(pts, fill=255)
-    return np.asarray(im)[::-1] > 0 if False else np.flipud(np.asarray(im)) > 0
+    m = np.asarray(im) > 0  # PNG orientation (row 0 = v 1), same as bake.load_np
+    if dilate:
+        d = m.copy()
+        d[1:, :] |= m[:-1, :]
+        d[:-1, :] |= m[1:, :]
+        d[:, 1:] |= m[:, :-1]
+        d[:, :-1] |= m[:, 1:]
+        m = d
+    return m
 
 
 def _merge_member_bakes(res, tex_dir, prefix, members, lows, size):
@@ -260,16 +274,15 @@ def _merge_member_bakes(res, tex_dir, prefix, members, lows, size):
 
 def _merge_paths(paths, members, lows, size, out_path, data=False):
     if len(members) == 1:
-        os.replace(paths[0], out_path) if paths[0] != out_path else None
+        if paths[0] and paths[0] != out_path:
+            os.replace(paths[0], out_path)
         return out_path
     acc = None
     for p, m in zip(paths, members):
         if p is None:
             continue
         a = bake.load_np(p)
-        cov = _uv_coverage(lows[m], size)
-        # Blender image rows go bottom->top; PIL top->bottom.  load_np gives top->bottom, coverage was flipped to match.
-        cov = np.flipud(cov)
+        cov = _uv_coverage(lows[m], size, dilate=True)
         if acc is None:
             acc = a.copy()
         else:
@@ -305,7 +318,7 @@ def _final_material(lo, nm, gname, tex, car, cfg, route):
         except Exception:
             pass
         return
-    if gname in ("Body", "Body2") and route == "strip" or (gname == "Body2"):
+    if (gname == "Body" and route == "strip") or gname == "Body2":
         p = (car.paint if gname == "Body" else (car.paint2 or car.paint))
         b.inputs["Base Color"].default_value = tuple(srgb_to_lin(p["color_srgb"])) + (1,)
         b.inputs["Metallic"].default_value = 0.0
