@@ -3,19 +3,29 @@
 --
 --  * Builds ParticleEmitters / Trails / Beams / glare sprites from Config/VFX presets (our uploaded textures, with
 --    built-in fallbacks when an id is missing).
---  * burst(name, at, opts): pooled one-shot emission. Each preset owns a small ring of emitters (VFX preset .pool)
---    on one anchored host part; an emitter is moved to the burst point and Emit()s. Instances are created once per
---    slot, never per burst / per frame. Particles live in world space, so one slot serves many bursts.
+--  * burst(name, at, opts): pooled one-shot emission. Each preset owns a few emitters (VFX preset .pool) on one
+--    anchored host part; an emitter is moved to the burst point and Emit()s. Instances are created once per slot,
+--    never per burst / per frame. Particles live in world space, so one slot serves many bursts. Size / Color writes
+--    also change particles still in the air, so a burst uses a slot already showing its look (scale + color), else an
+--    idle slot (all its particles dead), else grows the pool (2x, VFX.POOL_HARD_CAP), else is skipped: live particles
+--    are never re-looked.
+--  * attach(name, parent) + emit(attached, count): a burst preset on a caller's attachment (the exhaust backfire):
+--    moves with the car, quality-scaled + budgeted like a pooled burst.
 --  * stream(name, parent, opts) + setStream(stream, on, intensity): continuous emitters on a caller's attachment
 --    (tire smoke, nitro, dust). Rates are written only when they change.
 --  * Budget: every burst reserves its particles against a live-particle cap (quality tier); active streams count
---    their steady-state load (rate x lifetime) and are throttled when the load nears the cap.
+--    their steady-state load (rate x lifetime x preset cost) and may use VFX.STREAM_SHARE of the cap. rebalance()
+--    re-rates every active stream (on each stream change + every VFX.REBALANCE_INTERVAL): priority streams (the local
+--    car's) are served first, the rest share what is left (never below VFX.MIN_STREAM_SCALE).
 --  * Quality tier: "high" | "medium" | "low" from UserGameSettings.SavedQualityLevel (1-3 low, 4-7 medium, 8-10 high;
 --    Automatic = medium on phones, high elsewhere), re-read every VFX.QUALITY_REFRESH s; setQualityOverride() wins.
---  * Distance: bursts farther than VFX.MAX_DISTANCE (250) from the camera are skipped (opts.force overrides).
+--    A tier change re-applies stream sizes (tierSize presets) and trail lifetimes on the next rebalance.
+--  * Distance: library calls farther than VFX.MAX_DISTANCE (250) from the camera are skipped (opts.force overrides;
+--    EffectsController forces, it culls whole effects itself).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -29,6 +39,11 @@ VFXLibrary.Config = VFX
 
 local HIDDEN = CFrame.new(0, -10000, 0)
 local DEFAULT_POOL = 3
+local SAME_FRAME = 1 / 240 -- s: a slot that emitted this recently is treated as used this frame
+local TRAIL_HEIGHT_EPS = 0.01 -- studs: smaller skid-height changes skip the Attachment write
+
+-- Injectable clock (tests drive time explicitly).
+local clock: () -> number = os.clock
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests)
@@ -93,13 +108,61 @@ function VFXLibrary.streamLoad(rate: number, lifetime: { number }): number
 	return math.max(0, rate) * (lo + hi) / 2
 end
 
--- Rate multiplier for streams when their combined load nears the cap (they may use 60% of it).
+-- Rate multipliers (priority, other) for streams whose combined load nears the cap (they may use STREAM_SHARE of it):
+-- priority streams (the local car) are served first, the others share what is left.
+function VFXLibrary.streamShares(cap: number, priorityLoad: number, otherLoad: number): (number, number)
+	local share = cap * VFX.STREAM_SHARE
+	local floor = VFX.MIN_STREAM_SCALE
+	local p = if priorityLoad > share and priorityLoad > 0 then math.max(floor, share / priorityLoad) else 1
+	local left = math.max(0, share - priorityLoad * p)
+	local o = if otherLoad <= left or otherLoad <= 0 then 1 else math.max(floor, left / otherLoad)
+	return p, o
+end
+
+-- Rate multiplier for non-priority streams when their combined load nears the cap.
 function VFXLibrary.streamScale(cap: number, load: number): number
-	local share = cap * 0.6
-	if load <= share or load <= 0 then
-		return 1
+	local _, o = VFXLibrary.streamShares(cap, 0, load)
+	return o
+end
+
+-- Burst Size multiplier snapped to 0.05 steps, so near-equal scales share a pooled slot's look.
+function VFXLibrary.quantizeScale(scale: number): number
+	return math.max(0.05, math.floor(scale * 20 + 0.5) / 20)
+end
+
+export type SlotLook = { scale: number, color: Color3?, busyUntil: number, emittedAt: number }
+
+-- Which pooled slot a burst with this look (scale, color) may use without changing particles still in the air:
+--  1. a slot already showing this look that did not emit this frame (nothing to rewrite),
+--  2. an idle slot (all its particles have died): it is re-looked,
+--  3. a new slot (#slots + 1) while the pool is under maxSlots,
+--  4. a slot showing this look that emitted this frame (two bursts, one emitter, same frame),
+--  else nil: every slot is busy showing another look -> skip the burst.
+function VFXLibrary.pickSlot(slots: { SlotLook }, scale: number, color: Color3?, now: number, maxSlots: number): number?
+	local idle: number? = nil
+	local sameFrame: number? = nil
+	for i, slot in slots do
+		if slot.scale == scale and slot.color == color then
+			if now - slot.emittedAt > SAME_FRAME then
+				return i
+			end
+			sameFrame = sameFrame or i
+		elseif idle == nil and slot.busyUntil <= now then
+			idle = i
+		end
 	end
-	return math.max(0.25, share / load)
+	if idle then
+		return idle
+	end
+	if #slots < maxSlots then
+		return #slots + 1
+	end
+	return sameFrame
+end
+
+-- Burst slots a preset may grow to while busy (2x its pool, at most VFX.POOL_HARD_CAP).
+function VFXLibrary.maxSlots(pool: number): number
+	return math.max(pool, math.min(VFX.POOL_HARD_CAP, pool * 2))
 end
 
 -- Arcade gear for a speed fraction: number of shift points at or below it (0 = first gear).
@@ -202,6 +265,7 @@ end
 local qualityOverride: string? = nil
 local cachedTier = "high"
 local tierReadAt = -math.huge
+local tierEpoch = 0 -- bumped whenever the tier changes (rebalance re-applies sizes / trail lifetimes)
 local budget = VFXLibrary.newBudget(VFX.Quality.high.maxParticles)
 VFXLibrary.budget = budget
 
@@ -228,10 +292,14 @@ function VFXLibrary.setQualityOverride(tier: string?)
 end
 
 function VFXLibrary.quality(): string
-	local now = os.clock()
+	local now = clock()
 	if now - tierReadAt >= VFX.QUALITY_REFRESH then
 		tierReadAt = now
-		cachedTier = qualityOverride or VFXLibrary.qualityTier(readSavedQuality(), isPhone())
+		local tier = qualityOverride or VFXLibrary.qualityTier(readSavedQuality(), isPhone())
+		if tier ~= cachedTier then
+			cachedTier = tier
+			tierEpoch += 1
+		end
 		budget.cap = VFX.Quality[cachedTier].maxParticles
 	end
 	return cachedTier
@@ -298,6 +366,7 @@ function VFXLibrary.configure(e: ParticleEmitter, preset: Preset, scale: number?
 	e.Drag = preset.drag or 0
 	e.ZOffset = preset.zOffset or 0
 	e.LockedToPart = preset.lockedToPart == true
+	e.VelocityInheritance = preset.velocityInheritance or 0
 	e.TimeScale = preset.timeScale or 1
 	e.Orientation = enumItem(Enum.ParticleOrientation, preset.orientation) or Enum.ParticleOrientation.FacingCamera
 	e.EmissionDirection = enumItem(Enum.NormalId, preset.emissionDirection) or Enum.NormalId.Top
