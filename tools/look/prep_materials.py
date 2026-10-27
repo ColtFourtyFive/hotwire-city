@@ -62,18 +62,31 @@ T_MAX = 0.86  # brightest detail-map mean we aim for (Roblox's own maps sit arou
 #   metal          None (dielectric: no map uploaded), "src", a constant, or "rust" (derived)
 #   ao             how much of the ambient-occlusion map is multiplied into the colour map
 #   shares         reuse another key's uploaded maps (no new images), only BaseMaterial/look differ
+#   macro          (amount, seed): tileable low-frequency tone patches (+-amount) so big flat areas (roads) do not read
+#                  as one uniform slab; roughness follows a little (darker patches = oilier = smoother)
+#   decrack        [(x0, x1, y0, y1, dx, dy)]: source cleanup, each band (px in the 1024 source) is refilled from the
+#                  same maps shifted by (dx, dy) with a feathered edge and the band's own low-frequency tone kept
+#                  (removes a baked crack that would repeat on every tile; cracks come from the crack decals)
+#   flatten        (radius px, amount): remove `amount` of the source's own low-frequency tone (a distinct light or
+#                  dark blob repeats visibly on every tile); `macro` then adds a softer, shapeless one back
 # ---------------------------------------------------------------------------------------------------------------
 
 MATERIALS = [
-    dict(key="asphalt", variant="HC_Asphalt", base="Asphalt", override=True, src=("ACG", "Road012A"), tile_m=3.0,
+    dict(key="asphalt", variant="HC_Asphalt", base="Asphalt", override=True, src=("ACG", "Road012A"), tile_m=4.5,
          pattern="Organic", look=(80, 80, 82), hue_remove=1.0, detail=1.15, sat=0.4, rough=(0.84, 1.0), normal=1.2,
-         ao=0.5, note="Road asphalt for avenues and streets (fine dark aggregate)."),
+         ao=0.5, macro=(0.06, 31),
+         note="Road asphalt for avenues and streets (fine dark aggregate, soft tone patches; 16-stud tiles). Add the "
+              "tar_snakes / crack_network decals as Textures on top (24-30 studs per tile) to break it up further."),
     dict(key="asphalt_worn", variant="HC_AsphaltWorn", base="Asphalt", override=False, src=("PH", "asphalt_02"),
-         tile_m=3.0, pattern="Organic", look=(98, 97, 94), hue_remove=1.0, detail=1.0, sat=0.4, rough=(0.86, 1.0),
-         normal=1.0, ao=0.6, note="Worn, cracked asphalt for older streets, alleys and lots."),
-    dict(key="asphalt_wet", variant="HC_AsphaltWet", base="Asphalt", override=False, src="wet:asphalt", tile_m=3.0,
-         pattern="Organic", look=(60, 60, 62), rough=(0.24, 1.0), shares_maps=("color", "normal"),
-         note="Night/rain swap for HC_Asphalt (same colour+normal, wet roughness with puddles)."),
+         tile_m=4.0, pattern="Organic", look=(98, 97, 94), hue_remove=1.0, detail=1.0, sat=0.4, rough=(0.86, 1.0),
+         normal=1.0, ao=0.6, flatten=(40.0, 0.75), macro=(0.045, 41),
+         decrack=[(80, 178, 0, 1024, 225, 300), (606, 676, 50, 712, 330, 610), (686, 848, 0, 1024, -470, 150),
+                  (476, 610, 820, 1104, -250, 450)],
+         note="Worn coarse asphalt for older streets, alleys and lots (baked cracks removed: add crack_network)."),
+    dict(key="asphalt_wet", variant="HC_AsphaltWet", base="Asphalt", override=False, src="wet:asphalt", tile_m=4.5,
+         pattern="Organic", look=(60, 60, 62), rough=(0.24, 1.0), shares_maps=("normal",), wet_dark=0.75,
+         note="Night/rain swap for HC_Asphalt: same normal, darker wet colour map (puddles darker still) and a wet "
+              "roughness map; uses HC_Asphalt's Part.Color, so swapping the override darkens and wets the roads."),
     dict(key="sidewalk", variant="HC_Sidewalk", base="Pavement", override=True, src="sidewalk", tile_m=3.0,
          pattern="Regular", look=(172, 169, 162), hue_remove=1.0, detail=1.0, sat=0.3, rough=(0.80, 1.0), normal=1.0,
          ao=0.5, note="US concrete sidewalk: 1.5 m panels with tooled joints and smooth margins (2x2 panels per tile)."),
@@ -120,18 +133,22 @@ MATERIALS = [
     dict(key="sand", variant="HC_Sand", base="Sand", override=True, src=("ACG", "Ground055S"), tile_m=3.4,
          pattern="Organic", look=(198, 186, 158), hue_remove=1.0, detail=1.0, sat=0.5, rough=(0.93, 1.0), normal=1.1,
          ao=0.3, note="Pale wind-rippled beach sand."),
-    dict(key="rock", variant="HC_Rock", base="Rock", override=True, src=("PH", "rock_face_03"), tile_m=4.0,
+    dict(key="rock", variant="HC_Rock", base="Rock", override=True, src=("PH", "rock_face_03"), tile_m=9.0,
          pattern="Organic", look=(136, 116, 96), hue_remove=0.6, detail=1.0, sat=0.8, rough=(0.86, 1.0), normal=1.0,
-         ao=0.6, note="Tan fractured rock for cliffs and hill cuts."),
-    dict(key="rock_slate", variant="HC_RockSlate", base="Slate", override=True, shares="rock", look=(120, 108, 96),
-         note="Same maps as HC_Rock for the Slate material (cliffs built from Slate)."),
+         ao=0.6, note="Tan fractured rock for cliffs and hill cuts (32-stud tiles: big fracture shapes must not "
+                      "repeat up a cliff face)."),
+    dict(key="rock_slate", variant="HC_RockSlate", base="Slate", override=True, src=("ACG", "Rock030"), tile_m=6.0,
+         pattern="Organic", look=(112, 110, 104), hue_remove=0.6, detail=1.0, sat=0.7, rough=(0.84, 1.0), normal=1.0,
+         ao=0.6, note="Grey layered cliff rock for the Slate material (distinct from the tan HC_Rock)."),
     dict(key="terrazzo", variant="HC_Terrazzo", base="Marble", override=True, src=("ACG", "Terrazzo005"),
          tile_m=1.6, pattern="Organic", look=(204, 200, 194), hue_remove=1.0, detail=0.85, sat=0.5,
          rough=(0.30, 1.0), normal=1.0, ao=0.0, note="White terrazzo for plazas, lobbies, malls and the airport."),
     dict(key="window_glass", variant="HC_WindowGlass", base="SmoothPlastic", override=False, src="glass", tile_m=3.4,
-         pattern="Regular", look=(44, 54, 62), rough=(0.07, 1.0), metal=0.25,
-         note="Opaque reflective facade glass (low roughness, slight metalness). Glass has no MaterialService override "
-              "slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + MaterialVariant=HC_WindowGlass."),
+         pattern="Regular", look=(116, 130, 144), rough=(0.06, 1.0), metal=1.0,
+         note="Opaque mirror-coated facade glass: metalness ~1 + roughness ~0.06, so Part.Color is the reflection tint "
+              "and the facade shows a lightly blue-grey tinted sky (a dark dielectric only reflects ~4%). Glass has no "
+              "MaterialService override slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + "
+              "MaterialVariant=HC_WindowGlass."),
 ]
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -241,6 +258,65 @@ def build_sidewalk(src_dir):
             "src": "PH/concrete_floor_worn_001 + procedural joints"}
 
 
+def decrack(s, bands, feather=9.0, tone_radius=40.0):
+    """Refill crack bands from shifted copies of the same maps (see `decrack` in the definitions). Bands may extend
+    past the bottom/right edge (they wrap: the maps are tileable). The colour and roughness keep the band's own
+    low-frequency tone (a masked low-pass of the original without the bands), so no darker/lighter stripe appears."""
+    n = SIZE
+    yy, xx = np.mgrid[0:n, 0:n]
+    hard_all = np.zeros((n, n), np.float32)
+    masks = []
+    for x0, x1, y0, y1, dx, dy in bands:
+        inx = ((xx - x0) % n) < (x1 - x0)
+        iny = ((yy - y0) % n) < (y1 - y0)
+        hard = (inx & iny).astype(np.float32)
+        hard_all = np.maximum(hard_all, hard)
+        soft = np.clip(lc.blur(hard, feather * 0.5) * 1.15, 0, 1)
+        masks.append((soft, dx, dy))
+    keep = 1.0 - hard_all
+    wsum = lc.blur(keep, tone_radius)
+    out = dict(s)
+    for m in ("color", "normal", "rough", "ao"):
+        a0 = s.get(m)
+        if a0 is None:
+            continue
+        a = a0.copy()
+        tone = None
+        if m in ("color", "rough"):
+            k = keep if a0.ndim == 2 else keep[..., None]
+            w = wsum if a0.ndim == 2 else wsum[..., None]
+            tone = lc.blur(a0 * k, tone_radius) / np.maximum(w, 1e-3)
+            tone = np.where(w > 0.05, tone, a0.mean(axis=(0, 1)))
+        for soft, dx, dy in masks:
+            donor = np.roll(np.roll(a0, -dy, axis=0), -dx, axis=1)
+            if tone is not None:
+                donor = donor - lc.blur(donor, tone_radius) + tone
+            mm = soft if a.ndim == 2 else soft[..., None]
+            a = a * (1 - mm) + donor * mm
+        if m == "normal":
+            a = lc.encode_normal(lc.decode_normal(a))  # unit length again after the feathered blends
+        out[m] = np.clip(a, 0, 1).astype(np.float32)
+    out["src"] = s["src"] + " (baked cracks removed)"
+    return out
+
+
+def macro_tone(seed, amount):
+    """Tileable low-frequency tone field around 1.0: broad +-amount patches plus a few darker oily blotches."""
+    broad = lc.fractal_noise(SIZE, beta=2.6, seed=seed, lo=1, hi=7)
+    z = (broad - broad.mean()) / (broad.std() + 1e-6)
+    blot = lc.fractal_noise(SIZE, beta=2.2, seed=seed + 1, lo=2, hi=16)
+    b = np.clip((blot - np.percentile(blot, 82)) * 6.0, 0, 1)
+    return (1.0 + amount * np.clip(z / 2.0, -1, 1) - 0.7 * amount * b).astype(np.float32)
+
+
+def block_variation(cmap, blocks=8):
+    """Std (0..255) of the mean luminance of blocks x blocks cells: how much large-scale variation a map carries."""
+    lum = (cmap * lc.LUMA).sum(-1)
+    n = lum.shape[0] // blocks
+    means = lum[: n * blocks, : n * blocks].reshape(blocks, n, blocks, n).mean(axis=(1, 3))
+    return float(means.std() * 255.0)
+
+
 def build_glass(_src_dir):
     """Facade glass: almost uniform colour, very low-frequency panel waviness, faint smudges in roughness."""
     n = SIZE
@@ -312,24 +388,32 @@ def process(defn, src_dir, done):
         if ARGS.fetch:
             fetch(src_dir, *src)
         s = load_set(src_dir, *src)
+        if defn.get("decrack"):
+            s = decrack(s, defn["decrack"])
     elif src == "sidewalk":
         s = build_sidewalk(src_dir)
     elif src == "glass":
         s = build_glass(src_dir)
     elif src.startswith("wet:"):
+        # Wet roads are darker AND smoother. The swap (Look.WetStreets) only changes the Asphalt override, never
+        # Part.Color, so the darkening lives in this variant's own colour map: dry map x wet_dark (puddles darker),
+        # and the recommended colour stays the dry variant's.
         parent = done[src.split(":")[1]]
         base_rough = lc.load_gray(os.path.join(lc.ROOT, parent["files"]["roughness"]))
+        base_col = lc.load_rgb(os.path.join(lc.ROOT, parent["files"]["color"]))
         puddles = lc.fractal_noise(SIZE, beta=3.0, seed=21, lo=1, hi=24)
         pm = np.clip((puddles - 0.58) * 6.0, 0, 1)
         rough = np.clip(0.30 + (base_rough - base_rough.mean()) * 0.5, 0.12, 0.6) * (1 - pm) + 0.05 * pm
-        lc.save_png(rough, os.path.join(out_dir, "roughness.png"))
-        rec.update(pattern=parent["pattern"], source=parent["source"] + " (wet roughness)")
-        rec["maps"] = {"color": parent["key"], "normal": parent["key"], "roughness": key}
-        rec["files"] = {"color": parent["files"]["color"], "normal": parent["files"]["normal"],
-                        "roughness": lc.rel(os.path.join(out_dir, "roughness.png"))}
-        mean_map = np.array(parent["mapMean"], np.float32)
-        rec["color"] = [int(round(c)) for c in np.clip(np.array(defn["look"]) / np.maximum(mean_map, 1e-3), 0, 255)]
-        rec["mapMean"] = parent["mapMean"]
+        wet_col = np.clip(base_col * defn.get("wet_dark", 0.75) * (1 - 0.08 * pm)[..., None], 0, 1)
+        files = {"color": lc.rel(lc.save_png(wet_col, os.path.join(out_dir, "color.png"))),
+                 "normal": parent["files"]["normal"],
+                 "roughness": lc.rel(lc.save_png(rough, os.path.join(out_dir, "roughness.png")))}
+        rec.update(pattern=parent["pattern"], source=parent["source"] + " (wet colour + roughness)")
+        rec["studsPerTile"] = parent["studsPerTile"]
+        rec["maps"] = {"color": key, "normal": parent["key"], "roughness": key}
+        rec["files"] = files
+        rec["color"] = list(parent["color"])
+        rec["mapMean"] = [round(float(c), 4) for c in wet_col.mean(axis=(0, 1))]
         rec["seam"] = parent["seam"]
         return rec
     else:
@@ -338,6 +422,15 @@ def process(defn, src_dir, done):
     col = s["color"]
     if s.get("ao") is not None and defn.get("ao", 0) > 0:
         col = col * (1 - defn["ao"] + defn["ao"] * s["ao"])[..., None]
+    if defn.get("flatten"):
+        radius, amount = defn["flatten"]
+        low = lc.blur((col * lc.LUMA).sum(-1), radius)
+        col = np.clip(col * np.power(float(low.mean()) / np.maximum(low, 1e-3), amount)[..., None], 0, 1)
+    if defn.get("macro"):
+        amount, seed = defn["macro"]
+        tone = macro_tone(seed, amount)
+        col = np.clip(col * tone[..., None], 0, 1)
+        s = dict(s, rough=np.clip(s["rough"] * (1 + 0.5 * (tone - 1)), 0, 1))
     if src == "glass":
         cmap = col
         mean_map = cmap.mean(axis=(0, 1))
@@ -380,8 +473,10 @@ def process(defn, src_dir, done):
             os.remove(stale)
     rec.update(files=files, maps={k: key for k in files}, source=s["src"], seam=seams,
                color=[int(round(c * 255)) for c in np.clip(color, 0, 1)],
-               mapMean=[round(float(c), 4) for c in cmap.mean(axis=(0, 1))], detailScale=round(t, 3))
-    print("%-18s %-20s studs=%5.2f color=%s seams=%s" % (key, rec["source"], rec["studsPerTile"], rec["color"], seams))
+               mapMean=[round(float(c), 4) for c in cmap.mean(axis=(0, 1))], detailScale=round(t, 3),
+               blockVariation=round(block_variation(cmap), 2))
+    print("%-18s %-20s studs=%5.2f color=%s blockVar=%.2f seams=%s" % (
+        key, rec["source"], rec["studsPerTile"], rec["color"], rec["blockVariation"], seams))
     return rec
 
 
@@ -507,6 +602,59 @@ def blotch_mask(n, seed, falloff=0.42, thresh=0.45):
     return m * np.clip(radial * 3, 0, 1)
 
 
+def manhole_rgba(n=512):
+    """Generic cast-iron manhole cover: frame ring, gap, a raised diamond-tread field, a plain centre boss and two
+    pick holes. Raised parts are polished brighter by traffic, recesses hold dirt and a little rust. No lettering,
+    logo or foundry mark (the ambientCG scan carried an embossed brand). Shading is baked (decals have no normal)."""
+    ss = 2
+    m = n * ss
+    yy, xx = np.mgrid[0:m, 0:m].astype(np.float32)
+    u = (xx + 0.5) / m - 0.5
+    v = (yy + 0.5) / m - 0.5
+    r = np.sqrt(u * u + v * v)
+
+    def band(lo, hi, soft=0.002):
+        return np.clip((r - lo) / soft, 0, 1) * np.clip((hi - r) / soft, 0, 1)
+
+    # height field (0 = recess .. 1 = raised)
+    h = np.zeros((m, m), np.float32)
+    h += band(0.432, 0.495) * 0.8  # frame
+    h += band(0.395, 0.425) * 0.9  # cover rim
+    # diamond tread inside the rim: raised diamonds on a rotated grid
+    k = 34.0
+    a = (u + v) * k
+    b = (u - v) * k
+    tri = np.minimum(np.abs(a - np.round(a)), np.abs(b - np.round(b)))
+    diamonds = np.clip((tri - 0.12) / 0.06, 0, 1)
+    h += band(0.115, 0.392) * diamonds * 0.75
+    h += band(0.0, 0.112) * 0.85  # centre boss, plain
+    h += band(0.112, 0.118) * 0.3
+    # two pick holes on the horizontal axis
+    for sx in (-1.0, 1.0):
+        d = np.sqrt(((u - sx * 0.30) / 0.032) ** 2 + (v / 0.014) ** 2)
+        h = np.where(d < 1.0, -0.6, h)
+    h = lc.blur(h, 0.9 * ss)
+    inside = band(0.0, 0.497, soft=0.003)
+    # shading from the height gradient (light from the upper left), plus wear and dirt
+    gx = np.roll(h, -1, axis=1) - np.roll(h, 1, axis=1)
+    gy = np.roll(h, -1, axis=0) - np.roll(h, 1, axis=0)
+    shade = np.clip(1.0 + (-gx * 0.55 - gy * 0.55) * 6.0, 0.55, 1.45)
+    grime = lc.resize(lc.fractal_noise(n, beta=1.8, seed=611, lo=2, hi=90), m, m)
+    wear = lc.resize(lc.fractal_noise(n, beta=2.0, seed=612, lo=2, hi=40), m, m)
+    iron = np.array([0.205, 0.198, 0.19], np.float32)
+    polished = np.array([0.36, 0.35, 0.335], np.float32)
+    rust = np.array([0.30, 0.20, 0.13], np.float32)
+    dirt = np.array([0.14, 0.13, 0.12], np.float32)
+    hp = np.clip(h, 0, 1)[..., None]
+    col = iron * (1 - hp) + polished * hp * (0.75 + 0.5 * wear[..., None])
+    rec = np.clip(0.35 - h, 0, 1)[..., None]  # recesses
+    col = col * (1 - 0.6 * rec) + (dirt * 0.6 + rust * 0.4) * 0.6 * rec * (0.6 + 0.8 * grime[..., None])
+    col = col * shade[..., None] * (0.9 + 0.2 * grime[..., None])
+    col = np.where((h < -0.2)[..., None], np.array([0.03, 0.03, 0.03], np.float32), col)
+    rgba = np.concatenate([np.clip(col, 0, 1), inside[..., None]], axis=-1).astype(np.float32)
+    return lc.resize(rgba, n, n)
+
+
 def build_decals(src_dir):
     out = os.path.join(lc.MATERIALS_DIR, "decals")
     os.makedirs(out, exist_ok=True)
@@ -560,16 +708,8 @@ def build_decals(src_dir):
 
     # ---- grime / street detail
     acg = os.path.join(src_dir, "ACG")
-    mh = os.path.join(acg, "ManholeCover009", "ManholeCover009_1K-JPG_Color.jpg")
-    if os.path.exists(mh):
-        c = lc.load_rgb(mh)
-        o = lc.load_gray(mh.replace("_Color", "_Opacity"))
-        ys, xs = np.where(o > 0.5)
-        y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
-        c, o = c[y0:y1, x0:x1], o[y0:y1, x0:x1]
-        c = lc.saturate(c, 0.35) * 0.82
-        rgba = np.concatenate([c, o[..., None]], axis=-1)
-        put("manhole_round", lc.resize(rgba, 512, 512), "Round cast-iron manhole cover (Decal, ~2.6 x 2.6 studs).")
+    put("manhole_round", manhole_rgba(512),
+        "Round cast-iron manhole cover, plain (no foundry mark or brand), procedural (Decal, ~2.6 x 2.6 studs).")
     dmg = os.path.join(acg, "AsphaltDamageSet001", "AsphaltDamageSet001_1K-JPG_Color.jpg")
     if os.path.exists(dmg):
         c = lc.load_rgb(dmg)

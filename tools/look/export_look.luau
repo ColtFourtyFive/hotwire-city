@@ -7,6 +7,7 @@ local Look = require("../../src/shared/Config/Look")
 
 print(serde.encode("json", {
 	Cycle = Look.Cycle,
+	Sun = Look.Sun,
 	Night = Look.Night,
 	Caps = Look.Caps,
 	Presets = Look.Presets,

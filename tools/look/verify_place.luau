@@ -92,7 +92,14 @@ if sky then
 		local uri = contentUri(sky["Skybox" .. long .. "Content"])
 		check(uri == Look.Skies.day.faces[face], "Sky " .. face .. " = " .. uri)
 	end
+	check(sky.StarCount == Look.Skies.day.starCount, "Sky.StarCount " .. sky.StarCount)
+	check(sky.CelestialBodiesShown == Look.Skies.day.celestialBodiesShown, "Sky.CelestialBodiesShown")
+	check(sky.SunAngularSize == Look.SkyStyle.sunAngularSize, "Sky.SunAngularSize " .. sky.SunAngularSize)
 end
+check(
+	math.abs(lighting.GeographicLatitude - Look.Sun.latitude) < 1e-3,
+	"GeographicLatitude " .. lighting.GeographicLatitude .. " (Look.Sun model)"
+)
 local atmo = lighting:FindFirstChildOfClass("Atmosphere")
 if atmo then
 	check(atmo.Density <= Look.Caps.densityMax + 1e-6, "Atmosphere.Density " .. atmo.Density)

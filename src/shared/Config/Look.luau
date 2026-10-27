@@ -62,11 +62,21 @@ export type DecalDef = {
 export type SkyDef = {
 	faces: { [string]: string }, -- Bk/Dn/Ft/Lf/Rt/Up -> rbxassetid (Image assets)
 	glowAzimuth: number, -- degrees, 0 = -Z, 90 = +X (azimuth of the HDRI's brightest region / sun before rotation)
+	horizonGlowAzimuth: number, -- brightest part of the 0..6 deg band (a night sky's city glow)
 	sunAzimuth: number?,
 	sunElevation: number?,
-	followSun: boolean, -- keep SkyboxOrientation aligned with the engine sun while this sky is up
+	followSun: boolean, -- keep the glow on the engine sun while up; else park horizonGlow on SkyStyle.fixedGlowAzimuth
 	starCount: number,
+	celestialBodiesShown: boolean, -- engine sun + moon discs
+	clouds: number, -- multiplier on the preset's volumetric Clouds.Cover while this sky is up
 	hazeColor: RGB,
+}
+
+export type WindowParams = {
+	lit: boolean, -- this window is one of the share that lights up at night
+	warm: boolean,
+	brightness: number,
+	threshold: number, -- NightFactor at which it switches on (and back off at dawn)
 }
 
 local Look = {}
@@ -78,8 +88,10 @@ local Look = {}
 Look.Cycle = {
 	lengthSeconds = 24 * 60, -- one full 24 h game day = 24 real minutes
 	startHour = 11.0, -- new servers start late morning (first impressions in daylight)
-	clockInterval = 1, -- seconds between Lighting.ClockTime writes (replicated)
-	envInterval = 2, -- seconds between look evaluations (Atmosphere, post effects, sky)
+	-- seconds between Lighting.ClockTime writes (replicated) and sky-yaw updates: at 4 Hz the sun steps ~0.06 deg,
+	-- so a 50-stud building's golden-hour shadow tip moves ~1 stud per step instead of ~4 at 1 Hz
+	clockInterval = 0.25,
+	envInterval = 1, -- seconds between look evaluations (Atmosphere, post effects, clouds)
 	-- Relative clock speed per band (normalised so the whole day lasts lengthSeconds): night runs fast, dawn/dusk
 	-- slow. With these weights: night ~4.6 min, dawn ~5.6 min, day ~8.1 min, golden evening + dusk ~5.6 min.
 	bands = {
@@ -89,6 +101,21 @@ Look.Cycle = {
 		{ from = 16, to = 20, weight = 1.3 },
 		{ from = 20, to = 24, weight = 0.5 },
 	},
+}
+
+-- The engine sun, MEASURED in the real engine (Open Cloud Luau Execution, Lighting:GetSunDirection at
+-- GeographicLatitude 0 / 23.5 / 34 / 41.733 x 28 ClockTimes; tools/look/sun_probe.py, result in
+-- tools/look/sun_probe_result.json). Roblox moves the sun on a circle about the horizontal Z axis:
+--   dir = (cos(phi) * cos(theta), cos(phi) * sin(theta), sin(phi)),  phi = latitude - 23.5 deg,
+--   theta = 15 deg * (ClockTime - 6)
+-- so it rises at 06:00 near +X, sets at 18:00 near -X at EVERY latitude (12 h day), and at latitude 34 culminates at
+-- 79.5 deg elevation toward +Z. The moon is exactly opposite the sun. LightingService.sunDirectionAt implements this
+-- (unit-tested against the probe); at runtime the engine's own GetSunDirection is used and checked against it.
+Look.Sun = {
+	latitude = 34, -- Lighting.GeographicLatitude (Los Angeles)
+	tiltOffset = 23.5, -- phi = latitude - tiltOffset
+	rise = 6.0, -- elevation 0 (measured: -0.74 deg at 5.95, +0.74 at 6.05)
+	set = 18.0, -- elevation 0 (measured: +1.47 deg at 17.9, -1.47 at 18.1)
 }
 
 -- NightFactor (Workspace attribute, 0 = day .. 1 = night; smoothstep ramps) drives lit windows and street lights.
@@ -235,12 +262,14 @@ local Presets: { [string]: Preset } = {
 Look.Presets = Presets
 
 -- Keyframes (sorted, 0 and 24 are the same preset so midnight wraps). Between keys LightingService smoothsteps.
+-- Golden keys sit at sun elevation ~10 deg and the day plateau starts/ends at ~38-42 deg (mirror images around noon:
+-- 6.7 / 17.3 and 8.6 / 15.4), so the light is mostly golden while the golden sky is up (sun below ~18 deg).
 Look.Keys = {
 	{ hour = 0, preset = "night" },
 	{ hour = 4.4, preset = "night" },
 	{ hour = 5.6, preset = "blueMorning" },
-	{ hour = 6.9, preset = "goldenMorning" },
-	{ hour = 9.4, preset = "day" },
+	{ hour = 6.7, preset = "goldenMorning" },
+	{ hour = 8.6, preset = "day" },
 	{ hour = 15.4, preset = "day" },
 	{ hour = 17.3, preset = "goldenEvening" },
 	{ hour = 18.6, preset = "blueEvening" },
@@ -250,40 +279,81 @@ Look.Keys = {
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Sky schedule: each entry holds until the next (wraps at 24). Swaps sit where the change is least visible: with the
--- sun below the horizon (blue <-> night, golden -> blue) or under a short haze bump (day <-> golden).
+-- sun below the horizon (blue <-> night, golden <-> blue) or under a short haze bump (day <-> golden). The golden
+-- HDRI (its own sun at 8 deg) is only up while the engine sun is below ~18.4 deg (7.25 / 16.75 at latitude 34), so
+-- its sunset glow never sits under a high sun ("two suns").
 ---------------------------------------------------------------------------------------------------------------------
 
 Look.SkySchedule = {
 	{ hour = 5.0, sky = "blue" },
-	{ hour = 5.95, sky = "golden" }, -- just before sunrise (Roblox sun rises at 06:00)
-	{ hour = 8.7, sky = "day" },
-	{ hour = 15.8, sky = "golden" },
-	{ hour = 18.1, sky = "blue" },
+	{ hour = 5.95, sky = "golden" }, -- sun -0.7 deg, just before sunrise
+	{ hour = 7.25, sky = "day" }, -- sun 18.4 deg
+	{ hour = 16.75, sky = "golden" }, -- sun 18.4 deg
+	{ hour = 18.1, sky = "blue" }, -- sun -1.5 deg, just after sunset
 	{ hour = 19.5, sky = "night" },
 }
 
 Look.SkySwap = {
 	hazeBoost = 0.2, -- extra Atmosphere.Haze at a swap (still capped by Caps.hazeMax) ...
-	width = 0.3, -- ... gaussian width in game hours
+	width = 0.3, -- ... gaussian width in game hours; volumetric cloud cover also blends over +-width
 }
 
 Look.SkyStyle = {
 	sunAngularSize = 10, -- real sun ~0.5 deg; 21 default reads storybook
 	moonAngularSize = 6,
-	celestialBodiesShown = true,
-	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - engine sun azimuth). +1 assumes the CFrame.Angles(0, y, 0)
+	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - target azimuth). +1 assumes the CFrame.Angles(0, y, 0)
 	-- convention; studio/jobs/0007 step S0 verifies it (flip to -1 if the glow ends up mirrored).
 	yawSign = 1,
-	yawEpsilon = 2, -- degrees; SkyboxOrientation is only rewritten past this
+	-- A following sky turns at most this fast (deg per real second; reads as cloud drift). Near noon the engine sun's
+	-- azimuth sweeps ~70-80 deg per game hour (~1.2 deg/s: it passes 10.5 deg from the zenith), which would visibly
+	-- spin the painted clouds, so the day sky lags there and catches up in the afternoon. Swaps snap.
+	maxYawRate = 0.3,
+	yawEpsilon = 0.02, -- degrees; SkyboxOrientation is only rewritten past this (steps are ~0.075 deg at 4 Hz)
+	-- Skies that do not follow the sun (night) park their horizon glow (the HDRI's warm city glow) here: east / +X,
+	-- inland. The Palmera Beach ocean horizon is the -X side (WorldLayout coast), and should stay dark.
+	fixedGlowAzimuth = 90,
 }
 
--- Wet-road look at night: swap the Asphalt override to HC_AsphaltWet (low roughness). Off until lab round 2 judges it.
+-- Wet-road look at night: swap the Asphalt override to HC_AsphaltWet (darker colour map, low roughness, puddles) once
+-- NightFactor reaches nightFactor (hysteresis Look.Night.hysteresis). Off until lab round 2 judges it.
 Look.WetStreets = {
 	enabled = false,
 	nightFactor = 0.6,
 	dry = "HC_Asphalt",
 	wet = "HC_AsphaltWet",
 }
+
+-- Lit windows at night (lighting lab finding 5, gta_realism_gap: 30-60 % lit, warm and cool mixed, on through dusk).
+-- Parts tagged "LitWindow" (the v2 contract for MapBuilder v2 / the building kit: an emissive panel 0.5-1 stud behind
+-- the glass) and, while v1 buildings exist, "NightGlow" parts whose DayMaterial is Glass. A deterministic hash of each
+-- part's position picks whether it lights at all, warm or cool, its brightness and its own NightFactor threshold, so
+-- the city fills in over dusk instead of every window switching at once. Unlit or daytime: the part's DayColor /
+-- DayMaterial attributes (captured on first sight when missing). "LitWindowColor" (Color3) overrides the colour.
+Look.Windows = {
+	tag = "LitWindow",
+	adoptGlassNightGlow = true,
+	share = 0.5, -- of windows that light up at all
+	warmShare = 0.7,
+	warm = { 255, 196, 136 },
+	cool = { 214, 226, 255 },
+	brightness = { 0.55, 1.0 }, -- colour multiplier range (Neon glow scales with the colour)
+	onBand = { 0.15, 0.9 }, -- NightFactor range the per-window thresholds spread over
+	material = "Neon",
+	batch = 200, -- windows switched per frame
+}
+
+-- Terrain water (the v1 tropical-pool cyan was the largest surface in every skyline shot). Applied by LightingService
+-- after MapBuilder; Config/Look owns it (gta_realism_gap 2.10: deep green-blue, fully reflective).
+Look.Water = {
+	color = { 22, 72, 84 },
+	transparency = 0.25,
+	reflectance = 1,
+	waveSize = 0.15,
+	waveSpeed = 10,
+}
+
+-- Live overrides for Play-mode tuning / lab round 2 (Workspace attributes, read every env tick):
+--   "TimeOfDayLock" (hours)  "AtmosphereOffsetOverride" (number)  "CloudsOverride" (multiplier on the cloud cover)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- BEGIN GENERATED (tools/look/gen_project.py) - do not edit by hand
@@ -294,37 +364,37 @@ local Materials: { [string]: MaterialDef } = {
 		key = "asphalt",
 		baseMaterial = "Asphalt",
 		override = true,
-		colorMap = "rbxassetid://106080567087674",
+		colorMap = "rbxassetid://112223103107268",
 		normalMap = "rbxassetid://82395533791334",
-		roughnessMap = "rbxassetid://101400097276672",
-		studsPerTile = 10.71,
+		roughnessMap = "rbxassetid://121272890641417",
+		studsPerTile = 16.07,
 		pattern = "Organic",
-		color = { 103, 103, 106 },
-		note = "Road asphalt for avenues and streets (fine dark aggregate).",
+		color = { 104, 104, 107 },
+		note = "Road asphalt for avenues and streets (fine dark aggregate, soft tone patches; 16-stud tiles). Add the tar_snakes / crack_network decals as Textures on top (24-30 studs per tile) to break it up further.",
 	},
 	HC_AsphaltWet = {
 		key = "asphalt_wet",
 		baseMaterial = "Asphalt",
 		override = false,
-		colorMap = "rbxassetid://106080567087674",
+		colorMap = "rbxassetid://79911827799879",
 		normalMap = "rbxassetid://82395533791334",
-		roughnessMap = "rbxassetid://113458825437012",
-		studsPerTile = 10.71,
+		roughnessMap = "rbxassetid://117195630363033",
+		studsPerTile = 16.07,
 		pattern = "Organic",
-		color = { 77, 77, 80 },
-		note = "Night/rain swap for HC_Asphalt (same colour+normal, wet roughness with puddles).",
+		color = { 104, 104, 107 },
+		note = "Night/rain swap for HC_Asphalt: same normal, darker wet colour map (puddles darker still) and a wet roughness map; uses HC_Asphalt's Part.Color, so swapping the override darkens and wets the roads.",
 	},
 	HC_AsphaltWorn = {
 		key = "asphalt_worn",
 		baseMaterial = "Asphalt",
 		override = false,
-		colorMap = "rbxassetid://98395841471900",
-		normalMap = "rbxassetid://125684889345496",
-		roughnessMap = "rbxassetid://73345421491533",
-		studsPerTile = 10.71,
+		colorMap = "rbxassetid://129122867914138",
+		normalMap = "rbxassetid://82636250794801",
+		roughnessMap = "rbxassetid://89336615364349",
+		studsPerTile = 14.29,
 		pattern = "Organic",
 		color = { 179, 177, 171 },
-		note = "Worn, cracked asphalt for older streets, alleys and lots.",
+		note = "Worn coarse asphalt for older streets, alleys and lots (baked cracks removed: add crack_network).",
 	},
 	HC_BrickRed = {
 		key = "brick_red",
@@ -442,22 +512,22 @@ local Materials: { [string]: MaterialDef } = {
 		colorMap = "rbxassetid://126554197799218",
 		normalMap = "rbxassetid://118583349787184",
 		roughnessMap = "rbxassetid://82781631164072",
-		studsPerTile = 14.29,
+		studsPerTile = 32.14,
 		pattern = "Organic",
 		color = { 190, 174, 157 },
-		note = "Tan fractured rock for cliffs and hill cuts.",
+		note = "Tan fractured rock for cliffs and hill cuts (32-stud tiles: big fracture shapes must not repeat up a cliff face).",
 	},
 	HC_RockSlate = {
 		key = "rock_slate",
 		baseMaterial = "Slate",
 		override = true,
-		colorMap = "rbxassetid://126554197799218",
-		normalMap = "rbxassetid://118583349787184",
-		roughnessMap = "rbxassetid://82781631164072",
-		studsPerTile = 14.29,
+		colorMap = "rbxassetid://91210253580661",
+		normalMap = "rbxassetid://78165355072262",
+		roughnessMap = "rbxassetid://71227972729969",
+		studsPerTile = 21.43,
 		pattern = "Organic",
-		color = { 168, 162, 157 },
-		note = "Same maps as HC_Rock for the Slate material (cliffs built from Slate).",
+		color = { 202, 200, 195 },
+		note = "Grey layered cliff rock for the Slate material (distinct from the tan HC_Rock).",
 	},
 	HC_RoofTiles = {
 		key = "roof_tiles",
@@ -538,12 +608,12 @@ local Materials: { [string]: MaterialDef } = {
 		override = false,
 		colorMap = "rbxassetid://92834021315347",
 		normalMap = "rbxassetid://129830663186003",
-		roughnessMap = "rbxassetid://100876394263649",
-		metalnessMap = "rbxassetid://132000550188044",
+		roughnessMap = "rbxassetid://72033955747974",
+		metalnessMap = "rbxassetid://92418495410749",
 		studsPerTile = 12.14,
 		pattern = "Regular",
-		color = { 45, 55, 63 },
-		note = "Opaque reflective facade glass (low roughness, slight metalness). Glass has no MaterialService override slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + MaterialVariant=HC_WindowGlass.",
+		color = { 118, 132, 147 },
+		note = "Opaque mirror-coated facade glass: metalness ~1 + roughness ~0.06, so Part.Color is the reflection tint and the facade shows a lightly blue-grey tinted sky (a dark dielectric only reflects ~4%). Glass has no MaterialService override slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + MaterialVariant=HC_WindowGlass.",
 	},
 	HC_WoodPlanks = {
 		key = "wood_planks",
@@ -581,23 +651,19 @@ local Overrides: { [string]: string } = {
 }
 Look.Overrides = Overrides
 
--- Recommended Terrain:SetMaterialColor values for the overridden terrain materials (colour contract).
+-- Terrain:SetMaterialColor values for the overridden TERRAIN materials (colour contract), applied by
+-- LightingService after MapBuilder. Part-only materials are left out (the engine rejects them).
 local TerrainColors: { [string]: RGB } = {
-	Asphalt = { 103, 103, 106 },
+	Asphalt = { 104, 104, 107 },
 	Brick = { 177, 141, 124 },
-	ClayRoofTiles = { 214, 152, 132 },
 	Concrete = { 186, 183, 176 },
-	CorrodedMetal = { 180, 163, 155 },
 	Grass = { 146, 161, 109 },
 	Ground = { 207, 190, 158 },
 	LeafyGrass = { 137, 155, 105 },
-	Marble = { 255, 250, 243 },
 	Pavement = { 200, 197, 188 },
-	Pebble = { 221, 217, 208 },
-	Plaster = { 255, 253, 244 },
 	Rock = { 190, 174, 157 },
 	Sand = { 230, 216, 183 },
-	Slate = { 168, 162, 157 },
+	Slate = { 202, 200, 195 },
 	WoodPlanks = { 158, 140, 122 },
 }
 Look.TerrainColors = TerrainColors
@@ -695,10 +761,10 @@ local Decals: { [string]: DecalDef } = {
 		note = "Solid yellow line (same use).",
 	},
 	manhole_round = {
-		image = "rbxassetid://79792433990918",
+		image = "rbxassetid://105997865515655",
 		width = 512,
 		height = 512,
-		note = "Round cast-iron manhole cover (Decal, ~2.6 x 2.6 studs).",
+		note = "Round cast-iron manhole cover, plain (no foundry mark or brand), procedural (Decal, ~2.6 x 2.6 studs).",
 	},
 	oil_stain_a = {
 		image = "rbxassetid://127073388700985",
@@ -745,25 +811,31 @@ local Skies: { [string]: SkyDef } = {
 			Up = "rbxassetid://128421368724949",
 		},
 		glowAzimuth = 32.7,
+		horizonGlowAzimuth = 48.1,
 		followSun = true,
-		starCount = 500,
+		starCount = 0,
+		celestialBodiesShown = true,
+		clouds = 1,
 		hazeColor = { 120, 112, 122 },
 	},
 	day = {
 		faces = {
-			Bk = "rbxassetid://114889706466400",
-			Dn = "rbxassetid://126778055421344",
-			Ft = "rbxassetid://83431819292615",
-			Lf = "rbxassetid://85390262765714",
-			Rt = "rbxassetid://79010093641079",
-			Up = "rbxassetid://80903012956799",
+			Bk = "rbxassetid://109617092990906",
+			Dn = "rbxassetid://88475019141975",
+			Ft = "rbxassetid://109667193500398",
+			Lf = "rbxassetid://101438554097333",
+			Rt = "rbxassetid://84358563474483",
+			Up = "rbxassetid://99148174677802",
 		},
 		glowAzimuth = 34.1,
+		horizonGlowAzimuth = 25.5,
 		sunAzimuth = 34.1,
 		sunElevation = 48.2,
 		followSun = true,
 		starCount = 0,
-		hazeColor = { 164, 166, 171 },
+		celestialBodiesShown = true,
+		clouds = 0,
+		hazeColor = { 165, 166, 170 },
 	},
 	golden = {
 		faces = {
@@ -775,10 +847,13 @@ local Skies: { [string]: SkyDef } = {
 			Up = "rbxassetid://115058423870433",
 		},
 		glowAzimuth = 38.3,
+		horizonGlowAzimuth = 32.2,
 		sunAzimuth = 38.3,
 		sunElevation = 8.1,
 		followSun = true,
 		starCount = 0,
+		celestialBodiesShown = true,
+		clouds = 0,
 		hazeColor = { 171, 163, 157 },
 	},
 	night = {
@@ -791,8 +866,11 @@ local Skies: { [string]: SkyDef } = {
 			Up = "rbxassetid://80685099604519",
 		},
 		glowAzimuth = 35.5,
+		horizonGlowAzimuth = 17.4,
 		followSun = false,
-		starCount = 400,
+		starCount = 0,
+		celestialBodiesShown = false,
+		clouds = 0,
 		hazeColor = { 53, 54, 56 },
 	},
 }

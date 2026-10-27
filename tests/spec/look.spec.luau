@@ -1,7 +1,8 @@
 --!nocheck
--- The v2 look (pure): Config/Look presets + LightingService interpolation, the 24-minute clock, the sky-swap schedule,
--- NightFactor, sky yaw alignment, and that the generated Look data matches what default.project.json bakes into the
--- place (MaterialService variants/overrides, Lighting day preset, default Sky).
+-- The v2 look (pure): Config/Look presets + LightingService interpolation, the 24-minute clock, the engine sun model
+-- (vs the real-engine probe), the sky-swap schedule against sun elevation, NightFactor, rate-limited sky yaw, cloud
+-- share per sky, lit-window spread, wet streets, the client sky preload order, and that the generated Look data
+-- matches what default.project.json bakes into the place (MaterialService variants/overrides, Lighting, default Sky).
 return function(t)
 	local H = t.H
 	local fs = require("@lune/fs")
@@ -178,8 +179,14 @@ return function(t)
 		t.eq(L.skyAt(23), "night")
 		t.eq(L.skyAt(1), "night", "wraps over midnight")
 		t.eq(L.skyAt(sched[1].hour - 0.01), sched[#sched].sky, "before the first entry = the last sky")
+		local afterNoon
+		for _, e in sched do
+			if e.hour > 12 and afterNoon == nil then
+				afterNoon = e
+			end
+		end
 		local dt, nextSky = L.nextSkySwap(12)
-		t.near(dt, 15.8 - 12, 1e-9)
+		t.near(dt, afterNoon.hour - 12, 1e-9)
 		t.eq(nextSky, "golden")
 		local dt2, nextSky2 = L.nextSkySwap(23)
 		t.near(dt2, sched[1].hour + 1, 1e-9, "next swap wraps")
@@ -195,8 +202,24 @@ return function(t)
 				t.ok(L.nightFactorAt(e.hour) >= 0.5, pair .. " swaps in the dark (NightFactor)")
 			end
 			if before == "blue" or after == "blue" then
-				-- Roblox's sun rises at 06:00 and sets at 18:00: blue-hour swaps happen with the sun below the horizon
-				t.ok(e.hour <= 6.0 or e.hour >= 18.0, pair .. " swaps with the sun below the horizon at " .. e.hour)
+				-- blue-hour swaps happen with the sun below the horizon (Look.Sun: measured sunrise / sunset)
+				t.ok(
+					e.hour <= Look.Sun.rise or e.hour >= Look.Sun.set,
+					pair .. " swaps with the sun below the horizon at " .. e.hour
+				)
+				t.ok(L.sunElevationAt(e.hour) <= 0, pair .. " sun elevation <= 0 at " .. e.hour)
+			end
+			if pair == "golden>day" or pair == "day>golden" then
+				-- the golden HDRI (its own sun at ~8 deg) must not sit under a high engine sun ("two suns"), and the
+				-- day sky must not show a sun skimming the horizon
+				local el = L.sunElevationAt(e.hour)
+				t.ok(el >= 15 and el <= 20, pair .. " at sun elevation 15..20 deg, got " .. el)
+				local look = L.lookAt(e.hour)
+				local g = if e.hour < 12 then Look.Presets.goldenMorning else Look.Presets.goldenEvening
+				local d = Look.Presets.day
+				local share = (look.colorCorrection.tint[3] - d.colorCorrection.tint[3])
+					/ (g.colorCorrection.tint[3] - d.colorCorrection.tint[3])
+				t.ok(share >= 0.6, pair .. ": the light is still mostly golden at the swap (" .. share .. ")")
 			end
 			-- every swap sits on a haze bump (capped)
 			t.ok(L.swapHazeAt(e.hour) >= Look.SkySwap.hazeBoost - 1e-9, "haze bump at " .. pair)
@@ -212,8 +235,150 @@ return function(t)
 			end
 			if L.skyAt(h) == "day" then
 				t.eq(L.nightFactorAt(h), 0, "day sky only in daylight " .. h)
+				t.ok(L.sunElevationAt(h) >= 18, "day sky only with the sun up high " .. h)
+			end
+			if L.skyAt(h) == "golden" then
+				local el = L.sunElevationAt(h)
+				t.ok(el > -2 and el < 19, "golden sky only with a low sun " .. h .. " (" .. el .. ")")
+			end
+			if L.skyAt(h) == "night" or L.skyAt(h) == "blue" then
+				t.ok(L.sunElevationAt(h) < 0, "blue / night sky only with the sun down " .. h)
 			end
 		end
+	end)
+
+	-- Sun model (measured in the real engine) --------------------------------------------------------------------------
+	t.test("sun model: reproduces every engine GetSunDirection sample (tools/look/sun_probe_result.json)", function()
+		local probe = serde.decode("json", fs.readFile("tools/look/sun_probe_result.json"))
+		t.ok(#probe.samples >= 100, "probe samples: " .. #probe.samples)
+		local worst = 0
+		for _, s in probe.samples do
+			local x, y, z = L.sunDirectionAt(s.h, s.lat)
+			local dot = math.clamp(x * s.x + y * s.y + z * s.z, -1, 1)
+			worst = math.max(worst, math.deg(math.acos(dot)))
+			-- the moon is the sun's antipode
+			t.near(s.mel, -s.el, 0.05, "moon opposite the sun at " .. s.h)
+		end
+		t.ok(worst < 0.2, "model within 0.2 deg of the engine everywhere, worst " .. worst)
+		t.near(L.sunElevationAt(Look.Sun.rise), 0, 1e-9, "rises at Look.Sun.rise")
+		t.near(L.sunElevationAt(Look.Sun.set), 0, 1e-9, "sets at Look.Sun.set")
+		t.near(L.sunElevationAt(12), 90 - (Look.Sun.latitude - Look.Sun.tiltOffset), 1e-6, "noon culmination")
+		t.ok(L.sunElevationAt(Look.Sun.rise - 0.05) < 0 and L.sunElevationAt(Look.Sun.rise + 0.05) > 0, "rise sign")
+		t.ok(L.sunElevationAt(Look.Sun.set - 0.05) > 0 and L.sunElevationAt(Look.Sun.set + 0.05) < 0, "set sign")
+	end)
+
+	-- Volumetric clouds per sky ----------------------------------------------------------------------------------------
+	t.test("clouds: per-sky cover share, blended across swaps (no pop)", function()
+		for name, def in Look.Skies do
+			t.ok(def.clouds >= 0 and def.clouds <= 1, name .. " clouds share")
+		end
+		t.near(L.cloudScaleAt(12), Look.Skies.day.clouds, 1e-9, "day sky share at noon")
+		t.near(L.cloudScaleAt(1), Look.Skies.night.clouds, 1e-9, "night share")
+		local blueMid = (Look.SkySchedule[5].hour + Look.SkySchedule[6].hour) / 2
+		t.near(L.cloudScaleAt(blueMid), Look.Skies.blue.clouds, 1e-9, "blue share mid blue hour")
+		local prev = L.cloudScaleAt(0)
+		for s = 1, L.CYCLE_SECONDS do
+			local cur = L.cloudScaleAt(L.hourAt(s))
+			t.ok(math.abs(cur - prev) < 0.08, "cloud share step at " .. s)
+			prev = cur
+		end
+	end)
+
+	-- Sky yaw following ------------------------------------------------------------------------------------------------
+	t.test("sky follow: rate-limited, never spins with the noon sun sweep", function()
+		t.near(L.stepYaw(10, 20, 3), 13, 1e-9, "limited step")
+		t.near(L.stepYaw(10, 12, 3), 12, 1e-9, "reaches the target")
+		t.near(L.stepYaw(178, -178, 3), -179, 1e-9, "short way round across +-180")
+		t.near(L.stepYaw(0, 90, math.huge), 90, 1e-9, "huge step snaps")
+		-- simulate the day sky from its swap to the golden swap at the clock rate
+		local def = Look.Skies.day
+		local dtTick = Look.Cycle.clockInterval
+		local rate = Look.SkyStyle.maxYawRate
+		local t0 = L.timeForHour(Look.SkySchedule[3].hour)
+		local x, _, z = L.sunDirectionAt(L.hourAt(t0))
+		local cur = L.skyYaw(def.glowAzimuth, x, z)
+		local maxStep, maxTargetStep = 0, 0
+		local prevTarget = cur
+		local tEnd = L.timeForHour(Look.SkySchedule[4].hour)
+		local s = t0
+		while s < tEnd do
+			s += dtTick
+			local sx, _, sz = L.sunDirectionAt(L.hourAt(s))
+			local target = L.skyYaw(def.glowAzimuth, sx, sz)
+			maxTargetStep = math.max(maxTargetStep, math.abs(L.wrapDeg(target - prevTarget)))
+			prevTarget = target
+			local nxt = L.stepYaw(cur, target, rate * dtTick)
+			maxStep = math.max(maxStep, math.abs(L.wrapDeg(nxt - cur)))
+			cur = nxt
+		end
+		t.ok(maxStep <= rate * dtTick + 1e-9, "sky never turns faster than maxYawRate: " .. maxStep)
+		t.ok(
+			maxTargetStep / dtTick > 2 * rate,
+			"(the raw noon sweep would be much faster: " .. maxTargetStep / dtTick .. ")"
+		)
+		t.ok(rate <= 0.5, "maxYawRate reads as cloud drift")
+		t.ok(Look.SkyStyle.yawEpsilon < rate * dtTick, "every tick's step can be written (smooth)")
+	end)
+
+	t.test("night sky: the city glow is parked inland (fixedGlowAzimuth), with the CFrame.Angles convention", function()
+		local night = Look.Skies.night
+		t.eq(night.followSun, false)
+		local yaw = L.yawToward(night.horizonGlowAzimuth, Look.SkyStyle.fixedGlowAzimuth, 1)
+		local cf = H.roblox.CFrame
+		local a = math.rad(night.horizonGlowAzimuth)
+		local dir = H.roblox.Vector3.new(math.sin(a), 0, -math.cos(a))
+		local rotated = cf.Angles(0, math.rad(yaw), 0) * dir
+		t.near(L.azimuthOf(rotated.X, rotated.Z), Look.SkyStyle.fixedGlowAzimuth, 1e-4, "glow lands inland")
+	end)
+
+	-- Lit windows ------------------------------------------------------------------------------------------------------
+	t.test("windows: deterministic per position, ~share lit, warm/cool mix, thresholds spread over dusk", function()
+		local W = Look.Windows
+		local n, lit, warm = 0, 0, 0
+		local buckets = { 0, 0, 0, 0 }
+		for i = 0, 59 do
+			for j = 0, 49 do
+				-- a facade grid: 6-stud window bays, 12-stud floors, on a building at an odd offset
+				local p = L.windowParams(137.25 + i * 6, 14 + j * 12, -402.5)
+				n += 1
+				t.ok(p.threshold >= W.onBand[1] and p.threshold <= W.onBand[2], "threshold in band")
+				t.ok(p.brightness >= W.brightness[1] and p.brightness <= W.brightness[2], "brightness in range")
+				if p.lit then
+					lit += 1
+					if p.warm then
+						warm += 1
+					end
+				end
+				local b =
+					math.clamp(math.floor((p.threshold - W.onBand[1]) / (W.onBand[2] - W.onBand[1]) * 4) + 1, 1, 4)
+				buckets[b] += 1
+			end
+		end
+		t.near(lit / n, W.share, 0.04, "lit share")
+		t.near(warm / lit, W.warmShare, 0.05, "warm share among lit")
+		for b = 1, 4 do
+			t.near(buckets[b] / n, 0.25, 0.05, "thresholds spread evenly, quarter " .. b)
+		end
+		t.ok(W.share >= 0.3 and W.share <= 0.6, "30-60 % of windows lit (gta_realism_gap)")
+		local a, b = L.windowParams(10, 20, 30), L.windowParams(10, 20, 30)
+		t.eq(a.lit, b.lit)
+		t.eq(a.threshold, b.threshold, "deterministic")
+		t.eq(L.windowParams(10.1, 20, 30).threshold, a.threshold, "half-stud rounding absorbs float noise")
+		t.ok(L.windowParams(16, 20, 30).threshold ~= a.threshold, "neighbours differ")
+		t.ok(W.onBand[2] <= 1 and W.onBand[1] > 0, "all lit windows are on by full night, none at day")
+	end)
+
+	-- Wet streets -----------------------------------------------------------------------------------------------------
+	t.test("wet streets: switch at Look.WetStreets.nightFactor with hysteresis", function()
+		local w, hys = Look.WetStreets, Look.Night.hysteresis
+		t.eq(L.wetAt(0, false), false)
+		t.eq(L.wetAt(1, false), true)
+		t.eq(L.wetAt(w.nightFactor, false), false, "needs +hysteresis to turn on")
+		t.eq(L.wetAt(w.nightFactor + hys, false), true)
+		t.eq(L.wetAt(w.nightFactor, true), true, "stays wet just under")
+		t.eq(L.wetAt(w.nightFactor - hys, true), false)
+		t.eq(Look.Materials[w.wet].color[1], Look.Materials[w.dry].color[1], "wet variant uses the dry Part.Color")
+		t.ok(Look.Materials[w.wet].colorMap ~= Look.Materials[w.dry].colorMap, "wet variant has its own darker map")
 	end)
 
 	t.test("sky yaw: puts the sky glow azimuth on the engine sun azimuth", function()
@@ -276,7 +441,26 @@ return function(t)
 			t.ok(Look.Overrides[base] ~= nil, "override for " .. base)
 		end
 		t.eq(Look.Overrides.Metal, nil, "no global Metal override (lamp poles, cars, guns use Metal)")
-		t.eq(Look.Materials.HC_WindowGlass.baseMaterial, "SmoothPlastic", "glass variant base (no GlassName slot)")
+		local glass = Look.Materials.HC_WindowGlass
+		t.eq(glass.baseMaterial, "SmoothPlastic", "glass variant base (no GlassName slot)")
+		t.ok(glass.metalnessMap ~= nil, "glass is a (tinted) mirror: metalness map")
+		t.ok(lum(glass.color) > 100 and chroma(glass.color) < 40, "glass tint is a light blue-grey, not dark slate")
+		-- terrain colours only for materials Terrain:SetMaterialColor accepts (engine probe)
+		for name in Look.TerrainColors do
+			t.ok(
+				name ~= "Marble"
+					and name ~= "Pebble"
+					and name ~= "Plaster"
+					and name ~= "ClayRoofTiles"
+					and name ~= "CorrodedMetal",
+				"terrain colour for a part-only material: " .. name
+			)
+		end
+		t.ok(Look.TerrainColors.Grass ~= nil and Look.TerrainColors.Sand ~= nil, "lawn + seabed colours")
+		-- big flat materials tile large enough not to read as a board-game track / repeating cliff
+		t.ok(Look.Materials.HC_Asphalt.studsPerTile >= 14, "asphalt tile >= 14 studs")
+		t.ok(Look.Materials.HC_Rock.studsPerTile >= 28, "rock tile ~32 studs")
+		t.ok(Look.Materials.HC_RockSlate.colorMap ~= Look.Materials.HC_Rock.colorMap, "Slate has its own rock")
 		-- every <X>Name override in the file points at a variant with that BaseMaterial
 		for prop, variant in ms["$properties"] do
 			if prop ~= "Use2022Materials" then
@@ -305,7 +489,26 @@ return function(t)
 				t.ok(s.faces[f]:match("^rbxassetid://%d+$"), sky .. " face " .. f)
 			end
 			t.ok(type(s.glowAzimuth) == "number", sky .. " glow azimuth")
+			t.ok(type(s.horizonGlowAzimuth) == "number", sky .. " horizon glow azimuth")
+			t.ok(type(s.celestialBodiesShown) == "boolean", sky .. " celestial flag")
 		end
+		-- overcast / light-polluted skies: no stars; the night deck already has its moonlit clouds (no second moon)
+		t.eq(Look.Skies.night.starCount, 0, "no stars over the night cloud deck")
+		t.eq(Look.Skies.blue.starCount, 0, "no stars at blue hour over the city")
+		t.eq(Look.Skies.night.celestialBodiesShown, false, "no engine moon disc over the night deck")
+		t.eq(Look.Skies.day.celestialBodiesShown, true, "engine sun disc by day (the HDRI sun is painted out)")
+		-- skies with painted clouds do not get a second volumetric layer
+		t.eq(Look.Skies.day.clouds, 0)
+		t.eq(Look.Skies.golden.clouds, 0)
+		t.eq(Look.Skies.night.clouds, 0)
+	end)
+
+	t.test("water: deep green-blue, reflective (no tropical-pool cyan)", function()
+		local w = Look.Water
+		t.ok(w.color[3] < 120 and w.color[2] < 110, "dark water")
+		t.ok(chroma(w.color) < 70, "not saturated cyan")
+		t.ok(w.reflectance >= 0.8, "reflective")
+		t.ok(w.transparency <= 0.35, "transparency")
 	end)
 
 	t.test("place file Lighting: Realistic + quality, no Technology, day preset + day sky baked in", function()
@@ -334,6 +537,34 @@ return function(t)
 			t.eq(sky["Skybox" .. f], Look.Skies.day.faces[f], "default sky = day sky " .. f)
 		end
 		t.eq(sky.SunAngularSize, Look.SkyStyle.sunAngularSize)
-		t.eq(tree.Workspace["$properties"].StreamingEnabled, false, "StreamingEnabled untouched by the look")
+		t.eq(sky.StarCount, Look.Skies.day.starCount)
+		t.eq(sky.CelestialBodiesShown, Look.Skies.day.celestialBodiesShown)
+		t.eq(p.GeographicLatitude, Look.Sun.latitude, "the measured sun model's latitude")
+	end)
+
+	-- Client sky preload -----------------------------------------------------------------------------------------------
+	t.test("LookClient: preloads every sky face, the sky that comes up next first", function()
+		H.setMode("client")
+		local LookClient = H.require("src/client/Controllers/LookClient")
+		H.setMode("server")
+		local order = LookClient.skyOrder("day")
+		t.eq(order[1], "golden", "after day comes golden")
+		t.eq(order[#order], "day", "the sky already on screen goes last")
+		local seen = {}
+		for _, name in order do
+			t.ok(not seen[name], "no duplicates: " .. name)
+			seen[name] = true
+		end
+		for name in Look.Skies do
+			t.ok(seen[name], "every sky preloaded: " .. name)
+		end
+		local ids = LookClient.skyAssetList("night")
+		local want = 0
+		for _ in Look.Skies do
+			want += 6
+		end
+		t.eq(#ids, want, "six faces per sky")
+		t.eq(ids[1], Look.Skies.blue.faces.Bk, "night -> blue first")
+		t.eq(#LookClient.skyOrder(nil), #order, "unknown current sky: all skies")
 	end)
 end

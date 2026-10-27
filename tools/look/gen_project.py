@@ -41,6 +41,12 @@ END = "-- END GENERATED"
 FACE_ORDER = ["Bk", "Dn", "Ft", "Lf", "Rt", "Up"]
 MAP_PROPS = [("color", "ColorMap"), ("normal", "NormalMap"), ("roughness", "RoughnessMap"),
              ("metalness", "MetalnessMap")]
+# Materials Terrain:SetMaterialColor accepts. Real-engine probe (2026-10-27, tools/look/sun_probe.py): Asphalt, Brick,
+# Concrete, Grass, Ground, LeafyGrass, Pavement, Rock, Sand, Slate, WoodPlanks OK; ClayRoofTiles, CorrodedMetal,
+# Marble, Pebble, Plaster -> "Invalid terrain material". The rest are the other terrain materials.
+TERRAIN_MATERIALS = {"Asphalt", "Basalt", "Brick", "Cobblestone", "Concrete", "CrackedLava", "Glacier", "Grass",
+                     "Ground", "Ice", "LeafyGrass", "Limestone", "Mud", "Pavement", "Rock", "Salt", "Sand",
+                     "Sandstone", "Slate", "Snow", "WoodPlanks"}
 
 
 def asset(manifest, path):
@@ -145,10 +151,11 @@ def luau_block(variants, decals, skies):
     L.append("}")
     L.append("Look.Overrides = Overrides")
     L.append("")
-    L.append("-- Recommended Terrain:SetMaterialColor values for the overridden terrain materials (colour contract).")
+    L.append("-- Terrain:SetMaterialColor values for the overridden TERRAIN materials (colour contract), applied by")
+    L.append("-- LightingService after MapBuilder. Part-only materials are left out (the engine rejects them).")
     L.append("local TerrainColors: { [string]: RGB } = {")
     for m, _ in sorted(variants, key=lambda v: v[0]["base"]):
-        if m["override"]:
+        if m["override"] and m["base"] in TERRAIN_MATERIALS:
             L.append("\t%s = %s," % (m["base"], lua_rgb(m["color"])))
     L.append("}")
     L.append("Look.TerrainColors = TerrainColors")
@@ -176,11 +183,14 @@ def luau_block(variants, decals, skies):
             L.append("\t\t\t%s = %s," % (k, lua_str(faces.get(k, ""))))
         L.append("\t\t},")
         L.append("\t\tglowAzimuth = %s," % lua_num(s["glowAzimuth"]))
+        L.append("\t\thorizonGlowAzimuth = %s," % lua_num(s["horizonGlowAzimuth"]))
         if "sunAzimuth" in s:
             L.append("\t\tsunAzimuth = %s," % lua_num(s["sunAzimuth"]))
             L.append("\t\tsunElevation = %s," % lua_num(s["sunElevation"]))
         L.append("\t\tfollowSun = %s," % lua_num(bool(s["followSun"])))
         L.append("\t\tstarCount = %d," % s["starCount"])
+        L.append("\t\tcelestialBodiesShown = %s," % lua_num(bool(s["celestialBodiesShown"])))
+        L.append("\t\tclouds = %s," % lua_num(s["clouds"]))
         L.append("\t\thazeColor = %s," % lua_rgb(s["hazeColor"]))
         L.append("\t},")
     L.append("}")
@@ -241,22 +251,24 @@ def lighting(look, skies):
         "Ambient": c3(day["ambient"]),
         "OutdoorAmbient": c3(day["outdoorAmbient"]),
         "ClockTime": start,
-        "GeographicLatitude": 34,
+        "GeographicLatitude": look["Sun"]["latitude"],
         "FogEnd": 100000,
     }
     sky_props = {}
     day_sky = skies.get("day")
+    celestial = True
     if day_sky:
         s, faces = day_sky
         for k in FACE_ORDER:
             if faces.get(k):
                 sky_props["Skybox" + k] = faces[k]
         sky_props["StarCount"] = s["starCount"]
+        celestial = bool(s["celestialBodiesShown"])
     sky_props.update({
         "SkyboxOrientation": [0, 0, 0],
         "SunAngularSize": style["sunAngularSize"],
         "MoonAngularSize": style["moonAngularSize"],
-        "CelestialBodiesShown": style["celestialBodiesShown"],
+        "CelestialBodiesShown": celestial,
     })
     cc = day["colorCorrection"]
     return {

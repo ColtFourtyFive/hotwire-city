@@ -64,12 +64,12 @@
       "Sky": {
         "$className": "Sky",
         "$properties": {
-          "SkyboxBk": "rbxassetid://114889706466400",
-          "SkyboxDn": "rbxassetid://126778055421344",
-          "SkyboxFt": "rbxassetid://83431819292615",
-          "SkyboxLf": "rbxassetid://85390262765714",
-          "SkyboxRt": "rbxassetid://79010093641079",
-          "SkyboxUp": "rbxassetid://80903012956799",
+          "SkyboxBk": "rbxassetid://109617092990906",
+          "SkyboxDn": "rbxassetid://88475019141975",
+          "SkyboxFt": "rbxassetid://109667193500398",
+          "SkyboxLf": "rbxassetid://101438554097333",
+          "SkyboxRt": "rbxassetid://84358563474483",
+          "SkyboxUp": "rbxassetid://99148174677802",
           "StarCount": 0,
           "SkyboxOrientation": [0, 0, 0],
           "SunAngularSize": 10,
@@ -138,10 +138,10 @@
         "$className": "MaterialVariant",
         "$properties": {
           "BaseMaterial": "Asphalt",
-          "ColorMap": "rbxassetid://106080567087674",
+          "ColorMap": "rbxassetid://112223103107268",
           "NormalMap": "rbxassetid://82395533791334",
-          "RoughnessMap": "rbxassetid://101400097276672",
-          "StudsPerTile": 10.71,
+          "RoughnessMap": "rbxassetid://121272890641417",
+          "StudsPerTile": 16.07,
           "MaterialPattern": "Organic"
         }
       },
@@ -149,10 +149,10 @@
         "$className": "MaterialVariant",
         "$properties": {
           "BaseMaterial": "Asphalt",
-          "ColorMap": "rbxassetid://106080567087674",
+          "ColorMap": "rbxassetid://79911827799879",
           "NormalMap": "rbxassetid://82395533791334",
-          "RoughnessMap": "rbxassetid://113458825437012",
-          "StudsPerTile": 10.71,
+          "RoughnessMap": "rbxassetid://117195630363033",
+          "StudsPerTile": 16.07,
           "MaterialPattern": "Organic"
         }
       },
@@ -160,10 +160,10 @@
         "$className": "MaterialVariant",
         "$properties": {
           "BaseMaterial": "Asphalt",
-          "ColorMap": "rbxassetid://98395841471900",
-          "NormalMap": "rbxassetid://125684889345496",
-          "RoughnessMap": "rbxassetid://73345421491533",
-          "StudsPerTile": 10.71,
+          "ColorMap": "rbxassetid://129122867914138",
+          "NormalMap": "rbxassetid://82636250794801",
+          "RoughnessMap": "rbxassetid://89336615364349",
+          "StudsPerTile": 14.29,
           "MaterialPattern": "Organic"
         }
       },
@@ -274,7 +274,7 @@
           "ColorMap": "rbxassetid://126554197799218",
           "NormalMap": "rbxassetid://118583349787184",
           "RoughnessMap": "rbxassetid://82781631164072",
-          "StudsPerTile": 14.29,
+          "StudsPerTile": 32.14,
           "MaterialPattern": "Organic"
         }
       },
@@ -282,10 +282,10 @@
         "$className": "MaterialVariant",
         "$properties": {
           "BaseMaterial": "Slate",
-          "ColorMap": "rbxassetid://126554197799218",
-          "NormalMap": "rbxassetid://118583349787184",
-          "RoughnessMap": "rbxassetid://82781631164072",
-          "StudsPerTile": 14.29,
+          "ColorMap": "rbxassetid://91210253580661",
+          "NormalMap": "rbxassetid://78165355072262",
+          "RoughnessMap": "rbxassetid://71227972729969",
+          "StudsPerTile": 21.43,
           "MaterialPattern": "Organic"
         }
       },
@@ -362,8 +362,8 @@
           "BaseMaterial": "SmoothPlastic",
           "ColorMap": "rbxassetid://92834021315347",
           "NormalMap": "rbxassetid://129830663186003",
-          "RoughnessMap": "rbxassetid://100876394263649",
-          "MetalnessMap": "rbxassetid://132000550188044",
+          "RoughnessMap": "rbxassetid://72033955747974",
+          "MetalnessMap": "rbxassetid://92418495410749",
           "StudsPerTile": 12.14,
           "MaterialPattern": "Regular"
         }

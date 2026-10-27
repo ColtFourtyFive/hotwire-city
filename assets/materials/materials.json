@@ -108,8 +108,8 @@
       "file": "assets/materials/decals/manhole_round.png",
       "height": 512,
       "name": "manhole_round",
-      "note": "Round cast-iron manhole cover (Decal, ~2.6 x 2.6 studs).",
-      "sha1": "2b95596c33389254544eca3f3607c49c60d68e9e",
+      "note": "Round cast-iron manhole cover, plain (no foundry mark or brand), procedural (Decal, ~2.6 x 2.6 studs).",
+      "sha1": "69e342db1d2608ef3ea68a6d96c2e29a41370d13",
       "width": 512
     },
     {
@@ -173,13 +173,14 @@
     {
       "ao": 0.5,
       "base": "Asphalt",
+      "blockVariation": 5.41,
       "color": [
-        103,
-        103,
-        106
+        104,
+        104,
+        107
       ],
       "detail": 1.15,
-      "detailScale": 0.776,
+      "detailScale": 0.768,
       "files": {
         "color": "assets/materials/asphalt/color.png",
         "normal": "assets/materials/asphalt/normal.png",
@@ -192,10 +193,14 @@
         80,
         82
       ],
+      "macro": [
+        0.06,
+        31
+      ],
       "mapMean": [
-        0.7759,
-        0.7759,
-        0.7761
+        0.7674,
+        0.7675,
+        0.7675
       ],
       "maps": {
         "color": "asphalt",
@@ -203,7 +208,7 @@
         "roughness": "asphalt"
       },
       "normal": 1.2,
-      "note": "Road asphalt for avenues and streets (fine dark aggregate).",
+      "note": "Road asphalt for avenues and streets (fine dark aggregate, soft tone patches; 16-stud tiles). Add the tar_snakes / crack_network decals as Textures on top (24-30 studs per tile) to break it up further.",
       "override": true,
       "pattern": "Organic",
       "rough": [
@@ -213,35 +218,70 @@
       "sat": 0.4,
       "seam": {
         "color": [
-          1.14,
-          1.24
+          1.15,
+          1.21
         ],
         "normal": [
           1.22,
           1.33
         ],
         "roughness": [
-          1.11,
-          1.13
+          1.12,
+          1.11
         ]
       },
       "sha1": {
-        "color": "acfcba6513a2838ca2d750c6cf6d554fd53eb048",
+        "color": "e13b759c52c4224f3b25626e06d56656f97acca5",
         "normal": "8774640e0dce1fd4da062257a9cdd4e38c70c9d7",
-        "roughness": "91609e309ceffc5b1eb0eb9e8e6bd221d686b8ea"
+        "roughness": "3c3a440cf2d7269b11e4133c637ce215213225b4"
       },
       "source": "ACG/Road012A",
-      "studsPerTile": 10.71,
-      "tile_m": 3.0,
+      "studsPerTile": 16.07,
+      "tile_m": 4.5,
       "variant": "HC_Asphalt"
     },
     {
       "ao": 0.6,
       "base": "Asphalt",
+      "blockVariation": 3.02,
       "color": [
         179,
         177,
         171
+      ],
+      "decrack": [
+        [
+          80,
+          178,
+          0,
+          1024,
+          225,
+          300
+        ],
+        [
+          606,
+          676,
+          50,
+          712,
+          330,
+          610
+        ],
+        [
+          686,
+          848,
+          0,
+          1024,
+          -470,
+          150
+        ],
+        [
+          476,
+          610,
+          820,
+          1104,
+          -250,
+          450
+        ]
       ],
       "detail": 1.0,
       "detailScale": 0.55,
@@ -250,6 +290,10 @@
         "normal": "assets/materials/asphalt_worn/normal.png",
         "roughness": "assets/materials/asphalt_worn/roughness.png"
       },
+      "flatten": [
+        40.0,
+        0.75
+      ],
       "hue_remove": 1.0,
       "key": "asphalt_worn",
       "look": [
@@ -257,10 +301,14 @@
         97,
         94
       ],
+      "macro": [
+        0.045,
+        41
+      ],
       "mapMean": [
-        0.5485,
-        0.5485,
-        0.5483
+        0.549,
+        0.549,
+        0.5489
       ],
       "maps": {
         "color": "asphalt_worn",
@@ -268,7 +316,7 @@
         "roughness": "asphalt_worn"
       },
       "normal": 1.0,
-      "note": "Worn, cracked asphalt for older streets, alleys and lots.",
+      "note": "Worn coarse asphalt for older streets, alleys and lots (baked cracks removed: add crack_network).",
       "override": false,
       "pattern": "Organic",
       "rough": [
@@ -278,37 +326,37 @@
       "sat": 0.4,
       "seam": {
         "color": [
-          0.94,
-          1.11
-        ],
-        "normal": [
-          0.94,
+          0.98,
           1.03
         ],
+        "normal": [
+          0.98,
+          0.97
+        ],
         "roughness": [
-          1.18,
-          1.34
+          1.23,
+          1.15
         ]
       },
       "sha1": {
-        "color": "dfb58b71e2fdcbbd76d2834eba1fcc96f21a9879",
-        "normal": "878a5747b3cb1af7f279afa059b95ac0d97d5dd9",
-        "roughness": "dd2879f714cdd7e5ef537559871b8190f025497b"
+        "color": "673bc4114a1f3492407dd6c271b0e7a726975b57",
+        "normal": "e002df9e276e12ab963d9fa948e4cfadc75c3ae1",
+        "roughness": "69f143e5cdd408989e863972bf52dc249708d647"
       },
-      "source": "PH/asphalt_02",
-      "studsPerTile": 10.71,
-      "tile_m": 3.0,
+      "source": "PH/asphalt_02 (baked cracks removed)",
+      "studsPerTile": 14.29,
+      "tile_m": 4.0,
       "variant": "HC_AsphaltWorn"
     },
     {
       "base": "Asphalt",
       "color": [
-        77,
-        77,
-        80
+        104,
+        104,
+        107
       ],
       "files": {
-        "color": "assets/materials/asphalt/color.png",
+        "color": "assets/materials/asphalt_wet/color.png",
         "normal": "assets/materials/asphalt/normal.png",
         "roughness": "assets/materials/asphalt_wet/roughness.png"
       },
@@ -319,16 +367,16 @@
         62
       ],
       "mapMean": [
-        0.7759,
-        0.7759,
-        0.7761
+        0.5686,
+        0.5686,
+        0.5686
       ],
       "maps": {
-        "color": "asphalt",
+        "color": "asphalt_wet",
         "normal": "asphalt",
         "roughness": "asphalt_wet"
       },
-      "note": "Night/rain swap for HC_Asphalt (same colour+normal, wet roughness with puddles).",
+      "note": "Night/rain swap for HC_Asphalt: same normal, darker wet colour map (puddles darker still) and a wet roughness map; uses HC_Asphalt's Part.Color, so swapping the override darkens and wets the roads.",
       "override": false,
       "pattern": "Organic",
       "rough": [
@@ -337,35 +385,36 @@
       ],
       "seam": {
         "color": [
-          1.14,
-          1.24
+          1.15,
+          1.21
         ],
         "normal": [
           1.22,
           1.33
         ],
         "roughness": [
-          1.11,
-          1.13
+          1.12,
+          1.11
         ]
       },
       "sha1": {
-        "color": "acfcba6513a2838ca2d750c6cf6d554fd53eb048",
+        "color": "ee747fef0ed22cbba6000ee5df4a4add933264cb",
         "normal": "8774640e0dce1fd4da062257a9cdd4e38c70c9d7",
-        "roughness": "dd9d07e62421c4e9d020f29afe689e1070469018"
+        "roughness": "635d666cdd5339e8dc99bd80bc3ce2a5ba3b7681"
       },
       "shares_maps": [
-        "color",
         "normal"
       ],
-      "source": "ACG/Road012A (wet roughness)",
-      "studsPerTile": 10.71,
-      "tile_m": 3.0,
-      "variant": "HC_AsphaltWet"
+      "source": "ACG/Road012A (wet colour + roughness)",
+      "studsPerTile": 16.07,
+      "tile_m": 4.5,
+      "variant": "HC_AsphaltWet",
+      "wet_dark": 0.75
     },
     {
       "ao": 0.5,
       "base": "Pavement",
+      "blockVariation": 3.69,
       "color": [
         200,
         197,
@@ -431,6 +480,7 @@
     {
       "ao": 0.5,
       "base": "Concrete",
+      "blockVariation": 4.89,
       "color": [
         186,
         183,
@@ -496,6 +546,7 @@
     {
       "ao": 0.0,
       "base": "Concrete",
+      "blockVariation": 0.82,
       "color": [
         220,
         218,
@@ -561,6 +612,7 @@
     {
       "ao": 0.6,
       "base": "Brick",
+      "blockVariation": 5.22,
       "color": [
         177,
         141,
@@ -626,6 +678,7 @@
     {
       "ao": 0.6,
       "base": "Brick",
+      "blockVariation": 2.11,
       "color": [
         220,
         197,
@@ -691,6 +744,7 @@
     {
       "ao": 0.0,
       "base": "Plaster",
+      "blockVariation": 1.16,
       "color": [
         255,
         253,
@@ -756,6 +810,7 @@
     {
       "ao": 0.7,
       "base": "ClayRoofTiles",
+      "blockVariation": 12.22,
       "color": [
         214,
         152,
@@ -821,6 +876,7 @@
     {
       "ao": 0.6,
       "base": "Pebble",
+      "blockVariation": 1.61,
       "color": [
         221,
         217,
@@ -886,6 +942,7 @@
     {
       "ao": 0.6,
       "base": "Metal",
+      "blockVariation": 4.08,
       "color": [
         190,
         197,
@@ -955,6 +1012,7 @@
     {
       "ao": 0.5,
       "base": "CorrodedMetal",
+      "blockVariation": 11.84,
       "color": [
         180,
         163,
@@ -1024,6 +1082,7 @@
     {
       "ao": 0.6,
       "base": "WoodPlanks",
+      "blockVariation": 13.86,
       "color": [
         158,
         140,
@@ -1089,6 +1148,7 @@
     {
       "ao": 0.5,
       "base": "Grass",
+      "blockVariation": 1.67,
       "color": [
         146,
         161,
@@ -1195,6 +1255,7 @@
     {
       "ao": 0.5,
       "base": "Ground",
+      "blockVariation": 5.4,
       "color": [
         207,
         190,
@@ -1260,6 +1321,7 @@
     {
       "ao": 0.3,
       "base": "Sand",
+      "blockVariation": 0.36,
       "color": [
         230,
         216,
@@ -1325,6 +1387,7 @@
     {
       "ao": 0.6,
       "base": "Rock",
+      "blockVariation": 12.08,
       "color": [
         190,
         174,
@@ -1355,7 +1418,7 @@
         "roughness": "rock"
       },
       "normal": 1.0,
-      "note": "Tan fractured rock for cliffs and hill cuts.",
+      "note": "Tan fractured rock for cliffs and hill cuts (32-stud tiles: big fracture shapes must not repeat up a cliff face).",
       "override": true,
       "pattern": "Organic",
       "rough": [
@@ -1383,54 +1446,80 @@
         "roughness": "6c37fbdf92f554de86553660095d230fc45648c0"
       },
       "source": "PH/rock_face_03",
-      "studsPerTile": 14.29,
-      "tile_m": 4.0,
+      "studsPerTile": 32.14,
+      "tile_m": 9.0,
       "variant": "HC_Rock"
     },
     {
+      "ao": 0.6,
       "base": "Slate",
+      "blockVariation": 4.03,
       "color": [
-        168,
-        162,
-        157
+        202,
+        200,
+        195
       ],
+      "detail": 1.0,
+      "detailScale": 0.55,
       "files": {
-        "color": "assets/materials/rock/color.png",
-        "normal": "assets/materials/rock/normal.png",
-        "roughness": "assets/materials/rock/roughness.png"
+        "color": "assets/materials/rock_slate/color.png",
+        "normal": "assets/materials/rock_slate/normal.png",
+        "roughness": "assets/materials/rock_slate/roughness.png"
       },
+      "hue_remove": 0.6,
       "key": "rock_slate",
       "look": [
-        120,
-        108,
-        96
+        112,
+        110,
+        104
       ],
       "mapMean": [
-        0.7159,
-        0.6681,
-        0.6114
+        0.5546,
+        0.5492,
+        0.5343
       ],
       "maps": {
-        "color": "rock",
-        "normal": "rock",
-        "roughness": "rock"
+        "color": "rock_slate",
+        "normal": "rock_slate",
+        "roughness": "rock_slate"
       },
-      "note": "Same maps as HC_Rock for the Slate material (cliffs built from Slate).",
+      "normal": 1.0,
+      "note": "Grey layered cliff rock for the Slate material (distinct from the tan HC_Rock).",
       "override": true,
       "pattern": "Organic",
-      "sha1": {
-        "color": "0c8570b426dd715949e6d6a9497fe939bb95ece1",
-        "normal": "24c19f50eba9e324cccf5c01ff8a7cb171f7ef09",
-        "roughness": "6c37fbdf92f554de86553660095d230fc45648c0"
+      "rough": [
+        0.84,
+        1.0
+      ],
+      "sat": 0.7,
+      "seam": {
+        "color": [
+          1.34,
+          1.1
+        ],
+        "normal": [
+          1.09,
+          0.98
+        ],
+        "roughness": [
+          1.5,
+          1.27
+        ]
       },
-      "shares": "rock",
-      "source": "PH/rock_face_03",
-      "studsPerTile": 14.29,
+      "sha1": {
+        "color": "c8fbf9a833d20a2c837dfaa4b019401cb1c3666c",
+        "normal": "a4c9d34914b617b989e682264f75dffd2446ba96",
+        "roughness": "2d53bae5f67d157400a6d0d6eb088a8ea048a9de"
+      },
+      "source": "ACG/Rock030",
+      "studsPerTile": 21.43,
+      "tile_m": 6.0,
       "variant": "HC_RockSlate"
     },
     {
       "ao": 0.0,
       "base": "Marble",
+      "blockVariation": 5.75,
       "color": [
         255,
         250,
@@ -1495,10 +1584,11 @@
     },
     {
       "base": "SmoothPlastic",
+      "blockVariation": 0.76,
       "color": [
-        45,
-        55,
-        63
+        118,
+        132,
+        147
       ],
       "detailScale": 0.981,
       "files": {
@@ -1509,9 +1599,9 @@
       },
       "key": "window_glass",
       "look": [
-        44,
-        54,
-        62
+        116,
+        130,
+        144
       ],
       "mapMean": [
         0.9814,
@@ -1524,12 +1614,12 @@
         "normal": "window_glass",
         "roughness": "window_glass"
       },
-      "metal": 0.25,
-      "note": "Opaque reflective facade glass (low roughness, slight metalness). Glass has no MaterialService override slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + MaterialVariant=HC_WindowGlass.",
+      "metal": 1.0,
+      "note": "Opaque mirror-coated facade glass: metalness ~1 + roughness ~0.06, so Part.Color is the reflection tint and the facade shows a lightly blue-grey tinted sky (a dark dielectric only reflects ~4%). Glass has no MaterialService override slot, so this variant sits on SmoothPlastic: set Material=SmoothPlastic + MaterialVariant=HC_WindowGlass.",
       "override": false,
       "pattern": "Regular",
       "rough": [
-        0.07,
+        0.06,
         1.0
       ],
       "seam": {
@@ -1548,9 +1638,9 @@
       },
       "sha1": {
         "color": "2f9b2cc72ff7303f8b1d77feabd13c698e150d30",
-        "metalness": "70d1484bfaa7a5e582de6f94169502d099bee772",
+        "metalness": "b67cdf62204444eb81d3f230e7449b18619c5915",
         "normal": "af41a12a22e9e76af3bb07cce7df8edd561a0147",
-        "roughness": "8cdc9db6494312ac980dd96b835035c2a5e16a4e"
+        "roughness": "6720d5b17637fd8bef54c4fb64bde044ba886134"
       },
       "source": "procedural",
       "studsPerTile": 12.14,

@@ -8,6 +8,9 @@
 2. See the **four HDRI skies** (day, golden, blue, night: `src/shared/Config/Look.luau` → `Look.Skies`) on the lab street with their lighting presets.
 3. Verify the **SkyboxOrientation sign** that LightingService uses to put each sky's sun glow on the engine sun (`Look.SkyStyle.yawSign`).
 4. (Only if the place was republished from a `v2/look` build) look at the **PBR MaterialVariants** and the base-material overrides.
+5. A/B the **volumetric clouds** under the painted-cloud day sky, and judge the **lit windows** at night.
+
+Already measured, no Studio step needed: the **sun path** (`Lighting:GetSunDirection()` at latitudes 0 / 23.5 / 34 / 41.733 × 28 ClockTimes, real engine via Open Cloud Luau Execution: `tools/look/sun_probe.py` → `tools/look/sun_probe_result.json`). Sunrise is 06:00 and sunset 18:00 at every latitude; at latitude 34 the sun culminates at 79.5° toward +Z, is at 18.4° at 07:15 and 16:45 (the golden ↔ day swaps), and its azimuth sweeps ~70–80° per game hour around noon. `Config/Look.Sun` and `LightingService.sunDirectionAt` reproduce every sample within 0.2°.
 
 Everything runs in **Edit mode** with `execute_luau` (`datamodel_type` = Edit); no Play. At the end the place must be exactly as before: run CLEANUP. **Do not save the place.**
 
@@ -23,11 +26,15 @@ Everything runs in **Edit mode** with `execute_luau` (`datamodel_type` = Edit); 
 
    Report which test-kit face label is in front of the camera in each shot. Expected with `yawSign = +1` (CFrame.Angles convention): yaw 0 shows **Ft**, yaw 90 shows **Lf**. If yaw 90 shows **Rt**, the sign is −1. Either way, write the answer in the report.
 4. **S1 – Haze × Offset grid** (day preset, Density fixed at 0.27, day HDRI sky, ClockTime 14.2 as in round 1). For each Haze in {0.4, 0.8, 1.2} and Offset in {0.0, 0.25, 0.5}, run `S1(haze, offset)` and take two shots: `elevated` and `skyline` (cameras below), named `s1_h<haze>_o<offset>_<cam>.png`, e.g. `s1_h0.8_o0.25_skyline.png` (18 shots).
-5. **S2 – four skies.** For each of `day`, `golden`, `blue`, `night`, run **S2** with that name and take `street`, `elevated`, `skyline` and `sunward` (the script prints the sunward camera; it looks at the horizon under the engine sun) → `s2_<name>_<cam>.png` (16 shots). S2 also sets SkyboxOrientation from `Lighting:GetSunDirection()` exactly as LightingService does.
-6. **S3 – haze bump at a sky swap.** Run **S3** with `"golden"`: the 15.8 h swap frame with Haze at the bumped value. Take `elevated` → `s3_swap_golden.png`; then run S3 with `"day"` and take `elevated` again → `s3_swap_day.png`. Report how visible the change is.
-7. **S4 – materials (only if published).** Run **S4** with `"day"`. If it returns `"materials not in place"`, skip to CLEANUP and say so in the report. Otherwise take `street` and `elevated`, then run S4 with `"golden"` and take the same two shots → `s4_<preset>_<cam>.png`.
-8. Run **CLEANUP**; check `Workspace.HCLightingLab` is gone and the Baseplate is visible.
-9. Use `inspect_instance` on `Lighting` and report `LightingStyle`, `PrioritizeLightingQuality` and whether `Technology` is readable; and on `MaterialService`: number of children and `Use2022Materials`.
+5. **S2 – four skies.** For each of `day`, `golden`, `blue`, `night`, run **S2** with that name and take `street`, `elevated`, `skyline` and `sunward` (the script prints the sunward camera; it looks at the horizon under the engine sun, or for `night` toward the parked city glow) → `s2_<name>_<cam>.png` (16 shots). S2 sets SkyboxOrientation exactly as LightingService does (glow on the engine sun; night: city glow parked at azimuth 90 = +X, inland), plus the per-sky stars, sun/moon discs and volumetric-cloud share.
+6. **S3 – haze bump at a sky swap.** Run **S3** with `"golden"`: the 16.75 h swap frame (sun 18.4°, light ~80 % golden) with Haze at the bumped value. Take `elevated` → `s3_swap_golden.png`; then run S3 with `"day"` and take `elevated` again → `s3_swap_day.png`. Report how visible the change is, and whether the golden sky's glow sits plausibly under the sun (no "second sun").
+7. **S4 – materials (only if published).** Run **S4** with `"day"`. If it returns `"materials not in place"`, skip to S5 and say so in the report. Otherwise take `street` and `elevated`, then run S4 with `"golden"` and take the same two shots → `s4_<preset>_<cam>.png`. Also take `tower` (below) in the day run → `s4_day_tower.png`: the HC_WindowGlass tower should read as a lightly tinted sky mirror.
+8. **S5 – clouds A/B.** Run **S5** with `0` (LightingService default under the day sky: no volumetric layer), take `skyline` → `s5_clouds0.png`; run S5 with `1` (preset cover 0.32 on top of the painted cumulus), take `skyline` → `s5_clouds1.png`. Say which reads better (in Play the HDRI clouds also turn slowly with the sun while the volumetric ones drift with the wind).
+9. **S6 – lit windows at night.** Run **S6** (night preset; about half the lab windows lit, 70 % warm / 30 % cool, varied brightness, as `Look.Windows` does). Take `street`, `elevated` and `skyline` → `s6_<cam>.png`. Judge against lab finding 5 ("the city is dead without lit windows"): too many / too few, too orange, too uniform?
+10. Run **CLEANUP**; check `Workspace.HCLightingLab` is gone and the Baseplate is visible.
+11. Use `inspect_instance` on `Lighting` and report `LightingStyle`, `PrioritizeLightingQuality` and whether `Technology` is readable; and on `MaterialService`: number of children and `Use2022Materials`.
+
+Not testable in Edit mode, for the first Play-mode pass: the day sky's rate-limited follow (≤ 0.3°/s, it lags the noon azimuth sweep and catches up in the afternoon), and the visibility of the 07:15 / 16:45 sky swaps in motion. Set the Workspace attribute `TimeOfDayLock` to 16.6 and remove it to watch the swap; `CloudsOverride` (multiplier) and `AtmosphereOffsetOverride` are live too.
 
 ### Cameras
 
@@ -37,6 +44,7 @@ Everything runs in **Edit mode** with `execute_luau` (`datamodel_type` = Edit); 
 | `elevated` | (−190, 150, −270) | (40, 30, 90) |
 | `skyline` | (0, 320, −760) | (0, 70, 200) |
 | `sky_ft` | (0, 6, 0) | (0, 30, −200) |
+| `tower` | (−20, 40, 40) | (41, 120, 95) |
 | `sunward` | printed by S2 | printed by S2 |
 
 ## What to report (`report.md`)
@@ -45,7 +53,9 @@ Everything runs in **Edit mode** with `execute_luau` (`datamodel_type` = Edit); 
 - S1: for each Offset column, how far the far towers (450–950 studs) and the skyline stay readable, whether there is a hard horizon band, ghosting through near objects, and which Haze/Offset pair looks most like GTA V's midday (hazy but readable). Name the best pair.
 - S2: per sky: does it read as GTA (whiter horizon by day; warm but not orange golden hour; blue hour not purple; night dark navy-grey with city glow)? Is the painted-out HDRI sun gone (no second sun)? In `sunward`, does the sky's glow sit around the engine sun?
 - S3: how visible the golden → day swap is under the haze bump.
-- S4: material realism at street and elevated heights, tiling or repetition, normal-map direction (bumps should look raised, not dented), and whether the recommended Part colours look right.
+- S4: material realism at street and elevated heights, tiling or repetition (asphalt now 16 studs per tile with soft tone patches), normal-map direction (bumps should look raised, not dented), whether the recommended Part colours look right, and whether the glass tower reflects the sky.
+- S5: clouds 0 or 1 under the day sky.
+- S6: lit-window share, colour mix and brightness.
 
 ## SETUP
 
@@ -141,13 +151,14 @@ end
 -- round-2 helpers shared by S0..S4 (kept in _G for the following execute_luau calls)
 local LAB = {}
 _G.HCLab2 = LAB
-LAB.SKIES = { -- Config/Look.luau -> Look.Skies (Image asset ids; glow azimuth in degrees, 0 = -Z, 90 = +X)
-	day = { glow = 34.1, stars = 0, Bk = 114889706466400, Dn = 126778055421344, Ft = 83431819292615, Lf = 85390262765714, Rt = 79010093641079, Up = 80903012956799 },
-	golden = { glow = 38.3, stars = 0, Bk = 114964142574668, Dn = 108812301015843, Ft = 107623397205280, Lf = 114739838025939, Rt = 117183852251891, Up = 115058423870433 },
-	blue = { glow = 32.7, stars = 500, Bk = 88562914711616, Dn = 117299015005250, Ft = 122246640713360, Lf = 79579945003167, Rt = 96569696092312, Up = 128421368724949 },
-	night = { glow = 35.5, stars = 400, Bk = 90717854341912, Dn = 71763556424955, Ft = 98461351795375, Lf = 79552634608475, Rt = 79230279114248, Up = 80685099604519 },
-	testkit = { glow = 0, stars = 0, Ft = 125021145685093, Rt = 79998295024603, Bk = 133950846661312, Lf = 128567569050109, Up = 98950637562746, Dn = 83560359428904 },
+LAB.SKIES = { -- Config/Look.luau -> Look.Skies (Image asset ids; azimuths in degrees, 0 = -Z, 90 = +X)
+	day = { glow = 34.1, hglow = 25.5, follow = true, stars = 0, celestial = true, clouds = 0.0, Bk = 109617092990906, Dn = 88475019141975, Ft = 109667193500398, Lf = 101438554097333, Rt = 84358563474483, Up = 99148174677802 },
+	golden = { glow = 38.3, hglow = 32.2, follow = true, stars = 0, celestial = true, clouds = 0.0, Bk = 114964142574668, Dn = 108812301015843, Ft = 107623397205280, Lf = 114739838025939, Rt = 117183852251891, Up = 115058423870433 },
+	blue = { glow = 32.7, hglow = 48.1, follow = true, stars = 0, celestial = true, clouds = 1.0, Bk = 88562914711616, Dn = 117299015005250, Ft = 122246640713360, Lf = 79579945003167, Rt = 96569696092312, Up = 128421368724949 },
+	night = { glow = 35.5, hglow = 17.4, follow = false, stars = 0, celestial = false, clouds = 0.0, Bk = 90717854341912, Dn = 71763556424955, Ft = 98461351795375, Lf = 79552634608475, Rt = 79230279114248, Up = 80685099604519 },
+	testkit = { glow = 0, hglow = 0, follow = true, stars = 0, celestial = true, clouds = 1.0, Ft = 125021145685093, Rt = 79998295024603, Bk = 133950846661312, Lf = 128567569050109, Up = 98950637562746, Dn = 83560359428904 },
 }
+LAB.FIXED_GLOW = 90 -- Look.SkyStyle.fixedGlowAzimuth: the night city glow is parked inland (+X)
 LAB.PRESETS = { -- Config/Look.luau -> Look.Presets (clock = the hour shot here)
 	day = { clock = 14.2, bright = 3.0, exp = 0, amb = C(14, 14, 16), out = C(120, 124, 132), soft = 0.12, atm = { 0.27, 0.25, 0.9, 0.25, C(200, 199, 194), C(128, 130, 134) }, bloom = { 0.45, 24, 1.75 }, cc = { 0, 0.1, 0.02, C(255, 252, 246) }, rays = { 0.04, 0.6 }, cloud = { 0.32, 0.42, C(246, 246, 244) }, night = false },
 	golden = { clock = 17.4, bright = 3.1, exp = 0.05, amb = C(18, 14, 12), out = C(130, 112, 100), soft = 0.18, atm = { 0.27, 0.3, 1.05, 0.55, C(234, 212, 184), C(128, 124, 140) }, bloom = { 0.6, 28, 1.5 }, cc = { 0, 0.12, 0.07, C(255, 244, 230) }, rays = { 0.11, 0.65 }, cloud = { 0.34, 0.45, C(255, 226, 200) }, night = false },
@@ -164,14 +175,18 @@ function LAB.sky(name, yaw)
 	sky.Name = "HCLab_Sky"
 	for _, f in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do sky["Skybox" .. f] = "rbxassetid://" .. s[f] end
 	sky.StarCount = s.stars; sky.SunAngularSize = 10; sky.MoonAngularSize = 6
+	sky.CelestialBodiesShown = s.celestial
 	sky.SkyboxOrientation = Vector3.new(0, yaw or 0, 0)
 	sky.Parent = Lighting
+	local cl = terrain:FindFirstChild("HCLab_Clouds")
+	if cl then cl.Cover = cl.Cover * s.clouds end -- Look.Skies[*].clouds share of the preset cover
 	return sky
 end
-function LAB.yawFor(name, sign) -- LightingService.skyYaw: sign * (glow azimuth - engine sun azimuth)
+function LAB.yawFor(name, sign) -- LightingService: sign * (glow - engine sun azimuth); fixed skies park hglow at 90
+	local s = LAB.SKIES[name]
 	local d = Lighting:GetSunDirection()
 	local az = math.deg(math.atan2(d.X, -d.Z))
-	local y = (sign or 1) * (LAB.SKIES[name].glow - az)
+	local y = if s.follow then (sign or 1) * (s.glow - az) else (sign or 1) * (s.hglow - LAB.FIXED_GLOW)
 	return (y + 180) % 360 - 180, d
 end
 function LAB.apply(p, atmOverride)
@@ -233,6 +248,10 @@ LAB.apply(LAB.PRESETS[NAME])
 local yaw, sun = LAB.yawFor(NAME, 1)
 LAB.sky(NAME, yaw)
 local flat = Vector3.new(sun.X, 0, sun.Z)
+if not LAB.SKIES[NAME].follow then -- night: look at the parked city glow instead
+	local a = math.rad(LAB.FIXED_GLOW)
+	flat = Vector3.new(math.sin(a), 0, -math.cos(a))
+end
 flat = flat.Magnitude > 0.01 and flat.Unit or Vector3.new(0, 0, -1)
 local pos = Vector3.new(0, 7, 0)
 local at = pos + flat * 300 + Vector3.new(0, 25, 0)
@@ -246,8 +265,8 @@ Replace `WHICH` with `"golden"`, then with `"day"`.
 
 ```lua
 local LAB = _G.HCLab2
-local p = table.clone(LAB.PRESETS.day)
-p.clock = 15.8
+local p = table.clone(LAB.PRESETS.golden) -- the light is ~80 % golden at the 16.75 h swap
+p.clock = 16.75 -- sun 18.4 deg (Look.SkySchedule)
 local atm = table.clone(p.atm)
 atm[3] = math.min(1.2, atm[3] + 0.2) -- Look.SkySwap.hazeBoost at the swap, capped by Look.Caps.hazeMax
 LAB.apply(p, atm)
@@ -269,7 +288,7 @@ LAB.apply(LAB.PRESETS[PRESET])
 LAB.sky(PRESET, (LAB.yawFor(PRESET)))
 local C = Color3.fromRGB
 local colour = { -- Look.Materials[*].color for the overridden base materials
-	Asphalt = C(103, 103, 106), Pavement = C(200, 197, 188), Concrete = C(186, 183, 176), Brick = C(177, 141, 124),
+	Asphalt = C(104, 104, 107), Pavement = C(200, 197, 188), Concrete = C(186, 183, 176), Brick = C(177, 141, 124),
 	Plaster = C(232, 214, 196), Grass = C(146, 161, 109),
 }
 local lab = workspace.HCLightingLab
@@ -280,7 +299,7 @@ for _, d in lab:GetDescendants() do
 		if d.Material == Enum.Material.Glass and not d:GetAttribute("Lamp") then
 			d.Material = Enum.Material.SmoothPlastic
 			d.MaterialVariant = "HC_WindowGlass"
-			d.Color = C(45, 55, 63)
+			d.Color = C(118, 132, 147) -- Look.Materials.HC_WindowGlass.color: the tint of a metallic sky mirror
 			d.Reflectance = 0
 		end
 	end
@@ -293,6 +312,48 @@ return "materials applied; overrides: " .. table.concat(overrides, ", ")
 ```
 
 (The stucco shop uses a beige tint, (232, 214, 196), instead of the near-white default, to show that HC_Stucco takes its colour from Part.Color.)
+
+## S5 (volumetric clouds under the day sky)
+
+Replace `SHARE` with `0`, then `1`.
+
+```lua
+local LAB = _G.HCLab2
+LAB.apply(LAB.PRESETS.day)
+LAB.sky("day", (LAB.yawFor("day")))
+local cl = workspace.Terrain:FindFirstChild("HCLab_Clouds")
+cl.Cover = LAB.PRESETS.day.cloud[1] * SHARE
+return "day sky, volumetric cloud cover " .. cl.Cover
+```
+
+## S6 (lit windows at night)
+
+Lights about half of the lab's window glass the way `Look.Windows` does (share 0.5, 70 % warm (255, 196, 136), 30 % cool (214, 226, 255), brightness 0.55–1.0, Neon), deterministic per position.
+
+```lua
+local LAB = _G.HCLab2
+LAB.apply(LAB.PRESETS.night)
+LAB.sky("night", (LAB.yawFor("night")))
+local C = Color3.fromRGB
+local function h01(p, salt) -- cheap deterministic 0..1 per position
+	local v = math.sin(p.X * 12.9898 + p.Y * 78.233 + p.Z * 37.719 + salt) * 43758.5453
+	return v - math.floor(v)
+end
+local lit, total = 0, 0
+for _, d in workspace.HCLightingLab:GetDescendants() do
+	if d:IsA("BasePart") and d.Material == Enum.Material.Glass and not d:GetAttribute("Lamp") and d.Name ~= "Tower" then
+		total += 1
+		if h01(d.Position, 1) < 0.5 then
+			lit += 1
+			local base = h01(d.Position, 2) < 0.7 and C(255, 196, 136) or C(214, 226, 255)
+			local k = 0.55 + 0.45 * h01(d.Position, 3)
+			d.Material = Enum.Material.Neon
+			d.Color = Color3.new(base.R * k, base.G * k, base.B * k)
+		end
+	end
+end
+return ("lit %d of %d windows"):format(lit, total)
+```
 
 ## CLEANUP
 

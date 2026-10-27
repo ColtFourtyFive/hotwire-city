@@ -53,24 +53,33 @@ FACES = {
 }
 
 # Per-sky grading. ev: exposure offset from auto (upper-hemisphere median -> 0.18). sat: saturation multiplier.
-# horizon: amount/width(deg) of the whitening blend towards the haze colour; haze_white: how white that colour is.
+# horizon: amount/width(deg) of the whitening blend towards the haze colour; haze_white: how white that colour is;
+# lift: blend of the whole dome towards the haze colour (milky midday blue).
 # sun: paint out the HDRI sun (core/edge radius in degrees, glow). below: fill darkening below the horizon.
-# follow_sun: LightingService keeps the sky's glow azimuth on the engine sun while this sky is up.
+# Behaviour (written to skies.json -> the generated Look.Skies):
+#   follow_sun   LightingService keeps the sky's glow azimuth on the engine sun while this sky is up (rate-limited by
+#                Look.SkyStyle.maxYawRate); otherwise the horizon glow is parked on Look.SkyStyle.fixedGlowAzimuth
+#   star_count   Sky.StarCount (0 under cloud / city light pollution)
+#   celestial    Sky.CelestialBodiesShown (engine sun + moon discs; off where the HDRI already has a moonlit deck)
+#   clouds       multiplier on the preset's volumetric Clouds.Cover while this sky is up: 0 when the HDRI already
+#                carries painted clouds (two differently lit cloud layers, one turning with the sky, read wrong)
 SKIES = {
-    "day": dict(hdri="kloofendal_48d_partly_cloudy_puresky", ev=0.15, sat=0.80, horizon=0.55, horizon_w=11.0,
-                haze_white=0.55, tint=(1.0, 1.0, 1.0), sun=dict(core=1.6, edge=7.0, glow=0.35),
-                below=0.30, contrast=1.0, star_count=0, follow_sun=True,
-                use="08:42-15:48 midday: whiter, hazier horizon; GTA V cumulus"),
+    "day": dict(hdri="kloofendal_48d_partly_cloudy_puresky", ev=0.15, sat=0.65, horizon=0.55, horizon_w=18.0,
+                lift=0.18, haze_white=0.55, tint=(1.0, 1.0, 1.0), sun=dict(core=1.6, edge=7.0, glow=0.35),
+                below=0.30, contrast=1.0, star_count=0, follow_sun=True, celestial=True, clouds=0.0,
+                use="07:15-16:45 (engine sun above ~18 deg): whiter, hazier horizon; GTA V cumulus"),
     "golden": dict(hdri="kloppenheim_06_puresky", ev=0.0, sat=0.82, horizon=0.25, horizon_w=8.0, haze_white=0.25,
                    tint=(1.0, 0.985, 0.95), sun=dict(core=1.4, edge=6.0, glow=0.5), below=0.35, contrast=1.0,
-                   star_count=0, follow_sun=True,
-                   use="05:57-08:42 and 15:48-18:06 golden hours (glow follows the engine sun)"),
+                   star_count=0, follow_sun=True, celestial=True, clouds=0.0,
+                   use="05:57-07:15 and 16:45-18:06 golden hours, sun 0-18 deg (glow follows the engine sun)"),
     "blue": dict(hdri="qwantani_dusk_2_puresky", ev=-0.35, sat=0.5, horizon=0.18, horizon_w=8.0, haze_white=0.2,
-                 tint=(0.94, 0.97, 1.04), sun=None, below=0.45, contrast=1.0, star_count=500, follow_sun=True,
-                 use="05:00-05:57 and 18:06-19:30 blue hours (sun below the horizon)"),
+                 tint=(0.94, 0.97, 1.04), sun=None, below=0.45, contrast=1.0, star_count=0, follow_sun=True,
+                 celestial=True, clouds=1.0,
+                 use="05:00-05:57 and 18:06-19:30 blue hours (sun below the horizon); volumetric clouds kept"),
     "night": dict(hdri="kloppenheim_07_puresky", ev=-2.1, sat=0.42, horizon=0.12, horizon_w=8.0, haze_white=0.0,
-                  tint=(0.92, 0.96, 1.0), sun=None, below=0.55, contrast=1.05, star_count=400, follow_sun=False,
-                  use="19:30-05:00 night: dark navy-grey, faint warm city glow at the horizon"),
+                  tint=(0.92, 0.96, 1.0), sun=None, below=0.55, contrast=1.05, star_count=0, follow_sun=False,
+                  celestial=False, clouds=0.0,
+                  use="19:30-05:00 night: moonlit cloud deck (no engine moon/stars), warm city glow parked inland"),
 }
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -226,6 +235,14 @@ class Grader:
         hl = float((hc * lc.LUMA).sum())
         hc = lc.saturate(hc, p["sat"]) * np.array(p["tint"], np.float32)  # same grade as the sky itself
         self.haze = hc * (1 - p["haze_white"]) + hl * p["haze_white"]
+        # horizon glow: azimuth of the brightest column of the 0..6 deg band (smoothed over ~20 deg of azimuth); for
+        # a night sky that is the warm city glow, which LightingService parks on Look.SkyStyle.fixedGlowAzimuth
+        v6 = int((0.5 - math.radians(6) / math.pi) * h)
+        col_l = lum[v6: h // 2].mean(axis=0)
+        k = max(1, w // 18)
+        sm = np.convolve(np.concatenate([col_l[-k:], col_l, col_l[:k]]), np.ones(k) / k, mode="same")[k:-k]
+        u = int(np.argmax(sm))
+        self.horizon_glow = equirect_to_dir(np.array(float(u)), np.array(float(h // 2 - 1)), w, h)
         # sun fill: median of an annulus around the sun
         if p.get("sun"):
             dirs = equirect_to_dir(*np.meshgrid(np.arange(w, dtype=np.float32), np.arange(h, dtype=np.float32)), w, h)
@@ -256,6 +273,10 @@ class Grader:
         # 3) horizon whitening (towards the haze colour), above the horizon
         hw = p["horizon"] * np.exp(-np.clip(el, 0, None) / p["horizon_w"])
         x = x * (1 - hw[..., None]) + self.haze * hw[..., None]
+        # 3b) lift: blend the whole dome a little towards the haze colour (GTA's milky midday blue; keeps the
+        #     anti-sun side from going deep navy behind front-lit buildings)
+        if p.get("lift"):
+            x = x * (1 - p["lift"]) + self.haze * p["lift"]
         # 4) below the horizon: haze colour fading darker (hidden by ground/sea; matters for aerial edges only)
         below = np.clip(-el / 2.0, 0, 1)[..., None]
         dark = 1.0 - p["below"] * (1 - np.exp(np.clip(el, None, 0) / 25.0))
@@ -361,9 +382,12 @@ def main():
             files[k] = lc.rel(lc.save_png(faces[k], os.path.join(lc.SKY_DIR, name, k + ".png")))
         sun = g.sun
         meta = dict(hdri=p["hdri"], source="Poly Haven (CC0) %s 4k" % p["hdri"], use=p["use"], files=files,
-                    starCount=p["star_count"], followSun=p["follow_sun"], glowAzimuth=round(azimuth_deg(sun), 1),
+                    starCount=p["star_count"], followSun=p["follow_sun"], celestialBodiesShown=p["celestial"],
+                    clouds=p["clouds"], glowAzimuth=round(azimuth_deg(sun), 1),
                     glowElevation=round(math.degrees(math.asin(float(sun[1]))), 1),
-                    grading={k: v for k, v in p.items() if k not in ("hdri", "use", "follow_sun", "star_count")},
+                    horizonGlowAzimuth=round(azimuth_deg(g.horizon_glow), 1),
+                    grading={k: v for k, v in p.items()
+                             if k not in ("hdri", "use", "follow_sun", "star_count", "celestial", "clouds")},
                     hazeColor=[int(round(c * 255)) for c in np.power(aces(g.haze), 1 / 2.2)],
                     sha1={k: lc.sha1(os.path.join(lc.ROOT, f)) for k, f in files.items()})
         if p.get("sun"):

@@ -42,46 +42,46 @@
     "sha1": "81ef209bb96728e1ea14503b050acc93f9e6d6b7"
   },
   "assets/sky/day/bk.png": {
-    "assetId": 114889706466400,
+    "assetId": 109617092990906,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC sky day bk",
-    "sha1": "2c30e97b492d60d3dccb5f57ce6bf0d16469479e"
+    "sha1": "fa74c07cb5677d169f4bb2926fe158336fd5ed21"
   },
   "assets/sky/day/dn.png": {
-    "assetId": 126778055421344,
+    "assetId": 88475019141975,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC sky day dn",
-    "sha1": "62c9b28f1c8977ae16ec3d4211bc0e2dc0e5179d"
+    "sha1": "9e4b603d78da39617299e01fd1a941a6d9c7f281"
   },
   "assets/sky/day/ft.png": {
-    "assetId": 83431819292615,
+    "assetId": 109667193500398,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC sky day ft",
-    "sha1": "c4c0f4417fd23d42b7c2421b52808f11cd9b1386"
+    "sha1": "997de41141dc9adbcb68b8ba00cbbcfd78f952f4"
   },
   "assets/sky/day/lf.png": {
-    "assetId": 85390262765714,
+    "assetId": 101438554097333,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC sky day lf",
-    "sha1": "8d4ff3d73dc3402b8bfeba671347cfb0fef69f25"
+    "sha1": "817fa0db7568c154ff6f45025aad5cb8fda2b5be"
   },
   "assets/sky/day/rt.png": {
-    "assetId": 79010093641079,
+    "assetId": 84358563474483,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC sky day rt",
-    "sha1": "dcae8773105e4b710c3b35fea37c2cd7245dd980"
+    "sha1": "c63f6a300993fca06cc7ce624f1654163b072f0c"
   },
   "assets/sky/day/up.png": {
-    "assetId": 80903012956799,
+    "assetId": 99148174677802,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC sky day up",
-    "sha1": "ebe4a6726c963218d549c6638714326af16c7fde"
+    "sha1": "8a13f17c959e13a89c124a2d396e0e316598d03a"
   },
   "assets/sky/golden/bk.png": {
     "assetId": 114964142574668,

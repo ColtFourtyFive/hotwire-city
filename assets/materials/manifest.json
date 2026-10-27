@@ -1,10 +1,10 @@
 {
   "assets/materials/asphalt/color.png": {
-    "assetId": 106080567087674,
+    "assetId": 112223103107268,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat asphalt color",
-    "sha1": "acfcba6513a2838ca2d750c6cf6d554fd53eb048"
+    "sha1": "e13b759c52c4224f3b25626e06d56656f97acca5"
   },
   "assets/materials/asphalt/normal.png": {
     "assetId": 82395533791334,
@@ -14,39 +14,46 @@
     "sha1": "8774640e0dce1fd4da062257a9cdd4e38c70c9d7"
   },
   "assets/materials/asphalt/roughness.png": {
-    "assetId": 101400097276672,
+    "assetId": 121272890641417,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat asphalt roughness",
-    "sha1": "91609e309ceffc5b1eb0eb9e8e6bd221d686b8ea"
+    "sha1": "3c3a440cf2d7269b11e4133c637ce215213225b4"
+  },
+  "assets/materials/asphalt_wet/color.png": {
+    "assetId": 79911827799879,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat asphalt_wet color",
+    "sha1": "ee747fef0ed22cbba6000ee5df4a4add933264cb"
   },
   "assets/materials/asphalt_wet/roughness.png": {
-    "assetId": 113458825437012,
+    "assetId": 117195630363033,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat asphalt_wet roughness",
-    "sha1": "dd9d07e62421c4e9d020f29afe689e1070469018"
+    "sha1": "635d666cdd5339e8dc99bd80bc3ce2a5ba3b7681"
   },
   "assets/materials/asphalt_worn/color.png": {
-    "assetId": 98395841471900,
+    "assetId": 129122867914138,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat asphalt_worn color",
-    "sha1": "dfb58b71e2fdcbbd76d2834eba1fcc96f21a9879"
+    "sha1": "673bc4114a1f3492407dd6c271b0e7a726975b57"
   },
   "assets/materials/asphalt_worn/normal.png": {
-    "assetId": 125684889345496,
+    "assetId": 82636250794801,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat asphalt_worn normal",
-    "sha1": "878a5747b3cb1af7f279afa059b95ac0d97d5dd9"
+    "sha1": "e002df9e276e12ab963d9fa948e4cfadc75c3ae1"
   },
   "assets/materials/asphalt_worn/roughness.png": {
-    "assetId": 73345421491533,
+    "assetId": 89336615364349,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat asphalt_worn roughness",
-    "sha1": "dd2879f714cdd7e5ef537559871b8190f025497b"
+    "sha1": "69f143e5cdd408989e863972bf52dc249708d647"
   },
   "assets/materials/brick_red/color.png": {
     "assetId": 130389958232148,
@@ -259,11 +266,11 @@
     "sha1": "4f8880cd64d67fb1a67f76e948619dc5ecae7b66"
   },
   "assets/materials/decals/manhole_round.png": {
-    "assetId": 79792433990918,
+    "assetId": 105997865515655,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC decal manhole_round",
-    "sha1": "2b95596c33389254544eca3f3607c49c60d68e9e"
+    "sha1": "69e342db1d2608ef3ea68a6d96c2e29a41370d13"
   },
   "assets/materials/decals/oil_stain_a.png": {
     "assetId": 127073388700985,
@@ -383,6 +390,27 @@
     "moderation": "Reviewing",
     "name": "HC mat rock roughness",
     "sha1": "6c37fbdf92f554de86553660095d230fc45648c0"
+  },
+  "assets/materials/rock_slate/color.png": {
+    "assetId": 91210253580661,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock_slate color",
+    "sha1": "c8fbf9a833d20a2c837dfaa4b019401cb1c3666c"
+  },
+  "assets/materials/rock_slate/normal.png": {
+    "assetId": 78165355072262,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock_slate normal",
+    "sha1": "a4c9d34914b617b989e682264f75dffd2446ba96"
+  },
+  "assets/materials/rock_slate/roughness.png": {
+    "assetId": 71227972729969,
+    "assetType": "Image",
+    "moderation": "Reviewing",
+    "name": "HC mat rock_slate roughness",
+    "sha1": "2d53bae5f67d157400a6d0d6eb088a8ea048a9de"
   },
   "assets/materials/roof_tiles/color.png": {
     "assetId": 75493501087088,
@@ -525,11 +553,11 @@
     "sha1": "2f9b2cc72ff7303f8b1d77feabd13c698e150d30"
   },
   "assets/materials/window_glass/metalness.png": {
-    "assetId": 132000550188044,
+    "assetId": 92418495410749,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat window_glass metalness",
-    "sha1": "70d1484bfaa7a5e582de6f94169502d099bee772"
+    "sha1": "b67cdf62204444eb81d3f230e7449b18619c5915"
   },
   "assets/materials/window_glass/normal.png": {
     "assetId": 129830663186003,
@@ -539,11 +567,11 @@
     "sha1": "af41a12a22e9e76af3bb07cce7df8edd561a0147"
   },
   "assets/materials/window_glass/roughness.png": {
-    "assetId": 100876394263649,
+    "assetId": 72033955747974,
     "assetType": "Image",
     "moderation": "Reviewing",
     "name": "HC mat window_glass roughness",
-    "sha1": "8cdc9db6494312ac980dd96b835035c2a5e16a4e"
+    "sha1": "6720d5b17637fd8bef54c4fb64bde044ba886134"
   },
   "assets/materials/wood_planks/color.png": {
     "assetId": 78080135923172,
