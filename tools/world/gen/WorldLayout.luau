@@ -3034,3 +3034,1364 @@ end
 for _, g in GRIDS do
 	generateGrid(g)
 end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- 6. Clean generated streets: cut them where they would run into low ramps / under decks or ramps (tech critique 11),
+--    duplicate a parallel arterial or enter a reserved area; extend loose ends onto the road they nearly reach.
+-------------------------------------------------------------------------------------------------------------------------
+
+-- Reserved areas no generated street may enter (parks, plazas, rail yard, golf, the channel).
+local RESERVED_AREAS: { { poly: { P2 }, name: string } } = {
+	{ name = "Rust River", poly = {} }, -- filled below from the channel corridor
+	{ name = "Rail Yard", poly = poly({ { 2330, 1180 }, { 3700, 1180 }, { 3700, 1520 }, { 2330, 1520 } }) },
+	{ name = "Hotwire Plaza", poly = poly({ { 340, -520 }, { 712, -520 }, { 712, -262 }, { 340, -262 } }) },
+	{ name = "Liberty Square", poly = poly({ { -96, 252 }, { 255, 252 }, { 255, 602 }, { -96, 602 } }) },
+	{ name = "Echo Park", poly = poly({ { -2050, 1680 }, { -1450, 1680 }, { -1450, 2060 }, { -2050, 2060 } }) },
+	{ name = "Iron Bay Arena", poly = poly({ { 1000, 2080 }, { 1480, 2080 }, { 1480, 2800 }, { 1000, 2800 } }) },
+	{ name = "Sunwood Country Club", poly = poly({ { -4420, -2780 }, { -3650, -2780 }, { -3650, -2240 }, { -4420, -2240 } }) },
+}
+do
+	local ch = WorldTerrain.Channel
+	local pts = ch.points
+	local left = WorldGen.polyOffsetVar(pts, function(i: number, _s: number): number
+		return -(WorldTerrain.channelFloorHalf(pts[i].z) + ch.wallRun + 8)
+	end)
+	local right = WorldGen.polyOffsetVar(pts, function(i: number, _s: number): number
+		return WorldTerrain.channelFloorHalf(pts[i].z) + ch.wallRun + 8
+	end)
+	local ring: { P2 } = {}
+	for _, p in left do
+		table.insert(ring, p)
+	end
+	for i = #right, 1, -1 do
+		table.insert(ring, right[i])
+	end
+	RESERVED_AREAS[1].poly = ring
+end
+WorldLayout.ReservedAreas = RESERVED_AREAS
+
+local function lowRampAt(w: Way, s: number, L: number): number
+	if w.profile then
+		return (w.profile :: (number, number) -> number)(s, L)
+	end
+	if w.yMode == "fixed" and w.fixedY then
+		return w.fixedY
+	end
+	return DECK_Y
+end
+
+local function cleanGenerated()
+	snapEnds(true)
+	type Blocker = { w: Way, half: number, cum: { number }, L: number }
+	local blockers: { Blocker } = {}
+	local blk = WorldGen.segIndex(128)
+	for i = 1, authoredCount do
+		local w = ways[i]
+		if w.class == "freeway" or w.class == "ramp" or (w.layer >= 1 and not w.generated) then
+			local cum = WorldGen.polyCum(w.pts)
+			local b: Blocker = { w = w, half = wayWidth(w) / 2 + 10, cum = cum, L = cum[#cum] }
+			table.insert(blockers, b)
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(blk, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, #blockers, k, b.half + 34)
+			end
+		end
+	end
+	local art = WorldGen.segIndex(128)
+	for i = 1, authoredCount do
+		local w = ways[i]
+		if
+			w.layer == 0
+			and (
+				w.class == "boulevard"
+				or w.class == "avenue"
+				or w.class == "street"
+				or w.class == "highway"
+				or w.class == "rural"
+			)
+		then
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(art, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, i, k, 115)
+			end
+		end
+	end
+	local areaBoxes = {}
+	for _, r in RESERVED_AREAS do
+		local x0, z0, x1, z1 = WorldGen.polyBounds(r.poly)
+		table.insert(areaBoxes, { x0, z0, x1, z1 })
+	end
+	local kept: { Way } = {}
+	for i = 1, authoredCount do
+		table.insert(kept, ways[i])
+	end
+	for i = authoredCount + 1, #ways do
+		local w = ways[i]
+		local alley = w.class == "alley"
+		local myHalf = wayWidth(w) / 2 + w.sidewalk
+		local pts = WorldGen.densify(w.pts, 12)
+		local blocked = table.create(#pts, false)
+		for k, p in pts do
+			local nxt = pts[math.min(k + 1, #pts)]
+			local prv = pts[math.max(k - 1, 1)]
+			local dx, dz = nxt.x - prv.x, nxt.z - prv.z
+			local dl = math.sqrt(dx * dx + dz * dz)
+			if dl > 1e-9 then
+				dx, dz = dx / dl, dz / dl
+			end
+			-- reserved areas
+			for ri, r in RESERVED_AREAS do
+				local bb = areaBoxes[ri]
+				if
+					p.x >= bb[1]
+					and p.x <= bb[3]
+					and p.z >= bb[2]
+					and p.z <= bb[4]
+					and WorldGen.pointInPoly(r.poly, p.x, p.z)
+				then
+					if ri == 1 and not alley then
+						-- Rust River: streets may bridge it at a right angle, never run along it
+						local _, cs = WorldGen.polyProject(WorldTerrain.Channel.points, p.x, p.z)
+						local _, _, ctx, ctz = WorldGen.polyAt(WorldTerrain.Channel.points, cs)
+						if dl > 1e-9 and math.abs(dx * ctx + dz * ctz) < 0.5 then
+							continue
+						end
+					end
+					blocked[k] = true
+					break
+				end
+			end
+			-- decks, ramps and flyovers: no at-grade conflict with a ramp near grade; never run along under (or
+			-- beside, below the ramp's deck) an elevated road
+			if not blocked[k] then
+				WorldGen.segQuery(blk, p.x, p.z, 0, function(id: number)
+					if blocked[k] then
+						return
+					end
+					local b = blockers[blk.owner[id]]
+					local t, _, _, d = WorldGen.projectSeg(p.x, p.z, blk.ax[id], blk.az[id], blk.bx[id], blk.bz[id])
+					local sn = blk.segNo[id]
+					local s = b.cum[sn] + t * (b.cum[sn + 1] - b.cum[sn])
+					local y = lowRampAt(b.w, s, b.L)
+					local tx, tz = blk.bx[id] - blk.ax[id], blk.bz[id] - blk.az[id]
+					local tl = math.sqrt(tx * tx + tz * tz)
+					local parallel = tl > 1e-9 and dl > 1e-9 and math.abs((dx * tx + dz * tz) / tl) > 0.86
+					if d < b.half then
+						if math.abs(y - GRADE) < S.CLEARANCE + 4 then
+							blocked[k] = true
+							return
+						end
+						if parallel then
+							blocked[k] = true
+							return
+						end
+					elseif parallel and d < b.half + myHalf - 6 and y < GRADE + 26 + 4 then
+						blocked[k] = true -- the ramp would hang over this street's sidewalk
+					end
+				end)
+			end
+			-- duplicates a parallel arterial
+			if not blocked[k] then
+				WorldGen.segQuery(art, p.x, p.z, 0, function(id: number)
+					if blocked[k] then
+						return
+					end
+					local _, _, _, d = WorldGen.projectSeg(p.x, p.z, art.ax[id], art.az[id], art.bx[id], art.bz[id])
+					local lim = if alley then 70 else 115
+					if d < lim then
+						local tx, tz = art.bx[id] - art.ax[id], art.bz[id] - art.az[id]
+						local tl = math.sqrt(tx * tx + tz * tz)
+						if tl > 1e-9 and dl > 1e-9 and math.abs((dx * tx + dz * tz) / tl) > 0.8 then
+							blocked[k] = true
+						end
+					end
+				end)
+			end
+			-- off land
+			if not blocked[k] then
+				if not landAtLeast(p.x, p.z, 60) then
+					blocked[k] = true
+				end
+			end
+		end
+		local cur: { P2 } = {}
+		local function flush()
+			if #cur >= 2 and WorldGen.polyLength(cur) >= 60 then
+				local copy: Way = table.clone(w)
+				copy.pts = cur
+				table.insert(kept, copy)
+			end
+			cur = {}
+		end
+		for k, p in pts do
+			if blocked[k] then
+				flush()
+			else
+				table.insert(cur, p)
+			end
+		end
+		flush()
+	end
+	-- simplify densified pieces back to their corners
+	for i = authoredCount + 1, #kept do
+		local w = kept[i]
+		local out: { P2 } = { w.pts[1] }
+		for k = 2, #w.pts - 1 do
+			local a, b, c = out[#out], w.pts[k], w.pts[k + 1]
+			local abx, abz = b.x - a.x, b.z - a.z
+			local bcx, bcz = c.x - b.x, c.z - b.z
+			local cr = math.abs(abx * bcz - abz * bcx)
+			local la = math.sqrt(abx * abx + abz * abz)
+			local lb = math.sqrt(bcx * bcx + bcz * bcz)
+			if cr > 0.004 * la * lb then
+				table.insert(out, b)
+			end
+		end
+		table.insert(out, w.pts[#w.pts])
+		w.pts = out
+	end
+	-- extend loose ends up to 170 studs onto a ground road they point at
+	local gidx = WorldGen.segIndex(128)
+	for wi, w in kept do
+		if w.layer == 0 and not w.noCross then
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(gidx, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, wi, k, 0)
+			end
+		end
+	end
+	for i = authoredCount + 1, #kept do
+		local w = kept[i]
+		for _, endIdx in { 1, #w.pts } do
+			local p = w.pts[endIdx]
+			local q = w.pts[if endIdx == 1 then 2 else #w.pts - 1]
+			local dx, dz = p.x - q.x, p.z - q.z
+			local dl = math.sqrt(dx * dx + dz * dz)
+			if dl < 1e-6 then
+				continue
+			end
+			dx, dz = dx / dl, dz / dl
+			local fx, fz = p.x + dx * 170, p.z + dz * 170
+			local bestT: number? = nil
+			WorldGen.segQuery(gidx, (p.x + fx) / 2, (p.z + fz) / 2, 86, function(id: number)
+				if gidx.owner[id] == i then
+					return
+				end
+				local t = WorldGen.segIntersect(p.x, p.z, fx, fz, gidx.ax[id], gidx.az[id], gidx.bx[id], gidx.bz[id], 0)
+				if t and t > 1e-4 and (bestT == nil or t < bestT) then
+					bestT = t
+				end
+			end)
+			if bestT then
+				local ex, ez = p.x + (fx - p.x) * bestT, p.z + (fz - p.z) * bestT
+				local clear = true
+				for ri = 2, #RESERVED_AREAS do
+					for step = 1, 4 do
+						local t = step / 4
+						if
+							WorldGen.pointInPoly(RESERVED_AREAS[ri].poly, p.x + (ex - p.x) * t, p.z + (ez - p.z) * t)
+						then
+							clear = false
+						end
+					end
+				end
+				if clear then
+					w.pts[endIdx] = P(ex, ez)
+				end
+			end
+		end
+	end
+	-- no hairpins: split a generated piece where it turns more than 60 degrees at a vertex
+	local final: { Way } = {}
+	for i, w in kept do
+		if i <= authoredCount then
+			table.insert(final, w)
+			continue
+		end
+		local cur: { P2 } = { w.pts[1] }
+		local function flushPiece()
+			if #cur >= 2 and WorldGen.polyLength(cur) >= 60 then
+				local copy: Way = table.clone(w)
+				copy.pts = cur
+				table.insert(final, copy)
+			end
+		end
+		for k = 2, #w.pts do
+			table.insert(cur, w.pts[k])
+			if k < #w.pts then
+				local t = WorldGen.maxTurn({ w.pts[k - 1], w.pts[k], w.pts[k + 1] })
+				if t > math.rad(60) then
+					flushPiece()
+					cur = { w.pts[k] }
+				end
+			end
+		end
+		flushPiece()
+	end
+	ways = final
+	for i, w in ways do
+		w.id = i
+	end
+end
+cleanGenerated()
+
+-------------------------------------------------------------------------------------------------------------------------
+-- 7. Vertical alignment: heights per vertex (ground ways follow the terrain grade-limited and pinned to the roads
+--    they join; elevated ways use their profiles / designed tables)
+-------------------------------------------------------------------------------------------------------------------------
+
+local CLASS_ORDER: { [string]: number } = {
+	freeway = 1,
+	ramp = 2,
+	highway = 3,
+	boulevard = 4,
+	avenue = 5,
+	rural = 6,
+	runway = 7,
+	pier = 7,
+	channel = 7,
+	street = 8,
+	service = 9,
+	dirt = 9,
+	alley = 10,
+}
+
+local order: { Way } = table.clone(ways)
+table.sort(order, function(a: Way, b: Way): boolean
+	local ea = if a.layer ~= 0 or a.ysTable ~= nil then 0 else 1
+	local eb = if b.layer ~= 0 or b.ysTable ~= nil then 0 else 1
+	if ea ~= eb then
+		return ea < eb
+	end
+	local oa, ob = CLASS_ORDER[a.class] or 9, CLASS_ORDER[b.class] or 9
+	if oa ~= ob then
+		return oa < ob
+	end
+	if a.generated ~= b.generated then
+		return not a.generated
+	end
+	return a.id < b.id
+end)
+
+local done: { Way } = {}
+local groundIdx = WorldGen.segIndex(128) -- aligned ground (crossable) ways, for crossing pins
+local allIdx = WorldGen.segIndex(128) -- every aligned way, for endpoint pins
+
+local function yOnSeg(w: Way, k: number, t: number): number
+	local ys = w.ys :: { number }
+	return ys[k] + (ys[k + 1] - ys[k]) * math.clamp(t, 0, 1)
+end
+
+-- Height of an already-aligned way at the point nearest (x, z), if it passes within tol. Only roads running near the
+-- terrain surface there count: a street end that merely lies under a flyover must not be lifted up to it.
+local function pinFrom(x: number, z: number, tol: number): number?
+	local best: number? = nil
+	local bestD = tol
+	local surface = heightAt(x, z)
+	WorldGen.segQuery(allIdx, x, z, tol, function(id: number)
+		local t, _, _, d = WorldGen.projectSeg(x, z, allIdx.ax[id], allIdx.az[id], allIdx.bx[id], allIdx.bz[id])
+		if d <= bestD then
+			local o = done[allIdx.owner[id]]
+			local y = yOnSeg(o, allIdx.segNo[id], t)
+			if o.yMode == "ground" or math.abs(y - surface) <= 8 then
+				bestD = d
+				best = y
+			end
+		end
+	end)
+	return best
+end
+
+local function applyBridges(w: Way)
+	if not w.bridges then
+		return
+	end
+	local ys = w.ys :: { number }
+	local cum = WorldGen.polyCum(w.pts)
+	local function yAt(s: number): number
+		local _, _, _, _, i, t = WorldGen.polyAtCum(w.pts, cum, s)
+		return ys[i] + (ys[math.min(i + 1, #ys)] - ys[i]) * t
+	end
+	for _, span in w.bridges :: { { number } } do
+		local s0, s1 = span[1], span[2]
+		local y0, y1 = yAt(s0), yAt(s1)
+		for k = 1, #w.pts do
+			if cum[k] > s0 and cum[k] < s1 then
+				ys[k] = math.max(ys[k], y0 + (y1 - y0) * (cum[k] - s0) / (s1 - s0))
+			end
+		end
+	end
+end
+
+local function alignWay(w: Way)
+	local function isFlatCity(x: number, z: number): boolean
+		return math.abs(gradeAt(x, z) - GRADE) < 0.05
+	end
+	if w.yMode == "ground" then
+		local pts = w.pts
+		local dense: { P2 } = { pts[1] }
+		for i = 2, #pts do
+			local a, b = pts[i - 1], pts[i]
+			local len = WorldGen.dist(a.x, a.z, b.x, b.z)
+			local flat = isFlatCity(a.x, a.z) and isFlatCity(b.x, b.z) and isFlatCity((a.x + b.x) / 2, (a.z + b.z) / 2)
+			local n = if flat then 1 else math.max(1, math.ceil(len / 36))
+			for k = 1, n do
+				local t = k / n
+				table.insert(dense, P(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t))
+			end
+		end
+		local withPins: { P2 } = { dense[1] }
+		local pinAt: { [number]: number } = {}
+		for i = 2, #dense do
+			local a, b = dense[i - 1], dense[i]
+			local hits: { { number } } = {}
+			if not w.noCross then
+				local cx, cz = (a.x + b.x) / 2, (a.z + b.z) / 2
+				local r = WorldGen.dist(a.x, a.z, b.x, b.z) / 2 + 1
+				WorldGen.segQuery(groundIdx, cx, cz, r, function(id: number)
+					local o = done[groundIdx.owner[id]]
+					if o.layer ~= w.layer then
+						return
+					end
+					local t, u = WorldGen.segIntersect(
+						a.x,
+						a.z,
+						b.x,
+						b.z,
+						groundIdx.ax[id],
+						groundIdx.az[id],
+						groundIdx.bx[id],
+						groundIdx.bz[id],
+						0.5
+					)
+					if t and u and t > 1e-6 and t < 1 - 1e-6 then
+						table.insert(hits, { t, yOnSeg(o, groundIdx.segNo[id], u) })
+					end
+				end)
+			end
+			table.sort(hits, function(p: { number }, q: { number }): boolean
+				return p[1] < q[1]
+			end)
+			for _, h in hits do
+				table.insert(withPins, P(a.x + (b.x - a.x) * h[1], a.z + (b.z - a.z) * h[1]))
+				pinAt[#withPins] = h[2]
+			end
+			table.insert(withPins, b)
+		end
+		local n = #withPins
+		for _, k in { 1, n } do
+			if pinAt[k] == nil then
+				local y = pinFrom(withPins[k].x, withPins[k].z, 1.6)
+				if y then
+					pinAt[k] = y
+				end
+			end
+		end
+		local cum = WorldGen.polyCum(withPins)
+		local target = table.create(n, 0)
+		for k, p in withPins do
+			target[k] = gradeAt(p.x, p.z)
+			if w.minProfile then
+				target[k] = math.max(target[k], (w.minProfile :: (number, number) -> number)(cum[k], cum[n]))
+			end
+			if w.maxProfile then
+				target[k] = math.min(target[k], (w.maxProfile :: (number, number) -> number)(cum[k], cum[n]))
+			end
+		end
+		local g = w.maxGrade
+		local ys = table.create(n, 0)
+		local lastY: number? = nil
+		for k = 1, n do
+			local y = target[k]
+			if lastY ~= nil then
+				local run = cum[k] - cum[k - 1]
+				y = math.clamp(y, (lastY :: number) - g * run, (lastY :: number) + g * run)
+			end
+			if pinAt[k] then
+				y = pinAt[k]
+			end
+			ys[k] = y
+			lastY = y
+		end
+		local nextY: number? = nil
+		for k = n, 1, -1 do
+			local y = ys[k]
+			if nextY ~= nil then
+				local run = cum[k + 1] - cum[k]
+				y = math.clamp(y, (nextY :: number) - g * run, (nextY :: number) + g * run)
+			end
+			if pinAt[k] then
+				y = pinAt[k]
+			end
+			ys[k] = y
+			nextY = y
+		end
+		-- pins too far apart in height for the grade limit: spread the climb evenly between them (no cliffs)
+		local pinIdx: { number } = {}
+		for k = 1, n do
+			if pinAt[k] or k == 1 or k == n then
+				table.insert(pinIdx, k)
+			end
+		end
+		for q = 1, #pinIdx - 1 do
+			local k0, k1 = pinIdx[q], pinIdx[q + 1]
+			local run = cum[k1] - cum[k0]
+			local worst = 0
+			for k = k0 + 1, k1 do
+				local r = cum[k] - cum[k - 1]
+				if r > 1e-6 then
+					worst = math.max(worst, math.abs(ys[k] - ys[k - 1]) / r)
+				end
+			end
+			if worst > g * 1.02 and run > 1e-6 then
+				for k = k0 + 1, k1 - 1 do
+					ys[k] = ys[k0] + (ys[k1] - ys[k0]) * (cum[k] - cum[k0]) / run
+				end
+			end
+		end
+		w.pts = withPins
+		w.ys = ys
+	elseif w.yMode == "table" then
+		w.ys = table.clone(w.ysTable :: { number })
+	else
+		local pts = WorldGen.densify(w.pts, 40)
+		local cum = WorldGen.polyCum(pts)
+		local L = cum[#cum]
+		local rampY0 = pinFrom(pts[1].x, pts[1].z, 1.6) or w.y0 or GRADE
+		local rampY1 = pinFrom(pts[#pts].x, pts[#pts].z, 1.6) or w.y1 or GRADE
+		local ys = table.create(#pts, 0)
+		for k = 1, #pts do
+			local acc = cum[k]
+			local y
+			if w.yMode == "fixed" then
+				y = w.fixedY or GRADE
+			elseif w.yMode == "deck" then
+				y = DECK_Y
+			elseif w.yMode == "ramp" then
+				local t = if L > 0 then math.clamp(acc / L, 0, 1) else 0
+				y = rampY0 + (rampY1 - rampY0) * (0.5 * t + 0.5 * t * t * (3 - 2 * t))
+			else
+				y = (w.profile :: (number, number) -> number)(acc, L)
+			end
+			ys[k] = y
+		end
+		w.pts = pts
+		w.ys = ys
+	end
+	applyBridges(w)
+	table.insert(done, w)
+	local id = #done
+	for k = 1, #w.pts - 1 do
+		local a, b = w.pts[k], w.pts[k + 1]
+		WorldGen.segAdd(allIdx, a.x, a.z, b.x, b.z, id, k, 2)
+		if w.yMode == "ground" and not w.noCross then
+			WorldGen.segAdd(groundIdx, a.x, a.z, b.x, b.z, id, k, 1)
+		end
+	end
+end
+
+-- Skyline Drive flies over Sunwood Canyon (and the H9) on the Canyon Bridge.
+do
+	local _, sC = WorldGen.polyProject(skyline.pts, -2880, -3190)
+	skyline.bridges = { { sC - 400, sC + 400 } }
+end
+
+for _, w in order do
+	alignWay(w)
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- 8. Compile the graph: planarize, prune stubs, merge chains, then merge junctions that sit inside each other's clear
+--    box (tech critique 6) and drop what is not strongly connected
+-------------------------------------------------------------------------------------------------------------------------
+
+local gways: { WorldGen.GWay } = {}
+for _, w in ways do
+	local pts3: { P3 } = {}
+	local ys = w.ys :: { number }
+	for k, p in w.pts do
+		table.insert(pts3, { x = p.x, y = ys[k], z = p.z })
+	end
+	table.insert(gways, { pts = pts3, layer = w.layer, noCross = w.noCross })
+end
+
+local gnodes, gedges = WorldGen.planarize(gways, 1.6, 3)
+gedges = WorldGen.pruneStubs(#gnodes, gedges, 130, function(e: WorldGen.GEdge): boolean
+	local w = ways[e.way]
+	return w.keepDeadEnd or w.class == "ramp" or w.class == "freeway"
+end)
+gedges = WorldGen.mergeChains(#gnodes, gedges)
+gnodes, gedges = WorldGen.compact(gnodes, gedges)
+
+local function isGroundWay(w: Way): boolean
+	return w.layer == 0 and w.class ~= "freeway" and w.class ~= "ramp"
+end
+
+-- Junction merge: an edge between two ground junctions shorter than both clear radii + a stop line and a car length
+-- is collapsed into the more important junction (its other roads are re-ended there).
+local MergedJunctions = 0
+do
+	local function edgeHalf(e: WorldGen.GEdge): number
+		local w = ways[e.way]
+		return wayWidth(w) / 2 + w.sidewalk
+	end
+	for _ = 1, 6 do
+		local inc: { { number } } = table.create(#gnodes)
+		for i = 1, #gnodes do
+			inc[i] = {}
+		end
+		for ei, e in gedges do
+			table.insert(inc[e.a], ei)
+			table.insert(inc[e.b], ei)
+		end
+		local radius = table.create(#gnodes, 0)
+		local weight = table.create(#gnodes, 0)
+		local groundNode = table.create(#gnodes, true)
+		for n = 1, #gnodes do
+			for _, ei in inc[n] do
+				local e = gedges[ei]
+				local w = ways[e.way]
+				radius[n] = math.max(radius[n], edgeHalf(e))
+				weight[n] += if w.generated then 1 else 10
+				if not isGroundWay(w) then
+					groundNode[n] = false
+				end
+			end
+		end
+		local alive = table.create(#gedges, true)
+		local moved = table.create(#gnodes, false)
+		local any = false
+		local orderE: { number } = {}
+		for ei in gedges do
+			table.insert(orderE, ei)
+		end
+		table.sort(orderE, function(x: number, y: number): boolean
+			if gedges[x].length ~= gedges[y].length then
+				return gedges[x].length < gedges[y].length
+			end
+			return x < y
+		end)
+		for _, ei in orderE do
+			local e = gedges[ei]
+			local a, b = e.a, e.b
+			if
+				a == b
+				or moved[a]
+				or moved[b]
+				or #inc[a] < 3
+				or #inc[b] < 3
+				or not groundNode[a]
+				or not groundNode[b]
+			then
+				continue
+			end
+			if e.length >= radius[a] + radius[b] + 25.5 then
+				continue
+			end
+			-- keep the heavier junction (authored roads), drop the other
+			local keep, drop = a, b
+			if weight[b] > weight[a] or (weight[b] == weight[a] and b < a) then
+				keep, drop = b, a
+			end
+			local kp = gnodes[keep]
+			alive[ei] = false
+			for _, oi in inc[drop] do
+				if oi ~= ei and alive[oi] then
+					local o = gedges[oi]
+					local pts = o.pts
+					if o.a == drop then
+						o.a = keep
+						pts[1] = { x = kp.x, y = kp.y, z = kp.z }
+						-- smooth the re-ended start: drop vertices now behind the new end
+						while #pts > 2 and WorldGen.dist(pts[2].x, pts[2].z, kp.x, kp.z) < 25 do
+							table.remove(pts, 2)
+						end
+					end
+					if o.b == drop then
+						o.b = keep
+						pts[#pts] = { x = kp.x, y = kp.y, z = kp.z }
+						while #pts > 2 and WorldGen.dist(pts[#pts - 1].x, pts[#pts - 1].z, kp.x, kp.z) < 25 do
+							table.remove(pts, #pts - 1)
+						end
+					end
+					o.length = WorldGen.polyLen3(pts)
+					if o.a == o.b then
+						alive[oi] = false
+					end
+				end
+			end
+			moved[keep] = true
+			moved[drop] = true
+			any = true
+			MergedJunctions += 1
+		end
+		local kept: { WorldGen.GEdge } = {}
+		for ei, e in gedges do
+			if alive[ei] then
+				table.insert(kept, e)
+			end
+		end
+		gedges = kept
+		if not any then
+			break
+		end
+	end
+	gnodes, gedges = WorldGen.compact(gnodes, gedges)
+end
+
+-- Graph repair: a generated one-way street that dead-ends (or starts from nowhere) becomes two-way; whatever is still
+-- outside the main strongly connected component is dropped and reported (tests keep authored roads at zero).
+local forcedTwoWay: { [WorldGen.GEdge]: boolean } = {}
+local droppedEdges: { string } = {}
+do
+	local function isOneWay(e: WorldGen.GEdge): boolean
+		return ways[e.way].oneWay and not forcedTwoWay[e]
+	end
+	local changed = true
+	while changed do
+		changed = false
+		local inb, outb = table.create(#gnodes, 0), table.create(#gnodes, 0)
+		for _, e in gedges do
+			outb[e.a] += 1
+			inb[e.b] += 1
+			if not isOneWay(e) then
+				inb[e.a] += 1
+				outb[e.b] += 1
+			end
+		end
+		for _, e in gedges do
+			if isOneWay(e) and ways[e.way].generated and (inb[e.a] == 0 or outb[e.b] == 0) then
+				forcedTwoWay[e] = true
+				changed = true
+			end
+		end
+	end
+	local arcs0 = WorldGen.arcs(#gnodes, gedges, function(i: number): boolean
+		return isOneWay(gedges[i])
+	end)
+	local comp, _, _, main = WorldGen.scc(#gnodes, arcs0)
+	local kept: { WorldGen.GEdge } = {}
+	for _, e in gedges do
+		if comp[e.a] == main and comp[e.b] == main then
+			table.insert(kept, e)
+		else
+			table.insert(droppedEdges, ways[e.way].name .. (if ways[e.way].generated then "" else " (authored)"))
+		end
+	end
+	gedges = kept
+	gnodes, gedges = WorldGen.compact(gnodes, gedges)
+end
+
+-- Collinear vertex merge (fewer road segments = fewer parts; tech critique 10): drop vertices within 0.2 studs of the
+-- 3D chord of their neighbours.
+do
+	for _, e in gedges do
+		local pts = e.pts
+		if #pts <= 2 then
+			continue
+		end
+		local out: { P3 } = { pts[1] }
+		for k = 2, #pts - 1 do
+			local a, b, c = out[#out], pts[k], pts[k + 1]
+			local abx, abz, aby = c.x - a.x, c.z - a.z, c.y - a.y
+			local L2 = abx * abx + abz * abz + aby * aby
+			local t = if L2 > 1e-9 then ((b.x - a.x) * abx + (b.z - a.z) * abz + (b.y - a.y) * aby) / L2 else 0
+			t = math.clamp(t, 0, 1)
+			local px, py, pz = a.x + abx * t, a.y + aby * t, a.z + abz * t
+			local dev = math.sqrt((b.x - px) ^ 2 + (b.y - py) ^ 2 + (b.z - pz) ^ 2)
+			local seg = math.sqrt(L2)
+			if dev > 0.2 or seg > 400 then
+				table.insert(out, b)
+			end
+		end
+		table.insert(out, pts[#pts])
+		e.pts = out
+		e.length = WorldGen.polyLen3(out)
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- 9. Exported road graph
+-------------------------------------------------------------------------------------------------------------------------
+
+export type Node = {
+	id: number,
+	pos: Vector3,
+	edges: { number },
+	intersection: number?,
+}
+
+export type Edge = {
+	id: number,
+	a: number, -- node ids; one-way edges are travelled a -> b
+	b: number,
+	points: { Vector3 }, -- centerline polyline, Y = road surface
+	length: number,
+	class: RoadClass,
+	name: string,
+	oneWay: boolean,
+	lanesF: number, -- lanes travelling a -> b
+	lanesB: number, -- lanes travelling b -> a (0 when one-way)
+	laneWidth: number,
+	median: number,
+	parking: boolean,
+	width: number, -- curb-to-curb (median, parking lanes and shoulders included)
+	sidewalk: number, -- each side
+	shoulder: number,
+	shoulderOut: number, -- freeways: outside (right) / inside (left) shoulders, so lanes sit off-centre
+	shoulderIn: number,
+	speed: number,
+	layer: number, -- 0 ground, 1 deck / trench, 2 / 3 flyover levels, -1 channel
+	elevated: boolean, -- on a deck: needs supports
+	sunken: boolean, -- below the natural grade in a walled cut (the H1 trench, the channel)
+	fill: number, -- max height above the natural grade
+	bridge: boolean, -- spans water or the Rust River
+	tunnel: boolean, -- runs under terrain (the north-east cape)
+	corridor: string?, -- freeway carriageways sharing one deck
+	district: string,
+	traffic: boolean,
+	aux: { { number } }, -- arc-length spans with an extra (auxiliary) right lane: weaving / merge / diverge lanes
+	tags: { string },
+	way: number, -- source way id (stable within a VERSION)
+}
+
+local Nodes: { Node } = {}
+local Edges: { Edge } = {}
+
+for i, n in gnodes do
+	Nodes[i] = { id = i, pos = Vector3.new(n.x, n.y, n.z), edges = {}, intersection = nil }
+end
+
+local function overWaterOrChannel(x: number, z: number): boolean
+	if not landAtLeast(x, z, 0) then
+		return true
+	end
+	local ch = WorldTerrain.Channel
+	if x < 1750 or x > 2350 or z < ch.startOpenAt then
+		return false
+	end
+	local d, s = WorldGen.polyProject(ch.points, x, z)
+	local _, cz = WorldGen.polyAt(ch.points, s)
+	return d < WorldTerrain.channelFloorHalf(cz) + ch.wallRun
+end
+
+-- District of an edge: majority of its samples, ignoring the Red Mesa fallback where a city district is near
+-- (freeway decks on district borders were all tagged 'mesa': tech critique 15).
+local function edgeDistrict(pts: { P3 }): string
+	local votes: { [string]: number } = {}
+	local n = 0
+	for k = 1, #pts, math.max(1, #pts // 8) do
+		local p = pts[k]
+		local d = districtAt(p.x, p.z)
+		if d == "mesa" then
+			-- nearest city district within 450
+			local best, bestD = "mesa", 450
+			for _, dd in DISTRICTS do
+				if dd.id ~= "mesa" then
+					local sd = WorldGen.polySigned(dd.poly, p.x, p.z)
+					if -sd < bestD then
+						best, bestD = dd.id, -sd
+					end
+				end
+			end
+			d = best
+		end
+		votes[d] = (votes[d] or 0) + 1
+		n += 1
+	end
+	local best, bestV = "mesa", -1
+	local keys: { string } = {}
+	for k in votes do
+		table.insert(keys, k)
+	end
+	table.sort(keys)
+	for _, k in keys do
+		if votes[k] > bestV then
+			best, bestV = k, votes[k]
+		end
+	end
+	return best
+end
+
+for i, e in gedges do
+	local w = ways[e.way]
+	local pts: { Vector3 } = {}
+	local maxAbove, maxBelow = 0, 0
+	local bridge = false
+	local tunnel = false
+	for k, p in e.pts do
+		table.insert(pts, Vector3.new(p.x, p.y, p.z))
+		local g = gradeAt(p.x, p.z)
+		maxAbove = math.max(maxAbove, p.y - g)
+		maxBelow = math.max(maxBelow, g - p.y)
+		if g - p.y > 18 and w.layer >= 0 and w.class ~= "channel" and not (w.corridor == "H1 Ring Freeway") then
+			tunnel = true
+		end
+		if w.layer >= 0 and w.class ~= "pier" then
+			if overWaterOrChannel(p.x, p.z) then
+				bridge = true
+			end
+			if k > 1 then
+				local q = e.pts[k - 1]
+				if overWaterOrChannel((p.x + q.x) / 2, (p.z + q.z) / 2) then
+					bridge = true
+				end
+			end
+		end
+	end
+	local oneWay = w.oneWay and not forcedTwoWay[e]
+	local tags: { string } = {}
+	for t in w.tags or {} do
+		table.insert(tags, t)
+	end
+	table.sort(tags)
+	local edge: Edge = {
+		id = i,
+		a = e.a,
+		b = e.b,
+		points = pts,
+		length = e.length,
+		class = w.class,
+		name = w.name,
+		oneWay = oneWay,
+		lanesF = if forcedTwoWay[e] then math.max(1, w.lanes // 2) else w.lanes,
+		lanesB = if not w.oneWay then w.lanes elseif forcedTwoWay[e] then math.max(1, w.lanes // 2) else 0,
+		laneWidth = LANE,
+		median = w.median,
+		parking = w.parking,
+		width = wayWidth(w),
+		sidewalk = w.sidewalk,
+		shoulder = w.shoulder,
+		shoulderOut = if w.class == "freeway" then S.FREEWAY_SHOULDER_OUT else w.shoulder,
+		shoulderIn = if w.class == "freeway" then S.FREEWAY_SHOULDER_IN else w.shoulder,
+		speed = w.speed,
+		layer = w.layer,
+		elevated = maxAbove > 6 and (w.layer >= 1 or w.yMode ~= "ground"),
+		sunken = maxBelow > 6 and (w.layer ~= 0 or w.class == "channel") and not tunnel,
+		fill = math.max(0, maxAbove),
+		bridge = bridge,
+		tunnel = tunnel,
+		corridor = w.corridor,
+		district = w.district or edgeDistrict(e.pts),
+		traffic = w.traffic,
+		aux = {},
+		tags = tags,
+		way = w.id,
+	}
+	Edges[i] = edge
+	table.insert(Nodes[e.a].edges, i)
+	if e.b ~= e.a then
+		table.insert(Nodes[e.b].edges, i)
+	end
+end
+
+WorldLayout.Nodes = Nodes
+WorldLayout.Edges = Edges
+
+-- Gores and auxiliary lanes. Every ramp leaves / joins its carriageway at a node; the auxiliary lane runs 250 studs
+-- before a diverge and after a merge, and continuously from a merge to the next diverge when they are under 900
+-- apart (so short weaves are lane-balanced: tech critique 5).
+export type Gore = { node: number, ramp: number, carriageway: string, kind: string }
+local Gores: { Gore } = {}
+local AuxSpans: { [Carriageway]: { { number } } } = {}
+do
+	local nodeAt: { [string]: number } = {}
+	for i, n in Nodes do
+		nodeAt[math.floor(n.pos.X * 2 + 0.5) .. ":" .. math.floor(n.pos.Z * 2 + 0.5)] = i
+	end
+	local function findNode(x: number, z: number): number?
+		local best, bestD = nil, 2.5
+		for _, n in Nodes do
+			local d = WorldGen.dist(n.pos.X, n.pos.Z, x, z)
+			if d < bestD and math.abs(n.pos.X - x) < 3 then
+				best, bestD = n.id, d
+			end
+		end
+		return best
+	end
+	local byCar: { [Carriageway]: { GoreRec } } = {}
+	local cars: { Carriageway } = {}
+	for _, g in goreRecs do
+		if not byCar[g.car] then
+			byCar[g.car] = {}
+			table.insert(cars, g.car)
+		end
+		table.insert(byCar[g.car], g)
+		local p = along(g.car.pts, g.s)
+		local node = findNode(p.x, p.z)
+		if node then
+			for _, ei in Nodes[node].edges do
+				local e = Edges[ei]
+				if e.class == "ramp" and e.name == g.ramp then
+					table.insert(Gores, { node = node, ramp = ei, carriageway = g.car.name, kind = g.kind })
+					break
+				end
+			end
+		end
+	end
+	local _ = nodeAt
+	for _, car in cars do
+		local list = byCar[car]
+		table.sort(list, function(x: GoreRec, y: GoreRec): boolean
+			return x.s < y.s
+		end)
+		local spans: { { number } } = {}
+		for i, g in list do
+			if g.kind == "merge" then
+				local nxt = list[i + 1]
+				if nxt and nxt.kind == "diverge" and nxt.s - g.s < 900 then
+					table.insert(spans, { g.s, nxt.s })
+				else
+					table.insert(spans, { g.s, g.s + 250 })
+				end
+			else
+				local prv = list[i - 1]
+				if not (prv and prv.kind == "merge" and g.s - prv.s < 900) then
+					table.insert(spans, { g.s - 250, g.s })
+				end
+			end
+		end
+		AuxSpans[car] = spans
+	end
+	-- map the spans onto the carriageway's graph edges
+	for _, e in Edges do
+		local w = ways[e.way]
+		local car = w.carriage
+		if car and AuxSpans[car] then
+			local p0, p1 = e.points[1], e.points[#e.points]
+			local s0 = carS(car, p0.X, p0.Z)
+			local s1 = carS(car, p1.X, p1.Z)
+			for _, sp in AuxSpans[car] do
+				local a0, a1 = math.max(sp[1], s0), math.min(sp[2], s1)
+				if a1 - a0 > 5 then
+					table.insert(e.aux, { a0 - s0, a1 - s0 })
+				end
+			end
+		end
+	end
+end
+WorldLayout.Gores = Gores
+
+-- Merge -> diverge spacing per carriageway, for the tests and the spec (studs; with or without a continuous aux lane).
+local Weaves: { { number } } = {}
+for car, _ in AuxSpans do
+	local list = {}
+	for _, g in goreRecs do
+		if g.car == car then
+			table.insert(list, g)
+		end
+	end
+	table.sort(list, function(x: GoreRec, y: GoreRec): boolean
+		return x.s < y.s
+	end)
+	for i = 1, #list - 1 do
+		if list[i].kind == "merge" and list[i + 1].kind == "diverge" then
+			local p = along(car.pts, list[i].s)
+			table.insert(Weaves, { list[i + 1].s - list[i].s, p.x, p.z })
+		end
+	end
+end
+table.sort(Weaves, function(x: { number }, y: { number }): boolean
+	return x[1] < y[1]
+end)
+WorldLayout.Weaves = Weaves
+
+-------------------------------------------------------------------------------------------------------------------------
+-- 10. Intersections + traffic control
+-------------------------------------------------------------------------------------------------------------------------
+
+export type Approach = {
+	edge: number,
+	inbound: boolean, -- traffic can arrive at the node along this edge
+	outbound: boolean, -- traffic can leave the node along this edge
+	heading: Vector3, -- unit, pointing away from the node along the edge
+	class: RoadClass,
+	name: string,
+	lanesIn: number, -- lanes arriving at the node on this approach
+}
+
+-- movement: "all" (every movement; lefts yield to oncoming traffic), "through" (through + right; lefts held red)
+-- or "left" (protected lefts only).
+export type Phase = { approaches: { number }, green: number, movement: string }
+
+export type Intersection = {
+	id: number,
+	node: number,
+	pos: Vector3,
+	control: "signal" | "stop" | "allway" | "yield" | "merge" | "none",
+	radius: number, -- clear box: no parking, lots or props inside this radius
+	approaches: { Approach },
+	stopApproaches: { number }, -- approaches that must stop / yield (two-way stop, yield, all-way: all)
+	phases: { Phase }, -- signals only
+	cycle: number,
+	amber: number,
+	allRed: number,
+	offset: number, -- green-wave offset (seconds) along the main road
+	district: string,
+}
+
+local MAJOR: { [string]: boolean } = { boulevard = true, avenue = true, highway = true }
+local MINOR: { [string]: boolean } =
+	{ alley = true, service = true, dirt = true, pier = true, channel = true, runway = true }
+local URBAN: { [string]: boolean } =
+	{ downtown = true, midtown = true, beach = true, foundry = true, port = true, airport = true }
+
+local Intersections: { Intersection } = {}
+
+local function edgeHeadingFrom(e: Edge, node: number): Vector3
+	local pts = e.points
+	local p0, p1
+	if e.a == node then
+		p0 = pts[1]
+		p1 = pts[math.min(#pts, 2)]
+		for k = 2, #pts do
+			if (pts[k] - p0).Magnitude > 20 then
+				p1 = pts[k]
+				break
+			end
+		end
+	else
+		p0 = pts[#pts]
+		p1 = pts[math.max(1, #pts - 1)]
+		for k = #pts - 1, 1, -1 do
+			if (pts[k] - p0).Magnitude > 20 then
+				p1 = pts[k]
+				break
+			end
+		end
+	end
+	local d = Vector3.new(p1.X - p0.X, 0, p1.Z - p0.Z)
+	return if d.Magnitude > 1e-6 then d.Unit else Vector3.new(1, 0, 0)
+end
+
+-- Turn kind from inbound approach a to outbound approach b: "left" | "right" | "through" | "uturn".
+local function turnKind(a: Approach, b: Approach): string
+	local inx, inz = -a.heading.X, -a.heading.Z
+	local ox, oz = b.heading.X, b.heading.Z
+	local rx, rz = WorldGen.right(inx, inz)
+	local side = ox * rx + oz * rz
+	local fwd = ox * inx + oz * inz
+	if fwd < -0.85 then
+		return "uturn"
+	elseif side > 0.5 then
+		return "right"
+	elseif side < -0.5 then
+		return "left"
+	end
+	return "through"
+end
+WorldLayout.turnKind = turnKind
+
+for _, node in Nodes do
+	local list = node.edges
+	if #list < 3 then
+		continue
+	end
+	local approaches: { Approach } = {}
+	local hasRamp, hasFreeway = false, false
+	local maxHalf = 0
+	local nIn, nOut = 0, 0
+	local allOneWay = true
+	for _, ei in list do
+		local e = Edges[ei]
+		local inbound = (not e.oneWay) or e.b == node.id
+		local outbound = (not e.oneWay) or e.a == node.id
+		local lanesIn = if e.b == node.id then e.lanesF else e.lanesB
+		table.insert(approaches, {
+			edge = ei,
+			inbound = inbound,
+			outbound = outbound,
+			heading = edgeHeadingFrom(e, node.id),
+			class = e.class,
+			name = e.name,
+			lanesIn = if inbound then math.max(1, lanesIn) else 0,
+		})
+		if inbound then
+			nIn += 1
+		end
+		if outbound then
+			nOut += 1
+		end
+		if not e.oneWay then
+			allOneWay = false
+		end
+		if e.class == "ramp" then
+			hasRamp = true
+		end
+		if e.class == "freeway" then
+			hasFreeway = true
+		end
+		maxHalf = math.max(maxHalf, e.width / 2 + e.sidewalk)
+	end
+	local district = districtAt(node.pos.X, node.pos.Z)
+	-- ground = at the terrain grade (tech critique 1: ramp terminals were classed as merges)
+	local ground = math.abs(node.pos.Y - gradeAt(node.pos.X, node.pos.Z)) < 3
+	local control: "signal" | "stop" | "allway" | "yield" | "merge" | "none" = "stop"
+	local majors, reals, minors = 0, 0, 0
+	local layer0NonRamp = false
+	for _, a in approaches do
+		if MAJOR[a.class] then
+			majors += 1
+		end
+		if MINOR[a.class] then
+			minors += 1
+		else
+			reals += 1
+		end
+		local e = Edges[a.edge]
+		if e.layer == 0 and a.class ~= "ramp" then
+			layer0NonRamp = true
+		end
+	end
+	local stopApproaches: { number } = {}
+	if hasFreeway or not ground then
+		control = "merge"
+	elseif hasRamp and layer0NonRamp then
+		control = "signal" -- diamond terminals and every ramp meeting a street
+	elseif allOneWay and #approaches == 3 and (nIn == 1 or nOut == 1) then
+		control = if nIn == 1 then "none" else "yield" -- one-way split / join
+	elseif reals <= 2 and minors > 0 then
+		control = "stop" -- alleys, service roads and ramps into the channel stop at the through road
+		for i, a in approaches do
+			if MINOR[a.class] then
+				table.insert(stopApproaches, i)
+			end
+		end
+	elseif majors >= 2 then
+		control = "signal"
+	elseif majors == 1 then
+		control = if URBAN[district] then "signal" else "stop"
+	else
+		if district == "downtown" or district == "midtown" then
+			control = if reals >= 4 then "signal" else "stop"
+		elseif district == "southgate" or district == "cactus" or district == "beach" or district == "driftwood" then
+			control = "allway"
+		else
+			control = "stop"
+		end
+	end
+	if control == "allway" then
+		for i, a in approaches do
+			if a.inbound then
+				table.insert(stopApproaches, i)
+			end
+		end
+	elseif control == "stop" and #stopApproaches == 0 then
+		-- two-way stop: the lower-class approaches stop
+		local best = 99
+		for _, a in approaches do
+			best = math.min(best, CLASS_ORDER[a.class] or 9)
+		end
+		for i, a in approaches do
+			if a.inbound and (CLASS_ORDER[a.class] or 9) > best then
+				table.insert(stopApproaches, i)
+			end
+		end
+		if #stopApproaches == 0 then
+			for i, a in approaches do
+				if a.inbound then
+					table.insert(stopApproaches, i)
+				end
+			end
+			control = "allway"
+		end
+	elseif control == "yield" then
+		for i, a in approaches do
+			if a.inbound and Edges[a.edge].oneWay then
+				table.insert(stopApproaches, i)
+				break
+			end
+		end
+	end
+	-- signal phases: pair opposite inbound approaches, the busier pair first; a protected left phase leads where an
+	-- approach has 3+ lanes or turns left onto a freeway on-ramp (tech critique 12)
+	local phases: { Phase } = {}
+	if control == "signal" then
+		local assigned = table.create(#approaches, false)
+		local function rank(a: Approach): number
+			return if MAJOR[a.class] then 2 elseif a.class == "ramp" then 1 else 0
+		end
+		local idx = {}
+		for k = 1, #approaches do
+			if approaches[k].inbound then
+				table.insert(idx, k)
+			end
+		end
+		table.sort(idx, function(p: number, q: number): boolean
+			local rp, rq = rank(approaches[p]), rank(approaches[q])
+			if rp ~= rq then
+				return rp > rq
+			end
+			return p < q
+		end)
+		for _, k in idx do
+			if not assigned[k] then
+				assigned[k] = true
+				local group = { k }
+				local best, bestDot = 0, -0.6
+				for _, j in idx do
+					if not assigned[j] then
+						local d = approaches[k].heading:Dot(approaches[j].heading)
+						if d < bestDot then
+							best, bestDot = j, d
+						end
+					end
+				end
+				if best > 0 then
+					assigned[best] = true
+					table.insert(group, best)
+				end
+				local major = rank(approaches[k]) >= 2
+				-- protected left?
+				local needLeft = false
+				if #group == 2 then
+					for _, gi in group do
+						local a = approaches[gi]
+						for _, b in approaches do
+							if b ~= a and b.outbound and turnKind(a, b) == "left" then
+								if a.lanesIn >= 3 or b.class == "ramp" then
+									needLeft = true
+								end
+							end
+						end
+					end
+				end
+				if needLeft then
+					table.insert(phases, { approaches = table.clone(group), green = 9, movement = "left" })
+					table.insert(phases, { approaches = group, green = if major then 22 else 16, movement = "through" })
+				else
+					table.insert(phases, { approaches = group, green = if major then 24 else 16, movement = "all" })
+				end
+			end
+		end
+		if #phases < 2 then
+			-- a single inbound group (e.g. one-way grid corner): give the cross flow its own phase anyway
+			table.insert(phases, { approaches = {}, green = 6, movement = "all" })
+		end
+	end
+	local cycle = 0
+	for _, ph in phases do
+		cycle += ph.green + 3 + 1.5
+	end
+	local inter: Intersection = {
+		id = #Intersections + 1,
+		node = node.id,
+		pos = node.pos,
+		control = control,
+		radius = maxHalf,
+		approaches = approaches,
+		stopApproaches = stopApproaches,
+		phases = phases,
+		cycle = cycle,
+		amber = 3,
+		allRed = 1.5,
+		offset = if cycle > 0 then (node.pos.X / 58) % cycle else 0,
+		district = district,
+	}
+	table.insert(Intersections, inter)
+	node.intersection = inter.id
+end
+
+WorldLayout.Intersections = Intersections
+-- TEMP-DEBUG
+WorldLayout._ways = ways
+WorldLayout.DroppedEdges = droppedEdges
+WorldLayout.MergedJunctions = MergedJunctions
+return WorldLayout
