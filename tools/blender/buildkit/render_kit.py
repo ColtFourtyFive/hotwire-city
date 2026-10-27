@@ -244,8 +244,8 @@ def sc_deco(a, night=False):
     S.parked_row(c, -300, 300, ROAD_W / 2 - 12.5, heading=180, seed=9, prob=0.6)
     S.car(c, -40, -10, heading=0, seed=33)
     x = -250.0
-    for sd in (3, 0, 1, 5, 2, 6):
-        B = BK.build("deco", sd)
+    for i, sd in enumerate((3, 0, 1, 5, 2, 6)):
+        B = BK.build("deco", sd, blade=(i + 1) % 4)
         W, D = B.footprint
         BK.instantiate(B, c, loc=(x + W / 2, ROAD_W / 2 + SIDE_W - 8 + D / 2, 0), rot_z=0, night=night)
         x += W + 6

@@ -160,6 +160,23 @@ def decimate(ob, target_tris, symmetric=False):
     return tri_count(ob)
 
 
+def clean_degenerate(ob, dist):
+    """Zero-area / duplicate faces make smart_project emit huge empty UV islands that waste the atlas."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.dissolve_degenerate(bm, edges=bm.edges, dist=dist)
+    bad = [f for f in bm.faces if f.calc_area() < dist * dist * 0.01]
+    if bad:
+        bmesh.ops.delete(bm, geom=bad, context="FACES")
+    loose = [v for v in bm.verts if not v.link_faces]
+    if loose:
+        bmesh.ops.delete(bm, geom=loose, context="VERTS")
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.validate(clean_customdata=False)
+    ob.data.update()
+
+
 def triangulate(ob):
     bm = bmesh.new()
     bm.from_mesh(ob.data)
@@ -194,6 +211,7 @@ def make_low(hi, name, budget, length, symmetric=False):
             log(f"{name}: dropped {n} faces of tiny parts")
     t = decimate(lo, budget, symmetric=symmetric)
     triangulate(lo)
+    clean_degenerate(lo, length * 2e-4)
     smooth_by_angle(lo)
     log(f"low {name}: {t0} -> {tri_count(lo)} tris (budget {budget})")
     return lo
@@ -218,7 +236,27 @@ def atlas_uv(objs, margin=0.004, angle=60.0):
     except TypeError:
         bpy.ops.uv.pack_islands(rotate=True, margin=margin)
     bpy.ops.object.mode_set(mode="OBJECT")
-    log(f"atlas uv {[o.name for o in objs]} packed in {time.time() - t0:.1f}s")
+    log(f"atlas uv {[o.name for o in objs]} packed in {time.time() - t0:.1f}s, "
+        f"texel use {sum(uv_utilisation(o) for o in objs):.2f}")
+
+
+def uv_utilisation(o, layer="atlas"):
+    me = o.data
+    uvl = me.uv_layers.get(layer)
+    if uvl is None or not len(me.loops):
+        return 0.0
+    uv = np.empty(len(me.loops) * 2)
+    uvl.data.foreach_get("uv", uv)
+    uv = uv.reshape(-1, 2)
+    ls = np.empty(len(me.polygons), dtype=np.int64)
+    lt = np.empty(len(me.polygons), dtype=np.int64)
+    me.polygons.foreach_get("loop_start", ls)
+    me.polygons.foreach_get("loop_total", lt)
+    a = 0.0
+    for s0, n in zip(ls, lt):  # shoelace per polygon
+        p = uv[s0:s0 + n]
+        a += 0.5 * abs(np.dot(p[:, 0], np.roll(p[:, 1], 1)) - np.dot(p[:, 1], np.roll(p[:, 0], 1)))
+    return float(a)
 
 
 def _weight_islands(objs, down=0.3):
