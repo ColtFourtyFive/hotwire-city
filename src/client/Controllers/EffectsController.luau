@@ -14,6 +14,10 @@
 --    a unit whose Siren attribute is false (leaving / wrecked) goes dark.
 --  * Police helicopters ("PoliceHeli" tag): rendered here from the server's HeliCFrame / SpotPos attributes (body pose
 --    smoothing, searchlight disc, rotor spin, siren blink); the server never animates them.
+--  * Other players' nitro + horn: VehicleFxState(vehicleId, boost, honk) from VehicleFxService -> exhaust flame + glow
+--    light on the car whose VehicleId matches, horn through SoundController at the car. Our own car is skipped
+--    (VehicleClient draws it). Flames die when boost=false arrives, the server's 1.5 s keep-alive stops (BOOST_TTL),
+--    the driver leaves (DriverUserId 0) or the car despawns.
 --
 -- Everything is pooled: one Heartbeat drives all moving bits (BulkMoveTo), bolts and comic billboards are reused,
 -- particle bursts come from a ring of emitter hosts. Built-in textures only.
@@ -1786,6 +1790,182 @@ local function stepHelis(dt: number)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
+-- Other players' nitro flames + horn (VehicleFxState, relayed by the server's VehicleFxService)
+-------------------------------------------------------------------------------------------------------------------------
+
+local BOOST_TTL = 3.5 -- the server re-sends an ongoing boost every 1.5 s; flames die once that stops (out of range)
+local BOOST_LINGER = 0.6 -- emitter kept after the boost so the last particles finish, then freed
+local BOOST_WHOOSH_GAP = 1.2 -- s between boost-start whooshes per car (nitro tapping / spam stays quiet)
+
+type BoostRec = {
+	model: Model,
+	exhaust: Attachment,
+	flame: ParticleEmitter,
+	light: PointLight,
+	on: boolean,
+	expiresAt: number,
+	releaseAt: number,
+	whooshAt: number,
+}
+
+local boosts: { [Model]: BoostRec } = {}
+
+-- Are a remote car's nitro flames still live? A boost=true no older than its TTL and a driver in the seat. Pure.
+function EffectsController.boostAlive(on: boolean, now: number, expiresAt: number, driverUserId: any): boolean
+	return on and now <= expiresAt and typeof(driverUserId) == "number" and driverUserId > 0
+end
+
+local function vehicleModelById(id: number): Model?
+	for model in tracked do
+		if model.Parent and model:GetAttribute("VehicleId") == id then
+			return model
+		end
+	end
+	return nil
+end
+
+local function carChassis(model: Model): BasePart?
+	local primary = model.PrimaryPart
+	if primary then
+		return primary
+	end
+	local chassis = model:FindFirstChild("Chassis")
+	return if chassis and chassis:IsA("BasePart") then chassis else nil
+end
+
+local function releaseBoost(rec: BoostRec)
+	if boosts[rec.model] == rec then
+		boosts[rec.model] = nil
+	end
+	rec.exhaust:Destroy()
+end
+
+-- Exhaust attachment at the car's tail (+Z; fronts face -Z) with the same flame look as our own (VehicleClient).
+local function buildBoost(model: Model, chassis: BasePart): BoostRec
+	local length = model:GetAttribute("Length")
+	local halfLength = math.max(chassis.Size.Z / 2, if typeof(length) == "number" then length / 2 - 0.3 else 0)
+	local exhaust = Instance.new("Attachment")
+	exhaust.Name = "HC_RemoteNitro"
+	exhaust.Position = Vector3.new(0, 0, halfLength + 0.3)
+
+	local flame = Instance.new("ParticleEmitter")
+	flame.Name = "NitroFlame"
+	flame.Texture = TEX_FIRE
+	flame.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+		ColorSequenceKeypoint.new(0.25, Theme.Colors.Secondary),
+		ColorSequenceKeypoint.new(0.7, Theme.Colors.Primary),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 40, 255)),
+	})
+	flame.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.8), NumberSequenceKeypoint.new(1, 0.2) })
+	flame.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(1, 1) })
+	flame.Lifetime = NumberRange.new(0.12, 0.26)
+	flame.Rate = 120
+	flame.Speed = NumberRange.new(28, 40)
+	flame.SpreadAngle = Vector2.new(8, 8)
+	flame.LightEmission = 1
+	flame.LightInfluence = 0
+	flame.EmissionDirection = Enum.NormalId.Back
+	flame.ZOffset = 1
+	flame.Enabled = false
+	flame.Parent = exhaust
+
+	local light = Instance.new("PointLight")
+	light.Name = "NitroLight"
+	light.Color = Theme.Colors.Secondary
+	light.Range = 14
+	light.Brightness = 3
+	light.Shadows = false
+	light.Enabled = false
+	light.Parent = exhaust
+
+	exhaust.Parent = chassis
+	local rec: BoostRec = {
+		model = model,
+		exhaust = exhaust,
+		flame = flame,
+		light = light,
+		on = false,
+		expiresAt = 0,
+		releaseAt = 0,
+		whooshAt = -math.huge,
+	}
+	boosts[model] = rec
+	return rec
+end
+
+local function setBoost(model: Model, on: boolean)
+	local now = os.clock()
+	local rec = boosts[model]
+	if on then
+		if not rec or rec.exhaust.Parent == nil then
+			if rec then
+				releaseBoost(rec)
+			end
+			local chassis = carChassis(model)
+			if not chassis then
+				return
+			end
+			rec = buildBoost(model, chassis)
+		end
+		local live = rec :: BoostRec
+		live.expiresAt = now + BOOST_TTL
+		if not live.on then
+			live.on = true
+			live.flame.Enabled = true
+			live.light.Enabled = true
+			live.flame:Emit(20)
+			if now - live.whooshAt >= BOOST_WHOOSH_GAP then
+				live.whooshAt = now
+				playSound("Whoosh", live.exhaust.WorldPosition)
+			end
+		end
+	elseif rec and rec.on then
+		rec.on = false
+		rec.flame.Enabled = false
+		rec.light.Enabled = false
+		rec.releaseAt = now + BOOST_LINGER
+	end
+end
+
+local function onVehicleFx(vehicleId: any, boost: any, honk: any)
+	if typeof(vehicleId) ~= "number" or typeof(boost) ~= "boolean" or typeof(honk) ~= "boolean" then
+		return
+	end
+	local model = vehicleModelById(vehicleId)
+	if not model or model:GetAttribute("DriverUserId") == player.UserId then
+		return -- unknown car, or our own (VehicleClient renders it)
+	end
+	local chassis = carChassis(model)
+	if not chassis then
+		return
+	end
+	local cam = cameraPosition()
+	if boost and cam and (chassis.Position - cam).Magnitude > CULL_DISTANCE then
+		return -- too far to see; the keep-alive builds it if the car comes closer
+	end
+	setBoost(model, boost)
+	if honk then
+		playSound("Horn", chassis.Position)
+	end
+end
+
+local function stepBoosts()
+	local now = os.clock()
+	for model, rec in boosts do
+		local gone = model.Parent == nil or rec.exhaust.Parent == nil
+		if gone or (not rec.on and now >= rec.releaseAt) then
+			releaseBoost(rec)
+		elseif rec.on then
+			local driver = model:GetAttribute("DriverUserId")
+			if not EffectsController.boostAlive(true, now, rec.expiresAt, driver) or driver == player.UserId then
+				setBoost(model, false)
+			end
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------------------
 -- Lifecycle
 -------------------------------------------------------------------------------------------------------------------------
 
@@ -1800,6 +1980,14 @@ function EffectsController.start()
 			return
 		end
 		EffectsController.play(name, if typeof(data) == "table" then data else nil)
+	end)
+
+	-- other players' nitro flames + horn (own thread: never hold up start() on a missing remote)
+	task.spawn(function()
+		local ok, err = pcall(Net.listen, "VehicleFxState", onVehicleFx)
+		if not ok then
+			warn("[EffectsController] VehicleFxState unavailable: " .. tostring(err))
+		end
 	end)
 
 	-- vehicles (rarity tags)
@@ -1865,6 +2053,9 @@ function EffectsController.start()
 		end
 		if next(helis) ~= nil then
 			stepHelis(dt)
+		end
+		if next(boosts) ~= nil then
+			stepBoosts()
 		end
 		tagAcc += dt
 		if tagAcc >= TAG_TICK then

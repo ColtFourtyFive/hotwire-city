@@ -7,13 +7,25 @@
 --   identity rotation; the asset's front faces -Z; scaled per its AssetDef; every BasePart Anchored=true,
 --   CanCollide = def.collide or false, CanTouch=false, CanQuery = def.collide or false. No scripts/sounds/prompts.
 -- Consumers: model:PivotTo(groundCFrame) places it standing on that point.
+--
+-- Load order: Hero vehicle shells first (police_unit, then the catalog from Common up: the cars that spawn most), so
+-- most cars are built already skinned; then Props and Buildings. The root folder gets attribute HeroReady=true once
+-- every Hero entry finished and AllReady=true at the end. Templates stay in ReplicatedStorage: client-built cars
+-- (Index viewports) clone them too.
+-- Late arrival (docs/ART_PASS.md AP1): when a Hero template becomes ready, every car already built with that CarId in
+-- Workspace.Vehicles, Workspace.Dealership and Workspace.Plots.*.Display gets CarBuilder.applyShell (clients re-skin
+-- their own client-built models: Client/Controllers/AssetClient).
 
 local AssetService = game:GetService("AssetService")
 local InsertService = game:GetService("InsertService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
-local Assets = require(ReplicatedStorage.Shared.Config.Assets)
-local Signal = require(ReplicatedStorage.Shared.Util.Signal)
+local Shared = ReplicatedStorage.Shared
+local Assets = require(Shared.Config.Assets)
+local Cars = require(Shared.Config.Cars)
+local CarBuilder = require(Shared.Vehicle.CarBuilder)
+local Signal = require(Shared.Util.Signal)
 
 local AssetLibrary = {}
 
@@ -222,6 +234,88 @@ local function loadEntry(cat: string, key: string, def: Assets.AssetDef)
 	warn(("[AssetLibrary] %s/%s unavailable; using procedural fallback"):format(cat, key))
 end
 
+-- Hero load priority (lower first): the police cruiser, then catalog order (Common first = the most spawned cars).
+function AssetLibrary.heroPriority(key: string): number
+	if key == Cars.Police.id then
+		return 0
+	end
+	for i, def in Cars.List do
+		if def.id == key then
+			return i
+		end
+	end
+	return math.huge
+end
+
+export type QueueItem = { cat: string, key: string, def: Assets.AssetDef }
+
+-- Load queue: every Hero entry (by heroPriority) before Props and Buildings (alphabetical: deterministic).
+function AssetLibrary.loadQueue(): { QueueItem }
+	local queue: { QueueItem } = {}
+	local heroes: { QueueItem } = {}
+	for key, def in Assets.Hero do
+		table.insert(heroes, { cat = "Hero", key = key, def = def })
+	end
+	table.sort(heroes, function(a, b)
+		local pa, pb = AssetLibrary.heroPriority(a.key), AssetLibrary.heroPriority(b.key)
+		if pa ~= pb then
+			return pa < pb
+		end
+		return a.key < b.key
+	end)
+	table.move(heroes, 1, #heroes, 1, queue)
+	for _, cat in { "Props", "Buildings" } do
+		local defs: { [string]: Assets.AssetDef } = (Assets :: any)[cat]
+		local keys = {}
+		for key in defs do
+			table.insert(keys, key)
+		end
+		table.sort(keys)
+		for _, key in keys do
+			table.insert(queue, { cat = cat, key = key, def = defs[key] })
+		end
+	end
+	return queue
+end
+
+-- Re-skin every already-built car wearing CarId `key` (police: "police_unit") with its new Hero template.
+-- Returns how many models got a shell. Display folders hold the cars directly; one nested folder level is tolerated.
+function AssetLibrary.reskin(key: string): number
+	local count = 0
+	local function visit(container: Instance?, depth: number)
+		if not container then
+			return
+		end
+		for _, child in container:GetChildren() do
+			if child:IsA("Model") and child:GetAttribute("CarId") ~= nil then
+				if
+					child.Parent ~= nil
+					and child:GetAttribute("HeroMesh") ~= true
+					and CarBuilder.shellKey(child) == key
+				then
+					local ok, applied = pcall(CarBuilder.applyShell, child)
+					if not ok then
+						warn(("[AssetLibrary] re-skin %s (%s) failed: %s"):format(child.Name, key, tostring(applied)))
+					elseif applied then
+						count += 1
+					end
+				end
+			elseif depth > 0 and (child:IsA("Folder") or child:IsA("Model")) then
+				visit(child, depth - 1)
+			end
+		end
+	end
+	visit(Workspace:FindFirstChild("Vehicles"), 1)
+	visit(Workspace:FindFirstChild("Dealership"), 1)
+	local plots = Workspace:FindFirstChild("Plots")
+	if plots then
+		for _, plot in plots:GetChildren() do
+			visit(plot:FindFirstChild("Display"), 1)
+		end
+	end
+	return count
+end
+
 function AssetLibrary.init()
 	local existing = ReplicatedStorage:FindFirstChild("AssetLibrary")
 	if existing then
@@ -231,20 +325,26 @@ function AssetLibrary.init()
 		root.Name = "AssetLibrary"
 		root.Parent = ReplicatedStorage
 	end
+	-- late arrival: cars built before their shell loaded get it now (the template is parented before Ready fires)
+	AssetLibrary.Ready:Connect(function(cat: string, key: string)
+		if cat == "Hero" then
+			AssetLibrary.reskin(key)
+		end
+	end)
 end
 
 function AssetLibrary.start()
-	local queue: { { cat: string, key: string, def: Assets.AssetDef } } = {}
-	for key, def in Assets.Hero do
-		table.insert(queue, { cat = "Hero", key = key, def = def })
-	end
-	for key, def in Assets.Props do
-		table.insert(queue, { cat = "Props", key = key, def = def })
-	end
-	for key, def in Assets.Buildings do
-		table.insert(queue, { cat = "Buildings", key = key, def = def })
-	end
+	local queue = AssetLibrary.loadQueue()
 	pending = #queue
+	local heroPending = 0
+	for _, item in queue do
+		if item.cat == "Hero" then
+			heroPending += 1
+		end
+	end
+	if heroPending == 0 then
+		root:SetAttribute("HeroReady", true)
+	end
 	local running = 0
 	for _, item in queue do
 		while running >= Assets.LOAD_CONCURRENCY do
@@ -255,12 +355,19 @@ function AssetLibrary.start()
 			loadEntry(item.cat, item.key, item.def)
 			running -= 1
 			pending -= 1
+			if item.cat == "Hero" then
+				heroPending -= 1
+				if heroPending == 0 then
+					root:SetAttribute("HeroReady", true)
+				end
+			end
 		end)
 	end
 	while pending > 0 do
 		task.wait(0.1)
 	end
 	allDone = true
+	root:SetAttribute("HeroReady", true)
 	root:SetAttribute("AllReady", true)
 	AssetLibrary.AllReady:Fire()
 end

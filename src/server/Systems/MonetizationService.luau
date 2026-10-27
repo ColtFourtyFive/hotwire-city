@@ -18,6 +18,9 @@
 --   Concurrent deliveries of the same PurchaseId are rejected with NotProcessedYet while one is in flight.
 --   Handlers refuse (false -> NotProcessedYet, never charged) what can't be delivered: Lose the Cops with 0 stars,
 --   a second Diamond Dragster (one per account). The Store disables both buttons up front.
+--   Exclusive cars are never stored while the buyer's active heist needs their last free slot
+--   (RewardsService.carGrantBlocked, player-theft F10): a Dragster bought mid-heist is owed in data.exclusives and
+--   rolls in when the heist ends. Lockdowns stack, and the toast names the total sealed time.
 --
 -- VIP: player attribute "VIP" (local HUD crown) + a 👑 on the overhead name every player sees.
 
@@ -108,6 +111,18 @@ function MonetizationService._ownsExclusive(data: any, carId: string): boolean
 		end
 	end
 	return false
+end
+
+-- Lockdown success toast (pure). Purchases stack (DECISIONS #7), so it names the total sealed time when that is
+-- longer than what this purchase added.
+function MonetizationService._lockdownText(addedSeconds: number, secondsLeft: number?): string
+	local added = math.max(0, math.floor(addedSeconds))
+	local minutes = math.max(1, math.floor(added / 60 + 0.5))
+	local left = if typeof(secondsLeft) == "number" and secondsLeft == secondsLeft then secondsLeft else 0
+	if left > added + 1 then
+		return `🔒 LOCKDOWN! +{minutes} min: your garage is sealed for {Format.clock(left)}.`
+	end
+	return `🔒 LOCKDOWN! Your garage is sealed for {minutes} minutes.`
 end
 
 -- Cash product amounts (pure): income-scaled with minimums.
@@ -317,12 +332,22 @@ end
 
 local delivering: { [Player]: boolean } = {}
 
+-- player-theft F10: a car grant must not take the slot the player's active heist needs to park its car. RewardsService
+-- decides (active theft + <= 1 free slot); owed cars simply wait for the next check.
+local function carGrantBlocked(player: Player): boolean
+	local ok, blocked = callSystem("RewardsService", "carGrantBlocked", player)
+	return ok and blocked == true
+end
+
 -- Tries to deliver owed exclusive cars into free slots. Returns number delivered. Never runs twice at once
--- for the same player (prevents a double delivery if storeCar yields).
+-- for the same player (prevents a double delivery if storeCar yields). Waits while a heist needs the free slot.
 function MonetizationService.deliverExclusives(player: Player): number
 	local data = DataService.get(player)
 	if not data or not DataService.isLoaded(player) or delivering[player] then
 		return 0
+	end
+	if carGrantBlocked(player) then
+		return 0 -- retried every EXCLUSIVE_CHECK_INTERVAL
 	end
 	delivering[player] = true
 	local delivered = 0
@@ -388,7 +413,13 @@ local function registerBuiltIns()
 		if not ok or res == false then
 			return false
 		end
-		notify(player, "success", "🔒 LOCKDOWN! Your garage is sealed for 10 minutes.", 4)
+		-- Lockdowns stack (DECISIONS #7): say how long the garage is sealed now, not just what this one added
+		local okLeft, left = callSystem("PlotService", "lockSecondsLeft", index)
+		local text = MonetizationService._lockdownText(
+			Monetization.LOCKDOWN_DURATION,
+			if okLeft and typeof(left) == "number" then left else nil
+		)
+		notify(player, "success", text, 4)
 		celebrate(player, "Purchase")
 		return true
 	end)
@@ -428,10 +459,23 @@ local function registerBuiltIns()
 			notify(player, "info", "💎 You already own the Diamond Dragster!", 4)
 			return false
 		end
-		local ok, stored = callSystem("GarageService", "storeCar", player, "diamond_dragster", "None")
+		local blocked = carGrantBlocked(player) -- mid-heist: owed, so it can't take the stolen car's slot
+		local ok, stored = false, false
+		if not blocked then
+			ok, stored = callSystem("GarageService", "storeCar", player, "diamond_dragster", "None")
+		end
 		if ok and stored == true then
 			data.discovered.diamond_dragster = true
 			notify(player, "success", "💎 The DIAMOND DRAGSTER is parked in your garage!", 5)
+		elseif blocked then
+			addPendingExclusive(data, "diamond_dragster")
+			data.discovered.diamond_dragster = true
+			notify(
+				player,
+				"success",
+				"💎 Diamond Dragster unlocked! It rolls into your garage as soon as your heist is over.",
+				7
+			)
 		else
 			addPendingExclusive(data, "diamond_dragster")
 			data.discovered.diamond_dragster = true

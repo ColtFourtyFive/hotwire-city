@@ -16,13 +16,14 @@
 --                                  Net.fire("TutorialDone") + confetti
 -- During steps 1-3 the HUD is in focus mode (menus/HOME hidden); they pop back in at step 4.
 -- Returning players who already delivered a car (stats.steals > 0) never replay it: TutorialDone is sent instead.
--- Streamer mode (HUDController.VisibilityChanged) hides the card.
+-- Streamer mode (HUDController.VisibilityChanged) hides the card. The card stays above whatever sits at bottom-center:
+-- HUDController.getBottomClearance() (HOME, hotbar, speedometer, theft timer) and GarageClient.getLockTop().
 --
 -- Public API: isActive(): boolean, getStep(): (number, string?), skip(),
 --   StepChanged: Signal(index, id), Finished: Signal(skipped: boolean)
 -- Pure helpers (tests): STEPS, DONE, transition(step, ctx), pickNearest(candidates, origin, maxDistance?), keyFor,
 --   enterKeyFor, shouldRun(snapshot), alreadyDelivered(snapshot), hintFor(stepDef, inputKind), garageCount(snapshot),
---   stealCount(snapshot), inFrontOfDoor(pos, door, face)
+--   stealCount(snapshot), inFrontOfDoor(pos, door, face), cardBottomAbove(bottom, lockTop?)
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -126,7 +127,7 @@ local RETARGET_HYSTERESIS = 25 -- a new car must be this many studs closer to re
 local START_DELAY = 1.5
 local NEAR_PAD = 16
 local TICK = 0.2
-local CARD_BOTTOM = 186 -- clears the garage LOCK button (GarageClient) and the driving speedometer
+local CARD_BOTTOM = 186 -- clears the LOCK pill inside the garage (bottom 112) and the driving speedometer
 local CARD_BOTTOM_THEFT = 276 -- also clears HUDController's theft timer when one is showing
 local TOUCH_CARD_SCALE = 1.25 -- phones run at the 0.55 UI scale floor; keep the objective readable
 local FOCUS_MAX_SECONDS = 150 -- HUD focus mode (menus hidden) never lasts longer than this
@@ -265,6 +266,15 @@ function TutorialController.alreadyDelivered(snapshot: any): boolean
 	return TutorialController.shouldRun(snapshot) and TutorialController.stealCount(snapshot) > 0
 end
 
+-- Card bottom (design px from the screen bottom) that also clears the garage LOCK pill whose top edge is `lockTop`
+-- (nil = pill hidden). Outside a locked garage the pill stacks above HOME and can reach past CARD_BOTTOM.
+function TutorialController.cardBottomAbove(bottom: number, lockTop: number?): number
+	if typeof(lockTop) == "number" and lockTop == lockTop then
+		return math.max(bottom, math.ceil(lockTop) + 8)
+	end
+	return bottom
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Lazy dependencies
 -------------------------------------------------------------------------------------------------------------------------
@@ -276,6 +286,18 @@ local function lazy(name: string): any
 	end
 	local ok, result = pcall(require, mod :: any)
 	return if ok and typeof(result) == "table" then result else nil
+end
+
+-- Top edge (design px) of GarageClient's LOCK pill while it shows, else nil.
+local function lockTop(): number?
+	local garage = lazy("GarageClient")
+	if garage and typeof(garage.getLockTop) == "function" then
+		local ok, top = pcall(garage.getLockTop)
+		if ok and typeof(top) == "number" then
+			return top
+		end
+	end
+	return nil
 end
 
 local function playSound(key: string)
@@ -1275,6 +1297,8 @@ local function tick()
 				bottom = math.max(bottom, math.ceil(clearance) + 8)
 			end
 		end
+		-- ...and above GarageClient's LOCK pill, which stacks on top of HOME outside a locked garage
+		bottom = TutorialController.cardBottomAbove(bottom, lockTop())
 		if math.abs(bottom - cardBottom) >= 4 then
 			cardBottom = bottom
 			tween(c.holder, Theme.TweenMedium, { Position = UDim2.new(0.5, 0, 1, -bottom) })

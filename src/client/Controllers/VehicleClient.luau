@@ -10,8 +10,12 @@
 --     The CoreGui backpack hotbar is hidden while driving (it sat on top of the speedometer; tools can't be used
 --     from the seat, spikes have their own button/key) and restored on exit.
 --   * Feel: FOV kick with speed + nitro, camera shake on crashes, tire smoke + screech while drifting,
---     nitro flame + glow while boosting. Purely local; no remotes fired from here (other players' drift smoke and
---     screech come from WheelAnimator, derived from the replicated chassis velocity).
+--     nitro flame + glow while boosting. Other players' drift smoke and screech come from WheelAnimator (derived from
+--     the replicated chassis velocity); their nitro flames and horn come from the VehicleFx remote: nitro start/stop
+--     and horn presses are sent as state changes only (>= FX_MIN_INTERVAL apart, coalesced), the server relays them to
+--     nearby clients as VehicleFxState and EffectsController renders them.
+--   * Car radio (SoundController plays it): on while driving; the DrivingUI pill beside the speedometer shows the
+--     station + track with ◀ ▶ buttons, R / T keys, D-pad left / right. The first drive tunes a random station.
 -- Wheels of the driven car are posed by WheelAnimator from getController() data (VehicleClient.positionsWheels=false).
 
 local CollectionService = game:GetService("CollectionService")
@@ -33,6 +37,7 @@ local EconomyMath = require(Shared.Util.EconomyMath)
 local Signal = require(Shared.Util.Signal)
 local Trove = require(Shared.Util.Trove)
 local VehicleController = require(Shared.Vehicle.VehicleController)
+local Net = require(Shared.Net)
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI.Kit)
@@ -54,6 +59,8 @@ local ACTION_HANDBRAKE = "HC_Handbrake"
 local ACTION_NITRO = "HC_Nitro"
 local ACTION_HORN = "HC_Horn"
 local ACTION_EXIT = "HC_Exit"
+local ACTION_RADIO_PREV = "HC_RadioPrev"
+local ACTION_RADIO_NEXT = "HC_RadioNext"
 local SHAKE_UNDO_BIND = "HC_DriveShakeUndo"
 local SHAKE_APPLY_BIND = "HC_DriveShakeApply"
 local NITRO_FOV_EXTRA = 8
@@ -62,6 +69,7 @@ local CRASH_DROP = 40 -- studs/s of sudden speed loss = crash
 local CRASH_WINDOW_DECAY = 300 -- recent-max speed decays this fast (studs/s per s) => ~0.13 s window for CRASH_DROP
 local CRASH_COOLDOWN = 0.5
 local HORN_COOLDOWN = 0.35
+local FX_MIN_INTERVAL = 0.2 -- s between VehicleFx sends (server bucket: 6/s); newer state waits, then goes out
 local REV_SEGMENTS = 16
 local HINT_SECONDS = 10
 local SETTINGS_REFRESH = 1
@@ -72,6 +80,14 @@ local DRIFT_BANNER_Y = -150
 -- scale: its touch cluster shares the design canvas with CombatHUD's buttons and the speedometer footprint with
 -- HUDController's theft panel. So on touch screens the small labels get a bigger TextSize instead (same boxes).
 local PHONE_TEXT_MAX_BOOST = 1.4
+-- Radio pill (design px, before its UIScale = the phone text boost): bottom-aligned with the speedometer (half width
+-- 170), right of it when that clears the touch cluster (DRIFT's left edge W-256; CombatClient's SPIKES sit higher,
+-- above DRIFT) or the screen edge, else mirrored to its left (narrow phone canvases).
+local RADIO_SIZE = Vector2.new(216, 60)
+local RADIO_BUTTON = 48
+local RADIO_GAP = 6
+local SPEEDO_HALF_WIDTH = 170
+local TOUCH_CLUSTER_LEFT = 256
 
 type Session = {
 	model: Model,
@@ -100,6 +116,9 @@ type Session = {
 	shownDriftTenths: number,
 	nitroWasFull: boolean,
 	lastHealth: number,
+	fxBoost: boolean, -- nitro state last sent through VehicleFx
+	fxHonk: boolean, -- a horn press waiting to be sent
+	fxAt: number, -- os.clock() of the last VehicleFx send
 	fx: {
 		smoke: { ParticleEmitter },
 		flame: ParticleEmitter?,
@@ -218,6 +237,17 @@ function VehicleClient.textBoost(isTouch: boolean, uiScale: number, touchMin: nu
 		return 1
 	end
 	return math.clamp(touchMin / uiScale, 1, PHONE_TEXT_MAX_BOOST)
+end
+
+-- Radio pill placement on a DrivingUI canvas `canvasWidth` design px wide, pill drawn at `scale`: returns
+-- (anchorX, offsetX) for AnchorPoint (anchorX, 1) / Position UDim2.new(0.5, offsetX, 1, -12). Pure, unit-tested.
+function VehicleClient.radioLayout(canvasWidth: number, touch: boolean, scale: number): (number, number)
+	local width = RADIO_SIZE.X * scale
+	local rightLimit = canvasWidth - (if touch then TOUCH_CLUSTER_LEFT + RADIO_GAP else 12)
+	if canvasWidth / 2 + SPEEDO_HALF_WIDTH + RADIO_GAP + width <= rightLimit then
+		return 0, SPEEDO_HALF_WIDTH + RADIO_GAP
+	end
+	return 1, -(SPEEDO_HALF_WIDTH + RADIO_GAP)
 end
 
 local function phoneTextBoost(): number
@@ -476,7 +506,7 @@ local function buildUI()
 		Name = "Hint",
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 0, -6),
-		Size = UDim2.fromOffset(520, 18),
+		Size = UDim2.fromOffset(600, 18),
 		TextColor3 = Theme.Colors.TextDim,
 		TextWrapped = false,
 		FontFace = Theme.Fonts.Body,
@@ -511,6 +541,59 @@ local function buildUI()
 		VehicleClient.exit()
 	end)
 
+	-- Radio ---------------------------------------------------------------------------------------------------------
+	-- Station + track with ◀ ▶ (R / T, D-pad). Placed by layoutRadio (VehicleClient.radioLayout); its UIScale is the
+	-- phone text boost, so the labels inside are TextScaled rather than ts()-boosted.
+	local radio = Kit.panel({
+		Name = "Radio",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0.5, SPEEDO_HALF_WIDTH + RADIO_GAP, 1, -12),
+		Size = UDim2.fromOffset(RADIO_SIZE.X, RADIO_SIZE.Y),
+		Parent = root,
+	})
+	local radioScale = Kit.new("UIScale", { Scale = textBoost, Parent = radio })
+	local function radioButton(name: string, glyph: string, anchorX: number, x: UDim): TextButton
+		local btn = Kit.button(glyph, Theme.Colors.PanelLight, {
+			Name = name,
+			AnchorPoint = Vector2.new(anchorX, 0.5),
+			Position = UDim2.new(x, UDim.new(0.5, 0)),
+			Size = UDim2.fromOffset(RADIO_BUTTON, RADIO_BUTTON),
+			TextSize = 22,
+		})
+		btn.Parent = radio
+		return btn
+	end
+	local radioPrev = radioButton("Prev", "◀", 0, UDim.new(0, 5))
+	local radioNext = radioButton("Next", "▶", 1, UDim.new(1, -5))
+	local labelInset = 5 + RADIO_BUTTON + 3
+	local radioStation = Kit.label("📻 RADIO", 18, {
+		Name = "Station",
+		Position = UDim2.fromOffset(labelInset, 7),
+		Size = UDim2.new(1, -2 * labelInset, 0, 26),
+		TextScaled = true,
+		TextWrapped = false,
+		TextColor3 = Theme.Colors.Secondary,
+	})
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 18, MinTextSize = 9, Parent = radioStation })
+	radioStation.Parent = radio
+	local radioTitle = Kit.label("", 13, {
+		Name = "Title",
+		Position = UDim2.fromOffset(labelInset, 34),
+		Size = UDim2.new(1, -2 * labelInset, 0, 18),
+		TextScaled = true,
+		TextWrapped = false,
+		TextColor3 = Theme.Colors.TextDim,
+		FontFace = Theme.Fonts.Body,
+	})
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 13, MinTextSize = 8, Parent = radioTitle })
+	radioTitle.Parent = radio
+	radioPrev.Activated:Connect(function()
+		VehicleClient.radioStep(-1)
+	end)
+	radioNext.Activated:Connect(function()
+		VehicleClient.radioStep(1)
+	end)
+
 	ui = {
 		gui = gui,
 		speedo = speedo,
@@ -531,7 +614,60 @@ local function buildUI()
 		hint = hint,
 		touchFrame = touchFrame,
 		nitroBtn = nitroBtn,
+		radio = radio,
+		radioScale = radioScale,
+		radioStation = radioStation,
+		radioTitle = radioTitle,
 	}
+end
+
+-- Place the radio pill for the current viewport (see VehicleClient.radioLayout).
+local function layoutRadio()
+	if not ui then
+		return
+	end
+	local cam = Workspace.CurrentCamera
+	if not cam then
+		return
+	end
+	local okScale, canvasScale = pcall(Kit.uiScale)
+	local scale = if okScale and typeof(canvasScale) == "number" and canvasScale > 0 then canvasScale else 1
+	local boost = phoneTextBoost()
+	local anchorX, offsetX = VehicleClient.radioLayout(cam.ViewportSize.X / scale, UserInputService.TouchEnabled, boost)
+	ui.radioScale.Scale = boost
+	ui.radio.AnchorPoint = Vector2.new(anchorX, 1)
+	ui.radio.Position = UDim2.new(0.5, offsetX, 1, -12)
+end
+
+-- Radio label: station + "♪ track" (or MUSIC OFF while the music setting mutes it). Args from RadioChanged / getRadio.
+local function updateRadioUI(station: any, title: any)
+	if not ui then
+		return
+	end
+	local sc = sibling("SoundController")
+	ui.radio.Visible = typeof(station) == "string"
+	ui.radioStation.Text = if typeof(station) == "string" then "📻 " .. station else "📻 RADIO"
+	local musicOff = sc ~= nil and type(sc.isEnabled) == "function" and sc.isEnabled("music") == false
+	if musicOff then
+		ui.radioTitle.Text = "MUSIC OFF"
+		ui.radioTitle.TextColor3 = Theme.Colors.Warning
+	else
+		ui.radioTitle.Text = if typeof(title) == "string" then "♪ " .. title else ""
+		ui.radioTitle.TextColor3 = Theme.Colors.TextDim
+	end
+end
+
+local function radioCall(method: string, ...: any): ...any
+	local sc = sibling("SoundController")
+	local fn = if sc then sc[method] else nil
+	if type(fn) ~= "function" then
+		return nil
+	end
+	local results = table.pack(pcall(fn, ...))
+	if not results[1] then
+		return nil
+	end
+	return table.unpack(results, 2, results.n)
 end
 
 local function controlHint(): string
@@ -539,9 +675,9 @@ local function controlHint(): string
 		return ""
 	end
 	if UserInputService.GamepadEnabled and UserInputService:GetLastInputType().Name:find("Gamepad") then
-		return "RT/LT drive   X drift   RB nitro   Y horn   A exit"
+		return "RT/LT drive   X drift   RB nitro   Y horn   A exit   D-pad radio"
 	end
-	return "WASD drive   SPACE drift   SHIFT nitro   H horn   F exit"
+	return "WASD drive   SPACE drift   SHIFT nitro   H horn   F exit   R/T radio"
 end
 
 local function setRev(lit: number, boosting: boolean)
@@ -605,6 +741,8 @@ local function showUI(s: Session)
 	setRev(0, false)
 	ui.setNitro(s.controller.nitro, false)
 	updateHealthUI(s, false)
+	layoutRadio()
+	updateRadioUI(radioCall("getRadio"))
 	ui.gui.Enabled = true
 	-- slide up + pop
 	ui.speedo.Position = UDim2.new(0.5, 0, 1, 190)
@@ -781,10 +919,30 @@ local function bindActions()
 		Enum.KeyCode.F,
 		Enum.KeyCode.ButtonA -- gamepad "jump" = leave the seat (Jumping is disabled while driving)
 	)
+	ContextActionService:BindActionAtPriority(
+		ACTION_RADIO_PREV,
+		pressHandler(function()
+			VehicleClient.radioStep(-1)
+		end),
+		false,
+		ACTION_PRIORITY,
+		Enum.KeyCode.R,
+		Enum.KeyCode.DPadLeft
+	)
+	ContextActionService:BindActionAtPriority(
+		ACTION_RADIO_NEXT,
+		pressHandler(function()
+			VehicleClient.radioStep(1)
+		end),
+		false,
+		ACTION_PRIORITY,
+		Enum.KeyCode.T,
+		Enum.KeyCode.DPadRight
+	)
 end
 
 local function unbindActions()
-	for _, name in { ACTION_HANDBRAKE, ACTION_NITRO, ACTION_HORN, ACTION_EXIT } do
+	for _, name in { ACTION_HANDBRAKE, ACTION_NITRO, ACTION_HORN, ACTION_EXIT, ACTION_RADIO_PREV, ACTION_RADIO_NEXT } do
 		pcall(function()
 			ContextActionService:UnbindAction(name)
 		end)
@@ -815,6 +973,23 @@ local function onCrash(s: Session, drop: number)
 	if ui then
 		Kit.pop(ui.speedo, 1.08)
 	end
+end
+
+-- VehicleFx: tell the server when our nitro starts / stops and when we honk, so nearby players see the flames and
+-- hear the horn. State changes only, >= FX_MIN_INTERVAL apart; a change inside the window goes out when it opens.
+local function syncFx(s: Session, boosting: boolean)
+	if boosting == s.fxBoost and not s.fxHonk then
+		return
+	end
+	local now = os.clock()
+	if now - s.fxAt < FX_MIN_INTERVAL then
+		return
+	end
+	local honk = s.fxHonk
+	s.fxBoost = boosting
+	s.fxHonk = false
+	s.fxAt = now
+	pcall(Net.fire, "VehicleFx", boosting, honk)
 end
 
 local function simStep(s: Session, dt: number)
@@ -851,6 +1026,7 @@ local function simStep(s: Session, dt: number)
 	local controller = s.controller
 	controller:setInput(input)
 	controller:step(dt)
+	syncFx(s, controller.boosting == true)
 
 	-- crash detection: sudden loss of speed against a decaying recent maximum
 	local speed = controller.speed
@@ -1048,6 +1224,11 @@ exitVehicle = function()
 	end)
 	shakeUndo(s)
 	s.trove:Destroy()
+	radioCall("setRadioOn", false)
+	if s.fxBoost then
+		-- best effort (the server may already see us out of the seat; its own sweep clears the flames then)
+		pcall(Net.fire, "VehicleFx", false, false)
+	end
 	if s.humanoid.Parent then
 		s.humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
 	end
@@ -1128,6 +1309,9 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 			local hp = model:GetAttribute("Health")
 			return if typeof(hp) == "number" then hp else Tuning.MAX_HEALTH
 		end)(),
+		fxBoost = false,
+		fxHonk = false,
+		fxAt = 0,
 		fx = { smoke = {} },
 	}
 	session = s
@@ -1140,6 +1324,7 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 	if not okFx then
 		warn("[VehicleClient] fx: " .. tostring(fxErr))
 	end
+	radioCall("setRadioOn", true)
 	showUI(s)
 
 	local trove = s.trove
@@ -1248,6 +1433,7 @@ function VehicleClient.honk()
 		return
 	end
 	lastHorn = os.clock()
+	s.fxHonk = true -- nearby players hear it even when our own sfx are off
 	if ui then
 		Kit.pop(ui.touchFrame.HornButton, 1.2)
 	end
@@ -1270,10 +1456,37 @@ function VehicleClient.honk()
 	end
 end
 
+-- Previous (-1) / next (+1) radio station while driving (◀ ▶ buttons, R / T, D-pad).
+function VehicleClient.radioStep(dir: number)
+	if not session then
+		return
+	end
+	radioCall("stepRadio", dir)
+	playViaController("Click")
+	if ui then
+		Kit.pop(ui.radioStation, 1.15)
+	end
+end
+
 function VehicleClient.init() end
 
 function VehicleClient.start()
 	buildUI()
+	local sc = sibling("SoundController")
+	local radioChanged = if sc then sc.RadioChanged else nil
+	if type(radioChanged) == "table" and type(radioChanged.Connect) == "function" then
+		radioChanged:Connect(function(station: any, title: any)
+			updateRadioUI(station, title)
+		end)
+	end
+	local cam = Workspace.CurrentCamera
+	if cam then
+		cam:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+			if session then
+				layoutRadio()
+			end
+		end)
+	end
 	player.CharacterAdded:Connect(function(character: Model)
 		hookCharacter(character)
 	end)

@@ -5,7 +5,11 @@
 --   Bloom, vibrant ColorCorrection, SunRays, Terrain Clouds.
 -- * Cycle: 12 real minutes of day (ClockTime 06:00 -> 18:00) then 4 minutes of night (18:00 -> 06:00). ClockTime is
 --   advanced on the server at 1 Hz (steps of ~0.017 h by day: invisible, but every replicated ClockTime change makes
---   each client re-evaluate sun + shadows); ambient/atmosphere/tint/bloom are blended from keyframes every 2 s.
+--   each client re-evaluate sun + shadows); the look is blended from keyframes every 2 s (smoothstep per segment).
+-- * Look (art pass): warm golden-hour afternoons (new servers start at golden hour), a moody neon night (thicker
+--   violet Atmosphere haze, stronger + wider bloom with a lower threshold so neon signs glow, saturated, punchier
+--   ColorCorrection) and pink/blue dusk + dawn. Env writes are cheap: a property is only written when it moved past a
+--   small per-property step since its last write (plateaus cost nothing; ~16 properties at most per 2 s).
 -- * Night (ClockTime >= NIGHT_ON or < NIGHT_OFF): street lights (tag "StreetLight") turn their PointLights on, and
 --   every part tagged "NightGlow" swaps to its NightColor/NightMaterial attributes (windows light up, lamp heads go
 --   Neon). Swaps are spread over a few frames. Lighting attribute "IsNight" mirrors the state for clients
@@ -27,7 +31,7 @@ LightingService.SUNRISE = 6 -- ClockTime where the day segment starts
 LightingService.SUNSET = 18 -- ClockTime where the night segment starts
 LightingService.NIGHT_ON = 17.75 -- lights on (dusk) ...
 LightingService.NIGHT_OFF = 6.25 -- ... lights off (dawn)
-LightingService.START_HOUR = 14 -- new servers start in the afternoon
+LightingService.START_HOUR = 16.2 -- new servers start at golden hour
 LightingService.CLOCK_INTERVAL = 1
 LightingService.ENV_INTERVAL = 2
 LightingService.GLOW_BATCH = 150 -- NightGlow parts swapped per frame
@@ -79,103 +83,180 @@ type Key = {
 	atmoDecay: Color3,
 	bloom: number,
 	exposure: number,
+	density: number, -- Atmosphere
+	haze: number,
+	glare: number,
+	saturation: number, -- ColorCorrection
+	contrast: number,
+	bloomSize: number,
+	bloomThreshold: number,
+	rays: number, -- SunRays intensity
 }
 
 local function rgb(r: number, g: number, b: number): Color3
 	return Color3.fromRGB(r, g, b)
 end
 
--- Look keyframes (sorted by hour). Night stays readable: a bright navy "cartoon night", not pitch black.
+-- The neon night (also the 24 h key): readable navy, not pitch black, with violet haze and glowing signs.
+local NIGHT: Key = {
+	hour = 0,
+	ambient = rgb(66, 70, 132),
+	outdoor = rgb(74, 82, 152),
+	brightness = 1.35,
+	tint = rgb(196, 200, 255),
+	atmoColor = rgb(78, 62, 150),
+	atmoDecay = rgb(130, 46, 150),
+	bloom = 1.45,
+	exposure = 0.35,
+	density = 0.38,
+	haze = 2.5,
+	glare = 0,
+	saturation = 0.36,
+	contrast = 0.16,
+	bloomSize = 32,
+	bloomThreshold = 1.15,
+	rays = 0,
+}
+
+-- Look keyframes (sorted by hour; first and last are the same night look so midnight wraps cleanly).
 local KEYS: { Key } = {
-	{
-		hour = 0,
-		ambient = rgb(70, 76, 130),
-		outdoor = rgb(78, 88, 150),
-		brightness = 1.4,
-		tint = rgb(196, 206, 255),
-		atmoColor = rgb(60, 70, 130),
-		atmoDecay = rgb(40, 40, 90),
-		bloom = 1.1,
-		exposure = 0.35,
-	},
-	{
+	NIGHT,
+	{ -- pre-dawn
 		hour = 5.6,
-		ambient = rgb(80, 82, 130),
-		outdoor = rgb(110, 104, 150),
+		ambient = rgb(80, 82, 132),
+		outdoor = rgb(110, 104, 152),
 		brightness = 1.6,
-		tint = rgb(220, 210, 245),
-		atmoColor = rgb(120, 110, 170),
-		atmoDecay = rgb(90, 70, 110),
-		bloom = 0.95,
+		tint = rgb(222, 210, 248),
+		atmoColor = rgb(122, 108, 172),
+		atmoDecay = rgb(104, 70, 120),
+		bloom = 1.1,
 		exposure = 0.25,
+		density = 0.35,
+		haze = 2.1,
+		glare = 0.1,
+		saturation = 0.3,
+		contrast = 0.12,
+		bloomSize = 30,
+		bloomThreshold = 1.3,
+		rays = 0.03,
 	},
-	{
+	{ -- sunrise glow
 		hour = 6.6,
-		ambient = rgb(110, 96, 110),
-		outdoor = rgb(170, 140, 140),
+		ambient = rgb(116, 98, 106),
+		outdoor = rgb(180, 142, 134),
 		brightness = 2.4,
-		tint = rgb(255, 222, 200),
-		atmoColor = rgb(255, 196, 170),
-		atmoDecay = rgb(170, 110, 110),
-		bloom = 0.7,
+		tint = rgb(255, 220, 192),
+		atmoColor = rgb(255, 192, 160),
+		atmoDecay = rgb(180, 110, 104),
+		bloom = 0.75,
 		exposure = 0.1,
+		density = 0.31,
+		haze = 1.8,
+		glare = 0.55,
+		saturation = 0.28,
+		contrast = 0.1,
+		bloomSize = 28,
+		bloomThreshold = 1.5,
+		rays = 0.1,
 	},
-	{
+	{ -- bright cartoon day
 		hour = 9,
 		ambient = rgb(104, 104, 118),
 		outdoor = rgb(150, 152, 166),
 		brightness = 3,
-		tint = rgb(255, 252, 246),
+		tint = rgb(255, 250, 240),
 		atmoColor = rgb(200, 224, 255),
 		atmoDecay = rgb(110, 134, 170),
 		bloom = 0.45,
 		exposure = 0,
+		density = 0.26,
+		haze = 1.1,
+		glare = 0.25,
+		saturation = 0.24,
+		contrast = 0.08,
+		bloomSize = 24,
+		bloomThreshold = 1.7,
+		rays = 0.05,
 	},
-	{
-		hour = 15.5,
-		ambient = rgb(108, 104, 114),
-		outdoor = rgb(156, 150, 158),
+	{ -- afternoon warming up
+		hour = 14.2,
+		ambient = rgb(110, 104, 112),
+		outdoor = rgb(162, 152, 150),
 		brightness = 3,
-		tint = rgb(255, 248, 238),
-		atmoColor = rgb(214, 220, 250),
-		atmoDecay = rgb(120, 130, 168),
+		tint = rgb(255, 242, 222),
+		atmoColor = rgb(232, 218, 236),
+		atmoDecay = rgb(146, 128, 156),
 		bloom = 0.5,
 		exposure = 0,
+		density = 0.27,
+		haze = 1.3,
+		glare = 0.35,
+		saturation = 0.26,
+		contrast = 0.09,
+		bloomSize = 24,
+		bloomThreshold = 1.65,
+		rays = 0.07,
 	},
-	{
+	{ -- golden hour
+		hour = 16.4,
+		ambient = rgb(130, 102, 96),
+		outdoor = rgb(204, 148, 116),
+		brightness = 2.8,
+		tint = rgb(255, 214, 168),
+		atmoColor = rgb(255, 186, 128),
+		atmoDecay = rgb(196, 106, 88),
+		bloom = 0.7,
+		exposure = 0.05,
+		density = 0.3,
+		haze = 1.9,
+		glare = 0.8,
+		saturation = 0.3,
+		contrast = 0.12,
+		bloomSize = 28,
+		bloomThreshold = 1.5,
+		rays = 0.14,
+	},
+	{ -- sunset
 		hour = 17.6,
-		ambient = rgb(120, 92, 100),
-		outdoor = rgb(184, 130, 120),
-		brightness = 2.4,
-		tint = rgb(255, 206, 170),
-		atmoColor = rgb(255, 170, 130),
-		atmoDecay = rgb(160, 90, 96),
-		bloom = 0.75,
-		exposure = 0.1,
+		ambient = rgb(126, 88, 104),
+		outdoor = rgb(192, 122, 120),
+		brightness = 2.3,
+		tint = rgb(255, 192, 170),
+		atmoColor = rgb(255, 150, 132),
+		atmoDecay = rgb(172, 80, 112),
+		bloom = 0.9,
+		exposure = 0.12,
+		density = 0.32,
+		haze = 2.1,
+		glare = 0.6,
+		saturation = 0.32,
+		contrast = 0.13,
+		bloomSize = 30,
+		bloomThreshold = 1.4,
+		rays = 0.12,
 	},
-	{
+	{ -- blue hour: neon switching on
 		hour = 18.8,
-		ambient = rgb(84, 76, 130),
-		outdoor = rgb(110, 90, 150),
+		ambient = rgb(84, 72, 138),
+		outdoor = rgb(106, 86, 158),
 		brightness = 1.6,
-		tint = rgb(220, 200, 250),
-		atmoColor = rgb(110, 80, 150),
-		atmoDecay = rgb(70, 50, 110),
-		bloom = 1.0,
+		tint = rgb(214, 196, 255),
+		atmoColor = rgb(112, 76, 162),
+		atmoDecay = rgb(154, 60, 150),
+		bloom = 1.25,
 		exposure = 0.3,
+		density = 0.36,
+		haze = 2.3,
+		glare = 0.1,
+		saturation = 0.34,
+		contrast = 0.15,
+		bloomSize = 31,
+		bloomThreshold = 1.2,
+		rays = 0.02,
 	},
-	{
-		hour = 24,
-		ambient = rgb(70, 76, 130),
-		outdoor = rgb(78, 88, 150),
-		brightness = 1.4,
-		tint = rgb(196, 206, 255),
-		atmoColor = rgb(60, 70, 130),
-		atmoDecay = rgb(40, 40, 90),
-		bloom = 1.1,
-		exposure = 0.35,
-	},
+	table.clone(NIGHT),
 }
+KEYS[#KEYS].hour = 24
 LightingService.KEYS = KEYS
 
 -- Interpolated look for an hour (0..24).
@@ -202,7 +283,30 @@ function LightingService.lookAt(hour: number): Key
 		atmoDecay = a.atmoDecay:Lerp(b.atmoDecay, t),
 		bloom = a.bloom + (b.bloom - a.bloom) * t,
 		exposure = a.exposure + (b.exposure - a.exposure) * t,
+		density = a.density + (b.density - a.density) * t,
+		haze = a.haze + (b.haze - a.haze) * t,
+		glare = a.glare + (b.glare - a.glare) * t,
+		saturation = a.saturation + (b.saturation - a.saturation) * t,
+		contrast = a.contrast + (b.contrast - a.contrast) * t,
+		bloomSize = a.bloomSize + (b.bloomSize - a.bloomSize) * t,
+		bloomThreshold = a.bloomThreshold + (b.bloomThreshold - a.bloomThreshold) * t,
+		rays = a.rays + (b.rays - a.rays) * t,
 	}
+end
+
+-- Write-skip test: has `value` moved far enough from the last written `last` (nil = never written)? Colors compare
+-- per channel. Pure, unit-tested.
+function LightingService._changed(last: any, value: any, eps: number): boolean
+	if last == nil or typeof(last) ~= typeof(value) then
+		return true
+	end
+	if typeof(value) == "Color3" then
+		return math.max(math.abs(last.R - value.R), math.abs(last.G - value.G), math.abs(last.B - value.B)) >= eps
+	end
+	if typeof(value) == "number" then
+		return math.abs(last - value) >= eps
+	end
+	return last ~= value
 end
 
 ---------------------------------------------------------------------------------------------------------------
@@ -216,6 +320,19 @@ local glowVersion = 0
 local atmosphere: Atmosphere? = nil
 local bloom: BloomEffect? = nil
 local color: ColorCorrectionEffect? = nil
+local sunRays: SunRaysEffect? = nil
+
+local COLOR_EPS = 1.5 / 255
+local written: { [string]: any } = {} -- last value written per "Object.Property" (see LightingService._changed)
+
+local function write(inst: Instance?, key: string, prop: string, value: any, eps: number)
+	if not inst or not LightingService._changed(written[key], value, eps) then
+		return
+	end
+	written[key] = value
+	local target: any = inst
+	target[prop] = value
+end
 
 local function getOrCreate(parent: Instance, className: string, name: string): Instance
 	local existing = parent:FindFirstChild(name)
@@ -234,20 +351,22 @@ end
 
 local function applyLook(hour: number)
 	local look = LightingService.lookAt(hour)
-	Lighting.Ambient = look.ambient
-	Lighting.OutdoorAmbient = look.outdoor
-	Lighting.Brightness = look.brightness
-	Lighting.ExposureCompensation = look.exposure
-	if color then
-		color.TintColor = look.tint
-	end
-	if atmosphere then
-		atmosphere.Color = look.atmoColor
-		atmosphere.Decay = look.atmoDecay
-	end
-	if bloom then
-		bloom.Intensity = look.bloom
-	end
+	write(Lighting, "L.Ambient", "Ambient", look.ambient, COLOR_EPS)
+	write(Lighting, "L.OutdoorAmbient", "OutdoorAmbient", look.outdoor, COLOR_EPS)
+	write(Lighting, "L.Brightness", "Brightness", look.brightness, 0.02)
+	write(Lighting, "L.Exposure", "ExposureCompensation", look.exposure, 0.01)
+	write(color, "C.Tint", "TintColor", look.tint, COLOR_EPS)
+	write(color, "C.Saturation", "Saturation", look.saturation, 0.005)
+	write(color, "C.Contrast", "Contrast", look.contrast, 0.005)
+	write(atmosphere, "A.Color", "Color", look.atmoColor, COLOR_EPS)
+	write(atmosphere, "A.Decay", "Decay", look.atmoDecay, COLOR_EPS)
+	write(atmosphere, "A.Density", "Density", look.density, 0.004)
+	write(atmosphere, "A.Haze", "Haze", look.haze, 0.03)
+	write(atmosphere, "A.Glare", "Glare", look.glare, 0.02)
+	write(bloom, "B.Intensity", "Intensity", look.bloom, 0.01)
+	write(bloom, "B.Size", "Size", look.bloomSize, 0.5)
+	write(bloom, "B.Threshold", "Threshold", look.bloomThreshold, 0.01)
+	write(sunRays, "R.Intensity", "Intensity", look.rays, 0.004)
 end
 
 local function materialFrom(name: any, fallback: Enum.Material): Enum.Material
@@ -385,6 +504,8 @@ function LightingService.init()
 	local rays = getOrCreate(Lighting, "SunRaysEffect", "HotwireSunRays") :: SunRaysEffect
 	rays.Intensity = 0.05
 	rays.Spread = 0.55
+	sunRays = rays
+	table.clear(written) -- (re)created effects: the next applyLook writes everything
 
 	local terrain = Workspace:FindFirstChildOfClass("Terrain")
 	if terrain then

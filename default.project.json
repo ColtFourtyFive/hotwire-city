@@ -8,6 +8,12 @@
         "$path": "src/shared"
       }
     },
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "Loading": {
+        "$path": "src/first"
+      }
+    },
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "Server": {

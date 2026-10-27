@@ -22,6 +22,8 @@
 --    IMPOUNDED" when a car was taken, fades after 3s.
 --  * Streamer mode: snapshot.settings.hideHud hides all of the above; a tiny 👁️ button (top-left) turns it back on.
 --  * Chat: a gold [👑 VIP] prefix on messages from VIP pass holders (TextChatService.OnIncomingMessage).
+--  * Reset Character is switched off while wanted (StarterGui ResetButtonCallback): the server counts dying while
+--    wanted as a bust, so the button must not look like an escape.
 --
 -- Public API (beyond init/start):
 --   getCashAnchor(): GuiObject?           cash pill (NotificationController flies coins / popups into it)
@@ -37,7 +39,7 @@
 --   holdCash(amount) / releaseCash()      offline modal: show cash without `amount` until COLLECT, then count up
 --   VisibilityChanged: Signal(hidden: boolean)
 -- Pure helpers (tests): clampStars, starStates, cashTrend, theftView, theftMode, playtimeClaimable, rebirthReady,
---   gearAffordable, homeState, gridFit, touchMenuGrid, countGarage, menuNameCandidates, vipChatPrefix.
+--   gearAffordable, homeState, gridFit, touchMenuGrid, countGarage, menuNameCandidates, vipChatPrefix, resetAllowed.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -237,6 +239,11 @@ function HUDController.playtimeClaimable(playtime: any, extraSeconds: number?): 
 		end
 	end
 	return false
+end
+
+-- Reset Character stays available only while not wanted (dying while wanted is a bust, chase-events-dealer F3).
+function HUDController.resetAllowed(wanted: any): boolean
+	return HUDController.clampStars(wanted) == 0
 end
 
 function HUDController.rebirthReady(cash: number, rebirths: number): boolean
@@ -2190,6 +2197,32 @@ local function installVipChatTag()
 	end)
 end
 
+-- chase-events-dealer F3: dying while wanted is a bust on the server (penalty + Police HQ respawn), so the Reset
+-- Character button is switched off while wanted instead of looking like a free escape. SetCore throws until the
+-- CoreScripts register the callback: retry for a few seconds. The token cancels a retry that a newer state replaced.
+local resetAllowed: boolean? = nil
+local resetToken = 0
+local function applyResetButton()
+	local allow = HUDController.resetAllowed(player:GetAttribute("Wanted"))
+	resetToken += 1
+	if allow == resetAllowed then
+		return
+	end
+	local token = resetToken
+	task.spawn(function()
+		for _ = 1, 20 do
+			if token ~= resetToken then
+				return
+			end
+			if pcall(StarterGui.SetCore, StarterGui, "ResetButtonCallback", allow) then
+				resetAllowed = allow
+				return
+			end
+			task.wait(0.5)
+		end
+	end)
+end
+
 -- Per-frame cosmetics (Heartbeat): police lights, siren wiggle, bust label flash. Property writes only, no allocs.
 local function animateTick(now: number)
 	local u = ui
@@ -2258,7 +2291,9 @@ function HUDController.start()
 		refreshStars(true)
 		updateStatus()
 		refreshHome()
+		applyResetButton()
 	end)
+	applyResetButton()
 	player:GetAttributeChangedSignal("WantedSeen"):Connect(refreshSeen)
 	player:GetAttributeChangedSignal("WantedDecayAt"):Connect(refreshSeen)
 	player:GetAttributeChangedSignal("BustProgress"):Connect(refreshBust)

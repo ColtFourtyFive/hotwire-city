@@ -22,6 +22,8 @@
 --                                     loop, "🚨 THIEF IS STEALING YOUR CAR!" banner (under the top-center HUD stack),
 --                                     and a live waypoint that follows the car itself (TheftVictimUserId / TheftActive
 --                                     model attributes; the thief's name is only a fallback). `CarStolenAlert`.
+--                                     The subtitle counts down the thief's time (TheftEndsAt) or, while the car sits
+--                                     dropped, the tow timer with a RECOVER nudge (Dropped / DroppedEndsAt).
 --  Streamer mode (HUDController.VisibilityChanged): toasts, feed, banners and the alert vignette are hidden.
 --  Busted is HUDController's job, not here.
 --  Public: isAlertActive(), getAlertBottom(): number? (real px), isOfflineOpen().
@@ -154,6 +156,23 @@ function NotificationController.stolenAlertText(thiefName: string, carId: any, m
 	local thief = NotificationController.richEscape(string.upper(thiefName))
 	local car = NotificationController.richEscape(NotificationController.carLabel(carId, mutation))
 	return ('🚨 <font color="#FFD23F">%s</font> IS STEALING YOUR <font color="#FFD23F">%s</font>!'):format(thief, car)
+end
+
+-- Stolen-car alert subtitle (F3): how long the thief has left (endsAt, server time), or, while the car sits dropped,
+-- the tow countdown and a nudge to Recover it. Times unknown -> the plain call to action.
+function NotificationController.alertSubtitle(
+	endsAt: number?,
+	dropped: boolean,
+	droppedEndsAt: number?,
+	now: number
+): string
+	if dropped and droppedEndsAt and droppedEndsAt == droppedEndsAt then
+		return `💥 DROPPED! Run to it and RECOVER • {Format.clock(math.ceil(math.max(0, droppedEndsAt - now)))}`
+	end
+	if endsAt and endsAt == endsAt and endsAt > now then
+		return `⏱️ {Format.clock(math.ceil(endsAt - now))} left • Chase them down and BONK 🏏 them!`
+	end
+	return "Chase them down and BONK 🏏 them to get it back!"
 end
 
 -- Seconds a banner stays fully visible given how many banners are waiting behind it.
@@ -1426,6 +1445,7 @@ type AlertUI = {
 	holderScale: UIScale,
 	banner: Frame,
 	title: TextLabel,
+	sub: TextLabel,
 	tweens: { Tween },
 }
 
@@ -1622,7 +1642,7 @@ local function buildAlertUI(): AlertUI
 	})
 	sizeConstraint(28, 12).Parent = title
 	title.Parent = banner
-	local sub = Kit.label("Chase them down and BONK 🏏 them to get it back!", 20, {
+	local sub = Kit.label(NotificationController.alertSubtitle(nil, false, nil, 0), 20, {
 		Name = "Subtitle",
 		Position = UDim2.new(0, 14, 1, -36),
 		Size = UDim2.new(1, -28, 0, 26),
@@ -1638,8 +1658,32 @@ local function buildAlertUI(): AlertUI
 		holderScale = holderScale,
 		banner = banner,
 		title = title,
+		sub = sub,
 		tweens = {},
 	}
+end
+
+-- Live subtitle: the thief's time left, or the tow countdown while the car sits dropped (F3), read from the stolen
+-- car's TheftEndsAt / Dropped / DroppedEndsAt attributes (server time).
+local function refreshAlertSubtitle(ui: AlertUI)
+	local rec = alerts[#alerts]
+	local car = if rec then findStolenCar(rec) else nil
+	local text: string
+	if car then
+		local endsAt = car:GetAttribute("TheftEndsAt")
+		local dropAt = car:GetAttribute("DroppedEndsAt")
+		text = NotificationController.alertSubtitle(
+			if typeof(endsAt) == "number" then endsAt else nil,
+			car:GetAttribute("Dropped") == true,
+			if typeof(dropAt) == "number" then dropAt else nil,
+			Workspace:GetServerTimeNow()
+		)
+	else
+		text = NotificationController.alertSubtitle(nil, false, nil, 0)
+	end
+	if ui.sub.Text ~= text then
+		ui.sub.Text = text
+	end
 end
 
 local function stopAlertTweens(ui: AlertUI)
@@ -1704,17 +1748,19 @@ local function showAlertUI()
 		current.title.Text = NotificationController.stolenAlertText(rec.thief, rec.carId, rec.mutation)
 	end
 	placeAlertBanner(current)
+	refreshAlertSubtitle(current)
 	if #current.tweens > 0 then
 		Kit.pop(current.banner, 1.12) -- already showing: just punch the banner
 		return
 	end
-	-- follow the HUD stack (the wanted stars can appear / disappear while the alarm is up)
+	-- follow the HUD stack (the wanted stars can appear / disappear while the alarm is up) + tick the countdown
 	task.spawn(function()
 		while alertUI == current do
 			task.wait(0.3)
 			if alertUI == current then
 				placeAlertBanner(current)
 				positionFeed(getScreens())
+				refreshAlertSubtitle(current)
 			end
 		end
 	end)

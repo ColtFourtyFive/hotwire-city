@@ -11,8 +11,10 @@
 -- Dropped cars: when the driver seat empties mid-theft the car sits "dropped" (DROPPED_CAR_TIMEOUT if the thief was
 -- knocked out, THEFT_ABANDON_LIMIT if they just hopped out). The victim gets an instant RecoverPrompt (0.3s hold,
 -- shown only to them via the OnlyUserId attribute); everybody else gets a Hotwire takeover prompt (VehicleService
--- addStealPrompt, ~1.5s hold, hidden for the victim via HideForUserId) and becomes the new thief. A wreck is never a
--- drop: VehicleService.Wrecked (fired before the eject) ends the theft as "wrecked" (DECISIONS §cross-group).
+-- addStealPrompt, ~1.5s hold, hidden for the victim via HideForUserId) and becomes the new thief. A car dropped inside
+-- the victim's garage while its laser lock is up (a lock push-out, DECISIONS §9) stays the owner's to Recover: nobody
+-- else can get back in until the lock ends. A wreck is never a drop: VehicleService.Wrecked (fired before the eject)
+-- ends the theft as "wrecked" (DECISIONS §cross-group).
 --
 -- Anti-farm (DECISIONS §5): the recovery bonus pays only if the theft lasted RECOVERY_MIN_SECONDS or the car left the
 -- victim's garage interior; recovery and revenge each pay at most once per (victim, thief) pair per
@@ -764,12 +766,32 @@ end
 
 local takeover: (Theft, Player) -> boolean
 
+-- The car sits inside the victim's garage while its laser lock is up (DECISIONS §9: a lock push-out ejects the thief
+-- and leaves the car dropped inside for the owner to Recover).
+local function lockedInside(theft: Theft): boolean
+	local plot = theft.victimPlot
+	if not plot then
+		return false
+	end
+	local _, locked = call("PlotService", "isLocked", plot)
+	if locked ~= true then
+		return false
+	end
+	local pos = carPosition(theft.car)
+	return pos ~= nil and MapLayout.plotAt(pos) == plot
+end
+
 local function canTakeover(theft: Theft, player: Player): (boolean, string?)
 	if theft.finished or not theft.dropped then
 		return false, nil
 	end
 	if player == theft.victim then
 		return false, "That's YOUR car! Hit Recover!"
+	end
+	-- Nobody but the owner gets back in while the lock is up: otherwise the pushed-out thief re-hotwires the car
+	-- through the gate (the prompt reaches past it) and PlotService ejects them again every 0.5s.
+	if lockedInside(theft) then
+		return false, "🔒 Garage locked!"
 	end
 	if not isAlive(player) then
 		return false, nil
@@ -1087,6 +1109,7 @@ takeover = function(theft: Theft, player: Player): boolean
 		theft.thiefUserId = player.UserId
 		byThief[player] = theft
 		theft.endsAt = TheftService._takeoverDeadline(theft.endsAt, now)
+		setModelAttr(car, "TheftEndsAt", toServerTime(theft.endsAt)) -- the victim's alert banner counts this down
 		theft.warned30 = false
 		theft.warned10 = false
 		theft.revengePaid = false

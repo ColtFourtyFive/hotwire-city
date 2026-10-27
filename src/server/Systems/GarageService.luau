@@ -9,6 +9,8 @@
 -- An Owned car only ever parks back into the slot THIS session took it from (ps.outCars) and never creates a record;
 -- it is destroyed when its owner leaves (DUPE-1). Deliveries / chops of tainted or impossibly fast cars are refused
 -- (SEC-1, on top of VehicleService's zone gate). Extra API: fullHint(player) for garage-full messages.
+-- A thief starting to hotwire a display car warns the owner (toast + horn) and stamps the plot model's IntruderAt
+-- attribute (server time), which GarageClient uses to flash the owner's LOCK pill (F3).
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -577,6 +579,11 @@ local function warnOwner(owner: Player, ps: PState, thief: Player, display: Disp
 	ps.intruderWarnAt[thief] = now
 	notify(owner, "warning", `🚨 {thief.DisplayName} is hotwiring your {label}! LOCK or BONK!`)
 	Net.fireClient("Sound", owner, "Horn")
+	-- plot attribute IntruderAt (server time): GarageClient pulses the owner's LOCK pill for a few seconds
+	local model = plotModelOf(owner)
+	if model then
+		model:SetAttribute("IntruderAt", Workspace:GetServerTimeNow())
+	end
 end
 
 local function buildDisplay(player: Player, ps: PState, slot: number, rec: SlotRecord)

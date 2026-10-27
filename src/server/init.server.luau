@@ -30,6 +30,7 @@ local ORDER = {
 	"ShopService",
 	"LeaderboardService",
 	"AdminService",
+	"VehicleFxService",
 }
 
 Net.init()

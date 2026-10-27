@@ -381,6 +381,10 @@ local sharedNode = makeNode(ROOT .. "/src/shared", "Shared", "dir", nil)
 local serverNode = makeNode(ROOT .. "/src/server", "Server", "dir", nil)
 local clientNode = makeNode(ROOT .. "/src/client", "Client", "dir", nil)
 
+-- Extra ReplicatedStorage children a test can install, name -> Instance (e.g. a fake AssetLibrary template folder:
+-- Harness.replicated.AssetLibrary = folder). Clear the entry when done.
+Harness.replicated = {}
+
 local ReplicatedStorageShim = setmetatable({}, {
 	__index = function(_, k)
 		if k == "Shared" then
@@ -390,10 +394,10 @@ local ReplicatedStorageShim = setmetatable({}, {
 				if name == "Shared" then
 					return sharedNode
 				end
-				return nil
+				return Harness.replicated[name]
 			end
 		end
-		return nil
+		return Harness.replicated[k]
 	end,
 })
 

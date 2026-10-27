@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 
 local ORDER = {
 	"StateController",
+	"AssetClient",
 	"SoundController",
 	"NotificationController",
 	"HUDController",

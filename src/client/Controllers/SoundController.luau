@@ -12,9 +12,14 @@
 --  * Police sirens: the ≤ 3 closest "Police"-tagged cars within 250 studs carry a looping siren (skipped while the
 --    server marks the unit Siren=false: leaving or wrecked).
 --  * City ambience loop at low volume (ducked while driving).
+--  * Car radio: Config/Sounds Radio_* tracks grouped into stations by their `station` field. 2D music on the music
+--    channel, only while the local player drives (VehicleClient: setRadioOn / stepRadio) and the music setting is on.
+--    Two decks crossfade on station changes; a finished track queues the station's next one; a track that never loads
+--    is skipped. RadioChanged(station?, title?) drives the DrivingUI label.
 --  * Settings: snapshot settings.sfx / settings.music drive two SoundGroups (HC_SFX, HC_Music); ambience counts as
 --    "music". setEnabled / setVolume let other controllers (e.g. Settings menu previews) override locally.
---  * start(): ContentProvider:PreloadAsync of every Config/Sounds id (pcall, background).
+--  * start(): ContentProvider:PreloadAsync of every Config/Sounds id except the radio tracks (pcall, background; the
+--    music streams on demand instead of costing every phone ~10 long downloads at boot).
 
 local CollectionService = game:GetService("CollectionService")
 local ContentProvider = game:GetService("ContentProvider")
@@ -22,6 +27,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -29,6 +35,7 @@ local Net = require(Shared:WaitForChild("Net"))
 local Config = Shared:WaitForChild("Config")
 local Sounds = require(Config:WaitForChild("Sounds"))
 local Cars = require(Config:WaitForChild("Cars"))
+local Signal = require(Shared:WaitForChild("Util"):WaitForChild("Signal"))
 
 -- Earlier in the client ORDER, so a direct require is safe (no cycle).
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -50,6 +57,9 @@ local PITCH_SMOOTHING = 7 -- per second
 local AMBIENCE_VOLUME_SCALE = 0.6
 local AMBIENCE_DRIVING_DUCK = 0.45
 local DEFAULT_TOP_SPEED = 100
+local RADIO_PREFIX = "Radio_"
+local RADIO_FADE = 0.8 -- seconds per crossfade half
+local RADIO_LOAD_TIMEOUT = 12 -- a track still not loaded after this is skipped
 
 -- Kinds whose cars sit still (anchored displays / unclaimed) and never get an engine loop.
 local SILENT_KINDS: { [string]: boolean } = { Parked = true, Dealership = true, HotDrop = true }
@@ -104,6 +114,50 @@ function SoundController.selectNearest(candidates: { { key: any, dist: number } 
 		chosen[candidates[i].key] = true
 	end
 	return chosen
+end
+
+export type RadioStation = { name: string, tracks: { string } }
+
+-- Radio stations from a Config/Sounds-like table: every Radio_* def with a string id + station, grouped by station.
+-- Stations sorted by name, tracks (Sounds keys) by key.
+function SoundController.buildStations(defs: { [string]: any }): { RadioStation }
+	local byName: { [string]: RadioStation } = {}
+	local list: { RadioStation } = {}
+	for key, def in defs do
+		if
+			typeof(key) == "string"
+			and string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX
+			and typeof(def) == "table"
+			and typeof(def.id) == "string"
+			and typeof(def.station) == "string"
+		then
+			local station = byName[def.station]
+			if not station then
+				station = { name = def.station, tracks = {} }
+				byName[def.station] = station
+				table.insert(list, station)
+			end
+			table.insert(station.tracks, key)
+		end
+	end
+	table.sort(list, function(a, b)
+		return a.name < b.name
+	end)
+	for _, station in list do
+		table.sort(station.tracks)
+	end
+	return list
+end
+
+-- Station index after stepping `dir` (+1 / -1) from `index` among `count` stations. Wraps; an unset index -> 1.
+function SoundController.stepIndex(index: number, dir: number, count: number): number
+	if count <= 0 then
+		return 0
+	end
+	if index < 1 or index > count or index % 1 ~= 0 then
+		return 1
+	end
+	return (index - 1 + dir) % count + 1
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -353,6 +407,191 @@ function SoundController.stopLoop(sound: Sound?)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
+-- Car radio
+-------------------------------------------------------------------------------------------------------------------------
+
+SoundController.RadioChanged = Signal.new() -- (station: string?, title: string?) title is nil while nothing plays
+
+local stations: { RadioStation } = SoundController.buildStations(Sounds :: any)
+local radioOn = false -- the local player drives (VehicleClient)
+local radioPlaying = false -- decks are live: radioOn and the music setting is on
+local radioStation = 0 -- index into stations (0 = not picked yet: random on the first drive)
+local radioNextTrack: { [number]: number } = {} -- per station: index of the track it plays next
+local radioTitle: string? = nil
+local radioDecks: { [number]: Sound } = {}
+local radioTweens: { [number]: Tween } = {}
+local radioDeck = 1
+local radioToken = 0 -- bumped per track start / stop: stale delayed checks bail
+local radioSkips = 0 -- consecutive tracks skipped for not loading (bounded: never spin on a dead station)
+local playNextTrack: () -> ()
+
+local function notifyRadio()
+	local station = stations[radioStation]
+	SoundController.RadioChanged:Fire(if station then station.name else nil, if radioPlaying then radioTitle else nil)
+end
+
+-- Tween one deck's volume. stopAfter: Stop() it once silent, unless a newer tween took the deck over.
+local function fadeDeck(i: number, target: number, stopAfter: boolean)
+	local sound = radioDecks[i]
+	if not sound then
+		return
+	end
+	local previous = radioTweens[i]
+	if previous then
+		previous:Cancel()
+	end
+	local tween = TweenService:Create(
+		sound,
+		TweenInfo.new(RADIO_FADE, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+		{ Volume = target }
+	)
+	radioTweens[i] = tween
+	if stopAfter then
+		tween.Completed:Once(function(state: Enum.PlaybackState)
+			if state == Enum.PlaybackState.Completed and radioTweens[i] == tween then
+				sound:Stop()
+			end
+		end)
+	end
+	tween:Play()
+end
+
+local function ensureDeck(i: number): Sound
+	local existing = radioDecks[i]
+	if existing and existing.Parent then
+		return existing
+	end
+	ensureGroups()
+	local sound = Instance.new("Sound")
+	sound.Name = "HC_Radio" .. i
+	sound.Looped = false
+	sound.Volume = 0
+	sound.SoundGroup = musicGroup
+	sound.Parent = uiFolder
+	-- Ended = played to the end (Stop() fires Stopped instead): queue the station's next track
+	sound.Ended:Connect(function()
+		if radioPlaying and radioDecks[radioDeck] == sound then
+			radioSkips = 0
+			playNextTrack()
+		end
+	end)
+	radioDecks[i] = sound
+	return sound
+end
+
+-- Start the current station's next track on the idle deck, crossfading out whatever played before.
+playNextTrack = function()
+	local station = stations[radioStation]
+	if not (radioPlaying and station and #station.tracks > 0) then
+		return
+	end
+	local count = #station.tracks
+	local index = radioNextTrack[radioStation]
+	if not index or index < 1 or index > count then
+		index = rng:NextInteger(1, count) -- each station starts at a random track
+	end
+	radioNextTrack[radioStation] = index % count + 1
+	local key = station.tracks[index]
+	local def = lookup(key)
+	if not def then
+		return
+	end
+	local from = radioDeck
+	local to = 3 - from
+	fadeDeck(from, 0, true)
+	local deckSound = ensureDeck(to)
+	local running = radioTweens[to]
+	if running then
+		running:Cancel()
+		radioTweens[to] = nil
+	end
+	radioDeck = to
+	radioToken += 1
+	local token = radioToken
+	deckSound:Stop()
+	deckSound.SoundGroup = musicGroup
+	deckSound.SoundId = def.id
+	deckSound.PlaybackSpeed = def.pitch or 1
+	deckSound.Volume = 0
+	deckSound.TimePosition = 0
+	deckSound:Play()
+	fadeDeck(to, def.volume, false)
+	radioTitle = def.title or key
+	notifyRadio()
+	-- a track that never loads (taken down / offline) would stall the station: skip it, at most once around the dial
+	task.delay(RADIO_LOAD_TIMEOUT, function()
+		if token == radioToken and radioPlaying and not deckSound.IsLoaded and radioSkips < count then
+			radioSkips += 1
+			playNextTrack()
+		end
+	end)
+end
+
+-- Play or silence the radio to match (driving and music setting). Called on every change of either.
+local function refreshRadio()
+	local want = radioOn and enabled.music and #stations > 0
+	if want == radioPlaying then
+		return
+	end
+	radioPlaying = want
+	if want then
+		radioSkips = 0
+		playNextTrack()
+	else
+		radioToken += 1
+		for i in radioDecks do
+			fadeDeck(i, 0, true)
+		end
+		notifyRadio()
+	end
+end
+
+-- VehicleClient: true while the local player drives. The first drive tunes a random station.
+function SoundController.setRadioOn(on: boolean)
+	if typeof(on) ~= "boolean" or on == radioOn then
+		return
+	end
+	radioOn = on
+	if on and radioStation == 0 and #stations > 0 then
+		radioStation = rng:NextInteger(1, #stations)
+	end
+	refreshRadio()
+	if not radioPlaying then
+		notifyRadio()
+	end
+end
+
+-- Next (+1) / previous (-1) station. Crossfades when playing; otherwise just retunes (music off: label only).
+function SoundController.stepRadio(dir: number)
+	if #stations == 0 then
+		return
+	end
+	local step = if typeof(dir) == "number" and dir < 0 then -1 else 1
+	radioStation = SoundController.stepIndex(radioStation, step, #stations)
+	radioSkips = 0
+	if radioPlaying then
+		playNextTrack()
+	else
+		radioTitle = nil
+		notifyRadio()
+	end
+end
+
+-- (station name?, track title? (nil while silent), playing)
+function SoundController.getRadio(): (string?, string?, boolean)
+	local station = stations[radioStation]
+	return if station then station.name else nil, if radioPlaying then radioTitle else nil, radioPlaying
+end
+
+function SoundController.radioStations(): { string }
+	local names = {}
+	for _, station in stations do
+		table.insert(names, station.name)
+	end
+	return names
+end
+
+-------------------------------------------------------------------------------------------------------------------------
 -- Settings
 -------------------------------------------------------------------------------------------------------------------------
 
@@ -374,6 +613,7 @@ function SoundController.setEnabled(a: any, b: any)
 		enabled.music = value
 	end
 	applyGroupVolumes()
+	refreshRadio()
 end
 
 function SoundController.isEnabled(channel: string): boolean
@@ -403,6 +643,7 @@ local function applySettings(snapshot: any)
 		enabled.music = s.music
 	end
 	applyGroupVolumes()
+	refreshRadio()
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -643,7 +884,8 @@ local function scan()
 	if amb then
 		local def = lookup("CityAmbience")
 		local base = (if def then def.volume else 0.25) * AMBIENCE_VOLUME_SCALE
-		amb.Volume = if player and player:GetAttribute("Driving") == true then base * AMBIENCE_DRIVING_DUCK else base
+		local driving = radioOn or (player ~= nil and player:GetAttribute("Driving") == true)
+		amb.Volume = if driving then base * AMBIENCE_DRIVING_DUCK else base
 	end
 end
 
@@ -744,7 +986,10 @@ function SoundController.start()
 	task.spawn(function()
 		local ids: { string } = {}
 		local seen: { [string]: boolean } = {}
-		for _, def in Sounds :: any do
+		for key, def in Sounds :: any do
+			if typeof(key) == "string" and string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX then
+				continue -- long music: streams when tuned in
+			end
 			if typeof(def) == "table" and typeof(def.id) == "string" and not seen[def.id] then
 				seen[def.id] = true
 				table.insert(ids, def.id)

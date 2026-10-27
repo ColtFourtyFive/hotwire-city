@@ -13,6 +13,11 @@
 --     (ServerScriptService.Server.Config.Codes) so clients can't datamine unreleased codes.
 --   * Rewards - "cash" (flat), "incomeMinutes" (minutes of current income, never less than the entry's `min`,
 --     default MIN_INCOME_REWARD) or "car" (random car of a rarity; cash fallback when the garage is full).
+--     Car grants wait while they would take the slot the player's active heist needs (carGrantBlocked: a
+--     TheftService theft and <= 1 free slot, player-theft F10). The rolled car is owed in data.pendingCars
+--     ({ carId, mutation, reason }, saved together with the claim that earned it) and deliverPendingCars hands it out
+--     when the heist ends (TheftEnded) or on the next slow tick / session. MonetizationService asks the same question
+--     before delivering owed exclusives.
 --   * Contracts - 3 per UTC day, deterministic per player+day (Random.new(userId * 7 + day)), no two share a stat.
 --     progress(player, stat, amount) is called by every system (the single entry point); completed contracts
 --     auto-claim with cash (max($500, reward seconds of income)) + Notify + Sound. "driftSeconds"/"topSpeedHit"
@@ -58,6 +63,7 @@ RewardsService.PLAYTIME_DAY_CAP = 86400
 RewardsService.PASS_WAIT = 10 -- offline earnings wait up to this long for the VIP pass lookup to finish
 RewardsService.REFERRAL_INVITER_MIN_SECONDS = 600 -- the invitee must play this long before the inviter is paid
 RewardsService.REFERRAL_INVITER_DAILY_CAP = 3 -- inviter car rewards per UTC day
+RewardsService.PENDING_CARS_MAX = 10 -- reward cars owed in data.pendingCars at once (beyond: the cash fallback)
 
 -- Lazy system access (no require cycles; tolerant of a missing/broken system) -------------------------------------
 local systemCache: { [string]: any } = {}
@@ -281,6 +287,37 @@ function RewardsService._carFallbackCash(carId: string, mutation: Rarity.Mutatio
 	)
 end
 
+-- A reward car must not take the slot an active heist needs to park its car (player-theft F10): hold it back while
+-- the player runs a theft with at most one free slot (unknown free slots count as no room).
+function RewardsService._deferCarGrant(activeTheft: boolean, freeSlots: any): boolean
+	if not activeTheft then
+		return false
+	end
+	return not finite(freeSlots) or freeSlots <= 1
+end
+
+export type PendingCar = { carId: string, mutation: Rarity.MutationId, reason: string }
+
+-- The valid owed reward cars in data.pendingCars, in order (junk entries are dropped).
+function RewardsService._pendingCars(list: any): { PendingCar }
+	local out: { PendingCar } = {}
+	if typeof(list) ~= "table" then
+		return out
+	end
+	for i = 1, #list do
+		local entry = list[i]
+		if typeof(entry) == "table" and typeof(entry.carId) == "string" and Cars.get(entry.carId) then
+			local mut = entry.mutation
+			table.insert(out, {
+				carId = entry.carId,
+				mutation = if typeof(mut) == "string" and Rarity.Mutations[mut :: any] then mut :: any else "None",
+				reason = if typeof(entry.reason) == "string" then entry.reason else "reward",
+			})
+		end
+	end
+	return out
+end
+
 -- Offline earnings: (amount, cappedSeconds). garage = data.garage (all slots are parked while offline).
 function RewardsService._offlineAmount(
 	elapsed: number,
@@ -461,24 +498,23 @@ local function giveCash(player: Player, amount: number, reason: string)
 	Net.fireClient("CashPopup", player, amount, nil)
 end
 
--- Grants a random car of a rarity (storeCar) or its cash fallback. Returns a short label for messages.
-local function grantCar(player: Player, rarity: string, reason: string): string
-	local rid: Rarity.RarityId = if Rarity.Tiers[rarity :: any] then rarity :: any else "Rare"
-	local def = Rolls.carOfRarity(rid, "any", rng)
-	local mutation = Rolls.mutation(1, rng)
-	local label = carLabel(def.id, mutation)
+-- Puts a car into the garage (storeCar), or pays its cash fallback when the garage is full. Returns (stored, label):
+-- the car's label, or the cash amount when it was swapped for cash.
+local function deliverCar(player: Player, carId: string, mutation: Rarity.MutationId, reason: string): (boolean, string)
+	local def = Cars.get(carId)
+	local label = carLabel(carId, mutation)
 	local Garage = sys("GarageService")
 	local stored, slot = false, nil
-	if Garage and typeof(Garage.storeCar) == "function" then
-		local okCall, a, b = pcall(Garage.storeCar, player, def.id, mutation)
+	if def and Garage and typeof(Garage.storeCar) == "function" then
+		local okCall, a, b = pcall(Garage.storeCar, player, carId, mutation)
 		if okCall and a == true then
 			stored, slot = true, b
 		elseif not okCall then
 			warn("[RewardsService] storeCar failed: " .. tostring(a))
 		end
 	end
-	if stored then
-		call("GarageService", "discover", player, def.id)
+	if stored and def then
+		call("GarageService", "discover", player, carId)
 		local pos = if typeof(slot) == "number" then slotPosition(player, slot) else nil
 		pos = pos or rootPosition(player)
 		if pos then
@@ -491,12 +527,82 @@ local function grantCar(player: Player, rarity: string, reason: string): string
 				`🎁 <b>{richEscape(player.DisplayName)}</b> unwrapped a <font color="#{hex}"><b>{richEscape(label)}</b></font>!`
 			)
 		end
-		return label
+		return true, label
 	end
-	local cash = RewardsService._carFallbackCash(def.id, mutation)
+	local cash = RewardsService._carFallbackCash(carId, mutation)
 	giveCash(player, cash, reason)
 	notify(player, "warning", `Garage full! Your {label} was swapped for {Format.cash(cash)}.`, 5)
-	return Format.cash(cash)
+	return false, Format.cash(cash)
+end
+
+-- Public (MonetizationService asks too): should car grants wait right now? True while the player runs a theft and
+-- has at most one free slot, so the reward can't take the slot the stolen car needs (player-theft F10).
+function RewardsService.carGrantBlocked(player: Player): boolean
+	local okTheft, theft = call("TheftService", "getActiveTheft", player)
+	if not okTheft or theft == nil then
+		return false
+	end
+	local _, free = call("GarageService", "freeSlots", player)
+	return RewardsService._deferCarGrant(true, free)
+end
+
+-- Owes a rolled reward car in data.pendingCars (persisted with the claim that earned it). False when the queue is
+-- full or there is no data (the caller delivers right away instead).
+local function owePendingCar(player: Player, carId: string, mutation: Rarity.MutationId, reason: string): boolean
+	local data = getData(player)
+	if not data then
+		return false
+	end
+	local list = RewardsService._pendingCars(data.pendingCars)
+	if #list >= RewardsService.PENDING_CARS_MAX then
+		return false
+	end
+	table.insert(list, { carId = carId, mutation = mutation, reason = reason })
+	data.pendingCars = list
+	markDirty(player)
+	return true
+end
+
+-- Hands out owed reward cars once nothing holds them back (storeCar, or the usual cash fallback when the garage is
+-- full). Returns how many were handed out.
+function RewardsService.deliverPendingCars(player: Player): number
+	local data = getData(player)
+	if not data or data.pendingCars == nil then
+		return 0
+	end
+	local list = RewardsService._pendingCars(data.pendingCars)
+	if #list == 0 then
+		data.pendingCars = nil
+		return 0
+	end
+	if RewardsService.carGrantBlocked(player) then
+		return 0
+	end
+	data.pendingCars = nil -- taken before granting: nothing below yields, and nothing is ever handed out twice
+	for _, entry in list do
+		local stored, label = deliverCar(player, entry.carId, entry.mutation, entry.reason)
+		if stored then
+			notify(player, "success", `🎁 Heist over! Your {label} rolled into your garage.`, 5)
+		end
+	end
+	sound(player, "Purchase")
+	markDirty(player)
+	return #list
+end
+
+-- Grants a random car of a rarity (storeCar) or its cash fallback; mid-heist it is owed instead (see
+-- carGrantBlocked). Returns a short label for messages.
+local function grantCar(player: Player, rarity: string, reason: string): string
+	local rid: Rarity.RarityId = if Rarity.Tiers[rarity :: any] then rarity :: any else "Rare"
+	local def = Rolls.carOfRarity(rid, "any", rng)
+	local mutation = Rolls.mutation(1, rng)
+	if RewardsService.carGrantBlocked(player) and owePendingCar(player, def.id, mutation, reason) then
+		local label = carLabel(def.id, mutation)
+		notify(player, "info", `🚨 Mid-heist! Your {label} rolls into your garage as soon as the heist is over.`, 5)
+		return label
+	end
+	local _, label = deliverCar(player, def.id, mutation, reason)
+	return label
 end
 
 -- Grants one reward entry. Returns a label ("$1.5K", "Rare Hot Hatch") for the success toast.
@@ -1025,6 +1131,10 @@ local function slowTick(player: Player, ps: PState, day: number)
 	if ps.pendingReferrer and os.clock() - ps.loadedAt >= RewardsService.REFERRAL_INVITER_MIN_SECONDS then
 		payInviter(player, ps)
 	end
+	-- reward cars owed from mid-heist claims (or from an earlier session)
+	if data.pendingCars ~= nil then
+		RewardsService.deliverPendingCars(player)
+	end
 end
 
 local function slowLoop()
@@ -1136,6 +1246,23 @@ function RewardsService.start()
 	end)
 	for _, player in Players:GetPlayers() do
 		task.spawn(onJoin, player)
+	end
+	-- owed reward cars roll in the moment the heist that held them back ends (slowTick is the fallback)
+	local Theft = sys("TheftService")
+	if Theft and Theft.TheftEnded then
+		Theft.TheftEnded:Connect(function(theft: any)
+			local thief = if typeof(theft) == "table" then theft.thief else nil
+			if typeof(thief) == "Instance" and thief:IsA("Player") then
+				task.defer(function()
+					if thief.Parent == Players then
+						local ok, err = pcall(RewardsService.deliverPendingCars, thief)
+						if not ok then
+							warn("[RewardsService] deliverPendingCars failed: " .. tostring(err))
+						end
+					end
+				end)
+			end
+		end)
 	end
 	task.spawn(fastLoop)
 	slowLoop()

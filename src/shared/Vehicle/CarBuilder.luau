@@ -16,19 +16,31 @@
 --   * Every other part: CanCollide/CanQuery/CanTouch=false, Massless, unanchored, WeldConstraint to Chassis.
 --   * Paint attribute on paintable parts: "primary" | "accent" | "glass". Primary parts also store
 --     "BaseColor"/"BaseMaterial" so applyMutation(model, "None") can restore them.
---   * Diamond/Galaxy: a ParticleEmitter CarBuilder.SPARKLES_NAME on the biggest primary part (clients gate it by
---     distance, WheelAnimator).
+--   * Diamond/Galaxy: a ParticleEmitter CarBuilder.SPARKLES_NAME on the biggest primary part, or the biggest shell
+--     part on HeroMesh cars (clients gate it by distance, WheelAnimator).
 --   * Lights: "Headlight" (neon, child SpotLight "Beam" disabled by default), "Taillight" (neon red);
 --     police: "SirenRed" / "SirenBlue" (neon). Extras: "Blinker", "TaxiSign", "RoofLight", "Beacon",
 --     "Thruster", "HoverGlow", "Underglow" (all neon).
 --   * Model attributes: RideHeight (pivot height above ground in the built pose), WheelRadius, Length, Width,
---     Height, Style, CarId, Mutation. Model.ModelStreamingMode = Atomic. Nothing is tagged.
+--     Height, Style, CarId, Mutation, BodyCenter (Vector3: x/z center of the visible body relative to the chassis, y 0).
+--     Model.ModelStreamingMode = Atomic. Server-built models are not tagged; models built on a client carry the
+--     CollectionService tag CarBuilder.CLIENT_TAG ("ClientCar") so AssetClient can re-skin them late.
+--   * HERO SHELLS (docs/ART_PASS.md AP1): build/buildDef end with applyShell(model). When the template
+--     ReplicatedStorage.AssetLibrary.Hero[CarId] exists (police: "police_unit"), its clone becomes the Model child
+--     CarBuilder.SHELL_NAME ("HeroShell"): scaled to Length (uniformly shrunk if wider than Width x 1.15), bottom on the
+--     ground plane under the chassis, centered on BodyCenter, every part unanchored / Massless / CanCollide, CanQuery,
+--     CanTouch false and WeldConstraint-ed to the Chassis. The procedural visuals stay but get Transparency 1 (their
+--     SurfaceGuis are disabled; the original value is kept in attribute "ShellHidden") so Headlight beams, wheel welds
+--     and attachments keep working; police SirenRed/SirenBlue stay visible, raised onto the shell roof. Model
+--     attributes HeroMesh = true and ShellHeight (shell roof above the ground). No template (Lune harness, failed or
+--     not-yet-loaded asset) = no-op: the procedural car is the fallback. removeShell(model) undoes it.
 --
 -- BUILT POSE: the ground plane is y = 0, the car is centered on x/z and faces -Z (pivot LookVector).
 -- Wheels rest on the ground; the chassis center sits RideHeight above it. Spawn with
 --   model:PivotTo(groundCFrame * CFrame.new(0, model:GetAttribute("RideHeight") + 0.3, 0))
 --
--- Pure instance construction (harness-compatible, see SPEC §10): no services, no yields, deterministic.
+-- Pure instance construction (harness-compatible, see SPEC §10): no yields, deterministic. The only services touched
+-- are read-only lookups (ReplicatedStorage.AssetLibrary for shells, RunService:IsClient for the client tag).
 
 local Shared = script.Parent.Parent
 local Cars = require(Shared.Config.Cars)
@@ -163,6 +175,18 @@ local SPARKLES_TEXTURE = "rbxasset://textures/particles/sparkles_main.dds"
 local WHEEL_KEYS = { "FL", "FR", "RL", "RR" }
 local BUMPSTOP_SIZE = 1 -- ball diameter (radius 0.5)
 local BUMPSTOP_CLEARANCE = 0.25 -- bump-stop bottom height above the ground in the built pose
+
+local SHELL_NAME = "HeroShell"
+CarBuilder.SHELL_NAME = SHELL_NAME
+local CLIENT_TAG = "ClientCar"
+CarBuilder.CLIENT_TAG = CLIENT_TAG
+local SHELL_WIDTH_SLACK = 1.15 -- a shell may be this much wider than the procedural body before it is scaled down
+local SIREN_GAP = 0.05 -- police sirens sit this far above the shell roof
+local HIDDEN_ATTR = "ShellHidden" -- procedural part / decal hidden by applyShell: its old Transparency (guis: true)
+local PRE_SHELL_ATTR = "PreShellOffset" -- siren CFrame relative to the chassis before applyShell raised it
+local STASH_NAME = "ShellStash" -- Folder parking a shell part's SurfaceAppearance while a mutation hides the texture
+-- direct children applyShell never hides: physics / invisible parts, and the police lights (EffectsController flashes)
+local SHELL_KEEP = { Chassis = true, DriverSeat = true, BumpStop = true, SirenRed = true, SirenBlue = true }
 
 local function rgb(r: number, g: number, b: number): Color3
 	return Color3.fromRGB(r, g, b)
@@ -1856,6 +1880,14 @@ end
 ------------------------------------------------------------------------------------------------------------------
 
 local warnedIds: { [string]: boolean } = {}
+local warnedShells: { [string]: boolean } = {}
+
+local function isClient(): boolean
+	local ok, client = pcall(function()
+		return game:GetService("RunService"):IsClient()
+	end)
+	return ok and client == true
+end
 
 local function resolveDef(carId: string): CarDef
 	local def = Cars.get(carId)
@@ -1907,11 +1939,21 @@ function CarBuilder.buildDef(def: CarDef, mutation: MutationId?, opts: BuildOpts
 	model:SetAttribute("Length", maxV.Z - minV.Z)
 	model:SetAttribute("Width", maxV.X - minV.X)
 	model:SetAttribute("Height", maxV.Y)
+	model:SetAttribute("BodyCenter", V((minV.X + maxV.X) / 2, 0, (minV.Z + maxV.Z) / 2))
 	model:SetAttribute("Style", def.style)
 	model:SetAttribute("CarId", def.id)
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 
 	CarBuilder.applyMutation(model, mutation or "None")
+	if isClient() then
+		model:AddTag(CLIENT_TAG)
+	end
+	-- art is optional: a broken template must never break a build (the procedural car stays)
+	local ok, err = pcall(CarBuilder.applyShell, model)
+	if not ok and not warnedShells[def.id] then
+		warnedShells[def.id] = true
+		warn(("[CarBuilder] hero shell for %s failed: %s"):format(def.id, tostring(err)))
+	end
 	return model
 end
 
@@ -1942,8 +1984,326 @@ local function baseLook(part: BasePart): (Color3, Enum.Material)
 	return baseColor, baseMat
 end
 
+------------------------------------------------------------------------------------------------------------------
+-- Hero shells (docs/ART_PASS.md AP1; contract at the top of this file)
+------------------------------------------------------------------------------------------------------------------
+
+-- Hero template key of a car model: its CarId (the police cruiser's is Cars.Police.id = "police_unit").
+function CarBuilder.shellKey(model: Instance): string?
+	local carId = model:GetAttribute("CarId")
+	if typeof(carId) ~= "string" or carId == "" then
+		return nil
+	end
+	return if carId == "police" then Cars.Police.id else carId
+end
+
+-- The published Hero template for `key`, or nil (Lune harness, failed load, or AssetLibrary still loading).
+function CarBuilder.shellTemplate(key: string): Model?
+	local ok, found = pcall(function()
+		local lib = game:GetService("ReplicatedStorage"):FindFirstChild("AssetLibrary")
+		local hero = lib and lib:FindFirstChild("Hero")
+		return hero and hero:FindFirstChild(key)
+	end)
+	if ok and typeof(found) == "Instance" and found:IsA("Model") then
+		return found
+	end
+	return nil
+end
+
+-- The shell's parts (empty when the model has no shell).
+local function shellParts(model: Model): { BasePart }
+	local out = {}
+	local shell = model:FindFirstChild(SHELL_NAME)
+	if shell then
+		for _, d in shell:GetDescendants() do
+			if d:IsA("BasePart") then
+				table.insert(out, d)
+			end
+		end
+	end
+	return out
+end
+
+-- AABB of the visible `parts` in the space of `ref`.
+local function boundsIn(ref: CFrame, parts: { BasePart }): (Vector3?, Vector3?)
+	local minV: Vector3? = nil
+	local maxV: Vector3? = nil
+	for _, p in parts do
+		if p.Transparency < 1 then
+			local cf = ref:ToObjectSpace(p.CFrame)
+			local h = p.Size / 2
+			local rx, ry, rz = cf.RightVector, cf.UpVector, cf.LookVector
+			local e = V(
+				math.abs(rx.X) * h.X + math.abs(ry.X) * h.Y + math.abs(rz.X) * h.Z,
+				math.abs(rx.Y) * h.X + math.abs(ry.Y) * h.Y + math.abs(rz.Y) * h.Z,
+				math.abs(rx.Z) * h.X + math.abs(ry.Z) * h.Y + math.abs(rz.Z) * h.Z
+			)
+			local c = cf.Position
+			minV = if minV then minV:Min(c - e) else c - e
+			maxV = if maxV then maxV:Max(c + e) else c + e
+		end
+	end
+	return minV, maxV
+end
+
+local function weldToChassis(chassis: BasePart, part: BasePart)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name = "Weld"
+	weld.Part0 = chassis
+	weld.Part1 = part
+	weld.Parent = part
+end
+
+local function unweld(part: BasePart)
+	for _, c in part:GetChildren() do
+		if c:IsA("WeldConstraint") then
+			c:Destroy()
+		end
+	end
+end
+
+-- Size-independent child scales (FileMesh SpecialMesh scale / offsets, Texture tiling) follow a part resize.
+local function scaleExtras(part: BasePart, f: number)
+	for _, d in part:GetDescendants() do
+		if d:IsA("SpecialMesh") then
+			if d.MeshType == Enum.MeshType.FileMesh then
+				d.Scale *= f
+			end
+			d.Offset *= f
+		elseif d:IsA("Texture") then
+			d.StudsPerTileU *= f
+			d.StudsPerTileV *= f
+		end
+	end
+end
+
+-- Procedural visuals -> Transparency 1 (kept as parts: welds, attachments, Headlight beams, sparkles keep working).
+local function hideProcedural(model: Model, chassis: BasePart)
+	for _, child in model:GetChildren() do
+		if child:IsA("BasePart") and child ~= chassis and not SHELL_KEEP[child.Name] and child.Transparency < 1 then
+			child:SetAttribute(HIDDEN_ATTR, child.Transparency)
+			child.Transparency = 1
+			for _, d in child:GetDescendants() do
+				if d:IsA("SurfaceGui") and d.Enabled then
+					d:SetAttribute(HIDDEN_ATTR, true)
+					d.Enabled = false
+				elseif d:IsA("Decal") and d.Transparency < 1 then
+					d:SetAttribute(HIDDEN_ATTR, d.Transparency)
+					d.Transparency = 1
+				end
+			end
+		end
+	end
+end
+
+-- A police light raised onto the shell roof (same x/z over the chassis), re-welded at its new spot.
+local function raiseSiren(part: BasePart, chassis: BasePart, ground: CFrame, roofY: number)
+	if part:GetAttribute(PRE_SHELL_ATTR) == nil then
+		part:SetAttribute(PRE_SHELL_ATTR, chassis.CFrame:ToObjectSpace(part.CFrame))
+	end
+	unweld(part)
+	local rel = ground:ToObjectSpace(part.CFrame)
+	local p = rel.Position
+	part.CFrame = ground * CFrame.new(p.X, roofY + SIREN_GAP + part.Size.Y / 2, p.Z) * rel.Rotation
+	weldToChassis(chassis, part)
+end
+
+-- Dress a built car in its hero mesh shell (see the contract at the top). Returns true when the model wears a shell
+-- (already or now), false when there is no template / the model is not a CarBuilder car. Idempotent; works on
+-- display, dealership and ViewportFrame models and on cars already placed in the world (late template arrival).
+function CarBuilder.applyShell(model: Model): boolean
+	if model:FindFirstChild(SHELL_NAME) then
+		return true
+	end
+	local key = CarBuilder.shellKey(model)
+	local template = if key then CarBuilder.shellTemplate(key) else nil
+	local chassisInst = model.PrimaryPart or model:FindFirstChild("Chassis")
+	local length = model:GetAttribute("Length")
+	local ride = model:GetAttribute("RideHeight")
+	if not key or not template or not chassisInst or not chassisInst:IsA("BasePart") then
+		return false
+	end
+	if typeof(length) ~= "number" or length <= 0 or typeof(ride) ~= "number" then
+		return false
+	end
+	local chassis = chassisInst :: BasePart
+
+	-- template frame: its AssetRoot (bottom-center, front -Z), then measure the visible mesh in that frame
+	local shell = template:Clone()
+	local root = shell:FindFirstChild("AssetRoot")
+	local ref = if root and root:IsA("BasePart") then root.CFrame else shell:GetPivot()
+	if root then
+		root:Destroy()
+	end
+	local parts: { BasePart } = {}
+	for _, d in shell:GetDescendants() do
+		if d:IsA("BasePart") then
+			table.insert(parts, d)
+		end
+	end
+	local minV, maxV = boundsIn(ref, parts)
+	if not minV or not maxV then
+		shell:Destroy()
+		return false
+	end
+	local size = maxV - minV
+	local f = length / math.max(size.Z, 0.01)
+	local width = model:GetAttribute("Width")
+	if typeof(width) == "number" and width > 0 and size.X * f > width * SHELL_WIDTH_SLACK then
+		f = width * SHELL_WIDTH_SLACK / math.max(size.X, 0.01)
+	end
+
+	-- ground plane under the body center; the shell's bottom-center goes there
+	local center = model:GetAttribute("BodyCenter")
+	local c = if typeof(center) == "Vector3" then center else Vector3.zero
+	local ground = chassis.CFrame * CFrame.new(c.X, -ride, c.Z)
+	local anchor = V((minV.X + maxV.X) / 2, minV.Y, (minV.Z + maxV.Z) / 2)
+	for _, p in parts do
+		local rel = ref:ToObjectSpace(p.CFrame)
+		p.Size = p.Size * f
+		p.CFrame = ground * CFrame.new((rel.Position - anchor) * f) * rel.Rotation
+		scaleExtras(p, f)
+		p.Anchored = false
+		p.Massless = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		weldToChassis(chassis, p)
+	end
+	shell.Name = SHELL_NAME
+	shell:SetAttribute("ShellKey", key)
+	shell:SetAttribute("ShellScale", f)
+	shell.Parent = model
+
+	local roofY = size.Y * f
+	model:SetAttribute("HeroMesh", true)
+	model:SetAttribute("ShellHeight", roofY)
+	hideProcedural(model, chassis)
+	for _, child in model:GetChildren() do
+		if child:IsA("BasePart") and (child.Name == "SirenRed" or child.Name == "SirenBlue") then
+			raiseSiren(child, chassis, ground, roofY)
+		end
+	end
+	local mutation = model:GetAttribute("Mutation")
+	CarBuilder.applyMutation(model, if typeof(mutation) == "string" then mutation :: MutationId else "None")
+	return true
+end
+
+-- Undo applyShell: the procedural look comes back (parts, guis, siren spots, mutation). True if a shell was removed.
+function CarBuilder.removeShell(model: Model): boolean
+	local shell = model:FindFirstChild(SHELL_NAME)
+	if not shell then
+		return false
+	end
+	shell:Destroy()
+	local chassis = model.PrimaryPart or model:FindFirstChild("Chassis")
+	for _, d in model:GetDescendants() do
+		local hidden = d:GetAttribute(HIDDEN_ATTR)
+		if hidden ~= nil then
+			if typeof(hidden) == "number" and (d:IsA("BasePart") or d:IsA("Decal")) then
+				(d :: any).Transparency = hidden
+			elseif d:IsA("SurfaceGui") then
+				d.Enabled = true
+			end
+			d:SetAttribute(HIDDEN_ATTR, nil)
+		end
+	end
+	for _, child in model:GetChildren() do
+		local pre = child:GetAttribute(PRE_SHELL_ATTR)
+		if typeof(pre) == "CFrame" and child:IsA("BasePart") and chassis and chassis:IsA("BasePart") then
+			unweld(child)
+			child.CFrame = chassis.CFrame * pre
+			weldToChassis(chassis, child)
+			child:SetAttribute(PRE_SHELL_ATTR, nil)
+		end
+	end
+	model:SetAttribute("HeroMesh", nil)
+	model:SetAttribute("ShellHeight", nil)
+	local mutation = model:GetAttribute("Mutation")
+	CarBuilder.applyMutation(model, if typeof(mutation) == "string" then mutation :: MutationId else "None")
+	return true
+end
+
+-- A shell part's texture on/off. TextureID is kept in attribute "ShellTextureID"; a SurfaceAppearance (which only
+-- applies as a direct child) is parked in a STASH_NAME Folder while off, so "None" restores both.
+local function setShellTexture(part: BasePart, on: boolean)
+	if part:IsA("MeshPart") then
+		local mesh = part :: MeshPart
+		local okRead, current = pcall(function()
+			return mesh.TextureID
+		end)
+		local now: string = if okRead and typeof(current) == "string" then current else ""
+		local stored = part:GetAttribute("ShellTextureID")
+		local original: string = if typeof(stored) == "string" then stored else now
+		if typeof(stored) ~= "string" then
+			part:SetAttribute("ShellTextureID", original)
+		end
+		local want = if on then original else ""
+		if now ~= want then
+			pcall(function()
+				mesh.TextureID = want
+			end)
+		end
+	end
+	local stash = part:FindFirstChild(STASH_NAME)
+	if on then
+		if stash then
+			for _, c in stash:GetChildren() do
+				c.Parent = part
+			end
+			stash:Destroy()
+		end
+		return
+	end
+	for _, c in part:GetChildren() do
+		if c:IsA("SurfaceAppearance") then
+			if not stash then
+				local folder = Instance.new("Folder")
+				folder.Name = STASH_NAME
+				folder.Parent = part
+				stash = folder
+			end
+			c.Parent = stash
+		end
+	end
+end
+
+-- Mutation look of the shell: None = the mesh's own texture (or flat spray paint after repaint), Gold / Diamond /
+-- Galaxy = texture off + mutation color/material, Rainbow = texture off (clients cycle the hue, WheelAnimator).
+local function mutateShell(model: Model, mutId: MutationId, mdef: Rarity.MutationDef, parts: { BasePart })
+	local paint = model:GetAttribute("ShellPaint")
+	local textured = mutId == "None" and typeof(paint) ~= "Color3"
+	local n = #parts
+	for i, part in parts do
+		local stored = part:GetAttribute("ShellBaseColor")
+		local matName = part:GetAttribute("ShellBaseMaterial")
+		local baseColor: Color3 = if typeof(stored) == "Color3" then stored else part.Color
+		local baseMat = materialByName(if typeof(matName) == "string" then matName else nil, part.Material)
+		if typeof(stored) ~= "Color3" then
+			part:SetAttribute("ShellBaseColor", baseColor)
+			part:SetAttribute("ShellBaseMaterial", baseMat.Name)
+		end
+		setShellTexture(part, textured)
+		if textured then
+			part.Color = baseColor
+			part.Material = baseMat
+		elseif mutId == "Rainbow" then
+			part.Material = mdef.material or SMOOTH
+			part.Color = Color3.fromHSV(((i - 1) / math.max(n, 1)) % 1, 0.75, 1)
+		elseif mutId == "None" then
+			-- spray-shop repaint: a texture can't be tinted, so the shell goes flat in the new paint
+			part.Color = if typeof(paint) == "Color3" then paint else baseColor
+			part.Material = SMOOTH
+		else
+			part.Color = mdef.color or baseColor
+			part.Material = mdef.material or baseMat
+		end
+	end
+end
+
 -- Recolor/re-material the primary paint for a mutation and add sparkles (Diamond/Galaxy). Rainbow gets a static
--- rainbow sweep here; clients animate the hue (WheelAnimator). Always sets the model attribute "Mutation".
+-- rainbow sweep here; clients animate the hue (WheelAnimator). HeroMesh cars restyle their shell parts too.
+-- Always sets the model attribute "Mutation".
 function CarBuilder.applyMutation(model: Model, mutation: MutationId)
 	local mutId: MutationId = if Rarity.Mutations[mutation] then mutation else "None"
 	local mdef = Rarity.getMutation(mutId)
@@ -1952,6 +2312,11 @@ function CarBuilder.applyMutation(model: Model, mutation: MutationId)
 		if d.Name == SPARKLES_NAME and d:IsA("ParticleEmitter") then
 			d:Destroy()
 		end
+	end
+
+	local shell = shellParts(model)
+	if #shell > 0 then
+		mutateShell(model, mutId, mdef, shell)
 	end
 
 	local parts = primaryParts(model)
@@ -1977,6 +2342,15 @@ function CarBuilder.applyMutation(model: Model, mutation: MutationId)
 		local vol = part.Size.X * part.Size.Y * part.Size.Z
 		if vol > biggestVol then
 			biggestVol = vol
+			biggest = part
+		end
+	end
+	-- on a HeroMesh car the sparkles fill the visible shell instead of a hidden body part
+	local shellVol = -1
+	for _, part in shell do
+		local vol = part.Size.X * part.Size.Y * part.Size.Z
+		if vol > shellVol then
+			shellVol = vol
 			biggest = part
 		end
 	end
@@ -2009,10 +2383,12 @@ function CarBuilder.applyMutation(model: Model, mutation: MutationId)
 end
 
 -- Repaint the primary paint (e.g. Spray Shop). Keeps the mutation look when the car has a recolor mutation.
+-- A hero shell (now or arriving later) shows the paint flat (attribute ShellPaint; see mutateShell).
 function CarBuilder.repaint(model: Model, color: Color3)
 	for _, part in primaryParts(model) do
 		part:SetAttribute("BaseColor", color)
 	end
+	model:SetAttribute("ShellPaint", color)
 	local mutation = model:GetAttribute("Mutation")
 	CarBuilder.applyMutation(model, if typeof(mutation) == "string" then mutation :: any else "None")
 end

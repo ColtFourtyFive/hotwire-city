@@ -17,9 +17,18 @@
 --   Pad1..Pad12 (Part; SurfaceGui "PadGui"; child Part "Sign" with SurfaceGui "SignGui"; attributes Slot, Locked,
 --   Price, PassOnly, NextUnlock, State), Dropoff, DropoffMark, CollectPad, CollectSign, LockButton, LockSign, Gate
 --   (children Beam1..Beam5, SurfaceGuis "CountdownGui"/"CountdownGuiBack"), StatusLight, Sign (SurfaceGui
---   "SignGui" -> TextLabel "OwnerName" / "Stats"), Display (Folder), OwnerSpawn, Building (Folder of decor).
+--   "SignGui" -> TextLabel "OwnerName" / "Stats"), Display (Folder), OwnerSpawn, Building (Folder of decor),
+--   Dressing (Folder of kit-prop slots), Loot (Model: the wealth corner, Tier1..Tier4 Models shown by income).
 -- Plot model attributes: PlotIndex, Accent, OwnerUserId (0 = vacant), OwnerName, Locked, LockEndsAt,
---   LockReadyAt (both Workspace:GetServerTimeNow() based). GarageService adds CarCount, Uncollected, IncomePerSec.
+--   LockReadyAt (both Workspace:GetServerTimeNow() based), LootTier. GarageService adds CarCount, Uncollected,
+--   IncomePerSec.
+--
+-- Art pass (docs/ART_PASS.md AP2b): wall props are Models tagged "AssetSlot" (attributes Category, Role, Fit,
+-- Footprint; WorldPivot = the ground CFrame the asset stands on, LookVector = the asset's front) that MapDresser swaps
+-- for kit meshes; the procedural placeholder inside each slot is the fallback. Loot slots carry the same attributes
+-- but tag "LootSlot": PlotService dresses those itself (AssetLibrary templates) because it also shows/hides them by
+-- the owner's IncomePerSec tier, and a hidden tier is not in Workspace when MapDresser runs. Every slot keeps clear of
+-- the pads (+ the longest car), the aisle, drop-off, collect pad, lock button, door path and OwnerSpawn (garage spec).
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -27,6 +36,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
+local Assets = require(Shared.Config.Assets)
 local EconomyMath = require(Shared.Util.EconomyMath)
 local Format = require(Shared.Util.Format)
 local MapConfig = require(Shared.Config.Map)
@@ -47,6 +57,12 @@ PlotService.REARM_FRACTION = 0.5 -- ...or this fraction of the last button lock,
 PlotService.MAX_LOCK_SECONDS = 3600 -- stacked locks (Lockdown purchases) never reach further ahead than this
 PlotService.GO_HOME_COOLDOWN = 20
 PlotService.PUSH_INTERVAL = 0.5
+PlotService.TAG_SLOT = "AssetSlot" -- MapDresser contract (wall props)
+PlotService.TAG_LOOT = "LootSlot" -- dressed + toggled by PlotService (loot corner)
+-- Owner IncomePerSec needed for loot tiers 1..4 (tier 0 = the safe every garage has).
+PlotService.LOOT_TIERS = { 100, 1000, 10000, 100000 } :: { number }
+-- Keep-out around every parking slot: the longest car (stretch limo) x the pad depth, centered on the slot.
+PlotService.CAR_FOOTPRINT = Vector3.new(18, 0, G.SLOT_PAD_SIZE.Z)
 
 -- One neon accent per plot (sign trim, wall strips, aisle lines, couch...).
 PlotService.ACCENTS = {
@@ -99,6 +115,15 @@ local C = {
 	pilaster = Color3.fromRGB(206, 198, 180),
 	acUnit = Color3.fromRGB(190, 196, 206),
 	window = Color3.fromRGB(70, 110, 150),
+	lift = Color3.fromRGB(40, 110, 225),
+	gold = Color3.fromRGB(255, 196, 46),
+	safe = Color3.fromRGB(64, 76, 100),
+	safeDoor = Color3.fromRGB(96, 110, 140),
+	bill = Color3.fromRGB(70, 190, 96),
+	billLight = Color3.fromRGB(150, 230, 150),
+	burlap = Color3.fromRGB(176, 120, 64),
+	cardboard = Color3.fromRGB(196, 150, 96),
+	logoBg = Color3.fromRGB(18, 20, 38), -- matches the logo art's background
 }
 
 local FONT = Font.fromEnum(Enum.Font.FredokaOne)
@@ -373,6 +398,370 @@ local function buildPad(model: Model, origin: CFrame, accent: Color3, slot: numb
 		3
 	)
 	textLabel(sroot, "Status", "", accent, UDim2.fromScale(0.42, 0.22), UDim2.fromScale(0.54, 0.56), C.dark, 2)
+end
+
+-- Kit dressing ------------------------------------------------------------------------------------------------------
+
+-- Normalized kit dims per stud of `fit` (W, H, D with the front facing -Z; from `python3 tools/kitgeo.py dims`).
+-- Sizes the procedural placeholders and the keep-out checks; the meshes themselves come from Config/Assets.
+local KIT_DIMS: { [string]: Vector3 } = {
+	car_lift = Vector3.new(1, 0.955, 0.288),
+	tool_chest = Vector3.new(0.843, 1, 0.585),
+	tire_stack = Vector3.new(0.696, 1, 0.658),
+	oil_barrels = Vector3.new(1, 0.777, 0.752),
+	workbench = Vector3.new(0.997, 1, 0.554),
+	garage_shelf = Vector3.new(0.881, 1, 0.353),
+	safe_vault = Vector3.new(0.791, 1, 0.864),
+	money_pile = Vector3.new(1, 0.522, 0.866),
+	gold_bars = Vector3.new(1, 0.615, 0.725),
+	trophy = Vector3.new(1, 0.956, 0.513),
+	money_bag = Vector3.new(0.898, 1, 0.616),
+}
+
+export type DressSpot = {
+	name: string,
+	role: string, -- Config/Assets.Props key
+	fit: number, -- studs along the role's `fit` dimension
+	cf: CFrame, -- plot-local ground CFrame (LookVector = the asset's front)
+	size: Vector3, -- W, H, D of the placed asset in its own frame
+	tier: number?, -- loot tier (0 = always shown); nil = wall prop dressed by MapDresser
+}
+
+-- Interior wall faces (the wainscot) in plot-local space.
+local IN_X = G.HALF_WIDTH - G.WALL_THICKNESS - 0.2
+local IN_FZ = G.FRONT_Z + G.WALL_THICKNESS + 0.2
+local IN_BZ = G.BACK_Z - G.WALL_THICKNESS - 0.2
+local WALL_GAP = 0.1
+
+local function dims(role: string, fit: number): Vector3
+	return (KIT_DIMS[role] or Vector3.one) * fit
+end
+
+local function spotAt(name: string, role: string, fit: number, pos: Vector3, facing: Vector3, tier: number?): DressSpot
+	return {
+		name = name,
+		role = role,
+		fit = fit,
+		cf = CFrame.lookAt(pos, pos + facing),
+		size = dims(role, fit),
+		tier = tier,
+	}
+end
+
+-- Against the front wall (beside the door), facing into the garage.
+local function onFrontWall(name: string, role: string, fit: number, x: number): DressSpot
+	local d = dims(role, fit).Z
+	return spotAt(name, role, fit, Vector3.new(x, 0, IN_FZ + d / 2 + WALL_GAP), Vector3.zAxis)
+end
+
+-- Against a side wall (side = -1 left / +1 right), facing the aisle.
+local function onSideWall(name: string, role: string, fit: number, side: number, z: number): DressSpot
+	local d = dims(role, fit).Z
+	return spotAt(name, role, fit, Vector3.new(side * (IN_X - d / 2 - WALL_GAP), 0, z), Vector3.new(-side, 0, 0))
+end
+
+-- Against the back wall at height y, facing the door.
+local function onBackWall(name: string, role: string, fit: number, x: number, y: number, tier: number?): DressSpot
+	local d = dims(role, fit).Z
+	return spotAt(name, role, fit, Vector3.new(x, y, IN_BZ - d / 2 - WALL_GAP), -Vector3.zAxis, tier)
+end
+
+-- Where every kit prop of plot `index` stands (plot-local). Pure + deterministic: odd plots put the car lift in the
+-- front-left corner, even plots front-right; every third plot runs a second lift in the other corner (its tool chest
+-- and barrels move to the side wall, the tire stack to the back corner). The shelf always stands right of the door
+-- (the lock button owns the left), the workbench beside the lift; the loot corner flanks the collect pad.
+function PlotService._dressLayout(index: number): { DressSpot }
+	local side = if index % 2 == 1 then -1 else 1 -- lift corner
+	local other = -side
+	local twoLifts = index % 3 == 0
+	local liftW = dims("car_lift", 14).X
+	local liftX = IN_X - liftW / 2 - 0.3
+	local spots: { DressSpot } = {
+		onFrontWall("CarLift", "car_lift", 14, side * liftX),
+		onSideWall("Workbench", "workbench", 8, side, -32.6),
+		onFrontWall("Shelf", "garage_shelf", 9, 25.5),
+	}
+	if twoLifts then
+		table.insert(spots, onFrontWall("CarLift2", "car_lift", 14, other * liftX))
+		table.insert(spots, onSideWall("ToolChest", "tool_chest", 5, other, -35))
+		table.insert(spots, onSideWall("OilBarrels", "oil_barrels", 5, other, -30))
+		table.insert(spots, onSideWall("TireStack", "tire_stack", 5, other, 43.5))
+	else
+		local barrelsW = dims("oil_barrels", 5).X
+		table.insert(spots, onFrontWall("OilBarrels", "oil_barrels", 5, other * (IN_X - barrelsW / 2 - 0.2)))
+		table.insert(spots, onFrontWall("TireStack", "tire_stack", 5, other * 37.7))
+		table.insert(spots, onSideWall("ToolChest", "tool_chest", 5, other, -33.5))
+	end
+
+	-- Loot corner: the safe (always) right of the collect pad, then cash, gold on the safe + a money bag left of the
+	-- pad, a giant trophy, and finally a second cash heap + gold stack. Tier t needs LOOT_TIERS[t] $/s.
+	local cx = G.COLLECT_CENTER.X
+	local cash = onBackWall("LootCash", "money_pile", 5, cx + 15.9, 0, 1)
+	local heapTop = cash.cf.Position + Vector3.new(0, cash.size.Y * 0.8, 0) -- tier 4 heaps more cash on top
+	table.insert(spots, onBackWall("LootSafe", "safe_vault", 5.5, cx + 10.4, 0, 0))
+	table.insert(spots, cash)
+	table.insert(spots, onBackWall("LootGold", "gold_bars", 3, cx + 10.4, dims("safe_vault", 5.5).Y, 2))
+	table.insert(spots, onBackWall("LootBag", "money_bag", 3, cx - 8.9, 0, 2))
+	table.insert(spots, onBackWall("LootTrophy", "trophy", 5, cx + 21.2, 0, 3))
+	table.insert(spots, spotAt("LootCash2", "money_pile", 4, heapTop, Vector3.xAxis, 4))
+	table.insert(spots, spotAt("LootGold2", "gold_bars", 2.6, Vector3.new(cx - 8.9, 0, 42.3), -Vector3.zAxis, 4))
+	return spots
+end
+
+-- Procedural placeholders (the fallback when a mesh never loads): non-colliding, shadowless, roughly the mesh's
+-- silhouette and palette. `b` = world ground CFrame (front = -Z), `s` = W/H/D.
+local UPRIGHT = CFrame.Angles(0, 0, math.pi / 2) -- cylinder axis (local X) -> Y
+
+local function prop(
+	m: Model,
+	name: string,
+	size: Vector3,
+	cf: CFrame,
+	color: Color3,
+	material: Enum.Material?,
+	shape: Enum.PartType?
+): BasePart
+	return makePart(m, name, size, cf, color, {
+		material = material,
+		shape = shape,
+		collide = false,
+		query = false,
+		shadow = false,
+	})
+end
+
+local PLACEHOLDER: { [string]: (m: Model, b: CFrame, s: Vector3, accent: Color3) -> () } = {
+	car_lift = function(m, b, s)
+		local postW = 1.4
+		for _, sx in { -1, 1 } do
+			local x = sx * (s.X / 2 - postW / 2)
+			prop(m, "Post", Vector3.new(postW, s.Y, 1.8), b * CFrame.new(x, s.Y / 2, 0), C.lift, Enum.Material.Metal)
+			prop(
+				m,
+				"Arm",
+				Vector3.new(4.2, 0.4, 0.8),
+				b * CFrame.new(x - sx * (postW / 2 + 2.1), 3.2, -0.6),
+				C.hazard,
+				Enum.Material.Metal
+			)
+		end
+		prop(m, "Beam", Vector3.new(s.X, 0.9, 1), b * CFrame.new(0, s.Y - 0.45, 0), C.lift, Enum.Material.Metal)
+	end,
+	tool_chest = function(m, b, s)
+		local h = s.Y - 0.5
+		prop(m, "Body", Vector3.new(s.X, h, s.Z), b * CFrame.new(0, 0.5 + h / 2, 0), C.toolbox, Enum.Material.Metal)
+		prop(
+			m,
+			"Drawers",
+			Vector3.new(s.X - 0.5, h * 0.6, 0.12),
+			b * CFrame.new(0, 0.5 + h * 0.4, -s.Z / 2 - 0.06),
+			C.toolbox:Lerp(C.dark, 0.35),
+			Enum.Material.Metal
+		)
+	end,
+	tire_stack = function(m, b, s)
+		local th = s.Y / 3
+		local dia = math.min(s.X, s.Z)
+		for k = 0, 2 do
+			local cf = b * CFrame.new(0, th * (k + 0.5), 0) * UPRIGHT
+			prop(m, "Tire", Vector3.new(th - 0.08, dia, dia), cf, C.tire, Enum.Material.Rubber, Enum.PartType.Cylinder)
+		end
+	end,
+	oil_barrels = function(m, b, s)
+		local dia = s.X * 0.36
+		local spots = { { -0.31, 0.22 }, { 0.03, -0.24 }, { 0.32, 0.21 } }
+		local colors = { Color3.fromRGB(40, 90, 220), Color3.fromRGB(215, 40, 40), Color3.fromRGB(250, 200, 40) }
+		for i, p in spots do
+			local cf = b * CFrame.new(p[1] * s.X, s.Y / 2, p[2] * s.Z) * UPRIGHT
+			prop(m, "Barrel", Vector3.new(s.Y, dia, dia), cf, colors[i], Enum.Material.Metal, Enum.PartType.Cylinder)
+		end
+	end,
+	workbench = function(m, b, s)
+		prop(
+			m,
+			"Cabinet",
+			Vector3.new(s.X - 0.4, 3, s.Z - 0.6),
+			b * CFrame.new(0, 1.5, 0.1),
+			C.toolbox,
+			Enum.Material.Metal
+		)
+		prop(m, "BenchTop", Vector3.new(s.X, 0.45, s.Z), b * CFrame.new(0, 3.2, 0), C.peg, Enum.Material.Wood)
+		local ph = s.Y - 3.45
+		prop(
+			m,
+			"Pegboard",
+			Vector3.new(s.X - 0.4, ph, 0.3),
+			b * CFrame.new(0, 3.45 + ph / 2, s.Z / 2 - 0.15),
+			C.peg,
+			Enum.Material.Wood
+		)
+	end,
+	garage_shelf = function(m, b, s, accent)
+		for _, sx in { -1, 1 } do
+			local cf = b * CFrame.new(sx * (s.X / 2 - 0.175), s.Y / 2, 0)
+			prop(m, "Upright", Vector3.new(0.35, s.Y, s.Z), cf, C.metal, Enum.Material.Metal)
+		end
+		for _, f in { 0.06, 0.48, 0.9 } do
+			prop(m, "Board", Vector3.new(s.X - 0.7, 0.25, s.Z), b * CFrame.new(0, s.Y * f, 0), C.acUnit, Enum.Material.Metal)
+		end
+		prop(m, "Box", Vector3.new(s.X * 0.3, 1.6, s.Z * 0.8), b * CFrame.new(-s.X * 0.2, s.Y * 0.48 + 0.92, 0), accent)
+	end,
+	safe_vault = function(m, b, s)
+		prop(m, "Body", s, b * CFrame.new(0, s.Y / 2, 0), C.safe, Enum.Material.Metal)
+		prop(
+			m,
+			"Door",
+			Vector3.new(s.X * 0.78, s.Y * 0.78, 0.15),
+			b * CFrame.new(0, s.Y / 2, -s.Z / 2 - 0.075),
+			C.safeDoor,
+			Enum.Material.Metal
+		)
+		local dial = s.X * 0.28
+		prop(
+			m,
+			"Dial",
+			Vector3.new(0.25, dial, dial),
+			b * CFrame.new(s.X * 0.12, s.Y * 0.55, -s.Z / 2 - 0.2) * CFrame.Angles(0, math.pi / 2, 0),
+			C.gold,
+			Enum.Material.Metal,
+			Enum.PartType.Cylinder
+		)
+	end,
+	money_pile = function(m, b, s)
+		prop(m, "Bills", Vector3.new(s.X, s.Y * 0.42, s.Z) * 0.96, b * CFrame.new(0, s.Y * 0.2, 0), C.bill)
+		prop(
+			m,
+			"Bills",
+			Vector3.new(s.X * 0.68, s.Y * 0.34, s.Z * 0.68),
+			b * CFrame.new(0.2, s.Y * 0.57, 0) * CFrame.Angles(0, 0.3, 0),
+			C.bill
+		)
+		prop(
+			m,
+			"Bills",
+			Vector3.new(s.X * 0.38, s.Y * 0.24, s.Z * 0.4),
+			b * CFrame.new(-0.3, s.Y * 0.86, 0.1) * CFrame.Angles(0, -0.2, 0),
+			C.billLight
+		)
+	end,
+	gold_bars = function(m, b, s)
+		local h = s.Y / 3
+		for k, f in { { 1, 1 }, { 0.68, 0.72 }, { 0.36, 0.44 } } do
+			local bar = prop(m, "Gold", Vector3.new(s.X * f[1], h, s.Z * f[2]), b * CFrame.new(0, h * (k - 0.5), 0), C.gold)
+			bar.Reflectance = 0.15
+		end
+	end,
+	trophy = function(m, b, s)
+		local base = Color3.fromRGB(30, 30, 36)
+		prop(m, "Base", Vector3.new(s.X * 0.5, s.Y * 0.16, s.Z * 0.9), b * CFrame.new(0, s.Y * 0.08, 0), base)
+		prop(m, "Stem", Vector3.new(0.6, s.Y * 0.26, 0.6), b * CFrame.new(0, s.Y * 0.29, 0), C.gold, Enum.Material.Metal)
+		local cupH = s.Y * 0.42
+		local cup = prop(
+			m,
+			"Cup",
+			Vector3.new(cupH, s.Z * 0.95, s.Z * 0.95),
+			b * CFrame.new(0, s.Y * 0.42 + cupH / 2, 0) * UPRIGHT,
+			C.gold,
+			Enum.Material.SmoothPlastic,
+			Enum.PartType.Cylinder
+		)
+		cup.Reflectance = 0.2
+		for _, sx in { -1, 1 } do
+			local cf = b * CFrame.new(sx * s.X * 0.32, s.Y * 0.66, 0)
+			prop(m, "Handle", Vector3.new(s.X * 0.12, s.Y * 0.3, 0.4), cf, C.gold, Enum.Material.Metal)
+		end
+	end,
+	money_bag = function(m, b, s)
+		local dia = math.min(s.X, s.Y * 0.8)
+		prop(
+			m,
+			"Sack",
+			Vector3.new(dia, dia, dia),
+			b * CFrame.new(0, dia / 2, 0),
+			C.burlap,
+			Enum.Material.Fabric,
+			Enum.PartType.Ball
+		)
+		prop(m, "Tie", Vector3.new(0.8, 0.8, 0.8), b * CFrame.new(0, dia + 0.3, 0), C.burlap:Lerp(C.dark, 0.3))
+	end,
+}
+
+-- One slot Model: placeholder parts + the AssetSlot/LootSlot contract (WorldPivot set once the parts exist).
+local function slotModel(parent: Instance, spot: DressSpot, origin: CFrame, accent: Color3): Model
+	local m = Instance.new("Model")
+	m.Name = spot.name
+	local base = origin * spot.cf
+	local build = PLACEHOLDER[spot.role]
+	if build then
+		build(m, base, spot.size, accent)
+	end
+	m.WorldPivot = base
+	m:SetAttribute("Category", "Props")
+	m:SetAttribute("Role", spot.role)
+	m:SetAttribute("Fit", spot.fit)
+	m:SetAttribute("Footprint", spot.size)
+	if spot.tier ~= nil then
+		m:SetAttribute("LootTier", spot.tier)
+		CollectionService:AddTag(m, PlotService.TAG_LOOT)
+	else
+		CollectionService:AddTag(m, PlotService.TAG_SLOT)
+	end
+	m.Parent = parent
+	return m
+end
+
+-- A framed ad poster on the inside of the front wall (Decal art from Config/Assets.Images).
+local function poster(parent: Instance, origin: CFrame, x: number, image: string, accent: Color3)
+	local w, h = 12, 6.75 -- the ad art is 16:9
+	local y = 13.6
+	local inward = CFrame.Angles(0, math.pi, 0) -- Front face looks into the garage (+Z)
+	local wallZ = G.FRONT_Z + G.WALL_THICKNESS
+	deco(parent, "PosterFrame", Vector3.new(w + 0.8, h + 0.8, 0.16), origin * CFrame.new(x, y, wallZ + 0.24) * inward, accent)
+	local art = deco(parent, "Poster", Vector3.new(w, h, 0.1), origin * CFrame.new(x, y, wallZ + 0.37) * inward, C.white)
+	local d = Instance.new("Decal")
+	d.Name = "Art"
+	d.Face = Enum.NormalId.Front
+	d.Texture = image
+	d.Parent = art
+end
+
+-- Garage income tier -> loot tier (0..#LOOT_TIERS).
+function PlotService._lootTier(incomePerSec: any): number
+	local ips = if typeof(incomePerSec) == "number" and incomePerSec == incomePerSec then incomePerSec else 0
+	local tier = 0
+	for i, need in PlotService.LOOT_TIERS do
+		if ips >= need then
+			tier = i
+		end
+	end
+	return tier
+end
+
+-- The Tier1..TierN Models of a freshly built garage (all still parented to Loot), in tier order.
+function PlotService._lootTierModels(model: Model): { Model }
+	local out = {}
+	local loot = model:FindFirstChild("Loot")
+	if loot then
+		for t = 1, #PlotService.LOOT_TIERS do
+			local tm = loot:FindFirstChild("Tier" .. t)
+			if tm and tm:IsA("Model") then
+				out[t] = tm
+			end
+		end
+	end
+	return out
+end
+
+-- Shows tiers 1..tier of the loot corner and parks the rest outside the DataModel (they keep their dressing).
+function PlotService._applyLootTier(model: Model, tierModels: { Model }, tier: number)
+	local loot = model:FindFirstChild("Loot")
+	for t, tm in tierModels do
+		local want: Instance? = if t <= tier then loot else nil
+		if tm.Parent ~= want then
+			tm.Parent = want
+		end
+	end
+	model:SetAttribute("LootTier", tier)
 end
 
 -- Builds one complete garage model (no player state). Harness-compatible.

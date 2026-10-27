@@ -22,6 +22,7 @@ Remotes.ServerToClient = {
 	"TheftState", -- (state: {active: boolean, endsAt: number?, carId: string?, targetPlot: number?, dropped: boolean?, droppedEndsAt: number?}) thief's delivery timer
 	"OpenUI", -- (name: string) ask client to open a menu (e.g. "GearShop" from a ProximityPrompt)
 	"Sound", -- (soundKey: string, worldPosition: Vector3?) play a Config.Sounds sound
+	"VehicleFxState", -- (vehicleId: number, boost: boolean, honk: boolean) a nearby driver's nitro flames / horn (fireNear)
 }
 
 -- RemoteEvents: client -> server (all rate-limited + validated server-side)
@@ -42,6 +43,7 @@ Remotes.ClientToServer = {
 	"LockGarage", -- () owner presses lock from UI (also a physical button)
 	"RerollContract", -- (contractId: string) free daily swap of one contract
 	"AdminCommand", -- (text: string) only works for admins
+	"VehicleFx", -- (boost: boolean, honk: boolean) driver's cosmetic nitro state change / horn; relayed as VehicleFxState
 }
 
 -- RemoteFunctions: client -> server

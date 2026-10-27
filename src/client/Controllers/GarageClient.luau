@@ -5,14 +5,17 @@
 --     not locked) and the server wouldn't refuse anyway (victim already being robbed, victim's RobbableAt
 --     protection, your own garage full): the billboard says why instead (F7). StealPrompt.HoldDuration scaled
 --     locally by the player's HoldMultiplier attribute
---   * billboards above display cars (name in rarity color, rarity + mutation pills, $/s, owner's uncollected $)
+--   * billboards above display cars (name in rarity color, rarity + mutation pills, $/s, owner's uncollected $),
+--     built only once their garage comes within TAG_NEAR of the camera and disabled while it is far (PERF-12)
 --   * pad visuals from server pad attributes (lock + price, next unlock, STOLEN!/OUT states) + "Unlock $X" prompt;
 --     +2 Slots pass pads read "MAX SLOTS" while the pass isn't on sale (id 0)
 --   * collect pad glow pulse + floating total while the owner has uncollected cash
 --   * LOCK button / countdown pill (touch friendly) while inside your garage or while it's locked (stacked above
---     HUDController's HOME button outside); hidden in streamer mode (HUDController.VisibilityChanged)
+--     HUDController's HOME button outside); hidden in streamer mode (HUDController.VisibilityChanged); flashes
+--     "LOCK NOW!" for a few seconds after the plot's IntruderAt stamp (someone started hotwiring, F3)
 -- The server re-checks everything; this module is presentation only.
--- Pure helpers (tests): _freeSlots, _stealBlock, _lockedPadLabel.
+-- Public: getLockTop() (design px of the pill's top edge while it shows; TutorialController stacks above it).
+-- Pure helpers (tests): _freeSlots, _stealBlock, _lockedPadLabel, _tagsNear, _intruderFlash, _lockTop.
 
 local CollectionService = game:GetService("CollectionService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -42,6 +45,9 @@ local GarageClient = {}
 
 local OWN_LASER = Color3.fromRGB(0, 214, 255) -- your own lock reads "friendly" (and lets you through)
 local LOCK_BOTTOM = 112 -- design px from the screen bottom to the LOCK pill's bottom edge (at least)
+local LOCK_HEIGHT = 58 -- design px
+local INTRUDER_FLASH = 6 -- seconds the LOCK pill flashes after the server's IntruderAt stamp (someone hotwiring)
+local TAG_NEAR = 150 -- studs (camera -> garage interior center) within which a plot's car billboards exist / show
 local PULSE = TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 local BOB = TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 
@@ -66,6 +72,11 @@ type CollectFx = {
 
 local views: { [number]: PlotView } = {}
 local displayTroves: { [Model]: any } = {}
+-- PERF-12: a display car's billboard is built only once its garage is near the camera, and disabled while it is far
+local pendingTags: { [Model]: BasePart } = {} -- chassis of display cars whose billboard waits for their plot
+local tagGuis: { [Model]: BillboardGui } = {}
+local tagNear: { [number]: boolean } = {} -- plot index -> its billboards are enabled
+local plotCenters: { [number]: Vector3 | false } = {}
 local unlockPrompts: { [BasePart]: ProximityPrompt } = {}
 local padPulses: { [BasePart]: Tween } = {}
 local collectFx: CollectFx? = nil
@@ -73,6 +84,7 @@ local collectFx: CollectFx? = nil
 local lockButton: TextButton? = nil
 local lockScreen: ScreenGui? = nil
 local lockState = "hidden"
+local lockPulseAt = 0 -- os.clock() of the last intruder flash pop
 local hudHidden = false -- streamer mode (HUDController)
 local freeSlots: number? = nil -- my free garage slots from the snapshot (nil = unknown)
 
@@ -162,6 +174,28 @@ function GarageClient._lockedPadLabel(
 		return "🔒", Format.cash(price), "Warning"
 	end
 	return "🔒", "LOCKED", "Danger"
+end
+
+-- PERF-12: does a garage's car billboards need to exist / show? The camera is within `radius` of the garage interior
+-- center (unknown camera or garage -> yes).
+function GarageClient._tagsNear(camPos: Vector3?, center: Vector3?, radius: number): boolean
+	if not camPos or not center then
+		return true
+	end
+	return (camPos - center).Magnitude <= radius
+end
+
+-- Is the LOCK pill flashing for an intruder? intruderAt / now are Workspace:GetServerTimeNow() times.
+function GarageClient._intruderFlash(intruderAt: number, now: number): boolean
+	return intruderAt > 0 and now >= intruderAt - 1 and now - intruderAt < INTRUDER_FLASH
+end
+
+-- Design px from the screen bottom to the LOCK pill's top edge while it shows (nil when hidden).
+function GarageClient._lockTop(visible: boolean, bottomOffset: number): number?
+	if not visible then
+		return nil
+	end
+	return bottomOffset + LOCK_HEIGHT
 end
 
 -- Gate --------------------------------------------------------------------------------------------------------------
@@ -298,6 +332,31 @@ local function pill(parent: Instance, text: string, color: Color3, order: number
 	return f
 end
 
+local function plotCenter(index: number): Vector3?
+	local c = plotCenters[index]
+	if c == nil then
+		local ok, cf = pcall(MapLayout.plotInteriorZone, index)
+		c = if ok then (cf :: CFrame).Position else false
+		plotCenters[index] = c
+	end
+	return if c then c else nil
+end
+
+local function cameraPosition(): Vector3?
+	local cam = Workspace.CurrentCamera
+	return if cam then cam.CFrame.Position else nil
+end
+
+-- Billboards for this plot's cars should exist / show (cached per plot by refreshTags; computed on first use).
+local function tagsNearPlot(index: number): boolean
+	local near = tagNear[index]
+	if near == nil then
+		near = GarageClient._tagsNear(cameraPosition(), plotCenter(index), TAG_NEAR)
+		tagNear[index] = near
+	end
+	return near
+end
+
 local function buildBillboard(model: Model, chassis: BasePart, trove: any)
 	local carId = model:GetAttribute("CarId")
 	local def = if typeof(carId) == "string" then Cars.get(carId) else nil
@@ -417,15 +476,50 @@ local function buildBillboard(model: Model, chassis: BasePart, trove: any)
 		refreshUncollected()
 		updatePrompts(model)
 	end)
+	bb.Enabled = tagsNearPlot(num(model:GetAttribute("PlotIndex"), 0))
 	bb.Parent = chassis
 	trove:Add(bb)
+	tagGuis[model] = bb
 end
 
 local function teardownDisplay(model: Instance)
+	pendingTags[model :: Model] = nil
+	tagGuis[model :: Model] = nil
 	local t = displayTroves[model :: Model]
 	if t then
 		displayTroves[model :: Model] = nil
 		t:Destroy()
+	end
+end
+
+-- PERF-12: build the billboards of garages the camera comes near (once) and switch far garages' billboards off.
+local function refreshTags()
+	local cam = cameraPosition()
+	local changed = false
+	for index = 1, MapLayout.plotCount() do
+		local near = GarageClient._tagsNear(cam, plotCenter(index), TAG_NEAR)
+		if tagNear[index] ~= near then
+			tagNear[index] = near
+			changed = true
+		end
+	end
+	if not changed then
+		return
+	end
+	for model, trove in displayTroves do
+		local near = tagsNearPlot(num(model:GetAttribute("PlotIndex"), 0))
+		local chassis = pendingTags[model]
+		if near and chassis then
+			pendingTags[model] = nil
+			if chassis.Parent then
+				buildBillboard(model, chassis, trove)
+				updatePrompts(model) -- the StealBlock line lives on the billboard
+			end
+		end
+		local bb = tagGuis[model]
+		if bb and bb.Enabled ~= near then
+			bb.Enabled = near
+		end
 	end
 end
 
@@ -446,7 +540,11 @@ local function setupDisplay(inst: Instance)
 		if not chassis or not chassis:IsA("BasePart") or displayTroves[model] ~= trove then
 			return
 		end
-		buildBillboard(model, chassis, trove)
+		if tagsNearPlot(num(model:GetAttribute("PlotIndex"), 0)) then
+			buildBillboard(model, chassis, trove)
+		else
+			pendingTags[model] = chassis -- far garage: refreshTags builds it once the camera comes near
+		end
 		updatePrompts(model)
 		trove:Connect(chassis.ChildAdded, function(child: Instance)
 			if child:IsA("ProximityPrompt") then
@@ -852,9 +950,27 @@ local function updateLockUI()
 		btn.BackgroundColor3 = Theme.Colors.Disabled
 	else
 		lockState = "ready"
-		btn.Text = "🔒 LOCK GARAGE"
+		-- someone is hotwiring one of your cars (GarageService stamps IntruderAt): flash the pill (F3)
+		local intruder = GarageClient._intruderFlash(num(view.model:GetAttribute("IntruderAt"), 0), now)
+		btn.Text = if intruder then "🚨 LOCK NOW!" else "🔒 LOCK GARAGE"
 		btn.BackgroundColor3 = Theme.Colors.Danger
+		local clock = os.clock()
+		if intruder and btn.Visible and not hudHidden and clock - lockPulseAt >= 0.6 then
+			lockPulseAt = clock
+			Kit.pop(btn, 1.15)
+		end
 	end
+end
+
+-- Design px (Kit.uiScale, like HUDController's) from the screen bottom to the LOCK pill's top edge while it shows,
+-- else nil. TutorialController keeps its card above it.
+function GarageClient.getLockTop(): number?
+	local btn = lockButton
+	local screen = lockScreen
+	if not btn or not screen then
+		return nil
+	end
+	return GarageClient._lockTop(btn.Visible and screen.Enabled, -btn.Position.Y.Offset)
 end
 
 -- Lifecycle ----------------------------------------------------------------------------------------------------------------
@@ -917,11 +1033,20 @@ function GarageClient.start()
 	end)
 
 	local lastProtected = 0
+	local lastTags = 0
 	while true do
 		task.wait(0.2)
 		local ok, err = pcall(updateLockUI)
 		if not ok then
 			warn("[GarageClient] lock UI: " .. tostring(err))
+		end
+		local clock = os.clock()
+		if clock - lastTags >= 0.5 then
+			lastTags = clock
+			local okT, errT = pcall(refreshTags)
+			if not okT then
+				warn("[GarageClient] billboards: " .. tostring(errT))
+			end
 		end
 		-- tick "PROTECTED m:ss" and re-enable Steal once a victim's RobbableAt passes
 		local now = Workspace:GetServerTimeNow()

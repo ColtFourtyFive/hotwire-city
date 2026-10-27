@@ -6,7 +6,10 @@
 --     HC_BaseC0 so a re-tracked car never bakes in an animated pose).
 --   * The car the local player drives is posed from VehicleClient.getController() instead (exact suspension offsets
 --     and steer input, no extra raycasts); VehicleClient.positionsWheels=false hands that job to this module.
---   * Mutation "Rainbow": hue-cycles Paint="primary" parts on Vehicle / DisplayCar / DealerCar models.
+--   * Mutation "Rainbow": hue-cycles Paint="primary" parts on Vehicle / DisplayCar / DealerCar models (the hero
+--     shell's parts instead on HeroMesh cars).
+--   * HeroMesh cars (CarBuilder.applyShell: wheels are baked into the mesh, the procedural wheels are invisible) skip
+--     the wheel spin / steer / bob work entirely; rainbow, sparkles and observer drift FX still run.
 --   * Mutation "Diamond"/"Galaxy": the server-built CarBuilder.SPARKLES_NAME emitter only emits within SPARKLE_RANGE.
 --   * Other players' / AI cars that drift (sideways slip from the replicated chassis velocity, same test as the
 --     driving controller) get local tire smoke + a SoundController screech loop; the driver's own FX are VehicleClient's.
@@ -38,6 +41,7 @@ WheelAnimator.BOB_RANGE = 140 -- raycast suspension only this close; farther whe
 WheelAnimator.LOW_TIER = { RANGE = 160, HOT_COUNT = 10, COLD_PER_FRAME = 4, BOB_RANGE = 60 }
 WheelAnimator.SPARKLE_RANGE = 120
 WheelAnimator.SPARKLES_NAME = "MutationSparkles" -- = CarBuilder.SPARKLES_NAME (asserted in tests)
+WheelAnimator.SHELL_NAME = "HeroShell" -- = CarBuilder.SHELL_NAME (asserted in tests)
 
 local REBUILD_INTERVAL = 0.25 -- seconds between nearest-car list rebuilds
 local FILTER_INTERVAL = 2
@@ -95,6 +99,8 @@ type Rig = {
 	steer: number,
 	settled: boolean,
 	rainbow: { BasePart }?,
+	rainbowHero: boolean, -- rainbow holds shell parts (HeroMesh) rather than Paint="primary" parts
+	heroMesh: boolean, -- HeroMesh attribute (refreshed in rebuildNear): no wheel posing
 	phase: number,
 	lastT: number,
 	dist: number,
@@ -189,6 +195,8 @@ local function newRig(model: Model): Rig
 		steer = 0,
 		settled = false,
 		rainbow = nil,
+		rainbowHero = false,
+		heroMesh = model:GetAttribute("HeroMesh") == true,
 		phase = math.random(),
 		lastT = os.clock(),
 		dist = math.huge,
@@ -261,16 +269,32 @@ local function buildRig(rig: Rig, now: number)
 	rig.built = #wheels > 0 or rig.buildAttempts >= MAX_BUILD_ATTEMPTS
 end
 
-local function refreshRainbow(rig: Rig)
-	local isRainbow = rig.model:GetAttribute("Mutation") == "Rainbow"
-	if isRainbow and not rig.rainbow then
-		local parts: { BasePart } = {}
-		for _, d in rig.model:GetDescendants() do
-			if d:IsA("BasePart") and d:GetAttribute("Paint") == "primary" then
+-- The parts a Rainbow car cycles: its hero shell's parts on a HeroMesh car, else the Paint="primary" parts.
+function WheelAnimator.rainbowParts(model: Model): { BasePart }
+	local parts: { BasePart } = {}
+	local shell = if model:GetAttribute("HeroMesh") == true then model:FindFirstChild(WheelAnimator.SHELL_NAME) else nil
+	if shell then
+		for _, d in shell:GetDescendants() do
+			if d:IsA("BasePart") then
 				table.insert(parts, d)
 			end
 		end
-		rig.rainbow = parts
+		return parts
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d:GetAttribute("Paint") == "primary" then
+			table.insert(parts, d)
+		end
+	end
+	return parts
+end
+
+local function refreshRainbow(rig: Rig)
+	local isRainbow = rig.model:GetAttribute("Mutation") == "Rainbow"
+	-- a shell that arrived late (AssetLibrary re-skin) replaces the cycled parts
+	if isRainbow and (not rig.rainbow or rig.rainbowHero ~= rig.heroMesh) then
+		rig.rainbow = WheelAnimator.rainbowParts(rig.model)
+		rig.rainbowHero = rig.heroMesh
 	elseif not isRainbow and rig.rainbow then
 		rig.rainbow = nil
 	end
@@ -374,6 +398,7 @@ local function rebuildNear(camPos: Vector3, now: number)
 		local pos = if chassis and chassis.Parent then chassis.Position else model:GetPivot().Position
 		local oldDist = rig.dist
 		rig.pos = pos
+		rig.heroMesh = model:GetAttribute("HeroMesh") == true
 		rig.dist = (pos - camPos).Magnitude
 		if WheelAnimator.enteredBobRange(oldDist, rig.dist, bobRange) then
 			rig.settled = false
@@ -517,6 +542,9 @@ local function animateWheels(rig: Rig, dt: number, controller: any, hot: boolean
 				return -- parked and already posed
 			end
 		end
+	end
+	if rig.heroMesh then
+		return -- wheels are baked into the hero mesh (the procedural ones are invisible): drift FX above only
 	end
 
 	rig.steer += (steerTarget - rig.steer) * math.min(1, STEER_RESPONSE * dt)

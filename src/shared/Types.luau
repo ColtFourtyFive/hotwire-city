@@ -41,6 +41,7 @@ export type PlayerData = {
 	referralRewarded: boolean,
 	referralsPaid: { day: number, count: number }?, -- inviter-side referral payouts per UTC day (anti-farm)
 	playtime: { day: number, seconds: number, claimed: { [string]: boolean } }, -- per-UTC-day playtime gifts
+	pendingCars: { { carId: string, mutation: MutationId } }?, -- reward cars owed while a heist blocked delivery (RewardsService validates on read)
 }
 
 -- Daily contracts: rolled once per UTC day.
