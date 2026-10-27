@@ -17,5 +17,8 @@ assets/source/**
 !assets/source/**/
 !assets/source/**/meta.json
 
+# City art raw generator renders (re-fetchable via assets/cityart/sources.json); finals are committed
+assets/cityart/raw/
+
 # agent worktrees and local Claude state
 .claude/

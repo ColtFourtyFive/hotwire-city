@@ -1,5 +1,5 @@
 --!strict
--- WantedService: per-player wanted stars (0..5), heat, decay, Spray Shop clears and BUSTED.
+-- WantedService: per-player wanted stars (0..5), heat, the GTA V evade model, Spray Shop clears and BUSTED.
 --
 -- Public API (docs/SPEC.md §6):
 --   addHeat(player, stars, reason)      raise wanted level (ignored during post-bust grace; halved for brand-new players)
@@ -12,16 +12,26 @@
 -- Extra helpers: set(player, stars, reason), isInGrace(player), getPeak(player),
 --   consumeRespawnAtHQ(player): boolean  true once after a wanted player died (reset) and was busted for it;
 --                                       PlotService spawns that character at Police HQ instead of the garage
--- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickDecay, _sprayCost
+-- Combat v2 (gta_combat §7, §9.4, §9.5): raiseTo(player, stars, reason, pos?) (crime floors; a witnessed crime also
+--   pins the last known position), clearOnWasted(player) (a WASTED death clears the stars and fails a theft like a
+--   bust, without the bail), surrender(player) (<= 2 stars with police within 40 studs: busted at half the bail),
+--   getSearchArea(player): (Vector3?, number?).
+-- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickEvade, _sprayCost
+--
+-- Evade (replaces v1's star-by-star decay): while police can see you the timer is full (DECAY_DELAY[stars]) and
+-- your last known position (LKP) follows you. Out of sight it counts down 1x inside the search circle around the LKP
+-- (radius SEARCH_RADIUS[stars]) and EVADE_OUTSIDE_MULT x outside it; any sighting resets it. At zero every star
+-- clears at once ("You evaded the police.").
 --
 -- Remotes: Busted(lostCash: number, carLabel: string?) carLabel = the impounded car (failed theft / loot) if any.
--- Player attributes written here: Wanted (0..5), WantedSeen (bool: a cop currently sees you; HUD can flash the
--- stars GTA-style while you are hidden and the decay timer is running), WantedDecayAt (number: server time
--- (Workspace:GetServerTimeNow) when the next star drops if you stay hidden; 0 while seen / not wanted), SprayCost
--- (number: what a Spray Shop charges right now, refreshed ~1 Hz while wanted since it follows income; 0 when clean).
+-- Player attributes written here: Wanted (0..5), WantedSeen (bool: police currently see you; the HUD flashes the
+-- stars while you are hidden), WantedDecayAt (number: server time when you evade if nothing changes; 0 while seen /
+-- not wanted), LastKnownPos (Vector3), SearchRadius (number; 0 when clean), SprayCost (number: what a Spray Shop
+-- charges right now, refreshed ~1 Hz while wanted since it follows income; 0 when clean).
 --
 -- Spray Shops only work while no cop sees you: a seen car waiting in the booth is sprayed as soon as they lose you.
--- Dying while wanted (e.g. resetting to get home) is a bust, unless it happens inside your own garage.
+-- Dying while wanted with no recent damage (e.g. resetting to get home) is a bust, unless it happens inside your own
+-- garage; DamageService owns the death classification (gta_combat §7.1) and calls bust / clearOnWasted.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -36,6 +46,7 @@ local Economy = require(Shared.Config.Economy)
 local VehicleConfig = require(Shared.Config.Vehicle)
 local Cars = require(Shared.Config.Cars)
 local Rarity = require(Shared.Config.Rarity)
+local PoliceAim = require(Shared.Combat.PoliceAim)
 
 local WantedService = {}
 
@@ -46,13 +57,19 @@ local MAX_STARS = PoliceConfig.MAX_STARS
 local BUST_GRACE = 8 -- seconds after a bust during which no heat can be added
 local NEW_PLAYER_WINDOW = 30 -- brand-new players get halved heat for this long after joining
 local DECAY_INTERVAL = 0.25
-local RELEASE_DELAY = 1.1 -- seconds between the BUSTED stamp and the teleport to Police HQ
+-- Seconds between BUSTED and the teleport to Police HQ: the arrest shot holds while the shard is up (gta_ui_language
+-- §5.9: grade at 1.0 s, shard at 1.2 s, black at ~4.4 s); the player stays frozen (stunned) and protected until then.
+local RELEASE_DELAY = 5.0
+WantedService.RELEASE_DELAY = RELEASE_DELAY
 local RELEASE_STUN_EXTRA = 0.3 -- busted players stay stunned a moment past the teleport (no hopping into cars)
 local RESPAWN_AT_HQ_WINDOW = 60 -- a died-while-wanted bust sends the next spawn within this long to Police HQ
 local SPRAY_COOLDOWN = 1.5
 local SPRAY_FAIL_NOTIFY_COOLDOWN = 4
 local DECAY_ATTR_EPSILON = 0.5 -- rewrite WantedDecayAt only when it moves by more than this (seconds)
 local SPRAY_COST_REFRESH = 1 -- seconds between SprayCost attribute refreshes while wanted
+local LKP_EPSILON = 5 -- republish LastKnownPos only when it moved more than this
+local SURRENDER_RANGE = 40
+local SURRENDER_MAX_STARS = 2
 
 type State = {
 	stars: number,
@@ -72,6 +89,10 @@ type State = {
 	sprayCostAt: number, -- next SprayCost refresh (clock)
 	respawnAtHQ: number?, -- clock time of a died-while-wanted bust (consumed by PlotService on respawn)
 	busting: boolean,
+	evadeLeft: number, -- seconds of evade timer left (v2: all stars clear at 0)
+	lkp: Vector3?, -- last known position
+	lkpShown: Vector3?,
+	lastPassAt: number,
 }
 
 local states: { [Player]: State } = {}
@@ -137,10 +158,6 @@ local function richEscape(s: string): string
 	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 end
 
-local function starString(n: number): string
-	return string.rep("★", math.clamp(n, 0, MAX_STARS))
-end
-
 -- PURE HELPERS ------------------------------------------------------------------------------------------
 
 -- Busted cash penalty: min(cash * 10%, income * 600s), never negative, whole dollars.
@@ -168,20 +185,20 @@ function WantedService._decayDelay(stars: number): number
 	return list[math.clamp(stars, 1, #list)] or 20
 end
 
--- One decay step. Mutates st.nextDecayAt and returns the new star count.
--- Being seen resets the timer; otherwise one star drops when the timer runs out, then one every DECAY_STEP.
-function WantedService._tickDecay(st: { stars: number, nextDecayAt: number }, now: number, seen: boolean): number
+-- One evade step (gta_combat §9.4). Mutates st.evadeLeft and returns the new star count: unchanged, or 0 when the
+-- timer ran out (every star clears at once). Seen resets the timer; outside the search area it runs 2x.
+function WantedService._tickEvade(
+	st: { stars: number, evadeLeft: number },
+	dt: number,
+	seen: boolean,
+	inside: boolean
+): number
 	if st.stars <= 0 then
 		return 0
 	end
-	if seen then
-		st.nextDecayAt = now + WantedService._decayDelay(st.stars)
-		return st.stars
-	end
-	if now >= st.nextDecayAt then
-		local newStars = st.stars - 1
-		st.nextDecayAt = now + PoliceConfig.DECAY_STEP
-		return newStars
+	st.evadeLeft = PoliceAim.evadeStep(st.evadeLeft, WantedService._decayDelay(st.stars), dt, seen, inside)
+	if st.evadeLeft <= 0 then
+		return 0
 	end
 	return st.stars
 end
@@ -232,6 +249,10 @@ local function newState(): State
 		sprayCostAt = -math.huge,
 		respawnAtHQ = nil,
 		busting = false,
+		evadeLeft = 0,
+		lkp = nil,
+		lkpShown = nil,
+		lastPassAt = hooks.clock(),
 	}
 end
 
@@ -300,9 +321,14 @@ local function applyStars(player: Player, st: State, newStars: number, reason: s
 	end
 	if newStars > 0 and newStars > old then
 		st.nextDecayAt = hooks.clock() + WantedService._decayDelay(newStars)
+		st.evadeLeft = WantedService._decayDelay(newStars)
+		if old == 0 then
+			st.lkp = characterPosition(player)
+		end
 	end
 	pcall(function()
 		player:SetAttribute("Wanted", newStars)
+		player:SetAttribute("SearchRadius", if newStars > 0 then PoliceAim.searchRadius(newStars) else 0)
 	end)
 
 	if newStars == 0 then
@@ -313,10 +339,14 @@ local function applyStars(player: Player, st: State, newStars: number, reason: s
 		st.decayAttr = 0
 		st.sprayCostAttr = 0
 		st.sprayCostStars = 0
+		st.evadeLeft = 0
+		st.lkp = nil
+		st.lkpShown = nil
 		pcall(function()
 			player:SetAttribute("WantedSeen", false)
 			player:SetAttribute("WantedDecayAt", 0)
 			player:SetAttribute("SprayCost", 0)
+			player:SetAttribute("LastKnownPos", nil)
 		end)
 		if old >= 1 and (reason == "decay" or reason == "spray") then
 			progress(player, "escape", 1)
@@ -324,27 +354,19 @@ local function applyStars(player: Player, st: State, newStars: number, reason: s
 				progress(player, "escape3", 1)
 			end
 			if reason == "decay" then
-				notify(player, "success", "😎 ESCAPED! You lost the cops.", 4)
-				pcall(hooks.fireClient, "Sound", player, "Whoosh")
-				local pos = characterPosition(player)
-				if pos then
-					pcall(hooks.fireNear, "Effect", pos, 300, "Confetti", { position = pos })
-				end
+				notify(player, "success", "You evaded the police.", 4)
 			end
 			if peak >= 3 then
 				pcall(
 					hooks.fireAll,
 					"EventFeed",
-					('😎 <b>%s</b> escaped a <font color="#FFD23F">%s</font> chase!'):format(
-						richEscape(player.DisplayName),
-						starString(peak)
-					)
+					("<b>%s</b> evaded a %d-star chase"):format(richEscape(player.DisplayName), peak)
 				)
 			end
 		end
 	elseif old == 0 and not st.hintedWanted and reason ~= "admin" then
 		st.hintedWanted = true
-		notify(player, "warning", "🚨 Cops are on you! Break line of sight or hit a 🎨 Spray Shop.", 5)
+		notify(player, "warning", "Police are after you. Break line of sight and get out of the search area.", 5)
 	end
 
 	WantedService.Changed:Fire(player, newStars, old)
@@ -393,8 +415,45 @@ function WantedService.addHeat(player: Player, stars: number, reason: string?)
 	if st.stars > 0 then
 		-- crime refreshes the timer even when the star count can't go higher
 		st.nextDecayAt = math.max(st.nextDecayAt, hooks.clock() + WantedService._decayDelay(newStars))
+		st.evadeLeft = WantedService._decayDelay(newStars)
+		st.lkp = characterPosition(player) or st.lkp
 	end
 	applyStars(player, st, newStars, why)
+end
+
+-- Crime floors (CrimeRules.starsAfter decides `stars`): raises to `stars` when higher, never lowers. Any crime
+-- refreshes the evade timer and pins the last known position to where it happened. Returns the star count.
+function WantedService.raiseTo(player: Player, stars: number, reason: string?, pos: Vector3?): number
+	if typeof(stars) ~= "number" or stars ~= stars then
+		return WantedService.getStars(player)
+	end
+	if player.Parent ~= Players and not hooks.isTest then
+		return 0
+	end
+	local st = getState(player)
+	if hooks.clock() < st.graceUntil or st.busting then
+		return st.stars
+	end
+	local target = math.clamp(math.floor(stars), 0, MAX_STARS)
+	if st.stars > 0 or target > 0 then
+		st.lkp = pos or characterPosition(player) or st.lkp
+	end
+	if target > st.stars then
+		applyStars(player, st, target, reason or "crime")
+	elseif st.stars > 0 then
+		st.evadeLeft = WantedService._decayDelay(st.stars)
+		st.nextDecayAt = hooks.clock() + WantedService._decayDelay(st.stars)
+	end
+	return st.stars
+end
+
+-- (center, radius) of the search area while wanted, nil when clean / unknown.
+function WantedService.getSearchArea(player: Player): (Vector3?, number?)
+	local st = states[player]
+	if not st or st.stars <= 0 or not st.lkp then
+		return nil, nil
+	end
+	return st.lkp, PoliceAim.searchRadius(st.stars)
 end
 
 -- Sets an exact star count (admin tools / products). 0 behaves like clear().
@@ -436,7 +495,7 @@ local function getIncome(player: Player): number
 	return if typeof(attr) == "number" then attr else 0
 end
 
-local function takePenalty(player: Player): number
+local function takePenalty(player: Player, mult: number?): number
 	local DataService = sys("DataService")
 	if not DataService then
 		return 0
@@ -446,7 +505,7 @@ local function takePenalty(player: Player): number
 		return 0
 	end
 	local cash = if typeof(data.cash) == "number" then data.cash else 0
-	local penalty = WantedService._penalty(cash, getIncome(player))
+	local penalty = math.floor(WantedService._penalty(cash, getIncome(player)) * (mult or 1))
 	if penalty > 0 then
 		local paid = false
 		if typeof(DataService.spendCash) == "function" then
@@ -510,7 +569,8 @@ end
 local function stunForRelease(player: Player): boolean
 	local CombatService = sys("CombatService")
 	if CombatService and typeof(CombatService.stun) == "function" then
-		local ok = pcall(CombatService.stun, player, RELEASE_DELAY + RELEASE_STUN_EXTRA)
+		-- forced: an arrest right after a taser stun must still freeze the suspect (stun immunity is for fights)
+		local ok = pcall(CombatService.stun, player, RELEASE_DELAY + RELEASE_STUN_EXTRA, true)
 		if ok then
 			return false
 		end
@@ -563,6 +623,7 @@ function WantedService.bust(player: Player, reason: string?): boolean
 	end
 	st.busting = true
 	local died = reason == "died"
+	local surrendered = reason == "surrender"
 	local peak = math.max(st.peak, st.stars)
 
 	local carLabel: string? = nil
@@ -574,9 +635,15 @@ function WantedService.bust(player: Player, reason: string?): boolean
 	end
 
 	local lost = 0
-	local okP, res = pcall(takePenalty, player)
+	local okP, res = pcall(takePenalty, player, if surrendered then Economy.SURRENDER_PENALTY_MULT else 1)
 	if okP and typeof(res) == "number" then
 		lost = res
+	end
+
+	-- armor is confiscated (WeaponService takes half the reserve ammo on the Busted signal)
+	local DamageService = sys("DamageService")
+	if DamageService and typeof(DamageService.setArmor) == "function" then
+		pcall(DamageService.setArmor, player, 0)
 	end
 
 	st.graceUntil = hooks.clock() + BUST_GRACE
@@ -586,15 +653,15 @@ function WantedService.bust(player: Player, reason: string?): boolean
 	pcall(hooks.fireClient, "Busted", player, lost, carLabel)
 	if died then
 		st.respawnAtHQ = hooks.clock()
-		notify(player, "warning", "🚔 Bailing out doesn't lose the cops - you got BUSTED!", 4)
+		notify(player, "warning", "Resetting doesn't lose the police. Busted.", 4)
 	end
 	if peak >= 3 then
 		pcall(
 			hooks.fireAll,
 			"EventFeed",
-			('🚔 <b>%s</b> got <font color="#FF3B3B">BUSTED</font> at %s!'):format(
+			('<b>%s</b> was <font color="#5DB6E5">busted</font> at %d stars'):format(
 				richEscape(player.DisplayName),
-				starString(peak)
+				peak
 			)
 		)
 	end
@@ -604,6 +671,10 @@ function WantedService.bust(player: Player, reason: string?): boolean
 		return true -- no body to stun or move; the respawn goes to Police HQ
 	end
 	local rawStun = stunForRelease(player)
+	-- the cuffed suspect can't be shot while the arrest plays, and the release at Police HQ starts spawn protection
+	if DamageService and typeof(DamageService.grantProtection) == "function" then
+		pcall(DamageService.grantProtection, player, RELEASE_DELAY + RELEASE_STUN_EXTRA)
+	end
 	task.delay(RELEASE_DELAY, function()
 		local okR, errR = pcall(releaseCharacter, player)
 		if not okR then
@@ -631,12 +702,75 @@ function WantedService.consumeRespawnAtHQ(player: Player): boolean
 	return hooks.clock() - at <= RESPAWN_AT_HQ_WINDOW
 end
 
+-- WASTED while wanted (gta_combat §7.2): stars cleared, a stolen car's theft fails like a bust, no bail (the hospital
+-- bill is DamageService's). Returns true when there were stars to clear.
+function WantedService.clearOnWasted(player: Player): boolean
+	local st = states[player]
+	if not st or st.stars <= 0 or st.busting then
+		return false
+	end
+	local VehicleService = sys("VehicleService")
+	if VehicleService and typeof(VehicleService.getDriving) == "function" then
+		local okD, car = pcall(VehicleService.getDriving, player)
+		if okD and typeof(car) == "table" and car.kind == "Stolen" then
+			local TheftService = sys("TheftService")
+			if TheftService and typeof(TheftService.fail) == "function" then
+				pcall(TheftService.fail, car, "wasted")
+			end
+		end
+	end
+	applyStars(player, st, 0, "wasted")
+	return true
+end
+
+-- Surrender (hold H / pad D-down / mobile SURRENDER): at <= 2 stars with police within 40 studs, give yourself up:
+-- busted at half the bail. Returns true when it happened.
+function WantedService.surrender(player: Player): boolean
+	local st = states[player]
+	if not st or st.stars <= 0 or st.stars > SURRENDER_MAX_STARS or st.busting then
+		return false
+	end
+	local pos = characterPosition(player)
+	if not pos then
+		return false
+	end
+	local PoliceService = sys("PoliceService")
+	local near = false
+	if PoliceService and typeof(PoliceService.copsNear) == "function" then
+		local ok, res = pcall(PoliceService.copsNear, pos, SURRENDER_RANGE)
+		near = ok and res == true
+	end
+	if not near then
+		notify(player, "error", "There's nobody here to surrender to.", 2)
+		return false
+	end
+	pcall(function()
+		player:SetAttribute("Surrendering", true)
+	end)
+	local busted = WantedService.bust(player, "surrender")
+	task.delay(RELEASE_DELAY + 0.5, function()
+		pcall(function()
+			player:SetAttribute("Surrendering", false)
+		end)
+	end)
+	return busted
+end
+
 -- A wanted player's character died (Humanoid.Died; resets included). Resetting must not be a free escape to the
 -- garage, so it counts as a bust. Dying inside your own garage (already a safe house) gains nothing: no bust.
+-- With DamageService present it decides (gta_combat §7.1): a death with recent damage is WASTED, not BUSTED.
 function WantedService._onDied(player: Player, position: Vector3?): boolean
 	local st = states[player]
 	if not st or st.stars <= 0 or st.busting then
 		return false
+	end
+	local DamageService = sys("DamageService")
+	if DamageService and typeof(DamageService.classifyDeath) == "function" then
+		local okK, kind = pcall(DamageService.classifyDeath, player, position)
+		if okK and kind == "wasted" then
+			WantedService.clearOnWasted(player)
+			return false
+		end
 	end
 	if position then
 		local plot = player:GetAttribute("PlotIndex")
@@ -732,7 +866,7 @@ local function onSprayAttempt(player: Player, car: any, seenKnown: boolean?): st
 		st.pendingSpray = car
 		if now - st.lastSprayWatchNotify > SPRAY_FAIL_NOTIFY_COOLDOWN then
 			st.lastSprayWatchNotify = now
-			notify(player, "warning", "🚔 They're watching! Break line of sight and the booth sprays you.", 3)
+			notify(player, "warning", "The police can see you. Break line of sight and the booth will respray.", 3)
 		end
 		return "seen"
 	end
@@ -747,20 +881,15 @@ local function onSprayAttempt(player: Player, car: any, seenKnown: boolean?): st
 	if not paid then
 		if now - st.lastSprayFailNotify > SPRAY_FAIL_NOTIFY_COOLDOWN then
 			st.lastSprayFailNotify = now
-			notify(player, "error", ("🎨 A fresh paint job costs $%d. Get some cash first!"):format(cost), 3)
+			notify(player, "error", ("A respray costs $%d."):format(cost), 3)
 		end
 		return "broke"
 	end
 	st.lastSprayAt = now
 	WantedService.clear(player, "spray")
 	pcall(WantedService._repaint, car)
-	notify(player, "success", "🎨 Fresh paint! Cops lost you.", 4)
+	notify(player, "success", "New paint. The police lost track of the car.", 4)
 	pcall(hooks.fireClient, "Sound", player, "Purchase")
-	local chassis = car.chassis
-	if typeof(chassis) == "Instance" and chassis:IsA("BasePart") then
-		local pos = chassis.CFrame.Position
-		pcall(hooks.fireNear, "Effect", pos, 400, "Confetti", { position = pos })
-	end
 	return "sprayed"
 end
 
@@ -814,12 +943,13 @@ end
 
 -- LIFECYCLE ---------------------------------------------------------------------------------------------
 
--- WantedDecayAt: server time of the next star loss while hidden (0 while seen / not wanted). Written only when it
--- moves (a star drops, a crime refreshes the timer, seen <-> hidden), not every pass.
-local function publishDecayAt(player: Player, st: State, now: number)
+-- WantedDecayAt: server time at which the evade timer completes if nothing changes (0 while seen / not wanted).
+-- Written only when it moves (a crime refreshes the timer, seen <-> hidden, crossing the search circle).
+local function publishDecayAt(player: Player, st: State, inside: boolean)
 	local value = 0
 	if st.stars > 0 and not st.seen then
-		value = hooks.serverNow() + math.max(0, st.nextDecayAt - now)
+		local rate = if inside then 1 else PoliceConfig.EVADE_OUTSIDE_MULT
+		value = hooks.serverNow() + math.max(0, st.evadeLeft) / rate
 	end
 	local changed = if value == 0 or st.decayAttr == 0
 		then value ~= st.decayAttr
@@ -828,6 +958,17 @@ local function publishDecayAt(player: Player, st: State, now: number)
 		st.decayAttr = value
 		pcall(function()
 			player:SetAttribute("WantedDecayAt", value)
+		end)
+	end
+end
+
+-- LastKnownPos: the search circle's centre (minimap search area); written when it moves more than LKP_EPSILON.
+local function publishLkp(player: Player, st: State)
+	local lkp = st.lkp
+	if lkp and (st.lkpShown == nil or (lkp - (st.lkpShown :: Vector3)).Magnitude > LKP_EPSILON) then
+		st.lkpShown = lkp
+		pcall(function()
+			player:SetAttribute("LastKnownPos", lkp)
 		end)
 	end
 end
@@ -849,10 +990,12 @@ local function publishSprayCost(player: Player, st: State, now: number)
 	end
 end
 
--- One pass of the decay loop (public for tests via _decayPass).
+-- One pass of the evade loop (public for tests via _decayPass).
 function WantedService._decayPass()
 	local now = hooks.clock()
 	for player, st in states do
+		local dt = math.clamp(now - st.lastPassAt, 0, 1)
+		st.lastPassAt = now
 		if st.stars > 0 and not st.busting then
 			local seen = isSeen(player)
 			if seen ~= st.seen then
@@ -861,7 +1004,17 @@ function WantedService._decayPass()
 					player:SetAttribute("WantedSeen", seen)
 				end)
 			end
-			local newStars = WantedService._tickDecay(st, now, seen)
+			local pos = characterPosition(player)
+			if seen and pos then
+				st.lkp = pos
+			end
+			local inside = true
+			local lkp = st.lkp
+			if pos and lkp then
+				local dx, dz = pos.X - lkp.X, pos.Z - lkp.Z
+				inside = math.sqrt(dx * dx + dz * dz) <= PoliceAim.searchRadius(st.stars)
+			end
+			local newStars = WantedService._tickEvade(st, dt, seen, inside)
 			if newStars ~= st.stars then
 				applyStars(player, st, newStars, "decay")
 			end
@@ -872,8 +1025,9 @@ function WantedService._decayPass()
 					warn("[WantedService] pending spray failed: " .. tostring(err))
 				end
 			end
-			publishDecayAt(player, st, now)
+			publishDecayAt(player, st, inside)
 			if st.stars > 0 then
+				publishLkp(player, st)
 				publishSprayCost(player, st, now)
 			end
 		end
@@ -887,6 +1041,8 @@ local function onPlayerAdded(player: Player)
 		player:SetAttribute("WantedSeen", false)
 		player:SetAttribute("WantedDecayAt", 0)
 		player:SetAttribute("SprayCost", 0)
+		player:SetAttribute("SearchRadius", 0)
+		player:SetAttribute("Surrendering", false)
 	end)
 end
 
@@ -896,38 +1052,6 @@ end
 
 function WantedService._removePlayer(player: Player)
 	states[player] = nil
-end
-
--- Humanoid.Died hook per character (one live connection per player; the old one goes with the old character).
-local diedConns: { [Player]: RBXScriptConnection } = {}
-local function watchCharacter(player: Player, character: Model)
-	local old = diedConns[player]
-	if old then
-		old:Disconnect()
-		diedConns[player] = nil
-	end
-	local humanoid = character:FindFirstChildOfClass("Humanoid") or character:WaitForChild("Humanoid", 10)
-	if not humanoid or not humanoid:IsA("Humanoid") or player.Character ~= character then
-		return
-	end
-	diedConns[player] = humanoid.Died:Connect(function()
-		local root = character:FindFirstChild("HumanoidRootPart")
-		local pos = if root and root:IsA("BasePart") then root.Position else nil
-		local ok, err = pcall(WantedService._onDied, player, pos)
-		if not ok then
-			warn("[WantedService] died-while-wanted bust failed: " .. tostring(err))
-		end
-	end)
-end
-
-local function onRealPlayerAdded(player: Player)
-	onPlayerAdded(player)
-	player.CharacterAdded:Connect(function(character: Model)
-		watchCharacter(player, character)
-	end)
-	if player.Character then
-		task.spawn(watchCharacter, player, player.Character)
-	end
 end
 
 function WantedService.init()
@@ -942,26 +1066,29 @@ function WantedService.init()
 	else
 		warn("[WantedService] VehicleService.SprayAttempt unavailable; Spray Shops won't clear wanted levels")
 	end
+	local okNet, errNet = pcall(Net.on, "Surrender", function(player: Player)
+		WantedService.surrender(player)
+	end, 1)
+	if not okNet and not hooks.isTest then
+		warn("[WantedService] Surrender remote unavailable: " .. tostring(errNet))
+	end
 end
 
+-- Deaths: DamageService's Humanoid.Died handler classifies (gta_combat §7.1) and calls bust(player, "died") or
+-- clearOnWasted(player); WantedService no longer hooks Died itself (one owner, no ordering races).
 function WantedService.start()
-	Players.PlayerAdded:Connect(onRealPlayerAdded)
+	Players.PlayerAdded:Connect(onPlayerAdded)
 	for _, p in Players:GetPlayers() do
-		onRealPlayerAdded(p)
+		onPlayerAdded(p)
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		states[player] = nil
-		local conn = diedConns[player]
-		if conn then
-			conn:Disconnect()
-			diedConns[player] = nil
-		end
 	end)
 	while true do
 		task.wait(DECAY_INTERVAL)
 		local ok, err = pcall(WantedService._decayPass)
 		if not ok then
-			warn("[WantedService] decay pass failed: " .. tostring(err))
+			warn("[WantedService] evade pass failed: " .. tostring(err))
 		end
 	end
 end

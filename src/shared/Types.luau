@@ -28,8 +28,14 @@ export type PlayerData = {
 	garage: { [string]: SlotRecord }, -- key = tostring(slotIndex)
 	discovered: { [string]: boolean }, -- carId -> true
 	upgrades: UpgradeLevels,
-	tools: { [string]: boolean }, -- toolId -> owned
-	stats: { steals: number, playerSteals: number, busted: number, hotDrops: number, timesRobbed: number },
+	tools: { [string]: boolean }, -- toolId -> owned (v2: gadgets taser / spikes; "bat" kept for old saves)
+	stats: Stats,
+	-- schema v2 (combat, gta_combat §13.2): additive
+	weapons: { [string]: WeaponRecord }, -- weaponId -> owned record (Config/Weapons); fists are implicit
+	tintsOwned: { [string]: boolean }, -- weapon tints bought (once per account; any weapon can wear them)
+	armor: number, -- 0..100, consumable (lost on WASTED / BUSTED)
+	medkits: number, -- 0..MedKit.carry
+	combat: CombatPrefs,
 	daily: { streak: number, lastClaimDay: number },
 	codes: { [string]: boolean },
 	receipts: { string }, -- last N processed purchase ids (idempotency)
@@ -43,6 +49,22 @@ export type PlayerData = {
 	playtime: { day: number, seconds: number, claimed: { [string]: boolean } }, -- per-UTC-day playtime gifts
 	pendingCars: { { carId: string, mutation: MutationId } }?, -- reward cars owed while a heist blocked delivery (RewardsService validates on read)
 }
+
+export type Stats = {
+	steals: number,
+	playerSteals: number,
+	busted: number,
+	hotDrops: number,
+	timesRobbed: number,
+	wasted: number?, -- v2
+	bountiesClaimed: number?, -- v2
+}
+
+-- v2 weapon ownership: total rounds (magazine + reserve) and the cosmetic tint.
+export type WeaponRecord = { ammo: number, tint: string? }
+
+-- v2 PvP preferences / protection that persist (rookie protection counts down over total playtime).
+export type CombatPrefs = { rookieSeconds: number, passivePref: boolean }
 
 -- Daily contracts: rolled once per UTC day.
 export type ContractState = {
@@ -70,7 +92,11 @@ export type Snapshot = {
 	discovered: { [string]: boolean },
 	upgrades: UpgradeLevels,
 	tools: { [string]: boolean },
-	stats: { steals: number, playerSteals: number, busted: number, hotDrops: number, timesRobbed: number },
+	stats: Stats,
+	weapons: { [string]: WeaponRecord }?, -- v2 (live magazine / reserve split comes from AmmoState / CombatState)
+	tintsOwned: { [string]: boolean }?,
+	armor: number?,
+	medkits: number?,
 	daily: { streak: number, canClaim: boolean, nextDay: number }, -- nextDay = 1..7 reward index to claim
 	playtime: { claimed: { [string]: boolean }, sessionSeconds: number },
 	incomePerSec: number,
@@ -82,7 +108,17 @@ export type Snapshot = {
 	contracts: ContractState,
 }
 
-export type Settings = { music: boolean, sfx: boolean, hideHud: boolean, autoAccelerate: boolean }
+export type Settings = { music: boolean, sfx: boolean, hideHud: boolean, autoAccelerate: boolean, speedo: boolean }
+
+-- CombatState remote payload (WeaponService -> owning client).
+export type AmmoView = { id: string, mag: number, reserve: number, tint: string? }
+export type CombatState = {
+	weapons: { AmmoView }, -- owned weapons (fists first)
+	gadgets: { string }, -- owned gadget tool ids (taser, spikes)
+	equipped: string?,
+	armor: number,
+	medkits: number,
+}
 
 -- Notify remote payload kinds
 export type NotifyKind = "info" | "success" | "error" | "money" | "warning"

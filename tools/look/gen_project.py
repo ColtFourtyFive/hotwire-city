@@ -16,7 +16,9 @@ tools/look/README.md):
                    "rbxassetid://<Image id>" (Rojo migrates them to *Content), StudsPerTile number,
                    MaterialPattern "Regular"|"Organic"
   MaterialService  "<Material>Name": "<variant>" (NotScriptable, file-only), Use2022Materials true (-> ...Xml)
-  Lighting         LightingStyle "Realistic", PrioritizeLightingQuality true, Color3 as [r, g, b] floats 0..1
+  Lighting         LightingStyle "Realistic", PrioritizeLightingQuality true, Color3 as [r, g, b] floats 0..1,
+                   Technology "Future" (deprecated, but the engine derives LightingStyle from it on load: without it a
+                   real server read LightingStyle Soft, jobs 0007 / 0009; see LIGHTING_TECHNOLOGY)
   Sky              SkyboxBk/Dn/Ft/Lf/Rt/Up "rbxassetid://<Image id>" (-> Skybox*Content), SkyboxOrientation [x, y, z]
 
 Usage: python3 tools/look/gen_project.py [--check]   (--check: exit 1 if anything would change)
@@ -44,6 +46,12 @@ MAP_PROPS = [("color", "ColorMap"), ("normal", "NormalMap"), ("roughness", "Roug
 # Materials Terrain:SetMaterialColor accepts. Real-engine probe (2026-10-27, tools/look/sun_probe.py): Asphalt, Brick,
 # Concrete, Grass, Ground, LeafyGrass, Pavement, Rock, Sand, Slate, WoodPlanks OK; ClayRoofTiles, CorrodedMetal,
 # Marble, Pebble, Plaster -> "Invalid terrain material". The rest are the other terrain materials.
+# Lighting.Technology baked next to LightingStyle. The Unified Lighting migration maps the legacy Technology onto
+# LightingStyle / PrioritizeLightingQuality when a place loads (Future -> Realistic + quality, ShadowMap -> Soft).
+# Without Technology in the file the engine read LightingStyle = Soft on a headless server and in Studio although the
+# file says Realistic (jobs 0007 / 0009; the Studio place carried RBX_OriginalTechnologyOnFileLoad = 3 = ShadowMap).
+# Verified on the real engine with tools/look/probe_place.py (see tools/look/README.md "LightingStyle").
+LIGHTING_TECHNOLOGY = "Future"
 TERRAIN_MATERIALS = {"Asphalt", "Basalt", "Brick", "Cobblestone", "Concrete", "CrackedLava", "Glacier", "Grass",
                      "Ground", "Ice", "LeafyGrass", "Limestone", "Mud", "Pavement", "Rock", "Salt", "Sand",
                      "Sandstone", "Slate", "Snow", "WoodPlanks"}
@@ -143,7 +151,9 @@ def luau_block(variants, decals, skies):
     L.append("}")
     L.append("Look.Materials = Materials")
     L.append("")
-    L.append("-- MaterialService.<Material>Name overrides baked into the place (global: every part and terrain voxel).")
+    L.append("-- Global base-material overrides (every part and terrain voxel). Baked into the place as")
+    L.append("-- MaterialService.<Material>Name, which the real engine does not honour (job 0009), so")
+    L.append("-- Util/MaterialOverrides applies them at runtime too (server + every client).")
     L.append("local Overrides: { [string]: string } = {")
     for m, _ in sorted(variants, key=lambda v: v[0]["base"]):
         if m["override"]:
@@ -240,6 +250,7 @@ def lighting(look, skies):
     start = look["Cycle"]["startHour"]
     a = day["atmosphere"]
     props = {
+        "Technology": LIGHTING_TECHNOLOGY,
         "LightingStyle": "Realistic",
         "PrioritizeLightingQuality": True,
         "GlobalShadows": True,
@@ -267,7 +278,9 @@ def lighting(look, skies):
     sky_props.update({
         "SkyboxOrientation": [0, 0, 0],
         "SunAngularSize": style["sunAngularSize"],
-        "MoonAngularSize": style["moonAngularSize"],
+        # the place starts at Look.Cycle.startHour, in daylight (tested): LightingService hides the moon while the
+        # engine sun is up (moonSizeAt), so the file starts without one too
+        "MoonAngularSize": 0,
         "CelestialBodiesShown": celestial,
     })
     cc = day["colorCorrection"]

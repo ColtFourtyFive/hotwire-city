@@ -127,8 +127,8 @@ return function(t)
 		t.ok(not CombatService.isSamePlayer(nil, fake))
 	end)
 
-	t.test("buildTool: every tool is a Tool with a welded Handle + ToolId", function()
-		for _, id in Economy.ToolOrder do
+	t.test("buildTool: every gadget is a Tool with a welded Handle + ToolId", function()
+		for _, id in Economy.GadgetOrder do
 			local tool = CombatService.buildTool(id)
 			t.ok(tool ~= nil, id .. " builds")
 			t.eq(tool.ClassName, "Tool", id)
@@ -150,19 +150,21 @@ return function(t)
 					end
 				end
 			end
-			t.ok(parts >= 6 and parts <= 16, id .. " part count " .. parts)
+			t.ok(parts >= 4 and parts <= 16, id .. " part count " .. parts)
 		end
 		t.eq(CombatService.buildTool("rocket_launcher"), nil)
+		t.eq(CombatService.buildTool("bat"), nil, "the bat is a WeaponService melee weapon in v2")
 	end)
 
-	t.test("buildTool: bat has a swing trail, zapper has a glowing tip", function()
-		local bat = CombatService.buildTool("bat")
-		local trail = bat.Handle:FindFirstChild("SwingTrail")
-		t.ok(trail and trail:IsA("Trail") and not trail.Enabled, "trail")
+	t.test("buildTool: realistic stun gun (no neon, muzzle on the handle)", function()
 		local zap = CombatService.buildTool("taser")
-		local tip = zap:FindFirstChild("Tip")
-		t.ok(tip and tip:FindFirstChild("Glow") and tip:FindFirstChild("Muzzle"), "tip glow + muzzle")
-		t.eq(zap.Name, "Zapper")
+		t.ok(zap.Handle:FindFirstChild("Muzzle"), "muzzle attachment")
+		t.eq(zap.Name, Economy.Tools.taser.name)
+		for _, d in zap:GetDescendants() do
+			if d:IsA("BasePart") then
+				t.ok(d.Material ~= H.roblox.Enum.Material.Neon, "no neon: " .. d.Name)
+			end
+		end
 	end)
 
 	t.test("buildSpikeStrip: anchored, flat on the ground, trigger volume", function()
@@ -183,7 +185,7 @@ return function(t)
 				end
 				if d.Name == "Spike" then
 					spikes += 1
-					t.eq(d.Material, H.roblox.Enum.Material.Neon, "neon spike")
+					t.eq(d.Material, H.roblox.Enum.Material.Metal, "steel spike (no neon)")
 				end
 			end
 		end

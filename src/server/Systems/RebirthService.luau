@@ -209,9 +209,9 @@ local function blockedReason(player: Player, data: any): string?
 			if slot then
 				local ok, state = pcall(Garage.getSlotState, player, slot)
 				if ok and state == "BeingStolen" then
-					return "Your garage is being robbed! Stop the thief first 🚨"
+					return "Your garage is being robbed. Stop the thief first."
 				elseif ok and state == "Driving" then
-					return "Park your car back in your garage first 🅿️"
+					return "Park your car back in your garage first."
 				end
 			end
 		end
@@ -228,7 +228,7 @@ function RebirthService.canRebirth(player: Player): (boolean, number, string?)
 	end
 	local afford, cost = RebirthService._canAfford(data.cash, data.rebirths)
 	if not afford then
-		return false, cost, "Need " .. Format.cash(cost) .. " to rebirth"
+		return false, cost, "Need " .. Format.cash(cost) .. " to prestige"
 	end
 	local reason = blockedReason(player, data)
 	return reason == nil, cost, reason
@@ -238,12 +238,12 @@ local function celebrate(player: Player, rebirths: number)
 	local multText = RebirthService._formatMultiplier(rebirths)
 	Net.fireAll(
 		"Announce",
-		`🌟 {player.DisplayName} REBIRTHED! (x{rebirths})`,
-		`Now earning {multText} cash forever`,
+		`{player.DisplayName} reached Prestige {rebirths}`,
+		`Income now {multText}, for good`,
 		Color3.fromRGB(255, 205, 50),
 		"CashBig"
 	)
-	Net.fireAll("EventFeed", `🌟 <b>{richEscape(player.DisplayName)}</b> rebirthed! <b>(x{rebirths})</b>`)
+	Net.fireAll("EventFeed", `<b>{richEscape(player.DisplayName)}</b> reached Prestige <b>{rebirths}</b>.`)
 	local char = player.Character
 	local root = char and char:FindFirstChild("HumanoidRootPart")
 	if root and root:IsA("BasePart") then
@@ -268,7 +268,7 @@ function RebirthService.rebirth(player: Player): (boolean, string?)
 	end
 	local afford, cost = RebirthService._canAfford(data.cash, data.rebirths)
 	if not afford then
-		notify(player, "error", `You need {Format.cash(cost)} to rebirth!`)
+		notify(player, "error", `You need {Format.cash(cost)} to prestige.`)
 		return false, "cash"
 	end
 	local reason = blockedReason(player, data)
@@ -319,7 +319,7 @@ function RebirthService.rebirth(player: Player): (boolean, string?)
 		player:SetAttribute("Rebirths", data.rebirths)
 		local keptName = RebirthService._keptLabel(kept)
 		local multText = RebirthService._formatMultiplier(data.rebirths)
-		notify(player, "success", `🌟 REBIRTH x{data.rebirths}! You kept your {keptName}. Income {multText}!`, 6)
+		notify(player, "success", `Prestige {data.rebirths}. You kept your {keptName}. Income now {multText}.`, 6)
 		Net.fireClient("Sound", player, "CashBig")
 		celebrate(player, data.rebirths)
 	end)

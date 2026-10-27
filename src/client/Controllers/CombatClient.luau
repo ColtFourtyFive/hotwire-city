@@ -1,23 +1,21 @@
 --!strict
--- CombatClient (SPEC §7): combat tool feel on the client.
---  * Tool.Activated (any Tool with a ToolId attribute) -> Net.fire("ToolAction", toolId, aim)
---    aim: mouse hit (PC), last tap / screen center (touch), camera look (gamepad) + gentle aim assist.
---  * Local juice: real swing/lunge animation through the default Animate script's "toolanim" StringValue (replicates
---    to everyone because it plays on our own Animator), bat swing trail + glints off the barrel, Zapper coil flash +
---    muzzle sparks / glow at the tip (VFXLibrary presets). Impacts (BONK star, ZAP sparks) are EffectsController's,
---    from the server's Effect broadcast, so nobody sees them twice.
---  * Big round touch button with a cooldown ring for the equipped tool (also from a car seat, next to DrivingUI's
---    cluster), and a SPIKES button while driving (also key G / gamepad L1); both bottom-anchored like DrivingUI.
---  * Knockback remote -> AssemblyLinearVelocity on our HumanoidRootPart + PlatformStand ragdoll-lite, camera shake.
---  * While our player attribute Stunned is true: WalkSpeed/Jump 0 and prompts off; restored afterwards.
---  * Cartoon stars spin above the head of EVERY stunned player (attribute replicated by the server).
+-- CombatClient (gta_combat §13.2): the gadgets (Kessler stun gun, Stinger spike strip), knockback and stun on the
+-- client. Guns and melee live in WeaponClient; the bat is a WeaponService melee weapon now.
+--  * Tool.Activated on a gadget Tool (ToolId attribute) -> Net.fire("ToolAction", toolId, aim). The stun gun aims at
+--    the crosshair (screen centre while the shoulder camera is engaged, the mouse / last tap otherwise) with a gentle
+--    player assist. Local feedback: the "Lunge" tool animation and a small blue-white spark at the muzzle.
+--  * Touch: a flat black STUN button (with a cooldown ring) while the stun gun is out, and a SPIKES button while
+--    driving (also key G / gamepad L1). Flat Panel circles with white condensed text (gta_ui_language §7); no emoji.
+--  * Knockback remote -> AssemblyLinearVelocity on our HumanoidRootPart + PlatformStand, short camera shake.
+--  * While our Stunned attribute is true: WalkSpeed / Jump 0 and prompts off; restored afterwards. (The v1 cartoon
+--    stars over stunned players are gone.)
+-- Public: activate(toolId), cooldownRemaining(toolId).
 
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -29,6 +27,7 @@ local Trove = require(Shared:WaitForChild("Util"):WaitForChild("Trove"))
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
+local Style = require(UI:WaitForChild("CombatStyle"))
 local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
 local CombatClient = {}
@@ -36,26 +35,24 @@ local CombatClient = {}
 local player = Players.LocalPlayer
 local rng = Random.new()
 
-local TOOL_VISUALS: { [string]: { icon: string, caption: string, color: Color3 } } = {
-	bat = { icon = "🏏", caption = "BONK", color = Theme.Colors.Primary },
-	taser = { icon = "⚡", caption = "ZAP", color = Theme.Colors.Secondary },
-	spikes = { icon = "📌", caption = "SPIKES", color = Theme.Colors.Warning },
+local CAPTIONS: { [string]: string } = {
+	taser = "STUN",
+	spikes = "SPIKES",
 }
 
 local TOUCH_AIM_MEMORY = 0.45 -- seconds a tap position stays the aim point
 local ASSIST_RADIUS_MOUSE = 60 -- px
 local ASSIST_RADIUS_TOUCH = 170 -- px (touch + gamepad are imprecise)
-local BAT_AUTO_TARGET = Economy.BAT_RANGE + 1.5
--- SPIKES touch button (92 px): spans x W-236..W-144, y H-262..H-170 on the design canvas, left of VehicleClient's
--- HORN (x W-124..W-40) and EXIT (H-354..H-270), above DRIFT (top H-128) and NITRO (top H-150).
+local SPARK_COLOR = Color3.fromRGB(190, 225, 255)
+-- Touch buttons on the shared HUD canvas (Kit.screen with Theme.TouchMinScale, like HC_HUD and the driving UI). Once
+-- WeaponClient is up they are placed from the HUD layout (placeGadgetButtons): SPIKES in UI/HudLayout's in-car
+-- `spikes` slot (left of EXIT in the driving cluster), STUN in WeaponClient's FIRE rect (a gadget is not a gun, so
+-- FIRE is hidden). The fixed spots below are only the fallback.
 local SPIKE_BUTTON_SIZE = 92
 local SPIKE_BUTTON_ANCHOR = Vector2.new(1, 1)
 local SPIKE_BUTTON_POSITION = UDim2.new(1, -144, 1, -170)
--- Action (BONK / ZAP) button: on foot it clears the touch jump button; in a car (tool still equipped: a victim can
--- swing at the thief from the seat) it moves left of EXIT, above SPIKES (x W-244..W-144, y H-382..H-282).
 local ACTION_BUTTON_SIZE = 100
-local ACTION_BUTTON_POSITION = UDim2.new(1, -28, 1, -290)
-local ACTION_BUTTON_DRIVING_POSITION = UDim2.new(1, -144, 1, -282)
+local ACTION_BUTTON_POSITION = UDim2.new(1, -28, 1, -170)
 
 -- state
 local cooldownEnds: { [string]: number } = {}
@@ -76,9 +73,7 @@ local soundController: any = nil
 
 type RoundButton = {
 	button: TextButton,
-	icon: TextLabel,
 	caption: TextLabel,
-	inner: Frame,
 	setFill: (number) -> (),
 	ready: boolean,
 }
@@ -99,21 +94,21 @@ local function lazyController(name: string): any
 	return if ok and typeof(result) == "table" then result else false
 end
 
-local function playSound(key: string, position: Vector3?)
-	if soundController == nil then
-		soundController = lazyController("SoundController")
-	end
-	if soundController and typeof(soundController.play) == "function" then
-		pcall(soundController.play, key, position)
-	end
-end
-
 local function toast(kind: string, text: string)
 	if notificationController == nil then
 		notificationController = lazyController("NotificationController")
 	end
 	if notificationController and typeof(notificationController.toast) == "function" then
 		pcall(notificationController.toast, kind, text)
+	end
+end
+
+local function playSound(key: string, position: Vector3?)
+	if soundController == nil then
+		soundController = lazyController("SoundController")
+	end
+	if soundController and typeof(soundController.play) == "function" then
+		pcall(soundController.play, key, position)
 	end
 end
 
@@ -130,12 +125,13 @@ local function hasTaserPass(): boolean
 	return false
 end
 
-local function cooldownFor(toolId: string): number
+-- Cooldown of a gadget (the Zapper Pass halves the stun gun's). Pure apart from the pass lookup.
+function CombatClient.cooldownFor(toolId: string, pass: boolean?): number
 	local def = Economy.Tools[toolId]
 	if not def then
 		return 1
 	end
-	if toolId == "taser" and hasTaserPass() then
+	if toolId == "taser" and pass then
 		return def.cooldown * 0.5
 	end
 	return def.cooldown
@@ -177,7 +173,7 @@ local function findOwnedTool(toolId: string): Tool?
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- aim
+-- aim (stun gun)
 -------------------------------------------------------------------------------------------------------------------------
 
 local function getAimParams(character: Model?): RaycastParams
@@ -192,13 +188,11 @@ local function getAimParams(character: Model?): RaycastParams
 	if character then
 		table.insert(exclude, character)
 	end
-	local fx = Workspace:FindFirstChild("ClientFX")
-	if fx then
-		table.insert(exclude, fx)
-	end
-	local effects = Workspace:FindFirstChild("Effects")
-	if effects then
-		table.insert(exclude, effects)
+	for _, name in { "ClientFX", "Effects" } do
+		local f = Workspace:FindFirstChild(name)
+		if f then
+			table.insert(exclude, f)
+		end
 	end
 	params.FilterDescendantsInstances = exclude
 	return params
@@ -254,44 +248,11 @@ local function assistTarget(
 	return best
 end
 
-local function nearestPlayerRoot(origin: Vector3, range: number): BasePart?
-	local best: BasePart? = nil
-	local bestDist = range
-	for _, other in Players:GetPlayers() do
-		if other ~= player then
-			local character = other.Character
-			local root = character and character:FindFirstChild("HumanoidRootPart")
-			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			if root and root:IsA("BasePart") and humanoid and humanoid.Health > 0 then
-				local d = (root.Position - origin).Magnitude
-				if d < bestDist then
-					bestDist = d
-					best = root
-				end
-			end
-		end
-	end
-	return best
-end
-
 local function computeAim(toolId: string): Vector3?
 	local camera = Workspace.CurrentCamera
-	local character, humanoid, root = getCharacterParts()
+	local character, _, root = getCharacterParts()
 	if not camera or not root then
 		return nil
-	end
-	if toolId == "bat" then
-		-- forgiving melee: auto-target the nearest player in reach and turn to face them
-		local target = nearestPlayerRoot(root.Position, BAT_AUTO_TARGET)
-		if target then
-			if humanoid and not humanoid.SeatPart and not humanoid.PlatformStand then
-				local look = Vector3.new(target.Position.X, root.Position.Y, target.Position.Z)
-				if (look - root.Position).Magnitude > 0.2 then
-					root.CFrame = CFrame.lookAt(root.Position, look)
-				end
-			end
-			return target.Position
-		end
 	end
 	local screenPoint, imprecise = aimScreenPoint(camera)
 	if toolId == "taser" then
@@ -328,61 +289,20 @@ local function playToolAnim(tool: Tool, anim: string)
 	end)
 end
 
-local function swingFeedback(toolId: string, tool: Tool?)
-	if toolId == "bat" then
-		playSound("Whoosh")
-		if tool then
-			playToolAnim(tool, "Slash")
-			local handle = tool:FindFirstChild("Handle")
-			local trail = handle and handle:FindFirstChild("SwingTrail")
-			if trail and trail:IsA("Trail") then
-				trail.Enabled = true
-				task.delay(0.3, function()
-					if trail.Parent then
-						trail.Enabled = false
-					end
-				end)
-			end
-			local cap = tool:FindFirstChild("Cap")
-			if cap and cap:IsA("BasePart") then
-				pcall(
-					VFXLibrary.burst,
-					"Sparkle",
-					cap.Position,
-					{ count = 5, scale = 0.6, color = Theme.Colors.Primary }
-				)
-			end
-		end
-	elseif toolId == "taser" then
-		if tool then
-			playToolAnim(tool, "Lunge")
-			local tip = tool:FindFirstChild("Tip")
-			local glow = tip and tip:FindFirstChild("Glow")
-			if glow and glow:IsA("PointLight") then
-				glow.Brightness = 8
-				TweenService:Create(glow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					Brightness = 1.2,
-				}):Play()
-			end
-			if tip and tip:IsA("BasePart") then
-				local handle = tool:FindFirstChild("Handle")
-				local forward = if handle and handle:IsA("BasePart") then handle.CFrame.LookVector else nil
-				pcall(VFXLibrary.burst, "Sparks", tip.Position, {
-					count = 10,
-					scale = 0.5,
-					color = Color3.fromRGB(170, 255, 150),
-					direction = forward,
-				})
-				pcall(VFXLibrary.burst, "Flash", tip.Position, { scale = 0.3, color = Color3.fromRGB(150, 255, 140) })
-			end
-			for _, child in tool:GetChildren() do
-				if child:IsA("BasePart") and child.Name:sub(1, 4) == "Coil" then
-					local original = child.Color
-					child.Color = Color3.new(1, 1, 1)
-					TweenService:Create(child, TweenInfo.new(0.4), { Color = original }):Play()
-				end
-			end
-		end
+local function taserFeedback(tool: Tool?)
+	if not tool then
+		return
+	end
+	playToolAnim(tool, "Lunge")
+	local handle = tool:FindFirstChild("Handle")
+	local muzzle = handle and handle:FindFirstChild("Muzzle")
+	if muzzle and muzzle:IsA("Attachment") and handle and handle:IsA("BasePart") then
+		pcall(VFXLibrary.burst, "Sparks", muzzle.WorldPosition, {
+			count = 6,
+			scale = 0.35,
+			color = SPARK_COLOR,
+			direction = handle.CFrame.LookVector,
+		})
 	end
 end
 
@@ -420,14 +340,8 @@ end
 
 local refreshButtons: () -> () = function() end -- assigned below (needs the UI helpers)
 
-local function denyPulse(rb: RoundButton?)
-	if rb then
-		Kit.pop(rb.button, 0.85)
-	end
-end
-
 local function activate(toolId: string, tool: Tool?)
-	if not Economy.Tools[toolId] then
+	if not Economy.Tools[toolId] or toolId == "bat" then
 		return
 	end
 	if isStunned() then
@@ -435,21 +349,20 @@ local function activate(toolId: string, tool: Tool?)
 	end
 	local now = os.clock()
 	if (cooldownEnds[toolId] or 0) > now + 0.05 then
-		denyPulse(
-			if toolId == "spikes" and spikeButton and spikeButton.button.Visible then spikeButton else actionButton
-		)
 		return
 	end
 	if toolId == "spikes" and not isDriving() then
-		toast("warning", "Hop in a car to drop spikes!")
+		toast("warning", "Get in a car to drop the spike strip.")
 		return
 	end
 	local aim = if toolId == "spikes" then nil else computeAim(toolId)
 	Net.fire("ToolAction", toolId, aim)
-	local duration = cooldownFor(toolId)
+	local duration = CombatClient.cooldownFor(toolId, hasTaserPass())
 	cooldownEnds[toolId] = now + duration
 	cooldownLength[toolId] = duration
-	swingFeedback(toolId, tool)
+	if toolId == "taser" then
+		taserFeedback(tool)
+	end
 end
 
 local function hookTool(tool: Tool)
@@ -500,22 +413,22 @@ local function watchContainer(container: Instance, trove: Trove.Trove)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- UI: round buttons with a radial cooldown ring
+-- UI: flat black circles with a thin cooldown ring
 -------------------------------------------------------------------------------------------------------------------------
 
-local function makeRoundButton(parent: Instance, name: string, color: Color3, size: number): RoundButton
+local function makeRoundButton(parent: Instance, name: string, size: number): RoundButton
 	local button = Kit.new("TextButton", {
 		Name = name,
 		AutoButtonColor = false,
 		Text = "",
-		BackgroundColor3 = Theme.Colors.Stroke,
-		BackgroundTransparency = 0.15,
+		BackgroundColor3 = Style.Colors.Panel,
+		BackgroundTransparency = 0.35,
 		Size = UDim2.fromOffset(size, size),
 		Visible = false,
 		Parent = parent,
 	}) :: TextButton
-	Kit.corner(UDim.new(1, 0)).Parent = button
-	Kit.stroke(Theme.Colors.Stroke, 3).Parent = button
+	Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = button })
+	Kit.new("UIStroke", { Color = Style.Colors.Text, Transparency = 0.7, Thickness = 1, Parent = button })
 
 	-- two clipped halves; each holds a full disc whose UIGradient hides one side -> clockwise radial fill
 	local function half(isRight: boolean): UIGradient
@@ -530,14 +443,15 @@ local function makeRoundButton(parent: Instance, name: string, color: Color3, si
 		})
 		local disc = Kit.new("Frame", {
 			Name = "Disc",
-			BackgroundColor3 = color,
+			BackgroundColor3 = Style.Colors.Text,
+			BackgroundTransparency = 0.82,
 			BorderSizePixel = 0,
 			Size = UDim2.fromScale(2, 1),
 			Position = UDim2.fromScale(if isRight then -1 else 0, 0),
 			ZIndex = 2,
 			Parent = clip,
 		})
-		Kit.corner(UDim.new(1, 0)).Parent = disc
+		Kit.new("UICorner", { CornerRadius = UDim.new(1, 0), Parent = disc })
 		return Kit.new("UIGradient", {
 			Transparency = NumberSequence.new({
 				NumberSequenceKeypoint.new(0, 0),
@@ -552,42 +466,20 @@ local function makeRoundButton(parent: Instance, name: string, color: Color3, si
 	local rightGrad = half(true)
 	local leftGrad = half(false)
 
-	local inner = Kit.new("Frame", {
-		Name = "Inner",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.8, 0.8),
-		BackgroundColor3 = Theme.Colors.PanelLight,
-		BorderSizePixel = 0,
-		ZIndex = 3,
-		Parent = button,
-	}) :: Frame
-	Kit.corner(UDim.new(1, 0)).Parent = inner
-	Kit.stroke(Theme.Colors.Stroke, 2).Parent = inner
-	Kit.gradient(Color3.new(1, 1, 1), Color3.fromRGB(175, 175, 195)).Parent = inner
-
-	local icon = Kit.new("TextLabel", {
-		Name = "Icon",
+	local caption = Kit.new("TextLabel", {
+		Name = "Caption",
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.62, 0.62),
+		Size = UDim2.fromScale(0.9, 0.4),
 		Text = "",
-		TextScaled = true,
-		FontFace = Theme.Fonts.Display,
-		TextColor3 = Theme.Colors.Text,
+		RichText = true,
+		TextColor3 = Style.Colors.Text,
+		FontFace = Style.font("Condensed"),
+		TextSize = math.floor(size * 0.22),
 		ZIndex = 4,
-		Parent = inner,
+		Parent = button,
 	}) :: TextLabel
-
-	local caption = Kit.label("", 16, {
-		Name = "Caption",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 1, 2),
-		Size = UDim2.new(1.6, 0, 0, 20),
-		ZIndex = 4,
-	})
-	caption.Parent = button
 
 	local function setFill(f: number)
 		local a = math.clamp(f, 0, 1) * 360
@@ -595,23 +487,15 @@ local function makeRoundButton(parent: Instance, name: string, color: Color3, si
 		leftGrad.Rotation = math.clamp(a, 180, 360)
 	end
 	setFill(1)
-	Kit.juice(button)
-	return { button = button, icon = icon, caption = caption, inner = inner, setFill = setFill, ready = true }
+	return { button = button, caption = caption, setFill = setFill, ready = true }
 end
 
 local function styleButton(rb: RoundButton, toolId: string, keyHint: string?)
-	local v = TOOL_VISUALS[toolId]
-	if not v then
+	local caption = CAPTIONS[toolId]
+	if not caption then
 		return
 	end
-	rb.icon.Text = v.icon
-	rb.caption.Text = if keyHint then `{v.caption} <font size="12">[{keyHint}]</font>` else v.caption
-	for _, clip in rb.button:GetChildren() do
-		local disc = clip:FindFirstChild("Disc")
-		if disc and disc:IsA("Frame") then
-			disc.BackgroundColor3 = v.color
-		end
-	end
+	rb.caption.Text = if keyHint then `{caption} <font size="11">{keyHint}</font>` else caption
 end
 
 local function updateCooldownVisual(rb: RoundButton?, toolId: string?, now: number)
@@ -625,13 +509,12 @@ local function updateCooldownVisual(rb: RoundButton?, toolId: string?, now: numb
 		rb.setFill(1 - remaining / math.max(length, 0.01))
 		if rb.ready then
 			rb.ready = false
-			rb.icon.TextTransparency = 0.45
+			rb.caption.TextTransparency = 0.5
 		end
 	elseif not rb.ready then
 		rb.ready = true
 		rb.setFill(1)
-		rb.icon.TextTransparency = 0
-		Kit.pop(rb.button, 1.18)
+		rb.caption.TextTransparency = 0
 	end
 end
 
@@ -651,11 +534,10 @@ refreshButtons = function()
 	local id = equippedToolId()
 	local keyboard = UserInputService.KeyboardEnabled
 	if actionButton then
-		local show = id ~= nil
+		local show = id == "taser" and not driving and UserInputService.TouchEnabled
 		if show and id then
 			styleButton(actionButton, id, nil)
 		end
-		actionButton.button.Position = if driving then ACTION_BUTTON_DRIVING_POSITION else ACTION_BUTTON_POSITION
 		actionButton.button.Visible = show
 	end
 	if spikeButton then
@@ -706,7 +588,8 @@ local function applyKnockback(velocity: Vector3, stunSeconds: number)
 	humanoid.PlatformStand = true
 	root.AssemblyLinearVelocity = velocity
 	root.AssemblyAngularVelocity = Vector3.new(rng:NextNumber(-5, 5), rng:NextNumber(-9, 9), rng:NextNumber(-5, 5))
-	shakeCamera(0.35, 0.55)
+	shakeCamera(0.3, 0.4)
+	playSound("BodyFall", root.Position)
 	task.delay(math.max(stunSeconds, 0.3), function()
 		if token == knockToken then
 			endKnockdown()
@@ -752,100 +635,12 @@ local function applyStunState()
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- stun stars over every stunned player
--------------------------------------------------------------------------------------------------------------------------
-
-type StarRig = { gui: BillboardGui, stars: { TextLabel }, phase: number }
-local starRigs: { [Player]: StarRig } = {}
-
-local function removeStars(p: Player)
-	local rig = starRigs[p]
-	if rig then
-		starRigs[p] = nil
-		rig.gui:Destroy()
-	end
-end
-
-local function addStars(p: Player)
-	local character = p.Character
-	local head = character and character:FindFirstChild("Head")
-	if not head or not head:IsA("BasePart") then
-		return
-	end
-	removeStars(p)
-	local gui = Kit.new("BillboardGui", {
-		Name = "StunStars",
-		Adornee = head,
-		Size = UDim2.fromScale(3.6, 1.8),
-		StudsOffsetWorldSpace = Vector3.new(0, 1.9, 0),
-		LightInfluence = 0,
-		MaxDistance = 160,
-		ResetOnSpawn = false,
-	}) :: BillboardGui
-	local stars: { TextLabel } = {}
-	for i = 1, 3 do
-		local star = Kit.new("TextLabel", {
-			Name = "Star" .. i,
-			BackgroundTransparency = 1,
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Size = UDim2.fromScale(0.3, 0.6),
-			Text = "★",
-			TextScaled = true,
-			FontFace = Theme.Fonts.Display,
-			TextColor3 = if i == 2 then Color3.fromRGB(255, 255, 255) else Theme.Colors.Gold,
-			Parent = gui,
-		}) :: TextLabel
-		Kit.stroke(Theme.Colors.Stroke, 2, Enum.ApplyStrokeMode.Contextual).Parent = star
-		table.insert(stars, star)
-	end
-	gui.Parent = head
-	starRigs[p] = { gui = gui, stars = stars, phase = rng:NextNumber(0, math.pi * 2) }
-end
-
-local function updateStarsFor(p: Player)
-	if p:GetAttribute("Stunned") == true then
-		local rig = starRigs[p]
-		if not rig or not rig.gui.Parent then
-			addStars(p)
-		end
-	else
-		removeStars(p)
-	end
-end
-
-local function stepStars()
-	if next(starRigs) == nil then
-		return
-	end
-	local t = os.clock() * 5
-	for p, rig in starRigs do
-		if not rig.gui.Parent or not p.Parent then
-			starRigs[p] = nil
-			if rig.gui.Parent then
-				rig.gui:Destroy()
-			end
-			continue
-		end
-		for i, star in rig.stars do
-			local a = t + rig.phase + (i - 1) * (math.pi * 2 / 3)
-			local depth = (math.sin(a) + 1) / 2 -- 0 back .. 1 front
-			star.Position = UDim2.fromScale(0.5 + math.cos(a) * 0.36, 0.5 + math.sin(a) * 0.16)
-			local s = 0.2 + depth * 0.14
-			star.Size = UDim2.fromScale(s, s * 2)
-			star.ZIndex = if depth > 0.5 then 2 else 1
-			star.Rotation = math.deg(a) * 0.6
-			star.TextTransparency = 0.35 * (1 - depth)
-		end
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
 -- lifecycle
 -------------------------------------------------------------------------------------------------------------------------
 
 function CombatClient.init() end
 
--- Activate a combat tool by id from code (e.g. another controller's button). Same checks as a real activation.
+-- Activate a gadget by id from code (e.g. another controller's button). Same checks as a real activation.
 function CombatClient.activate(toolId: string)
 	local tool = findOwnedTool(toolId)
 	if toolId ~= "spikes" and not tool then
@@ -863,12 +658,37 @@ function CombatClient.cooldownRemaining(toolId: string): number
 	return math.max(0, (cooldownEnds[toolId] or 0) - os.clock())
 end
 
+-- Place STUN / SPIKES from the shared HUD layout (see the constants above); keeps the fallback spots without it.
+local function placeGadgetButtons(gui: ScreenGui)
+	local wc = lazyController("WeaponClient")
+	if not (wc and typeof(wc.touchLayoutFor) == "function" and typeof(wc.touchRects) == "function") then
+		return
+	end
+	local ok, L, jump = pcall(wc.touchLayoutFor, gui)
+	if not ok or typeof(L) ~= "table" then
+		return
+	end
+	local okRects, rects = pcall(wc.touchRects, L, jump)
+	if not okRects or typeof(rects) ~= "table" then
+		return
+	end
+	local function put(rb: RoundButton?, r: any)
+		if rb and typeof(r) == "table" then
+			rb.button.AnchorPoint = Vector2.zero
+			rb.button.Position = UDim2.fromOffset(r.x, r.y)
+			rb.button.Size = UDim2.fromOffset(r.w, r.h)
+		end
+	end
+	put(actionButton, rects.fire)
+	put(spikeButton, L.buttons and L.buttons.spikes)
+end
+
 function CombatClient.start()
-	-- UI
-	local gui = Kit.screen("CombatHUD", Theme.Layers.HUD)
-	local ab = makeRoundButton(gui, "ActionButton", Theme.Colors.Primary, ACTION_BUTTON_SIZE)
+	-- UI (named HC_Gadgets: CombatHUD is the gun HUD's controller now)
+	local gui = Kit.screen("HC_Gadgets", Style.Layers.HUD, { touchMin = Theme.TouchMinScale })
+	local ab = makeRoundButton(gui, "StunButton", ACTION_BUTTON_SIZE)
 	ab.button.AnchorPoint = Vector2.new(1, 1)
-	ab.button.Position = ACTION_BUTTON_POSITION -- clears the touch jump button on phones and tablets
+	ab.button.Position = ACTION_BUTTON_POSITION
 	actionButton = ab
 	ab.button.Activated:Connect(function()
 		local tool = equippedTool
@@ -876,15 +696,21 @@ function CombatClient.start()
 			tool:Activate()
 		end
 	end)
-	local sb = makeRoundButton(gui, "SpikeButton", Theme.Colors.Warning, SPIKE_BUTTON_SIZE)
-	-- bottom-anchored like the rest of DrivingUI's touch cluster: left of HORN, above DRIFT, clear of EXIT at every
-	-- canvas height (a Scale-anchored button slid onto EXIT on phones, where the UIScale floor shrinks the canvas)
+	local sb = makeRoundButton(gui, "SpikeButton", SPIKE_BUTTON_SIZE)
+	-- bottom-anchored like the rest of DrivingUI's touch cluster: left of HORN, above DRIFT, clear of EXIT
 	sb.button.AnchorPoint = SPIKE_BUTTON_ANCHOR
 	sb.button.Position = SPIKE_BUTTON_POSITION
 	spikeButton = sb
 	sb.button.Activated:Connect(function()
 		activate("spikes", findOwnedTool("spikes"))
 	end)
+	task.defer(placeGadgetButtons, gui)
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.LayoutChanged) == "table" then
+		hud.LayoutChanged:Connect(function()
+			placeGadgetButtons(gui)
+		end)
+	end
 
 	-- input
 	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
@@ -953,43 +779,12 @@ function CombatClient.start()
 		task.spawn(onCharacter, player.Character)
 	end
 
-	-- stars for every stunned player
-	local playerTroves: { [Player]: Trove.Trove } = {}
-	local function watchPlayer(p: Player)
-		if playerTroves[p] then
-			return
-		end
-		local t = Trove.new()
-		playerTroves[p] = t
-		t:Connect(p:GetAttributeChangedSignal("Stunned"), function()
-			updateStarsFor(p)
-		end)
-		t:Connect(p.CharacterAdded, function()
-			removeStars(p)
-			task.defer(updateStarsFor, p)
-		end)
-		updateStarsFor(p)
-	end
-	Players.PlayerAdded:Connect(watchPlayer)
-	Players.PlayerRemoving:Connect(function(p: Player)
-		local t = playerTroves[p]
-		if t then
-			t:Destroy()
-			playerTroves[p] = nil
-		end
-		removeStars(p)
-	end)
-	for _, p in Players:GetPlayers() do
-		watchPlayer(p)
-	end
-
-	-- per-frame: cooldown rings + star orbits (both early-out when idle)
+	-- per-frame: cooldown rings (early-out when hidden)
 	local refreshAcc = 0
 	RunService.Heartbeat:Connect(function(dt: number)
 		local now = os.clock()
 		updateCooldownVisual(actionButton, equippedToolId(), now)
 		updateCooldownVisual(spikeButton, "spikes", now)
-		stepStars()
 		refreshAcc += dt
 		if refreshAcc >= 0.5 then
 			refreshAcc = 0

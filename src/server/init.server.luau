@@ -26,6 +26,10 @@ local ORDER = {
 	"TrafficService",
 	"NPCService",
 	"CombatService",
+	"HitboxHistory", -- combat v2 (gta_combat §13): lag-compensation history
+	"DamageService", -- health / armor authority, PvP rules, WASTED
+	"WeaponService", -- inventory, tools, shot validation, melee
+	"PoliceCombatService", -- on-foot officers, firing director, roadblocks
 	"EventService",
 	"RewardsService",
 	"RebirthService",
