@@ -16,6 +16,8 @@ local ORDER = {
 	"GarageClient",
 	"DealershipClient",
 	"WaypointController",
+	"MinimapController",
+	"MapScreenController",
 	"CombatClient",
 	"EffectsController",
 	"EventsClient",

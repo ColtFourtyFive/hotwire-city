@@ -44,6 +44,8 @@ KW_TRIM = [r"chrome", r"metal", r"plastic", r"rubber", r"grill", r"trim", r"badg
            r"antenna", r"handle", r"gasket", r"_seal", r"hardware", r"mechanical", r"bolt", r"_nut", r"vent",
            r"intake", r"diffuser", r"roundel", r"kidney", r"splitter", r"_net_", r"mesh_grill", r"_hinge",
            r"blocker", r"_pipe", r"muffler", r"_tank", r"bumper_?black", r"_cladding"]
+KW_TRIM_STRONG = [r"wiper", r"gasket", r"_seal", r"handle", r"chrome", r"rubber", r"_trim", r"trim_", r"weather_?strip",
+                  r"_frame", r"mirror", r"badge", r"emblem", r"logo", r"licen[cs]e", r"_plate"]
 KW_PAINT = [r"paint", r"_body", r"body_", r"bodywork", r"car_?shell", r"_shell", r"lack", r"karosserie",
             r"exterior", r"_coat", r"carbody", r"_hood_", r"_door_?[lr]?_", r"fender", r"_roof", r"_panel"]
 KW_WHEEL = [r"wheel", r"tire", r"tyre", r"_rim", r"rims?_", r"rubber", r"reifen", r"felge", r"_rad_", r"_whl",
@@ -172,7 +174,9 @@ class Car:
         _ = old
 
     # ------------------------------------------------------------------------------------- tables
-    def refresh(self):
+    def refresh(self, islands=True):
+        """Re-read geometry. Island ids are only recomputed when islands=True (topology changes);
+        transforms keep them stable so wheel/role tables stay valid."""
         me = self.obj.data
         self.co = verts_np(me)
         ls, lt, lv, cen, nor, area, mi = faces_np(me)
@@ -182,6 +186,9 @@ class Car:
         fo = np.empty(nf, dtype=np.int32)
         me.attributes["cp_obj"].data.foreach_get("value", fo)
         self.fo = fo
+        if not islands and getattr(self, "fi", None) is not None and len(self.fi) == nf:
+            self._island_tables()
+            return
         # islands (welded by position, never crossing source objects)
         diag = float(np.linalg.norm(self.co.max(0) - self.co.min(0))) or 1.0
         tol = diag * 2e-5
@@ -262,7 +269,7 @@ class Car:
         if M.determinant() < 0:
             me.flip_normals()
         me.update()
-        self.refresh()
+        self.refresh(islands=False)
 
     def bbox(self):
         return self.co.min(0), self.co.max(0)
@@ -336,15 +343,24 @@ class Car:
         y = self.fc[:, 1] / (L / 2)
         end = np.abs(y) > 0.70
         z_ok = (self.fc[:, 2] > 0.25 * H) & (self.fc[:, 2] < 0.85 * H)
-        col = self.fcol
+        emis = np.array([m["emission"] for m in self.mats])[self.fm]
+        erg = np.array([m["emission_rgb"] for m in self.mats])[self.fm]
+        col = self.fcol.copy()
+        lit = emis > 0.1
+        col[lit] = erg[lit] / np.maximum(erg[lit].max(1, keepdims=True), 1e-6)
         mx = col.max(1)
         mn = col.min(1)
         sat = (mx - mn) / np.maximum(mx, 1e-6)
         red = (col[:, 0] > 0.35) & (sat > 0.55) & (col[:, 1] < 0.45 * col[:, 0]) & (col[:, 2] < 0.5 * col[:, 0])
-        emis = np.array([m["emission"] for m in self.mats])[self.fm]
-        sel = end & z_ok & red
+        # a red car makes this vote meaningless: ignore materials covering >20% of the surface, and skip
+        # entirely when the dominant (area-weighted) colour is itself red
+        mat_area = np.bincount(self.fm, weights=self.fa, minlength=len(self.mats))
+        big = (mat_area / max(mat_area.sum(), 1e-9))[self.fm] > 0.2
+        dom = np.median(self.fcol[np.argsort(-self.fa)[: max(10, len(self.fa) // 4)]], axis=0)
+        dom_red = dom[0] > 0.3 and dom[1] < 0.5 * dom[0] and dom[2] < 0.6 * dom[0]
+        sel = end & z_ok & red & (~big | lit)
         a = self.fa[sel]
-        if a.sum() > 0:
+        if a.sum() > 0 and not (dom_red and not lit[sel].any()):
             s = (a * np.sign(y[sel])).sum() / a.sum()
             frac = a.sum() / max(self.fa[end & z_ok].sum(), 1e-9)
             votes["red_lights"] = -2.5 * s * min(1.0, frac * 20)
@@ -400,7 +416,8 @@ class Car:
                (dia > 0.08 * L) & (dia < 0.34 * L) & (cen[:, 2] < 0.5 * H) & (np.abs(cen[:, 0]) > 0.18 * W) & \
                (np.abs(cen[:, 1]) > 0.12 * L)
         # steered front wheels: y extent inflated, use z extent as the diameter
-        cand = np.where(disc | (named & (ext[:, 2] > 0.06 * L) & (cen[:, 2] < 0.5 * H)))[0]
+        cand = np.where(disc | (named & (ext[:, 2] > 0.06 * L) & (cen[:, 2] < 0.5 * H) &
+                                (ext[:, 1] < 1.35 * ext[:, 2]) & (np.abs(cen[:, 0]) > 0.15 * W)))[0]
         if len(cand) == 0:
             self.warnings.append("no wheel-like geometry found")
             return []
@@ -504,7 +521,7 @@ class Car:
         if fixed:
             me.vertices.foreach_set("co", self.co.astype(np.float32).ravel())
             me.update()
-            self.refresh()
+            self.refresh(islands=False)
             for w in self.wheels:  # recompute centres/extents from the straightened islands
                 isl = w["islands"]
                 mn = self.imin[isl].min(0)
@@ -675,6 +692,8 @@ class Car:
             return DISCARD
         if kw_match(s, KW_INTERIOR):
             return INTERIOR
+        if kw_match(s, KW_TRIM_STRONG):
+            return TRIM
         if kw_match(s, KW_GLASS) and not kw_match(s, KW_LIGHT):
             return GLASS
         if kw_match(s, KW_LIGHT):

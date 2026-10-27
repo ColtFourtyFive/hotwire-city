@@ -22,8 +22,8 @@
 -- Public API (beyond init/start):
 --   getRoute(): ({ Vector3 }?, Color3?, Vector3?)   current GPS polyline (road points), its color and the real target
 --   getGpsTarget(): (string?, Vector3?)            active GPS waypoint id + position
---   setCustomWaypoint(pos: Vector3?)               place / clear the player's map waypoint (3D beam via Waypoints)
---   getCustomWaypoint(): Vector3?
+--   setCustomWaypoint(pos: Vector3?, label?)       place / clear the player's map waypoint (3D beam via Waypoints)
+--   getCustomWaypoint(): Vector3?, getRemaining(): number (studs left on the route), getPolice(): { Model }
 --   RouteChanged: Signal()                         fires when the polyline is recomputed or cleared
 --   newRouteRenderer(parent, width, outline) / drawRoute(renderer, ...)   shared with MapScreenController
 -- Pure helpers (tests): worldToMap, mapToWorld, headingOf, rotate, radarOffset, radarToWorld, clampToCircle,
@@ -231,7 +231,12 @@ function MinimapController.wantedRadius(stars: number): number
 end
 
 -- Route segment a -> b in map space (studs from the map's top-left): center (cu, cv), length, angle (degrees).
-function MinimapController.segmentGeometry(ax: number, az: number, bx: number, bz: number): (number, number, number, number)
+function MinimapController.segmentGeometry(
+	ax: number,
+	az: number,
+	bx: number,
+	bz: number
+): (number, number, number, number)
 	local au, av = MinimapController.worldToMap(ax, az)
 	local bu, bv = MinimapController.worldToMap(bx, bz)
 	local du, dv = bu - au, bv - av
@@ -441,7 +446,6 @@ local lastRouteAt = -math.huge
 local remaining = 0
 local gpsId: string? = nil
 local gpsPos: Vector3? = nil
-local gpsColor = WHITE
 local candidates: { { id: string, pos: Vector3, color: Color3 } } = {}
 local candidateCount = 0
 
@@ -1075,7 +1079,7 @@ local function slowTick(pos: Vector3)
 	end
 
 	local id, target, color = pickGps()
-	gpsId, gpsPos, gpsColor = id, target, color
+	gpsId, gpsPos = id, target
 	if not (id and target) then
 		clearRoute()
 		return
@@ -1360,9 +1364,9 @@ function MinimapController.getRemaining(): number
 	return remaining
 end
 
-function MinimapController.setCustomWaypoint(pos: Vector3?)
+function MinimapController.setCustomWaypoint(pos: Vector3?, label: string?)
 	if typeof(pos) == "Vector3" then
-		WaypointController.set(CUSTOM.ID, pos, CUSTOM.COLOR, CUSTOM.LABEL)
+		WaypointController.set(CUSTOM.ID, pos, CUSTOM.COLOR, label or CUSTOM.LABEL)
 	else
 		WaypointController.clear(CUSTOM.ID)
 	end
@@ -1371,6 +1375,11 @@ end
 
 function MinimapController.getCustomWaypoint(): Vector3?
 	return WaypointController.getPosition(CUSTOM.ID)
+end
+
+-- Police cars currently tracked (CollectionService tag "Police"); read-only.
+function MinimapController.getPolice(): { Model }
+	return police
 end
 
 function MinimapController.isHidden(): boolean

@@ -15,7 +15,8 @@ ONE mesh object on export (= one Roblox MeshPart), split into <Role>_1, <Role>_2
   Sign     storefront signs (signs.png)                                            atlas
   Brand    blades, name boards, price boards, posters (brands.png)                 atlas
   Grime    alpha dirt decals (rising damp, rain streaks, rust leaks)               RGBA atlas, alpha blend
-  Site     lot paving: parking, forecourt, driveway, pool deck                     tiling PBR
+  Site     lot paving: walks, forecourt, driveway, pool deck (concrete / pavers)  tiling PBR
+  Asphalt  parking lots and drive aisles                                           tiling PBR
   Paint    parking stripes / kerb paint                                            plain colour
   Lawn     lot grass (drop it if the world uses terrain grass)                     tiling PBR
   Water    pool water                                                              colour, Glass material
@@ -47,10 +48,11 @@ FRAMES = {"white": (0.92, 0.92, 0.9), "black": (0.05, 0.05, 0.055), "bronze": (0
           "green": (0.06, 0.2, 0.14), "silver": (0.62, 0.64, 0.66), "red": (0.45, 0.06, 0.06)}
 
 TILES = {"Walls": 8.0, "Walls2": 8.0, "Trim": 6.0, "Accent": 6.0, "Frames": 8.0, "Glass": 8.0, "Roof": 16.0,
-         "Details": 6.0, "Doors": 10.0, "Awning": 20.8, "Sign": 8.0, "Brand": 8.0, "Grime": 24.0, "Site": 24.0,
+         "Details": 6.0, "Doors": 10.0, "Awning": 20.8, "Sign": 8.0, "Brand": 8.0, "Grime": 24.0, "Site": 16.0,
+         "Asphalt": 24.0,
          "Paint": 8.0, "Lawn": 20.0, "Water": 16.0, "Neon": 8.0, "WindowsLit": 8.0}
 ROLE_ORDER = ["Walls", "Walls2", "Trim", "Accent", "Frames", "Glass", "Roof", "Details", "Doors", "Awning", "Sign",
-              "Brand", "Site", "Paint", "Lawn", "Water", "Neon", "Grime", "WindowsLit"]
+              "Brand", "Site", "Asphalt", "Paint", "Lawn", "Water", "Neon", "Grime", "WindowsLit"]
 NIGHT_ONLY = {"WindowsLit"}
 
 
@@ -304,6 +306,49 @@ class Building:
             F.box(self.b(frame), u0 - border, u1 + border, n, n + depth, z0 - border, z0 + height + border)
         F.quad(self.b("Brand"), u0, u1, z0, z0 + height, n + depth + 0.02, uv=(u0_, v0, u1_, v1))
         return w
+
+    def parking(self, x0, y0, x1, y1, stall_w=10.0, stall_d=19.0, rows=("-y",), z=0.05, stops=True, aisle_lines=False):
+        """Asphalt lot (Asphalt) with painted stalls (Paint) along the given edges ('-y' = stalls touch y0 ...)."""
+        G.quad(self.b("Asphalt"), (x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z))
+        pt, dt = self.b("Paint"), self.b("Trim")
+        zz = z + 0.03
+        for edge in rows:
+            if edge in ("-y", "+y"):
+                yb = y0 if edge == "-y" else y1
+                sgn = 1 if edge == "-y" else -1
+                n = int((x1 - x0 - 2) // stall_w)
+                xs = x0 + (x1 - x0 - n * stall_w) / 2
+                for i in range(n + 1):
+                    x = xs + i * stall_w
+                    ya, yb2 = sorted((yb + sgn * 1.0, yb + sgn * stall_d))
+                    G.quad(pt, (x - 0.2, ya, zz), (x + 0.2, ya, zz), (x + 0.2, yb2, zz), (x - 0.2, yb2, zz))
+                    if stops and i < n:
+                        yc = yb + sgn * 3.0
+                        G.box(dt, x + 2.0, yc - 0.4, z, x + stall_w - 2.0, yc + 0.4, z + 0.55)
+            else:
+                xb = x0 if edge == "-x" else x1
+                sgn = 1 if edge == "-x" else -1
+                n = int((y1 - y0 - 2) // stall_w)
+                ys = y0 + (y1 - y0 - n * stall_w) / 2
+                for i in range(n + 1):
+                    y = ys + i * stall_w
+                    xa, xb2 = sorted((xb + sgn * 1.0, xb + sgn * stall_d))
+                    G.quad(pt, (xa, y - 0.2, zz), (xb2, y - 0.2, zz), (xb2, y + 0.2, zz), (xa, y + 0.2, zz))
+                    if stops and i < n:
+                        xc = xb + sgn * 3.0
+                        G.box(dt, xc - 0.4, y + 2.0, z, xc + 0.4, y + stall_w - 2.0, z + 0.55)
+
+    def lot_light(self, x, y, h=24.0, arms=2):
+        dt = self.b("Details")
+        G.box(dt, x - 0.9, y - 0.9, 0, x + 0.9, y + 0.9, 2.4)
+        G.box(dt, x - 0.3, y - 0.3, 2.4, x + 0.3, y + 0.3, h)
+        for k in range(arms):
+            sx = 1 if k == 0 else -1
+            G.box(dt, x + sx * 0.3 if sx > 0 else x - 3.4, y - 0.7, h - 0.6, x + 3.4 if sx > 0 else x - 0.3, y + 0.7, h)
+            G.box(self.b("Neon"), x + sx * 2.0 - 0.8, y - 0.6, h - 0.7, x + sx * 2.0 + 0.8, y + 0.6, h - 0.6, skip=("top",))
+
+    def bollard(self, x, y, h=3.2, role="Accent"):
+        G.cylinder(self.b(role), x, y, 0, h, 0.45, seg=8, caps=(False, True))
 
     def slab(self, role, x0, y0, x1, y1, z, t=0.3, skip=("bottom",)):
         G.box(self.b(role), x0, y0, z - t, x1, y1, z, skip=skip)

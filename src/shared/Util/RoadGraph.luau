@@ -197,7 +197,16 @@ local function intersect(si: RoadSegment, sj: RoadSegment, splitsI: { number }, 
 		if math.abs(cross2(qpx, qpz, rx, rz)) / lenI > snap then
 			return
 		end
-		local function addInside(splits: { number }, ax: number, az: number, dx: number, dz: number, len2: number, x: number, z: number)
+		local function addInside(
+			splits: { number },
+			ax: number,
+			az: number,
+			dx: number,
+			dz: number,
+			len2: number,
+			x: number,
+			z: number
+		)
 			local t = ((x - ax) * dx + (z - az) * dz) / len2
 			local tol = snap / math.sqrt(len2)
 			if t > -tol and t < 1 + tol then

@@ -22,7 +22,10 @@ return function(t)
 				local steps = math.max(1, math.ceil(len / 4))
 				for k = 1, steps - 1 do
 					local p = a:Lerp(b, k / steps)
-					t.ok(MapLayout.isOnRoad(p), ("%s: segment %d leaves the road at %s"):format(label, i - 1, tostring(p)))
+					t.ok(
+						MapLayout.isOnRoad(p),
+						("%s: segment %d leaves the road at %s"):format(label, i - 1, tostring(p))
+					)
 				end
 			end
 		end

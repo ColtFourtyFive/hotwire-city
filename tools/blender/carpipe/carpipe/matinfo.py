@@ -10,7 +10,7 @@ import numpy as np
 from .util import lin_to_srgb, norm_name, srgb_to_lin
 
 GENERIC_MAT = re.compile(
-    r"^(material|mat|default|standard|lambert|phong|blinn|initialshadinggroup|none|_|01___default|\d+___default|"
+    r"^(material|mat|default|standard|lambert|phong|blinn|initialshadinggroup|none|_|\d+_default|"
     r"material_?\d*|mat_?\d*|default_?material|wire_\w+|color_\w+|\d+)$")
 
 _IMG_CACHE: dict = {}

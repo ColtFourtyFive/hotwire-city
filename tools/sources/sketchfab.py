@@ -177,7 +177,7 @@ def _summ(r: dict, lic: str | None = None) -> dict:
         "tex_max_res": glb.get("textureMaxResolution") or gltf.get("textureMaxResolution"),
         "animated": bool(r.get("animationCount")),
         "tags": [t.get("slug") for t in (r.get("tags") or []) if isinstance(t, dict)],
-        "categories": [c.get("slug") for c in (r.get("categories") or []) if isinstance(c, dict)],
+        "categories": [c.get("slug") or c.get("name") for c in (r.get("categories") or []) if isinstance(c, dict)],
         "staffpicked": bool(r.get("staffpickedAt")),
     }
 

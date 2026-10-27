@@ -281,7 +281,7 @@ function WorldGen.polyOffset(pts: { P2 }, d: number): { P2 }
 		end
 		tx, tz = tx / tl, tz / tl
 		local rx, rz = WorldGen.right(tx, tz)
-		local cosHalf = rx * (-bz) + rz * bx -- dot(miter normal, segment normal)
+		local cosHalf = rx * -bz + rz * bx -- dot(miter normal, segment normal)
 		local m = d / math.max(math.abs(cosHalf), 1 / 3) * (if cosHalf < 0 then -1 else 1)
 		table.insert(out, { x = px + rx * m, z = pz + rz * m })
 	end
@@ -763,12 +763,7 @@ local function degreeOf(nNodes: number, edges: { GEdge }, alive: { boolean }): {
 end
 
 -- Remove dead-end edges shorter than minLen (repeatedly), unless keep(edge) says otherwise. Returns kept edges.
-function WorldGen.pruneStubs(
-	nNodes: number,
-	edges: { GEdge },
-	minLen: number,
-	keep: ((GEdge) -> boolean)?
-): { GEdge }
+function WorldGen.pruneStubs(nNodes: number, edges: { GEdge }, minLen: number, keep: ((GEdge) -> boolean)?): { GEdge }
 	local alive = table.create(#edges, true)
 	local changed = true
 	while changed do
@@ -887,7 +882,12 @@ end
 
 export type Arc = { to: number, edge: number, cost: number }
 
-function WorldGen.arcs(nNodes: number, edges: { any }, oneWay: (number) -> boolean, usable: ((number) -> boolean)?): { { Arc } }
+function WorldGen.arcs(
+	nNodes: number,
+	edges: { any },
+	oneWay: (number) -> boolean,
+	usable: ((number) -> boolean)?
+): { { Arc } }
 	local out: { { Arc } } = table.create(nNodes)
 	for i = 1, nNodes do
 		out[i] = {}

@@ -89,7 +89,7 @@ def instantiate(B, col=None, loc=(0, 0, 0), rot_z=0.0, night=False, split=False,
         parts = split_buf(buf) if split else [buf]
         for k, pb in enumerate(parts):
             ob = G.to_object(pb, mat, col, parent=root,
-                             weighted=role not in ("Glass", "Sign", "Brand", "WindowsLit", "Awning", "Grime", "Paint", "Site", "Lawn", "Water"))
+                             weighted=role not in ("Glass", "Sign", "Brand", "WindowsLit", "Awning", "Grime", "Paint", "Site", "Asphalt", "Lawn", "Water"))
             ob.name = pb.name
             if role in A.NIGHT_ONLY:
                 ob.hide_render = not night

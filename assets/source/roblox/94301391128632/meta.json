@@ -1,0 +1,16 @@
+{
+ "id": 94301391128632,
+ "fetched_at": "2026-10-27T15:54:40Z",
+ "status": 200,
+ "assetTypeId": 10,
+ "assetType": "Model",
+ "requestId": "639287132806934451",
+ "isArchived": false,
+ "isRecordable": true,
+ "ok": true,
+ "kind": "rbxmx",
+ "ext": "rbxmx",
+ "file": "asset.rbxmx",
+ "bytes": 186180,
+ "sha256": "5b381fcf7bc148db6ee9acd4b5c27bf0127d23a45fa143d8b2bc5e2c6b3e431d"
+}

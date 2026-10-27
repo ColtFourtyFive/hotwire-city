@@ -20,7 +20,9 @@
 --    the driver leaves (DriverUserId 0) or the car despawns.
 --
 -- Everything is pooled: one Heartbeat drives all moving bits (BulkMoveTo), bolts and comic billboards are reused,
--- particle bursts come from a ring of emitter hosts. Built-in textures only.
+-- particle bursts come from VFXLibrary's pooled emitters (our premium texture set, Config/VFX presets: flipbook
+-- smoke / fireballs, tumbling debris + confetti + cash + coins, spark streaks, shockwave rings, comic impact stars),
+-- light flashes from a ring of PointLight hosts. Police sirens get a glare sprite per light while flashing.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -42,16 +44,13 @@ local Format = require(Util:WaitForChild("Format"))
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
+local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
+local VFX = VFXLibrary.Config
 
 local EffectsController = {}
 
 local player = Players.LocalPlayer
 local rng = Random.new()
-
-local TEX_SPARKLES = "rbxasset://textures/particles/sparkles_main.dds"
-local TEX_SMOKE = "rbxasset://textures/particles/smoke_main.dds"
-local TEX_FIRE = "rbxasset://textures/particles/fire_main.dds"
-local TEX_STAR = "rbxasset://textures/sparkle.png"
 
 local CULL_DISTANCE = 380 -- effects farther than this from the camera are skipped
 local TAG_RANGE = 150
@@ -70,15 +69,6 @@ local COMIC_COUNT = 6
 local HIDDEN = CFrame.new(0, -10000, 0)
 local UP = Vector3.new(0, 1, 0)
 
-local CONFETTI_COLORS = {
-	Theme.Colors.Primary,
-	Theme.Colors.Secondary,
-	Theme.Colors.Gold,
-	Theme.Colors.Cash,
-	Color3.fromRGB(175, 80, 255),
-	Color3.fromRGB(255, 255, 255),
-	Color3.fromRGB(255, 120, 40),
-}
 local SIREN_RED = Color3.fromRGB(255, 40, 60)
 local SIREN_BLUE = Color3.fromRGB(40, 110, 255)
 local HELI_ROTOR_SPEED = 16 -- rad/s
@@ -502,34 +492,15 @@ local function stepBolts(dt: number)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Emitter hosts (particle bursts + light flashes)
+-- Light hosts (flashes). Particle bursts go through VFXLibrary's pools.
 -------------------------------------------------------------------------------------------------------------------------
 
 type Host = {
 	part: Part,
-	sparkle: ParticleEmitter,
-	smoke: ParticleEmitter,
-	star: ParticleEmitter,
-	fire: ParticleEmitter,
 	light: PointLight,
 }
 local hosts: { Host } = {}
 local hostIndex = 0
-
-local function newEmitter(parent: Instance, name: string, texture: string): ParticleEmitter
-	local e = Instance.new("ParticleEmitter")
-	e.Name = name
-	e.Texture = texture
-	e.Enabled = false
-	e.Rate = 0
-	e.LockedToPart = false
-	e.LightEmission = 0.6
-	e.SpreadAngle = Vector2.new(180, 180)
-	e.Rotation = NumberRange.new(0, 360)
-	e.RotSpeed = NumberRange.new(-180, 180)
-	e.Parent = parent
-	return e
-end
 
 local function buildHost(): Host
 	local part = Instance.new("Part")
@@ -542,57 +513,13 @@ local function buildHost(): Host
 	part.Transparency = 1
 	part.Size = Vector3.new(0.2, 0.2, 0.2)
 	part.CFrame = HIDDEN
-	local sparkle = newEmitter(part, "Sparkle", TEX_SPARKLES)
-	sparkle.Lifetime = NumberRange.new(0.4, 0.8)
-	sparkle.Speed = NumberRange.new(18, 34)
-	sparkle.Drag = 4
-	sparkle.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1.2),
-		NumberSequenceKeypoint.new(1, 0),
-	})
-	local smoke = newEmitter(part, "Smoke", TEX_SMOKE)
-	smoke.Lifetime = NumberRange.new(0.7, 1.2)
-	smoke.Speed = NumberRange.new(6, 14)
-	smoke.Drag = 3
-	smoke.LightEmission = 0
-	smoke.Acceleration = Vector3.new(0, 8, 0)
-	smoke.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 3),
-		NumberSequenceKeypoint.new(1, 8),
-	})
-	smoke.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.15),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	local star = newEmitter(part, "Star", TEX_STAR)
-	star.Lifetime = NumberRange.new(0.5, 0.9)
-	star.Speed = NumberRange.new(12, 24)
-	star.Drag = 3
-	star.LightEmission = 1
-	star.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1.6),
-		NumberSequenceKeypoint.new(1, 0),
-	})
-	local fire = newEmitter(part, "Fire", TEX_FIRE)
-	fire.Lifetime = NumberRange.new(0.25, 0.45)
-	fire.Speed = NumberRange.new(10, 20)
-	fire.Drag = 5
-	fire.LightEmission = 1
-	fire.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 2.5),
-		NumberSequenceKeypoint.new(1, 0.5),
-	})
-	fire.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.1),
-		NumberSequenceKeypoint.new(1, 1),
-	})
 	local light = Instance.new("PointLight")
 	light.Brightness = 0
 	light.Range = 18
 	light.Shadows = false
 	light.Parent = part
 	part.Parent = getFxFolder()
-	return { part = part, sparkle = sparkle, smoke = smoke, star = star, fire = fire, light = light }
+	return { part = part, light = light }
 end
 
 local function hostAt(position: Vector3): Host
@@ -606,11 +533,21 @@ local function hostAt(position: Vector3): Host
 	return h
 end
 
-local function burst(e: ParticleEmitter, count: number, color: Color3?)
-	if color then
-		e.Color = ColorSequence.new(color)
+-- Pooled particle burst (VFXLibrary: quality-scaled, budgeted, culled beyond 250 studs). Never throws.
+local function fx(name: string, at: Vector3, opts: VFXLibrary.BurstOpts?)
+	local ok, err = pcall(VFXLibrary.burst, name, at, opts)
+	if not ok then
+		warn("[EffectsController] vfx " .. name .. ": " .. tostring(err))
 	end
-	e:Emit(count)
+end
+
+local function towardCamera(pos: Vector3): Vector3?
+	local cam = Workspace.CurrentCamera
+	if not cam then
+		return nil
+	end
+	local d = cam.CFrame.Position - pos
+	return if d.Magnitude > 1e-3 then d.Unit else nil
 end
 
 local function flash(h: Host, color: Color3, brightness: number, duration: number)
@@ -815,63 +752,29 @@ local function randomFlat(): Vector3
 	return Vector3.new(math.cos(a), 0, math.sin(a))
 end
 
-local function ring(pos: Vector3, color: Color3, diameter: number, life: number)
-	spawnBit({
-		shape = Enum.PartType.Cylinder,
-		size = Vector3.new(0.25, 1, 1),
-		size1 = Vector3.new(0.25, diameter, diameter),
-		rot = CFrame.Angles(0, 0, math.pi / 2),
-		color = color,
-		material = Enum.Material.Neon,
-		pos = pos,
-		life = life,
-		fadeStart = 0,
-		transparency = 0.1,
-	})
-end
-
-local function puffs(
-	pos: Vector3,
-	count: number,
-	color: Color3,
-	size0: number,
-	size1: number,
-	speed: number,
-	life: number
-)
-	for _ = 1, count do
-		local dir = randomFlat()
-		local s0 = size0 * rng:NextNumber(0.8, 1.2)
-		local s1 = size1 * rng:NextNumber(0.8, 1.2)
-		local shade = rng:NextNumber(0.88, 1)
-		spawnBit({
-			shape = Enum.PartType.Ball,
-			size = Vector3.new(s0, s0, s0),
-			size1 = Vector3.new(s1, s1, s1),
-			color = Color3.new(color.R * shade, color.G * shade, color.B * shade),
-			pos = pos + dir * rng:NextNumber(0.3, 1.5) + UP * rng:NextNumber(0, 1.5),
-			vel = dir * speed * rng:NextNumber(0.5, 1.2) + UP * speed * rng:NextNumber(0.4, 0.9),
-			life = life * rng:NextNumber(0.85, 1.15),
-			gravity = -4,
-			drag = 3,
-			fadeStart = 0.35,
-			transparency = 0.05,
-		})
+local function confettiBurst(pos: Vector3, perColor: number)
+	for _, c in VFX.CONFETTI_COLORS do
+		fx("Confetti", pos, { count = perColor, color = c })
 	end
 end
 
-local function confettiBurst(pos: Vector3, count: number, power: number)
-	for _ = 1, count do
+-- A few real (bouncing, car-colored) chunks: they hit the ground, which particles can't.
+local function chunks(pos: Vector3, ground: number, count: number, color: Color3?)
+	for i = 1, count do
+		local sz = rng:NextNumber(0.6, 1.3)
 		spawnBit({
-			size = Vector3.new(rng:NextNumber(0.5, 0.8), 0.06, rng:NextNumber(0.3, 0.45)),
-			color = CONFETTI_COLORS[rng:NextInteger(1, #CONFETTI_COLORS)],
-			pos = pos + UP * 1.5,
-			vel = randomFlat() * rng:NextNumber(6, 26) * power + UP * rng:NextNumber(45, 85) * power,
-			spin = rng:NextNumber(8, 18),
-			life = rng:NextNumber(2.2, 3.2),
-			gravity = 40,
-			drag = 2.5,
+			size = Vector3.new(sz, sz * rng:NextNumber(0.35, 0.7), sz * rng:NextNumber(0.8, 1.4)),
+			color = if color and i % 2 == 0 then color else Color3.fromRGB(64, 66, 78),
+			material = if i % 3 == 0 then Enum.Material.Metal else Enum.Material.SmoothPlastic,
+			pos = pos + UP,
+			vel = randomFlat() * rng:NextNumber(16, 36) + UP * rng:NextNumber(38, 70),
+			spin = rng:NextNumber(6, 14),
+			life = rng:NextNumber(1.4, 2.1),
+			gravity = 150,
+			drag = 0.3,
 			fadeStart = 0.7,
+			groundY = ground,
+			bounce = 0.45,
 		})
 	end
 end
@@ -888,44 +791,33 @@ handlers.CarWreck = function(data, pos)
 		return
 	end
 	local ground = groundBelow(pos)
-	local debrisColor: Color3? = if typeof(data.color) == "Color3" then data.color else nil
-	puffs(pos, 10, Color3.fromRGB(235, 235, 240), 2.4, 8, 18, 1.1)
-	puffs(pos + UP * 1.5, 4, Color3.fromRGB(120, 120, 130), 2, 6, 10, 1.3)
-	for i = 1, 10 do
-		local s = rng:NextNumber(0.5, 1.2)
-		spawnBit({
-			size = Vector3.new(s, s * rng:NextNumber(0.5, 1), s),
-			color = if debrisColor and i % 2 == 0
-				then debrisColor
-				else (if i % 3 == 0 then Theme.Colors.Gold else Color3.fromRGB(70, 72, 84)),
-			pos = pos + UP,
-			vel = randomFlat() * rng:NextNumber(16, 38) + UP * rng:NextNumber(40, 75),
-			spin = rng:NextNumber(6, 14),
-			life = rng:NextNumber(1.4, 2.1),
-			gravity = 150,
-			drag = 0.3,
-			fadeStart = 0.65,
-			groundY = ground,
-			bounce = 0.45,
-		})
-	end
-	ring(Vector3.new(pos.X, ground + 0.4, pos.Z), Color3.fromRGB(255, 230, 140), 26, 0.4)
-	local h = hostAt(pos + UP)
-	burst(h.fire, 14, Color3.fromRGB(255, 170, 60))
-	burst(h.sparkle, 30, Theme.Colors.Gold)
-	burst(h.smoke, 10, Color3.fromRGB(200, 200, 205))
+	local carColor: Color3? = if typeof(data.color) == "Color3" then data.color else nil
+	local center = pos + UP * 1.5
+	fx("Fireball", center)
+	fx("WreckSmoke", center)
+	fx("Debris", pos + UP, { color = carColor })
+	fx("Sparks", pos + UP, { count = 34, direction = UP })
+	fx("Shockwave", Vector3.new(pos.X, ground + 0.3, pos.Z), { scale = 1.1 })
+	fx("Flash", center, { scale = 1.5 })
+	fx("ImpactStar", pos + UP * 2.5, { scale = 1.2, direction = towardCamera(pos) })
+	chunks(pos, ground, 6, carColor)
+	local h = hostAt(center)
 	flash(h, Color3.fromRGB(255, 170, 60), 10, 0.5)
 	showComic(pos + UP * 5, "KAPOW!", Theme.Colors.Danger, Theme.Colors.Gold, 1.25)
 end
 
-handlers.Confetti = function(_data, pos)
+handlers.Confetti = function(data, pos)
 	if not pos then
 		return
 	end
-	confettiBurst(pos, 46, 1)
-	local h = hostAt(pos + UP * 2)
-	burst(h.sparkle, 30, Theme.Colors.Gold)
-	burst(h.star, 14, Theme.Colors.Secondary)
+	local big = typeof(data.rarity) == "string" and (data.rarity == "Legendary" or data.rarity == "Mythic"
+		or data.rarity == "Secret")
+	confettiBurst(pos + UP * 1.5, if big then 14 else 10)
+	fx("Sparkle", pos + UP * 2, { color = Theme.Colors.Gold })
+	fx("Shockwave", pos + UP * 0.3, { scale = if big then 0.9 else 0.6, color = Theme.Colors.Gold })
+	if big then
+		fx("Coins", pos + UP * 1.5, { count = 10 })
+	end
 end
 
 handlers.Zap = function(data, _pos)
@@ -939,13 +831,14 @@ handlers.Zap = function(data, _pos)
 	end
 	spawnBolt(from, to, Theme.Colors.Secondary, 0.25)
 	spawnBolt(from, to, Color3.fromRGB(150, 255, 140), 0.18)
+	local back = from - to
+	fx("Sparks", to, { count = if data.hit then 24 else 10, color = Color3.fromRGB(150, 240, 255), direction = back })
+	fx("Flash", to, { scale = if data.hit then 0.8 else 0.5, color = Theme.Colors.Secondary })
+	fx("Flash", from, { scale = 0.35, color = Color3.fromRGB(150, 255, 140) })
 	local h = hostAt(to)
-	burst(h.sparkle, if data.hit then 26 else 12, Theme.Colors.Secondary)
 	flash(h, Theme.Colors.Secondary, if data.hit then 8 else 4, 0.3)
-	local h2 = hostAt(from)
-	burst(h2.star, 4, Color3.fromRGB(150, 255, 140))
 	if data.hit == true then
-		ring(to, Theme.Colors.Secondary, 8, 0.25)
+		fx("Shockwave", to, { scale = 0.35, color = Theme.Colors.Secondary, direction = back })
 		showComic(to + UP * 3, "ZAP!", Color3.fromRGB(255, 255, 255), Theme.Colors.Secondary, 0.8)
 	end
 end
@@ -954,24 +847,12 @@ handlers.Bonk = function(_data, pos)
 	if not pos then
 		return
 	end
-	for _ = 1, 7 do
-		local dir = randomFlat()
-		spawnBit({
-			size = Vector3.new(0.5, 0.5, 0.5),
-			color = Theme.Colors.Gold,
-			material = Enum.Material.Neon,
-			pos = pos,
-			vel = dir * rng:NextNumber(14, 24) + UP * rng:NextNumber(10, 22),
-			spin = rng:NextNumber(10, 18),
-			life = rng:NextNumber(0.5, 0.8),
-			gravity = 50,
-			drag = 2,
-			fadeStart = 0.5,
-		})
-	end
-	ring(pos, Color3.fromRGB(255, 255, 255), 9, 0.25)
+	local facing = towardCamera(pos)
+	fx("ImpactStar", pos, { scale = 0.8, direction = facing })
+	fx("Sparks", pos, { count = 14, color = Color3.fromRGB(255, 236, 170), direction = UP })
+	fx("Shockwave", pos, { scale = 0.35, color = Color3.fromRGB(255, 255, 255), direction = facing })
+	fx("Sparkle", pos, { count = 8, color = Theme.Colors.Gold })
 	local h = hostAt(pos)
-	burst(h.star, 12, Theme.Colors.Gold)
 	flash(h, Color3.fromRGB(255, 240, 180), 5, 0.25)
 	showComic(pos + UP * 2.5, "BONK!", Theme.Colors.Primary, Color3.fromRGB(255, 255, 255), 1)
 end
@@ -981,22 +862,10 @@ handlers.TirePop = function(_data, pos)
 		return
 	end
 	local ground = groundBelow(pos)
-	for _ = 1, 7 do
-		local s = rng:NextNumber(0.35, 0.7)
-		spawnBit({
-			size = Vector3.new(s, s * 0.5, s * 1.4),
-			color = Color3.fromRGB(28, 28, 34),
-			pos = Vector3.new(pos.X, ground + 0.8, pos.Z),
-			vel = randomFlat() * rng:NextNumber(10, 24) + UP * rng:NextNumber(18, 36),
-			spin = rng:NextNumber(8, 16),
-			life = rng:NextNumber(0.9, 1.3),
-			gravity = 120,
-			drag = 0.5,
-			fadeStart = 0.6,
-			groundY = ground,
-		})
-	end
-	puffs(Vector3.new(pos.X, ground + 0.6, pos.Z), 4, Color3.fromRGB(210, 210, 215), 1.2, 4, 8, 0.7)
+	local at = Vector3.new(pos.X, ground + 0.8, pos.Z)
+	fx("Debris", at, { count = 8, scale = 0.6, color = Color3.fromRGB(30, 30, 36) })
+	fx("DustPuff", Vector3.new(pos.X, ground + 0.5, pos.Z), { count = 6, color = Color3.fromRGB(215, 215, 220) })
+	fx("ImpactStar", at + UP, { scale = 0.5, color = Color3.fromRGB(255, 255, 255), direction = towardCamera(at) })
 	showComic(pos + UP * 3, "POP!", Color3.fromRGB(255, 255, 255), Theme.Colors.Danger, 0.8)
 end
 
@@ -1004,30 +873,20 @@ handlers.SpikeDrop = function(_data, pos)
 	if not pos then
 		return
 	end
-	puffs(pos + UP * 0.3, 5, Color3.fromRGB(215, 200, 170), 1, 3.5, 7, 0.6)
-	local h = hostAt(pos + UP * 0.5)
-	burst(h.sparkle, 10, Theme.Colors.Primary)
+	fx("DustPuff", pos + UP * 0.3, { count = 5, scale = 0.7 })
+	fx("Sparks", pos + UP * 0.4, { count = 8, color = Theme.Colors.Primary, direction = UP })
 end
 
 handlers.CashBurst = function(_data, pos)
 	if not pos then
 		return
 	end
-	for i = 1, 20 do
-		spawnBit({
-			size = Vector3.new(1, 0.06, 0.5),
-			color = if i % 3 == 0 then Theme.Colors.CashDark else Theme.Colors.Cash,
-			pos = pos + UP,
-			vel = randomFlat() * rng:NextNumber(8, 20) + UP * rng:NextNumber(35, 60),
-			spin = rng:NextNumber(6, 12),
-			life = rng:NextNumber(1.8, 2.4),
-			gravity = 40,
-			drag = 2.2,
-			fadeStart = 0.7,
-		})
-	end
-	local h = hostAt(pos + UP)
-	burst(h.sparkle, 24, Theme.Colors.Cash)
+	local at = pos + UP
+	fx("CashFlutter", at)
+	fx("Coins", at)
+	fx("Sparkle", at + UP, { count = 16, color = Theme.Colors.Cash })
+	fx("Flash", at, { scale = 0.8, color = Theme.Colors.Cash })
+	local h = hostAt(at)
 	flash(h, Theme.Colors.Cash, 5, 0.4)
 end
 
@@ -1035,9 +894,13 @@ handlers.BigSteal = function(data, pos)
 	if not pos then
 		return
 	end
-	confettiBurst(pos, 64, 1.25)
-	ring(pos + UP * 0.5, Theme.Colors.Gold, 34, 0.55)
-	ring(pos + UP * 0.6, Theme.Colors.Primary, 20, 0.4)
+	confettiBurst(pos + UP * 1.5, 15)
+	fx("CashFlutter", pos + UP, { count = 22 })
+	fx("Coins", pos + UP, { count = 16 })
+	fx("Shockwave", pos + UP * 0.5, { scale = 1.4, color = Theme.Colors.Gold })
+	fx("Shockwave", pos + UP * 0.6, { scale = 0.85, color = Theme.Colors.Primary })
+	fx("Sparkle", pos + UP * 3, { count = 30, color = Theme.Colors.Gold })
+	fx("Flash", pos + UP * 3, { scale = 1.6, color = Theme.Colors.Gold })
 	spawnBit({
 		shape = Enum.PartType.Cylinder,
 		size = Vector3.new(90, 1.5, 1.5),
@@ -1051,8 +914,6 @@ handlers.BigSteal = function(data, pos)
 		transparency = 0.35,
 	})
 	local h = hostAt(pos + UP * 3)
-	burst(h.sparkle, 40, Theme.Colors.Gold)
-	burst(h.star, 20, Theme.Colors.Primary)
 	flash(h, Theme.Colors.Gold, 12, 0.8)
 	local text = if typeof(data.text) == "string"
 			and #data.text > 0

@@ -1280,7 +1280,9 @@ end
 -- MinimapController: reserve the HUD corner the radar sits in (design px; 0 releases it) and re-run the layout.
 function HUDController.setMinimapReserve(touchLeft: number, desktopBottom: number)
 	local l = if typeof(touchLeft) == "number" and touchLeft == touchLeft then math.max(0, touchLeft) else 0
-	local b = if typeof(desktopBottom) == "number" and desktopBottom == desktopBottom then math.max(0, desktopBottom) else 0
+	local b = if typeof(desktopBottom) == "number" and desktopBottom == desktopBottom
+		then math.max(0, desktopBottom)
+		else 0
 	if l == minimapTouchLeft and b == minimapDesktopBottom then
 		return
 	end
