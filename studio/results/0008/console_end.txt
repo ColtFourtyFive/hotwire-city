@@ -1,0 +1,119 @@
+# Job 0008 console at end of the run: Output from the Studio session log, copied verbatim
+# (17:18Z to the end of the run: FLog::CreatorOutput, Output, CreatorWarning and Error; 'content representation is being generated' retries removed)
+
+[FLog::Output] All use of Roblox services must comply with Roblox's Terms of Use, Privacy Policy, Community Standards, and applicable laws. Processing of User personal information is limited to the purposes expressly permitted therein.
+2026-10-27T17:18:00.837Z,7221.837402,6deab000,6,Info [FLog::CreatorOutput] [Server] Hotwire City booted with 24 systems
+2026-10-27T17:18:00.993Z,7221.993652,6e723000,6 [FLog::Output] ! Joining game '00000000-0000-0000-0000-000000000000' place 106226892419530 at localhost
+2026-10-27T17:18:01.048Z,7222.048340,6e723000,6 [FLog::Output] New connection from 127.0.0.1|54655
+2026-10-27T17:18:01.081Z,7222.081543,6deab000,6 [FLog::Output] Player 11686693147 added, there are now 1 players total
+2026-10-27T17:18:01.754Z,7222.754395,6e723000,6 [FLog::Output] Server RobloxGitHash: b06ed5a2056729e5e96702c5885f912373dc2307
+2026-10-27T17:18:01.754Z,7222.754395,6e723000,6 [FLog::Output] Server Prefix: 0.744.0.7441077_20261027T151739Z_Studio_6fb6d
+2026-10-27T17:18:01.855Z,7222.855957,6e723000,6,Info [FLog::CreatorOutput] [Client] illintent1 ready with 18 controllers
+2026-10-27T17:18:01.922Z,7222.922363,ff30cf40,6 [FLog::Output] Info: 		RobloxViewStudio::RobloxViewStudio - start
+2026-10-27T17:18:01.922Z,7222.922363,ff30cf40,6 [FLog::Output] Info: 			Marshaller
+2026-10-27T17:18:01.922Z,7222.922363,ff30cf40,6 [FLog::Output] Info: 			BindToWorkspace
+2026-10-27T17:18:01.922Z,7222.922363,ff30cf40,6 [FLog::Output] Info: 		RobloxView::RobloxView - end
+2026-10-27T17:18:02.351Z,7223.351074,6eb3b000,6 [FLog::Output] Flag SimCsgEnableNewStudioButtons referenced from Lua isn't defined in C++ code
+2026-10-27T17:18:02.360Z,7223.360352,6eb3b000,6 [FLog::Output] Flag UnifyModelPackagePublish3 referenced from Lua isn't defined in C++ code
+2026-10-27T17:18:02.361Z,7223.361816,6eb3b000,6 [FLog::Output] Flag OpenScriptDocOptionsLua referenced from Lua isn't defined in C++ code
+2026-10-27T17:18:02.403Z,7223.403320,6ef53000,6 [FLog::Output] Flag SimCsgEnableNewStudioButtons referenced from Lua isn't defined in C++ code
+2026-10-27T17:18:02.407Z,7223.407227,6ef53000,6 [FLog::Output] Flag UnifyModelPackagePublish3 referenced from Lua isn't defined in C++ code
+2026-10-27T17:18:02.407Z,7223.407715,6ef53000,6 [FLog::Output] Flag OpenScriptDocOptionsLua referenced from Lua isn't defined in C++ code
+2026-10-27T17:18:03.359Z,7224.359863,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.359Z,7224.359863,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.359Z,7224.359863,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.444Z,7224.444824,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.444Z,7224.444824,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.444Z,7224.444824,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.444Z,7224.444824,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:03.708Z,7224.708984,6f36b000,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_explosion_03.mp3" load failed: Failed to resolve texture format | 49 44 33 03 00 00 00 00 07 76 54 43 4f 4e 00 00 00 07 00 00 00 4f 74 68 65 72 00 47 45 4f 42 00 00 00 19 00 00 00 00 00 53 66 4d 61 72 6b 65 72 73 00 0c 00 00 00 64 00 00 00 00 00 00 00 47 45     ID3......vTCON.......Other.GEOB.........SfMarkers.....d.......GE
+2026-10-27T17:18:03.708Z,7224.708984,6f577000,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_water.mp3" load failed: Failed to resolve texture format | 49 44 33 03 00 00 00 00 07 76 54 43 4f 4e 00 00 00 07 00 00 00 4f 74 68 65 72 00 47 45 4f 42 00 00 00 19 00 00 00 00 00 53 66 4d 61 72 6b 65 72 73 00 0c 00 00 00 64 00 00 00 00 00 00 00 47 45     ID3......vTCON.......Other.GEOB.........SfMarkers.....d.......GE
+2026-10-27T17:18:03.743Z,7224.743652,ff30cf40,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_explosion_03.mp3" load failed: Invalid image or texture.
+2026-10-27T17:18:03.743Z,7224.743652,ff30cf40,6 [FLog::Error] Asset (Image) "rbxasset://sounds/impact_water.mp3" load failed: Invalid image or texture.
+2026-10-27T17:18:04.031Z,7225.031738,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:04.032Z,7225.032227,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:04.125Z,7225.125977,6e92f000,6 [FLog::Error] Asset (Image) "rbxasset://fonts/families/Montserrat.json" load failed: Failed to resolve texture format | 7b 0a 09 22 6e 61 6d 65 22 3a 20 22 4d 6f 6e 74 73 65 72 72 61 74 22 2c 0a 09 22 66 61 63 65 73 22 3a 20 5b 0a 09 09 7b 0a 09 09 09 22 6e 61 6d 65 22 3a 20 22 54 68 69 6e 22 2c 0a 09 09 09 22     {.."name": "Montserrat",.."faces": [...{...."name": "Thin",...."
+2026-10-27T17:18:04.126Z,7225.126465,6f577000,6 [FLog::Error] Asset (Image) "rbxasset://fonts/families/Inconsolata.json" load failed: Failed to resolve texture format | 7b 0a 09 22 6e 61 6d 65 22 3a 20 22 49 6e 63 6f 6e 73 6f 6c 61 74 61 22 2c 0a 09 22 66 61 63 65 73 22 3a 20 5b 0a 09 09 7b 0a 09 09 09 22 6e 61 6d 65 22 3a 20 22 45 78 74 72 61 20 4c 69 67 68     {.."name": "Inconsolata",.."faces": [...{...."name": "Extra Ligh
+2026-10-27T17:18:04.162Z,7225.162109,ff30cf40,6 [FLog::Error] Asset (Image) "rbxasset://fonts/families/Montserrat.json" load failed: Invalid image or texture.
+2026-10-27T17:18:04.162Z,7225.162109,ff30cf40,6 [FLog::Error] Asset (Image) "rbxasset://fonts/families/Inconsolata.json" load failed: Invalid image or texture.
+2026-10-27T17:18:04.241Z,7225.241211,42007000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113726510 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241211,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241699,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113728042 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241699,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9116546593 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241699,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9114402205 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241699,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9119186024 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241699,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://78270463799678 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.241Z,7225.241699,42007000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://125094987563505 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9117969584 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113661285 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9112891352 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://87646813759701 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9118708982 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9114590297 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242188,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9119165131 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242676,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113728049 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242676,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9112758500 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242676,42007000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9113948676 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242676,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://80317022777602 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.242Z,7225.242676,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9119165140 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.243Z,7225.243652,42007000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://9114402206 failed due to: Asset type does not match requested type
+2026-10-27T17:18:04.864Z,7225.864258,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:04.864Z,7225.864258,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:04.864Z,7225.864258,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:04.877Z,7225.877930,41f7b000,6,Warning [FLog::CreatorWarning] Warning: ContentId: rbxassetid://81504106 failed due to: Request asset was not found
+2026-10-27T17:18:04.877Z,7225.877930,41f7b000,6 [FLog::Error] Asset (Image) "https://assetdelivery.roblox.com/v1/asset?id=81504106" load failed in Workspace.NPCs.Shopkeeper.Hat1.Handle.TextureId: Request asset was not found
+2026-10-27T17:18:05.879Z,7226.879883,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:05.897Z,7226.897461,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:05.916Z,7226.916992,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:06.862Z,7227.862793,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:18:06.878Z,7227.878418,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:19:41.907Z,7322.907227,6ef53000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:19:42.679Z,7323.679688,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:19:42.892Z,7323.892578,6f36b000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:19:53.691Z,7334.691895,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:19:57.358Z,7338.358887,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:20:01.323Z,7342.323730,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:20:04.290Z,7345.290039,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:20:06.306Z,7347.306152,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:20:07.308Z,7348.308594,6eb3b000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:20:21.905Z,7362.905762,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:20:34.490Z,7375.490234,6ef53000,6,Warning [FLog::CreatorWarning] Warning: [VehicleService] watchdog teleport: illintent1 in car 7 speed 0 disp 903 cap 160 -> rewind
+2026-10-27T17:20:47.339Z,7388.339355,6ef53000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:16.892Z,7417.892578,6deab000,6,Info [FLog::CreatorOutput] Info: Stack Begin
+2026-10-27T17:21:16.892Z,7417.892578,6deab000,6,Info [FLog::CreatorOutput] Info: Script 'AssistantCommand', Line 4
+2026-10-27T17:21:16.892Z,7417.892578,6deab000,6,Info [FLog::CreatorOutput] Info: Stack End
+2026-10-27T17:21:38.221Z,7439.221191,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:39.204Z,7440.204102,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:42.219Z,7443.219727,6eb3b000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:43.254Z,7444.254883,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:43.269Z,7444.269043,6ef53000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:44.255Z,7445.255371,6eb3b000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:44.270Z,7445.270508,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:21:47.269Z,7448.269531,6e92f000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:22:11.535Z,7472.535156,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:22:12.535Z,7473.535645,6f36b000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:22:14.551Z,7475.551758,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:22:53.434Z,7514.434082,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:23:53.394Z,7574.394531,6deab000,6,Warning [FLog::Output] settingsUrl: https://clientsettingscdn.roblox.com/v2/settings-compressed/application/MacStudioApp.zst
+2026-10-27T17:27:08.223Z,7769.223145,6f15f000,6,Info [FLog::CreatorOutput] [Admin] illintent1 (11686693147): /hc wanted 3
+2026-10-27T17:27:16.345Z,7777.345703,6f36b000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:18.492Z,7779.492188,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:18.507Z,7779.507812,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:19.426Z,7780.426270,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:19.440Z,7780.440918,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:20.441Z,7781.441406,6ed47000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:20.458Z,7781.458008,6f15f000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:21.441Z,7782.441406,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:21.455Z,7782.455566,6deab000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:22.473Z,7783.473145,6e0b7000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:22.489Z,7783.489258,6f577000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:29.905Z,7790.905273,6deab000,6,Info [FLog::CreatorOutput] [Admin] illintent1 (11686693147): /hc wanted 3
+2026-10-27T17:27:38.638Z,7799.638672,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:39.338Z,7800.338867,6e723000,6,Warning [FLog::Output] Wrap-deformer fetching meshes resulted in error.  Skipping follow-on stages.
+2026-10-27T17:27:55.188Z,7816.188965,ff30cf40,6 [FLog::Output] Info: 		RobloxViewStudio::RobloxViewStudio - start
+2026-10-27T17:27:55.188Z,7816.188965,ff30cf40,6 [FLog::Output] Info: 			Marshaller
+2026-10-27T17:27:55.188Z,7816.188965,ff30cf40,6 [FLog::Output] Info: 			BindToWorkspace
+2026-10-27T17:27:55.189Z,7816.189453,ff30cf40,6 [FLog::Output] Info: 		RobloxView::RobloxView - end
+2026-10-27T17:27:55.712Z,7816.712402,6ef53000,6,Info [FLog::CreatorOutput] Disconnect from 127.0.0.1|54655
+2026-10-27T17:27:55.712Z,7816.712402,6ef53000,6,Info [FLog::CreatorOutput] Disconnect from 127.0.0.1|54655
+2026-10-27T17:27:55.719Z,7816.719238,6eb3b000,6,Warning [FLog::Output] Player 11686693147 leaving, 0 remain
