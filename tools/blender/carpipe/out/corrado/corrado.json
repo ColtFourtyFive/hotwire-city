@@ -244,7 +244,7 @@
       "textured": true,
       "metallic": 0.0,
       "roughness": 1.0,
-      "mask_coverage": 0.775
+      "mask_coverage": 0.772
     },
     "secondary": null,
     "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
@@ -264,9 +264,9 @@
       ],
       "textures": {
         "base": "textures/corrado_Body_base.png",
-        "rough": "textures/corrado_Body_rough.png",
         "normal": "textures/corrado_Body_normal.png",
         "metal": "textures/corrado_Body_metal.png",
+        "rough": "textures/corrado_Body_rough.png",
         "tintmask": "textures/corrado_Body_tintmask.png",
         "overlay": "textures/corrado_Body_overlay.png"
       }
@@ -284,10 +284,10 @@
         -3.2817
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
+        "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
@@ -304,10 +304,10 @@
         -3.2817
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
+        "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
@@ -324,10 +324,10 @@
         5.458
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
+        "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     },
@@ -344,10 +344,10 @@
         5.458
       ],
       "textures": {
-        "metal": "textures/corrado_Wheel_metal.png",
-        "base": "textures/corrado_Wheel_base.png",
         "rough": "textures/corrado_Wheel_rough.png",
+        "base": "textures/corrado_Wheel_base.png",
         "normal": "textures/corrado_Wheel_normal.png",
+        "metal": "textures/corrado_Wheel_metal.png",
         "ao": "textures/corrado_Wheel_ao.png"
       }
     }

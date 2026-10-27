@@ -92,6 +92,9 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     for nm, hi in his.items():
         b = budget["Wheel"] if nm in wheel_names else budget.get(nm, 2000)
         lows[nm] = optimize.make_low(hi, nm, b, L, symmetric=nm in ("Body", "Body2", "Glass"))
+    nflip = optimize.orient_outward([o for n, o in lows.items() if n != "Interior"])
+    if nflip:
+        log(f"orient_outward: flipped {nflip} inward-facing faces")
     total = sum(tri_count(o) for o in lows.values())
     if total > optimize.CAR_BUDGET:  # squeeze trim/interior first
         over = total - optimize.CAR_BUDGET
