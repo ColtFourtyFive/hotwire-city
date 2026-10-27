@@ -324,14 +324,15 @@ class Facade:
     def reveal(self, buf, u0, u1, z0, z1, depth, sides=(True, True, True, True)):
         """Inner faces of a recessed opening (bottom, right, top, left)."""
         P = lambda u, z, n: self.p(u, z, n)
+        # winding: every face points into the opening (sill up, head down, jambs towards the centre)
         if sides[0]:
-            quad(buf, P(u0, z0, -depth), P(u1, z0, -depth), P(u1, z0, 0), P(u0, z0, 0))
+            quad(buf, P(u0, z0, 0), P(u1, z0, 0), P(u1, z0, -depth), P(u0, z0, -depth))
         if sides[1]:
-            quad(buf, P(u1, z0, 0), P(u1, z0, -depth), P(u1, z1, -depth), P(u1, z1, 0))
+            quad(buf, P(u1, z1, 0), P(u1, z1, -depth), P(u1, z0, -depth), P(u1, z0, 0))
         if sides[2]:
-            quad(buf, P(u0, z1, 0), P(u1, z1, 0), P(u1, z1, -depth), P(u0, z1, -depth))
+            quad(buf, P(u0, z1, -depth), P(u1, z1, -depth), P(u1, z1, 0), P(u0, z1, 0))
         if sides[3]:
-            quad(buf, P(u0, z0, -depth), P(u0, z0, 0), P(u0, z1, 0), P(u0, z1, -depth))
+            quad(buf, P(u0, z1, -depth), P(u0, z1, 0), P(u0, z0, 0), P(u0, z0, -depth))
 
 
 # ----------------------------------------------------------------------------- roofs / misc solids

@@ -370,6 +370,19 @@ def decal_quad(size, face):
     return np.array(pts, np.float32), np.array([[0, 1, 2], [0, 2, 3]], np.uint32), np.array(uv, np.float32), (w, h)
 
 
+def mesh_surface(me, local):
+    """bpy mesh + part-space matrix -> (pos, tri faces) in part space (for decal projection)."""
+    me.calc_loop_triangles()
+    co = np.empty(len(me.vertices) * 3, np.float32)
+    me.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3).astype(np.float64)
+    tri = np.empty(len(me.loop_triangles) * 3, np.int32)
+    me.loop_triangles.foreach_get("vertices", tri)
+    L = np.array(local, float)
+    pos = co @ L[:3, :3].T + L[:3, 3]
+    return pos, tri.reshape(-1, 3).astype(np.int64)
+
+
 def decal_project(surf, size, face):
     pos, faces = surf
     n, r, u = (np.array(v, float) for v in FACE_AXES[face])
@@ -497,6 +510,8 @@ def build(model_id, keep_hidden=False):
                 else:
                     mesh, local = prim("box"), scale_matrix(size)
         world = R2B @ M
+        if surf is None and decals and mesh is not None:
+            surf = mesh_surface(mesh, local)
         if tr < 0.98 or keep_hidden:
             stats["visible"] += 1
             if tex is not None:
