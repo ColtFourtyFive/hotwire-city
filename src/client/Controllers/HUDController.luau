@@ -1259,7 +1259,21 @@ local function layout()
 	else
 		cell = MENU_CELL
 		-- desktop: the minimap owns the bottom-left corner; the column wraps above it
-		cols, rows = HUDController.gridFit(count, canvas.Y - menuTop - 16 - minimapDesktopBottom, cell, MENU_PAD)
+		local availH = canvas.Y - menuTop - (if minimapDesktopBottom > 0 then minimapDesktopBottom else 16)
+		cols, rows = HUDController.gridFit(count, availH, cell, MENU_PAD)
+		if minimapDesktopBottom > 0 and cols > 4 then
+			-- squeezed between the chat window and the radar: stay <= 4 wide, smaller cells when that fits
+			local c2, r2, cell2 = HUDController.touchMenuGrid(
+				count,
+				4 * (MENU_CELL + MENU_PAD) - MENU_PAD,
+				availH,
+				{ MENU_CELL, TOP_ROW_CELL },
+				MENU_PAD
+			)
+			if r2 * (cell2 + MENU_PAD) - MENU_PAD <= availH then
+				cols, rows, cell = c2, r2, cell2
+			end
+		end
 	end
 	local width = math.max(1, cols) * (cell + MENU_PAD) - MENU_PAD
 	local height = math.max(1, rows) * (cell + MENU_PAD) - MENU_PAD

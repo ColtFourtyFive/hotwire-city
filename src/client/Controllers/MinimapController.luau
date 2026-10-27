@@ -880,12 +880,12 @@ local function applyLayout()
 		pcall(HUDController.setMinimapReserve, diameter + 12, 0)
 	else
 		r.holder.AnchorPoint = Vector2.new(0, 1)
-		r.holder.Position = UDim2.new(0, RADAR.MARGIN, 1, -RADAR.MARGIN)
+		r.holder.Position = UDim2.new(0, RADAR.MARGIN, 1, -(RADAR.MARGIN + RADAR.PILL_ROOM))
 		-- area name to the right of the radar, bottom-aligned (GTA V's street-name spot)
 		r.area.AnchorPoint = Vector2.new(0, 1)
 		r.area.Position = UDim2.new(1, 12, 1, -4)
 		r.area.TextXAlignment = Enum.TextXAlignment.Left
-		pcall(HUDController.setMinimapReserve, 0, diameter + RADAR.MARGIN + 14)
+		pcall(HUDController.setMinimapReserve, 0, diameter + RADAR.MARGIN + RADAR.PILL_ROOM + 4)
 	end
 	lastScale = -1
 end

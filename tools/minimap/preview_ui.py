@@ -287,7 +287,10 @@ def render_radar(state, d_real, ui):
 # ---------------------------------------------------------------------------------------------------------------------
 def backdrop(w, h):
     src = Image.open(os.path.join(ROOT, "docs", "previews", "map_street.png")).convert("RGB")
-    crop = src.crop((1000, 20, 2000, 20 + int(1000 * h / w)))
+    ch = 536
+    cw = min(1000, int(ch * w / h))
+    x0 = 1000 + (1000 - cw) // 2
+    crop = src.crop((x0, 24, x0 + cw, 24 + ch))
     return crop.resize((w, h), Image.LANCZOS).convert("RGBA")
 
 
@@ -371,20 +374,28 @@ def scene_desktop(routes, out):
     img = backdrop(W, H)
     d = ImageDraw.Draw(img)
     # topbar + chat window (CoreGui) placeholders
-    d.rectangle([0, 0, W, 36], fill=(20, 22, 30, 200))
-    rounded(d, [8, 44, 420, 236], 10, fill=(0, 0, 0, 90))
-    d.text((20, 56), "Chat", font=font(FONT_BOLD, 14), fill=(220, 220, 230))
-    inset = 36
+    inset = 58
+    d.rectangle([0, 0, W, inset], fill=(20, 22, 30, 230))
+    for i in range(2):
+        rounded(d, [12 + i * 46, 10, 50 + i * 46, 48], 12, fill=(60, 62, 76))
+    rounded(d, [8, inset + 8, 420, inset + 236], 10, fill=(0, 0, 0, 110))
+    d.text((20, inset + 20), "Chat (default window)", font=font(FONT_BOLD, 14), fill=(220, 220, 230))
     cash_pill(img, W / 2, inset + 8, s)
     stars(img, W / 2, inset + 80, s, 3)
     # HUD menu column (HUDController.layout with the minimap reserve)
     D = C["DESKTOP_SIZE"]
-    reserve = D + C["MARGIN"] + 14
+    reserve = D + C["MARGIN"] + C["PILL_ROOM"] + 4
     top = 250
     top_row(img, 12, inset + top, 52, s)
     menu_top = top + 52 + 14
-    cols, rows = grid_fit(7, H - inset - menu_top - 16 - reserve, 62, 6)
-    menu_grid(img, 12, inset + menu_top, cols, rows, 62, 6, s, MENU_LABELS)
+    avail = H - inset - menu_top - reserve
+    cols, rows = grid_fit(7, avail, 62, 6)
+    cell = 62
+    if cols > 4:
+        c2, r2, cell2 = touch_grid(7, 4 * 68 - 6, avail, [62, 52], 6)
+        if r2 * (cell2 + 6) - 6 <= avail:
+            cols, rows, cell = c2, r2, cell2
+    menu_grid(img, 12, inset + menu_top, cols, rows, cell, 6, s, MENU_LABELS)
     # radar: driving + GPS home while wanted
     route = routes[0]
     radar, pad = render_radar({
@@ -396,7 +407,7 @@ def scene_desktop(routes, out):
         "wanted": 3, "seen": (route["from"][0] - 30, route["from"][1] + 20), "red": True,
         "dist": f"{route['length'] / 3:.0f}m", "dist_icon": "home",
     }, D, 1.0)
-    rx, ry = C["MARGIN"], H - C["MARGIN"] - D
+    rx, ry = C["MARGIN"], H - C["MARGIN"] - C["PILL_ROOM"] - D
     img.alpha_composite(radar, (int(rx - pad), int(ry - pad)))
     d = ImageDraw.Draw(img)
     d.text((rx + D + 12, ry + D - 4), "MIDTOWN", font=font(FONT_HEAVY, 15), fill=(255, 255, 255), anchor="ls",

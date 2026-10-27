@@ -14,12 +14,16 @@
 --   * Other players' / AI cars that drift (sideways slip from the replicated chassis velocity, same test as the
 --     driving controller) get local flipbook tire smoke (VFXLibrary "TireSmoke" streams, quality-scaled + budgeted),
 --     skid-mark Trails from the rear wheels + a SoundController screech loop; the driver's own FX are VehicleClient's.
+--   * Night (Lighting attribute IsNight): the HEADLIGHT_CARS nearest driven / traffic / police cars within
+--     HEADLIGHT_RANGE get volumetric headlight cones (VFXLibrary "HeadlightCone" Beams from their Headlight parts,
+--     built once per car, toggled every rebuild). Parked / display cars stay dark. Beams only: no extra lights.
 --   * Budget: the HOT_COUNT nearest on-screen cars update every frame, the rest round-robin COLD_PER_FRAME per frame.
 --     Cars behind the camera are skipped; only Vehicles and rainbow cars take a slot; bob rays are cast every other
 --     update (every TRAFFIC_BOB_EVERY for Traffic, which holds a fixed height); unchanged wheel poses are not
 --     rewritten. Phones (touch, no keyboard/mouse) use the smaller LOW_TIER budget.
 
 local CollectionService = game:GetService("CollectionService")
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -40,7 +44,9 @@ WheelAnimator.HOT_COUNT = 25
 WheelAnimator.COLD_PER_FRAME = 6
 WheelAnimator.BOB_RANGE = 140 -- raycast suspension only this close; farther wheels ease back to the built pose
 -- Phones (PERF-07): fewer, closer cars; bob rays only where a 0.3-stud gap is visible at all.
-WheelAnimator.LOW_TIER = { RANGE = 160, HOT_COUNT = 10, COLD_PER_FRAME = 4, BOB_RANGE = 60 }
+WheelAnimator.LOW_TIER = { RANGE = 160, HOT_COUNT = 10, COLD_PER_FRAME = 4, BOB_RANGE = 60, HEADLIGHT_CARS = 4 }
+WheelAnimator.HEADLIGHT_CARS = 8 -- nearest moving cars with headlight cones at night
+WheelAnimator.HEADLIGHT_RANGE = 180
 WheelAnimator.SPARKLE_RANGE = 120
 WheelAnimator.SPARKLES_NAME = "MutationSparkles" -- = CarBuilder.SPARKLES_NAME (asserted in tests)
 WheelAnimator.SHELL_NAME = "HeroShell" -- = CarBuilder.SHELL_NAME (asserted in tests)
@@ -117,6 +123,8 @@ type Rig = {
 	sparkleSearchAt: number,
 	fx: DriftFx?,
 	fxFrame: number, -- frame in which the car was last seen drifting
+	cones: { VFXLibrary.BeamRig }?, -- night headlight cones (built on first use)
+	conesOn: boolean,
 }
 
 local rigs: { [Model]: Rig } = {}
@@ -178,6 +186,15 @@ function WheelAnimator.observedDrift(cf: CFrame, vel: Vector3): boolean
 	return VMath.isDrifting(vel:Dot(cf.LookVector), vel:Dot(cf.RightVector), grounded)
 end
 
+-- Does a car drive with its lights on at night? Traffic / police always, any car with a driver; parked, loot left
+-- behind and showroom cars stay dark.
+function WheelAnimator.wantsHeadlights(kind: any, driverUserId: any): boolean
+	if kind == "Traffic" or kind == "Police" then
+		return true
+	end
+	return typeof(driverUserId) == "number" and driverUserId > 0
+end
+
 local function byDistance(a: Rig, b: Rig): boolean
 	return a.dist < b.dist
 end
@@ -213,6 +230,8 @@ local function newRig(model: Model): Rig
 		sparkleSearchAt = 0,
 		fx = nil,
 		fxFrame = 0,
+		cones = nil,
+		conesOn = false,
 	}
 end
 
@@ -382,6 +401,75 @@ local function refreshSparkles(rig: Rig, now: number)
 	end
 end
 
+----------------------------------------------------------------------------------------------------------------------
+-- Night headlight cones
+----------------------------------------------------------------------------------------------------------------------
+local litRigs: { [Rig]: boolean } = {}
+
+local function buildCones(rig: Rig)
+	local cones: { VFXLibrary.BeamRig } = {}
+	rig.cones = cones
+	for _, d in rig.model:GetDescendants() do
+		if d:IsA("BasePart") and d.Name == "Headlight" then
+			-- Headlight parts are never rotated: their -Z is the car's front
+			local ok, beam =
+				pcall(VFXLibrary.beam, "HeadlightCone", d, Vector3.new(0, 0, -d.Size.Z / 2), Vector3.new(0, 0, -1))
+			if ok and beam then
+				table.insert(cones, beam)
+			end
+			if #cones >= 2 then
+				break
+			end
+		end
+	end
+end
+
+local function setCones(rig: Rig, on: boolean)
+	if on and not rig.cones then
+		buildCones(rig)
+	end
+	if rig.conesOn == on then
+		return
+	end
+	rig.conesOn = on
+	litRigs[rig] = if on then true else nil
+	for _, c in rig.cones or {} do
+		if c.beam.Parent then
+			c.beam.Enabled = on
+		end
+	end
+end
+
+-- After each nearest-list rebuild: cones on for the nearest qualifying cars at night, off everywhere else.
+local function updateHeadlights()
+	local night = Lighting:GetAttribute("IsNight") == true
+	local left = if night then WheelAnimator.HEADLIGHT_CARS else 0
+	local want: { [Rig]: boolean } = {}
+	if left > 0 then
+		for _, rig in nearList do
+			if left <= 0 or rig.dist > WheelAnimator.HEADLIGHT_RANGE then
+				break
+			end
+			local model = rig.model
+			if
+				rig.isVehicle
+				and WheelAnimator.wantsHeadlights(model:GetAttribute("Kind"), model:GetAttribute("DriverUserId"))
+			then
+				want[rig] = true
+				left -= 1
+			end
+		end
+	end
+	for rig in litRigs do
+		if not want[rig] or rig.model.Parent == nil then
+			setCones(rig, false)
+		end
+	end
+	for rig in want do
+		setCones(rig, true)
+	end
+end
+
 local function rebuildNear(camPos: Vector3, now: number)
 	table.clear(nearList)
 	local bobRange = WheelAnimator.BOB_RANGE
@@ -418,6 +506,7 @@ local function rebuildNear(camPos: Vector3, now: number)
 		end
 	end
 	table.sort(nearList, byDistance)
+	updateHeadlights()
 end
 
 local function applyRainbow(rig: Rig, now: number)
@@ -745,6 +834,7 @@ function WheelAnimator.start()
 		WheelAnimator.HOT_COUNT = tier.HOT_COUNT
 		WheelAnimator.COLD_PER_FRAME = tier.COLD_PER_FRAME
 		WheelAnimator.BOB_RANGE = tier.BOB_RANGE
+		WheelAnimator.HEADLIGHT_CARS = tier.HEADLIGHT_CARS
 	end
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude

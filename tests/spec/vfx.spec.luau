@@ -122,21 +122,30 @@ return function(t)
 		t.ok(n >= 18, "preset count")
 	end)
 
-	t.test("VFX: flipbook textures are only used with their own layout (and flat textures never as flipbooks)", function()
-		for name, p in VFX.Presets do
-			local layout = VFX.FlipbookLayouts[p.texture]
-			if layout then
-				t.ok(p.flipbook ~= nil, name .. " uses flipbook texture " .. p.texture .. " without flipbook settings")
-				t.eq(p.flipbook.layout, layout, name .. " layout")
-				t.ok(isEnumName(Enum.ParticleFlipbookMode, p.flipbook.mode), name .. " flipbook mode")
-				if p.flipbook.fps then
-					t.ok(p.flipbook.fps[1] > 0 and (p.flipbook.fps[2] or p.flipbook.fps[1]) <= 30, name .. " fps <= 30")
+	t.test(
+		"VFX: flipbook textures are only used with their own layout (and flat textures never as flipbooks)",
+		function()
+			for name, p in VFX.Presets do
+				local layout = VFX.FlipbookLayouts[p.texture]
+				if layout then
+					t.ok(
+						p.flipbook ~= nil,
+						name .. " uses flipbook texture " .. p.texture .. " without flipbook settings"
+					)
+					t.eq(p.flipbook.layout, layout, name .. " layout")
+					t.ok(isEnumName(Enum.ParticleFlipbookMode, p.flipbook.mode), name .. " flipbook mode")
+					if p.flipbook.fps then
+						t.ok(
+							p.flipbook.fps[1] > 0 and (p.flipbook.fps[2] or p.flipbook.fps[1]) <= 30,
+							name .. " fps <= 30"
+						)
+					end
+				else
+					t.eq(p.flipbook, nil, name .. " flat texture marked as flipbook")
 				end
-			else
-				t.eq(p.flipbook, nil, name .. " flat texture marked as flipbook")
 			end
 		end
-	end)
+	)
 
 	t.test("VFX: trails / beams / sprites / quality tiers / surfaces", function()
 		for name, p in VFX.Trails do
@@ -314,21 +323,24 @@ return function(t)
 		Lib._setEmitter(nil)
 	end)
 
-	t.test("burst: quality scales counts, distance culls (force overrides), unknown / stream presets refused", function()
-		freshLib("low")
-		local n = Lib.burst("WreckSmoke", Vector3.new(0, 0, 10))
-		t.eq(n, Lib.scaledCount(VFX.Presets.WreckSmoke.count, VFX.Quality.low.count), "low tier count")
-		t.eq(Lib.burst("WreckSmoke", Vector3.new(0, 0, 251)), 0, "beyond 250 studs: culled")
-		t.ok(Lib.burst("WreckSmoke", Vector3.new(0, 0, 251), { force = true }) > 0, "force ignores distance")
-		t.eq(Lib.burst("Nope", Vector3.zero), 0, "unknown preset")
-		t.eq(Lib.burst("TireSmoke", Vector3.zero), 0, "streams can't burst")
-		t.eq(
-			Lib.burst("ImpactStar", Vector3.zero, { count = 5 }),
-			Lib.scaledCount(5, VFX.Quality.low.count),
-			"explicit count still quality-scaled"
-		)
-		Lib._setEmitter(nil)
-	end)
+	t.test(
+		"burst: quality scales counts, distance culls (force overrides), unknown / stream presets refused",
+		function()
+			freshLib("low")
+			local n = Lib.burst("WreckSmoke", Vector3.new(0, 0, 10))
+			t.eq(n, Lib.scaledCount(VFX.Presets.WreckSmoke.count, VFX.Quality.low.count), "low tier count")
+			t.eq(Lib.burst("WreckSmoke", Vector3.new(0, 0, 251)), 0, "beyond 250 studs: culled")
+			t.ok(Lib.burst("WreckSmoke", Vector3.new(0, 0, 251), { force = true }) > 0, "force ignores distance")
+			t.eq(Lib.burst("Nope", Vector3.zero), 0, "unknown preset")
+			t.eq(Lib.burst("TireSmoke", Vector3.zero), 0, "streams can't burst")
+			t.eq(
+				Lib.burst("ImpactStar", Vector3.zero, { count = 5 }),
+				Lib.scaledCount(5, VFX.Quality.low.count),
+				"explicit count still quality-scaled"
+			)
+			Lib._setEmitter(nil)
+		end
+	)
 
 	t.test("burst: overrides (color, scale, direction) and the budget cap", function()
 		freshLib("high")
@@ -427,12 +439,26 @@ return function(t)
 		end
 	end)
 
+	t.test("WheelAnimator.wantsHeadlights: moving cars light up at night, parked ones stay dark", function()
+		local WA = H.require("src/client/Controllers/WheelAnimator")
+		t.eq(WA.wantsHeadlights("Traffic", nil), true)
+		t.eq(WA.wantsHeadlights("Police", 0), true)
+		t.eq(WA.wantsHeadlights("Loot", 42), true, "driven loot car")
+		t.eq(WA.wantsHeadlights("Owned", 7), true)
+		t.eq(WA.wantsHeadlights("Parked", nil), false)
+		t.eq(WA.wantsHeadlights("Loot", 0), false, "abandoned")
+		t.eq(WA.wantsHeadlights("HotDrop", nil), false)
+		t.ok(WA.LOW_TIER.HEADLIGHT_CARS < WA.HEADLIGHT_CARS, "phones light fewer cars")
+	end)
+
 	t.test("controllers using the library still load headlessly", function()
-		for _, path in {
-			"src/client/Controllers/EffectsController",
-			"src/client/Controllers/WheelAnimator",
-			"src/client/Controllers/CombatClient",
-		} do
+		for _, path in
+			{
+				"src/client/Controllers/EffectsController",
+				"src/client/Controllers/WheelAnimator",
+				"src/client/Controllers/CombatClient",
+			}
+		do
 			local ok, err = pcall(H.require, path)
 			t.ok(ok, path .. ": " .. tostring(err))
 		end

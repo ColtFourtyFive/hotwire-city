@@ -59,9 +59,10 @@ Minimap.WATER_COLOR = Color3.fromRGB(10, 24, 44)
 Minimap.LAND_COLOR = Color3.fromRGB(23, 26, 38)
 
 Minimap.RADAR = {
-	DESKTOP_SIZE = 212, -- diameter (design px), bottom-left like GTA V
+	DESKTOP_SIZE = 200, -- diameter (design px), bottom-left like GTA V
 	TOUCH_SIZE = 164, -- phones: top-left under the topbar, clear of the thumbstick zone
 	MARGIN = 16, -- design px from the screen edges
+	PILL_ROOM = 12, -- desktop: extra bottom space so the GPS distance pill (hanging off the rim) stays on screen
 	TOUCH_TOP = 6, -- design px below the topbar inset (touch)
 	BORDER = 4, -- bezel thickness (design px)
 	UPDATE_HZ = 30,
