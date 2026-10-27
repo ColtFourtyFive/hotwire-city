@@ -20,7 +20,7 @@ TEXSETS = {
     "corrugated": ("corrugated", 1.0, 1.0), "metal_siding": ("metal_siding", 1.0, 1.0), "roof_clay": ("roof_clay", 1.0, 1.0),
     "roof_shingle": ("roof_shingle", 1.0, 1.0), "cmu": ("cmu", 1.0, 0.8), "wood_fence": ("wood_fence", 1.0, 0.8),
     "wood_slats": ("wood_slats", 1.0, 0.8), "marble": ("marble", 0.7, 0.4), "pavers": ("pavers", 1.0, 0.8),
-    "precast": ("precast", 1.0, 0.6), "grass": ("grass", 1.0, 1.0),
+    "precast": ("precast", 1.0, 0.6), "grass": ("grass", 1.0, 1.0), "sand": ("sand", 1.0, 1.0),
 }
 TINTABLE = {"stucco", "brick_painted", "plaster", "metal_siding", "cmu", "precast"}   # grey <key>_tint.png ColorMap
 

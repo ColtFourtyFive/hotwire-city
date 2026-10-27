@@ -61,9 +61,27 @@ Minimap.LAND_COLOR = Color3.fromRGB(23, 26, 38)
 Minimap.RADAR = {
 	DESKTOP_SIZE = 200, -- diameter (design px), bottom-left like GTA V
 	TOUCH_SIZE = 164, -- phones: top-left under the topbar, clear of the thumbstick zone
+	-- 16:9 phones (design canvas narrower than TOUCH_COMPACT_W and shorter than TOUCH_COMPACT_H): a smaller radar so
+	-- the HUD menu strip right of it keeps two rows above the thumbstick zone. Tablets keep TOUCH_SIZE.
+	TOUCH_SIZE_COMPACT = 132,
+	TOUCH_COMPACT_W = 1300,
+	TOUCH_COMPACT_H = 760,
+	TOUCH_GAP = 12, -- touch: design px between the radar and the HUD buttons right of it
 	MARGIN = 16, -- design px from the screen edges
 	PILL_ROOM = 12, -- desktop: extra bottom space so the GPS distance pill (hanging off the rim) stays on screen
+	-- desktop: design px kept free above the radar top for what pokes out of it (the N marker reaches ~8 px above
+	-- the rim, the wanted glow ~22 px), so the HUD menu column never overlaps them
+	TOP_CLEARANCE = 28,
 	TOUCH_TOP = 6, -- design px below the topbar inset (touch)
+	-- Phones sit at the 0.55 UIScale floor: radar text and blips grow by Theme.TouchMinScale / scale (capped here)
+	-- so they read like the rest of the HUD; the radar circle itself (and the HUD space it reserves) does not.
+	TOUCH_BOOST_MAX = 1.4,
+	AREA_TEXT = 15, -- area name (design px)
+	AREA_TEXT_TOUCH = 18,
+	DIST_TEXT = 16, -- GPS distance pill
+	DIST_TEXT_TOUCH = 18,
+	MAP_BUTTON_ANGLE = 45, -- the "M" / map button on the rim (degrees clockwise from up)
+	NORTH_FADE_DEG = 24, -- the N marker fades out while it passes under the map button (within this many degrees)
 	BORDER = 4, -- bezel thickness (design px)
 	UPDATE_HZ = 30,
 	-- zoom = studs from the radar center to its edge
@@ -84,6 +102,7 @@ Minimap.RADAR = {
 Minimap.GPS = {
 	REROUTE_DISTANCE = 40, -- studs off the drawn route before it is recomputed
 	REROUTE_MIN_INTERVAL = 0.75, -- seconds between recomputes (throttle)
+	FAIL_RETRY_MAX = 8, -- seconds: an unreachable target is retried after doubling waits, up to this
 	TARGET_MOVED = 50, -- a moving target (stolen car, dropped loot) re-routes after moving this far
 	SELECT_INTERVAL = 0.25, -- seconds between picks of the active GPS target
 	ARRIVE_RADIUS = 30, -- the custom map waypoint clears itself within this many studs
@@ -200,8 +219,9 @@ Minimap.DISTRICTS = {
 	{ name = "MARKET ROW", x = 240, z = -560, tier = 1 },
 	{ name = "PALM SUBURBS", x = -720, z = -80, tier = 1 },
 	{ name = "SUNSET BEACH", x = 720, z = 80, tier = 1 },
-	{ name = "THE DOCKS", x = 0, z = -720, tier = 1 },
-	{ name = "SOUTH SHORE", x = 0, z = 720, tier = 1 },
+	-- on the ring road, clear of the garage rows at z = -+681 (labels also step aside from blips at runtime)
+	{ name = "THE DOCKS", x = 0, z = -820, tier = 1 },
+	{ name = "SOUTH SHORE", x = 0, z = 820, tier = 1 },
 	{ name = "STUNT PARK", x = 720, z = 640, tier = 2 },
 	{ name = "CITY PARK", x = -720, z = 640, tier = 2 },
 	{ name = "OCEAN PIER", x = 720, z = -910, tier = 2 },
@@ -243,7 +263,17 @@ Minimap.MAP = {
 	CLEAR_RADIUS = 26, -- real px: tapping this close to your custom waypoint removes it
 	BLIP_SIZE = 30,
 	LABEL_SIZE = 20,
+	OWNER_LABEL_SIZE = 15, -- garage owner names (design px; never under OWNER_LABEL_MIN real px)
+	OWNER_LABEL_MIN = 14,
 	CHROME_TOP = 84, -- design px of title / hint / GPS chip; the fit view starts below it
+	LEGEND_ROW = 26, -- design px per legend row
+	LEGEND_COLUMN = 196, -- design px per legend column (touch: two columns, scrolls when it still can't fit)
+	-- gamepad: D-pad up opens / closes the map; left stick pans, LT / RT (or the right stick) zoom, A sets the waypoint
+	-- under the center reticle (again on it: clears), X clears, Y re-centers, B closes
+	PAD_KEY = Enum.KeyCode.DPadUp,
+	PAD_PAN_SPEED = 720, -- real px per second at full stick
+	PAD_ZOOM_RATE = 2.4, -- zoom factor per second at full trigger
+	PAD_DEADZONE = 0.18,
 }
 
 return Minimap

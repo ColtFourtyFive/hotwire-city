@@ -43,6 +43,7 @@ TEXTURES = {
     "pavers": "concrete_pavement_03",          # forecourts, plazas, pool decks
     "precast": "concrete_panels",              # tilt-up / precast panels
     "grass": "leafy_grass",                    # lawns (scene + optional Lawn role)
+    "sand": "coast_sand_01",                   # beach (scene)
 }
 MAPS = {"diff": "Diffuse", "nor": "nor_gl", "rough": "Rough", "metal": "Metal"}
 HDRIS = {"sky_late_afternoon": ("qwantani_late_afternoon_puresky", "4k"),

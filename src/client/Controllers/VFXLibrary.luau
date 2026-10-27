@@ -399,8 +399,9 @@ end
 -- Burst pools
 -------------------------------------------------------------------------------------------------------------------------
 
-type Slot = { attachment: Attachment, emitter: ParticleEmitter, scale: number, color: Color3? }
-type Pool = { name: string, preset: Preset, slots: { Slot }, size: number, cursor: number }
+-- A slot = one emitter on its own attachment (rigs[i]) + what it currently shows (looks[i], see pickSlot).
+type SlotRig = { attachment: Attachment, emitter: ParticleEmitter }
+type Pool = { name: string, preset: Preset, looks: { SlotLook }, rigs: { SlotRig }, size: number, max: number }
 
 local pools: { [string]: Pool } = {}
 local host: Part? = nil
@@ -435,7 +436,8 @@ local function getHost(): Part
 	if host then
 		-- the old host's slots died with it (pool records stay valid: callers may hold one)
 		for _, pool in pools do
-			table.clear(pool.slots)
+			table.clear(pool.looks)
+			table.clear(pool.rigs)
 		end
 	end
 	host = p
@@ -451,42 +453,66 @@ local function getPool(name: string): Pool?
 	if not preset or preset.kind ~= "burst" then
 		return nil
 	end
-	pool = { name = name, preset = preset, slots = {}, size = math.max(1, preset.pool or DEFAULT_POOL), cursor = 0 }
+	local size = math.max(1, preset.pool or DEFAULT_POOL)
+	pool = { name = name, preset = preset, looks = {}, rigs = {}, size = size, max = VFXLibrary.maxSlots(size) }
 	pools[name] = pool
 	return pool
 end
 
-local function nextSlot(pool: Pool): Slot?
-	pool.cursor = pool.cursor % pool.size + 1
-	local slot = pool.slots[pool.cursor]
-	if slot and slot.emitter.Parent and slot.attachment.Parent then
-		return slot
+-- The slot at `index` (built when new, rebuilt when its instances died: then it shows the preset's own look).
+local function slotAt(pool: Pool, index: number): (SlotRig?, SlotLook?)
+	local rig = pool.rigs[index]
+	if rig and rig.emitter.Parent and rig.attachment.Parent then
+		return rig, pool.looks[index]
 	end
-	local parent = getHost()
+	local parent = getHost() -- (a rebuilt host clears every pool's slots)
+	if index > #pool.rigs + 1 then
+		index = #pool.rigs + 1
+	end
 	local att = Instance.new("Attachment")
-	att.Name = "VFX_" .. pool.name .. pool.cursor
+	att.Name = "VFX_" .. pool.name .. index
 	att.CFrame = HIDDEN -- host sits at the origin, so local = world
 	local e = VFXLibrary.newEmitter(pool.name)
 	if not e then
 		att:Destroy()
-		return nil
+		return nil, nil
 	end
 	e.Parent = att
 	att.Parent = parent
-	slot = { attachment = att, emitter = e, scale = 1, color = nil }
-	pool.slots[pool.cursor] = slot
-	return slot
+	local fresh: SlotRig = { attachment = att, emitter = e }
+	local look: SlotLook = { scale = 1, color = nil, busyUntil = -math.huge, emittedAt = -math.huge }
+	pool.rigs[index] = fresh
+	pool.looks[index] = look
+	return fresh, look
+end
+
+local function applyLook(e: ParticleEmitter, preset: Preset, slot: SlotLook, scale: number, color: Color3?)
+	if scale ~= slot.scale then
+		slot.scale = scale
+		e.Size = VFXLibrary.numberSequence(preset.size, scale)
+	end
+	if color ~= slot.color then
+		slot.color = color
+		if color then
+			e.Color = ColorSequence.new(color)
+		elseif preset.color then
+			e.Color = VFXLibrary.colorSequence(preset.color)
+		else
+			e.Color = ColorSequence.new(Color3.new(1, 1, 1))
+		end
+	end
 end
 
 export type BurstOpts = {
 	count: number?, -- overrides preset.count (still quality-scaled + budgeted)
-	scale: number?, -- Size multiplier
+	scale: number?, -- Size multiplier (snapped to 0.05 steps)
 	color: Color3?, -- constant color instead of the preset's sequence
 	direction: Vector3?, -- EmissionDirection Top points along this
 	force: boolean?, -- ignore the distance cull
 }
 
--- Emit a pooled burst. Returns the number of particles actually emitted.
+-- Emit a pooled burst. Returns the number of particles actually emitted (0: culled, over budget, or every slot busy
+-- showing another look).
 function VFXLibrary.burst(name: string, at: Vector3 | CFrame, opts: BurstOpts?): number
 	local pool = getPool(name)
 	if not pool then
@@ -502,35 +528,87 @@ function VFXLibrary.burst(name: string, at: Vector3 | CFrame, opts: BurstOpts?):
 	if not o.force and not VFXLibrary.inRange(cf.Position) then
 		return 0
 	end
+	local preset = pool.preset
 	local tier = VFXLibrary.tier()
-	local wanted = VFXLibrary.scaledCount(o.count or pool.preset.count or 1, tier.count)
-	local life = pool.preset.lifetime[2] or pool.preset.lifetime[1] or 1
-	local n = budget:reserve(wanted, os.clock(), life)
+	local now = clock()
+	local scale = VFXLibrary.quantizeScale(o.scale or 1)
+	local index = VFXLibrary.pickSlot(pool.looks, scale, o.color, now, pool.max)
+	if not index then
+		return 0
+	end
+	local wanted = VFXLibrary.scaledCount(o.count or preset.count or 1, tier.count)
+	local life = preset.lifetime[2] or preset.lifetime[1] or 1
+	local n = budget:reserve(wanted, now, life)
 	if n <= 0 then
 		return 0
 	end
-	local slot = nextSlot(pool)
-	if not slot then
+	local rig, look = slotAt(pool, index)
+	if not rig or not look then
 		return 0
 	end
-	local e = slot.emitter
-	local scale = o.scale or 1
-	if scale ~= slot.scale then
-		slot.scale = scale
-		e.Size = VFXLibrary.numberSequence(pool.preset.size, scale)
+	local e = rig.emitter
+	applyLook(e, preset, look, scale, o.color)
+	look.busyUntil = math.max(look.busyUntil, now + life)
+	look.emittedAt = now
+	rig.attachment.WorldCFrame = cf
+	emitFn(e, n)
+	return n
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Attached bursts (an emitter that rides a caller's attachment, e.g. the exhaust backfire)
+-------------------------------------------------------------------------------------------------------------------------
+
+export type Attached = { name: string, preset: Preset, emitter: ParticleEmitter }
+
+-- A burst preset's emitter on `parent` (an Attachment / BasePart owned by the caller; destroyed with it).
+function VFXLibrary.attach(name: string, parent: Instance, opts: { scale: number?, color: Color3? }?): Attached?
+	local preset = VFX.Presets[name]
+	if not preset or preset.kind ~= "burst" then
+		return nil
 	end
-	if o.color ~= slot.color then
-		slot.color = o.color
-		if o.color then
-			e.Color = ColorSequence.new(o.color)
-		elseif pool.preset.color then
-			e.Color = VFXLibrary.colorSequence(pool.preset.color)
-		else
-			e.Color = ColorSequence.new(Color3.new(1, 1, 1))
+	local e = VFXLibrary.newEmitter(name, opts)
+	if not e then
+		return nil
+	end
+	e.Parent = parent
+	return { name = name, preset = preset, emitter = e }
+end
+
+local function worldPosition(inst: Instance?): Vector3?
+	if not inst then
+		return nil
+	elseif inst:IsA("Attachment") then
+		return inst.WorldPosition
+	elseif inst:IsA("BasePart") then
+		return inst.Position
+	end
+	return nil
+end
+
+-- Emit an attached burst (count defaults to the preset's): quality-scaled, budgeted, distance-culled unless force.
+function VFXLibrary.emit(a: Attached?, count: number?, force: boolean?): number
+	if not a then
+		return 0
+	end
+	local e = a.emitter
+	local parent = e.Parent
+	if not parent then
+		return 0
+	end
+	if not force then
+		local pos = worldPosition(parent)
+		if pos and not VFXLibrary.inRange(pos) then
+			return 0
 		end
 	end
-	slot.attachment.WorldCFrame = cf
-	emitFn(e, n)
+	local tier = VFXLibrary.tier()
+	local wanted = VFXLibrary.scaledCount(count or a.preset.count or 1, tier.count)
+	local life = a.preset.lifetime[2] or a.preset.lifetime[1] or 1
+	local n = budget:reserve(wanted, clock(), life)
+	if n > 0 then
+		emitFn(e, n)
+	end
 	return n
 end
 
@@ -545,45 +623,137 @@ export type Stream = {
 	active: boolean,
 	intensity: number,
 	rateScale: number,
+	priority: boolean, -- the local player's own effects: served first when the budget is tight
+	scale: number, -- caller's Size multiplier (x the tier's sizeScale for tierSize presets)
+	sizeEpoch: number, -- tierEpoch the Size was last written for
 	load: number,
 	rate: number,
 }
 
 local activeStreams: { [Stream]: boolean } = {}
+-- every live stream / trail rig (weak: callers own them), for tier changes
+local allStreams: { [Stream]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+local allTrails: { [any]: VFX.TrailPreset } = setmetatable({}, { __mode = "k" }) :: any
+local appliedEpoch = 0
+local rebalanceAt = -math.huge
 
-local function recomputeStreamLoad()
+-- Size multiplier of a stream on a tier (tierSize presets shrink on medium / low).
+function VFXLibrary.streamSize(preset: Preset, scale: number?, tier: VFX.QualityTier): number
+	return (scale or 1) * (if preset.tierSize then tier.sizeScale else 1)
+end
+
+-- Steady-state budget weight of a stream emitting `rate`/s: particles alive x the preset's cost.
+local function weightedLoad(preset: Preset, rate: number): number
+	return VFXLibrary.streamLoad(rate, preset.lifetime) * (preset.cost or 1)
+end
+
+-- Re-rate every active stream from the current tier and load (priority streams first), write the rates that moved,
+-- and after a tier change re-apply stream sizes and trail lifetimes. Cheap: a few dozen streams at most.
+function VFXLibrary.rebalance()
+	local tier = VFXLibrary.tier()
+	rebalanceAt = clock()
+	if appliedEpoch ~= tierEpoch then
+		appliedEpoch = tierEpoch
+		for s in allStreams do
+			if s.emitter.Parent and s.preset.tierSize and s.sizeEpoch ~= tierEpoch then
+				s.sizeEpoch = tierEpoch
+				s.emitter.Size =
+					VFXLibrary.numberSequence(s.preset.size, VFXLibrary.streamSize(s.preset, s.scale, tier))
+			end
+		end
+		for rig, p in allTrails do
+			local trail = rig.trail :: Trail
+			if trail.Parent then
+				trail.Lifetime = p.lifetime * tier.trailLife
+			end
+		end
+	end
+	local priorityLoad, otherLoad = 0, 0
+	for s in activeStreams do
+		if not s.emitter.Parent then
+			activeStreams[s] = nil
+			s.active = false
+			continue
+		end
+		local want = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, s.intensity, tier.rate, math.huge, 0)
+		if s.priority then
+			priorityLoad += weightedLoad(s.preset, want)
+		else
+			otherLoad += weightedLoad(s.preset, want)
+		end
+	end
+	local pScale, oScale = VFXLibrary.streamShares(budget.cap, priorityLoad, otherLoad)
 	local total = 0
 	for s in activeStreams do
+		local want = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, s.intensity, tier.rate, math.huge, 0)
+		local rate = want * (if s.priority then pScale else oScale)
+		if (s.rate <= 0 and rate > 0) or math.abs(rate - s.rate) > math.max(0.5, s.rate * 0.08) then
+			s.rate = rate
+			s.emitter.Rate = rate
+		end
+		s.load = weightedLoad(s.preset, s.rate)
 		total += s.load
 	end
 	budget.streamLoad = total
 end
 
+-- One Heartbeat (made on the first stream): re-rates active streams every VFX.REBALANCE_INTERVAL, so a load or tier
+-- change also reaches streams that are already running.
+local ticker: RBXScriptConnection? = nil
+local function ensureTicker()
+	if ticker then
+		return
+	end
+	local ok, conn = pcall(function()
+		return RunService.Heartbeat:Connect(function()
+			if
+				clock() - rebalanceAt >= VFX.REBALANCE_INTERVAL
+				and (next(activeStreams) ~= nil or appliedEpoch ~= tierEpoch)
+			then
+				VFXLibrary.rebalance()
+			end
+		end)
+	end)
+	if ok then
+		ticker = conn
+	end
+end
+
 -- A continuous emitter parented to `parent` (an Attachment or BasePart owned by the caller; destroyed with it).
+-- priority: the local player's own effects (served first when the budget is tight).
 function VFXLibrary.stream(
 	name: string,
 	parent: Instance,
-	opts: { scale: number?, color: Color3?, rateScale: number? }?
+	opts: { scale: number?, color: Color3?, rateScale: number?, priority: boolean? }?
 ): Stream?
 	local preset = VFX.Presets[name]
 	if not preset or preset.kind ~= "stream" then
 		return nil
 	end
-	local e = VFXLibrary.newEmitter(name, opts)
+	local scale = (opts and opts.scale) or 1
+	local tier = VFXLibrary.tier()
+	local e =
+		VFXLibrary.newEmitter(name, { scale = VFXLibrary.streamSize(preset, scale, tier), color = opts and opts.color })
 	if not e then
 		return nil
 	end
 	e.Parent = parent
-	return {
+	local s: Stream = {
 		name = name,
 		preset = preset,
 		emitter = e,
 		active = false,
 		intensity = 1,
 		rateScale = (opts and opts.rateScale) or 1,
+		priority = opts ~= nil and opts.priority == true,
+		scale = scale,
+		sizeEpoch = tierEpoch,
 		load = 0,
 		rate = 0,
 	}
+	allStreams[s] = true
+	ensureTicker()
+	return s
 end
 
 -- Rate for a stream at an intensity (0..1+), quality + budget scaled. Pure given the tier/cap/load.
@@ -598,38 +768,37 @@ function VFXLibrary.streamRate(
 	return baseRate * rateScale * math.max(intensity, 0) * tierRate * VFXLibrary.streamScale(cap, load)
 end
 
--- Turn a stream on/off; intensity scales its rate. Property writes only when something changed.
+-- Turn a stream on/off; intensity scales its rate. A call that changes nothing is free (safe every frame); a change
+-- re-rates every active stream (rebalance). Property writes only when something changed.
 function VFXLibrary.setStream(s: Stream, on: boolean, intensity: number?)
 	local e = s.emitter
 	if not e.Parent then
 		if activeStreams[s] then
 			activeStreams[s] = nil
-			recomputeStreamLoad()
+			s.active = false
+			VFXLibrary.rebalance()
 		end
 		return
 	end
 	local k = intensity or 1
 	if on then
-		local tier = VFXLibrary.tier()
-		local others = budget.streamLoad - (if activeStreams[s] then s.load else 0)
-		local rate = VFXLibrary.streamRate(s.preset.rate or 0, s.rateScale, k, tier.rate, budget.cap, others)
-		if math.abs(rate - s.rate) > math.max(0.5, s.rate * 0.08) or not s.active then
-			s.rate = rate
-			e.Rate = rate
-		end
-		s.load = VFXLibrary.streamLoad(s.rate, s.preset.lifetime)
-		activeStreams[s] = true
-		recomputeStreamLoad()
-		if not s.active then
-			s.active = true
-			e.Enabled = true
+		if s.active and math.abs(k - s.intensity) < 1e-6 then
+			return
 		end
 		s.intensity = k
+		local starting = not s.active
+		s.active = true
+		activeStreams[s] = true
+		VFXLibrary.rebalance()
+		if starting then
+			e.Enabled = true
+		end
 	elseif s.active then
 		s.active = false
 		e.Enabled = false
 		activeStreams[s] = nil
-		recomputeStreamLoad()
+		s.load = 0
+		VFXLibrary.rebalance()
 	end
 end
 
@@ -638,9 +807,10 @@ function VFXLibrary.releaseStream(s: Stream?, destroy: boolean?)
 	if not s then
 		return
 	end
+	allStreams[s] = nil
 	if activeStreams[s] then
 		activeStreams[s] = nil
-		recomputeStreamLoad()
+		VFXLibrary.rebalance()
 	end
 	s.active = false
 	if destroy then
@@ -652,10 +822,10 @@ end
 -- Trails / beams / sprites
 -------------------------------------------------------------------------------------------------------------------------
 
-export type TrailRig = { trail: Trail, a0: Attachment, a1: Attachment }
+export type TrailRig = { trail: Trail, a0: Attachment, a1: Attachment, y: number }
 
 -- A flat ground trail (e.g. a skid mark) between two attachments placed at `center` +- `right` * width/2 in the
--- parent part's space. Starts disabled.
+-- parent part's space. Starts disabled. Its Lifetime follows the quality tier (re-applied on tier changes).
 function VFXLibrary.trail(name: string, parent: BasePart, center: Vector3, right: Vector3?): TrailRig?
 	local p = VFX.Trails[name]
 	if not p then
@@ -689,7 +859,21 @@ function VFXLibrary.trail(name: string, parent: BasePart, center: Vector3, right
 	a0.Parent = parent
 	a1.Parent = parent
 	t.Parent = parent
-	return { trail = t, a0 = a0, a1 = a1 }
+	local rig: TrailRig = { trail = t, a0 = a0, a1 = a1, y = center.Y }
+	allTrails[rig] = p
+	return rig
+end
+
+-- Move a trail's attachments to height `y` (parent space; X/Z kept), e.g. a skid mark following the tyre's contact
+-- patch as the suspension moves. Writes only when it moved more than TRAIL_HEIGHT_EPS.
+function VFXLibrary.setTrailHeight(rig: TrailRig, y: number)
+	if math.abs(y - rig.y) <= TRAIL_HEIGHT_EPS then
+		return
+	end
+	rig.y = y
+	local p0, p1 = rig.a0.Position, rig.a1.Position
+	rig.a0.Position = Vector3.new(p0.X, y, p0.Z)
+	rig.a1.Position = Vector3.new(p1.X, y, p1.Z)
 end
 
 export type BeamRig = { beam: Beam, a0: Attachment, a1: Attachment }
@@ -730,7 +914,8 @@ function VFXLibrary.beam(name: string, parent: BasePart, origin: Vector3, dir: V
 	return { beam = b, a0 = a0, a1 = a1 }
 end
 
--- A camera-facing glare sprite (BillboardGui + ImageLabel) on `adornee`. Starts disabled.
+-- A camera-facing glare sprite (BillboardGui + ImageLabel) on `adornee`, pulled preset.towardCamera studs toward the
+-- viewer (StudsOffset Z: camera space) so the body it sits on does not cut it in half. Starts disabled.
 function VFXLibrary.sprite(name: string, adornee: BasePart, color: Color3): (BillboardGui?, ImageLabel?)
 	local p = VFX.Sprites[name]
 	if not p then
@@ -742,6 +927,7 @@ function VFXLibrary.sprite(name: string, adornee: BasePart, color: Color3): (Bil
 	gui.Size = UDim2.fromScale(p.size, p.size)
 	gui.LightInfluence = p.lightInfluence
 	gui.MaxDistance = p.maxDistance
+	gui.StudsOffset = Vector3.new(0, 0, p.towardCamera or 0)
 	gui.AlwaysOnTop = false
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
@@ -772,29 +958,35 @@ function VFXLibrary._setCamera(pos: Vector3?)
 	cameraOverride = pos
 end
 
+-- Replace the clock (seconds) every pool / budget / tier decision reads; nil restores os.clock.
+function VFXLibrary._setClock(fn: (() -> number)?)
+	clock = fn or os.clock
+	tierReadAt = -math.huge
+end
+
 function VFXLibrary._reset()
 	for _, pool in pools do
-		for _, slot in pool.slots do
-			slot.attachment:Destroy()
+		for _, rig in pool.rigs do
+			rig.attachment:Destroy()
 		end
 	end
 	table.clear(pools)
 	table.clear(activeStreams)
+	table.clear(allStreams)
+	table.clear(allTrails)
 	table.clear(budget.entries)
 	budget.streamLoad = 0
 	tierReadAt = -math.huge
+	rebalanceAt = -math.huge
 end
 
-function VFXLibrary._poolInfo(name: string): (number, number)
+-- (slots built, pool size, max slots) of a burst preset's pool.
+function VFXLibrary._poolInfo(name: string): (number, number, number)
 	local pool = pools[name]
 	if not pool then
-		return 0, 0
+		return 0, 0, 0
 	end
-	local built = 0
-	for _ in pool.slots do
-		built += 1
-	end
-	return built, pool.size
+	return #pool.rigs, pool.size, pool.max
 end
 
 return VFXLibrary

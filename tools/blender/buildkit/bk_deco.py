@@ -21,8 +21,8 @@ def deco(seed=0, **kw):
     gf, fh = 15.0, 12.0
     top = gf + floors * fh
     accent_name = kw.get("accent", r.choice(["mint", "pink", "aqua", "lemon", "lavender", "peach", "sky"]))
-    acc = _mute(PASTELS[accent_name], 0.35)
-    base = (0.96, 0.95, 0.91) if r.random() < 0.7 else _mute(PASTELS[accent_name], 0.7)
+    acc = _mute(PASTELS[accent_name], 0.12)
+    base = (0.96, 0.95, 0.91) if r.random() < 0.55 else _mute(PASTELS[r.choice(["mint", "pink", "aqua", "lemon", "peach", "sky", "lavender"])], 0.55)
     neon_c = {"mint": (0.2, 1.0, 0.6), "pink": (1.0, 0.2, 0.55), "aqua": (0.1, 0.9, 1.0), "lemon": (1.0, 0.85, 0.2),
               "lavender": (0.6, 0.35, 1.0), "peach": (1.0, 0.45, 0.2), "sky": (0.2, 0.6, 1.0)}[accent_name]
     B.spec = {"Walls": ("tex", "stucco", base), "Walls2": ("tex", "terrazzo", (1.0, 1.0, 1.0)),

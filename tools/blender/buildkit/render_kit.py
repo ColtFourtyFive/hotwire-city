@@ -223,11 +223,14 @@ def sc_deco(a, night=False):
     S.road(c, -320, -ROAD_W / 2, 320, ROAD_W / 2 - 8, axis="x")
     S.sidewalk_block(c, -320, ROAD_W / 2 - 8, 320, ROAD_W / 2 + SIDE_W - 8)
     S.sidewalk_block(c, -320, -ROAD_W / 2 - 18, 320, -ROAD_W / 2)
-    S.ground(c, -320, -ROAD_W / 2 - 220, 320, -ROAD_W / 2 - 18, "sand", z=0.3)
-    S.ground(c, -900, -2000, 900, -ROAD_W / 2 - 220, "sea", z=0.0)
+    S.ground(c, -900, -ROAD_W / 2 - 110, 900, -ROAD_W / 2 - 18, "sand", z=0.3)
+    S.ground(c, -1600, -4000, 1600, -ROAD_W / 2 - 110, "sea", z=0.0)
     r = random.Random(4)
     for x in range(-300, 320, 34):
-        S.palm(c, x + r.uniform(-4, 4), -ROAD_W / 2 - 9 + r.uniform(-3, 3), h=r.uniform(34, 52), seed=x + 999, kind="fan")
+        px, py = x + r.uniform(-4, 4), -ROAD_W / 2 - 9 + r.uniform(-3, 3)
+        hh = r.uniform(34, 52)
+        if math.hypot(px + 215, py + 50) > 40:
+            S.palm(c, px, py, h=hh, seed=x + 999, kind="fan")
     for x in range(-290, 320, 70):
         S.street_lamp(c, x, ROAD_W / 2 - 10, facing=(0, -1), night=night)
     S.parked_row(c, -300, 300, ROAD_W / 2 - 12.5, heading=180, seed=9, prob=0.6)

@@ -388,7 +388,23 @@ The Mod Shop is a GTA-style list menu (UI §5.13). Purchases go through a server
 | Downtown street spawn (luck 1.5) | Legendary | 0.98% | 1 in 102 | Galaxy: 1 in 17,000 |
 | Port/Airport street spawn (luck 4.5) | Mythic | 0.24% | 1 in 414 | Galaxy: 1 in 69,000 |
 
-Legendary and better reveals get a shard plus a server feed card (UI §5.15).
+Legendary and better reveals get a shard plus a server feed card (UI §5.15). A scripted car (the onboarding Gold Common) shows "street odds 1 in N", never "you rolled 1 in N".
+
+#### 2.5.1 Delivery reveal and the trunk
+
+Delivering a **street or traffic loot car** to your own garage opens the reveal card (rarity, finish, trait, "1 in X") and then pops the trunk. `Rolls.trunk(rng)`:
+
+| Chance | Trunk content |
+|---|---|
+| 60% | Cash `50 + 10 s × G` into the wallet |
+| 20% | One magazine for a gun you own (the equipped gun first; nothing if you own only melee, then cash instead) |
+| 10% | Light armor (+50, capped at 100) or a med kit (capped at 3), whichever you have less of |
+| 8% | A free paint voucher (`vouchers.paint += 1`, max 5) |
+| 2% | A phone tip: the next Hot Drop location 60 s before it is announced |
+
+- `server_luck`, district luck and live-ops multipliers never apply to the trunk.
+- Trunk loot is bounded by the loop itself (each delivery needs a free slot), so it has no cap.
+- Dealer, Hot Drop and player cars have no trunk roll.
 
 ### 2.6 Value, sell, chop and income formulas (`Shared/Util/EconomyMath`)
 
@@ -398,29 +414,34 @@ carValue(c)   = def.price × finish.mult × (1 + 0.02 × (c.level − 1)) × tra
                 + 0.6 × c.upgradeSpend
                 then × (c.serial and (c.serial <= 10 and 1.5 or 1.2) or 1)
 sellValue(c)  = floor(0.5 × carValue(c))                 -- Economy.SELL_FRACTION (v1 0.5)
-chopValue(loot) = floor(0.35 × def.price × finish.mult)  -- Economy.CHOP_SHOP_FRACTION (v1), street/traffic loot only
-insurance(c)  = floor(InsuranceRate[c.upgrades.insurance] × carValue(c))   -- {0.25, 0.40, 0.55, 0.70}
+chopValue(c)  = floor(0.35 × def.price × finish.mult)    -- Economy.CHOP_SHOP_FRACTION (v1); loot cars AND player cars:
+                                                         -- no level, upgrade, trait or serial premium
+insurance(c)  = floor(InsuranceRate[c.upgrades.insurance] × carValue(c))   -- {0.25, 0.32, 0.39, 0.45}
 ```
 
-Bound cars sell for 0 and can't be chopped. Exclusive cars use `def.price = 0`, so their value falls back to v1 `income × 120` for display only.
+- Bound cars sell for 0 and can't be chopped. Exclusive cars use `def.price = 0`, so their value falls back to v1 `income × 120` for display only.
+- A car with `sellLockUntil` in the future can't be sold (cars kept by theft: 7 days).
+- A car with `inbound` set (a transfer not yet confirmed by the giver's save, §10.3) can't be sold, traded, staked or chopped.
 
 ### 2.7 Theft of owned cars
 
 #### 2.7.1 Carjack on the street (new in V2; v1 blocked it with an owner-only seat)
 
-1. **Target.** A player driving an `Owned` car outside safe zones. The driver must not be passive or protected; the thief must not be rookie or passive.
+1. **Target.** A player driving an `Owned` car outside safe zones. The driver must not be passive, rookie, spawn-protected, or within `CARJACK_VICTIM_IMMUNITY = 180` s of being carjacked (joyrides included); the thief must not be rookie or passive.
+   - The prompt tells the thief what will happen before they commit: **"STEAL"** when the car can be kept, or **"JOYRIDE (protected: starter / shaken / day limit / last cars / bound / pair / outranked)"** when it can't, with a padlock icon on the car (§2.8, `ProtectedReason`).
 2. **Stop the car.** Use spikes, tire shots, ramming or PIT, or down the driver.
    - The **CARJACK** prompt appears at the driver door when the car's speed is under `CARJACK_MAX_SPEED = 8` studs/s.
    - Hold time `CARJACK_HOLD = 0.8 s`. The driver sees a 0.4 s warning flash and can floor it to break the prompt.
-   - A stunned (taser) or downed driver's car can always be jacked.
-3. **Eject.** The victim is ejected and ragdolls for 1.5 s, and **10% of their wallet spills** as cash pickups (`WALLET_SPILL_ON_CARJACK`). The car becomes kind `Stolen` with `car.data.theft = { victimUserId, uid, method = "carjack" }`.
+   - **Disabled car (fast jack):** if the car has 2 or more flat tires, HP below 30%, or has stayed under 2 studs/s for 1.5 s after a collision, the hold is `CARJACK_HOLD_DISABLED = 0.4 s` with no warning and no throttle break. This is what makes carjacks land on mobile.
+   - A stunned (taser) or downed driver's car can always be jacked (fast jack).
+3. **Eject.** The victim is ejected and ragdolls for 1.5 s. **Only a LOADED victim spills 10% of their wallet** as cash pickups (`WALLET_SPILL_ON_CARJACK`, matching D5: only LOADED players drop cash). The car becomes kind `Stolen` (or `Joyride` if it can't be kept) with `car.data.theft = { victimUserId, uid, method = "carjack", keepable }`.
 4. **Heat and spectacle.**
    - The thief gets **+2★** (`Police.Heat.carjackPlayer = 2`).
    - Server feed: "X carjacked Y's LV 23 Chrome Phantom GT".
    - The stolen car's icon pulses on **every** minimap every 15 s (always), or continuously with Tracker 2 or more.
    - The victim and their party get the live GPS (Tracker 1+) or the last-known ping every 20 s (Tracker 0).
-5. **Deliver.** The thief has `CARJACK_DELIVERY_LIMIT = 180 s` to reach **their own drop-off**, which moves the car into the lay-low bay.
-   - Instead, they can chop it at the Chop Shop for `PLAYER_CAR_CHOP_RATE = 20%` of value. That pay is minted and capped (§2.8). The victim's car is not destroyed: it goes to their impound with free release after 120 s.
+5. **Deliver.** The thief has `CARJACK_DELIVERY_LIMIT = 180 s` to reach **their own drop-off**, which parks the car on the lay-low pad (§2.7.4).
+   - Instead, they can chop it at the Chop Shop for the loot `chopValue` (§2.6: `0.35 × price × finish`, no level, upgrade or serial premium). That pay is minted and capped (§2.8) and is $0 between party members, crewmates or Roblox friends. The victim's car is not destroyed: it goes to their impound (free release after 120 s, or the fee). The chop **counts as a kept loss** for the victim's Shaken timer and daily cap, but pays no insurance because the car survives.
 6. **Drop.** If the thief is downed, busted or ejected, or leaves the seat, the car is **dropped** (v1 `DROPPED_CAR_TIMEOUT 20` / `THEFT_ABANDON_LIMIT 12`).
    - The victim gets an instant Recover prompt.
    - Anyone else can take over the theft with a 1.5 s hotwire (v1 behaviour).
@@ -450,20 +471,24 @@ V2 changes:
 
 #### 2.7.4 Lay-low window, repo and outcome
 
+**Rule: the car record stays in the victim's profile until the theft is final, and moves exactly once, while both profiles are loaded in this server** (the v1 rule "the record never left their data", `TheftService` `onPlayerRemoving`). There is no `laylow` place, no escrow store and no mail return.
+
 | Phase | Rule |
 |---|---|
-| **On delivery** | The car record is **removed from the victim's profile and saved immediately**, then added to the thief's profile with `place = laylow` and `laylow = { fromUserId, untilTime = now + 300, insuredValue }`. Both profiles are loaded in this server. Victim gets their slot's `uncollected` paid to the bank (v1 rule). The victim's pad shows MISSING; the slot stays reserved for 300 s. |
-| **During the 300 s** | The car sits on the thief's lay-low pad, outside the door and visible, earning 0. **REPO:** the victim, or the victim's party while the victim is online in this server, holds 3 s (1.5 s with Tracker 3) to drive it away. Delivering it back to the victim's drop-off restores the record to the victim (§9.3 transfer). The thief can defend. |
-| **Repo succeeds** | The car goes back to its reserved slot. The victim gets a **Repo bonus** of 30 s × G (v1 `RECOVERY_BONUS_SECONDS`) plus 150 RP. No insurance is paid; the car came back. The theft doesn't count toward the victim's daily losses. |
-| **Window ends** | The car moves to a thief slot, reserved when the theft started, because the thief needed a free slot to begin (v1 rule). Ownership is final: `owners += 1`, `thefts += 1`, `acquiredAt = now`, `tradeLockUntil = now + 24 h`, and **the plate resets** (it may contain the victim's name). Level, XP, upgrades, paint (except the plate), finish, trait, serial and mileage all carry over. The victim's **insurance** is paid to the bank (mail if the victim is offline) if the claim rules allow (§2.8). |
-| **Thief leaves the server during the window** | The car returns to the victim: directly if they are online, otherwise via MailService (§9.5). Combat-logging never secures a car. |
-| **Victim leaves during the window** | The window continues. Insurance is paid by mail at the end. |
+| **On delivery** | The car parks on the thief's lay-low pad, outside the door and visible, earning 0. The record stays in the **victim's** profile with runtime state `LayLow` (the victim's pad shows MISSING; the slot stays reserved). The victim's slot `uncollected` is paid to the victim's bank now (v1 rule). The thief's free slot stays reserved. |
+| **During the 300 s** | **REPO:** the victim, or the victim's party while the victim is online in this server, holds 3 s (1.5 s with Tracker 3) to drive it away. Delivering it to the victim's drop-off cancels the theft; nothing moves in data. The thief can defend. |
+| **Repo succeeds** | The car goes back to its slot. The victim gets a **Repo bonus** of 30 s × G (v1 `RECOVERY_BONUS_SECONDS`) plus 150 RP, at most `REPO_BONUS_PER_DAY = 3` paid repos per UTC day (RP capped the same way). No insurance; the theft doesn't count as a loss. |
+| **Window ends** | `CarService.transfer(victim, thief, uid, "theft")` runs once (§10.3). The record lands in the thief's reserved slot. Ownership is final: `owners += 1`, `thefts += 1`, `acquiredAt = now`, `tradeLockUntil = now + 7 d`, `sellLockUntil = now + 7 d`, `lastTransfer = { from = victim, at = now, kind = "theft" }`, and **the plate resets** (it may contain the victim's name). Level, XP, upgrades, paint (except the plate), finish, trait, serial and mileage carry over. The victim's **insurance** is credited to their bank in the same step if §2.8 allows. |
+| **Thief leaves, crashes, or the server shuts down** | The theft is cancelled: the victim keeps the car (it was always in their data). The lay-low car is despawned and the victim's slot restores. Combat-logging never secures a car. |
+| **Victim leaves during delivery or the window** (not a shutdown) | The theft **finishes immediately** inside the victim's `DataService.Releasing` handler: the record is removed from the victim's `data` there (so it is gone from the victim's final save), insurance is credited to the victim's bank in that same final save, and the record is inserted into the thief's profile with `inbound` set until the victim's final save succeeds. Repo rights already end when the victim leaves, so gameplay is unchanged, and a rage-quit never saves a car. If the thief was still in the delivery phase, the in-world car converts to the thief's own `Owned` car where it stands. |
+| **Server shutdown** (`DataService.isShuttingDown()`) | Every open theft and lay-low resolves in the **victim's** favour, and no combat-log penalty is applied (§10.3). |
 
 **REVENGE mark** (distinct from gta_combat's anti-camp "revenge immunity"):
-- **Triggered by:** stealing your car (any method), mugging you, or downing you while you were not wanted.
-- **Effect:** the victim gets a red mark on the offender for `REVENGE_MARK_SECONDS = 900`.
+- **Triggered by:** stealing your car (any method, including a joyride), mugging you, or downing you while you were not wanted.
+- **Effect:** the victim gets a red mark on the offender for `REVENGE_MARK_SECONDS = 900`. The mark records `offenceCost`: the car's value if it was kept or chopped, the cash mugged, or the hospital bill plus cash dropped.
 - **Downing a marked player:**
-  - pays `500 + 60 s × G` (v1 `REVENGE_BONUS_SECONDS` 20 → **60**; minted, once per pair per `BONUS_PAIR_COOLDOWN` 600 s);
+  - pays `500 + 30 s × G` (v1 `REVENGE_BONUS_SECONDS` 20 → **30**; minted), only if `offenceCost ≥ max(1,000, 30 s × victimG)`. Below that, the mark still grants vigilante status but pays $0;
+  - at most `REVENGE_BONUS_PER_DAY = 3` paid per UTC day, and once per pair per `BONUS_PAIR_COOLDOWN` 600 s;
   - adds no heat (vigilante rule) and no Menace;
   - shows "REVENGE" in the feed.
 

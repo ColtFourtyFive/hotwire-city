@@ -234,7 +234,7 @@ def _m(key):
          "curb": lambda: M.textured("Curb", "curb", tint=(1.05, 1.05, 1.05)),
          "grass": lambda: M.textured("Grass", "grass", tint=(0.62, 0.95, 0.42)),
          "dirt": lambda: M.textured("Dirt", "roof_gravel", tint=(0.75, 0.62, 0.48)),
-         "sand": lambda: M.color("Sand", (0.86, 0.76, 0.58), 0.95),
+         "sand": lambda: M.textured("Sand", "sand", tint=(1.05, 1.0, 0.92)),
          "sea": lambda: M.water("Sea", (0.04, 0.22, 0.30)),
          "white": lambda: M.paint("PaintWhite", (0.85, 0.85, 0.82), 0.7),
          "yellow": lambda: M.paint("PaintYellow", (0.85, 0.62, 0.08), 0.7),

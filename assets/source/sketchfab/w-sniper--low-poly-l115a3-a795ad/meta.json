@@ -59,5 +59,72 @@
   "sha256": "11c2ac2043f850fd2109765d51adddc2bfd7388efe88d27005ec1832873ac072",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:13:00+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      494.7891,
+      29.2482,
+      91.7064
+    ],
+    "dims_m": [
+      494.789,
+      29.248,
+      91.706
+    ],
+    "front_evidence": "upright_band",
+    "flipped": true,
+    "mesh_objects": 19,
+    "triangles": 8212,
+    "materials": 18,
+    "material_names": [
+      "Material.004",
+      "Material.005",
+      "Material.006",
+      "Material.007",
+      "Material.008",
+      "Material.027",
+      "Material.028",
+      "Material.029",
+      "Material.030",
+      "Material.038",
+      "Material.039",
+      "Material.040",
+      "Material.041",
+      "Material.042",
+      "Material.043",
+      "Material.044",
+      "Material.046",
+      "material_0"
+    ],
+    "textures": 0,
+    "texture_max_px": 0,
+    "wheel_named": [],
+    "wheel_geom": [],
+    "wheels_separate": false,
+    "logo_named": [],
+    "glass_materials": [],
+    "animations": 0,
+    "object_names": [
+      "Object_29",
+      "Object_30",
+      "Object_31",
+      "Object_32",
+      "Object_33",
+      "Object_34",
+      "Object_35",
+      "Object_36",
+      "Object_37",
+      "Object_38",
+      "Cylinder.000_Material.046_0",
+      "Cylinder.000_Material.044_0",
+      "Cylinder.000_Material.043_0",
+      "Cylinder.000_Material.042_0",
+      "Cylinder.000_Material.041_0",
+      "Cylinder.000_Material.040_0",
+      "Cylinder.000_Material.039_0",
+      "Cylinder.000_Material.038_0",
+      "Icosphere"
+    ],
+    "render_s": 46.7
+  }
 }
