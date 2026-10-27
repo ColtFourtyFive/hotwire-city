@@ -1,0 +1,44 @@
+# Job 0018 console_start: LogService after 90 s solo Play (Server 254 lines, Client 251). Place v33+ from Roblox; Rojo NOT connected.
+# The 64 pre-existing "Asset type does not match requested type" lines are omitted (same v1 ids as earlier jobs).
+## Server, key lines
+23:10:58 [MessageOutput] [MaterialOverrides] server: 16 active (0 set, 16 already)
+23:10:58 [MessageOutput] [Server] Hotwire City booted with 29 systems
+23:11:03 [MessageOutput] [CarTemplates] 30 / 30 car templates ready
+23:11:41 [MessageOutput] [MapBuilder] v2 world: 39692 parts (budget 42000), 4.1 s parts, 34362 terrain chunks in 39.1 s
+## Client, key lines
+23:10:59 [MessageOutput] [MaterialOverrides] client: 16 active (0 set, 16 already)
+23:10:59 [MessageOutput] [Client] illintent1 ready with 27 controllers
+23:12:09 [MessageWarning] [MinimapController] slow GPS route: 17.3 ms
+## Errors (Server and Client, identical; 17 each at 23:11:21)
+[MessageError] Failed to upload TexturePack (Reason: PublishService AssetUpload failed. Info: single part asset create call failed HTTP StatusCode: 429, Message: { "code": "RESOURCE_EXHAUSTED", "message": "Rate limit exceeded for TexturePack uploads a…   (x17; truncated by LogService)
+## Warnings
+"ContentId: rbxassetid://N failed due to: Asset content representation is being generated", ~110 lines on each side,
+23:11:01–23:11:28. Distinct ids:
+ 123990429554497 104018849744959 123915672653882 97925710656497 99362568109345 108828346718066 127117917572958
+ 134180500558331 136230618876917 93550271768195 121805229292130 84673443317621 102972439694105 71985860450613
+ 131887872037335 95183015830234 102831471648000 125911887042528 126315578077978 124896165960619 93573222353678
+ 90601648269060 135673766816590 127560490432979 101845577116173 87520368257346 113236930645012 122955146884443
+ 124053425604102 90857744816586 140096196834494 114384167502209 80639091405783 120971830421996 136930987872533
+ 132684278006613 112501500408015 95580497598866 139375575202833 126178785454568 136677332753001 121640761348874
+ 89306549131284 87918086722084 132328609938452 74592915727935 94656163828155 104995205903169 76677026716095
+ 112959320728700 117244406106366 98277119545091 106281777675758 89794180201435 101655597153892 127187749132335
+ 133358861438959 134497361769838 101715265816982 88183297618434 80564034144977 120805492077224 134595954506934
+ 116856734542099 137714710655631 79323244495000 121831985176395
+23:11:31 ContentId: rbxassetid://128091533418824 failed due to: HTTP 502
+23:11:03 ContentId: rbxassetid://81504106 failed due to: Request asset was not found (pre-existing)
+## Flag list (MapBuilder, World, BuildingService, AssetLibrary, CarBuilder, Vehicle, MapLayout, PlotService, Dealership, Leaderboard)
+No error or warning names any of these systems. MapBuilder and CarTemplates report success. The TexturePack 429s and the
+"being generated" lines are engine and asset-pipeline messages, with no owning script in the message.
+
+# ===== Errors and warnings during the tour (A–B) =====
+## Server
+23:16:12 [MessageError] GetBoundingBox is not a valid member of Folder "Workspace.Dealership"   <- my own probe script, not a game error
+23:18:26 [MessageWarning] [VehicleService] watchdog teleport: illintent1 in car 128 speed 0 disp 724 cap 219 -> rewind   <- my scripted teleports with a car seated (correct anti-cheat)
+23:18:42 [MessageWarning] [VehicleService] watchdog teleport: illintent1 in car 128 speed 0 disp 718 cap 219 -> rewind
+## Client
+[MinimapController] slow GPS route: 17.3 ms, 8.1 ms, 48.2 ms, 12.0 ms, 8.1 ms (warnings)
+
+# ===== Section C second Play (23:31) =====
+Server: booted with 29 systems; CarTemplates 30/30; "[MapBuilder] v2 world: 39692 parts (budget 42000), 4.9 s parts, 34362 terrain chunks in 56.5 s"
+Both sides: 0 TexturePack 429s this time; ~50 "Asset content representation is being generated" warnings.
+Client: [MinimapController] slow GPS route: 23.0 ms, 9.1 ms
