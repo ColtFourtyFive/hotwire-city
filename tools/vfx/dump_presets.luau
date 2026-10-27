@@ -33,6 +33,7 @@ fs.writeFile(
 		beams = flat(VFX.Beams),
 		layouts = VFX.FlipbookLayouts,
 		confetti = flat(VFX.CONFETTI_COLORS),
+		quality = flat(VFX.Quality),
 	})
 )
 print("wrote " .. out)

@@ -426,6 +426,232 @@ return function(t)
 		t.ok(ok, tostring(err))
 	end)
 
+	-- Phones: HUD layout with the radar in the corner (review: menu into the thumbstick zone, feed into the cash pill)
+	local PHONES = { { 844, 390 }, { 667, 375 }, { 640, 360 }, { 896, 414 }, { 932, 430 }, { 736, 414 } }
+	local function phoneCanvas(w, h, topbar, floor)
+		local s = math.clamp(math.min(w / 1280, h / 720), 0.55, 1.6)
+		if floor then
+			s = math.max(s, floor)
+		end
+		return s, w / s, (h - topbar) / s
+	end
+
+	t.test("phones: the HUD menu strip stays above the thumbstick zone next to the radar", function()
+		H.setMode("client")
+		local HUD = H.require("src/client/Controllers/HUDController")
+		local M = H.require("src/client/Controllers/MinimapController")
+		H.setMode("server")
+		local count = #HUD.MENU
+		for _, vp in PHONES do
+			for _, topbar in { 36, 58 } do
+				local s, cw, ch = phoneCanvas(vp[1], vp[2], topbar)
+				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
+				local m = M.touchMetrics(cw, ch, s)
+				local strip = HUD.touchStripLayout(count, cw, ch, m.reserve, Cfg.RADAR.TOUCH_TOP)
+				t.ok(strip.fits, tag .. ": strip fits")
+				t.ok(strip.bottom <= ch / 3 + 1e-6, ("%s: menu bottom %.1f <= third %.1f"):format(tag, strip.bottom, ch / 3))
+				t.ok(strip.cols * strip.rows >= count, tag .. ": every button placed")
+				t.ok(strip.left >= 12 + m.diameter + Cfg.RADAR.TOUCH_GAP - 1e-6, tag .. ": buttons right of the radar")
+				-- the menu never reaches the top-center cash pill + status stack
+				local right = strip.left + strip.cols * (strip.cell + 6) - 6
+				t.ok(right <= cw / 2 - 168 + 1e-6, tag .. ": clear of the cash pill")
+				-- the radar (a button) ends above the thumbstick zone too
+				t.ok(Cfg.RADAR.TOUCH_TOP + m.diameter <= ch / 3, tag .. ": radar above the thumbstick zone")
+				-- 16:9 phones get the compact radar; the 844-wide ones keep the big one
+				if vp[1] / vp[2] < 1.9 then
+					t.eq(m.diameter, Cfg.RADAR.TOUCH_SIZE_COMPACT, tag .. ": compact radar")
+				end
+			end
+		end
+		-- a tablet keeps the big radar (no squeeze there)
+		local s, cw, ch = phoneCanvas(1024, 768, 36)
+		t.eq(M.touchMetrics(cw, ch, s).diameter, Cfg.RADAR.TOUCH_SIZE, "iPad: big radar")
+		-- with no radar the strip keeps its old place
+		local _, cw2, ch2 = phoneCanvas(844, 390, 36)
+		local strip = HUD.touchStripLayout(count, cw2, ch2, 0, 6)
+		t.eq(strip.left, 12)
+		t.eq(strip.cell, 76, "roomy phone without the radar: big cells")
+	end)
+
+	t.test("phones: the event feed hugs the left edge below the radar block and the menu", function()
+		H.setMode("client")
+		local HUD = H.require("src/client/Controllers/HUDController")
+		local M = H.require("src/client/Controllers/MinimapController")
+		H.setMode("server")
+		for _, vp in PHONES do
+			for _, topbar in { 36, 58 } do
+				local s, cw, ch = phoneCanvas(vp[1], vp[2], topbar)
+				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
+				local m = M.touchMetrics(cw, ch, s)
+				local strip = HUD.touchStripLayout(#HUD.MENU, cw, ch, m.reserve, Cfg.RADAR.TOUCH_TOP)
+				for _, menuShown in { true, false } do
+					local x, y = HUD.touchFeedAnchor(strip, menuShown, m.bottom)
+					t.eq(x, 12, tag .. ": feed at the left edge")
+					t.ok(y >= m.bottom + 8, tag .. ": below the radar block")
+					if menuShown then
+						t.ok(y >= strip.bottom + 8, tag .. ": below the menu strip")
+					end
+				end
+			end
+		end
+		-- no radar: the old anchor (under the strip, at its left)
+		local strip = HUD.touchStripLayout(#HUD.MENU, 1535, 603, 0, 6)
+		local x, y = HUD.touchFeedAnchor(strip, true, 0)
+		t.eq(x, strip.left)
+		t.eq(y, strip.bottom + 8)
+	end)
+
+	t.test("phones: radar text and blips get the touch readability boost, the circle does not", function()
+		local R = Cfg.RADAR
+		t.eq(Mini.touchBoost(0.55, false), 1, "desktop: none")
+		t.eq(Mini.touchBoost(1, true), 1, "big screens: none")
+		local b = Mini.touchBoost(0.55, true)
+		t.near(b, 0.72 / 0.55, 1e-9, "phones: up to the touch scale floor")
+		t.ok(b <= R.TOUCH_BOOST_MAX, "capped")
+		t.eq(Mini.touchBoost(0.3, true), R.TOUCH_BOOST_MAX, "cap")
+		-- area name ~13 real px, blips ~16 real px on a phone
+		t.ok(R.AREA_TEXT_TOUCH * b * 0.55 >= 12.5, "area name readable")
+		t.ok(R.BLIP_SIZE * b * 0.55 >= 15, "blips readable")
+		t.ok(R.BLIP_SIZE_SMALL * b * 0.55 >= 8.5, "police / player dots readable")
+		-- the boost never changes the radar size or its reserve
+		local m1 = Mini.touchMetrics(1200, 600, 0.55)
+		local m2 = Mini.touchMetrics(1200, 600, 1)
+		t.eq(m1.diameter, m2.diameter)
+		t.eq(m1.reserve, m2.reserve)
+	end)
+
+	t.test("desktop: the HUD keeps clear of what pokes out above the radar", function()
+		local R = Cfg.RADAR
+		local glow = (1.22 - 1) / 2 * R.DESKTOP_SIZE -- WantedGlow is 1.22x the radar
+		local north = 22 / 2 - 3 -- N marker (22 px) centered 3 px inside the rim
+		t.ok(R.TOP_CLEARANCE >= glow, "wanted glow")
+		t.ok(R.TOP_CLEARANCE >= north + 4, "N marker")
+	end)
+
+	t.test("N marker fades only while it passes under the map button", function()
+		local R = Cfg.RADAR
+		t.near(Mini.northFade(R.MAP_BUTTON_ANGLE), 1, 1e-9, "under the button: hidden")
+		t.near(Mini.northFade(R.MAP_BUTTON_ANGLE + 360), 1, 1e-9, "wraps")
+		t.eq(Mini.northFade(0), 0, "north up: visible")
+		t.eq(Mini.northFade(R.MAP_BUTTON_ANGLE + R.NORTH_FADE_DEG), 0, "edge of the fade")
+		t.eq(Mini.northFade(R.MAP_BUTTON_ANGLE - 180), 0, "opposite side")
+		local a = Mini.northFade(R.MAP_BUTTON_ANGLE + 8)
+		t.near(a, Mini.northFade(R.MAP_BUTTON_ANGLE - 8), 1e-9, "symmetric")
+		t.ok(a > 0 and a < 1, "partial")
+		-- the button really sits on N's circle at that angle (why the fade exists)
+		local x, y = Mini.rotate(0, -1, R.MAP_BUTTON_ANGLE)
+		t.near(x, -y, 1e-9, "45 degrees, top-right")
+	end)
+
+	t.test("unreachable GPS targets back off", function()
+		local G = Cfg.GPS
+		t.eq(Mini.retryDelay(0), 0)
+		t.eq(Mini.retryDelay(1), G.REROUTE_MIN_INTERVAL)
+		t.eq(Mini.retryDelay(2), G.REROUTE_MIN_INTERVAL * 2)
+		t.eq(Mini.retryDelay(50), G.FAIL_RETRY_MAX, "capped")
+		local prev = 0
+		for i = 1, 10 do
+			t.ok(Mini.retryDelay(i) >= prev, "never shrinks")
+			prev = Mini.retryDelay(i)
+		end
+	end)
+
+	-- Route renderer: slot 1 is always the head (the per-frame fast path rewrites only that slot)
+	t.test("drawRoute keeps the head in slot 1, even when it has no length", function()
+		H.setMode("client")
+		local M = H.require("src/client/Controllers/MinimapController")
+		H.setMode("server")
+		local holder = H.roblox.Instance.new("Frame")
+		local r = M.newRouteRenderer(holder, 6, 2)
+		local white = H.roblox.Color3.new(1, 1, 1)
+		local function visible()
+			local out = {}
+			for i = 1, r.used do
+				if r.cores[i].Visible then
+					table.insert(out, i)
+				end
+			end
+			return out
+		end
+		-- standing on the road point closest to an off-road target: route {Q, Q} + a faded line to the target
+		local Q = Vector3.new(-640, 0, -240)
+		local target = Vector3.new(-686, 0, -240)
+		M.drawRoute(r, { Q, Q }, 1, Q.X, Q.Z, white, target)
+		t.eq(r.used, 2, "head slot + tail")
+		t.ok(not r.cores[1].Visible, "zero-length head hidden (no stray dot)")
+		t.ok(r.cores[2].Visible, "tail drawn")
+		t.near(r.cores[2].BackgroundTransparency, 0.35, 1e-6, "tail is the faded one")
+		-- next frame: the fast path moves the head; the tail must survive
+		for _ = 1, 5 do
+			M.moveRouteHead(r, Q.X, Q.Z, Q.X, Q.Z)
+		end
+		t.ok(r.cores[2].Visible, "tail still drawn after moveRouteHead")
+		t.eq(#visible(), 1)
+		-- normal route: slot 1 runs from the player's spot to the next corner
+		local pts = { Vector3.new(0, 0, 0), Vector3.new(100, 0, 0), Vector3.new(100, 0, 100) }
+		M.drawRoute(r, pts, 1, 40, 0, white, nil)
+		t.eq(r.used, 2)
+		local u0, v0 = M.worldToMap(70, 0)
+		t.near(r.cores[1].Position.X.Scale * Cfg.WORLD_SIZE, u0, 1e-3, "head centered between the player and the corner")
+		t.near(r.cores[1].Position.Y.Scale * Cfg.WORLD_SIZE, v0, 1e-3)
+		M.moveRouteHead(r, 90, 0, 100, 0)
+		local u1 = M.worldToMap(95, 0)
+		t.near(r.cores[1].Position.X.Scale * Cfg.WORLD_SIZE, u1, 1e-3, "fast path moved the head")
+		t.ok(r.cores[2].Visible, "rest of the route untouched")
+		M.drawRoute(r, nil, 1, 0, 0, white, nil)
+		t.eq(#visible(), 0, "cleared")
+	end)
+
+	-- Fullscreen map ------------------------------------------------------------------------------------------------------
+	t.test("map legend fits phones (two columns above its button, scrolls when short)", function()
+		local n = #MapScreen.legendEntries()
+		t.ok(n >= 17, "every blip kind explained, got " .. n)
+		local top = Cfg.MAP.CHROME_TOP
+		for _, vp in PHONES do
+			for _, topbar in { 36, 58 } do
+				local _, cw, ch = phoneCanvas(vp[1], vp[2], topbar, 0.72)
+				local tag = ("%dx%d topbar %d"):format(vp[1], vp[2], topbar)
+				local lay = MapScreen.legendLayout(n, cw, ch, true)
+				t.eq(lay.cols, 2, tag)
+				t.ok(ch - lay.bottom - lay.height >= top - 1e-6, tag .. ": below the title / hint")
+				t.ok(lay.bottom >= 18 + 48 + 8, tag .. ": above the LEGEND / HIDE button")
+				-- clear of the zoom column (64 px + 18 margin) on the right
+				t.ok(18 + lay.width <= cw - 18 - 64 - 18, tag .. ": clear of the zoom buttons")
+			end
+		end
+		-- desktop: one column at the bottom-left; 720p shows every row without scrolling
+		local lay = MapScreen.legendLayout(n, 1280, 720, false)
+		t.eq(lay.cols, 1)
+		t.ok(not lay.scrolls, "720p fits")
+		t.ok(720 - lay.bottom - lay.height >= top, "below the header")
+		-- a very short window scrolls instead of overflowing
+		local short = MapScreen.legendLayout(n, 1280, 400, false)
+		t.ok(short.scrolls, "scrolls")
+		t.ok(400 - short.bottom - short.height >= top - 1e-6, "still below the header")
+	end)
+
+	t.test("district names step aside from blips", function()
+		local y = MapScreen.placeLabel(100, 100, 40, 10, {}, {}, 0, 12)
+		t.eq(y, 100, "free spot: stays")
+		local y2 = MapScreen.placeLabel(100, 100, 40, 10, { 120 }, { 104 }, 1, 12)
+		t.ok(y2 ~= nil and y2 ~= 100, "moved off the blip")
+		t.ok(math.abs(y2 - 104) >= 10 + 12, "box clears the blip")
+		local blocked = MapScreen.placeLabel(100, 100, 40, 10, { 100, 100, 100, 100, 100 }, {
+			100,
+			76,
+			124,
+			52,
+			148,
+		}, 5, 12)
+		t.eq(blocked, nil, "nowhere to go: skipped")
+		-- the config names sit clear of the garage rows (z = -+681) at the phone fit zoom
+		for _, d in Cfg.DISTRICTS do
+			if d.name == "THE DOCKS" or d.name == "SOUTH SHORE" then
+				t.ok(math.abs(math.abs(d.z) - 681) >= 120, d.name .. " off the garage row")
+			end
+		end
+	end)
+
 	t.test("tap vs drag", function()
 		t.ok(MapScreen.isTap(3, 0.1), "short + still = tap")
 		t.ok(not MapScreen.isTap(40, 0.1), "moved = drag")

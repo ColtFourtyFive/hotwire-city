@@ -53,6 +53,7 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     car.debug_dump(os.path.join(out_dir, "islands_debug.txt"))
     seats = _seats(car)
     exhausts = _exhausts(car)
+    paint_hint = _paint_hint(car)
     if cfg.get("paint_default") and getattr(car, "paint", None):
         car.paint["color_srgb"] = [float(c) for c in cfg["paint_default"]]
     lo_b, hi_b = car.bbox()
@@ -147,7 +148,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
                 route = "tintmask"
                 uvm = _uv_coverage(lows["Body"], size)
                 pc, cov = bake.tint_mask(merged["base"], os.path.join(tex_dir, f"{name}_Body_tintmask.png"),
-                                         os.path.join(tex_dir, f"{name}_Body_overlay.png"), uv_mask=uvm)
+                                         os.path.join(tex_dir, f"{name}_Body_overlay.png"), uv_mask=uvm,
+                                         paint_hint=paint_hint)
                 paint["color_srgb"] = [round(c, 4) for c in pc]
                 paint["mask_coverage"] = round(cov, 3)
                 merged["tintmask"] = os.path.join(tex_dir, f"{name}_Body_tintmask.png")
@@ -381,6 +383,26 @@ def export_glb(path):
         kw.pop("export_lights", None)
         bpy.ops.export_scene.gltf(**kw)
     log("exported", path, f"{os.path.getsize(path) / 1e6:.2f} MB")
+
+
+def _paint_hint(car):
+    """Dominant colour of the body's flanks (doors/fenders between sill and beltline), area weighted, from the
+    per-face texture samples.  Atlas UV space over-represents glass/tyres/trim; 3D area doesn't."""
+    lo, hi = car.bbox()
+    H = hi[2] - lo[2]
+    sel = (car.frole == analyze.BODY) & (car.fc[:, 2] > 0.22 * H) & (car.fc[:, 2] < 0.6 * H) & \
+          (np.abs(car.fn[:, 2]) < 0.8)
+    if sel.sum() < 6:
+        return None
+    col = np.clip(car.fcol[sel], 0, 1)
+    w = car.fa[sel]
+    q = np.clip((col * 12).astype(int), 0, 11)
+    key = q[:, 0] * 144 + q[:, 1] * 12 + q[:, 2]
+    cnt = np.bincount(key, weights=w, minlength=12 ** 3)
+    best = int(cnt.argmax())
+    hint = np.median(col[key == best], axis=0)
+    log(f"paint hint from body flanks: {np.round(hint, 3)} ({cnt[best] / max(w.sum(), 1e-9):.0%} of flank area)")
+    return [float(x) for x in hint]
 
 
 def _seats(car):

@@ -485,7 +485,8 @@ class Car:
                     for k, w in enumerate(dup):
                         w["name"] = f"{nm}{k + 1}"
         if len(wheels) != 4:
-            self.warnings.append(f"found {len(wheels)} wheels (expected 4)")
+            self.warnings.append(f"found {len(wheels)} wheels (expected 4)" +
+                                 ("; several cars in one file? set 'select' in the model config" if len(wheels) > 6 else ""))
         for w in wheels:
             log(f"wheel {w.get('name')}: c={np.round(w['center'], 3)} r={w['radius']:.3f} w={w['width']:.3f} "
                 f"islands={len(w['islands'])}")

@@ -46,14 +46,14 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      1198.224,
-      113.1866,
-      199.463
+      1198.2921,
+      120.0628,
+      204.0798
     ],
     "dims_m": [
-      1198.224,
-      113.187,
-      199.463
+      1198.292,
+      120.063,
+      204.08
     ],
     "front_evidence": "upright_band",
     "flipped": false,
@@ -78,6 +78,6 @@
       "Cylinder_Blade_0",
       "Cylinder_Metal_0"
     ],
-    "render_s": 39.0
+    "render_s": 10.0
   }
 }

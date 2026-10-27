@@ -72,6 +72,8 @@
     "file": "src/bmw27/bmw27_cpu.blend",
     "length": 17.5,
     "class": "coupe (Blender benchmark scene: robustness test only)",
+    "select": "^(?!.*/ 1M /)",
+    "_note": "The benchmark scene holds two cars; the second one is a collection instance named 1M.",
     "source": {
       "title": "BMW27 Cycles benchmark scene",
       "url": "https://download.blender.org/demo/test/",

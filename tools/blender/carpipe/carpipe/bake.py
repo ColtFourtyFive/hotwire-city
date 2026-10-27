@@ -224,7 +224,10 @@ def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     else:
         best = int(score.argmax())
     sel = key == best
-    paint = np.median(px[sel], axis=0) if sel.any() else px.mean(0)
+    if paint_hint is not None and sel.sum() < 50:
+        paint = np.array(paint_hint, dtype=np.float32)
+    else:
+        paint = np.median(px[sel], axis=0) if sel.any() else px.mean(0)
     # match: chroma-normalised distance + loose brightness band (keeps baked shading variations)
     lum = rgb.mean(-1, keepdims=True) + 1e-4
     plum = paint.mean() + 1e-4

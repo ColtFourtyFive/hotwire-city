@@ -50,13 +50,13 @@
   "notes": null,
   "analysis": {
     "import_dims_m": [
-      0.0523,
-      0.3048,
-      0.0969
+      0.0529,
+      0.3059,
+      0.0975
     ],
     "dims_m": [
-      0.305,
-      0.052,
+      0.306,
+      0.053,
       0.097
     ],
     "front_evidence": "upright_band",
@@ -78,6 +78,6 @@
     "object_names": [
       "m9_bayonet_m_m9_bayonet_0"
     ],
-    "render_s": 49.0
+    "render_s": 13.6
   }
 }
