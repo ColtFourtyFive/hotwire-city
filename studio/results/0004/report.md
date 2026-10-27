@@ -1,6 +1,6 @@
 # Job 0004 report: realistic car deep-dive
 
-> **Status: PARTIAL.** The section-A shortlist is done: 13 cars plus the corrected Explorer `16390639371`, 14 in total. The 16 new classes and the yiypoo1024 cars follow. `DONE` comes last.
+> **Status: PARTIAL.** 24 cars are done: the 14 shortlist cars, plus 10 new cars covering muscle, supercar, hatchback and coupe. 12 classes and the yiypoo1024 cars follow. `DONE` comes last.
 
 ## Method
 
@@ -27,3 +27,24 @@
 - **132078381973405 2010 Toyota Prius (Xz_SilvervBCelestial) — 5/5 looks.** Spot-on 3rd-gen Prius: correct silhouette, split rear glass, antenna, California plates, visible interior. 7.4×5.9×16 studs (correct compact scale). 4 clean wheel candidates, 1 seat, 3 scripts removed, 6 textures. **Toyota badges** front/rear + real-format CA plates. Perfect GTA "Dilettante" stand-in. Orientation flipped.
 - **3204824887 Chrysler ME412 (VloneDerrick) — 4/5.** Accurate ME Four-Twelve concept-supercar shape, detailed wheels and lights, quad exhausts. Body has a strong **chrome/reflective look** (reads as silver-blue liquid metal; needs a paint override). Only 30 parts (16 MeshParts) — very cheap. 19.3×5.1×10.1 studs (correct). 4 clean wheel candidates, 2 seats, 64 scripts removed (old A-Chassis). Small Chrysler wing badge. Concept car → effectively unbranded in-game. Orientation correct.
 - **951086064 2009 Nissan Maxima (turbo_isaac) — 3/5.** Correct 7th-gen Maxima shape, but the paint has **blotchy baked-in lighting/reflection artifacts** (white smears on lower panels) that look wrong in daylight. 18×5.5×8.3 studs (correct). 16 wheel candidates, 4 seats, **71 scripts removed** (A-Chassis). **Nissan badges.** Orientation flipped.
+
+### B. New searches
+
+#### muscle car
+- **1535662448 "1978 Charger (Sapphire County)" (jediboy48) — 4/5.** Actually a **1968 Dodge Charger R/T** (internal name): correct coke-bottle body, hidden-headlight grille, twin round tail lights, custom wheels. Paint has a pink→red gradient sheen (odd but repaintable). 22.6×5.9×9.3 studs (correct). 8 wheel candidates, 3 seats, 49 scripts removed. Small Dodge script badges. Orientation correct.
+- **4464423273 "Camaro Z28" (Elrold100) — 4/5 as a body shell.** 1969 Camaro **body only: no wheels, no interior, no seats, 0 scripts**, 14 MeshParts. Accurate shape, chrome bumpers, glowing tail lights, smooth single-colour paint (`0989cf`-like blue) → **ideal for our "cosmetic body + our own wheels" rig** (wheel arches are empty). 9.3×5.3×22.6 studs (correct). No visible badges. Orientation correct.
+- **16219472699 "Classic Mustang" (NotSoFamousBurger) — 5/5 looks.** Superb 1969 Mustang Mach 1 / "Boss" fastback: hood scoop, triple tail lights, Magnum 500 wheels, visible interior. 19.5×5.6×9.1 studs (correct). 12 wheel candidates, 2 seats, 17 scripts removed, 6 textures. **Running-horse grille emblem + "MUSTANG" rear lettering.** Orientation correct. Best muscle car found.
+
+#### supercar / hypercar
+*(Only 2 of the 6 results are actual cars — the rest are "car spawner" hangout kits and a whole dealership map.)*
+- **2954088185 Koenigsegg Regera bodykit (brutalfrog71) — 4/5.** Recognisable Regera with widebody kit, big rear wing, centre exhaust, black 5-spoke wheels. Flat pale-blue paint with no reflections looks a bit clay-like; opaque black glass, no interior. 20.7×4.6×10.4 studs (correct). 12 wheel candidates, 1 seat, 49 scripts removed. Small Koenigsegg nose badge. Orientation correct.
+- **116049719671074 2021 Koenigsegg Jesko (haydenuHand777) — 5/5 looks.** Superb Jesko: huge swan-neck wing, carbon aero, detailed open cockpit interior, red calipers. **Neon-yellow accent strips** (aftermarket-style underglow bits) — removable. 9.3×5×18.1 studs (correct). 24 wheel candidates, 1 seat, 19 scripts removed. Koenigsegg shield badges. Orientation correct. Best hypercar found.
+
+#### hatchback
+*(Only 2 plausible hatchbacks; the other results were SUVs or untitled builds — the yiypoo1024 Pontiac Torrent that appeared here is covered in the creator section.)*
+- **8302262160 Hungarian Seat León (Superroblox4387) — 3/5.** Correct 3rd-gen León Mk3 shape and alloys, but **saturated purple-blue glass**, a slightly lumpy body (visible panel seams/creases) and a white wheel-arch artifact on the front-left. 8.6×6.1×18.2 studs (correct). 4 clean wheel candidates, 4 seats, 39 scripts removed. **SEAT badges, "LEON" lettering, Hungarian plates.** Orientation correct.
+- **5039284025 "Daily Driver" (iilikethecolorredii) — 5/5 looks.** A **Hyundai Veloster N**: tuned with spoiler, diffuser, white multi-spoke wheels, visible interior; great orange paint. 9.1×6×18.2 studs (correct). 8 wheel candidates, 4 seats, 55 scripts removed (A-Chassis, top-level "a-chassis"). **Hyundai + "N" badges**, NJ-style plate. Orientation flipped. Best hatchback found.
+
+#### coupe
+- **15039920309 2010 Edy Sport Coupe (ki7rill) — 4/5.** The Roblox "Good Ol' car" made realistic: generic, **unbranded** sporty coupe (Infiniti-ish), mesh grille, visible interior seats, twin exhausts, 16 textures. Dark matte two-tone paint. 8.7×5.5×17.1 studs (correct). 14 wheel candidates, 4 seats, 21 scripts removed. **No real brand badges** — a big plus. Orientation correct.
+- **86338034228651 Mercedes W215 CL (Mirosyaplayer) — 3/5 looks, 1/5 for our rig.** Recognisable CL500 coupe with baked photo texture (PS2-era game-rip look; texture stretches on bumpers). **Single MeshPart** (1 part, 0 scripts) — wheels are baked into the body, can't spin; no seats. 19×5.6×6.7 studs (narrow). **Mercedes star badges.** Prop only. Orientation correct.
