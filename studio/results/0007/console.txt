@@ -1,0 +1,6 @@
+# Job 0007 console. Studio was restarted before this job, and the new session has not written a log file to
+# ~/Library/Logs/Roblox, so this is the complete Edit-mode LogService:GetLogHistory() for the session, verbatim:
+2026-10-27T20:04:19Z  MessageInfo  illintent1 joined live editing session.
+2026-10-27T20:04:23Z  MessageWarning  ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+2026-10-27T20:05:08Z  MessageWarning  [Rojo-Warn] Could not swap instances Lighting and Lighting during sync replacement: Cannot change Parent of type Lighting
+[Rojo-Warn] Cannot change Parent of type Lighting
