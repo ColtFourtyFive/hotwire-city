@@ -47,12 +47,337 @@
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
-        "Technology": "Future",
-        "Brightness": 2.5,
-        "ClockTime": 16.5,
+        "LightingStyle": "Realistic",
+        "PrioritizeLightingQuality": true,
         "GlobalShadows": true,
         "EnvironmentDiffuseScale": 1,
-        "EnvironmentSpecularScale": 1
+        "EnvironmentSpecularScale": 1,
+        "ShadowSoftness": 0.12,
+        "Brightness": 3,
+        "ExposureCompensation": 0,
+        "Ambient": [0.0549, 0.0549, 0.0627],
+        "OutdoorAmbient": [0.4706, 0.4863, 0.5176],
+        "ClockTime": 11,
+        "GeographicLatitude": 34,
+        "FogEnd": 100000
+      },
+      "Sky": {
+        "$className": "Sky",
+        "$properties": {
+          "SkyboxBk": "rbxassetid://114889706466400",
+          "SkyboxDn": "rbxassetid://126778055421344",
+          "SkyboxFt": "rbxassetid://83431819292615",
+          "SkyboxLf": "rbxassetid://85390262765714",
+          "SkyboxRt": "rbxassetid://79010093641079",
+          "SkyboxUp": "rbxassetid://80903012956799",
+          "StarCount": 0,
+          "SkyboxOrientation": [0, 0, 0],
+          "SunAngularSize": 10,
+          "MoonAngularSize": 6,
+          "CelestialBodiesShown": true
+        }
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Density": 0.27,
+          "Offset": 0.25,
+          "Haze": 0.9,
+          "Glare": 0.25,
+          "Color": [0.7843, 0.7804, 0.7608],
+          "Decay": [0.502, 0.5098, 0.5255]
+        }
+      },
+      "Bloom": {
+        "$className": "BloomEffect",
+        "$properties": {
+          "Intensity": 0.45,
+          "Size": 24,
+          "Threshold": 1.75
+        }
+      },
+      "ColorCorrection": {
+        "$className": "ColorCorrectionEffect",
+        "$properties": {
+          "Brightness": 0,
+          "Contrast": 0.1,
+          "Saturation": 0.02,
+          "TintColor": [1.0, 0.9882, 0.9647]
+        }
+      },
+      "SunRays": {
+        "$className": "SunRaysEffect",
+        "$properties": {
+          "Intensity": 0.04,
+          "Spread": 0.6
+        }
+      }
+    },
+    "MaterialService": {
+      "$className": "MaterialService",
+      "$properties": {
+        "Use2022Materials": true,
+        "AsphaltName": "HC_Asphalt",
+        "BrickName": "HC_BrickRed",
+        "ClayRoofTilesName": "HC_RoofTiles",
+        "ConcreteName": "HC_Concrete",
+        "CorrodedMetalName": "HC_RustyMetal",
+        "GrassName": "HC_Grass",
+        "GroundName": "HC_DryGrass",
+        "LeafyGrassName": "HC_GrassLeafy",
+        "MarbleName": "HC_Terrazzo",
+        "PavementName": "HC_Sidewalk",
+        "PebbleName": "HC_GravelRoof",
+        "PlasterName": "HC_Stucco",
+        "RockName": "HC_Rock",
+        "SandName": "HC_Sand",
+        "SlateName": "HC_RockSlate",
+        "WoodPlanksName": "HC_WoodPlanks"
+      },
+      "HC_Asphalt": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Asphalt",
+          "ColorMap": "rbxassetid://106080567087674",
+          "NormalMap": "rbxassetid://82395533791334",
+          "RoughnessMap": "rbxassetid://101400097276672",
+          "StudsPerTile": 10.71,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_AsphaltWet": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Asphalt",
+          "ColorMap": "rbxassetid://106080567087674",
+          "NormalMap": "rbxassetid://82395533791334",
+          "RoughnessMap": "rbxassetid://113458825437012",
+          "StudsPerTile": 10.71,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_AsphaltWorn": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Asphalt",
+          "ColorMap": "rbxassetid://98395841471900",
+          "NormalMap": "rbxassetid://125684889345496",
+          "RoughnessMap": "rbxassetid://73345421491533",
+          "StudsPerTile": 10.71,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_BrickRed": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Brick",
+          "ColorMap": "rbxassetid://130389958232148",
+          "NormalMap": "rbxassetid://118833929106156",
+          "RoughnessMap": "rbxassetid://80026467457562",
+          "StudsPerTile": 5.0,
+          "MaterialPattern": "Regular"
+        }
+      },
+      "HC_BrickTan": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Brick",
+          "ColorMap": "rbxassetid://119510173406235",
+          "NormalMap": "rbxassetid://83497670939370",
+          "RoughnessMap": "rbxassetid://121569179287723",
+          "StudsPerTile": 8.57,
+          "MaterialPattern": "Regular"
+        }
+      },
+      "HC_Concrete": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Concrete",
+          "ColorMap": "rbxassetid://88103143620940",
+          "NormalMap": "rbxassetid://108032317587097",
+          "RoughnessMap": "rbxassetid://108738468113416",
+          "StudsPerTile": 9.29,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_ConcreteModern": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Concrete",
+          "ColorMap": "rbxassetid://116943333841057",
+          "NormalMap": "rbxassetid://128078512570380",
+          "RoughnessMap": "rbxassetid://127760521028360",
+          "StudsPerTile": 7.86,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_CorrugatedMetal": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Metal",
+          "ColorMap": "rbxassetid://139585554377083",
+          "NormalMap": "rbxassetid://86254278193932",
+          "RoughnessMap": "rbxassetid://138208845857735",
+          "MetalnessMap": "rbxassetid://83264653619688",
+          "StudsPerTile": 4.0,
+          "MaterialPattern": "Regular"
+        }
+      },
+      "HC_DryGrass": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Ground",
+          "ColorMap": "rbxassetid://134312871013415",
+          "NormalMap": "rbxassetid://98703175069894",
+          "RoughnessMap": "rbxassetid://139888354024065",
+          "StudsPerTile": 12.14,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_Grass": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Grass",
+          "ColorMap": "rbxassetid://75296867385240",
+          "NormalMap": "rbxassetid://126844811194480",
+          "RoughnessMap": "rbxassetid://120668241884998",
+          "StudsPerTile": 10.0,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_GrassLeafy": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "LeafyGrass",
+          "ColorMap": "rbxassetid://75296867385240",
+          "NormalMap": "rbxassetid://126844811194480",
+          "RoughnessMap": "rbxassetid://120668241884998",
+          "StudsPerTile": 10.0,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_GravelRoof": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Pebble",
+          "ColorMap": "rbxassetid://127455141637614",
+          "NormalMap": "rbxassetid://135941849676099",
+          "RoughnessMap": "rbxassetid://82587919945553",
+          "StudsPerTile": 5.36,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_Rock": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Rock",
+          "ColorMap": "rbxassetid://126554197799218",
+          "NormalMap": "rbxassetid://118583349787184",
+          "RoughnessMap": "rbxassetid://82781631164072",
+          "StudsPerTile": 14.29,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_RockSlate": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Slate",
+          "ColorMap": "rbxassetid://126554197799218",
+          "NormalMap": "rbxassetid://118583349787184",
+          "RoughnessMap": "rbxassetid://82781631164072",
+          "StudsPerTile": 14.29,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_RoofTiles": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "ClayRoofTiles",
+          "ColorMap": "rbxassetid://75493501087088",
+          "NormalMap": "rbxassetid://110333215055924",
+          "RoughnessMap": "rbxassetid://92854047635751",
+          "StudsPerTile": 11.43,
+          "MaterialPattern": "Regular"
+        }
+      },
+      "HC_RustyMetal": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "CorrodedMetal",
+          "ColorMap": "rbxassetid://121760156100942",
+          "NormalMap": "rbxassetid://89843136414455",
+          "RoughnessMap": "rbxassetid://74967078007968",
+          "MetalnessMap": "rbxassetid://94311440452052",
+          "StudsPerTile": 7.14,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_Sand": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Sand",
+          "ColorMap": "rbxassetid://113487495361728",
+          "NormalMap": "rbxassetid://121798218902378",
+          "RoughnessMap": "rbxassetid://83198137307610",
+          "StudsPerTile": 12.14,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_Sidewalk": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Pavement",
+          "ColorMap": "rbxassetid://86008103423825",
+          "NormalMap": "rbxassetid://110858632664595",
+          "RoughnessMap": "rbxassetid://134979087290717",
+          "StudsPerTile": 10.71,
+          "MaterialPattern": "Regular"
+        }
+      },
+      "HC_Stucco": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Plaster",
+          "ColorMap": "rbxassetid://75989316793017",
+          "NormalMap": "rbxassetid://72451504566057",
+          "RoughnessMap": "rbxassetid://71730022657615",
+          "StudsPerTile": 7.14,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_Terrazzo": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Marble",
+          "ColorMap": "rbxassetid://117333312157689",
+          "NormalMap": "rbxassetid://72451453239950",
+          "RoughnessMap": "rbxassetid://112050889134517",
+          "StudsPerTile": 5.71,
+          "MaterialPattern": "Organic"
+        }
+      },
+      "HC_WindowGlass": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "SmoothPlastic",
+          "ColorMap": "rbxassetid://92834021315347",
+          "NormalMap": "rbxassetid://129830663186003",
+          "RoughnessMap": "rbxassetid://100876394263649",
+          "MetalnessMap": "rbxassetid://132000550188044",
+          "StudsPerTile": 12.14,
+          "MaterialPattern": "Regular"
+        }
+      },
+      "HC_WoodPlanks": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "WoodPlanks",
+          "ColorMap": "rbxassetid://78080135923172",
+          "NormalMap": "rbxassetid://93367484573314",
+          "RoughnessMap": "rbxassetid://115688360387359",
+          "StudsPerTile": 6.43,
+          "MaterialPattern": "Regular"
+        }
       }
     },
     "SoundService": {
