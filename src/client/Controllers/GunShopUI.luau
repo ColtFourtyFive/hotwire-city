@@ -330,6 +330,14 @@ local function lazy(name: string): any
 	return if ok and typeof(res) == "table" then res else nil
 end
 
+-- A drawn gun's shoulder camera locks and hides the cursor: suspend it while the shop is up (ShoulderCamera contract).
+local function suspendShoulderCamera(on: boolean)
+	local cam = lazy("ShoulderCamera")
+	if cam and typeof(cam.setSuspended) == "function" then
+		pcall(cam.setSuspended, "gunshop", on)
+	end
+end
+
 local function ctxNow(): Ctx
 	local state = lazy("StateController")
 	local snap = if state and typeof(state.get) == "function" then state.get() else nil
@@ -365,11 +373,21 @@ local activateRow: (number) -> () = function() end
 local goBack: () -> () = function() end
 
 local function build(): View
-	local gui = Kit.screen("HC_GunShop", GunShopUI.LAYER, { touchMin = (Theme :: any).TouchMinScale or 0.72 })
+	local gui = Kit.screen("HC_GunShop", GunShopUI.LAYER, { touchMin = Theme.TouchMinScale })
 	gui.Enabled = false
 	pcall(function()
 		(gui :: any).ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	end)
+	-- frees a locked mouse (shift-lock / first person) while the shop is up, as UI/ListMenu does; a 1 px button so it
+	-- never swallows taps meant for the world or the touch controls
+	Kit.new("TextButton", {
+		Name = "Modal",
+		Modal = true,
+		BackgroundTransparency = 1,
+		Text = "",
+		Size = UDim2.fromOffset(1, 1),
+		Parent = gui,
+	})
 	local W = GunShopUI.WIDTH
 	local menu = Kit.new("Frame", {
 		Name = "Menu",
@@ -960,6 +978,7 @@ function GunShopUI.open()
 	table.clear(stack)
 	isOpenFlag = true
 	vv.gui.Enabled = true
+	suspendShoulderCamera(true)
 	openMenu("root")
 	bind(true)
 	if turntable then
@@ -983,6 +1002,7 @@ function GunShopUI.close()
 	end
 	isOpenFlag = false
 	bind(false)
+	suspendShoulderCamera(false)
 	if turntable then
 		turntable:Disconnect()
 		turntable = nil

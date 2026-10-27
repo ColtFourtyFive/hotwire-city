@@ -254,6 +254,15 @@ local function playSound(key: string)
 	end
 end
 
+-- The over-the-shoulder camera (combat) locks and hides the cursor while a gun is drawn: the phone suspends it while
+-- it is up so its tiles and rows can be clicked (ShoulderCamera contract).
+local function suspendShoulderCamera(on: boolean)
+	local cam = lazy("ShoulderCamera")
+	if cam and typeof(cam.setSuspended) == "function" then
+		pcall(cam.setSuspended, "phone", on)
+	end
+end
+
 -- Settings > Sound effects applies (UI/UISound).
 local function uiSound(key: string)
 	UISound.play(key, { life = 3 })
@@ -892,6 +901,7 @@ local function ensurePhone(): any
 	phone.Closed:Connect(function()
 		currentApp = nil
 		currentContact = nil
+		suspendShoulderCamera(false)
 		local hud = lazy("HUDController")
 		if hud and typeof(hud.setPhoneOpen) == "function" then
 			pcall(hud.setPhoneOpen, false)
@@ -910,6 +920,7 @@ function PhoneController.open()
 		pcall(menu.closePause)
 	end
 	p:open()
+	suspendShoulderCamera(true)
 	local hud = lazy("HUDController")
 	if hud and typeof(hud.setPhoneOpen) == "function" then
 		pcall(hud.setPhoneOpen, true)

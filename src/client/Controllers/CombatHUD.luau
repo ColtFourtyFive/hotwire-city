@@ -6,8 +6,13 @@
 --    Armour Blue #5DB6E5 from the server's Armor attribute. The third (yellow) slot is the ability bar: setAbility().
 --    The bars snap under B2's v2 radar (HC_HUD > Minimap) or the v1 radar (HC_Minimap > Radar) when either exists;
 --    setBarsAnchor(frame) overrides that.
---  * Ammo top-right under the cash: clip in Text, reserve in TextDim, Kanit 26 (guns only). The weapon silhouette
---    shows under it for 2 s after a switch (desktop; on touch WeaponClient's weapon button takes that spot).
+--  * Ammo top-right under the cash: clip in Text, reserve in TextDim, Kanit 26 (guns only). When B2's HUDController
+--    is up (HC_HUD) the ammo goes through HUDController.setAmmo into its own line under the cash / delta lines, and
+--    setAbility is forwarded to HUDController.setAbility; our label is only the fallback without it. The weapon
+--    silhouette shows under the ammo line for 2 s after a switch (desktop; on touch WeaponClient's weapon button
+--    takes that spot).
+--  * Hidden with the HUD (HUDController.VisibilityChanged): streamer mode, photo mode and the pause menu hide the
+--    bars / ammo / icon layer; the crosshair layer stays in streamer mode (you still have to aim).
 --  * Crosshair (own full-screen gui, so its centre is the camera's centre): a 4 px dot that turns Red over a person,
 --    four ticks that open with the live spread (SMGs, rifles, shotguns), and the marksman's scope overlay instead
 --    while scoped.
@@ -122,6 +127,10 @@ type View = {
 }
 
 local view: View? = nil
+local hudCtl: any = nil -- B2's HUDController when it is running (owns the ammo line and the bars)
+local hudOwnsAmmo = false
+local sentMag = -2 -- last values sent to HUDController.setAmmo (-1 = hidden), so it is called on change only
+local sentReserve = -2
 local barsAnchor: GuiObject? = nil
 local barsAnchorManual = false
 local ability: number? = nil
@@ -246,7 +255,7 @@ end
 
 local function build(): View
 	-- HUD layer (design canvas, corner anchored)
-	local hud = Kit.screen("HC_CombatHUD", Style.Layers.HUD, { touchMin = (Theme :: any).TouchMinScale or 0.72 })
+	local hud = Kit.screen("HC_CombatHUD", Style.Layers.HUD, { touchMin = Theme.TouchMinScale })
 	pcall(function()
 		(hud :: any).ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	end)
@@ -507,9 +516,12 @@ function CombatHUD.setBarsAnchor(frame: GuiObject?)
 	placeBars()
 end
 
--- Ability (third, yellow) bar fill 0..1; nil empties it.
+-- Ability (third, yellow) bar fill 0..1; nil empties it (HUDController: nil = its automatic nitro / stamina).
 function CombatHUD.setAbility(fraction: number?)
 	ability = if fraction then math.clamp(fraction, 0, 1) else nil
+	if hudCtl and typeof(hudCtl.setAbility) == "function" then
+		pcall(hudCtl.setAbility, ability)
+	end
 end
 
 -- Hit marker (also driven by HitConfirm). kind: "body" | "head" | "armor" | "down".
@@ -681,15 +693,31 @@ local function updateLowHealth(v: View, hp: number, alive: boolean)
 	end
 end
 
+-- Ammo: HUDController's line when it owns it (called on change only), else our fallback label.
+local function showAmmo(v: View, gun: boolean, mag: number, reserve: number)
+	if hudOwnsAmmo then
+		if v.ammo.Visible then
+			v.ammo.Visible = false
+		end
+		local m = if gun then mag else -1
+		local r = if gun then reserve else -1
+		if m ~= sentMag or r ~= sentReserve then
+			sentMag, sentReserve = m, r
+			pcall(hudCtl.setAmmo, if gun then mag else nil, if gun then reserve else nil)
+		end
+		return
+	end
+	v.ammo.Visible = gun
+	if gun then
+		v.ammo.Text = CombatHUD._ammoText(mag, reserve)
+	end
+end
+
 local function updateWeapon(v: View, now: number)
 	local st = WeaponClient.getState()
 	local def: Weapons.WeaponDef? = st.def
 	local gun = Weapons.isGun(def)
-	-- ammo
-	v.ammo.Visible = gun
-	if gun then
-		v.ammo.Text = CombatHUD._ammoText(st.mag, st.reserve)
-	end
+	showAmmo(v, gun, st.mag, st.reserve)
 	-- switch icon
 	local eq = WeaponClient.equipped()
 	if eq ~= lastEquipped then
@@ -786,6 +814,58 @@ local function updateProtected()
 	end
 end
 
+-- Where the weapon icon goes: under HUDController's ammo line (design px on the same Kit.screen canvas), else under
+-- our own label. Pure (tests).
+function CombatHUD._iconPosition(ammoRect: { x: number, y: number, w: number, h: number }?): UDim2
+	if ammoRect then
+		return UDim2.fromOffset(ammoRect.x + ammoRect.w, ammoRect.y + ammoRect.h + 2)
+	end
+	return UDim2.new(1, -Style.SAFE, 0, 124)
+end
+
+local function placeIcon()
+	local v = view
+	if not v then
+		return
+	end
+	local rect: { x: number, y: number, w: number, h: number }? = nil
+	if hudOwnsAmmo and typeof(hudCtl.getLayout) == "function" then
+		local ok, L = pcall(hudCtl.getLayout)
+		if ok and typeof(L) == "table" and typeof(L.ammo) == "table" then
+			rect = L.ammo
+		end
+	end
+	v.icon.Position = CombatHUD._iconPosition(rect)
+end
+
+-- HUDController owns the ammo line once its HC_HUD exists (it mounts in its own start()).
+local function refreshHudOwnership()
+	local pg = player:FindFirstChildOfClass("PlayerGui")
+	local owns = hudCtl ~= nil
+		and typeof(hudCtl.setAmmo) == "function"
+		and pg ~= nil
+		and pg:FindFirstChild("HC_HUD") ~= nil
+	if owns ~= hudOwnsAmmo then
+		hudOwnsAmmo = owns
+		sentMag, sentReserve = -2, -2
+		placeIcon()
+	end
+end
+
+-- Streamer mode / photo mode / pause hide the bars, ammo and icon; only photo mode and pause hide the crosshair.
+local function applyHudHidden()
+	local v = view
+	if not v or not hudCtl or typeof(hudCtl.hiddenState) ~= "function" then
+		return
+	end
+	local ok, streamer, photo, paused = pcall(hudCtl.hiddenState)
+	if not ok then
+		return
+	end
+	v.hud.Enabled = not (streamer or photo or paused)
+	v.center.Enabled = not (photo or paused)
+end
+
 -- Find a radar frame to hang the bars under (B2's v2 HUD first, then the v1 radar).
 local function findRadar(): GuiObject?
 	local pg = player:FindFirstChildOfClass("PlayerGui")
@@ -814,6 +894,17 @@ function CombatHUD.start()
 	local v = build()
 	view = v
 	placeBars()
+	hudCtl = lazy("HUDController")
+	refreshHudOwnership()
+	if hudCtl then
+		if typeof(hudCtl.LayoutChanged) == "table" then
+			hudCtl.LayoutChanged:Connect(placeIcon)
+		end
+		if typeof(hudCtl.VisibilityChanged) == "table" then
+			hudCtl.VisibilityChanged:Connect(applyHudHidden)
+		end
+		applyHudHidden()
+	end
 	pcall(Net.listen, "HitConfirm", function(kind: any)
 		if typeof(kind) == "string" then
 			CombatHUD.hitMarker(kind)
@@ -849,6 +940,7 @@ function CombatHUD.start()
 		if slowAcc >= 0.25 then
 			slowAcc = 0
 			updateProtected()
+			refreshHudOwnership()
 			if not barsAnchorManual then
 				local radar = findRadar()
 				if radar ~= barsAnchor then

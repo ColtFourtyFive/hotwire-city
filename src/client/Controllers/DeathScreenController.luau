@@ -1,14 +1,16 @@
 --!strict
 -- DeathScreenController (gta_combat §7, gta_ui_language §5.9): the WASTED and BUSTED big-message sequences.
 --
---  * HC_Shard (DisplayOrder 50): a full-width black band at 48.8% H, 19.5% H tall, ~50% opaque; lowercase title in the
---    heavy display face (`wasted` WastedRed #B3212F, `busted` Blue #5DB6E5), no stroke, TextScaled up to 110;
---    Montserrat 18 subtitle inside the band ("Hospital bill -$X", "Bail -$X · <Car> impounded"). No cartoon stamps,
---    no police lights, no emoji.
+--  * The big message is the shared UI/Shard (B2, HC_Shard, DisplayOrder 50): the keystone band at 48.8% H, ~50%
+--    opaque; lowercase Kanit title (`wasted` WastedRed #B3212F, `busted` Blue #5DB6E5) laid out at 720p and scaled to
+--    ~14% of the screen height; Montserrat subtitle ("Hospital bill -$X", "Bail -$X · <Car> impounded"). We call it
+--    with grade and sound off (this controller owns the grade, the sounds and the timing) and hide it in finish().
+--    No cartoon stamps, no police lights, no emoji.
+--  * HC_DeathFx (DisplayOrder Shard - 1): the edge vignette and the BUSTED world fade, under the band.
 --  * Grade (local, under workspace.CurrentCamera): ColorCorrection saturation 0 -> -1, contrast +0.3, brightness -0.05
 --    over 0.6 s, blur 3, dark edge vignette; SFX muffled (HighGain -25, MidGain -10); deep impact + reverse whoosh.
 --  * WASTED: t=1.0 grade + a slow dolly up and back (2 studs/s) with a 6 degree dutch tilt and FOV -10 over 5 s;
---    t=1.2 shard; t=4.4 HC_Fade (DisplayOrder 60) to black; after the server respawns us (5 s): fade in 0.6 s, grade
+--    t=1.2 shard; t=4.4 the shared HC_Fade curtain (Shard.fadeBlack, DisplayOrder 60) to black; after the server respawns us (5 s): fade in 0.6 s, grade
 --    off, feed "Treated at <Hospital>. Bill -$X".
 --  * BUSTED (alive, §5.9 timeline): t=0 the shoulder camera lets go; t=1.0 grade + a 3/4 camera on us and the
 --    nearest officer; t=1.2 shard; t=4.4 the world (not the band) fades to black before the server's release
@@ -31,6 +33,8 @@ local Format = require(Shared:WaitForChild("Util"):WaitForChild("Format"))
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
+local RichText = require(UI:WaitForChild("RichText"))
+local Shard = require(UI:WaitForChild("Shard"))
 local Style = require(UI:WaitForChild("CombatStyle"))
 
 local ShoulderCamera = require(script.Parent:WaitForChild("ShoulderCamera"))
@@ -47,9 +51,6 @@ DeathScreenController.BUSTED_BLACK_AT = 4.4 -- the release teleport happens at W
 DeathScreenController.BUSTED_REVEAL_AT = 5.3
 DeathScreenController.BUSTED_OUT_AT = 6.0
 DeathScreenController.SAFETY = 9 -- clean up even if no respawn arrives
-DeathScreenController.BAND_Y = 0.488
-DeathScreenController.BAND_H = 0.195
-DeathScreenController.BAND_ALPHA = 0.5
 
 local player = Players.LocalPlayer
 
@@ -112,18 +113,13 @@ end
 -- STATE ------------------------------------------------------------------------------------------------------------------
 
 type View = {
-	shard: ScreenGui,
-	band: Frame,
-	title: TextLabel,
-	titleScale: UIScale,
-	subtitle: TextLabel,
+	gui: ScreenGui,
 	worldFade: Frame,
 	vignette: Frame,
-	fadeGui: ScreenGui,
-	fade: Frame,
 }
 
 local view: View? = nil
+local shardToken: number? = nil -- our UI/Shard message while it is up
 local token = 0
 local active: string? = nil
 local awaitingRespawn = false
@@ -206,7 +202,8 @@ local function fullScreen(name: string, order: number): ScreenGui
 end
 
 local function build(): View
-	local shard = fullScreen("HC_Shard", Style.Layers.Shard)
+	-- under the shared shard band (same layer would be an undefined order between two ScreenGuis)
+	local gui = fullScreen("HC_DeathFx", Style.Layers.Shard - 1)
 	local worldFade = Kit.new("Frame", {
 		Name = "WorldFade",
 		Size = UDim2.fromScale(1, 1),
@@ -214,7 +211,7 @@ local function build(): View
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ZIndex = 1,
-		Parent = shard,
+		Parent = gui,
 	}) :: Frame
 	local vignette = Kit.new("Frame", {
 		Name = "Vignette",
@@ -222,72 +219,16 @@ local function build(): View
 		BackgroundTransparency = 1,
 		ZIndex = 2,
 		Visible = false,
-		Parent = shard,
+		Parent = gui,
 	}) :: Frame
 	edge(vignette, UDim2.fromScale(1, 0.28), UDim2.fromScale(0, 0), Vector2.zero, 90)
 	edge(vignette, UDim2.fromScale(1, 0.28), UDim2.fromScale(0, 1), Vector2.new(0, 1), -90)
 	edge(vignette, UDim2.fromScale(0.22, 1), UDim2.fromScale(0, 0), Vector2.zero, 0)
 	edge(vignette, UDim2.fromScale(0.22, 1), UDim2.fromScale(1, 0), Vector2.new(1, 0), 180)
-	local band = Kit.new("Frame", {
-		Name = "Band",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, DeathScreenController.BAND_Y),
-		Size = UDim2.fromScale(1, 0),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = DeathScreenController.BAND_ALPHA,
-		BorderSizePixel = 0,
-		ZIndex = 3,
-		Parent = shard,
-	}) :: Frame
-	local title = Kit.new("TextLabel", {
-		Name = "Title",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.42),
-		Size = UDim2.fromScale(0.5, 0.62),
-		BackgroundTransparency = 1,
-		Text = "",
-		TextScaled = true,
-		TextTransparency = 1,
-		FontFace = Style.font("Display"),
-		TextColor3 = Style.Colors.WastedRed,
-		ZIndex = 4,
-		Parent = band,
-	}) :: TextLabel
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 110, Parent = title })
-	local titleScale = Kit.new("UIScale", { Scale = 1, Parent = title }) :: UIScale
-	local subtitle = Kit.new("TextLabel", {
-		Name = "Subtitle",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.86),
-		Size = UDim2.fromScale(0.8, 0.18),
-		BackgroundTransparency = 1,
-		Text = "",
-		TextTransparency = 1,
-		TextSize = 18,
-		FontFace = Style.font("Body"),
-		TextColor3 = Style.Colors.Text,
-		ZIndex = 4,
-		Parent = band,
-	}) :: TextLabel
-	local fadeGui = fullScreen("HC_Fade", Style.Layers.Fade)
-	local fade = Kit.new("Frame", {
-		Name = "Black",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		Parent = fadeGui,
-	}) :: Frame
 	return {
-		shard = shard,
-		band = band,
-		title = title,
-		titleScale = titleScale,
-		subtitle = subtitle,
+		gui = gui,
 		worldFade = worldFade,
 		vignette = vignette,
-		fadeGui = fadeGui,
-		fade = fade,
 	}
 end
 
@@ -341,6 +282,9 @@ local function setGrade(on: boolean, time: number)
 	end
 	local v = getView()
 	v.vignette.Visible = on
+	if on then
+		v.gui.Enabled = true
+	end
 end
 
 local function stopDrift()
@@ -452,52 +396,37 @@ end
 
 -- SHARD ----------------------------------------------------------------------------------------------------------------
 
-local function shardIn(titleText: string, color: Color3, subtitle: string)
+-- The shared big message (UI/Shard): its band, title and subtitle; our grade, sounds and timeline. The hold outlasts
+-- every path to finish(), which hides it.
+local function shardIn(kind: string, subtitle: string)
 	local v = getView()
-	v.shard.Enabled = true
-	v.title.Text = titleText
-	v.title.TextColor3 = color
-	v.title.TextTransparency = 1
-	v.subtitle.Text = subtitle
-	v.subtitle.TextTransparency = 1
-	local cam = Workspace.CurrentCamera
-	local vpY = if cam then cam.ViewportSize.Y else 720
-	v.subtitle.TextSize = math.clamp(math.floor(18 * vpY / 720), 13, 30)
-	v.band.Size = UDim2.fromScale(1, 0)
-	v.band.BackgroundTransparency = DeathScreenController.BAND_ALPHA
-	tween(v.band, 0.25, { Size = UDim2.fromScale(1, DeathScreenController.BAND_H) })
-	v.titleScale.Scale = 1.12
-	tween(v.titleScale, 0.35, { Scale = 1 })
-	tween(v.title, 0.35, { TextTransparency = 0 })
-	tween(v.subtitle, 0.5, { TextTransparency = 0 })
+	v.gui.Enabled = true
+	local ok, tok = pcall(Shard.show, kind, nil, RichText.escape(subtitle), {
+		grade = false,
+		sound = false,
+		hold = DeathScreenController.SAFETY,
+	})
+	shardToken = if ok and typeof(tok) == "number" then tok else nil
 end
 
 local function shardOut(time: number)
+	local mine = shardToken
+	shardToken = nil
+	-- only our message: a newer shard (delivered, a reveal) that replaced it is left alone
+	if mine ~= nil and Shard.isShowing() and Shard.currentToken() == mine then
+		pcall(Shard.hide, time < 0.3)
+	end
 	local v = getView()
-	tween(v.band, time, { BackgroundTransparency = 1 })
-	tween(v.title, time, { TextTransparency = 1 })
-	tween(v.subtitle, time, { TextTransparency = 1 })
 	local my = token
 	task.delay(time + 0.05, function()
 		if my == token and not active then
-			v.shard.Enabled = false
+			v.gui.Enabled = false
 		end
 	end)
 end
 
 local function fadeBlack(on: boolean, time: number)
-	local v = getView()
-	if on then
-		v.fadeGui.Enabled = true
-	end
-	tween(v.fade, time, { BackgroundTransparency = if on then 0 else 1 })
-	if not on then
-		task.delay(time + 0.05, function()
-			if v.fade.BackgroundTransparency >= 0.99 then
-				v.fadeGui.Enabled = false
-			end
-		end)
-	end
+	pcall(Shard.fadeBlack, on, time)
 end
 
 -- The sequence owns the camera: the shoulder camera disengages first (restoring the pre-gun FOV) and stays out
@@ -534,7 +463,7 @@ local function rootPosition(): Vector3?
 end
 
 -- The dead variant (wasted, or busted after dying while wanted): ends when the next character spawns.
-local function deadSequence(kind: string, titleText: string, color: Color3, subtitle: string)
+local function deadSequence(kind: string, subtitle: string)
 	token += 1
 	local my = token
 	active = kind
@@ -554,7 +483,7 @@ local function deadSequence(kind: string, titleText: string, color: Color3, subt
 	end)
 	task.delay(DeathScreenController.SHARD_AT, function()
 		if my == token then
-			shardIn(titleText, color, subtitle)
+			shardIn(kind, subtitle)
 		end
 	end)
 	task.delay(DeathScreenController.FADE_AT, function()
@@ -577,7 +506,7 @@ function DeathScreenController.showWasted(info: { [string]: any })
 		bill,
 		nil
 	)
-	deadSequence("wasted", "wasted", Style.Colors.WastedRed, DeathScreenController._wastedSubtitle(info))
+	deadSequence("wasted", DeathScreenController._wastedSubtitle(info))
 end
 
 function DeathScreenController.showBusted(lost: number, carLabel: string?)
@@ -589,7 +518,7 @@ function DeathScreenController.showBusted(lost: number, carLabel: string?)
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	local root = char and char:FindFirstChild("HumanoidRootPart")
 	if not hum or hum.Health <= 0 or not root or not root:IsA("BasePart") then
-		deadSequence("busted", "busted", Style.Colors.Blue, subtitle)
+		deadSequence("busted", subtitle)
 		return
 	end
 	token += 1
@@ -609,7 +538,7 @@ function DeathScreenController.showBusted(lost: number, carLabel: string?)
 	end)
 	task.delay(DeathScreenController.BUSTED_SHARD_AT, function()
 		if my == token then
-			shardIn("busted", Style.Colors.Blue, subtitle)
+			shardIn("busted", subtitle)
 		end
 	end)
 	task.delay(DeathScreenController.BUSTED_BLACK_AT, function()

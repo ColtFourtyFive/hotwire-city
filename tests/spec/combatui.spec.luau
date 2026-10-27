@@ -191,33 +191,51 @@ return function(t)
 			local up = WC._aimTarget(head, V3.new(0, 0.5, -1), 30, 60)
 			t.near(up.Y - head.Y, 60 * math.sin(math.rad(30)), 1e-6, "pitch from the attribute, not the look vector")
 			t.ok(WC._aimTarget(head, V3.new(0, 0, -1), 89, 60).Y < head.Y + 60, "clamped below straight up")
-			-- touch cluster on a phone's safe canvas (~1172 x 460 design px): no overlaps, all below the weapon button
-			-- (y 124..168) and the ammo readout
-			local W, Hh = 1172, 460
-			local L = WC.TOUCH_LAYOUT
-			local sizes = {
-				fire = WC.FIRE_BUTTON,
-				aim = WC.AIM_BUTTON,
-				reload = WC.RELOAD_BUTTON,
-				swap = WC.SWAP_BUTTON,
-				surrender = WC.SURRENDER_BUTTON,
+			-- touch cluster from the shared HUD layout (UI/HudLayout) on phone and tablet canvases: inside the canvas,
+			-- on the right half (the thumbstick owns the left), clear of each other, of Roblox's jump button, of the
+			-- HUD's PHONE / MAP buttons and of the top-right cash / ammo / arrest / stars block
+			local HudLayout = H.require("src/client/UI/HudLayout")
+			local canvases = {
+				{ 1172, 460, 0.72 }, -- small phone (combat's original budget)
+				{ 844 / 0.72, 354 / 0.72, 0.72 }, -- iPhone 13 landscape inside the safe insets
+				{ 1280, 720, 1 }, -- tablet: the big jump button
+				{ 1024, 768, 1 }, -- 4:3 tablet
 			}
-			local rects = {}
-			for name, size in sizes do
-				local pos = L[name]
-				local right = pos.X.Scale * W + pos.X.Offset -- anchor (1, 1)
-				local bottom = pos.Y.Scale * Hh + pos.Y.Offset
-				rects[name] = { x0 = right - size, x1 = right, y0 = bottom - size, y1 = bottom }
-				t.ok(bottom - size > 168 + 8, name .. " sits below the weapon button")
-				t.ok(right - size > W * 0.5, name .. " stays on the right half (thumbstick side is left)")
-			end
-			for a, ra in rects do
-				for b, rb in rects do
-					if a < b then
-						local overlap = ra.x0 < rb.x1 and rb.x0 < ra.x1 and ra.y0 < rb.y1 and rb.y0 < ra.y1
-						t.ok(not overlap, a .. " overlaps " .. b)
+			for _, c in canvases do
+				local W, Hh, scale = c[1], c[2], c[3]
+				local L = HudLayout.compute(W, Hh, true, { scale = scale })
+				local jump = HudLayout.jumpButton(W, Hh, scale)
+				local rects = WC.touchRects(L, jump)
+				local tag = (" @ %dx%d"):format(W, Hh)
+				local names = { "fire", "aim", "reload", "swap", "surrender", "weapon" }
+				for _, name in names do
+					local r = rects[name]
+					t.ok(HudLayout.inside(r, W, Hh), name .. " inside the canvas" .. tag)
+					t.ok(r.x > W * 0.5, name .. " stays on the right half" .. tag)
+					for _, other in
+						{
+							{ "jump", jump },
+							{ "phone", L.buttons.phone },
+							{ "map", L.buttons.map },
+							{ "cash", L.cash },
+							{ "delta", L.delta },
+							{ "ammo", L.ammo },
+							{ "arrest", L.arrest },
+							{ "stars", L.stars },
+						}
+					do
+						t.ok(not HudLayout.overlaps(r, other[2]), name .. " clear of " .. other[1] .. tag)
 					end
 				end
+				for i = 1, #names do
+					for j = i + 1, #names do
+						t.ok(
+							not HudLayout.overlaps(rects[names[i]], rects[names[j]]),
+							names[i] .. " overlaps " .. names[j] .. tag
+						)
+					end
+				end
+				t.eq(rects.fire.y + rects.fire.h, jump.y + jump.h, "FIRE level with the jump button" .. tag)
 			end
 			H.setMode("server")
 		end

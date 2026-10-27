@@ -15,7 +15,7 @@
 --                that comes before the shard ends (short RespawnTime) ends a graded / black-out shard right away:
 --                no curtain over a live player, no grey grade after the respawn.
 --   Shard.hide(fast?)            fades the current shard out (also removes the grade)
---   Shard.isShowing(): boolean
+--   Shard.isShowing(): boolean / Shard.currentToken(): number   (the token Shard.show returned for the message on screen)
 --   Shard.setGrade(on, seconds?) the death / arrest grade: ColorCorrection Saturation -1 / Contrast 0.3 /
 --                                Brightness -0.05, a light blur, the vignette and a muffled world mix (local only:
 --                                effects live under workspace.CurrentCamera, the EQ on the HC_SFX / HC_Music groups)
@@ -534,6 +534,11 @@ end
 
 function Shard.isShowing(): boolean
 	return showing
+end
+
+-- The token of the message on screen (Shard.show's return value): a caller hides only its own message.
+function Shard.currentToken(): number
+	return token
 end
 
 -- The local player (for consumers that only have Shard).

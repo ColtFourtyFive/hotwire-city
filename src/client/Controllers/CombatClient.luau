@@ -26,6 +26,7 @@ local Trove = require(Shared:WaitForChild("Util"):WaitForChild("Trove"))
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
+local Theme = require(UI:WaitForChild("Theme"))
 local Style = require(UI:WaitForChild("CombatStyle"))
 local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
@@ -43,12 +44,13 @@ local TOUCH_AIM_MEMORY = 0.45 -- seconds a tap position stays the aim point
 local ASSIST_RADIUS_MOUSE = 60 -- px
 local ASSIST_RADIUS_TOUCH = 170 -- px (touch + gamepad are imprecise)
 local SPARK_COLOR = Color3.fromRGB(190, 225, 255)
--- SPIKES touch button (92 px): spans x W-236..W-144, y H-262..H-170 on the design canvas, left of VehicleClient's
--- HORN (x W-124..W-40) and EXIT (H-354..H-270), above DRIFT (top H-128) and NITRO (top H-150).
+-- Touch buttons on the shared HUD canvas (Kit.screen with Theme.TouchMinScale, like HC_HUD and the driving UI). Once
+-- WeaponClient is up they are placed from the HUD layout (placeGadgetButtons): SPIKES in UI/HudLayout's in-car
+-- `spikes` slot (left of EXIT in the driving cluster), STUN in WeaponClient's FIRE rect (a gadget is not a gun, so
+-- FIRE is hidden). The fixed spots below are only the fallback.
 local SPIKE_BUTTON_SIZE = 92
 local SPIKE_BUTTON_ANCHOR = Vector2.new(1, 1)
 local SPIKE_BUTTON_POSITION = UDim2.new(1, -144, 1, -170)
--- STUN button: on foot it sits where WeaponClient's FIRE button would (a gadget is not a gun, so FIRE is hidden).
 local ACTION_BUTTON_SIZE = 100
 local ACTION_BUTTON_POSITION = UDim2.new(1, -28, 1, -170)
 
@@ -656,9 +658,34 @@ function CombatClient.cooldownRemaining(toolId: string): number
 	return math.max(0, (cooldownEnds[toolId] or 0) - os.clock())
 end
 
+-- Place STUN / SPIKES from the shared HUD layout (see the constants above); keeps the fallback spots without it.
+local function placeGadgetButtons(gui: ScreenGui)
+	local wc = lazyController("WeaponClient")
+	if not (wc and typeof(wc.touchLayoutFor) == "function" and typeof(wc.touchRects) == "function") then
+		return
+	end
+	local ok, L, jump = pcall(wc.touchLayoutFor, gui)
+	if not ok or typeof(L) ~= "table" then
+		return
+	end
+	local okRects, rects = pcall(wc.touchRects, L, jump)
+	if not okRects or typeof(rects) ~= "table" then
+		return
+	end
+	local function put(rb: RoundButton?, r: any)
+		if rb and typeof(r) == "table" then
+			rb.button.AnchorPoint = Vector2.zero
+			rb.button.Position = UDim2.fromOffset(r.x, r.y)
+			rb.button.Size = UDim2.fromOffset(r.w, r.h)
+		end
+	end
+	put(actionButton, rects.fire)
+	put(spikeButton, L.buttons and L.buttons.spikes)
+end
+
 function CombatClient.start()
 	-- UI (named HC_Gadgets: CombatHUD is the gun HUD's controller now)
-	local gui = Kit.screen("HC_Gadgets", Style.Layers.HUD)
+	local gui = Kit.screen("HC_Gadgets", Style.Layers.HUD, { touchMin = Theme.TouchMinScale })
 	local ab = makeRoundButton(gui, "StunButton", ACTION_BUTTON_SIZE)
 	ab.button.AnchorPoint = Vector2.new(1, 1)
 	ab.button.Position = ACTION_BUTTON_POSITION
@@ -677,6 +704,13 @@ function CombatClient.start()
 	sb.button.Activated:Connect(function()
 		activate("spikes", findOwnedTool("spikes"))
 	end)
+	task.defer(placeGadgetButtons, gui)
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.LayoutChanged) == "table" then
+		hud.LayoutChanged:Connect(function()
+			placeGadgetButtons(gui)
+		end)
+	end
 
 	-- input
 	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)

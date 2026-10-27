@@ -1035,6 +1035,15 @@ local function playSound(key: string)
 	end
 end
 
+-- The over-the-shoulder camera (combat) locks and hides the cursor while a gun is drawn: the pause menu and the gear
+-- list suspend it while they are up so their rows can be clicked (ShoulderCamera contract).
+local function suspendShoulderCamera(reason: string, on: boolean)
+	local cam = lazy("ShoulderCamera")
+	if cam and typeof(cam.setSuspended) == "function" then
+		pcall(cam.setSuspended, reason, on)
+	end
+end
+
 local function toast(kind: string, text: string)
 	local notes = lazy("NotificationController")
 	if notes and typeof(notes.toast) == "function" then
@@ -2063,6 +2072,7 @@ local function ensureGear(): any
 	gear = ListMenu.new({ title = "Gear Shop", banner = "gear", subtitle = "Gear" })
 	gear.Selected:Connect(selectGear)
 	gear.Closed:Connect(function()
+		suspendShoulderCamera("gear", false)
 		if current == "GearShop" then
 			current = nil
 			MenuController.Closed:Fire("GearShop")
@@ -2253,6 +2263,7 @@ local function ensurePause(): any
 			current = nil
 			MenuController.Closed:Fire(was)
 		end
+		suspendShoulderCamera("pause", false)
 		MenuController.PauseChanged:Fire(false)
 	end)
 	return pause
@@ -2284,6 +2295,7 @@ function MenuController.openPause(tabId: string?, focus: string?)
 	if not wasOpen then
 		bindNav()
 		playSound("Whoosh")
+		suspendShoulderCamera("pause", true)
 		MenuController.PauseChanged:Fire(true)
 	end
 end
@@ -2362,6 +2374,7 @@ function MenuController.open(name: string): boolean
 		MenuController.closePause()
 		refreshGear()
 		g:open()
+		suspendShoulderCamera("gear", true)
 		current = canon
 	elseif route.kind == "pause" then
 		MenuController.openPause(route.tab, route.focus)

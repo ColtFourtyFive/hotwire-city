@@ -49,6 +49,7 @@ local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local Style = require(UI:WaitForChild("CombatStyle"))
+local HudLayout = require(UI:WaitForChild("HudLayout"))
 
 local ShoulderCamera = require(script.Parent:WaitForChild("ShoulderCamera"))
 local ShotFxController = require(script.Parent:WaitForChild("ShotFxController"))
@@ -1114,11 +1115,9 @@ type TouchUI = {
 }
 local touchUI: TouchUI? = nil
 
-local function circleButton(parent: Instance, name: string, text: string, size: number, pos: UDim2): TextButton
+local function circleButton(parent: Instance, name: string, text: string, size: number): TextButton
 	local b = Kit.new("TextButton", {
 		Name = name,
-		AnchorPoint = Vector2.new(1, 1),
-		Position = pos,
 		Size = UDim2.fromOffset(size, size),
 		BackgroundColor3 = Style.Colors.Panel,
 		BackgroundTransparency = 0.35,
@@ -1138,33 +1137,100 @@ local function circleButton(parent: Instance, name: string, text: string, size: 
 	return b
 end
 
--- Touch cluster (anchor bottom-right, design px; Kit.screen scales them): FIRE and AIM by the thumb, RELOAD / SWAP
--- to their left (clear of the top-right weapon button and ammo readout), SURRENDER further left.
-WeaponClient.TOUCH_LAYOUT = {
-	fire = UDim2.new(1, -24, 1, -168),
-	aim = UDim2.new(1, -148, 1, -150),
-	reload = UDim2.new(1, -240, 1, -150),
-	swap = UDim2.new(1, -240, 1, -216),
-	surrender = UDim2.new(1, -330, 1, -168),
-}
+-- Touch cluster (design px on the Kit.screen canvas, the same canvas as HC_HUD), laid out from the shared HUD layout
+-- (UI/HudLayout, via HUDController.getLayout when it runs) so it never lands on the HUD's PHONE / MAP buttons or on
+-- Roblox's jump button: one row along the bottom-right, left of the jump button and the PHONE / MAP column, bottoms
+-- level with the jump button's: FIRE by the thumb, AIM, RELOAD (SWAP above it while aiming), SURRENDER furthest
+-- left (above AIM when the row would reach the left half). The weapon button sits top-right under the ammo / arrest lines. Pure (tests).
+WeaponClient.TOUCH_GAP = 12
+WeaponClient.WEAPON_BUTTON_W = 150
+WeaponClient.WEAPON_BUTTON_H = 44
+function WeaponClient.touchRects(L: HudLayout.Layout, jump: HudLayout.Rect): { [string]: HudLayout.Rect }
+	local G = WeaponClient.TOUCH_GAP
+	local function r(x: number, y: number, w: number, h: number): HudLayout.Rect
+		return { x = x, y = y, w = w, h = h }
+	end
+	local edge = jump.x
+	for _, name in { "phone", "map" } do
+		local b = L.buttons[name]
+		if b then
+			edge = math.min(edge, b.x)
+		end
+	end
+	local bottom = jump.y + jump.h
+	local F, A, R = WeaponClient.FIRE_BUTTON, WeaponClient.AIM_BUTTON, WeaponClient.RELOAD_BUTTON
+	local Sw, U = WeaponClient.SWAP_BUTTON, WeaponClient.SURRENDER_BUTTON
+	local fire = r(edge - G - F, bottom - F, F, F)
+	local aim = r(fire.x - G - A, bottom - A, A, A)
+	local reload = r(aim.x - G - R, bottom - R, R, R)
+	local swap = r(reload.x + (R - Sw) / 2, reload.y - 10 - Sw, Sw, Sw)
+	-- SURRENDER left of RELOAD while that stays on the right half (the thumbstick owns the left); narrow canvases
+	-- (4:3 tablets at UIScale 1) stack it above AIM instead
+	local surrender = r(reload.x - G - U, bottom - U, U, U)
+	if surrender.x < L.w * 0.5 + G then
+		surrender = r(aim.x + A - U, aim.y - G - U, U, U)
+	end
+	local top = math.max(L.ammo.y + L.ammo.h, L.arrest.y + L.arrest.h) + 6
+	local W, Hb = WeaponClient.WEAPON_BUTTON_W, WeaponClient.WEAPON_BUTTON_H
+	local weapon = r(L.ammo.x + L.ammo.w - W, top, W, Hb)
+	return { fire = fire, aim = aim, reload = reload, swap = swap, surrender = surrender, weapon = weapon }
+end
+
+-- The HUD's touch layout (HUDController's live one when it runs, else computed for `gui`'s canvas) and the jump
+-- button. Public: CombatClient places its STUN / SPIKES buttons with it.
+function WeaponClient.touchLayoutFor(gui: ScreenGui): (HudLayout.Layout, HudLayout.Rect)
+	local sc = gui:FindFirstChildOfClass("UIScale")
+	local scale = if sc and sc.Scale > 0 then sc.Scale else 1
+	local L: HudLayout.Layout? = nil
+	local hud = lazy("HUDController")
+	if hud and typeof(hud.getLayout) == "function" then
+		local ok, res = pcall(hud.getLayout)
+		if ok and typeof(res) == "table" and res.touch == true then
+			L = res
+		end
+	end
+	if not L then
+		local canvas = Kit.canvasSize(gui)
+		L = HudLayout.compute(canvas.X, canvas.Y, true, { scale = scale })
+	end
+	local layout = L :: HudLayout.Layout
+	return layout, HudLayout.jumpButton(layout.w, layout.h, scale)
+end
+
+local function placeTouchUI(ui: TouchUI)
+	local L, jump = WeaponClient.touchLayoutFor(ui.gui)
+	local rects = WeaponClient.touchRects(L, jump)
+	for name, button in
+		{
+			fire = ui.fire,
+			aim = ui.aim,
+			reload = ui.reload,
+			swap = ui.swap,
+			surrender = ui.surrender,
+			weapon = ui.weapon,
+		} :: { [string]: TextButton }
+	do
+		local rr = rects[name]
+		button.AnchorPoint = Vector2.zero
+		button.Position = UDim2.fromOffset(rr.x, rr.y)
+		button.Size = UDim2.fromOffset(rr.w, rr.h)
+	end
+end
 
 local function buildTouchUI()
-	local touchMin = (Theme :: any).TouchMinScale or 0.72
+	local touchMin = Theme.TouchMinScale
 	local gui = Kit.screen("HC_WeaponTouch", Style.Layers.HUD + 2, { touchMin = touchMin })
 	pcall(function()
 		(gui :: any).ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	end)
-	local L = WeaponClient.TOUCH_LAYOUT
-	local fire = circleButton(gui, "Fire", "FIRE", WeaponClient.FIRE_BUTTON, L.fire)
-	local aim = circleButton(gui, "Aim", "AIM", WeaponClient.AIM_BUTTON, L.aim)
-	local reload = circleButton(gui, "Reload", "RELOAD", WeaponClient.RELOAD_BUTTON, L.reload)
-	local swap = circleButton(gui, "Swap", "SWAP", WeaponClient.SWAP_BUTTON, L.swap)
-	local surrender = circleButton(gui, "Surrender", "SURRENDER", WeaponClient.SURRENDER_BUTTON, L.surrender)
+	local fire = circleButton(gui, "Fire", "FIRE", WeaponClient.FIRE_BUTTON)
+	local aim = circleButton(gui, "Aim", "AIM", WeaponClient.AIM_BUTTON)
+	local reload = circleButton(gui, "Reload", "RELOAD", WeaponClient.RELOAD_BUTTON)
+	local swap = circleButton(gui, "Swap", "SWAP", WeaponClient.SWAP_BUTTON)
+	local surrender = circleButton(gui, "Surrender", "SURRENDER", WeaponClient.SURRENDER_BUTTON)
 	local weapon = Kit.new("TextButton", {
 		Name = "WeaponButton",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -Style.SAFE, 0, 124),
-		Size = UDim2.fromOffset(150, 44),
+		Size = UDim2.fromOffset(WeaponClient.WEAPON_BUTTON_W, WeaponClient.WEAPON_BUTTON_H),
 		BackgroundColor3 = Style.Colors.Panel,
 		BackgroundTransparency = Style.Transparency.Panel,
 		AutoButtonColor = false,
@@ -1213,8 +1279,20 @@ local function buildTouchUI()
 			w.toggle()
 		end
 	end)
-	touchUI =
+	local built: TouchUI =
 		{ gui = gui, fire = fire, aim = aim, reload = reload, swap = swap, surrender = surrender, weapon = weapon }
+	touchUI = built
+	-- place from the HUD layout now and whenever it changes (canvas, input type, phone up, measured jump button)
+	local function place()
+		placeTouchUI(built)
+	end
+	place()
+	local hud = lazy("HUDController")
+	if hud and typeof(hud.LayoutChanged) == "table" then
+		hud.LayoutChanged:Connect(place)
+	else
+		gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
+	end
 end
 
 local function refreshTouchUI()

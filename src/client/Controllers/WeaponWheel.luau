@@ -709,7 +709,7 @@ function WeaponWheel.open(how: ("hold" | "toggle")?)
 			end
 		end
 	end
-	vv.scale.Scale = Kit.uiScale((Theme :: any).TouchMinScale or 0.72)
+	vv.scale.Scale = Kit.uiScale(Theme.TouchMinScale)
 	vv.gui.Enabled = true
 	render()
 	ShoulderCamera.setSuspended("wheel", true)

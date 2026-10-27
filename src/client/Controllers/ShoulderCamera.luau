@@ -14,8 +14,9 @@
 --  * Engaging saves the camera's FOV and disengaging restores it (VehicleClient / the on-foot camera own theirs).
 --  * The PC cursor is locked to the centre AND hidden while engaged. Any screen that needs the cursor must call
 --    setSuspended(<its name>, true) while it is open and setSuspended(<its name>, false) when it closes (the weapon
---    wheel does; B2's phone, pause menu and MenuController must too), otherwise its buttons can't be clicked while a
---    gun is drawn. The "death" suspension (DeathScreenController) also hands the camera over completely.
+--    wheel and the gun shop do; so do PhoneController ("phone") and MenuController ("pause", "gear")), otherwise its
+--    buttons can't be clicked while a gun is drawn. The "death" suspension (DeathScreenController) also hands the
+--    camera over completely.
 -- API: setEngaged(on, weaponId?), setAiming(on), setFacing(on), addRecoil(pitch, yaw), shake(deg), addLook(dxPx, dyPx),
 --   swapShoulder(), setSuspended(reason, on), isSuspended(reason?), getAimRay() -> (origin, dir), isEngaged(),
 --   isAiming(), setFriction(mult), consumeLookDelta() -> degrees turned right by the player since the last call

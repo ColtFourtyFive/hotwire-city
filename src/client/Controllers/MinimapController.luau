@@ -1589,6 +1589,25 @@ local function menuUp(): boolean
 	return false
 end
 
+-- D-pad down is shared with the combat package's surrender (gta_combat §6: hold D-pad down at <= 2 stars with cops
+-- within 40 studs). While a surrender is possible the pad key belongs to it and the radar stays put; Z (keyboard) is
+-- never shared (surrender is H there). Pure (tests).
+function MinimapController.padKeyExpands(key: Enum.KeyCode, surrenderReady: boolean): boolean
+	if key == MinimapController.EXPAND_KEY then
+		return true
+	end
+	return key == MinimapController.EXPAND_PAD_KEY and not surrenderReady
+end
+
+local function surrenderReady(): boolean
+	local wc = lazy("WeaponClient")
+	if wc and typeof(wc.canSurrender) == "function" then
+		local ok, ready = pcall(wc.canSurrender)
+		return ok and ready == true
+	end
+	return false
+end
+
 -- Z / gamepad D-pad down (§5.1): a press toggles the expanded radar (6 s); holding keeps it up until released.
 local function onExpandKey(began: boolean)
 	if began then
@@ -1652,14 +1671,18 @@ function MinimapController.start()
 		end)
 	end)
 
-	-- expanded radar keys (D-pad down is kept free for this, §5.1)
+	-- expanded radar keys (§5.1; D-pad down yields to a possible surrender, see padKeyExpands)
 	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
 		if processed or hidden then
 			return
 		end
 		local k = input.KeyCode
-		if k == MinimapController.EXPAND_KEY or k == MinimapController.EXPAND_PAD_KEY then
+		if k == MinimapController.EXPAND_KEY then
 			onExpandKey(true)
+		elseif k == MinimapController.EXPAND_PAD_KEY then
+			if MinimapController.padKeyExpands(k, surrenderReady()) then
+				onExpandKey(true)
+			end
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input: InputObject)
