@@ -1,0 +1,82 @@
+{
+  "_doc": "Test/reference car models for carpipe. 'file' is relative to _cache/models/<id>/ (fetch_models.py downloads them). Per-model keys are pipeline config overrides: length (studs), front (+x/-x/+y/-y, in the file's Blender axes after import), up, textures {material: image}, roles {regex: Role}, budget {Object: tris}.",
+  "carconcept": {
+    "file": "CarConcept.glb",
+    "length": 16.5,
+    "class": "sports hatch / concept",
+    "source": {
+      "title": "Car Concept (glTF Sample Assets)",
+      "url": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept",
+      "download": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb",
+      "license": "CC-BY 4.0",
+      "attribution": "(c) 2024 Darmstadt Graphics Group GmbH; model and textures by Eric Chadwick, based on 'Free Concept Car 004' (CC0) by Unity Fan. Contains Khronos / 3D Commerce logos (trademarks; strip or replace before shipping)."
+    }
+  },
+  "musclecar": {
+    "file": "src/Objects/FireGTO.obj",
+    "length": 17.5,
+    "class": "muscle",
+    "textures": {"Body": "../Images/Body.bmp", "Rim": "../Images/Alloy_01.bmp", "Tyre": "../Images/Tyre_Tile.bmp",
+                 "FrontLights": "../Images/Headlight.bmp", "RearLights": "../Images/RearLight.bmp",
+                 "Interior": "../Images/Interior.bmp", "Glass": "../Images/window.bmp", "Grille": "../Images/Grille.bmp",
+                 "License": "../Images/License.bmp", "Badge": "../Images/Badge.bmp", "Underside": "../Images/Underside.bmp",
+                 "Chrome": "../Images/Chrome.bmp"},
+    "source": {
+      "title": "Muscle Car 3D Model",
+      "url": "https://opengameart.org/content/muscle-car-3d-model",
+      "download": "https://opengameart.org/sites/default/files/MuscleCar.zip",
+      "license": "CC-BY 3.0",
+      "attribution": "Muscle Car 3D Model by brightretro (OpenGameArt.org), CC-BY 3.0"
+    }
+  },
+  "corrado": {
+    "file": "src/car.obj",
+    "length": 15.5,
+    "class": "compact coupe",
+    "textures": {"01_-_Default": "corradon.png"},
+    "source": {
+      "title": "Car VW Corradon",
+      "url": "https://opengameart.org/content/car-vw-corradon",
+      "download": "https://opengameart.org/sites/default/files/car_0.zip",
+      "license": "CC0",
+      "attribution": "Car VW Corradon by rohezal (OpenGameArt.org), CC0 (no attribution required). Real-car likeness: rebrand before shipping."
+    }
+  },
+  "uaz452": {
+    "file": "src/uaz_452.fbx",
+    "length": 17.0,
+    "class": "van",
+    "textures": {"UazMat": "UazTex.png", "WheelMat": "Wheel.png", "Pixelly": "palette.png"},
+    "source": {
+      "title": "UAZ-452 Utility Van Lowpoly",
+      "url": "https://opengameart.org/content/uaz-452-utility-van-lowpoly",
+      "download": "https://opengameart.org/sites/default/files/uaz-452_onlymodelandtex.zip",
+      "license": "CC0",
+      "attribution": "UAZ-452 Utility Van Lowpoly by Mehozavr (OpenGameArt.org), CC0"
+    }
+  },
+  "camaro": {
+    "file": "camaro.blend",
+    "length": 17.0,
+    "class": "muscle (untextured, unnamed parts: robustness test)",
+    "source": {
+      "title": "chevrolet camaro ss",
+      "url": "https://opengameart.org/content/chevrolet-camaro-ss",
+      "download": "https://opengameart.org/sites/default/files/camaro.blend",
+      "license": "CC-BY 3.0",
+      "attribution": "chevrolet camaro ss by Lotnik (OpenGameArt.org), CC-BY 3.0. Real-car likeness: rebrand before shipping."
+    }
+  },
+  "bmw27": {
+    "file": "src/bmw27/bmw27_cpu.blend",
+    "length": 17.5,
+    "class": "coupe (Blender benchmark scene: robustness test only)",
+    "source": {
+      "title": "BMW27 Cycles benchmark scene",
+      "url": "https://download.blender.org/demo/test/",
+      "download": "https://download.blender.org/demo/test/BMW27_2.blend.zip",
+      "license": "UNVERIFIED (blender.org demo/benchmark file by Mike Pan; no licence text shipped). BMW trademarks. TEST ONLY - do not ship.",
+      "attribution": "BMW27 benchmark scene by Mike Pan, distributed by blender.org"
+    }
+  }
+}

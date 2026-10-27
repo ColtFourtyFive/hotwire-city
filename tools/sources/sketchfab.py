@@ -184,8 +184,10 @@ def _summ(r: dict, lic: str | None = None) -> dict:
 
 def search(q: str, license: str = "both", downloadable: bool = True, max_faces: int | None = 150000,
            min_faces: int | None = None, sort_by: str = "-likeCount", count: int = 24,
-           categories: str | None = None, pages: int = 1) -> list[dict]:
-    """Search downloadable models. license in {cc0, by, both}. Results sorted by likes (desc)."""
+           categories: str | None = None, pages: int = 1, user: str | None = None) -> list[dict]:
+    """Search downloadable models. license in {cc0, by, both}; user = author username filter.
+    Results sorted by likes (desc). Search results carry only a license *hint*: always re-check
+    with model_meta()/license_ok() (download() does this) before using a model."""
     if license not in LICENSE_SEARCH:
         raise ValueError("license must be cc0, by or both")
     out: dict[str, dict] = {}
@@ -199,6 +201,8 @@ def search(q: str, license: str = "both", downloadable: bool = True, max_faces: 
             params["min_face_count"] = int(min_faces)
         if categories:
             params["categories"] = categories
+        if user:
+            params["user"] = user
         nxt = None
         for page in range(pages):
             d = api_get(nxt) if nxt else api_get("/search", params)
@@ -499,6 +503,7 @@ def _main(argv=None):
     s.add_argument("--count", type=int, default=24)
     s.add_argument("--pages", type=int, default=1)
     s.add_argument("--categories", default=None)
+    s.add_argument("--user", default=None)
     s.add_argument("--json", action="store_true")
     m = sub.add_parser("meta")
     m.add_argument("uid")
@@ -513,7 +518,7 @@ def _main(argv=None):
 
     if a.cmd == "search":
         res = search(a.q, a.license, max_faces=a.max_faces, min_faces=a.min_faces, count=a.count,
-                     pages=a.pages, categories=a.categories)
+                     pages=a.pages, categories=a.categories, user=a.user)
         if a.json:
             print(json.dumps(res, indent=1))
         else:

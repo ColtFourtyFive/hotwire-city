@@ -168,6 +168,7 @@ type Session = {
 	fxDust: Color3?,
 	fxWater: boolean,
 	fxDustOn: boolean,
+	fxDustColor: Color3?,
 	fxSprayOn: boolean,
 	fxLinesLevel: number,
 	prevVel: Vector3,
@@ -1354,12 +1355,15 @@ local function renderStep(s: Session, dt: number)
 	local grounded = (c.grounded or 0) >= 2
 	local dustColor = s.fxDust
 	local dustOn = dustColor ~= nil and grounded and c.speed > DUST_MIN_SPEED
+	if dustOn and dustColor ~= s.fxDustColor then
+		s.fxDustColor = dustColor
+		for _, st in fx.dust do
+			st.emitter.Color = ColorSequence.new(dustColor :: Color3)
+		end
+	end
 	if dustOn ~= s.fxDustOn then
 		s.fxDustOn = dustOn
 		for _, st in fx.dust do
-			if dustOn and dustColor then
-				st.emitter.Color = ColorSequence.new(dustColor)
-			end
 			VFXLibrary.setStream(st, dustOn, math.clamp(frac, 0.4, 1.2))
 		end
 	end
@@ -1401,18 +1405,14 @@ local function renderStep(s: Session, dt: number)
 	if up and not boosting and s.input.throttle > 0.5 and grounded and os.clock() - s.fxBackfireAt > BACKFIRE_COOLDOWN then
 		backfire(s, false)
 	end
-	-- speed lines around the camera while boosting (lighter near top speed)
-	local host = fx.speedHost
-	if host and cam then
+	-- speed lines around the camera while boosting (lighter near top speed); followSpeedLines moves their host
+	if fx.speedHost then
 		local level = if boosting then 1 elseif frac >= SPEED_LINE_FRACTION then 0.5 else 0
 		if level ~= s.fxLinesLevel then
 			s.fxLinesLevel = level
 			for _, st in fx.speedLines do
 				VFXLibrary.setStream(st, level > 0, level)
 			end
-		end
-		if level > 0 then
-			host.CFrame = cam.CFrame
 		end
 	end
 	local screech = fx.screech
@@ -1437,6 +1437,15 @@ local function shakeUndo(s: Session)
 	if cam and s.shakeOffset ~= CFrame.identity then
 		cam.CFrame = cam.CFrame * s.shakeOffset:Inverse()
 		s.shakeOffset = CFrame.identity
+	end
+end
+
+-- The speed-line host rides the final camera (after the camera scripts + shake), only while lines show.
+local function followSpeedLines(s: Session)
+	local host = s.fx.speedHost
+	local cam = Workspace.CurrentCamera
+	if host and cam and s.fxLinesLevel > 0 then
+		host.CFrame = cam.CFrame
 	end
 end
 
@@ -1594,6 +1603,7 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 		fxDust = nil,
 		fxWater = false,
 		fxDustOn = false,
+		fxDustColor = nil,
 		fxSprayOn = false,
 		fxLinesLevel = 0,
 		prevVel = Vector3.zero,
@@ -1623,6 +1633,7 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 	end)
 	RunService:BindToRenderStep(SHAKE_APPLY_BIND, Enum.RenderPriority.Camera.Value + 1, function(dt: number)
 		shakeApply(s, dt)
+		followSpeedLines(s)
 	end)
 	trove:Connect(model:GetAttributeChangedSignal("Health"), function()
 		if session ~= s then
