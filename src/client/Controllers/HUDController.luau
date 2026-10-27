@@ -469,13 +469,22 @@ end
 -- Lazy dependencies
 -------------------------------------------------------------------------------------------------------------------------
 
+local lazyCache: { [string]: any } = {} -- sibling controllers, once required (the bars ask every frame)
 local function lazy(name: string): any
+	local cached = lazyCache[name]
+	if cached then
+		return cached
+	end
 	local mod = script.Parent:FindFirstChild(name)
 	if not mod or not mod:IsA("ModuleScript") then
 		return nil
 	end
 	local ok, result = pcall(require, mod :: any)
-	return if ok and typeof(result) == "table" then result else nil
+	if ok and typeof(result) == "table" then
+		lazyCache[name] = result
+		return result
+	end
+	return nil
 end
 
 local function playSound(key: string)
