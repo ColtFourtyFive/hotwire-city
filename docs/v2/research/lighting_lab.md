@@ -42,3 +42,31 @@ These findings are binding and override round 1 where they conflict.
    - MaterialService stays empty.
 
    These settings only arrive through a real publish. At runtime LightingService must dedupe Lighting children and keep exactly one of each effect.
+
+# Lighting lab, round 3 (real engine: Studio job 0009 on v29/30, Open Cloud probes on v30/31)
+
+Sources: `docs/v2/evidence/look_0009_report.md` + `look_0009_sheet.jpg`, `docs/v2/evidence/look_fix3_probe_v30.json` and
+`look_fix3_probe_v31.json` (`tools/look/probe_place.py`). These findings are binding and override rounds 1 and 2 where
+they conflict. Job 0011 (`studio/jobs/0011-look-sweep.md`) sweeps the new values.
+
+1. **LightingStyle comes from the legacy `Technology`.** On load the engine maps Technology onto LightingStyle and
+   PrioritizeLightingQuality and ignores the file's own values. v30 (no Technology in the file) loaded Soft and
+   quality false on a headless server; v31 (`Technology = Future`) loaded Realistic and quality true. Keep
+   `Technology = "Future"` in the file (round 1 finding 7 was right; the "delete Technology" advice was wrong).
+2. **Base-material overrides.** Studio (Edit, Play server and client) read the stock names on v29/30. A headless
+   server of v30/v31 reads all 16 file overrides as active. The cause of the Studio result is unknown: re-creating or
+   renaming a variant does not reset an override. The overrides are now also applied at runtime on the server and on
+   every client (`Util/MaterialOverrides`).
+3. **Fog wall.** At Atmosphere Density 0.27, everything beyond about 350–400 studs is a flat grey band from the
+   overview camera, which hides downtown on a city about 3 km across. Density is now one tunable per preset
+   (`Look.AtmosphereDensity`): day 0.16, golden 0.18, blue 0.16, night 0.12. Offset 0.25 / Haze 0.8 stay locked.
+4. **Night exposure.** The engine darkens the held −3° world on its own. Exposure −0.3 / Brightness 0.4 was about two
+   stops too dark: the street was nearly black and the overview completely black. Exposure +2 / Brightness 2 showed a
+   readable city and the night HDRI. The night preset now lifts the frame: Exposure +0.8, Brightness 1.2,
+   OutdoorAmbient (60, 70, 92). The blue hours are lifted with it, so they are never darker than the night.
+5. **Night sky colour.** At the held clock the engine renders the navy-grey night HDRI reddish-brown. The night grade
+   is a clear blue tint (212, 226, 255) with saturation −0.2.
+6. **Golden hour** read sepia / brown. The cause was a warm haze colour, a warm tint and a saturation boost on top of
+   the engine's orange low sun. The grade is now warm-but-neutral.
+7. **The engine moon** showed as a large disc on the golden-hour horizon. It is now 1.5° (was 6°) and hidden
+   (`MoonAngularSize` 0) whenever the engine sun is above −2°.

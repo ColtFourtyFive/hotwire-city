@@ -2,8 +2,9 @@
 -- Verifies the look inside a BUILT place (what Roblox will load), not just default.project.json:
 --   MaterialService: Use2022Materials, every <Material>Name override -> an existing HC_ variant with that BaseMaterial,
 --                    every variant has Image-id colour/normal/roughness maps, StudsPerTile, MaterialPattern
---   Lighting:        LightingStyle Realistic, PrioritizeLightingQuality, GlobalShadows, Environment scales, one Sky
---                    with all six faces = Look.Skies.day, one Atmosphere within the lab caps, Bloom/CC/SunRays
+--   Lighting:        Technology Future + LightingStyle Realistic, PrioritizeLightingQuality, GlobalShadows, Environment
+--                    scales, one Sky with all six faces = Look.Skies.day, one Atmosphere within the lab caps,
+--                    Bloom/CC/SunRays
 -- Usage: rojo build -o build/HotwireCity.rbxlx && lune run tools/look/verify_place.luau [build/HotwireCity.rbxlx]
 local fs = require("@lune/fs")
 local process = require("@lune/process")
@@ -106,12 +107,15 @@ if atmo then
 	check(atmo.Haze <= Look.Caps.hazeMax + 1e-6, "Atmosphere.Haze " .. atmo.Haze)
 end
 
--- the deprecated Technology must not be in the file (an .rbxlx is XML; a binary .rbxl is skipped here)
-local raw = fs.readFile(path)
-local techInFile = raw:sub(1, 6) == "<roblox" and raw:find('name="Technology"', 1, true) ~= nil
-check(not techInFile, "deprecated Lighting.Technology is serialized in the place")
+-- the legacy Technology = Future must be in the file: the engine derives LightingStyle from it on load (without it a
+-- real server read Soft, jobs 0007 / 0009; tools/look/gen_project.py LIGHTING_TECHNOLOGY)
+local okTech, tech = pcall(function()
+	return lighting.Technology.Name
+end)
+local techInFile = if okTech then tech else "unreadable"
+check(techInFile == "Future", "Lighting.Technology in the place = " .. tostring(techInFile) .. " (want Future)")
 print(
-	("place %s: %d MaterialVariants, %d overrides, LightingStyle %s, PrioritizeLightingQuality %s, Technology in file: %s, Sky faces day, Atmosphere %.2f/%.2f/%.2f"):format(
+	("place %s: %d MaterialVariants, %d overrides, LightingStyle %s, PrioritizeLightingQuality %s, Technology %s, Sky faces day, Atmosphere %.2f/%.2f/%.2f"):format(
 		path,
 		nVariants,
 		nOverrides,

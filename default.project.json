@@ -47,6 +47,7 @@
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
+        "Technology": "Future",
         "LightingStyle": "Realistic",
         "PrioritizeLightingQuality": true,
         "GlobalShadows": true,
@@ -73,14 +74,14 @@
           "StarCount": 0,
           "SkyboxOrientation": [0, 0, 0],
           "SunAngularSize": 10,
-          "MoonAngularSize": 6,
+          "MoonAngularSize": 0,
           "CelestialBodiesShown": true
         }
       },
       "Atmosphere": {
         "$className": "Atmosphere",
         "$properties": {
-          "Density": 0.27,
+          "Density": 0.16,
           "Offset": 0.25,
           "Haze": 0.8,
           "Glare": 0.25,
