@@ -37,11 +37,13 @@
 --   getFeedAnchor(): Vector2?             real px top-left for NotificationController's event feed (beside the menu)
 --   getMenuBottom(): number               real px bottom of the top-left buttons (wide overlays go below on phones)
 --   holdCash(amount) / releaseCash()      offline modal: show cash without `amount` until COLLECT, then count up
---   setMinimapReserve(touchLeft, desktopBottom)   MinimapController: design px the radar takes (touch: top-left
---                                         width, the buttons move right; desktop: bottom-left height, the column wraps)
+--   setMinimapReserve(touchLeft, desktopBottom, touchBottom?)   MinimapController: design px the radar takes (touch:
+--                                         top-left width, the buttons move right, the event feed goes below
+--                                         touchBottom; desktop: bottom-left height, the column wraps)
 --   VisibilityChanged: Signal(hidden: boolean)
 -- Pure helpers (tests): clampStars, starStates, cashTrend, theftView, theftMode, playtimeClaimable, rebirthReady,
---   gearAffordable, homeState, gridFit, touchMenuGrid, countGarage, menuNameCandidates, vipChatPrefix, resetAllowed.
+--   gearAffordable, homeState, gridFit, touchMenuGrid, touchStripLayout, touchFeedAnchor, countGarage,
+--   menuNameCandidates, vipChatPrefix, resetAllowed.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1251,6 +1253,14 @@ function HUDController.getTopStackBottom(): number
 	return bottom
 end
 
+-- Design px the minimap (MinimapController) claims: touch = width at the top-left (the CODES / SETTINGS row and the
+-- menu strip start right of it) and how far down its block (radar + distance pill + area name) reaches; desktop =
+-- height at the bottom-left (the menu column wraps above it).
+local minimapTouchLeft = 0
+local minimapTouchBottom = 0
+local minimapDesktopBottom = 0
+local touchStrip: TouchStrip? = nil -- last touch layout (nil on desktop)
+
 -- Real px top-left for NotificationController's event feed: beside the menu column on desktop, under the strip on
 -- touch. nil while hidden.
 function HUDController.getFeedAnchor(): Vector2?
@@ -1261,6 +1271,11 @@ function HUDController.getFeedAnchor(): Vector2?
 	local s = uiScaleValue()
 	local m = menuLayout
 	if m.strip then
+		local strip = touchStrip
+		if strip then
+			local x, y = HUDController.touchFeedAnchor(strip, u.menu.Visible, minimapTouchBottom)
+			return Vector2.new(x * s, y * s)
+		end
 		local below = if u.menu.Visible then m.top + m.height + 8 else m.top
 		return Vector2.new(m.x * s, below * s)
 	end
@@ -1284,11 +1299,6 @@ end
 
 local applyFocus: (boolean, boolean?) -> ()
 
--- Design px the minimap (MinimapController) claims: touch = width at the top-left (the CODES / SETTINGS row and the
--- menu strip start right of it), desktop = height at the bottom-left (the menu column wraps above it).
-local minimapTouchLeft = 0
-local minimapDesktopBottom = 0
-
 local function layout()
 	local u = ui
 	if not u then
@@ -1297,34 +1307,22 @@ local function layout()
 	local s = uiScaleValue()
 	local touch = isTouch()
 	local canvas = canvasSize()
-	local topCell = if touch then TOP_ROW_CELL_TOUCH else TOP_ROW_CELL
 	-- desktop: the default chat window owns the top-left corner, so our left column starts below it
 	local top = if touch then 6 else math.max(6, chatBottom(s))
-	for _, def in HUDController.MENU_TOP_ROW do
-		local mb = u.buttons[def.id]
-		if mb then
-			mb.button.Size = UDim2.fromOffset(topCell, topCell)
-		end
-	end
-	u.topRow.Size = UDim2.fromOffset(topCell * 3, topCell)
-	-- touch: the minimap owns the top-left corner, so the buttons start right of it (MinimapController reserve)
-	local left = 12 + (if touch then minimapTouchLeft else 0)
-	u.topRow.Position = UDim2.fromOffset(left, top)
-	u.toggleButton.Position = UDim2.fromOffset(12, top)
-	local menuTop = top + topCell + 14
 	local count = #HUDController.MENU
-	local cols, rows, cell
+	local topCell, left, menuTop, cols, rows, cell
 	if touch then
-		-- a strip above the dynamic thumbstick zone (left 40% of the screen from a third of its height down) and left
-		-- of the top-center cash pill + status stack; bigger cells when they fit (phones sit at the 0.55 scale floor)
-		cols, rows, cell = HUDController.touchMenuGrid(
-			count,
-			canvas.X / 2 - TOP_CENTER_HALF - left,
-			canvas.Y / 3 - menuTop,
-			{ MENU_CELL_TOUCH, TOP_ROW_CELL_TOUCH },
-			MENU_PAD
-		)
+		-- the minimap owns the top-left corner, so the buttons start right of it (MinimapController reserve); the
+		-- strip sits above the dynamic thumbstick zone (left 40% of the screen from a third of its height down) and
+		-- left of the top-center cash pill + status stack; bigger cells when they fit (phones sit at the 0.55 floor)
+		local strip = HUDController.touchStripLayout(count, canvas.X, canvas.Y, minimapTouchLeft, top)
+		touchStrip = strip
+		topCell, left, menuTop = strip.topCell, strip.left, strip.menuTop
+		cols, rows, cell = strip.cols, strip.rows, strip.cell
 	else
+		touchStrip = nil
+		topCell, left = TOP_ROW_CELL, 12
+		menuTop = top + topCell + 14
 		cell = MENU_CELL
 		-- desktop: the minimap owns the bottom-left corner; the column wraps above it
 		local availH = canvas.Y - menuTop - (if minimapDesktopBottom > 0 then minimapDesktopBottom else 16)
@@ -1343,6 +1341,15 @@ local function layout()
 			end
 		end
 	end
+	for _, def in HUDController.MENU_TOP_ROW do
+		local mb = u.buttons[def.id]
+		if mb then
+			mb.button.Size = UDim2.fromOffset(topCell, topCell)
+		end
+	end
+	u.topRow.Size = UDim2.fromOffset(topCell * 3, topCell)
+	u.topRow.Position = UDim2.fromOffset(left, top)
+	u.toggleButton.Position = UDim2.fromOffset(12, top)
 	local width = math.max(1, cols) * (cell + MENU_PAD) - MENU_PAD
 	local height = math.max(1, rows) * (cell + MENU_PAD) - MENU_PAD
 	u.grid.CellSize = UDim2.fromOffset(cell, cell)
@@ -1359,16 +1366,18 @@ local function layout()
 	applyFocus(false, true)
 end
 
+local function cleanReserve(value: number?): number
+	return if typeof(value) == "number" and value == value then math.max(0, value) else 0
+end
+
 -- MinimapController: reserve the HUD corner the radar sits in (design px; 0 releases it) and re-run the layout.
-function HUDController.setMinimapReserve(touchLeft: number, desktopBottom: number)
-	local l = if typeof(touchLeft) == "number" and touchLeft == touchLeft then math.max(0, touchLeft) else 0
-	local b = if typeof(desktopBottom) == "number" and desktopBottom == desktopBottom
-		then math.max(0, desktopBottom)
-		else 0
-	if l == minimapTouchLeft and b == minimapDesktopBottom then
+-- touchBottom (optional): how far down the radar block reaches on touch; the event feed starts below it.
+function HUDController.setMinimapReserve(touchLeft: number, desktopBottom: number, touchBottom: number?)
+	local l, b, tb = cleanReserve(touchLeft), cleanReserve(desktopBottom), cleanReserve(touchBottom)
+	if l == minimapTouchLeft and b == minimapDesktopBottom and tb == minimapTouchBottom then
 		return
 	end
-	minimapTouchLeft, minimapDesktopBottom = l, b
+	minimapTouchLeft, minimapDesktopBottom, minimapTouchBottom = l, b, tb
 	layout()
 end
 

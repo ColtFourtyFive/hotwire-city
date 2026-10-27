@@ -265,35 +265,51 @@ Each car is a **CarRecord** (§9.1) with a permanent `uid` and a `place` (where 
 
 ### 2.2 Street income: the casino
 
-While the owner drives their **own** car (`kind = "Owned"`, `status = ok`; bound cars too, at the lower cap), every second StreetIncomeService pays:
+While the owner drives their **own** car (`kind = "Owned"`, `status = ok`; bound cars too, at the lower cap), every second StreetIncomeService pays into the wallet:
 
 ```
 streetIncome/s = carIncome(car) × (1 + 0.5 × rebirths) × S×
-S× = min(S_CAP, 3 + min(3, 0.5 × floor(cruiseSeconds / 60)) + stars)
-S_CAP = 10 (bound cars: 5)
+S×         = min(cap, S_BASE + ramp + S_PER_STAR × stars)        -- S_BASE 3, S_PER_STAR 1
+ramp       = min(S_RAMP_MAX, timeRamp + actionRamp)              -- S_RAMP_MAX 3
+timeRamp   = min(1.5, 0.25 × freshMinutes)
+actionRamp = Σ stunt events (near-miss +0.25, drift ≥ 2 s +0.25, airtime ≥ 1 s +0.5), at most +1.5 per rolling 60 s
+cap        = S_CAP 10
+           | S_CAP_PROTECTED 5   on a protected drive (bound car, or an owner a thief could not keep from, §2.8)
+           | S_PASSIVE 1.5       in Passive mode (fixed)
+           | 1                   after STREET_FULL_SECONDS_PER_DAY = 10,800 paying seconds in the UTC day (XP continues)
 ```
 
-- **Ramp.** ×3 base, +0.5 per full minute of continuous cruising up to +3 (×6 after 6 minutes), and +1 per wanted star, up to ×10. The ramp resets after 15 s out of the car, when the car parks, on WASTED or BUSTED, or when the car is carjacked.
+- **Time ramp: fresh roads only.** A *fresh minute* is 60 s of paying ticks during which the car covered at least `S_RAMP_FRESH_STUDS = 1,200` studs of RoadGraph edges it has not driven in the last `S_RAMP_FRESH_WINDOW = 300` s. Lapping one block or one highway loop stalls the time ramp. Plain cruising tops out at **×4.5**.
+- **Action ramp: driving like GTA.** Every event is sampled by the server from the car's own physics (§10.2), never reported by the client:
+  - **Near-miss:** passing within 4 studs of a traffic or player car at ≥ 40 studs/s relative speed without contact; once per other car per 10 s.
+  - **Drift:** slip above `Vehicle.DRIFT_SLIP_SPEED` for 2 s or more.
+  - **Airtime:** no wheel contact for 1 s or more, then landing without wrecking.
+  - Each event shows a small popup ("NEAR MISS +0.25"). A good driver reaches ×6 in about 2 minutes; a passive cruiser never passes ×4.5.
+- **Decay.** Below 15 studs/s the ramp loses 0.5 every 30 s (the action part first). Sitting in traffic slowly cools you down.
+- **Out of the car.** The ramp is held for `S_OUT_GRACE = 30` s, decaying at the same rate (a store hold-up costs about 0.25), then resets. It also resets when the car parks, on WASTED or BUSTED, and when the car is carjacked. A crime payout does **not** reset it: robbing a store mid-cruise is the GTA rhythm.
 - **Ticks only while all of these hold:**
   - the car moved ≥ 150 studs net over the last 60 s;
   - its speed averaged ≥ 15 studs/s over the last 5 s;
   - it is within a road or drivable zone (RoadGraph);
   - it is outside safe zones and outside the owner's garage interior;
   - the driver changed throttle or steer input at least once in the last 45 s;
-  - the car is not tainted by the VehicleService watchdog.
-- **Passive mode:** S× is fixed at ×1.5, so passive is never the casino.
-- **Flash heat:** a Legendary-or-better car with S× ≥ 6 at 0★ gets 1★ after every 120 s of continuous cruising ("Someone reported your ride"). This keeps the top end hot.
-- **HUD:** WALLET with a `+$X/s` delta, plus a small `STREET ×6.5` label and a thin ramp bar under it (top-right group, UI §5.4).
+  - the car is not tainted and not paused by the VehicleService watchdog (`pausedUntil`, §10.1).
+- **Hot ride** (replaces the Legendary-only flash heat; every rarity):
+  - At **S× ≥ 6** the car appears on **every** minimap with a "×6.5" tag (`MapBlips` kind `hotride`, §9.6). A big multiplier is a big target.
+  - At **S× ≥ 5**, every 180 s of continuous paying time adds +1★ ("Someone reported your ride"). At S× ≥ 8 the interval is 90 s.
+- **HUD:** WALLET with a `+$X/s` delta, a small `STREET ×6.5` label and a thin ramp bar under it (top-right group, UI §5.4). On a protected drive the label reads `PROTECTED · ×5 MAX`; after the daily limit it reads `STREET ×1 · daily limit`.
+- **Wallet ticks are quiet.** They update the `Wallet` and `StreetMult` attributes and never trigger a full data snapshot (§9.5).
 - **Worked numbers:**
-  - Rustbucket: $3 × 3 = $9/s at minute 1.
-  - Level 10 Epic Phantom GT at ×6: $260 × 1.27 × 6 = $1,981/s.
-  - Level 30 Mythic at ×10 with 2 prestiges: $5,000 × 1.87 × 2 × 10 = $187K/s.
+  - Gold Common at minute 8: $10 × 3 = $30/s.
+  - Level 10 Epic Phantom GT at ×5.5: $260 × 1.27 × 5.5 = $1,816/s.
+  - Level 30 Mythic with 2 prestiges at the ×10 cap (full ramp plus 4★, so heli sniper and spikes): $5,000 × 1.87 × 2 × 10 = $187K/s.
+- **Why a daily limit:** 10,800 s is about 7 target sessions of non-stop driving. It never touches a normal player and only bounds an unattended autopilot (§10.2).
 
 ### 2.3 Per-car level and XP
 
 | Item | Rule |
 |---|---|
-| XP from driving | **1 XP per 20 studs** driven by its owner on the street at ≥ 15 studs/s. Same conditions as street income, but passive mode still earns XP. About 180 XP/min at 60 studs/s. |
+| XP from driving | **1 XP per 20 studs** driven by its owner on the street at ≥ 15 studs/s. Same gates as street income (not the fresh-road rule), but passive mode and drives past the daily street limit still earn XP. About 180 XP/min at 60 studs/s. Shown as a silent HUD bar; a feed line appears only at LV 5 and every 5 levels after. |
 | Bonus XP for the car you're in | +40 per star evaded; +2/s drifting (`Vehicle.DRIFT_SLIP_SPEED`); +50 per crime payout while this car is your getaway (it is within 50 studs at payout and you drive it away within 30 s); race finish +150 (win +300); heist getaway +500; delivering a truck or heist bag in it +100 |
 | XP to the next level | `xpToNext(L) = floor(80 × L^1.6)`. L1→2: 80 XP (about 27 s). L5: 1,050. L10: 3,185. Cumulative at the base 180 XP/min: L5 about 1.5K XP (8 min); L10 about 10.7K (about 60 min); L20 about 69K (about 6.4 h); L30 about 204K (about 19 h); L40 about 436K (about 40 h); L50 about 784K (about 72 h). Bonus XP shortens these by roughly 25%. |
 | Level cap by rarity | Common 20, Uncommon 25, Rare 30, Epic 35, Legendary 40, Mythic 45, Secret 50, Exclusive 35 |
@@ -317,7 +333,7 @@ The Mod Shop is a GTA-style list menu (UI §5.13). Purchases go through a server
 | **Armor** | 0–5 | car damage ×{1, .85, .72, .60, .50, .40} (crash and bullets); topSpeed −{0,1,2,3,4,5}% | {0.15, 0.30, 0.60, 1.00, 1.60} | {1, 5, 10, 20, 30} |
 | **Nitro** | 0–4 | tank {2.5, 3.5, 4.5, 6, 8} s (the v1 `Economy.Upgrades.nitro.values`, now per car) | {0.15, 0.35, 0.75, 1.30} | {2, 8, 16, 25} |
 | **Tracker** | 0–3 | 0: alarm plus last-known ping every 20 s. 1: live GPS for owner and party while stolen. 2: also pings the thief to the whole server every 15 s, and Immobilizer ×1.5 raid hotwire time. 3: Kill Switch (owner stalls the engine for 4 s, once per theft), Immobilizer ×2.0, repo hold 1.5 s. | {0.25, 0.60, 1.20} | {3, 12, 24} |
-| **Insurance** | 0–3 | payout {25, 40, 55, 70}% of value when the car is lost (§2.8) | {0.25, 0.60, 1.20} | {3, 12, 24} |
+| **Insurance** | 0–3 | payout {25, 32, 39, 45}% of value when the car is kept by a thief (§2.8). Always below the 50% sell value. | {0.25, 0.60, 1.20} | {3, 12, 24} |
 
 - **Stage price:** `max(100 × stage, round(Cars.price × factor[stage]))`.
 - **Cost to fully max a car:** about **20.6 × its price**. Examples: Legendary Gold Rush $300K → about $6.2M; Mythic Night Raven $1.5M → about $31M; Secret $20M → about $412M. This is the main late-game sink.
@@ -326,7 +342,7 @@ The Mod Shop is a GTA-style list menu (UI §5.13). Purchases go through a server
 - **v1 player-wide upgrades** (`Economy.Upgrades`):
   - `lock` becomes garage security (§2.7.3).
   - `hotwire` stays a player skill, the "Hotwire Kit", with the same values and prices.
-  - `nitro` and `armor` become per-car tracks. The migration in §9.3 grandfathers them.
+  - `nitro` and `armor` become per-car tracks. Nothing is grandfathered: V2 starts on a fresh DataStore (§9.3).
 
 ### 2.5 Paint, finishes and traits
 
@@ -336,9 +352,9 @@ The Mod Shop is a GTA-style list menu (UI §5.13). Purchases go through a server
   - type Gloss, Matte, Metallic or Pearl (Pearl adds an accent);
   - rims;
   - window tint 0–3;
-  - plate text (filtered, 8 characters; Rep 20 or the Custom Plates pass);
-  - underglow (Rep 20 or the Neon Kit pass).
-- **Price per change:** `$250 + 2% × Cars.price`; the first paint job is free.
+  - plate text (filtered, 8 characters; Rep 10 or the Custom Plates pass);
+  - underglow (Rep 10 or the Neon Kit pass).
+- **Price per change:** `$250 + 2% × Cars.price`; the first paint job is free, and a **paint voucher** (trunk loot, §2.5.1) pays for one change.
 - **Paint never changes income.**
 - **Pay 'n' Spray** stays separate: it clears stars only while unseen, using the v1 cost `stars × max(SPRAY_COST_PER_STAR 250, SPRAY_INCOME_SECONDS 15 × G)`. V2 change: it keeps your paint job (v1 recoloured randomly).
 
@@ -355,7 +371,7 @@ The Mod Shop is a GTA-style list menu (UI §5.13). Purchases go through a server
 | Void | ×12 | 0; event or season only | Ultra-matte black with dark rim light | Live event | new |
 | Glitch | ×15 | 0; Admin Abuse only | Flickering texture swap | Admin Abuse | new |
 
-**Traits** (4% chance per minted street, traffic, dealer or Hot Drop car; independent of finish):
+**Traits** (4% chance per minted street, traffic, dealer or Hot Drop car; independent of finish). The trait is rolled when the world car spawns but kept server-side (`car.data.trait`); it is **not** replicated as a model attribute, so the delivery reveal is a real surprise. The finish stays visible on the street because it is the paint.
 
 | Trait | Effect |
 |---|---|
