@@ -363,7 +363,17 @@ local FLATTEN: { Flatten } = {
 WorldTerrain.FLATTEN = FLATTEN
 
 -- Generated terrain edits (baked into WorldData, installed at boot / by the generator).
-export type Pad = { name: string, cx: number, cz: number, ux: number, uz: number, hw: number, hd: number, y: number, blend: number }
+export type Pad = {
+	name: string,
+	cx: number,
+	cz: number,
+	ux: number,
+	uz: number,
+	hw: number,
+	hd: number,
+	y: number,
+	blend: number,
+}
 export type Cut = { name: string, points: { P2 }, half: number, floorY: { number } }
 
 local pads: { Pad } = {}
