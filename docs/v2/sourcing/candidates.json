@@ -180,6 +180,24 @@
   "glb_mb": 9.8
  },
  {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "uid": "5c8d876d997f4eaa939a4778cedcfbfa",
+  "name": "Red fire truck with ladder",
+  "author": "Chenzoss",
+  "faces": 38914,
+  "glb_mb": 0
+ },
+ {
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "uid": "b24cdf08db31459a9eb97a2897bd2efc",
+  "name": "Ladder Truck",
+  "author": "overseerover12",
+  "faces": 56546,
+  "glb_mb": 0
+ },
+ {
   "class": "limousine",
   "kind": "vehicle",
   "uid": "8f2f466f668b4958831cd5f2d6da299a",

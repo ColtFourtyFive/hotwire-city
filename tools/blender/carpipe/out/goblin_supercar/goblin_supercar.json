@@ -263,10 +263,10 @@
         7.4165
       ],
       "textures": {
-        "metal": "textures/goblin_supercar_Body_metal.png",
+        "rough": "textures/goblin_supercar_Body_rough.png",
         "normal": "textures/goblin_supercar_Body_normal.png",
         "base": "textures/goblin_supercar_Body_base.png",
-        "rough": "textures/goblin_supercar_Body_rough.png",
+        "metal": "textures/goblin_supercar_Body_metal.png",
         "tintmask": "textures/goblin_supercar_Body_tintmask.png",
         "overlay": "textures/goblin_supercar_Body_overlay.png"
       }
@@ -298,10 +298,10 @@
         6.9926
       ],
       "textures": {
-        "metal": "textures/goblin_supercar_Interior_metal.png",
+        "rough": "textures/goblin_supercar_Interior_rough.png",
         "normal": "textures/goblin_supercar_Interior_normal.png",
         "base": "textures/goblin_supercar_Interior_base.png",
-        "rough": "textures/goblin_supercar_Interior_rough.png",
+        "metal": "textures/goblin_supercar_Interior_metal.png",
         "ao": "textures/goblin_supercar_Interior_ao.png"
       }
     },
@@ -319,8 +319,8 @@
       ],
       "textures": {
         "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "base": "textures/goblin_supercar_Wheel_base.png",
         "ao": "textures/goblin_supercar_Wheel_ao.png"
       }
@@ -339,8 +339,8 @@
       ],
       "textures": {
         "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "base": "textures/goblin_supercar_Wheel_base.png",
         "ao": "textures/goblin_supercar_Wheel_ao.png"
       }
@@ -359,8 +359,8 @@
       ],
       "textures": {
         "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "base": "textures/goblin_supercar_Wheel_base.png",
         "ao": "textures/goblin_supercar_Wheel_ao.png"
       }
@@ -379,8 +379,8 @@
       ],
       "textures": {
         "rough": "textures/goblin_supercar_Wheel_rough.png",
-        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "normal": "textures/goblin_supercar_Wheel_normal.png",
+        "metal": "textures/goblin_supercar_Wheel_metal.png",
         "base": "textures/goblin_supercar_Wheel_base.png",
         "ao": "textures/goblin_supercar_Wheel_ao.png"
       }

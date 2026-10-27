@@ -271,10 +271,10 @@
         9.1899
       ],
       "textures": {
-        "base": "textures/canyon_taxi_Body_base.png",
-        "metal": "textures/canyon_taxi_Body_metal.png",
         "normal": "textures/canyon_taxi_Body_normal.png",
+        "metal": "textures/canyon_taxi_Body_metal.png",
         "rough": "textures/canyon_taxi_Body_rough.png",
+        "base": "textures/canyon_taxi_Body_base.png",
         "tintmask": "textures/canyon_taxi_Body_tintmask.png",
         "overlay": "textures/canyon_taxi_Body_overlay.png"
       }
@@ -306,9 +306,9 @@
         -7.9795
       ],
       "textures": {
-        "base": "textures/canyon_taxi_Lights_base.png",
         "normal": "textures/canyon_taxi_Lights_normal.png",
-        "emit": "textures/canyon_taxi_Lights_emit.png"
+        "emit": "textures/canyon_taxi_Lights_emit.png",
+        "base": "textures/canyon_taxi_Lights_base.png"
       }
     },
     "LightsRear": {
@@ -324,9 +324,9 @@
         9.2422
       ],
       "textures": {
-        "base": "textures/canyon_taxi_Lights_base.png",
         "normal": "textures/canyon_taxi_Lights_normal.png",
-        "emit": "textures/canyon_taxi_Lights_emit.png"
+        "emit": "textures/canyon_taxi_Lights_emit.png",
+        "base": "textures/canyon_taxi_Lights_base.png"
       }
     },
     "Trim": {
@@ -342,30 +342,30 @@
         9.6272
       ],
       "textures": {
-        "base": "textures/canyon_taxi_Trim_base.png",
-        "metal": "textures/canyon_taxi_Trim_metal.png",
         "normal": "textures/canyon_taxi_Trim_normal.png",
+        "metal": "textures/canyon_taxi_Trim_metal.png",
         "rough": "textures/canyon_taxi_Trim_rough.png",
+        "base": "textures/canyon_taxi_Trim_base.png",
         "ao": "textures/canyon_taxi_Trim_ao.png"
       }
     },
     "Interior": {
-      "tris": 1498,
+      "tris": 1499,
       "bbox_min": [
         -2.7573,
         1.2405,
-        -8.0318
+        -3.6069
       ],
       "bbox_max": [
         2.7717,
         5.792,
-        9.0265
+        6.3125
       ],
       "textures": {
-        "base": "textures/canyon_taxi_Interior_base.png",
-        "metal": "textures/canyon_taxi_Interior_metal.png",
         "normal": "textures/canyon_taxi_Interior_normal.png",
+        "metal": "textures/canyon_taxi_Interior_metal.png",
         "rough": "textures/canyon_taxi_Interior_rough.png",
+        "base": "textures/canyon_taxi_Interior_base.png",
         "ao": "textures/canyon_taxi_Interior_ao.png"
       }
     },
@@ -383,9 +383,9 @@
       ],
       "textures": {
         "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "base": "textures/canyon_taxi_Wheel_base.png",
         "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "ao": "textures/canyon_taxi_Wheel_ao.png"
       }
     },
@@ -403,9 +403,9 @@
       ],
       "textures": {
         "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "base": "textures/canyon_taxi_Wheel_base.png",
         "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "ao": "textures/canyon_taxi_Wheel_ao.png"
       }
     },
@@ -423,9 +423,9 @@
       ],
       "textures": {
         "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "base": "textures/canyon_taxi_Wheel_base.png",
         "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "ao": "textures/canyon_taxi_Wheel_ao.png"
       }
     },
@@ -443,16 +443,16 @@
       ],
       "textures": {
         "metal": "textures/canyon_taxi_Wheel_metal.png",
-        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "base": "textures/canyon_taxi_Wheel_base.png",
         "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
         "ao": "textures/canyon_taxi_Wheel_ao.png"
       }
     }
   },
   "triangles": {
     "source": 20026,
-    "total": 11650,
+    "total": 11651,
     "limits": {
       "car": 18000,
       "body": 7000,
@@ -498,14 +498,14 @@
       "area": 0.169
     },
     "Trim": {
-      "islands": 124,
-      "faces": 6602,
-      "area": 310.229
+      "islands": 127,
+      "faces": 6714,
+      "area": 310.61
     },
     "Interior": {
-      "islands": 40,
-      "faces": 4599,
-      "area": 315.387
+      "islands": 37,
+      "faces": 4487,
+      "area": 315.006
     },
     "Discard": {
       "islands": 41,

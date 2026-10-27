@@ -1,0 +1,38 @@
+{
+  "source": "sketchfab",
+  "uid": "b24cdf08db31459a9eb97a2897bd2efc",
+  "slug": "v-fire-truck--ladder-truck-b24cdf",
+  "name": "Ladder Truck",
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "overseerover12",
+    "displayName": "Builder",
+    "profileUrl": "https://sketchfab.com/overseerover12"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/ladder-truck-b24cdf08db31459a9eb97a2897bd2efc",
+  "faceCount": 56546,
+  "vertexCount": 24267,
+  "materialCount": 26,
+  "textureCount": 8,
+  "animationCount": 0,
+  "likeCount": 6,
+  "tags": [],
+  "categories": [],
+  "description": "Credit to BonfireDeveloper",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-fire-truck--ladder-truck-b24cdf/model.glb",
+  "fileBytes": 5229220,
+  "sha256": "9081ef0e42ee535d82a1724a3454be3314a066a6add6cc264f460601ad9f1ccc",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:23:11+00:00",
+  "notes": null
+}

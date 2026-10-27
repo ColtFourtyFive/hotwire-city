@@ -263,10 +263,10 @@
         6.6363
       ],
       "textures": {
+        "normal": "textures/corrado_Body_normal.png",
         "rough": "textures/corrado_Body_rough.png",
         "metal": "textures/corrado_Body_metal.png",
         "base": "textures/corrado_Body_base.png",
-        "normal": "textures/corrado_Body_normal.png",
         "tintmask": "textures/corrado_Body_tintmask.png",
         "overlay": "textures/corrado_Body_overlay.png"
       }

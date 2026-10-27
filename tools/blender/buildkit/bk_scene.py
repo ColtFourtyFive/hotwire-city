@@ -604,12 +604,14 @@ def parked_row(col, x0, x1, y, heading=0.0, gap=(3.0, 8.0), seed=0, prob=0.8):
         x += 17 + r.uniform(*gap)
 
 
-def hill(col, x0, y0, x1, y1, z_fn, nx=40, ny=40, kind="dirt"):
-    """Height-field terrain patch for hillside previews."""
+def hill(col, x0, y0, x1, y1, z_fn, nx=40, ny=40, kind="dirt", skip=None):
+    """Height-field terrain patch for hillside previews. skip(x, y) -> True leaves a hole (e.g. under a lot)."""
     b = G.MeshBuf("Hill", 20)
     for i in range(nx):
         for j in range(ny):
             xa, xb = x0 + (x1 - x0) * i / nx, x0 + (x1 - x0) * (i + 1) / nx
             ya, yb = y0 + (y1 - y0) * j / ny, y0 + (y1 - y0) * (j + 1) / ny
+            if skip is not None and skip((xa + xb) / 2, (ya + yb) / 2):
+                continue
             G.quad(b, (xa, ya, z_fn(xa, ya)), (xb, ya, z_fn(xb, ya)), (xb, yb, z_fn(xb, yb)), (xa, yb, z_fn(xa, yb)))
     return G.to_object(b, _m(kind), col, weighted=False, sharp_deg=60)

@@ -1048,5 +1048,25 @@
   "mb": 4.3,
   "license": "by",
   "conversion": "none"
+ },
+ "5c8d876d997f4eaa939a4778cedcfbfa": {
+  "status": "ok",
+  "slug": "v-fire-truck--red-fire-truck-with-ladder-5c8d87",
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "name": "Red fire truck with ladder",
+  "mb": 4.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "b24cdf08db31459a9eb97a2897bd2efc": {
+  "status": "ok",
+  "slug": "v-fire-truck--ladder-truck-b24cdf",
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "name": "Ladder Truck",
+  "mb": 5.2,
+  "license": "by",
+  "conversion": "none"
  }
 }

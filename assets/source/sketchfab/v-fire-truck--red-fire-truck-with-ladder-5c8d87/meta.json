@@ -1,0 +1,48 @@
+{
+  "source": "sketchfab",
+  "uid": "5c8d876d997f4eaa939a4778cedcfbfa",
+  "slug": "v-fire-truck--red-fire-truck-with-ladder-5c8d87",
+  "name": "Red fire truck with ladder",
+  "class": "fire_truck",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "Chenzoss",
+    "displayName": "Chenzoss",
+    "profileUrl": "https://sketchfab.com/Chenzoss"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/red-fire-truck-with-ladder-5c8d876d997f4eaa939a4778cedcfbfa",
+  "faceCount": 38914,
+  "vertexCount": 19463,
+  "materialCount": 1,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 8,
+  "tags": [
+    "truck",
+    "red",
+    "ladder",
+    "with",
+    "fire",
+    "firefighter"
+  ],
+  "categories": [
+    "cars-vehicles",
+    "furniture-home"
+  ],
+  "description": "Red fire truck with ladder",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-fire-truck--red-fire-truck-with-ladder-5c8d87/model.glb",
+  "fileBytes": 4398988,
+  "sha256": "72a047b323d6b68d465c4f04e90f56064869e957cce3305277ce30995147632b",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T17:23:08+00:00",
+  "notes": null
+}

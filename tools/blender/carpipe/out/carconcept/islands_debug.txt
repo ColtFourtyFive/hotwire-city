@@ -2,7 +2,7 @@ Trim         vis=2 faces=   740 area= 140.647 c=[-0.    0.28  0.94] why=mat:Mech
 Interior     vis=2 faces=  3122 area=  39.071 c=[-0.   -4.75  2.48] why=mat:Interior 1 :: Interior 1 | InteriorRearPanels / BodyRearPanelsColor1 / BodyUnderside / Mesh_86
 Interior     vis=2 faces=  2017 area=  35.589 c=[ 0.   -2.06  3.  ] why=obj:InteriorPillar / BodyUnderside :: Material_2 | InteriorPillar / BodyUnderside / InteriorPillar
 Discard      vis=0 faces=    60 area=  34.362 c=[-0.    6.42  1.38] why=mat:Mechanical hidden :: Mechanical | Engine / BodyUnderside / Engine
-Interior     vis=2 faces=  3546 area=  32.990 c=[-0.    6.54  1.81] why=obj:BodyHoodInterior01 / BodyHood  :: Material_2 | BodyHoodInterior01 / BodyHood / BodyUnderside / BodyHoodInterior01
+Trim         vis=2 faces=  3546 area=  32.990 c=[-0.    6.54  1.81] why=obj:BodyHoodInterior01 / BodyHood  exterior-inner :: Material_2 | BodyHoodInterior01 / BodyHood / BodyUnderside / BodyHoodInterior01
 Body         vis=2 faces= 13296 area=  30.238 c=[-0.    6.64  2.05] why=mat:Paint 1 Carmine :: Paint 1 Carmine | BodyHood / BodyUnderside / BodyHood
 Body         vis=2 faces= 10360 area=  28.147 c=[-0.   -5.54  2.61] why=mat:Paint 1 Carmine :: Paint 1 Carmine | BodyRearPanelsColor1 / BodyUnderside / BodyRearPanelsColor1
 Glass        vis=2 faces=  2880 area=  25.266 c=[0.03 2.83 3.33] why=mat:Glass :: Glass | BodyWindshield / BodyUnderside / BodyWindshield
@@ -165,8 +165,8 @@ Interior     vis=1 faces=   346 area=   0.173 c=[-0.41  3.47  2.08] why=mat:Hard
 LightsFront  vis=2 faces=   144 area=   0.171 c=[-2.22  7.13  2.22] why=mat:Headlight :: Headlight | BodyHeadlights / BodyHood / BodyUnderside / BodyHeadlights
 LightsFront  vis=2 faces=   144 area=   0.171 c=[2.22 7.13 2.22] why=mat:Headlight :: Headlight | BodyHeadlights / BodyHood / BodyUnderside / BodyHeadlights
 Discard      vis=0 faces=   144 area=   0.156 c=[-0.26  5.14  1.04] why=mat:Hardware hidden :: Hardware | InteriorPedalBrakeArm / BodyUnderside / InteriorPedalBrakeArm
-Interior     vis=2 faces=    18 area=   0.151 c=[-2.53 -6.59  0.82] why=mat:Interior 1 :: Interior 1 | InteriorRearPanels / BodyRearPanelsColor1 / BodyUnderside / Mesh_86
-Interior     vis=2 faces=    18 area=   0.151 c=[ 2.53 -6.59  0.82] why=mat:Interior 1 :: Interior 1 | InteriorRearPanels / BodyRearPanelsColor1 / BodyUnderside / Mesh_86
+Trim         vis=2 faces=    18 area=   0.151 c=[-2.53 -6.59  0.82] why=mat:Interior 1 exterior-inner :: Interior 1 | InteriorRearPanels / BodyRearPanelsColor1 / BodyUnderside / Mesh_86
+Trim         vis=2 faces=    18 area=   0.151 c=[ 2.53 -6.59  0.82] why=mat:Interior 1 exterior-inner :: Interior 1 | InteriorRearPanels / BodyRearPanelsColor1 / BodyUnderside / Mesh_86
 Interior     vis=1 faces=    96 area=   0.142 c=[0.25 5.16 1.06] why=mat:Hardware behind-glass :: Hardware | InteriorPedalAccelArm / BodyUnderside / InteriorPedalAccelArm
 Trim         vis=2 faces=  1920 area=   0.132 c=[0.91 4.54 3.07] why=obj:BodyWindshieldWipers / BodyUnd :: Material_2 | BodyWindshieldWipers / BodyUnderside / BodyWindshieldWipers
 Trim         vis=2 faces=  1920 area=   0.127 c=[-0.47  4.58  3.08] why=obj:BodyWindshieldWipers / BodyUnd :: Material_2 | BodyWindshieldWipers / BodyUnderside / BodyWindshieldWipers
