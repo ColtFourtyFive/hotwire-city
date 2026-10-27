@@ -6,9 +6,11 @@
 --     + handbrake (Space / ButtonX / DRIFT button), nitro (LeftShift / ButtonR1 / NITRO button),
 --     horn (H / ButtonY / HORN button), exit (F / ButtonA / EXIT button; not E, the hold-to-steal key, so a
 --     "Hotwire [E]" prompt on a passing car can't throw the driver out). Auto-accelerate setting.
---   * Driving HUD ("DrivingUI"): speedometer (MPH), rev bar, nitro bar, car health, drift banner, touch buttons.
---     The CoreGui backpack hotbar is hidden while driving (it sat on top of the speedometer; tools can't be used
---     from the seat, spikes have their own button/key) and restored on exit.
+--   * Driving HUD ("DrivingUI", v2 GTA language): optional small speed readout bottom-right (Settings > Speed
+--     readout), a thin car-damage rule, a quiet drift line and the touch circle buttons (HudLayout.buttons). Nitro
+--     is the third radar bar segment (HUDController), the car name comes in on the location lines and the radio
+--     station at top-centre. A one-off help text lists the controls. The CoreGui backpack hotbar is hidden while
+--     driving and restored on exit.
 --   * Feel: FOV kick with speed + nitro, camera shake on crashes, screech while drifting. Effects come from the
 --     shared VFXLibrary (Config/VFX presets, quality-scaled + budgeted; our streams have priority in the budget):
 --     flipbook tire smoke + skid-mark Trails per rear tyre, only while that tyre slides on the ground (the marks
@@ -21,10 +23,9 @@
 --     the replicated chassis velocity); their nitro flames and horn come from the VehicleFx remote: nitro start/stop
 --     and horn presses are sent as state changes only (>= FX_MIN_INTERVAL apart, coalesced), the server relays them to
 --     nearby clients as VehicleFxState and EffectsController renders them.
---   * Car radio (SoundController plays it): on while driving; the DrivingUI pill beside the speedometer shows the
---     station + track with ◀ ▶ buttons, R / T keys, D-pad left / right. Touch screens get a compact station pill
---     that is itself the "next station" button, kept out of the thumbstick zone (see radioLayout). The first drive
---     tunes a random station.
+--   * Car radio (SoundController plays it): on while driving; R / T keys, D-pad left / right, the RADIO touch
+--     button. HUDController.showRadio shows the station + track at top-centre on each change. The first drive
+--     tunes a random station. (radioLayout / canvasWidth / textBoost are the v1 pill maths, kept for the specs.)
 -- Wheels of the driven car are posed by WheelAnimator from getController() data (VehicleClient.positionsWheels=false).
 
 local CollectionService = game:GetService("CollectionService")
@@ -39,7 +40,6 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Cars = require(Shared.Config.Cars)
-local Rarity = require(Shared.Config.Rarity)
 local Sounds = require(Shared.Config.Sounds)
 local Tuning = require(Shared.Config.Vehicle)
 local EconomyMath = require(Shared.Util.EconomyMath)
@@ -49,7 +49,9 @@ local VehicleController = require(Shared.Vehicle.VehicleController)
 local Net = require(Shared.Net)
 
 local UI = script.Parent.Parent:WaitForChild("UI")
+local HudLayout = require(UI.HudLayout)
 local Kit = require(UI.Kit)
+local RichText = require(UI.RichText)
 local Theme = require(UI.Theme)
 local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
@@ -80,30 +82,12 @@ local CRASH_WINDOW_DECAY = 300 -- recent-max speed decays this fast (studs/s per
 local CRASH_COOLDOWN = 0.5
 local HORN_COOLDOWN = 0.35
 local FX_MIN_INTERVAL = 0.2 -- s between VehicleFx sends (server bucket: 6/s); newer state waits, then goes out
-local REV_SEGMENTS = 16
-local HINT_SECONDS = 10
 local SETTINGS_REFRESH = 1
--- Drift banner bottom, relative to the speedometer top (H-168): above HUDController's theft panel (H-260..H-184,
--- its countdown sits under the old -46 spot) and clear of the desktop tutorial card (top H-296).
-local DRIFT_BANNER_Y = -150
--- Phones sit at Kit's 0.55 UIScale floor, where 17 px text is ~9 real px. DrivingUI can't simply use a larger
--- scale: its touch cluster shares the design canvas with CombatHUD's buttons and the speedometer footprint with
--- HUDController's theft panel. So on touch screens the small labels get a bigger TextSize instead (same boxes).
+-- v1 dashboard maths (textBoost / radioLayout / canvasWidth), kept as pure helpers for the ap4 + vehicle specs.
 local PHONE_TEXT_MAX_BOOST = 1.4
--- Radio pill (design px, before its UIScale = the phone text boost): bottom-aligned with the speedometer (half width
--- 170). Desktop: the full pill (◀ station / track ▶) right of the speedometer when that clears the screen edge, else
--- mirrored to its left. Touch: the left 40% of the screen (from a third of the height down) is the PlayerModule
--- thumbstick, so no radio button may sit there. A compact pill (station name only; the whole pill is the "next
--- station" button) shrinks into the slot between the speedometer and the touch cluster (DRIFT's left edge W-256;
--- CombatClient's SPIKES sit higher, above DRIFT). A canvas too narrow for even that gets a display-only pill on the
--- left (nothing Active in it: touches fall through to the thumbstick).
 local RADIO_SIZE = Vector2.new(216, 60)
-local RADIO_BUTTON = 48
 local RADIO_GAP = 6
 local RADIO_TOUCH_MIN_WIDTH = 100 -- narrowest compact pill (design px before its UIScale) that still reads
--- Compact pill text (design px inside the pill): x its UIScale (the phone boost: >= Theme.TouchMinScale overall) it
--- stays >= ~14 real px on phones. Fixed size + wrap + truncate: long names never shrink or spill.
-local RADIO_TOUCH_TEXT = 20
 local SPEEDO_HALF_WIDTH = 170
 local TOUCH_CLUSTER_LEFT = 256
 -- Local VFX
@@ -196,7 +180,6 @@ local touch = { handbrake = false, nitro = false }
 local lastHorn = 0
 local fovTween: Tween? = nil
 local normalFov: number? = nil -- the player's on-foot FOV, restored on exit
-local textBoost = 1 -- TextSize multiplier for small DrivingUI labels on phones (set in buildUI)
 local hidBackpack = false -- true while WE disabled the CoreGui backpack (only ever restore what we hid)
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -302,7 +285,7 @@ export type RadioLayout = {
 	anchorX: number, -- AnchorPoint (anchorX, 1) / Position UDim2.new(0.5, offsetX, 1, -12)
 	offsetX: number,
 	width: number, -- pill width in design px before its UIScale (height RADIO_SIZE.Y)
-	compact: boolean, -- touch: station name only, no ◀ ▶ buttons, no track line
+	compact: boolean, -- touch: station name only, no prev / next buttons, no track line
 	tap: boolean, -- the pill is a tap-to-cycle button (compact pills right of the speedometer only)
 }
 
@@ -411,59 +394,18 @@ function VehicleClient.waterLocal(cf: CFrame, size: Vector3, pos: Vector3): (Vec
 	return Vector3.new(p.X, if up.Y >= 0 then p.Y else -p.Y, p.Z), size
 end
 
-local function phoneTextBoost(): number
-	local ok, boost = pcall(function(): number
-		return VehicleClient.textBoost(Kit.isTouch(), Kit.uiScale(), Theme.TouchMinScale)
-	end)
-	return if ok then boost else 1
-end
+-- v2 driving UI (gta_ui_language §5.13, §7): no dashboard panel. The radar bars carry nitro (HUDController reads
+-- getController().nitro into the third segment), the radio is HUDController's station name at top-centre, the car's
+-- name comes in on the location lines. DrivingUI keeps only an optional small speed readout bottom-right (Settings >
+-- Speed readout: player attribute HC_ShowSpeedo), a thin car-damage rule under it, a quiet "DRIFT 2.4s" line, and on
+-- touch screens the GTA-style circle buttons (NITRO / DRIFT / HORN / EXIT / RADIO) from HudLayout.buttons.
 
-local function ts(size: number): number
-	return math.floor(size * textBoost + 0.5)
-end
+local SPEED_TEXT = 34 -- Kanit numerals (design px)
+local UNIT_TEXT = 14
+local CONTROLS_HELP_ID = "drive_controls"
 
-local function lerpColor(a: Color3, b: Color3, t: number): Color3
-	return a:Lerp(b, math.clamp(t, 0, 1))
-end
-
-local function segmentColor(i: number): Color3
-	local t = (i - 1) / (REV_SEGMENTS - 1)
-	if t < 0.55 then
-		return lerpColor(Theme.Colors.Secondary, Theme.Colors.Primary, t / 0.55)
-	end
-	return lerpColor(Theme.Colors.Primary, Theme.Colors.Danger, (t - 0.55) / 0.45)
-end
-
-local function roundButton(
-	icon: string,
-	caption: string,
-	color: Color3,
-	size: number,
-	position: UDim2,
-	parent: Instance
-)
-	local btn = Kit.iconButton(icon, caption, color)
-	btn.AnchorPoint = Vector2.new(1, 1)
-	btn.Size = UDim2.fromOffset(size, size)
-	btn.Position = position
-	local corner = btn:FindFirstChildOfClass("UICorner")
-	if corner then
-		corner.CornerRadius = UDim.new(1, 0)
-	end
-	local cap = btn:FindFirstChild("Caption")
-	if cap and cap:IsA("TextLabel") then
-		cap.TextSize = ts(math.max(13, math.floor(size / 7)))
-		cap.Position = UDim2.new(0, 0, 1, -(cap.TextSize + 10))
-		cap.Size = UDim2.new(1, 0, 0, cap.TextSize + 2)
-	end
-	local iconLabel = btn:FindFirstChild("Icon")
-	if iconLabel and iconLabel:IsA("TextLabel") then
-		iconLabel.AnchorPoint = Vector2.new(0.5, 0)
-		iconLabel.Position = UDim2.fromScale(0.5, 0.1)
-		iconLabel.Size = UDim2.fromScale(0.62, 0.55)
-	end
-	btn.Parent = parent
-	return btn
+local function hud(): any
+	return sibling("HUDController")
 end
 
 -- Hold-to-use touch button: true while any finger/mouse that began on it is still down.
@@ -495,8 +437,7 @@ local function bindHold(btn: GuiButton, field: string)
 end
 
 local function buildUI()
-	textBoost = phoneTextBoost()
-	local gui = Kit.screen("DrivingUI", Theme.Layers.HUD + 1)
+	local gui = Kit.screen("DrivingUI", Theme.Layers.HUD + 1, { touchMin = Theme.TouchMinScale })
 	gui.Enabled = false
 	local root = Kit.new("Frame", {
 		Name = "Root",
@@ -505,194 +446,73 @@ local function buildUI()
 		Parent = gui,
 	})
 
-	-- Speedometer ----------------------------------------------------------------------------------------------
-	local speedo = Kit.panel({
+	-- Speed readout --------------------------------------------------------------------------------------------
+	local speedo = Kit.new("Frame", {
 		Name = "Speedometer",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -12),
-		Size = UDim2.fromOffset(340, 156),
+		BackgroundTransparency = 1,
 		Parent = root,
 	})
-	local speedoScale = Kit.new("UIScale", { Parent = speedo })
-	-- neon accent strip across the top
-	local strip = Kit.new("Frame", {
-		Name = "Accent",
-		BackgroundColor3 = Theme.Colors.Primary,
-		BorderSizePixel = 0,
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 6),
-		Size = UDim2.new(1, -40, 0, 4),
-		Parent = speedo,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = strip
-	Kit.new("UIGradient", {
-		Color = ColorSequence.new(Theme.Colors.Secondary, Theme.Colors.Primary),
-		Parent = strip,
-	})
-
-	local carName = Kit.label("", ts(17), {
-		Name = "CarName",
-		Position = UDim2.fromOffset(0, 12),
-		Size = UDim2.new(1, 0, 0, 20),
-		TextWrapped = false,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-	})
-	carName.Parent = speedo
-
-	local speedLabel = Kit.label("0", 66, {
+	local speedLabel = Kit.numeric("0", SPEED_TEXT, {
 		Name = "Speed",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(0.5, 56, 0, 30),
-		Size = UDim2.fromOffset(200, 66),
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -40, 1, -6),
+		Size = UDim2.new(1, -40, 1, -6),
 		TextXAlignment = Enum.TextXAlignment.Right,
-		TextWrapped = false,
+		TextYAlignment = Enum.TextYAlignment.Bottom,
+		Parent = speedo,
 	})
-	speedLabel.Parent = speedo
-	Kit.new("UIScale", { Parent = speedLabel })
-	local mphLabel = Kit.label("MPH", ts(22), {
+	local unit = Kit.text("MPH", "condensed", UNIT_TEXT, {
 		Name = "Unit",
-		Position = UDim2.new(0.5, 62, 0, 62),
-		Size = UDim2.fromOffset(80, 26),
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, 0, 1, -10),
+		Size = UDim2.fromOffset(36, 16),
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = Theme.Colors.Secondary,
-		TextWrapped = false,
-	})
-	mphLabel.Parent = speedo
-	local boostBadge = Kit.label("NITRO!", ts(18), {
-		Name = "Boost",
-		Position = UDim2.new(0.5, 62, 0, 38),
-		Size = UDim2.fromOffset(90, 22),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = Theme.Colors.Primary,
-		TextWrapped = false,
-		Visible = false,
-	})
-	boostBadge.Parent = speedo
-
-	local rev = Kit.new("Frame", {
-		Name = "Rev",
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 98),
-		Size = UDim2.new(1, -36, 0, 20),
-		Parent = speedo,
-	})
-	Kit.list(Enum.FillDirection.Horizontal, 3, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Bottom).Parent =
-		rev
-	local segments: { Frame } = {}
-	for i = 1, REV_SEGMENTS do
-		local h = 0.35 + 0.65 * (i / REV_SEGMENTS)
-		local seg = Kit.new("Frame", {
-			Name = "Seg" .. i,
-			LayoutOrder = i,
-			BackgroundColor3 = segmentColor(i),
-			BackgroundTransparency = 0.8,
-			BorderSizePixel = 0,
-			Size = UDim2.new(1 / REV_SEGMENTS, -3, h, 0),
-			Parent = rev,
-		})
-		Kit.corner(UDim.new(0, 3)).Parent = seg
-		segments[i] = seg
-	end
-
-	-- nitro + health bars
-	local bars = Kit.new("Frame", {
-		Name = "Bars",
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 16, 1, -32),
-		Size = UDim2.new(1, -32, 0, 24),
-		Parent = speedo,
-	})
-	local function barIcon(text: string, x: UDim): TextLabel
-		local l = Kit.label(text, 18, {
-			Position = UDim2.new(x, UDim.new(0, 0)),
-			Size = UDim2.fromOffset(24, 24),
-			TextWrapped = false,
-		})
-		l.Parent = bars
-		return l
-	end
-	barIcon("🔥", UDim.new(0, 0))
-	local nitroBar, setNitro = Kit.progressBar(Theme.Colors.Secondary, {
-		Name = "Nitro",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 28, 0.5, 0),
-		Size = UDim2.new(0.5, -40, 0, 14),
-		Parent = bars,
-	})
-	Kit.new("UIScale", { Parent = nitroBar })
-	local infinity = Kit.label("∞", 18, {
-		Name = "Infinite",
-		Size = UDim2.fromScale(1, 1),
-		TextWrapped = false,
-		Visible = false,
-		ZIndex = 3,
-	})
-	infinity.Parent = nitroBar
-	barIcon("🔧", UDim.new(0.5, 4))
-	local healthBar, setHealth = Kit.progressBar(Theme.Colors.Cash, {
-		Name = "Health",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0.5, 32, 0.5, 0),
-		Size = UDim2.new(0.5, -32, 0, 14),
-		Parent = bars,
-	})
-	Kit.new("UIScale", { Parent = healthBar })
-
-	-- drift banner, well above the speedometer (see DRIFT_BANNER_Y)
-	local drift = Kit.label("DRIFT!", 38, {
-		Name = "Drift",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 0, DRIFT_BANNER_Y),
-		Size = UDim2.fromOffset(320, 44),
-		TextColor3 = Theme.Colors.Primary,
-		TextWrapped = false,
-		Rotation = -4,
-		Visible = false,
-	})
-	drift.Parent = speedo
-	local driftScale = Kit.new("UIScale", { Parent = drift })
-	local driftSub = Kit.label("+NITRO", ts(16), {
-		Name = "Sub",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 1, -4),
-		Size = UDim2.fromOffset(200, 20),
-		TextColor3 = Theme.Colors.Secondary,
-		TextWrapped = false,
-	})
-	driftSub.Parent = drift
-
-	-- control hint for keyboard / gamepad (fades after a few seconds)
-	local hint = Kit.label("", 14, {
-		Name = "Hint",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 0, -6),
-		Size = UDim2.fromOffset(600, 18),
 		TextColor3 = Theme.Colors.TextDim,
-		TextWrapped = false,
-		FontFace = Theme.Fonts.Body,
+		Parent = speedo,
 	})
-	hint.Parent = speedo
+	-- thin car-damage rule under the numbers; only shown once the car has taken damage
+	local healthTrack = Kit.new("Frame", {
+		Name = "Health",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(1, 1),
+		Size = UDim2.new(1, -40, 0, 3),
+		BackgroundColor3 = Theme.Colors.HealthTrack,
+		BackgroundTransparency = 0.2,
+		BorderSizePixel = 0,
+		Visible = false,
+		Parent = speedo,
+	})
+	local healthFill = Kit.new("Frame", {
+		Name = "Fill",
+		BackgroundColor3 = Theme.Colors.Health,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(1, 1),
+		Parent = healthTrack,
+	})
 
-	-- Touch buttons -------------------------------------------------------------------------------------------
-	-- Design-canvas footprints (AnchorPoint 1,1): NITRO x W-140..W-24 y H-150..H-34, DRIFT x W-256..W-156
-	-- y H-128..H-28, HORN x W-124..W-40 y H-254..H-170, EXIT x W-124..W-40 y H-354..H-270. CombatClient places
-	-- SPIKES (x W-236..W-144, y H-262..H-170) in this gap on the same 0.55..1.6 canvas: move them together.
+	-- Drift line (quiet: condensed white with the time in yellow, no banner) ------------------------------------
+	local drift = Kit.text("", "condensed", 18, {
+		Name = "Drift",
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextStrokeColor3 = Theme.Colors.Black,
+		TextStrokeTransparency = 0.5,
+		Visible = false,
+		Parent = root,
+	})
+
+	-- Touch buttons (HudLayout.buttons, bottom-right arc; nothing in the thumbstick zone) ------------------------
 	local touchFrame = Kit.new("Frame", {
 		Name = "Touch",
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
-		Visible = UserInputService.TouchEnabled,
+		Visible = Kit.isTouch(),
 		Parent = root,
 	})
-	local nitroBtn = roundButton("🔥", "NITRO", Theme.Colors.Secondary, 116, UDim2.new(1, -24, 1, -34), touchFrame)
-	nitroBtn.Name = "NitroButton"
-	local driftBtn = roundButton("💨", "DRIFT", Theme.Colors.Primary, 100, UDim2.new(1, -156, 1, -28), touchFrame)
-	driftBtn.Name = "DriftButton"
-	local hornBtn = roundButton("📯", "HORN", Theme.Colors.Warning, 84, UDim2.new(1, -40, 1, -170), touchFrame)
-	hornBtn.Name = "HornButton"
-	local exitBtn = roundButton("🚪", "EXIT", Theme.Colors.Danger, 84, UDim2.new(1, -40, 1, -270), touchFrame)
-	exitBtn.Name = "ExitButton"
+	local nitroBtn = Kit.circleButton("Nitro", 96, "hud.nitro", { Name = "NitroButton", Parent = touchFrame })
+	local driftBtn = Kit.circleButton("Drift", 84, "hud.drift", { Name = "DriftButton", Parent = touchFrame })
+	local hornBtn = Kit.circleButton("Horn", 60, "hud.horn", { Name = "HornButton", Parent = touchFrame })
+	local exitBtn = Kit.circleButton("Exit", 60, "hud.exit", { Name = "ExitButton", Parent = touchFrame })
+	local radioBtn = Kit.circleButton("Radio", 48, "hud.signal", { Name = "RadioButton", Parent = touchFrame })
 	bindHold(nitroBtn, "nitro")
 	bindHold(driftBtn, "handbrake")
 	hornBtn.Activated:Connect(function()
@@ -701,138 +521,108 @@ local function buildUI()
 	exitBtn.Activated:Connect(function()
 		VehicleClient.exit()
 	end)
-
-	-- Radio ---------------------------------------------------------------------------------------------------------
-	-- Station + track with ◀ ▶ (R / T, D-pad), or on touch the compact station pill (Compact label + Tap button).
-	-- Placed and switched by layoutRadio (VehicleClient.radioLayout); its UIScale is the phone text boost, so the
-	-- labels inside are TextScaled / fixed-size rather than ts()-boosted.
-	local radio = Kit.panel({
-		Name = "Radio",
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0.5, SPEEDO_HALF_WIDTH + RADIO_GAP, 1, -12),
-		Size = UDim2.fromOffset(RADIO_SIZE.X, RADIO_SIZE.Y),
-		Parent = root,
-	})
-	local radioScale = Kit.new("UIScale", { Scale = textBoost, Parent = radio })
-	local function radioButton(name: string, glyph: string, anchorX: number, x: UDim): TextButton
-		local btn = Kit.button(glyph, Theme.Colors.PanelLight, {
-			Name = name,
-			AnchorPoint = Vector2.new(anchorX, 0.5),
-			Position = UDim2.new(x, UDim.new(0.5, 0)),
-			Size = UDim2.fromOffset(RADIO_BUTTON, RADIO_BUTTON),
-			TextSize = 22,
-		})
-		btn.Parent = radio
-		return btn
-	end
-	local radioPrev = radioButton("Prev", "◀", 0, UDim.new(0, 5))
-	local radioNext = radioButton("Next", "▶", 1, UDim.new(1, -5))
-	local labelInset = 5 + RADIO_BUTTON + 3
-	local radioStation = Kit.label("📻 RADIO", 18, {
-		Name = "Station",
-		Position = UDim2.fromOffset(labelInset, 7),
-		Size = UDim2.new(1, -2 * labelInset, 0, 26),
-		TextScaled = true,
-		TextWrapped = false,
-		TextColor3 = Theme.Colors.Secondary,
-	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 18, MinTextSize = 9, Parent = radioStation })
-	radioStation.Parent = radio
-	local radioTitle = Kit.label("", 13, {
-		Name = "Title",
-		Position = UDim2.fromOffset(labelInset, 34),
-		Size = UDim2.new(1, -2 * labelInset, 0, 18),
-		TextScaled = true,
-		TextWrapped = false,
-		TextColor3 = Theme.Colors.TextDim,
-		FontFace = Theme.Fonts.Body,
-	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 13, MinTextSize = 8, Parent = radioTitle })
-	radioTitle.Parent = radio
-	-- touch: station name only, full pill, fixed readable size (wraps to 2 lines, then truncates)
-	local radioCompact = Kit.label("RADIO", RADIO_TOUCH_TEXT, {
-		Name = "Compact",
-		Position = UDim2.fromOffset(6, 4),
-		Size = UDim2.new(1, -12, 1, -8),
-		RichText = false,
-		TextWrapped = true,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		TextColor3 = Theme.Colors.Secondary,
-		Visible = false,
-	})
-	radioCompact.Parent = radio
-	-- touch: the whole pill = next station (only while it sits right of the speedometer, see radioLayout)
-	local radioTap = Kit.new("TextButton", {
-		Name = "Tap",
-		BackgroundTransparency = 1,
-		Text = "",
-		AutoButtonColor = false,
-		Size = UDim2.fromScale(1, 1),
-		ZIndex = 3,
-		Visible = false,
-		Parent = radio,
-	})
-	radioPrev.Activated:Connect(function()
-		VehicleClient.radioStep(-1)
-	end)
-	radioNext.Activated:Connect(function()
-		VehicleClient.radioStep(1)
-	end)
-	radioTap.Activated:Connect(function()
+	radioBtn.Activated:Connect(function()
 		VehicleClient.radioStep(1)
 	end)
 
 	ui = {
 		gui = gui,
+		root = root,
 		speedo = speedo,
-		speedoScale = speedoScale,
-		carName = carName,
 		speed = speedLabel,
-		mph = mphLabel,
-		boost = boostBadge,
-		segments = segments,
-		nitroBar = nitroBar,
-		setNitro = setNitro,
-		infinity = infinity,
-		healthBar = healthBar,
-		setHealth = setHealth,
+		unit = unit,
+		healthTrack = healthTrack,
+		healthFill = healthFill,
 		drift = drift,
-		driftScale = driftScale,
-		driftSub = driftSub,
-		hint = hint,
 		touchFrame = touchFrame,
 		nitroBtn = nitroBtn,
-		radio = radio,
-		radioScale = radioScale,
-		radioPrev = radioPrev,
-		radioNext = radioNext,
-		radioStation = radioStation,
-		radioTitle = radioTitle,
-		radioCompact = radioCompact,
-		radioTap = radioTap,
+		driftBtn = driftBtn,
+		hornBtn = hornBtn,
+		exitBtn = exitBtn,
+		radioBtn = radioBtn,
 	}
 end
 
--- Radio label: station + "♪ track" (or MUSIC OFF while the music setting mutes it). Args from RadioChanged / getRadio.
--- Compact (touch) pill: the station name alone, "▶" when tapping it cycles.
-local function updateRadioUI(station: any, title: any)
+-- Settings > Speed readout (saved; off by default: GTA has no speedometer).
+local function speedoWanted(): boolean
+	return player:GetAttribute("HC_ShowSpeedo") == true
+end
+
+-- What the HUD hides, DrivingUI hides too (VehicleClient.drivingUiVisibility): the readout and the drift line in
+-- streamer mode, photo mode and under the pause menu; the touch buttons only for photo mode and the pause menu, so
+-- EXIT / NITRO stay usable in streamer mode.
+local hudHidden = false
+local touchHidden = false
+
+function VehicleClient.drivingUiVisibility(streamer: boolean, photo: boolean, paused: boolean): (boolean, boolean)
+	return not (streamer or photo or paused), not (photo or paused)
+end
+
+local function applyDrivingVisibility()
 	if not ui then
 		return
 	end
-	local sc = sibling("SoundController")
-	ui.radio.Visible = typeof(station) == "string"
-	ui.radioStation.Text = if typeof(station) == "string" then "📻 " .. station else "📻 RADIO"
-	local musicOff = sc ~= nil and type(sc.isEnabled) == "function" and sc.isEnabled("music") == false
-	if musicOff then
-		ui.radioTitle.Text = "MUSIC OFF"
-		ui.radioTitle.TextColor3 = Theme.Colors.Warning
-	else
-		ui.radioTitle.Text = if typeof(title) == "string" then "♪ " .. title else ""
-		ui.radioTitle.TextColor3 = Theme.Colors.TextDim
+	ui.speedo.Visible = speedoWanted() and not hudHidden
+	if hudHidden then
+		ui.drift.Visible = false
 	end
-	local name = if typeof(station) == "string" then station else "RADIO"
-	ui.radioCompact.Text = if musicOff then "MUSIC OFF" elseif ui.radioTap.Visible then name .. " ▶" else name
-	ui.radioCompact.TextColor3 = if musicOff then Theme.Colors.Warning else Theme.Colors.Secondary
+	ui.touchFrame.Visible = Kit.isTouch() and not touchHidden
+end
+
+local function readHudHidden()
+	local h = hud()
+	local streamer, photo, paused = false, false, false
+	if h and typeof(h.hiddenState) == "function" then
+		local ok, a, b, c = pcall(h.hiddenState)
+		if ok then
+			streamer, photo, paused = a == true, b == true, c == true
+		end
+	end
+	local showInfo, showTouch = VehicleClient.drivingUiVisibility(streamer, photo, paused)
+	hudHidden, touchHidden = not showInfo, not showTouch
+	applyDrivingVisibility()
+end
+
+local function place(obj: GuiObject, r: { x: number, y: number, w: number, h: number }?)
+	if r then
+		obj.Position = UDim2.fromOffset(r.x, r.y)
+		obj.Size = UDim2.fromOffset(r.w, r.h)
+		obj.AnchorPoint = Vector2.zero
+	end
+end
+
+-- Lay DrivingUI out from the shared HudLayout on its own (same-scale) canvas.
+local function layoutDriving()
+	if not ui then
+		return
+	end
+	local canvas = Kit.canvasSize(ui.gui)
+	local isTouch = Kit.isTouch()
+	local L = HudLayout.compute(canvas.X, canvas.Y, isTouch)
+	place(ui.speedo, L.speed)
+	place(ui.drift, L.driftText)
+	local b = L.buttons
+	place(ui.nitroBtn, b.nitro)
+	place(ui.driftBtn, b.drift)
+	place(ui.hornBtn, b.horn)
+	place(ui.exitBtn, b.exit)
+	place(ui.radioBtn, b.radio)
+	applyDrivingVisibility()
+end
+
+-- Radio: the station name shows top-centre (HUDController.showRadio) on every change while driving.
+local function updateRadioUI(station: any, title: any)
+	if not session then
+		return
+	end
+	local h = hud()
+	if not (h and typeof(h.showRadio) == "function") then
+		return
+	end
+	local sc = sibling("SoundController")
+	local musicOff = sc ~= nil and type(sc.isEnabled) == "function" and sc.isEnabled("music") == false
+	local track = if musicOff then "Music off" elseif typeof(title) == "string" then title else nil
+	pcall(h.showRadio, if typeof(station) == "string" then station else nil, track)
 end
 
 local function radioCall(method: string, ...: any): ...any
@@ -848,70 +638,54 @@ local function radioCall(method: string, ...: any): ...any
 	return table.unpack(results, 2, results.n)
 end
 
--- Place the radio pill on the DrivingUI canvas and pick its full / compact form (see VehicleClient.radioLayout).
-local function layoutRadio()
-	if not ui then
+-- One GTA help text with the driving controls for the current input (first drive of the session only).
+local controlsShown = false
+local function controlsHelp(): string?
+	local input = Kit.inputKind()
+	if input == "touch" then
+		return "Hold <b>NITRO</b> for a boost and <b>DRIFT</b> to slide. Tap <b>RADIO</b> to change station."
+	elseif input == "gamepad" then
+		return `Hold {RichText.key("RB")} for nitro, {RichText.key("X")} to drift. {RichText.key("Y")} horn, `
+			.. `{RichText.key("A")} to get out. {RichText.key("D-Pad")} changes the radio.`
+	end
+	return `Hold {RichText.key("Shift")} for nitro and {RichText.key("Space")} to drift. {RichText.key("H")} horn, `
+		.. `{RichText.key("F")} to get out. {RichText.key("R")} {RichText.key("T")} change the radio.`
+end
+
+local function showControlsHelp()
+	if controlsShown then
 		return
 	end
-	local cam = Workspace.CurrentCamera
-	local okScale, canvasScale = pcall(Kit.uiScale)
-	local scale = if okScale and typeof(canvasScale) == "number" and canvasScale > 0 then canvasScale else 1
-	local canvas =
-		VehicleClient.canvasWidth(ui.gui.AbsoluteSize.X, if cam then cam.ViewportSize.X else 1280 * scale, scale)
-	local boost = phoneTextBoost()
-	local layout = VehicleClient.radioLayout(canvas, UserInputService.TouchEnabled, boost)
-	ui.radioScale.Scale = boost
-	ui.radio.AnchorPoint = Vector2.new(layout.anchorX, 1)
-	ui.radio.Position = UDim2.new(0.5, layout.offsetX, 1, -12)
-	ui.radio.Size = UDim2.fromOffset(layout.width, RADIO_SIZE.Y)
-	ui.radioPrev.Visible = not layout.compact
-	ui.radioNext.Visible = not layout.compact
-	ui.radioStation.Visible = not layout.compact
-	ui.radioTitle.Visible = not layout.compact
-	ui.radioCompact.Visible = layout.compact
-	if ui.radioTap.Visible ~= layout.tap then
-		ui.radioTap.Visible = layout.tap
-		updateRadioUI(radioCall("getRadio")) -- the "▶" cue follows tappability
+	local h = hud()
+	local text = controlsHelp()
+	if text and h and typeof(h.help) == "function" then
+		-- urgent: the tutorial's own help line stays up until cleared, and a queued controls message would surface
+		-- only after the drive (back on foot). The tutorial line comes back once these 9 s are over.
+		pcall(h.help, text, { id = CONTROLS_HELP_ID, duration = 9, urgent = true })
+		-- counts as shown only once it is actually on screen
+		local ok, current = pcall(function()
+			return if typeof(h.currentHelp) == "function" then h.currentHelp() else CONTROLS_HELP_ID
+		end)
+		controlsShown = ok and current == CONTROLS_HELP_ID
 	end
 end
 
-local function controlHint(): string
-	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
-		return ""
-	end
-	if UserInputService.GamepadEnabled and UserInputService:GetLastInputType().Name:find("Gamepad") then
-		return "RT/LT drive   X drift   RB nitro   Y horn   A exit   D-pad radio"
-	end
-	return "WASD drive   SPACE drift   SHIFT nitro   H horn   F exit   R/T radio"
-end
-
-local function setRev(lit: number, boosting: boolean)
-	for i, seg in ui.segments do
-		local on = i <= lit
-		seg.BackgroundTransparency = if on then 0 else 0.8
-		seg.BackgroundColor3 = if boosting and on then Theme.Colors.Secondary else segmentColor(i)
-	end
-end
-
-local function updateHealthUI(s: Session, animate: boolean)
+local function updateHealthUI(s: Session, _animate: boolean)
 	if not ui then
 		return
 	end
 	local hp = s.model:GetAttribute("Health")
-	local frac = if typeof(hp) == "number" then hp / Tuning.MAX_HEALTH else 1
-	frac = math.clamp(frac, 0, 1)
-	ui.setHealth(frac, animate)
-	local fill = ui.healthBar:FindFirstChild("Fill")
-	if fill and fill:IsA("Frame") then
-		fill.BackgroundColor3 = if frac > 0.5
-			then Theme.Colors.Cash
-			elseif frac > 0.25 then Theme.Colors.Warning
-			else Theme.Colors.Danger
-	end
+	local frac = math.clamp(if typeof(hp) == "number" then hp / Tuning.MAX_HEALTH else 1, 0, 1)
+	ui.healthTrack.Visible = frac < 0.999 and speedoWanted()
+	ui.healthFill.Size = UDim2.fromScale(frac, 1)
+	ui.healthFill.BackgroundColor3 = if frac > 0.5
+		then Theme.Colors.Health
+		elseif frac > 0.25 then Theme.Colors.Yellow
+		else Theme.Colors.Red
 end
 
--- The CoreGui backpack hotbar stays on top of every ScreenGui while seated, right over the speedometer's bars. Hide
--- it for the drive; restore it only if we were the ones who hid it (another system may keep it off on purpose).
+-- The CoreGui backpack hotbar stays on top of every ScreenGui while seated, right over the speed readout. Hide it
+-- for the drive; restore it only if we were the ones who hid it (another system may keep it off on purpose).
 local function hideBackpack()
 	local okGet, enabled = pcall(StarterGui.GetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack)
 	if okGet and enabled == true then
@@ -932,33 +706,30 @@ local function showUI(s: Session)
 	if not ui then
 		return
 	end
-	local tier = Rarity.Tiers[s.def.rarity]
-	ui.carName.Text = s.def.name
-	ui.carName.TextColor3 = if tier then tier.color else Theme.Colors.Text
 	ui.speed.Text = "0"
 	ui.speed.TextColor3 = Theme.Colors.Text
-	ui.boost.Visible = false
 	ui.drift.Visible = false
-	ui.hint.Text = controlHint()
-	ui.hint.TextTransparency = 0
-	ui.infinity.Visible = s.controller.infiniteNitro == true
-	ui.touchFrame.Visible = UserInputService.TouchEnabled
-	setRev(0, false)
-	ui.setNitro(s.controller.nitro, false)
-	updateHealthUI(s, false)
 	ui.gui.Enabled = true
-	layoutRadio() -- after Enabled: measured on the live DrivingUI canvas
+	layoutDriving() -- after Enabled: measured on the live DrivingUI canvas
+	readHudHidden()
+	updateHealthUI(s, false)
+	-- GTA: the vehicle name fades in bottom-right with the location lines, the station name at top-centre
+	local h = hud()
+	if h and typeof(h.showLocation) == "function" then
+		pcall(h.showLocation, s.def.name, nil, nil)
+	end
 	updateRadioUI(radioCall("getRadio"))
-	-- slide up + pop
-	ui.speedo.Position = UDim2.new(0.5, 0, 1, 190)
-	TweenService:Create(ui.speedo, Theme.TweenPop, { Position = UDim2.new(0.5, 0, 1, -12) }):Play()
-	Kit.pop(ui.touchFrame.NitroButton, 0.6)
+	showControlsHelp()
 end
 
 local function hideUI()
 	restoreBackpack()
 	if ui then
 		ui.gui.Enabled = false
+	end
+	local h = hud()
+	if h and typeof(h.showRadio) == "function" then
+		pcall(h.showRadio, nil)
 	end
 end
 
@@ -1318,7 +1089,7 @@ local function onCrash(s: Session, drop: number)
 		end
 	end
 	if ui then
-		Kit.pop(ui.speedo, 1.08)
+		Kit.pop(ui.speed, 1.08)
 	end
 end
 
@@ -1404,16 +1175,10 @@ local function renderStep(s: Session, dt: number)
 		s.shownMph = mph
 		ui.speed.Text = tostring(mph)
 	end
-	local lit = math.ceil(math.clamp(c.speed / math.max(def.topSpeed, 1), 0, 1) * REV_SEGMENTS - 0.01)
-	if lit ~= s.shownLit or boosting ~= s.wasBoosting then
-		s.shownLit = lit
-		setRev(lit, boosting)
-	end
 	if boosting ~= s.wasBoosting then
-		ui.boost.Visible = boosting
-		ui.speed.TextColor3 = if boosting then Theme.Colors.Secondary else Theme.Colors.Text
+		ui.speed.TextColor3 = if boosting then Theme.Colors.Yellow else Theme.Colors.Text
 		if boosting then
-			Kit.pop(ui.speed, 1.25)
+			Kit.pop(ui.speed, 1.1)
 			backfire(s, true)
 			if s.sfx then
 				playViaController("Whoosh", s.chassis.Position)
@@ -1421,43 +1186,28 @@ local function renderStep(s: Session, dt: number)
 		end
 	end
 
-	-- nitro bar
-	if math.abs(c.nitro - s.shownNitro) > 0.004 then
-		s.shownNitro = c.nitro
-		ui.setNitro(c.nitro, false)
-	end
+	-- nitro lives in the radar's third bar segment (HUDController); the touch button pops when it is full again
 	local full = c.nitro >= 0.999
 	if full and not s.nitroWasFull and not c.infiniteNitro then
-		Kit.pop(ui.nitroBar, 1.25)
-		Kit.pop(ui.nitroBtn, 1.15)
+		Kit.pop(ui.nitroBtn, 1.1)
 	end
 	s.nitroWasFull = full
-	ui.infinity.Visible = c.infiniteNitro == true
 
-	-- drift banner
+	-- drift line
 	if drifting then
 		s.driftTime += dt
 		if not s.wasDrifting then
-			ui.drift.Visible = true
-			ui.driftScale.Scale = 0.6
-			TweenService:Create(ui.driftScale, Theme.TweenPop, { Scale = 1 }):Play()
+			ui.drift.Visible = not hudHidden
 		end
 		local tenths = math.floor(s.driftTime * 10)
 		if tenths ~= s.shownDriftTenths then
 			s.shownDriftTenths = tenths
-			ui.drift.Text = string.format("DRIFT! %.1fs", tenths / 10)
-			ui.drift.TextColor3 = Color3.fromHSV((os.clock() * 0.8) % 1, 0.65, 1)
+			ui.drift.Text = `DRIFT  <font color="#F0C850">{string.format("%.1f", tenths / 10)}s</font>`
 		end
 	elseif s.wasDrifting then
 		ui.drift.Visible = false
 		s.driftTime = 0
 		s.shownDriftTenths = -1
-	end
-
-	-- control hint fades out
-	local age = os.clock() - s.startedAt
-	if age > HINT_SECONDS and ui.hint.TextTransparency < 1 then
-		ui.hint.TextTransparency = math.min(1, (age - HINT_SECONDS) / 1.5)
 	end
 
 	-- camera FOV kick
@@ -1824,7 +1574,7 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 		local now = if typeof(hp) == "number" then hp else Tuning.MAX_HEALTH
 		updateHealthUI(s, true)
 		if now < s.lastHealth and ui then
-			Kit.pop(ui.healthBar, 1.25)
+			Kit.pop(ui.speed, 1.06)
 		end
 		s.lastHealth = now
 	end)
@@ -1921,7 +1671,7 @@ function VehicleClient.honk()
 	lastHorn = os.clock()
 	s.fxHonk = true -- nearby players hear it even when our own sfx are off
 	if ui then
-		Kit.pop(ui.touchFrame.HornButton, 1.2)
+		Kit.pop(ui.hornBtn, 1.1)
 	end
 	if not s.sfx then
 		return
@@ -1942,7 +1692,7 @@ function VehicleClient.honk()
 	end
 end
 
--- Previous (-1) / next (+1) radio station while driving (◀ ▶ buttons, R / T, D-pad).
+-- Previous (-1) / next (+1) radio station while driving (RADIO touch button, R / T, D-pad).
 function VehicleClient.radioStep(dir: number)
 	if not session then
 		return
@@ -1950,7 +1700,7 @@ function VehicleClient.radioStep(dir: number)
 	radioCall("stepRadio", dir)
 	playViaController("Click")
 	if ui then
-		Kit.pop(if ui.radioCompact.Visible then ui.radioCompact else ui.radioStation, 1.15)
+		Kit.pop(ui.radioBtn, 1.1)
 	end
 end
 
@@ -1965,19 +1715,27 @@ function VehicleClient.start()
 			updateRadioUI(station, title)
 		end)
 	end
-	-- re-place the radio when the DrivingUI canvas (safe-area insets included) or the viewport (UI scale) changes
-	local function relayoutRadio()
+	-- re-place the readout + touch buttons when the DrivingUI canvas (safe-area insets, UI scale) changes
+	local function relayout()
 		if session then
-			layoutRadio()
+			layoutDriving()
 		end
 	end
 	if ui then
-		ui.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayoutRadio)
+		ui.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayout)
 	end
 	local cam = Workspace.CurrentCamera
 	if cam then
-		cam:GetPropertyChangedSignal("ViewportSize"):Connect(relayoutRadio)
+		cam:GetPropertyChangedSignal("ViewportSize"):Connect(relayout)
 	end
+	-- Settings > Speed readout (MenuController sets the local attribute)
+	player:GetAttributeChangedSignal("HC_ShowSpeedo"):Connect(function()
+		local s = session
+		if ui and s then
+			applyDrivingVisibility()
+			updateHealthUI(s, false)
+		end
+	end)
 	player.CharacterAdded:Connect(function(character: Model)
 		hookCharacter(character)
 	end)
@@ -1987,6 +1745,16 @@ function VehicleClient.start()
 	if player.Character then
 		task.spawn(hookCharacter, player.Character)
 	end
+	-- the HUD's hidden states (pause menu §5.12, photo mode, streamer mode) apply to DrivingUI too: the readout and the
+	-- touch buttons can't be tapped through the pause tint or end up in a photo (applyDrivingVisibility)
+	task.defer(function()
+		local h = hud()
+		local changed = if h then h.VisibilityChanged else nil
+		if type(changed) == "table" and type(changed.Connect) == "function" then
+			changed:Connect(readHudHidden)
+		end
+		readHudHidden()
+	end)
 end
 
 return VehicleClient

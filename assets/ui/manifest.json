@@ -1,0 +1,107 @@
+{
+ "apps": {
+  "assetId": 131139912413186,
+  "file": "assets/ui/apps_sheet.png",
+  "moderation": "Approved",
+  "sha256": "ab28e9d0fc5fe546b1f83d14f8c711e7bebda07b55d22416afa74e2c16e8fd2a",
+  "uploaded": "2026-10-27T17:04:02Z"
+ },
+ "banners": {
+  "assetId": 107070489184648,
+  "file": "assets/ui/banners_sheet.png",
+  "moderation": "Approved",
+  "sha256": "137379dea812683f78ee51320d700b7575a69c0aaf2f7ef67081498bd137e04c",
+  "uploaded": "2026-10-27T17:04:10Z"
+ },
+ "hud": {
+  "assetId": 135962349023536,
+  "file": "assets/ui/hud_sheet.png",
+  "moderation": "Approved",
+  "sha256": "6d313340f9ed55e00063f9d745a13af4ac415be1ba6baa8595bd8ed39fb5a703",
+  "uploaded": "2026-10-27T17:03:59Z"
+ },
+ "loading_1": {
+  "assetId": 76057201104160,
+  "file": "assets/ui/loading_1.png",
+  "moderation": "Approved",
+  "sha256": "8512a9e06c8f9a75be72388135a37ed45e230176f946d3a6d8db80c0e3fc7de7",
+  "uploaded": "2026-10-27T17:04:40Z"
+ },
+ "loading_2": {
+  "assetId": 90347903015746,
+  "file": "assets/ui/loading_2.png",
+  "moderation": "Approved",
+  "sha256": "01ad14054b17da580467077747d21fbb4674e2ac186f634c252831a0c1c798d8",
+  "uploaded": "2026-10-27T17:04:48Z"
+ },
+ "loading_3": {
+  "assetId": 124336509648512,
+  "file": "assets/ui/loading_3.png",
+  "moderation": "Approved",
+  "sha256": "c0da09a20764d0f73b2e981c8ded5429a6392e0e7ea470bd7f54e33b4b1b95a5",
+  "uploaded": "2026-10-27T17:04:55Z"
+ },
+ "loading_4": {
+  "assetId": 124106427198608,
+  "file": "assets/ui/loading_4.png",
+  "moderation": "Approved",
+  "sha256": "fd689d168498559e2893d752f56e1d99a14b663a04deaf049613a2d7ac27202a",
+  "uploaded": "2026-10-27T17:05:04Z"
+ },
+ "loading_5": {
+  "assetId": 139161880276868,
+  "file": "assets/ui/loading_5.png",
+  "moderation": "Approved",
+  "sha256": "43fdceebe8b3ed5aa4608529ce2a63eb54ea79c02b9207401c637ce005a40b12",
+  "uploaded": "2026-10-27T17:05:12Z"
+ },
+ "loading_6": {
+  "assetId": 137928702582117,
+  "file": "assets/ui/loading_6.png",
+  "moderation": "Approved",
+  "sha256": "75052f4ba7e2382eaeb26391fcc700e6751d5198a40d66603ab2a77e49f1cda4",
+  "uploaded": "2026-10-27T17:05:18Z"
+ },
+ "phone_shell": {
+  "assetId": 100859923569033,
+  "file": "assets/ui/phone_shell.png",
+  "moderation": "Approved",
+  "sha256": "9375846c2ad507515559a0fe337a4eb9a2828056e3c3af7b0fb72098a4b67c1f",
+  "uploaded": "2026-10-27T17:04:29Z"
+ },
+ "portraits": {
+  "assetId": 87448343745307,
+  "file": "assets/ui/portraits_sheet.png",
+  "moderation": "Approved",
+  "sha256": "75e62c40e6e909d90c135e373875e33eee6aa62ffc9eacc478af4464cabb913b",
+  "uploaded": "2026-10-27T17:04:07Z"
+ },
+ "shard_band": {
+  "assetId": 129026920716318,
+  "file": "assets/ui/shard_band.png",
+  "moderation": "Approved",
+  "sha256": "48634e7b0768e86cee1866878905389ef6024d6bb1532cfd48291e72d0db119a",
+  "uploaded": "2026-10-27T17:04:24Z"
+ },
+ "vignette": {
+  "assetId": 116565374657906,
+  "file": "assets/ui/vignette.png",
+  "moderation": "Approved",
+  "sha256": "ccd6a93289bb31135160f53968a5378442fa52c0caa21a1adafd55451cda5b97",
+  "uploaded": "2026-10-27T17:04:20Z"
+ },
+ "wedge": {
+  "assetId": 131406024440823,
+  "file": "assets/ui/wedge.png",
+  "moderation": "Approved",
+  "sha256": "15f47910876cedde873c62b48a31372cb31b8611c63b4f9b0921d94b3a960151",
+  "uploaded": "2026-10-27T17:04:16Z"
+ },
+ "wordmark": {
+  "assetId": 105746694254300,
+  "file": "assets/ui/wordmark.png",
+  "moderation": "Approved",
+  "sha256": "b2ae97c1b1343a14b2a9794b5bf46ca6243eae4f71a4222aeb6fe36023493530",
+  "uploaded": "2026-10-27T17:04:33Z"
+ }
+}

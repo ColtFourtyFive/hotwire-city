@@ -78,6 +78,7 @@ local SETTING_KEYS: { [string]: boolean } = {
 	sfx = true,
 	hideHud = true,
 	autoAccelerate = true,
+	speedo = true, -- the optional driving speed readout (UI v2; off by default like GTA)
 }
 
 -- Module -----------------------------------------------------------------------------------------------------
@@ -203,7 +204,7 @@ local function makeTemplate(): PlayerData
 		receipts = {},
 		lastOnline = 0,
 		tutorialDone = false,
-		settings = { music = true, sfx = true, hideHud = false, autoAccelerate = false },
+		settings = { music = true, sfx = true, hideHud = false, autoAccelerate = false, speedo = false },
 		exclusives = {},
 		contracts = { day = 0, list = {} },
 		referralRewarded = false,

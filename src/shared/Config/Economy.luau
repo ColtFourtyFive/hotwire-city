@@ -138,6 +138,8 @@ Economy.BUSTED_MAX_PENALTY_SECONDS = 600 -- penalty capped at 10 minutes of inco
 Economy.SURRENDER_PENALTY_MULT = 0.5 -- giving yourself up halves the busted penalty (gta_combat §7.3)
 Economy.BUSTED_AMMO_LOSS = 0.5 -- a bust confiscates this fraction of every weapon's reserve ammo
 Economy.SPRAY_COST_PER_STAR = 250 -- minimum cost to clear wanted at a Spray Shop, per star
+Economy.CAB_FEE = 150 -- phone "Call a cab" fast trip to your own garage (PlotService GoHome; blocked while wanted)
+Economy.CAB_COOLDOWN = 20 -- seconds between cab rides (PlotService enforces it; the phone shows it)
 Economy.SPRAY_INCOME_SECONDS = 15 -- per star: cost = stars * max(SPRAY_COST_PER_STAR, income/s * this)
 
 -- Theft ------------------------------------------------------------------------

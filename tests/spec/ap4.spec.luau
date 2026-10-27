@@ -429,10 +429,10 @@ return function(t)
 			"loading_art",
 			"logo_hotwire_city",
 			"Hold E to hotwire",
-			"Drive it into your DROP-OFF",
-			"Lock your garage!",
-			"Hot Drops = mythic cars",
-			"Spray Shops lose the cops",
+			"garage drop-off",
+			"Lock your garage",
+			"Hot Drops put rare cars",
+			"Spray Shops clear your wanted level",
 		}
 		for _, needle in needles do
 			t.ok(source:find(needle, 1, true) ~= nil, "mentions " .. needle)

@@ -108,7 +108,7 @@ export type Snapshot = {
 	contracts: ContractState,
 }
 
-export type Settings = { music: boolean, sfx: boolean, hideHud: boolean, autoAccelerate: boolean }
+export type Settings = { music: boolean, sfx: boolean, hideHud: boolean, autoAccelerate: boolean, speedo: boolean }
 
 -- CombatState remote payload (WeaponService -> owning client).
 export type AmmoView = { id: string, mag: number, reserve: number, tint: string? }

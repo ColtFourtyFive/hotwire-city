@@ -11,6 +11,7 @@ local ORDER = {
 	"NotificationController",
 	"HUDController",
 	"MenuController",
+	"PhoneController",
 	"VehicleClient",
 	"WheelAnimator",
 	"GarageClient",
