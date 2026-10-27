@@ -1,0 +1,9 @@
+# Job 0002 console: Edit-mode Output for the lab run, copied verbatim from the Studio session log (0.744.0.7441077_20261027T151739Z_Studio_6fb6d_last.log).
+# It contains every FLog::CreatorOutput, FLog::Output, FLog::CreatorWarning and FLog::Error line from 15:30Z onwards.
+# The two 'lacking capability RobloxScript' errors come from the operator probing Lighting.Technology.
+
+[FLog::Output] All use of Roblox services must comply with Roblox's Terms of Use, Privacy Policy, Community Standards, and applicable laws. Processing of User personal information is limited to the purposes expressly permitted therein.
+2026-10-27T15:31:39.822Z,840.822205,6deab000,6,Warning [FLog::Output] settingsUrl: https://clientsettingscdn.roblox.com/v2/settings-compressed/application/MacStudioApp.zst
+2026-10-27T15:34:58.180Z,1039.180420,6e0b7000,6,Info [FLog::CreatorOutput] Info: Stack Begin
+2026-10-27T15:34:58.180Z,1039.180420,6e0b7000,6,Info [FLog::CreatorOutput] Info: Script 'AssistantCommand', Line 7
+2026-10-27T15:34:58.180Z,1039.180420,6e0b7000,6,Info [FLog::CreatorOutput] Info: Stack End
