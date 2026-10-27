@@ -110,26 +110,56 @@ def _json_safe(d):
     return {k: (list(v) if hasattr(v, "__len__") and not isinstance(v, str) else v) for k, v in d.items()}
 
 
-def export_glb(B, out_dir, textures=True):
+def lite_material(ob, role):
+    """Texture-free stand-in for export: keeps colour/roughness/metal factors, names the shared texture set.
+    Material name = '<Role>__<kind>__<set>' so an importer can attach the shared SurfaceAppearance."""
+    src = ob.active_material
+    info = dict(src.get("roblox", {})) if src else {}
+    kind = info.get("kind", "color")
+    key = info.get("set") or os.path.splitext(info.get("file", ""))[0] or "plain"
+    m = bpy.data.materials.new(f"{role}__{kind}__{key}")
+    m.use_nodes = True
+    m.use_backface_culling = role not in ("Clear",)
+    bsdf = m.node_tree.nodes["Principled BSDF"]
+    rgb = info.get("tint") or info.get("color") or [0.8, 0.8, 0.8]
+    bsdf.inputs["Base Color"].default_value = (*rgb[:3], 1)
+    bsdf.inputs["Roughness"].default_value = info.get("roughness", 0.6)
+    bsdf.inputs["Metallic"].default_value = info.get("metallic", 0.0)
+    if kind in ("decal", "clear"):
+        bsdf.inputs["Alpha"].default_value = 0.5
+        try:
+            m.surface_render_method = "BLENDED"
+        except Exception:
+            pass
+    m["roblox"] = info
+    ob.data.materials[0] = m
+
+
+def export_glb(B, out_dir, textures=True, suffix=""):
     """One GLB per building, one mesh object per material role (=> one MeshPart each, split past 19.5k tris).
-    Writes <name>.glb and <name>.json (parts, tris, materials, tint, night-only flags) next to it."""
+    textures=True embeds every map (self-contained, ~10-16 MB); False writes a light GLB whose materials only
+    name the shared texture set (see manifest.py -> out/texlib). Writes <name>.json next to it."""
     S.reset()
     root, objs = instantiate(B, night=False, split=True)
     for name, (role, ob) in objs.items():   # export everything, including night-only parts
         ob.hide_render = False
+        if ob.active_material is not None:
+            ob.active_material.use_backface_culling = role not in ("Clear",)
+        if not textures:
+            lite_material(ob, role)
     os.makedirs(out_dir, exist_ok=True)
     bpy.ops.object.select_all(action="DESELECT")
     for _, ob in objs.values():
         ob.select_set(True)
     root.select_set(True)
-    path = os.path.join(out_dir, B.name + ".glb")
+    path = os.path.join(out_dir, B.name + suffix + ".glb")
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", use_selection=True, export_apply=True,
                               export_image_format="AUTO", export_yup=True, export_texcoords=True,
-                              export_normals=True, export_materials="EXPORT" if textures else "PLACEHOLDER")
+                              export_normals=True, export_materials="EXPORT")
     meta = {"name": B.name, "archetype": B.kind, "seed": B.seed, "footprint": list(B.footprint),
             "height": round(B.height, 2), "base_depth": round(B.base_depth, 2), "tags": B.tags,
             "front": "-Y in Blender = +Z in glTF; Roblox front is -Z, so use yaw=180 in Config/Assets",
-            "parts": {}}
+            "spawns": [list(s_) for s_ in B.spawns], "parts": {}}
     for name, (role, ob) in objs.items():
         tris = sum(len(p.vertices) - 2 for p in ob.data.polygons)
         mat = _json_safe(dict(ob.active_material.get("roblox", {}))) if ob.active_material else {}
@@ -139,7 +169,8 @@ def export_glb(B, out_dir, textures=True):
     meta["max_part_tris"] = max(r["tris"] for r in meta["parts"].values())
     meta["glb"] = os.path.basename(path)
     meta["glb_bytes"] = os.path.getsize(path)
-    with open(os.path.join(out_dir, B.name + ".json"), "w") as f:
+    meta["textures_embedded"] = bool(textures)
+    with open(os.path.join(out_dir, B.name + suffix + ".json"), "w") as f:
         json.dump(meta, f, indent=1)
     return path, meta
 

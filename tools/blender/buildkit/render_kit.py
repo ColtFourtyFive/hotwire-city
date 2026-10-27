@@ -65,6 +65,15 @@ def avenue(x0, x1, night=False, lamps=60.0, palms=None, cars=True, seed=0, far_w
             S.car(c, r.uniform(x0 + 40, x1 - 40), r.choice([-1, 1]) * 9.0, heading=r.choice([0, 180]), seed=r.randint(0, 999))
 
 
+def at_z(z, fn, *args, **kw):
+    """Run a prop function and lift everything it created by z (props on terrain)."""
+    before = set(bpy.data.objects)
+    fn(*args, **kw)
+    for ob in set(bpy.data.objects) - before:
+        if ob.parent is None:
+            ob.location.z += z
+
+
 def lot_cars(B, x, y, rot, frac=0.6, seed=0):
     r = random.Random(seed)
     cr, sr = math.cos(math.radians(rot)), math.sin(math.radians(rot))
@@ -289,18 +298,13 @@ def sc_mansion(a):
         x, y = r.uniform(-450, 450), r.uniform(-60, 400)
         if abs(x) < W / 2 + 6 and 140 - D / 2 - 30 < y < 140 + D / 2 + 6:
             continue
-        zz = hz(x, y)
+        zz = hz(x, y) - 0.5
         if r.random() < 0.6:
-            S.bush(c, x, y, w=r.uniform(4, 9), h=r.uniform(3, 6), seed=k, n=160)
-            bpy.context.scene.collection.objects[-1].location.z = zz
+            at_z(zz, S.bush, c, x, y, w=r.uniform(4, 9), h=r.uniform(3, 6), seed=k, n=160)
         else:
-            S.tree(c, x, y, h=r.uniform(16, 26), seed=k)
-            for ob in list(bpy.context.scene.collection.objects)[-3:]:
-                ob.location.z = zz
+            at_z(zz, S.tree, c, x, y, h=r.uniform(16, 26), seed=k)
     for x in (-W / 2 + 4, W / 2 - 4):
-        S.palm(c, x, 140 - D / 2 + 30, h=44, seed=int(x) + 3, kind="fan")
-        for ob in list(bpy.context.scene.collection.objects)[-3:]:
-            ob.location.z = base
+        at_z(base, S.palm, c, x, 140 + D / 2 - 8, h=44, seed=int(x) + 3, kind="fan")
     S.road(c, -500, -40, 500, -10, axis="x", lanes=False)
     S.car(c, 30, -25, heading=0, seed=77, rgb=(0.02, 0.02, 0.025))
     return finish("hills_mansion", (-95, -60, 18.0), (0, 140, 52), 24, a.samples, a.res, haze_amt=0.45)
