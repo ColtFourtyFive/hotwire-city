@@ -13,7 +13,7 @@ import tempfile
 
 import bpy
 import numpy as np
-from mathutils import Euler, Matrix, Vector
+from mathutils import Matrix, Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -201,7 +201,7 @@ def coin_spin():
 
     def pose(i, t):
         # half turn = loop (both faces identical); slight tilt so the edge reads as 3D
-        pivot.rotation_euler = Euler((math.radians(-14), 0, t * math.pi), "XYZ")
+        pivot.matrix_world = Matrix.Rotation(math.radians(-14), 4, "X") @ Matrix.Rotation(t * math.pi, 4, "Z")
 
     render_frames("coin_spin", pose, 128)
 
