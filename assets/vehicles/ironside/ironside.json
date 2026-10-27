@@ -1,0 +1,526 @@
+{
+  "name": "ironside",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Duke '69 - Low Poly Model",
+    "url": "https://sketchfab.com/3d-models/duke-69-low-poly-model-46fed79f600c4fc69e060991f9e3e4f9",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Duke '69 - Low Poly Model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "46fed79f600c4fc69e060991f9e3e4f9"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "ironside.glb",
+  "dimensions": {
+    "length": 17.8,
+    "width": 6.677,
+    "height": 4.758,
+    "wheelbase": 9.975,
+    "track_front": 5.275,
+    "track_rear": 5.275,
+    "bbox_min": [
+      -3.3378,
+      -0.0,
+      -8.3341
+    ],
+    "bbox_max": [
+      3.3394,
+      4.7581,
+      9.4659
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.6376,
+        1.0755,
+        -4.9875
+      ],
+      "radius": 1.0755,
+      "width": 0.8784,
+      "part_center": [
+        -2.6453,
+        1.0755,
+        -4.9875
+      ],
+      "attachment_offset": [
+        0.0078,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.6376,
+        1.0755,
+        -4.9875
+      ],
+      "radius": 1.0755,
+      "width": 0.8784,
+      "part_center": [
+        2.6453,
+        1.0755,
+        -4.9875
+      ],
+      "attachment_offset": [
+        -0.0078,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.6376,
+        1.0755,
+        4.9875
+      ],
+      "radius": 1.0755,
+      "width": 0.8784,
+      "part_center": [
+        -2.6453,
+        1.0755,
+        4.9875
+      ],
+      "attachment_offset": [
+        0.0078,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.6376,
+        1.0755,
+        4.9875
+      ],
+      "radius": 1.0755,
+      "width": 0.8784,
+      "part_center": [
+        2.6453,
+        1.0755,
+        4.9875
+      ],
+      "attachment_offset": [
+        -0.0078,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.2687,
+        1.7129,
+        0.798
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.2687,
+        1.7129,
+        0.798
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.0733,
+          2.2421,
+          -7.8775
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.0749,
+          2.2421,
+          -7.8775
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -1.5477,
+          2.6178,
+          9.0048
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.5493,
+          2.6178,
+          9.0048
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.0031,
+        0.571,
+        9.2879
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.5226,
+    -0.0
+  ],
+  "paint": {
+    "route": "strip",
+    "primary": {
+      "object": "Body",
+      "material": "Duke69_bodymat",
+      "color_srgb": [
+        0.1686,
+        0.1686,
+        0.1529
+      ],
+      "textured": false,
+      "metallic": 0.5,
+      "roughness": 0.5
+    },
+    "secondary": null,
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 4088,
+      "bbox_min": [
+        -3.3156,
+        0.8357,
+        -8.2797
+      ],
+      "bbox_max": [
+        3.3172,
+        4.7581,
+        9.3999
+      ],
+      "textures": {
+        "ao": "textures/ironside_Body_ao.png"
+      }
+    },
+    "Glass": {
+      "tris": 158,
+      "bbox_min": [
+        -2.6427,
+        3.2842,
+        -2.7397
+      ],
+      "bbox_max": [
+        2.6443,
+        4.5115,
+        5.5151
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 96,
+      "bbox_min": [
+        -2.4906,
+        2.0568,
+        -7.8775
+      ],
+      "bbox_max": [
+        2.4922,
+        2.4275,
+        -7.795
+      ],
+      "textures": {
+        "emit": "textures/ironside_Lights_emit.png",
+        "base": "textures/ironside_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 34,
+      "bbox_min": [
+        -2.5799,
+        2.5412,
+        8.9711
+      ],
+      "bbox_max": [
+        2.5814,
+        2.6854,
+        9.0048
+      ],
+      "textures": {
+        "emit": "textures/ironside_Lights_emit.png",
+        "base": "textures/ironside_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2599,
+      "bbox_min": [
+        -3.3304,
+        0.6692,
+        -8.3344
+      ],
+      "bbox_max": [
+        3.332,
+        4.5551,
+        9.4664
+      ],
+      "textures": {
+        "normal": "textures/ironside_Trim_normal.png",
+        "metal": "textures/ironside_Trim_metal.png",
+        "rough": "textures/ironside_Trim_rough.png",
+        "base": "textures/ironside_Trim_base.png",
+        "ao": "textures/ironside_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 1500,
+      "bbox_min": [
+        -2.7019,
+        1.2907,
+        -2.7397
+      ],
+      "bbox_max": [
+        2.701,
+        4.6472,
+        5.5161
+      ],
+      "textures": {
+        "normal": "textures/ironside_Interior_normal.png",
+        "metal": "textures/ironside_Interior_metal.png",
+        "rough": "textures/ironside_Interior_rough.png",
+        "base": "textures/ironside_Interior_base.png",
+        "ao": "textures/ironside_Interior_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0977,
+        0.0,
+        -6.063
+      ],
+      "bbox_max": [
+        -2.193,
+        2.151,
+        -3.912
+      ],
+      "textures": {
+        "metal": "textures/ironside_Wheel_metal.png",
+        "base": "textures/ironside_Wheel_base.png",
+        "normal": "textures/ironside_Wheel_normal.png",
+        "rough": "textures/ironside_Wheel_rough.png",
+        "ao": "textures/ironside_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 900,
+      "bbox_min": [
+        2.193,
+        0.0,
+        -6.063
+      ],
+      "bbox_max": [
+        3.0977,
+        2.151,
+        -3.912
+      ],
+      "textures": {
+        "metal": "textures/ironside_Wheel_metal.png",
+        "base": "textures/ironside_Wheel_base.png",
+        "normal": "textures/ironside_Wheel_normal.png",
+        "rough": "textures/ironside_Wheel_rough.png",
+        "ao": "textures/ironside_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0977,
+        0.0,
+        3.912
+      ],
+      "bbox_max": [
+        -2.193,
+        2.151,
+        6.063
+      ],
+      "textures": {
+        "metal": "textures/ironside_Wheel_metal.png",
+        "base": "textures/ironside_Wheel_base.png",
+        "normal": "textures/ironside_Wheel_normal.png",
+        "rough": "textures/ironside_Wheel_rough.png",
+        "ao": "textures/ironside_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 900,
+      "bbox_min": [
+        2.193,
+        0.0,
+        3.912
+      ],
+      "bbox_max": [
+        3.0977,
+        2.151,
+        6.063
+      ],
+      "textures": {
+        "metal": "textures/ironside_Wheel_metal.png",
+        "base": "textures/ironside_Wheel_base.png",
+        "normal": "textures/ironside_Wheel_normal.png",
+        "rough": "textures/ironside_Wheel_rough.png",
+        "ao": "textures/ironside_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 18554,
+    "total": 12075,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": null,
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.035,
+      "white_lights": 0.0,
+      "deck_height": 0.359,
+      "cabin": 0.249,
+      "mirrors": 0.341
+    },
+    "confidence": 3.984
+  },
+  "scale": {
+    "source_length": 5.2354326248168945,
+    "factor": 3.399910050532365,
+    "target_length": 17.8
+  },
+  "classes": {
+    "Body": {
+      "islands": 3,
+      "faces": 4088,
+      "area": 207.485
+    },
+    "Glass": {
+      "islands": 8,
+      "faces": 158,
+      "area": 22.973
+    },
+    "LightsFront": {
+      "islands": 4,
+      "faces": 96,
+      "area": 0.425
+    },
+    "LightsRear": {
+      "islands": 4,
+      "faces": 34,
+      "area": 0.545
+    },
+    "Trim": {
+      "islands": 64,
+      "faces": 5585,
+      "area": 266.544
+    },
+    "Interior": {
+      "islands": 36,
+      "faces": 3944,
+      "area": 182.001
+    },
+    "Discard": {
+      "islands": 26,
+      "faces": 369,
+      "area": 38.882
+    },
+    "WheelFL": {
+      "islands": 3,
+      "faces": 1070,
+      "area": 18.735
+    },
+    "WheelFR": {
+      "islands": 3,
+      "faces": 1070,
+      "area": 18.735
+    },
+    "WheelRL": {
+      "islands": 3,
+      "faces": 1070,
+      "area": 18.735
+    },
+    "WheelRR": {
+      "islands": 3,
+      "faces": 1070,
+      "area": 18.735
+    }
+  },
+  "warnings": []
+}

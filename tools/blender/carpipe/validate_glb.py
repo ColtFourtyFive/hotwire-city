@@ -13,7 +13,8 @@ import struct
 import sys
 
 REQUIRED = ["Body", "WheelFL", "WheelFR", "WheelRL", "WheelRR"]
-OPTIONAL = ["Body2", "Glass", "Trim", "LightsFront", "LightsRear", "Interior"]
+OPTIONAL = ["Body2", "Glass", "Trim", "LightsFront", "LightsRear", "Interior", "SirenRed", "SirenBlue", "Sign",
+            "WheelML", "WheelMR", "WheelML1", "WheelML2", "WheelMR1", "WheelMR2"]
 
 
 def read_glb(path):

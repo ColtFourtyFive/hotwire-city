@@ -1,0 +1,560 @@
+{
+  "name": "brookline_cab",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Illinois '90 Taxi #2 - Low poly model",
+    "url": "https://sketchfab.com/3d-models/illinois-90-taxi-2-low-poly-model-fa1a26fc2b0848c38efba4ed132b49ad",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Illinois '90 Taxi #2 - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "fa1a26fc2b0848c38efba4ed132b49ad"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "brookline_cab.glb",
+  "dimensions": {
+    "length": 17.913,
+    "width": 7.12,
+    "height": 5.685,
+    "wheelbase": 9.708,
+    "track_front": 5.266,
+    "track_rear": 5.265,
+    "bbox_min": [
+      -3.5596,
+      -0.0,
+      -8.633
+    ],
+    "bbox_max": [
+      3.56,
+      5.685,
+      9.28
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.6329,
+        1.0947,
+        -4.854
+      ],
+      "radius": 1.0947,
+      "width": 0.8935,
+      "part_center": [
+        -2.5368,
+        1.0947,
+        -4.854
+      ],
+      "attachment_offset": [
+        -0.0961,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.6329,
+        1.0947,
+        -4.854
+      ],
+      "radius": 1.0947,
+      "width": 0.8934,
+      "part_center": [
+        2.537,
+        1.0947,
+        -4.854
+      ],
+      "attachment_offset": [
+        0.0959,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.6326,
+        1.0947,
+        4.854
+      ],
+      "radius": 1.0947,
+      "width": 0.8085,
+      "part_center": [
+        -2.6284,
+        1.0947,
+        4.854
+      ],
+      "attachment_offset": [
+        -0.0042,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 807
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.6326,
+        1.0947,
+        4.854
+      ],
+      "radius": 1.0947,
+      "width": 0.8085,
+      "part_center": [
+        2.6284,
+        1.0947,
+        4.854
+      ],
+      "attachment_offset": [
+        0.0042,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 807
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.3527,
+        2.0466,
+        0.7766
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.3527,
+        2.0466,
+        0.7766
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.7044,
+          2.2468,
+          -7.9431
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.7049,
+          2.2468,
+          -7.9431
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.3776,
+          2.3235,
+          8.7504
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.378,
+          2.3235,
+          8.7505
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.1359,
+        0.6822,
+        9.1008
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.8192,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "Illinois90_Bodymat",
+      "color_srgb": [
+        0.851,
+        0.6039,
+        0.0039
+      ],
+      "textured": true,
+      "metallic": 0.5,
+      "roughness": 0.5,
+      "mask_coverage": 0.986
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 3808,
+      "bbox_min": [
+        -3.1744,
+        0.8135,
+        -8.4384
+      ],
+      "bbox_max": [
+        3.1748,
+        4.8498,
+        9.0598
+      ],
+      "textures": {
+        "base": "textures/brookline_cab_Body_base.png",
+        "rough": "textures/brookline_cab_Body_rough.png",
+        "metal": "textures/brookline_cab_Body_metal.png",
+        "tintmask": "textures/brookline_cab_Body_tintmask.png",
+        "overlay": "textures/brookline_cab_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 260,
+      "bbox_min": [
+        -2.8515,
+        3.0952,
+        -3.1459
+      ],
+      "bbox_max": [
+        2.852,
+        4.5856,
+        6.3043
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 122,
+      "bbox_min": [
+        -2.9822,
+        2.1067,
+        -7.9431
+      ],
+      "bbox_max": [
+        2.9826,
+        2.3807,
+        -6.4656
+      ],
+      "textures": {
+        "emit": "textures/brookline_cab_Lights_emit.png",
+        "base": "textures/brookline_cab_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 160,
+      "bbox_min": [
+        -2.8708,
+        2.0534,
+        7.8109
+      ],
+      "bbox_max": [
+        2.8712,
+        2.5178,
+        8.7505
+      ],
+      "textures": {
+        "emit": "textures/brookline_cab_Lights_emit.png",
+        "base": "textures/brookline_cab_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2598,
+      "bbox_min": [
+        -3.5429,
+        0.5381,
+        -8.616
+      ],
+      "bbox_max": [
+        3.5433,
+        4.6513,
+        9.263
+      ],
+      "textures": {
+        "normal": "textures/brookline_cab_Trim_normal.png",
+        "base": "textures/brookline_cab_Trim_base.png",
+        "rough": "textures/brookline_cab_Trim_rough.png",
+        "metal": "textures/brookline_cab_Trim_metal.png",
+        "ao": "textures/brookline_cab_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 1499,
+      "bbox_min": [
+        -2.823,
+        1.0916,
+        -3.3517
+      ],
+      "bbox_max": [
+        2.8234,
+        4.7737,
+        6.3043
+      ],
+      "textures": {
+        "normal": "textures/brookline_cab_Interior_normal.png",
+        "base": "textures/brookline_cab_Interior_base.png",
+        "rough": "textures/brookline_cab_Interior_rough.png",
+        "metal": "textures/brookline_cab_Interior_metal.png",
+        "ao": "textures/brookline_cab_Interior_ao.png"
+      }
+    },
+    "Sign": {
+      "tris": 247,
+      "bbox_min": [
+        -0.6167,
+        4.7294,
+        -0.1339
+      ],
+      "bbox_max": [
+        0.5979,
+        5.685,
+        3.5931
+      ],
+      "textures": {
+        "emit": "textures/brookline_cab_Sign_emit.png",
+        "base": "textures/brookline_cab_Sign_base.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0935,
+        0.0,
+        -5.964
+      ],
+      "bbox_max": [
+        -1.9801,
+        2.1894,
+        -3.7441
+      ],
+      "textures": {
+        "rough": "textures/brookline_cab_Wheel_rough.png",
+        "base": "textures/brookline_cab_Wheel_base.png",
+        "metal": "textures/brookline_cab_Wheel_metal.png",
+        "ao": "textures/brookline_cab_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 900,
+      "bbox_min": [
+        1.9806,
+        -0.0,
+        -5.964
+      ],
+      "bbox_max": [
+        3.0935,
+        2.1894,
+        -3.7441
+      ],
+      "textures": {
+        "rough": "textures/brookline_cab_Wheel_rough.png",
+        "base": "textures/brookline_cab_Wheel_base.png",
+        "metal": "textures/brookline_cab_Wheel_metal.png",
+        "ao": "textures/brookline_cab_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 807,
+      "bbox_min": [
+        -3.0497,
+        0.0,
+        3.7594
+      ],
+      "bbox_max": [
+        -2.2071,
+        2.1894,
+        5.9487
+      ],
+      "textures": {
+        "rough": "textures/brookline_cab_Wheel_rough.png",
+        "base": "textures/brookline_cab_Wheel_base.png",
+        "metal": "textures/brookline_cab_Wheel_metal.png",
+        "ao": "textures/brookline_cab_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 807,
+      "bbox_min": [
+        2.2071,
+        -0.0,
+        3.7594
+      ],
+      "bbox_max": [
+        3.0497,
+        2.1894,
+        5.9487
+      ],
+      "textures": {
+        "rough": "textures/brookline_cab_Wheel_rough.png",
+        "base": "textures/brookline_cab_Wheel_base.png",
+        "metal": "textures/brookline_cab_Wheel_metal.png",
+        "ao": "textures/brookline_cab_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 19879,
+    "total": 12108,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": {
+    "center": [
+      -0.0094,
+      5.2072,
+      1.7296
+    ],
+    "size": [
+      1.2146,
+      0.9556,
+      3.727
+    ]
+  },
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.051,
+      "white_lights": 0.0,
+      "deck_height": 0.243,
+      "cabin": 0.499,
+      "mirrors": 1.2
+    },
+    "confidence": 4.993
+  },
+  "scale": {
+    "source_length": 5.268531560897827,
+    "factor": 3.3999986130760482,
+    "target_length": 17.913
+  },
+  "classes": {
+    "Body": {
+      "islands": 7,
+      "faces": 3828,
+      "area": 155.466
+    },
+    "Glass": {
+      "islands": 10,
+      "faces": 260,
+      "area": 36.894
+    },
+    "LightsFront": {
+      "islands": 4,
+      "faces": 122,
+      "area": 1.32
+    },
+    "LightsRear": {
+      "islands": 6,
+      "faces": 160,
+      "area": 1.493
+    },
+    "Trim": {
+      "islands": 95,
+      "faces": 6167,
+      "area": 344.55
+    },
+    "Interior": {
+      "islands": 41,
+      "faces": 4091,
+      "area": 236.929
+    },
+    "Discard": {
+      "islands": 66,
+      "faces": 1514,
+      "area": 56.129
+    },
+    "Sign": {
+      "islands": 6,
+      "faces": 247,
+      "area": 14.423
+    },
+    "WheelFL": {
+      "islands": 22,
+      "faces": 934,
+      "area": 20.06
+    },
+    "WheelFR": {
+      "islands": 22,
+      "faces": 934,
+      "area": 20.06
+    },
+    "WheelRL": {
+      "islands": 15,
+      "faces": 811,
+      "area": 17.771
+    },
+    "WheelRR": {
+      "islands": 15,
+      "faces": 811,
+      "area": 17.771
+    }
+  },
+  "warnings": []
+}

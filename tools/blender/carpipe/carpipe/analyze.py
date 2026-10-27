@@ -20,10 +20,11 @@ from . import matinfo
 from .util import faces_np, kw_match, log, norm_name, rgb_to_hsv, select_only, verts_np
 
 # ---------------------------------------------------------------------------------------------- roles
-UNK, BODY, BODY2, GLASS, LIGHT_F, LIGHT_R, TRIM, INTERIOR, DISCARD = range(9)
+UNK, BODY, BODY2, GLASS, LIGHT_F, LIGHT_R, TRIM, INTERIOR, DISCARD, SIREN_R, SIREN_B, SIGN = range(12)
 WHEEL0 = 16  # WHEEL0 + i for wheel i
 ROLE_NAMES = {UNK: "Unknown", BODY: "Body", BODY2: "Body2", GLASS: "Glass", LIGHT_F: "LightsFront",
-              LIGHT_R: "LightsRear", TRIM: "Trim", INTERIOR: "Interior", DISCARD: "Discard"}
+              LIGHT_R: "LightsRear", TRIM: "Trim", INTERIOR: "Interior", DISCARD: "Discard", SIREN_R: "SirenRed",
+              SIREN_B: "SirenBlue", SIGN: "Sign"}
 
 # keyword regexes are matched against "_" + normalised name + "_"  (normalised = lowercase, words joined by _)
 KW_DISCARD = [r"shadow", r"_collision", r"collider", r"_col_", r"_lod_?[1-9]", r"proxy", r"_floor_", r"_ground",
@@ -285,6 +286,23 @@ class Car:
     def bbox(self):
         return self.co.min(0), self.co.max(0)
 
+    def stretch(self, at: float, add: float):
+        """Stretch-limo cut (canonical frame, after orient): every vertex behind the plane y = centre + at x L moves
+        back by add x L. Faces crossing the plane (doors, side glass, roof, sills) lengthen; wheels stay round."""
+        lo, hi = self.bbox()
+        L = float(hi[1] - lo[1])
+        cut = float((lo[1] + hi[1]) / 2 + at * L)
+        shift = float(add * L)
+        co = self.co.copy()
+        co[co[:, 1] < cut, 1] -= shift
+        me = self.obj.data
+        me.vertices.foreach_set("co", co.astype(np.float32).ravel())
+        me.update()
+        self.refresh(islands=False)
+        self.report["stretch"] = {"cut_y": round(cut, 4), "shift": round(shift, 4), "source_length": round(L, 4),
+                                  "at": at, "add": add}
+        log(f"stretched: cut at y={cut:.3f}, rear moved back {shift:.3f} (+{add:.0%} length)")
+
     # ------------------------------------------------------------------------------------- orientation
     def orient(self):
         """Rotate so the car's length is along Y, front at +Y, up +Z.  Returns a report dict."""
@@ -436,13 +454,19 @@ class Car:
         wheels = []
         for side in (-1, 1):
             cs = [i for i in cand if np.sign(cen[i, 0]) == side]
-            cs.sort(key=lambda i: -ext[i, 2])
+            # biggest discs first; among equal tyres the outermost, so a dual rear axle seeds on its outer tyre and the
+            # inward cylinder pulls in the inner one (both spin as one wheel)
+            cs.sort(key=lambda i: (-round(float(ext[i, 2]) / (0.02 * L)), -abs(float(cen[i, 0]))))
             used = []
             for i in cs:
                 c = cen[i]
+                r = ext[i, 2] / 2
+                # a disc that does not reach the ground (fuel tank, spare, lamp ring) must not claim an axle slot:
+                # it would shadow the real tyre at that axle and then be filtered out below
+                if c[2] - lo[2] >= 1.6 * r + 0.02 * H:
+                    continue
                 if any(abs(c[1] - w["center"][1]) < 0.6 * w["radius"] * 2 for w in used):
                     continue
-                r = ext[i, 2] / 2
                 used.append({"center": c.copy(), "radius": float(r), "side": side, "seed": int(i)})
             wheels += used
         # keep wheels whose radius is close to the biggest (drops spare wheels / steering wheels / odd discs)
@@ -675,7 +699,11 @@ class Car:
             nm_obj = self.obj_paths[self.iobj[i]]
             full = nm_mat + " " + nm_obj
             hit = None
-            for rx, rn in cfg_roles.items():
+            if self.cfg.get("lightbar") and re.search(self.cfg["lightbar"], full, re.I):
+                hit, why[i] = SIREN_R, "cfg:lightbar"
+            elif self.cfg.get("sign") and re.search(self.cfg["sign"], full, re.I):
+                hit, why[i] = SIGN, "cfg:sign"
+            for rx, rn in ({} if hit is not None else cfg_roles).items():
                 if re.search(rx, full, re.I):
                     hit = inv.get(rn.lower())
                     why[i] = f"cfg:{rx}"
@@ -712,6 +740,16 @@ class Car:
             m = self.mats[self.imat[i]]
             if role[i] == GLASS and m["emission"] > 1.0:
                 role[i] = LIGHT_F
+        # emblems / brand scripts: dense, tiny islands on the centre line at the nose or tail (logo geometry). Real
+        # brand badges must not ship; plates and grilles are much bigger and far less dense.
+        if self.cfg.get("drop_emblems", True):
+            for i in range(n):
+                if role[i] not in (TRIM, UNK):  # badges are chrome / plastic trim, never paint or glass
+                    continue
+                dense = self.inf[i] >= 60 and self.ia[i] < 0.0004 * L * L
+                if dense and abs(self.ic[i, 0]) < 0.08 * W and abs(self.ic[i, 1]) > 0.36 * L:
+                    role[i] = DISCARD
+                    why[i] = "emblem"
         # overlay shells (clear-coat / reflection duplicates of the body) would hide the real paint
         self._drop_overlay_shells(role, why)
         # visibility pass (named discards are not occluders)
@@ -758,6 +796,7 @@ class Car:
         self.irole = role
         self.iwhy = why
         self.frole = role[self.fi]
+        self._split_lightbar()
         # stats
         stats = {}
         for r in np.unique(role):
@@ -766,6 +805,35 @@ class Car:
                                         "area": round(float(self.ia[sel].sum()), 3)}
         self.report["classes"] = stats
         log("classes:", {k: (v["islands"], v["faces"]) for k, v in stats.items()})
+
+    def _split_lightbar(self):
+        """Police lightbar islands (cfg 'lightbar') -> per face: red lenses SirenRed, blue lenses SirenBlue, the rest
+        (housing, clear lenses, mounts) Trim. Colours come from the sampled base texture. When the texture has no
+        clear red/blue (an all-clear bar), the upper half splits by side: driver side (-X) red, passenger blue."""
+        sel = self.frole == SIREN_R
+        if not sel.any():
+            return
+        c = np.clip(self.fcol, 0, 1)
+        r, g, b = c[:, 0], c[:, 1], c[:, 2]
+        red = sel & (r > 0.35) & (r > 1.6 * g) & (r > 1.4 * b)
+        blue = sel & (b > 0.30) & (b > 1.25 * r) & (b > 1.05 * g)
+        mode = "colour"
+        if self.fa[red].sum() < 0.04 * self.fa[sel].sum() or self.fa[blue].sum() < 0.04 * self.fa[sel].sum():
+            zc = self.fc[sel, 2]
+            zmid = float((zc.min() + zc.max()) / 2)
+            upper = sel & (self.fc[:, 2] >= zmid)
+            red = upper & (self.fc[:, 0] < 0)
+            blue = upper & (self.fc[:, 0] >= 0)
+            mode = "side"
+        fr = self.frole.copy()
+        fr[sel] = TRIM
+        fr[red] = SIREN_R
+        fr[blue] = SIREN_B
+        self.frole = fr
+        self.report["lightbar"] = {"mode": mode, "faces": int(sel.sum()), "red": int(red.sum()),
+                                   "blue": int(blue.sum())}
+        log(f"lightbar split ({mode}): {int(red.sum())} red, {int(blue.sum())} blue, "
+            f"{int(sel.sum() - red.sum() - blue.sum())} housing faces")
 
     def role_name(self, r):
         if r >= WHEEL0:

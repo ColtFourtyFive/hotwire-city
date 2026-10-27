@@ -1,0 +1,528 @@
+{
+  "name": "hauler_medic",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Shvan '92 Ambulance - Low Poly model",
+    "url": "https://sketchfab.com/3d-models/shvan-92-ambulance-low-poly-model-2856dd3c61f940909dced9a5c0379484",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Shvan '92 Ambulance - Low Poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "2856dd3c61f940909dced9a5c0379484"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "hauler_medic.glb",
+  "dimensions": {
+    "length": 17.065,
+    "width": 7.986,
+    "height": 7.69,
+    "wheelbase": 10.66,
+    "track_front": 5.628,
+    "track_rear": 5.628,
+    "bbox_min": [
+      -3.9946,
+      -0.0012,
+      -7.6207
+    ],
+    "bbox_max": [
+      3.991,
+      7.6891,
+      9.4443
+    ]
+  },
+  "wheels": {
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.8142,
+        1.1889,
+        -5.3298
+      ],
+      "radius": 1.1901,
+      "width": 0.8827,
+      "part_center": [
+        2.7235,
+        1.1889,
+        -5.3298
+      ],
+      "attachment_offset": [
+        0.0907,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 837
+    },
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.8142,
+        1.1913,
+        -5.3298
+      ],
+      "radius": 1.1901,
+      "width": 0.8827,
+      "part_center": [
+        -2.7235,
+        1.1913,
+        -5.3298
+      ],
+      "attachment_offset": [
+        -0.0907,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 837
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.8142,
+        1.1889,
+        5.3298
+      ],
+      "radius": 1.1901,
+      "width": 0.8827,
+      "part_center": [
+        2.7608,
+        1.1889,
+        5.3298
+      ],
+      "attachment_offset": [
+        0.0534,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 789
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.8142,
+        1.1913,
+        5.3298
+      ],
+      "radius": 1.1901,
+      "width": 0.8827,
+      "part_center": [
+        -2.8186,
+        1.1913,
+        5.3298
+      ],
+      "attachment_offset": [
+        0.0044,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 789
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.5173,
+        2.7685,
+        0.8528
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.5173,
+        2.7685,
+        0.8528
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.2536,
+          2.9663,
+          -7.4698
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.2583,
+          2.9677,
+          -7.4698
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.557,
+          3.0033,
+          8.9352
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.5587,
+          3.0011,
+          8.9352
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.3957,
+        0.9228,
+        9.2736
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    2.4609,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "Shvan92_bodymat",
+      "color_srgb": [
+        0.8275,
+        0.8275,
+        0.8275
+      ],
+      "textured": true,
+      "metallic": 0.5,
+      "roughness": 0.5,
+      "mask_coverage": 0.833
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 6998,
+      "bbox_min": [
+        -3.3049,
+        1.1066,
+        -7.5636
+      ],
+      "bbox_max": [
+        3.3066,
+        7.5877,
+        8.9127
+      ],
+      "textures": {
+        "normal": "textures/hauler_medic_Body_normal.png",
+        "metal": "textures/hauler_medic_Body_metal.png",
+        "rough": "textures/hauler_medic_Body_rough.png",
+        "base": "textures/hauler_medic_Body_base.png",
+        "tintmask": "textures/hauler_medic_Body_tintmask.png",
+        "overlay": "textures/hauler_medic_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 664,
+      "bbox_min": [
+        -3.0138,
+        4.6163,
+        -5.7984
+      ],
+      "bbox_max": [
+        3.01,
+        7.6891,
+        -1.9503
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 296,
+      "bbox_min": [
+        -2.7636,
+        2.4798,
+        -7.4698
+      ],
+      "bbox_max": [
+        2.7655,
+        3.4207,
+        -7.2895
+      ],
+      "textures": {
+        "emit": "textures/hauler_medic_Lights_emit.png",
+        "base": "textures/hauler_medic_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 336,
+      "bbox_min": [
+        -2.8066,
+        2.7197,
+        8.7981
+      ],
+      "bbox_max": [
+        2.8086,
+        3.3979,
+        8.9352
+      ],
+      "textures": {
+        "emit": "textures/hauler_medic_Lights_emit.png",
+        "base": "textures/hauler_medic_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2600,
+      "bbox_min": [
+        -4.0003,
+        0.5094,
+        -7.6251
+      ],
+      "bbox_max": [
+        3.9967,
+        7.4778,
+        9.4383
+      ],
+      "textures": {
+        "normal": "textures/hauler_medic_Trim_normal.png",
+        "metal": "textures/hauler_medic_Trim_metal.png",
+        "rough": "textures/hauler_medic_Trim_rough.png",
+        "base": "textures/hauler_medic_Trim_base.png",
+        "ao": "textures/hauler_medic_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 1499,
+      "bbox_min": [
+        -3.5442,
+        1.4799,
+        -5.9052
+      ],
+      "bbox_max": [
+        3.1085,
+        7.4541,
+        8.5917
+      ],
+      "textures": {
+        "normal": "textures/hauler_medic_Interior_normal.png",
+        "metal": "textures/hauler_medic_Interior_metal.png",
+        "rough": "textures/hauler_medic_Interior_rough.png",
+        "base": "textures/hauler_medic_Interior_base.png",
+        "ao": "textures/hauler_medic_Interior_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 837,
+      "bbox_min": [
+        2.1746,
+        -0.0012,
+        -6.5198
+      ],
+      "bbox_max": [
+        3.2725,
+        2.379,
+        -4.1399
+      ],
+      "textures": {
+        "rough": "textures/hauler_medic_Wheel_rough.png",
+        "metal": "textures/hauler_medic_Wheel_metal.png",
+        "base": "textures/hauler_medic_Wheel_base.png",
+        "ao": "textures/hauler_medic_Wheel_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 837,
+      "bbox_min": [
+        -3.2725,
+        0.0012,
+        -6.5198
+      ],
+      "bbox_max": [
+        -2.1744,
+        2.3815,
+        -4.1399
+      ],
+      "textures": {
+        "rough": "textures/hauler_medic_Wheel_rough.png",
+        "metal": "textures/hauler_medic_Wheel_metal.png",
+        "base": "textures/hauler_medic_Wheel_base.png",
+        "ao": "textures/hauler_medic_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 789,
+      "bbox_min": [
+        2.2491,
+        -0.0012,
+        4.1399
+      ],
+      "bbox_max": [
+        3.2725,
+        2.379,
+        6.5198
+      ],
+      "textures": {
+        "rough": "textures/hauler_medic_Wheel_rough.png",
+        "metal": "textures/hauler_medic_Wheel_metal.png",
+        "base": "textures/hauler_medic_Wheel_base.png",
+        "ao": "textures/hauler_medic_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 789,
+      "bbox_min": [
+        -3.2725,
+        0.0012,
+        4.1399
+      ],
+      "bbox_max": [
+        -2.3648,
+        2.3815,
+        6.5198
+      ],
+      "textures": {
+        "rough": "textures/hauler_medic_Wheel_rough.png",
+        "metal": "textures/hauler_medic_Wheel_metal.png",
+        "base": "textures/hauler_medic_Wheel_base.png",
+        "ao": "textures/hauler_medic_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 25943,
+    "total": 15645,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": null,
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.074,
+      "white_lights": 0.0,
+      "deck_height": 0.8,
+      "cabin": 0.53,
+      "mirrors": 1.2
+    },
+    "confidence": 5.604
+  },
+  "scale": {
+    "source_length": 5.019171237945557,
+    "factor": 3.399963697390216,
+    "target_length": 17.065
+  },
+  "classes": {
+    "Body": {
+      "islands": 102,
+      "faces": 8318,
+      "area": 355.362
+    },
+    "Glass": {
+      "islands": 12,
+      "faces": 668,
+      "area": 27.823
+    },
+    "LightsFront": {
+      "islands": 7,
+      "faces": 296,
+      "area": 1.326
+    },
+    "LightsRear": {
+      "islands": 6,
+      "faces": 340,
+      "area": 0.83
+    },
+    "Trim": {
+      "islands": 130,
+      "faces": 7049,
+      "area": 283.288
+    },
+    "Interior": {
+      "islands": 39,
+      "faces": 5446,
+      "area": 394.017
+    },
+    "Discard": {
+      "islands": 24,
+      "faces": 558,
+      "area": 16.016
+    },
+    "WheelFR": {
+      "islands": 11,
+      "faces": 841,
+      "area": 23.13
+    },
+    "WheelFL": {
+      "islands": 11,
+      "faces": 841,
+      "area": 23.13
+    },
+    "WheelRR": {
+      "islands": 8,
+      "faces": 793,
+      "area": 21.802
+    },
+    "WheelRL": {
+      "islands": 8,
+      "faces": 793,
+      "area": 21.802
+    }
+  },
+  "warnings": []
+}

@@ -14,6 +14,8 @@ return function(t)
 	local Assets = H.require("src/shared/Config/Assets")
 	local CarBuilder = H.require("src/shared/Vehicle/CarBuilder")
 	local Cars = H.require("src/shared/Config/Cars")
+	-- legacy path: these cars without their v2 Model (see tests/legacy_shells.luau)
+	local restoreVehicles = require("../legacy_shells").clear(Cars)
 
 	-- What InsertService:LoadAsset hands back for an uploaded GLB: a container Model holding the textured MeshPart,
 	-- long axis along +X (the manifests' yaw -90 turns it to face -Z), floating somewhere off the origin.
@@ -292,6 +294,7 @@ return function(t)
 	t.test("AssetClient re-skins client-built (ClientCar) models only", function()
 		local serverCar = CarBuilder.build("grandma_sedan", "None") -- built in server mode: untagged
 		H.setMode("client")
+		local restoreClient = require("../legacy_shells").clear(H.require("src/shared/Config/Cars"))
 		local ok, err = pcall(function()
 			local ClientBuilder = H.require("src/shared/Vehicle/CarBuilder")
 			local AssetClient = H.require("src/client/Controllers/AssetClient")
@@ -328,9 +331,11 @@ return function(t)
 				error(errInner, 0)
 			end
 		end)
+		restoreClient()
 		H.setMode("server")
 		if not ok then
 			error(err, 0)
 		end
 	end)
+	restoreVehicles()
 end

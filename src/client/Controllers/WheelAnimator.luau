@@ -25,6 +25,17 @@
 --     Cars behind the camera are skipped; only Vehicles and rainbow cars take a slot; bob rays are cast every other
 --     update (every TRAFFIC_BOB_EVERY for Traffic, which holds a fixed height); unchanged wheel poses are not
 --     rewritten. Phones (touch, no keyboard/mouse) use the smaller LOW_TIER budget.
+--   * Vehicles v2 mesh cars (CarBuilder / MeshCar: attribute MeshCar): their wheels are real MeshParts on the usual
+--     WheelWeld_XX welds, so they spin / steer / bob like procedural ones; extra axles (bus / truck "WheelWeld_ML"..)
+--     spin with the rear wheels. A rig is rebuilt whenever the model's RigVersion attribute changes (a procedural
+--     car converted in place when its template arrived). Lights: at night the lit cars' lens MeshParts (attribute Lens
+--     "front" / "rear") glow (Neon); hot cars light their rear lens + the "BrakeGlow" PointLight while braking (decel
+--     from the replicated velocity, or the local controller's input) and "ReverseGlow" while reversing.
+--   * Chase-camera occlusion (BACKLOG 4): a car whose box (Length / Width / Height / BodyCenter / RideHeight) holds the
+--     camera fades to CAMERA_FADE through LocalTransparencyModifier (the driven car first, then the nearest cars), so a
+--     crash never leaves the camera staring at the inside of a body panel; restored as soon as the camera is out.
+--   * Client-built previews (CarBuilder.CLIENT_TAG) made before their v2 template replicated (attribute MeshPending)
+--     are converted with CarBuilder.applyMesh as ReplicatedStorage.VehicleTemplates fills in.
 
 local CollectionService = game:GetService("CollectionService")
 local Lighting = game:GetService("Lighting")
@@ -35,6 +46,8 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local CarBuilder = require(Shared.Vehicle.CarBuilder)
+local CarTemplates = require(Shared.Vehicle.CarTemplates)
 local VehicleController = require(Shared.Vehicle.VehicleController)
 local VFXLibrary = require(script.Parent:WaitForChild("VFXLibrary"))
 
@@ -54,6 +67,12 @@ WheelAnimator.HEADLIGHT_RANGE = 180
 WheelAnimator.SPARKLE_RANGE = 120
 WheelAnimator.SPARKLES_NAME = "MutationSparkles" -- = CarBuilder.SPARKLES_NAME (asserted in tests)
 WheelAnimator.SHELL_NAME = "HeroShell" -- = CarBuilder.SHELL_NAME (asserted in tests)
+WheelAnimator.CAMERA_FADE = 0.85 -- LocalTransparencyModifier of a car the camera is inside
+WheelAnimator.CAMERA_MARGIN = 0.4 -- studs of slack around a car's box for the camera test
+WheelAnimator.CAMERA_CHECK_CARS = 3 -- nearest cars (besides the driven one) tested for camera occlusion
+WheelAnimator.BRAKE_DECEL = 14 -- studs/s^2 of observed deceleration that lights the brake lamps
+WheelAnimator.LENS_FRONT_ON = Color3.fromRGB(255, 246, 228)
+WheelAnimator.LENS_REAR_ON = Color3.fromRGB(255, 48, 36)
 
 local REBUILD_INTERVAL = 0.25 -- seconds between nearest-car list rebuilds
 local FILTER_INTERVAL = 2
@@ -78,10 +97,12 @@ local DRIFT_MAX_VERTICAL = 10 -- studs/s: faster vertical motion = airborne (no 
 local CONTACT_EVERY = 2 -- observers' skid-contact rays every Nth update while drifting
 local CONTACT_REACH = 1.2 -- studs below the tyre bottom a contact ray still counts as ground (droop)
 local SKID_LIFT = 0.04 -- studs the skid trail floats over the road (no z-fighting)
+-- observers' marks: darker than the shared preset so they read on the dark PBR asphalt (BACKLOG 3)
+local OBSERVER_SKID_TRANSPARENCY = { { 0, 0.12 }, { 0.6, 0.3 }, { 1, 1 } }
 local HERO_LAMP_INSET = 0.15 -- studs behind the shell's front face a fallback hero cone starts
 
 type WheelRig = {
-	index: number,
+	index: number, -- 1..4 = WHEEL_NAMES (FL, FR, RL, RR); 0 = an extra axle (spins with the rear wheels)
 	weld: any, -- Weld / Motor6D (JointInstance with C0/C1)
 	basePos: Vector3,
 	baseRot: CFrame,
@@ -142,6 +163,14 @@ type Rig = {
 	cones: { VFXLibrary.BeamRig }?, -- night headlight cones (built on first use)
 	conesOn: boolean,
 	conesHero: boolean, -- the cones were built for a HeroMesh car (rebuilt when a shell arrives / leaves)
+	rigVersion: any, -- RigVersion attribute the rig was built for
+	lenses: { front: { BasePart }, rear: { BasePart }, brake: PointLight?, reverse: PointLight? }?,
+	lensNight: boolean,
+	braking: boolean,
+	reversing: boolean,
+	lastVF: number,
+	parts: { BasePart }?, -- visible parts (camera fade), cached on first fade
+	faded: boolean,
 }
 
 local rigs: { [Model]: Rig } = {}
@@ -156,6 +185,9 @@ local filterList: { Instance } = {}
 local vehicleClient: any = nil
 local soundController: any = nil
 local NAN = 0 / 0
+local resetRig: (rig: Rig, version: any) -> ()
+local watchTemplates: () -> ()
+local destroyDriftFx: (rig: Rig) -> ()
 
 -- Pure pose math (unit-tested): the weld C0 that puts a wheel (built at basePos/baseRot in chassis space, weld C1 = c1)
 -- `offset` studs up along chassis Y, steered `steer` rad around chassis Y (+ = left) and spun `spin` rad about its axle.
@@ -285,6 +317,34 @@ function WheelAnimator.skidY(contactLocalY: number): number
 	return contactLocalY + SKID_LIFT
 end
 
+-- Is a camera at `camLocal` (chassis space) inside a car's box? `ride` = RideHeight (ground at -ride), `center` =
+-- BodyCenter (x / z offset of the body from the chassis), `size` = (Width, Height, Length). Pure (unit-tested).
+function WheelAnimator.cameraInside(
+	camLocal: Vector3,
+	ride: number,
+	center: Vector3,
+	size: Vector3,
+	margin: number
+): boolean
+	local dx = math.abs(camLocal.X - center.X)
+	local dz = math.abs(camLocal.Z - center.Z)
+	local y = camLocal.Y + ride -- height above the car's ground plane
+	return dx <= size.X / 2 + margin and dz <= size.Z / 2 + margin and y >= -margin and y <= size.Y + margin
+end
+
+-- Brake / reverse lamp states from the car's forward speed now and one step ago (pure). `throttle` is the local
+-- driver's input when known (nil for observed cars: braking = decelerating faster than BRAKE_DECEL while moving).
+function WheelAnimator.lampState(vF: number, lastVF: number, dt: number, throttle: number?): (boolean, boolean)
+	local reversing = vF < -1
+	local braking
+	if throttle ~= nil then
+		braking = (throttle < -0.1 and vF > 1) or (throttle > 0.1 and vF < -1)
+	else
+		braking = vF > 1 and dt > 0 and (lastVF - vF) / dt > WheelAnimator.BRAKE_DECEL
+	end
+	return braking, reversing
+end
+
 local function byDistance(a: Rig, b: Rig): boolean
 	return a.dist < b.dist
 end
@@ -323,6 +383,14 @@ local function newRig(model: Model): Rig
 		cones = nil,
 		conesOn = false,
 		conesHero = false,
+		rigVersion = model:GetAttribute("RigVersion"),
+		lenses = nil,
+		lensNight = false,
+		braking = false,
+		reversing = false,
+		lastVF = 0,
+		parts = nil,
+		faded = false,
 	}
 end
 
@@ -370,6 +438,33 @@ local function buildRig(rig: Rig, now: number)
 			else
 				rearZ = wheelCF.Position.Z
 			end
+		end
+	end
+	-- extra axles (v2 buses / trucks): any other WheelWeld_XX on the chassis spins with the rear wheels
+	for _, j in chassis:GetChildren() do
+		local key = string.match(j.Name, "^WheelWeld_(.+)$")
+		if key and j:IsA("JointInstance") and table.find(WHEEL_NAMES, key) == nil then
+			local joint = j :: any
+			local stored = joint:GetAttribute(BASE_C0_ATTRIBUTE)
+			local c0: CFrame = if typeof(stored) == "CFrame" then stored else joint.C0
+			if typeof(stored) ~= "CFrame" then
+				joint:SetAttribute(BASE_C0_ATTRIBUTE, c0)
+			end
+			local c1: CFrame = joint.C1
+			local wheelCF = c0 * c1:Inverse()
+			table.insert(wheels, {
+				index = 0,
+				weld = joint,
+				basePos = wheelCF.Position,
+				baseRot = wheelCF.Rotation,
+				c1 = c1,
+				front = false,
+				rear = true,
+				spinSign = WheelAnimator.spinSign(wheelCF.Rotation),
+				offset = 0,
+				target = 0,
+				written = NAN,
+			})
 		end
 	end
 	rig.wheels = wheels
@@ -493,6 +588,149 @@ local function refreshSparkles(rig: Rig, now: number)
 end
 
 ----------------------------------------------------------------------------------------------------------------------
+-- v2 lamps: lens MeshParts (attribute Lens) + the Taillight anchor's BrakeGlow / ReverseGlow
+----------------------------------------------------------------------------------------------------------------------
+local function lensesOf(rig: Rig)
+	local found = rig.lenses
+	if found then
+		return found
+	end
+	local lenses = {
+		front = {} :: { BasePart },
+		rear = {} :: { BasePart },
+		brake = nil :: PointLight?,
+		reverse = nil :: PointLight?,
+	}
+	for _, d in rig.model:GetDescendants() do
+		if d:IsA("BasePart") then
+			local lens = d:GetAttribute("Lens")
+			if lens == "front" then
+				table.insert(lenses.front, d)
+			elseif lens == "rear" then
+				table.insert(lenses.rear, d)
+			end
+		elseif d:IsA("PointLight") then
+			if d.Name == "BrakeGlow" then
+				lenses.brake = d
+			elseif d.Name == "ReverseGlow" then
+				lenses.reverse = d
+			end
+		end
+	end
+	rig.lenses = lenses
+	return lenses
+end
+
+local function setLens(parts: { BasePart }, on: boolean, color: Color3)
+	for _, p in parts do
+		if p.Parent then
+			p.Material = if on then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			p.Color = if on then color else Color3.new(1, 1, 1)
+		end
+	end
+end
+
+-- Rear lens: lit when braking or at night (headlights on); front lens: at night.
+local function refreshLenses(rig: Rig)
+	local lenses = lensesOf(rig)
+	setLens(lenses.front, rig.lensNight, WheelAnimator.LENS_FRONT_ON)
+	setLens(lenses.rear, rig.lensNight or rig.braking, WheelAnimator.LENS_REAR_ON)
+	if lenses.brake and lenses.brake.Parent then
+		lenses.brake.Enabled = rig.braking
+	end
+	if lenses.reverse and lenses.reverse.Parent then
+		lenses.reverse.Enabled = rig.reversing
+	end
+end
+
+local function updateLamps(rig: Rig, vF: number, dt: number, throttle: number?)
+	local braking, reversing = WheelAnimator.lampState(vF, rig.lastVF, dt, throttle)
+	rig.lastVF = vF
+	if braking ~= rig.braking or reversing ~= rig.reversing then
+		rig.braking = braking
+		rig.reversing = reversing
+		local lenses = lensesOf(rig)
+		if #lenses.rear > 0 or lenses.brake or lenses.reverse then
+			refreshLenses(rig)
+		end
+	end
+end
+
+----------------------------------------------------------------------------------------------------------------------
+-- Chase-camera occlusion (BACKLOG 4)
+----------------------------------------------------------------------------------------------------------------------
+local fadedRigs: { [Rig]: boolean } = {}
+
+local function setFade(rig: Rig, on: boolean)
+	if rig.faded == on then
+		return
+	end
+	rig.faded = on
+	fadedRigs[rig] = if on then true else nil
+	local parts = rig.parts
+	if not parts then
+		local list: { BasePart } = {}
+		for _, d in rig.model:GetDescendants() do
+			if d:IsA("BasePart") and d.Transparency < 1 then
+				table.insert(list, d)
+			end
+		end
+		rig.parts = list
+		parts = list
+	end
+	local value = if on then WheelAnimator.CAMERA_FADE else 0
+	for _, p in parts :: { BasePart } do
+		if p.Parent then
+			p.LocalTransparencyModifier = value
+		end
+	end
+end
+
+local function cameraInsideRig(rig: Rig, camPos: Vector3): boolean
+	local chassis = rig.chassis
+	local model = rig.model
+	if not chassis or chassis.Parent == nil then
+		return false
+	end
+	local L, W, H = model:GetAttribute("Length"), model:GetAttribute("Width"), model:GetAttribute("Height")
+	local ride = model:GetAttribute("RideHeight")
+	if typeof(L) ~= "number" or typeof(W) ~= "number" or typeof(H) ~= "number" or typeof(ride) ~= "number" then
+		return false
+	end
+	local bc = model:GetAttribute("BodyCenter")
+	local center = if typeof(bc) == "Vector3" then bc else Vector3.zero
+	local camLocal = chassis.CFrame:PointToObjectSpace(camPos)
+	return WheelAnimator.cameraInside(camLocal, ride, center, Vector3.new(W, H, L), WheelAnimator.CAMERA_MARGIN)
+end
+
+local function updateCameraFade(camPos: Vector3, driven: Rig?)
+	local inside: { [Rig]: boolean } = {}
+	if driven and cameraInsideRig(driven, camPos) then
+		inside[driven] = true
+	end
+	local checked = 0
+	for _, rig in nearList do
+		if checked >= WheelAnimator.CAMERA_CHECK_CARS or rig.dist > 40 then
+			break
+		end
+		if rig ~= driven then
+			checked += 1
+			if cameraInsideRig(rig, camPos) then
+				inside[rig] = true
+			end
+		end
+	end
+	for rig in fadedRigs do
+		if not inside[rig] or rig.model.Parent == nil then
+			setFade(rig, false)
+		end
+	end
+	for rig in inside do
+		setFade(rig, true)
+	end
+end
+
+----------------------------------------------------------------------------------------------------------------------
 -- Night headlight cones
 ----------------------------------------------------------------------------------------------------------------------
 local litRigs: { [Rig]: boolean } = {}
@@ -583,6 +821,10 @@ local function setCones(rig: Rig, on: boolean)
 	end
 	rig.conesOn = on
 	litRigs[rig] = if on then true else nil
+	if rig.lensNight ~= on then
+		rig.lensNight = on
+		refreshLenses(rig)
+	end
 	for _, c in rig.cones or {} do
 		if c.beam.Parent then
 			c.beam.Enabled = on
@@ -624,6 +866,34 @@ local function updateHeadlights()
 	end
 end
 
+-- The car was rebuilt in place (MeshCar.convert bumped RigVersion): drop everything cached from the old rig.
+resetRig = function(rig: Rig, version: any)
+	rig.rigVersion = version
+	rig.built = false
+	rig.buildAttempts = 0
+	rig.nextBuildAt = 0
+	rig.wheels = {}
+	rig.settled = false
+	rig.wSpin, rig.wRearSpin, rig.wSteer = NAN, NAN, NAN
+	destroyDriftFx(rig)
+	local wasLit = rig.conesOn
+	destroyCones(rig)
+	litRigs[rig] = nil
+	rig.lenses = nil
+	rig.lensNight = false
+	rig.braking = false
+	rig.reversing = false
+	if rig.faded then
+		rig.faded = false
+		fadedRigs[rig] = nil
+	end
+	rig.parts = nil
+	rig.rainbow = nil
+	if wasLit then
+		setCones(rig, true)
+	end
+end
+
 local function rebuildNear(camPos: Vector3, now: number)
 	table.clear(nearList)
 	local bobRange = WheelAnimator.BOB_RANGE
@@ -644,6 +914,10 @@ local function rebuildNear(camPos: Vector3, now: number)
 		local oldDist = rig.dist
 		rig.pos = pos
 		rig.heroMesh = model:GetAttribute("HeroMesh") == true
+		local version = model:GetAttribute("RigVersion")
+		if version ~= rig.rigVersion then
+			resetRig(rig, version)
+		end
 		rig.dist = (pos - camPos).Magnitude
 		if WheelAnimator.enteredBobRange(oldDist, rig.dist, bobRange) then
 			rig.settled = false
@@ -677,7 +951,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------
 -- Observers' drift FX (F11): other cars' smoke + screech, derived from replicated velocity
 ----------------------------------------------------------------------------------------------------------------------
-local OBSERVER_SMOKE: VFXLibrary.StreamOpts = { rateScale = 0.8 }
+local OBSERVER_SMOKE: VFXLibrary.StreamOpts = { rateScale = 1.3 } -- BACKLOG 3: drift smoke read as faint
 
 local function buildDriftFx(rig: Rig): DriftFx?
 	local chassis = rig.chassis
@@ -688,15 +962,23 @@ local function buildDriftFx(rig: Rig): DriftFx?
 	-- marks start at the resting contact patch (the driving controller rides RIDE_LIFT above the built pose)
 	local rest = -rig.radius - VehicleController.RIDE_LIFT + SKID_LIFT
 	for _, w in rig.wheels do
-		if w.rear then
+		if w.rear and w.index > 0 then
 			local att = Instance.new("Attachment")
 			att.Name = "HC_ObserverSmoke"
 			att.Position = w.basePos - Vector3.new(0, rig.radius * 0.85, 0)
 			att.Parent = chassis
+			local skid = VFXLibrary.trail("SkidMark", chassis, w.basePos + Vector3.new(0, rest, 0))
+			if skid then
+				local keys = {}
+				for _, k in OBSERVER_SKID_TRANSPARENCY do
+					table.insert(keys, NumberSequenceKeypoint.new(k[1], k[2]))
+				end
+				skid.trail.Transparency = NumberSequence.new(keys)
+			end
 			table.insert(fx.wheels, {
 				hub = w.basePos,
 				smoke = VFXLibrary.stream("TireSmoke", att, OBSERVER_SMOKE),
-				skid = VFXLibrary.trail("SkidMark", chassis, w.basePos + Vector3.new(0, rest, 0)),
+				skid = skid,
 				grounded = true,
 				lit = false,
 			})
@@ -777,6 +1059,31 @@ local function setDriftFx(rig: Rig, on: boolean)
 	end
 end
 
+-- Tear down a rig's observer drift FX (rig rebuilt in place: the marks / smoke sat at the old wheel spots).
+destroyDriftFx = function(rig: Rig)
+	local fx = rig.fx
+	if not fx then
+		return
+	end
+	setDriftFx(rig, false)
+	for _, w in fx.wheels do
+		if w.smoke then
+			local att = w.smoke.emitter.Parent
+			VFXLibrary.releaseStream(w.smoke, true)
+			if att and att:IsA("Attachment") then
+				att:Destroy()
+			end
+		end
+		if w.skid then
+			w.skid.trail:Destroy()
+			w.skid.a0:Destroy()
+			w.skid.a1:Destroy()
+		end
+	end
+	rig.fx = nil
+	fxActive[rig] = nil
+end
+
 -- controller: the local VehicleController when this is the car we drive (exact data), else nil (estimate).
 -- hot: updated every frame (only hot rigs may start drift FX; they are switched off when not seen for a frame).
 local function animateWheels(rig: Rig, dt: number, controller: any, hot: boolean)
@@ -822,6 +1129,7 @@ local function animateWheels(rig: Rig, dt: number, controller: any, hot: boolean
 			end
 		end
 	end
+	updateLamps(rig, vF, dt, if controller then controller.input.throttle else nil)
 	if rig.heroMesh then
 		return -- wheels are baked into the hero mesh (the procedural ones are invisible): drift FX above only
 	end
@@ -944,6 +1252,7 @@ local function onPreRender(dt: number)
 
 	-- the car we drive: always, with exact controller data
 	local drivenModel: Model? = nil
+	local drivenRig: Rig? = nil
 	if vehicleClient then
 		local okModel, model = pcall(vehicleClient.getModel)
 		if okModel and typeof(model) == "Instance" and model:IsA("Model") then
@@ -956,6 +1265,7 @@ local function onPreRender(dt: number)
 			end
 			local okController, controller = pcall(vehicleClient.getController)
 			updateRig(rig, now, if okController then controller else nil, false)
+			drivenRig = rig
 		end
 	end
 
@@ -987,6 +1297,8 @@ local function onPreRender(dt: number)
 		end
 	end
 
+	updateCameraFade(camPos, drivenRig)
+
 	-- drift FX of cars not seen drifting this frame (stopped drifting, left the hot set, now driven by us, removed)
 	for rig in fxActive do
 		if rig.fxFrame ~= frameId then
@@ -1002,6 +1314,47 @@ function WheelAnimator.trackedCount(): number
 		n += 1
 	end
 	return n
+end
+
+-- Convert the client-built previews (Index / garage UI) still waiting for vehicle `vid`'s template. Returns the count.
+function WheelAnimator.reskinClientCars(vid: string): number
+	local n = 0
+	for _, inst in CollectionService:GetTagged(CarBuilder.CLIENT_TAG) do
+		if inst:IsA("Model") and inst.Parent ~= nil and inst:GetAttribute("MeshPending") == vid then
+			local ok, applied = pcall(CarBuilder.applyMesh, inst)
+			if ok and applied then
+				n += 1
+			end
+		end
+	end
+	return n
+end
+
+-- ReplicatedStorage.VehicleTemplates fills in after the server loads each car Model.
+watchTemplates = function()
+	local folder = ReplicatedStorage:WaitForChild(CarTemplates.FOLDER_NAME, 60)
+	if not folder then
+		return
+	end
+	local function onTemplate(child: Instance)
+		if child:GetAttribute("Ready") == true then
+			WheelAnimator.reskinClientCars(child.Name)
+		else
+			local conn: RBXScriptConnection? = nil
+			conn = child:GetAttributeChangedSignal("Ready"):Connect(function()
+				if child:GetAttribute("Ready") == true then
+					if conn then
+						conn:Disconnect()
+					end
+					WheelAnimator.reskinClientCars(child.Name)
+				end
+			end)
+		end
+	end
+	folder.ChildAdded:Connect(onTemplate)
+	for _, child in folder:GetChildren() do
+		onTemplate(child)
+	end
 end
 
 function WheelAnimator.init() end
@@ -1053,6 +1406,7 @@ function WheelAnimator.start()
 		end
 	end
 	RunService.PreRender:Connect(onPreRender)
+	task.spawn(watchTemplates)
 end
 
 return WheelAnimator

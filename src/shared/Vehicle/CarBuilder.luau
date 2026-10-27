@@ -39,6 +39,16 @@
 --     look only, Model attribute CarBuilder.NO_SHELL_ATTR "NoShell" = true so AssetClient leaves it bare too): for
 --     previews built many at a time (the Index card grid: ~30 ViewportFrames x a 9k-tri hero mesh each).
 --
+-- V2 MESH CARS (PLAN wave A4): a catalog car whose def names a `vehicle` (Config/Vehicles) is built by
+-- Shared/Vehicle/MeshCar from its uploaded Model (Shared/Vehicle/CarTemplates) on the same contract: Chassis, WheelFL..
+-- attachments, Wheel_FL.. MeshParts on WheelWeld_FL.. welds, DriverSeat, BumpStops, Headlight / Taillight anchors,
+-- Paint attributes, SirenRed / SirenBlue lenses; Model attributes MeshCar = true and Vehicle = <id>. While its
+-- template is not ready (Lune harness, still loading, failed) the car is built procedurally (the v1 look below) with
+-- attribute MeshPending = <vehicle id>, and applyMesh(model) converts it in place once the template arrives
+-- (VehicleService on the server, WheelAnimator for client-built previews). applyShell routes v2 cars to applyMesh: the
+-- v1 AI hero shells never dress a car that has a v2 Model. opts.noShell (the Index card grid) keeps the procedural look.
+-- Procedural visual parts carry attribute Proc = true (MeshCar.convert removes exactly those).
+--
 -- BUILT POSE: the ground plane is y = 0, the car is centered on x/z and faces -Z (pivot LookVector).
 -- Wheels rest on the ground; the chassis center sits RideHeight above it. Spawn with
 --   model:PivotTo(groundCFrame * CFrame.new(0, model:GetAttribute("RideHeight") + 0.3, 0))
@@ -49,6 +59,9 @@
 local Shared = script.Parent.Parent
 local Cars = require(Shared.Config.Cars)
 local Rarity = require(Shared.Config.Rarity)
+local Vehicles = require(Shared.Config.Vehicles)
+local CarTemplates = require(script.Parent.CarTemplates)
+local MeshCar = require(script.Parent.MeshCar)
 
 type CarDef = Cars.CarDef
 type MutationId = Rarity.MutationId
@@ -1908,11 +1921,11 @@ local function isClient(): boolean
 end
 
 local function resolveDef(carId: string): CarDef
-	local def = Cars.get(carId)
+	local def = Cars.getAny(carId)
 	if def then
 		return def
 	end
-	if carId == Cars.Police.id or carId == "police" then
+	if carId == "police" then
 		return Cars.Police
 	end
 	if not warnedIds[carId] then
@@ -1922,9 +1935,46 @@ local function resolveDef(carId: string): CarDef
 	return Cars.List[1]
 end
 
+local warnedMesh: { [string]: boolean } = {}
+
+-- The Config/Vehicles spec of a car def (v2 mesh car), or nil.
+function CarBuilder.meshSpec(def: CarDef?): Vehicles.Spec?
+	if def == nil or def.vehicle == nil then
+		return nil
+	end
+	return Vehicles.get(def.vehicle)
+end
+
+-- Does catalog car `carId` (or a police unit id) have a v2 Model? (AssetLibrary skips its v1 hero shell.)
+function CarBuilder.hasMesh(carId: string): boolean
+	return CarBuilder.meshSpec(Cars.getAny(carId)) ~= nil
+end
+
+local function finishBuild(model: Model, mutation: MutationId?)
+	CarBuilder.applyMutation(model, mutation or "None")
+	if isClient() then
+		model:AddTag(CLIENT_TAG)
+	end
+end
+
 -- Build a car from a CarDef (works for Cars.Police and any ad-hoc def). See the contract at the top of this file.
 function CarBuilder.buildDef(def: CarDef, mutation: MutationId?, opts: BuildOpts?): Model
 	local forDisplay = opts ~= nil and opts.forDisplay == true
+	local noShell = opts ~= nil and opts.noShell == true
+	local spec = CarBuilder.meshSpec(def)
+	if spec and not noShell then
+		local template = CarTemplates.get(spec.id)
+		if template then
+			local ok, built = pcall(MeshCar.build, def, spec, template, forDisplay)
+			if ok and built then
+				finishBuild(built, mutation)
+				return built
+			elseif not warnedMesh[spec.id] then
+				warnedMesh[spec.id] = true
+				warn(("[CarBuilder] mesh car %s failed (%s); procedural fallback"):format(spec.id, tostring(built)))
+			end
+		end
+	end
 	local variant = VARIANTS[def.id] or {}
 	local model = Instance.new("Model")
 	model.Name = def.id
@@ -1951,6 +2001,15 @@ function CarBuilder.buildDef(def: CarDef, mutation: MutationId?, opts: BuildOpts
 	end
 	weldAll(ctx)
 
+	for _, part in ctx.parts do
+		if part.Name ~= "DriverSeat" and part.Name ~= "BumpStop" then
+			part:SetAttribute(MeshCar.PROC_ATTR, true)
+		end
+	end
+	if spec then
+		model:SetAttribute(MeshCar.PENDING_ATTR, spec.id)
+	end
+
 	local minV, maxV = measure(ctx.parts)
 	model:SetAttribute("RideHeight", chassis.CFrame.Position.Y)
 	model:SetAttribute("WheelRadius", ctx.wheelRadius)
@@ -1962,11 +2021,8 @@ function CarBuilder.buildDef(def: CarDef, mutation: MutationId?, opts: BuildOpts
 	model:SetAttribute("CarId", def.id)
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 
-	CarBuilder.applyMutation(model, mutation or "None")
-	if isClient() then
-		model:AddTag(CLIENT_TAG)
-	end
-	if opts ~= nil and opts.noShell == true then
+	finishBuild(model, mutation)
+	if noShell then
 		model:SetAttribute(NO_SHELL_ATTR, true)
 		return model
 	end
@@ -2153,10 +2209,48 @@ local function fitSeat(model: Model, chassis: BasePart, key: string)
 	moveWelded(seat, chassis, seat.CFrame * CFrame.new(0, -drop, 0))
 end
 
+-- Late arrival of a v2 template: convert a MeshPending procedural car into the mesh rig in place (MeshCar.convert,
+-- then the mutation and any earlier repaint are re-applied). True when the model is a mesh car (already or now).
+function CarBuilder.applyMesh(model: Model): boolean
+	if model:GetAttribute("MeshCar") == true then
+		return true
+	end
+	if model:GetAttribute(NO_SHELL_ATTR) == true then
+		return false
+	end
+	local vid = model:GetAttribute(MeshCar.PENDING_ATTR)
+	local carId = model:GetAttribute("CarId")
+	if typeof(vid) ~= "string" or typeof(carId) ~= "string" then
+		return false
+	end
+	local def = Cars.getAny(CarBuilder.shellKey(model) or carId)
+	local spec = Vehicles.get(vid)
+	local template = CarTemplates.get(vid)
+	if not def or not spec or not template then
+		return false
+	end
+	if not MeshCar.convert(model, def, spec, template) then
+		return false
+	end
+	local paint = model:GetAttribute("ShellPaint")
+	if typeof(paint) == "Color3" then
+		for _, part in primaryParts(model) do
+			part:SetAttribute("BaseColor", paint)
+		end
+	end
+	local mutation = model:GetAttribute("Mutation")
+	CarBuilder.applyMutation(model, if typeof(mutation) == "string" then mutation :: MutationId else "None")
+	return true
+end
+
 -- Dress a built car in its hero mesh shell (see the contract at the top). Returns true when the model wears a shell
 -- (already or now), false when there is no template / the model is not a CarBuilder car. Idempotent; works on
 -- display, dealership and ViewportFrame models and on cars already placed in the world (late template arrival).
+-- v2 cars (MeshCar / MeshPending) never take a v1 hero shell: they go to applyMesh instead.
 function CarBuilder.applyShell(model: Model): boolean
+	if model:GetAttribute("MeshCar") == true or model:GetAttribute(MeshCar.PENDING_ATTR) ~= nil then
+		return CarBuilder.applyMesh(model)
+	end
 	if model:FindFirstChild(SHELL_NAME) then
 		return true
 	end

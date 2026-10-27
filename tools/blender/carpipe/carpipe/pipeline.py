@@ -21,6 +21,14 @@ DEFAULTS = {
     "body_maps": True,       # also write Body normal/AO PNGs for an optional SurfaceAppearance
     "budget": {},            # per-object overrides of optimize.BUDGET
     "bake": True,
+    # Roblox's GLB importer drops colour factors and turns textures into TextureID / SurfaceAppearance assets that
+    # scripts cannot recolour. "plain": Body / Body2 go into the GLB untextured (MeshPart.Color is the paint); the
+    # paint route's PNGs (overlay = paint transparent, base = full livery) are still written for a separate Image
+    # upload that the game sets as MeshPart.TextureID at runtime.
+    "body_glb": "plain",
+    "stretch": None,         # {"at": frac of length from centre (+ = toward the front), "add": frac of length}
+    "lightbar": None,        # regex (material + object path): police lightbar -> SirenRed / SirenBlue / Trim
+    "sign": None,            # regex: taxi roof sign -> its own "Sign" object
 }
 
 
@@ -63,6 +71,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     car.build(objs)
     tris_in = int(sum(car.lt - 2))
     car.orient()
+    if cfg.get("stretch"):
+        car.stretch(float(cfg["stretch"]["at"]), float(cfg["stretch"]["add"]))
     car.find_wheels()
     car.unsteer_wheels()
     car.ground_and_scale(resolve_length(car, cfg))
@@ -127,6 +137,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
         groups.append(("Lights", lights, cfg["tex_lights"]))
     if wheel_names:
         groups.append(("Wheel", [n for n in wheel_names if n in lows], cfg["tex_wheel"]))
+    if "Sign" in lows:
+        groups.append(("Sign", ["Sign"], 256))
     for gname, members, size in groups:
         objs = [lows[m] for m in members]
         optimize.atlas_uv(objs, margin=3.0 / size, angle=75.0)  # ~3 px gutter; 75 deg = fewer, bigger islands
@@ -141,7 +153,9 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
             if gname in ("Body", "Body2") and not textured_paint:
                 chans = ["normal"] if cfg["body_maps"] else []
             elif gname == "Lights":
-                chans = ["base", "emit", "normal"]
+                chans = ["base", "emit"]
+            elif gname == "Sign":
+                chans = ["base", "emit"]
             else:
                 chans = ["base", "rough", "metal", "normal"]
             # undecimated parts gain nothing from a normal map, and on old sliver-triangle meshes the tangent
@@ -157,6 +171,9 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
                 r = bake.bake_channels(lo, [hi], size, tex_dir, f"{name}_{m}", chans, ext, ray) if chans else {}
                 res[m] = r
             merged = _merge_member_bakes(res, tex_dir, f"{name}_{gname}", members, lows, size)
+            if gname in ("Lights", "Sign") and "base" in merged and "emit" in merged:
+                # Roblox imports a lone base map as TextureID (no emissive): fold the lit lens colour into the base
+                bake.screen_emit(merged["base"], merged["emit"])
             if gname in ("Trim", "Interior", "Wheel") and "base" in merged:
                 aos = []
                 for m in members:
@@ -189,6 +206,8 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
     for nm, lo in lows.items():
         optimize.keep_only_uv(lo, "atlas")
         gname = "Wheel" if nm in wheel_names else ("Lights" if nm in ("LightsFront", "LightsRear") else nm)
+        if nm in ("SirenRed", "SirenBlue"):
+            gname = nm
         _final_material(lo, nm, gname, textures.get(gname, {}), car, cfg, route)
     # wheel origins at the axle centre
     wheel_info = {}
@@ -262,6 +281,11 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
         "objects": objects,
         "triangles": {"source": tris_in, "total": int(sum(tri_count(o) for o in lows.values())),
                       "limits": {"car": optimize.CAR_BUDGET, "body": budget["Body"], "meshpart": 20000}},
+        "sirens": _part_boxes(lows, ("SirenRed", "SirenBlue")),
+        "sign": _part_boxes(lows, ("Sign",)).get("Sign"),
+        "lightbar": car.report.get("lightbar"),
+        "stretch": car.report.get("stretch"),
+        "body_glb": cfg.get("body_glb", "plain"),
         "orientation": car.report.get("orientation"),
         "scale": car.report.get("scale"),
         "classes": car.report.get("classes"),
@@ -374,7 +398,15 @@ def _final_material(lo, nm, gname, tex, car, cfg, route):
         except Exception:
             pass
         return
-    if (gname == "Body" and route == "strip") or gname == "Body2":
+    if gname in ("SirenRed", "SirenBlue"):
+        col = (1.0, 0.04, 0.03) if gname == "SirenRed" else (0.03, 0.12, 1.0)
+        b.inputs["Base Color"].default_value = col + (1,)
+        b.inputs["Emission Color"].default_value = col + (1,)
+        b.inputs["Emission Strength"].default_value = 2.0
+        b.inputs["Roughness"].default_value = 0.2
+        return
+    plain_body = cfg.get("body_glb", "plain") == "plain"
+    if (gname == "Body" and (route == "strip" or plain_body)) or gname == "Body2":
         p = (car.paint if gname == "Body" else (car.paint2 or car.paint))
         b.inputs["Base Color"].default_value = tuple(srgb_to_lin(p["color_srgb"])) + (1,)
         b.inputs["Metallic"].default_value = 0.0
@@ -387,13 +419,10 @@ def _final_material(lo, nm, gname, tex, car, cfg, route):
     if "base" in tex:
         n = img_node(tex["base"])
         nt.links.new(n.outputs["Color"], b.inputs["Base Color"])
-        if gname == "Lights":
-            if "emit" in tex:
-                e = img_node(tex["emit"])
-                nt.links.new(e.outputs["Color"], b.inputs["Emission Color"])
-            else:
-                nt.links.new(n.outputs["Color"], b.inputs["Emission Color"])
-            b.inputs["Emission Strength"].default_value = 1.0
+        if gname in ("Lights", "Sign"):
+            # base only (emission already folded in): the importer makes it the MeshPart's TextureID
+            b.inputs["Roughness"].default_value = 0.3
+            return
     if "rough" in tex:
         n = img_node(tex["rough"], True)
         nt.links.new(n.outputs["Color"], b.inputs["Roughness"])
@@ -493,6 +522,21 @@ def _exhausts(car):
     else:
         pts.append({"position": rbx([-0.3 * W, lo[1] + 0.01 * L, 0.12 * H]), "estimated": True})
     return pts[:4]
+
+
+def _part_boxes(lows, names):
+    """{name: {center, size}} (Roblox coords) for the named objects that exist."""
+    out = {}
+    for nm in names:
+        lo = lows.get(nm)
+        if lo is None or not len(lo.data.vertices):
+            continue
+        v = verts_np(lo.data) + np.array(lo.location)
+        mn, mx = v.min(0), v.max(0)
+        c = (mn + mx) / 2
+        out[nm] = {"center": rbx(c), "size": [round(float(mx[0] - mn[0]), 4), round(float(mx[2] - mn[2]), 4),
+                                              round(float(mx[1] - mn[1]), 4)]}
+    return out
 
 
 def _lights(lows, L, W, H):

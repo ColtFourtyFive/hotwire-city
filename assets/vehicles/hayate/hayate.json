@@ -1,0 +1,526 @@
+{
+  "name": "hayate",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "JDM Sport '99 - Low Poly model",
+    "url": "https://sketchfab.com/3d-models/jdm-sport-99-low-poly-model-6dd4ae19c454414d9eed2bc524515d78",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"JDM Sport '99 - Low Poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution",
+    "sketchfab_uid": "6dd4ae19c454414d9eed2bc524515d78"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "hayate.glb",
+  "dimensions": {
+    "length": 15.901,
+    "width": 6.715,
+    "height": 4.585,
+    "wheelbase": 9.244,
+    "track_front": 5.186,
+    "track_rear": 5.186,
+    "bbox_min": [
+      -3.3567,
+      -0.0,
+      -7.9632
+    ],
+    "bbox_max": [
+      3.3584,
+      4.5854,
+      7.9378
+    ]
+  },
+  "wheels": {
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.5928,
+        1.1045,
+        -4.622
+      ],
+      "radius": 1.1045,
+      "width": 0.8883,
+      "part_center": [
+        2.3841,
+        1.1045,
+        -4.622
+      ],
+      "attachment_offset": [
+        0.2087,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.5928,
+        1.1045,
+        -4.622
+      ],
+      "radius": 1.1045,
+      "width": 0.8883,
+      "part_center": [
+        -2.3832,
+        1.1045,
+        -4.622
+      ],
+      "attachment_offset": [
+        -0.2096,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.5928,
+        1.1045,
+        4.622
+      ],
+      "radius": 1.1045,
+      "width": 0.8883,
+      "part_center": [
+        2.5391,
+        1.1045,
+        4.622
+      ],
+      "attachment_offset": [
+        0.0537,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.5928,
+        1.1045,
+        4.622
+      ],
+      "radius": 1.1045,
+      "width": 0.8883,
+      "part_center": [
+        -2.5383,
+        1.1045,
+        4.622
+      ],
+      "attachment_offset": [
+        -0.0545,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.2759,
+        1.6508,
+        0.7395
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.2759,
+        1.6508,
+        0.7395
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -1.9865,
+          2.1935,
+          -7.5642
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.9881,
+          2.1935,
+          -7.5642
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -1.8327,
+          2.7856,
+          7.9025
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          1.8109,
+          2.7918,
+          7.9025
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -2.0145,
+        0.5503,
+        7.7788
+      ],
+      "estimated": true
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.4673,
+    0.0
+  ],
+  "paint": {
+    "route": "strip",
+    "primary": {
+      "object": "Body",
+      "material": "Gallo99_Bodymat",
+      "color_srgb": [
+        0.0,
+        0.2588,
+        0.5451
+      ],
+      "textured": false,
+      "metallic": 0.5,
+      "roughness": 0.5
+    },
+    "secondary": null,
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 7000,
+      "bbox_min": [
+        -3.3567,
+        0.466,
+        -7.963
+      ],
+      "bbox_max": [
+        3.3584,
+        4.5854,
+        7.9391
+      ],
+      "textures": {
+        "normal": "textures/hayate_Body_normal.png",
+        "ao": "textures/hayate_Body_ao.png"
+      }
+    },
+    "Glass": {
+      "tris": 476,
+      "bbox_min": [
+        -2.6859,
+        1.9652,
+        -7.5644
+      ],
+      "bbox_max": [
+        2.6876,
+        4.3434,
+        5.6719
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 450,
+      "bbox_min": [
+        -2.687,
+        1.9654,
+        -7.5642
+      ],
+      "bbox_max": [
+        2.6886,
+        2.4523,
+        -6.3022
+      ],
+      "textures": {
+        "emit": "textures/hayate_Lights_emit.png",
+        "base": "textures/hayate_Lights_base.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 450,
+      "bbox_min": [
+        -2.5728,
+        1.7224,
+        7.3127
+      ],
+      "bbox_max": [
+        2.5744,
+        3.3219,
+        7.9025
+      ],
+      "textures": {
+        "emit": "textures/hayate_Lights_emit.png",
+        "base": "textures/hayate_Lights_base.png"
+      }
+    },
+    "Trim": {
+      "tris": 2600,
+      "bbox_min": [
+        -3.3569,
+        0.4654,
+        -7.9609
+      ],
+      "bbox_max": [
+        3.3586,
+        4.4066,
+        7.784
+      ],
+      "textures": {
+        "metal": "textures/hayate_Trim_metal.png",
+        "base": "textures/hayate_Trim_base.png",
+        "normal": "textures/hayate_Trim_normal.png",
+        "rough": "textures/hayate_Trim_rough.png",
+        "ao": "textures/hayate_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 1187,
+      "bbox_min": [
+        -2.6538,
+        0.8137,
+        -3.0235
+      ],
+      "bbox_max": [
+        2.6555,
+        4.4587,
+        5.6719
+      ],
+      "textures": {
+        "metal": "textures/hayate_Interior_metal.png",
+        "base": "textures/hayate_Interior_base.png",
+        "rough": "textures/hayate_Interior_rough.png",
+        "ao": "textures/hayate_Interior_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 900,
+      "bbox_min": [
+        1.7226,
+        0.0,
+        -5.7266
+      ],
+      "bbox_max": [
+        3.0455,
+        2.2091,
+        -3.5175
+      ],
+      "textures": {
+        "base": "textures/hayate_Wheel_base.png",
+        "normal": "textures/hayate_Wheel_normal.png",
+        "metal": "textures/hayate_Wheel_metal.png",
+        "rough": "textures/hayate_Wheel_rough.png",
+        "ao": "textures/hayate_Wheel_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0455,
+        -0.0,
+        -5.7266
+      ],
+      "bbox_max": [
+        -1.721,
+        2.2091,
+        -3.5175
+      ],
+      "textures": {
+        "base": "textures/hayate_Wheel_base.png",
+        "normal": "textures/hayate_Wheel_normal.png",
+        "metal": "textures/hayate_Wheel_metal.png",
+        "rough": "textures/hayate_Wheel_rough.png",
+        "ao": "textures/hayate_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 900,
+      "bbox_min": [
+        2.0328,
+        0.0,
+        3.5175
+      ],
+      "bbox_max": [
+        3.0455,
+        2.2091,
+        5.7266
+      ],
+      "textures": {
+        "base": "textures/hayate_Wheel_base.png",
+        "normal": "textures/hayate_Wheel_normal.png",
+        "metal": "textures/hayate_Wheel_metal.png",
+        "rough": "textures/hayate_Wheel_rough.png",
+        "ao": "textures/hayate_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0455,
+        -0.0,
+        3.5175
+      ],
+      "bbox_max": [
+        -2.0311,
+        2.2091,
+        5.7266
+      ],
+      "textures": {
+        "base": "textures/hayate_Wheel_base.png",
+        "normal": "textures/hayate_Wheel_normal.png",
+        "metal": "textures/hayate_Wheel_metal.png",
+        "rough": "textures/hayate_Wheel_rough.png",
+        "ao": "textures/hayate_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 23187,
+    "total": 15763,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "sirens": {},
+  "sign": null,
+  "lightbar": null,
+  "stretch": null,
+  "body_glb": "plain",
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.148,
+      "white_lights": 0.0,
+      "deck_height": 0.8,
+      "cabin": 0.487,
+      "mirrors": 1.2
+    },
+    "confidence": 5.636
+  },
+  "scale": {
+    "source_length": 4.676628112792969,
+    "factor": 3.400099305844447,
+    "target_length": 15.901
+  },
+  "classes": {
+    "Body": {
+      "islands": 14,
+      "faces": 11210,
+      "area": 253.124
+    },
+    "Glass": {
+      "islands": 8,
+      "faces": 476,
+      "area": 29.807
+    },
+    "LightsFront": {
+      "islands": 10,
+      "faces": 834,
+      "area": 7.536
+    },
+    "LightsRear": {
+      "islands": 9,
+      "faces": 668,
+      "area": 1.415
+    },
+    "Trim": {
+      "islands": 57,
+      "faces": 3424,
+      "area": 176.34
+    },
+    "Interior": {
+      "islands": 14,
+      "faces": 1191,
+      "area": 154.881
+    },
+    "Discard": {
+      "islands": 18,
+      "faces": 222,
+      "area": 7.743
+    },
+    "WheelFR": {
+      "islands": 10,
+      "faces": 1300,
+      "area": 23.356
+    },
+    "WheelFL": {
+      "islands": 10,
+      "faces": 1300,
+      "area": 23.356
+    },
+    "WheelRR": {
+      "islands": 9,
+      "faces": 1281,
+      "area": 23.246
+    },
+    "WheelRL": {
+      "islands": 9,
+      "faces": 1281,
+      "area": 23.246
+    }
+  },
+  "warnings": []
+}

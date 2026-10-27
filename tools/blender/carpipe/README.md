@@ -85,7 +85,42 @@ SurfaceAppearance maps cannot be set by scripts at runtime, so the SurfaceAppear
 - `Paint` attributes;
 - `RideHeight` and the other model attributes.
 
-With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged. `sidecar_to_luau.py out/*/*.json` turns the sidecars into a Luau spec table. Neither file has been run in Roblox yet, and nothing in `src/` has been changed.
+With it, `VehicleService` and `WheelAnimator` can drive a carpipe car unchanged. `sidecar_to_luau.py out/*/*.json` turns the sidecars into a Luau spec table. **Superseded in the game** by `src/shared/Vehicle/MeshCar.luau` + `CarTemplates.luau` (wave A4, below); the adapter stays as a minimal reference.
+
+## Vehicles v2 roster (wave A4): from Sketchfab pick to in-game car
+
+```
+python3 -I tools/blender/carpipe/build_roster.py [ids]        # carpipe per roster.json entry -> assets/vehicles/<id>/
+python3 -I tools/blender/carpipe/render_roster.py look [ids]   # QA: studio shot with the RUNTIME look (assets/vehicles/_qa)
+python3 -I tools/blender/carpipe/render_roster.py roles [ids]  # QA: object roles
+python3 tools/blender/carpipe/upload_roster.py [ids]           # Models + body Images -> assets/vehicles/manifest.json
+python3 tools/blender/carpipe/upload_roster.py --status        # moderation
+python3 tools/blender/carpipe/gen_vehicles.py && stylua src/shared/Config/Vehicles.luau   # + ATTRIBUTION section
+python3 tools/blender/carpipe/cloud_probe.py                    # real engine: what the importer made of each upload
+python3 tools/blender/carpipe/cloud_rig_test.py                 # real engine: load + CarBuilder v2 + controller step
+lune run tools/blender/carpipe/rig_dump.luau a,b,c && python3 -I tools/blender/carpipe/render_roster.py street [--night]
+python3 -I tools/blender/carpipe/render_roster.py sheet          # docs/v2/early/vehicles/roster.png
+```
+
+- **`roster.json`** names each car: Sketchfab source slug, our parody `brand` / `model`, `class`, `body` (`paint` or
+  `livery`), factory `paints`, and carpipe `config` overrides. `_defaults.roles` drops badge meshes.
+- New carpipe config keys: `lightbar` (regex; the bar's faces split by sampled texture colour into `SirenRed` /
+  `SirenBlue` objects, the housing to Trim; falls back to a left/right split of the upper half), `sign` (regex; taxi
+  roof sign -> its own `Sign` object), `stretch` (`{"at", "add"}`: stretch-limo cut, rear of the plane moved back by
+  `add` x length before wheel detection), `body_glb` (`"plain"` default: Body / Body2 exported untextured, see below),
+  `drop_emblems` (default true: dense tiny trim islands on the centre line at the nose / tail are dropped as logos).
+- Wheel finding: a disc that does not reach the ground (fuel tank, spare) can no longer shadow the real tyre at its
+  axle, and dual rear tyres seed on the outer tyre so both spin as one wheel. 6-wheel trucks export `WheelM*` too.
+- **Roblox import (measured, `docs/v2/early/vehicles/cloud_probe.json`):** one MeshPart per object inside an
+  `<Object>_Node` Model, geometry turned 180 degrees about Y (front at +Z, identity rotations), colour factors dropped
+  (grey Plastic), PBR sets -> SurfaceAppearance, a lone base map -> TextureID. So Lights / Sign ship a base map only
+  (emission folded in), and the Body ships untextured: `MeshPart.Color` is the paint; the tint-mask route's
+  `<id>_Body_overlay.png` (paint transparent) or a livery's `<id>_Body_base.png` is uploaded as an Image and set as
+  `Body.TextureID` at runtime (`Config/Vehicles.bodyImage`). The TintMask SurfaceAppearance route
+  (`<id>_Body_tintmask.png`, `AlphaMode = TintMask`, scripted `SurfaceAppearance.Color`) keeps shading inside the
+  paint but has to be authored in Studio; not used yet.
+- Outputs under `assets/vehicles/<id>/` are reproducible and gitignored except the sidecar JSON; `manifest.json`
+  holds the asset ids.
 
 ## How it works (`carpipe/`)
 
@@ -205,7 +240,8 @@ The street, night and lineup shots use `render_lineup.py`. It emulates the Roblo
 - Lights that are only painted into a texture get **estimated** positions (`estimated: true`).
 - The interior is decimated hard (1.5k tris). That is fine behind tinted glass, but rough close up.
 - Paint in an atlas needs SurfaceAppearance authoring in Studio, because TintMask textures can't be set from scripts.
-- Police lightbars and taxi signs are not their own objects yet. They land in Glass, Lights or Trim depending on their materials. The game's contract wants `SirenRed`/`SirenBlue` parts, so add a `roles` regex per car, or split them out in Studio.
+- Police lightbars and taxi signs need the `lightbar` / `sign` regex in the car's config (roster.json does this for the DZ cars); without it they land in Glass, Lights or Trim.
 - Very dense wheels lose a lot at 900 tris each. The BMW27's subdivided 19k-tri wheels come out chunky, with the spokes partly lost. Raise `budget.Wheel` for hero cars; the 18k car limit still has room on most cars.
 - Texel use in the atlases is 25–70%. Smart-project packing beat every re-pack we tried, but dense decimated parts still waste space.
-- Nothing has been imported into Roblox yet. Open Cloud upload, MeshPart import of the four wheels with their node origins, and `CarpipeRig.luau` all still need a real-engine test.
+- The A4 roster is imported and checked in the real engine (`cloud_probe.json`, `cloud_rig.json`); driving feel at
+  realistic scale still needs a Studio playtest (the Luau execution server does not step physics).

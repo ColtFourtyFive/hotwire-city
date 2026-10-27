@@ -32,6 +32,12 @@
 --      a "Hotwire" steal prompt for everybody else (attribute HideForUserId = claimer; the server refuses it to the
 --      claimer too).
 --  * A leaving player's Owned cars are destroyed (they never outlive the session).
+--  * Vehicles v2 (wave A4): start() loads the uploaded car Models (Shared/Vehicle/CarTemplates.loadAll); as each
+--    template becomes ready, every car already built procedurally for it (attribute MeshPending) in Workspace.Vehicles,
+--    Workspace.Dealership and the garage Display folders is converted in place (CarBuilder.applyMesh: same Model,
+--    Chassis and seat). Spawned models are named "<carId>_<VehicleId>" (unique, BACKLOG 6). Street kinds (Parked,
+--    Traffic, HotDrop, Loot) without opts.paint get a random factory paint from the vehicle's palette (liveries
+--    excepted); opts.paint (Color3) paints any car.
 --
 -- Public API (SPEC): spawn, seat, eject, addStealPrompt, damage, destroy, get, fromModel, getDriving, all, setKind,
 --   getHoldMultiplier; signals Spawned, DriverChanged, Destroyed, DeliveryAttempt, ChopAttempt, SprayAttempt,
@@ -65,6 +71,7 @@ local Signal = require(Shared.Util.Signal)
 local Trove = require(Shared.Util.Trove)
 local Types = require(Shared.Types)
 local CarBuilder = require(Shared.Vehicle.CarBuilder)
+local CarTemplates = require(Shared.Vehicle.CarTemplates)
 
 type CarDef = Cars.CarDef
 type MutationId = Rarity.MutationId
@@ -114,6 +121,7 @@ export type SpawnOpts = {
 	anchored: boolean?, -- overrides the per-kind default
 	data: { [string]: any }?,
 	health: number?,
+	paint: Color3?, -- body paint (v2 cars: the Body MeshPart colour)
 	[string]: any,
 }
 
@@ -234,6 +242,9 @@ local groundFilter: { Instance } = {}
 local settling: { [Car]: any } = {} -- car -> server VehicleController (zero input) while it settles after exit
 local settleUntil: { [Car]: number } = {}
 local heatRng = Random.new()
+local paintRng = Random.new()
+-- kinds that roll a factory paint from the vehicle's palette when spawned without opts.paint
+local FACTORY_PAINT_KINDS: { [string]: boolean } = { Parked = true, Traffic = true, HotDrop = true, Loot = true }
 
 local setDriver: (car: Car, player: Player?) -> ()
 local refreshManagedPrompts: (car: Car) -> ()
@@ -821,6 +832,10 @@ function VehicleService.spawn(
 	local o: SpawnOpts = opts or {}
 
 	local model = CarBuilder.buildDef(def, mut)
+	local paint = VehicleService._factoryPaint(def, kind, o.paint, paintRng)
+	if paint then
+		CarBuilder.repaint(model, paint)
+	end
 	local chassis = model.PrimaryPart
 	local seat = model:FindFirstChild("DriverSeat")
 	if not chassis or not seat or not seat:IsA("VehicleSeat") then
@@ -868,6 +883,7 @@ function VehicleService.spawn(
 		wrecked = false,
 	}
 
+	model.Name = VehicleService.modelName(def.id, car.id)
 	model:SetAttribute("VehicleId", car.id)
 	model:SetAttribute("CarId", def.id)
 	model:SetAttribute("Mutation", mut)
@@ -904,6 +920,63 @@ function VehicleService.spawn(
 	refreshManagedPrompts(car)
 	VehicleService.Spawned:Fire(car)
 	return car
+end
+
+-- Unique Workspace name of a spawned car (BACKLOG 6: several "yellow_cab" models were indistinguishable).
+function VehicleService.modelName(carId: string, vehicleId: number): string
+	return ("%s_%d"):format(carId, vehicleId)
+end
+
+-- Paint a spawned car gets (pure): opts.paint when given; else, for street kinds, a random colour from its v2
+-- vehicle's factory palette (fixed liveries never re-roll); nil = keep the catalog colour.
+function VehicleService._factoryPaint(def: CarDef, kind: string, paint: Color3?, rng: Random): Color3?
+	if typeof(paint) == "Color3" then
+		return paint
+	end
+	if def.livery == true or not FACTORY_PAINT_KINDS[kind] then
+		return nil
+	end
+	local spec = CarBuilder.meshSpec(def)
+	if not spec or #spec.paints < 2 then
+		return nil
+	end
+	return spec.paints[rng:NextInteger(1, #spec.paints)]
+end
+
+-- Convert every car built procedurally while vehicle `vid`'s template was loading (attribute MeshPending = vid) in
+-- Workspace.Vehicles, Workspace.Dealership and the plots' Display folders. Returns how many were converted.
+function VehicleService.reskinPending(vid: string): number
+	local count = 0
+	local function visit(container: Instance?, depth: number)
+		if not container then
+			return
+		end
+		for _, child in container:GetChildren() do
+			if child:IsA("Model") and child:GetAttribute("MeshPending") == vid then
+				local ok, applied = pcall(CarBuilder.applyMesh, child)
+				if not ok then
+					warn(("[VehicleService] re-skin %s (%s) failed: %s"):format(child.Name, vid, tostring(applied)))
+				elseif applied then
+					count += 1
+					local car = byModel[child]
+					if car then
+						setCarGroup(child)
+					end
+				end
+			elseif depth > 0 and (child:IsA("Folder") or child:IsA("Model")) and child:GetAttribute("CarId") == nil then
+				visit(child, depth - 1)
+			end
+		end
+	end
+	visit(Workspace:FindFirstChild("Vehicles"), 1)
+	visit(Workspace:FindFirstChild("Dealership"), 1)
+	local plots = Workspace:FindFirstChild("Plots")
+	if plots then
+		for _, plot in plots:GetChildren() do
+			visit(plot:FindFirstChild("Display"), 1)
+		end
+	end
+	return count
 end
 
 -- KIND ---------------------------------------------------------------------------------------------------------------
@@ -2313,6 +2386,12 @@ function VehicleService.init()
 end
 
 function VehicleService.start()
+	-- v2 car Models: load them, converting cars built before their template arrived
+	CarTemplates.Ready:Connect(function(vid: string)
+		VehicleService.reskinPending(vid)
+	end)
+	task.spawn(CarTemplates.loadAll)
+
 	local function onPlayerAdded(player: Player)
 		VehicleService.refreshHoldMultiplier(player)
 	end

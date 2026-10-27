@@ -1,0 +1,177 @@
+{
+  "_doc": [
+    "Vehicles v2 roster (PLAN wave A4): one entry per uploaded car model. build_roster.py runs carpipe on each source",
+    "(assets/source/sketchfab/<source>/model.glb in the main checkout, see docs/v2/sourcing/PICKS.md) with `config`",
+    "merged over `_defaults`, into assets/vehicles/<id>/. gen_vehicles.py turns the sidecars + this file + the upload",
+    "manifest into src/shared/Config/Vehicles.luau. Names are our own parody brands: never real brands, never GTA names",
+    "(no Phoenix, Cheetah, Burrito, Dukes, Infernus, Banshee, Stallion, Taxi brands...). body: 'paint' = recolourable",
+    "(strip route: MeshPart.Color; tintmask route: the overlay PNG as TextureID with the paint showing through),",
+    "'livery' = the baked body texture as TextureID (police / taxi / service liveries keep their artwork)."
+  ],
+  "_defaults": {
+    "roles": {"Carbadges|_badges?_|badges_badges": "Discard"},
+    "length": "auto"
+  },
+  "wren": {
+    "source": "v-compact--milano-95-low-poly-model-122a22",
+    "brand": "Halden", "model": "Wren", "class": "compact", "body": "paint",
+    "paints": [[118, 128, 108], [150, 40, 38], [205, 200, 190], [44, 70, 110], [92, 86, 78], [190, 172, 130]]
+  },
+  "nami": {
+    "source": "v-compact--ace-11-low-poly-model-055ff8",
+    "brand": "Tamura", "model": "Nami", "class": "compact", "body": "paint",
+    "paints": [[214, 168, 40], [228, 228, 224], [30, 32, 36], [160, 24, 30], [60, 110, 170], [120, 124, 128]]
+  },
+  "kaze": {
+    "source": "v-compact--1991-honda-civic-eg6-f81da3",
+    "brand": "Tamura", "model": "Kaze", "class": "hatch", "body": "paint",
+    "config": {"length": 13.9},
+    "paints": [[226, 196, 40], [235, 235, 232], [178, 20, 24], [24, 26, 30], [40, 80, 150], [150, 152, 156]]
+  },
+  "aoi": {
+    "source": "v-sedan--kiri-10-low-poly-model-7fd6e1",
+    "brand": "Tamura", "model": "Aoi", "class": "sedan", "body": "paint",
+    "paints": [[200, 214, 196], [230, 230, 228], [42, 44, 48], [128, 132, 136], [92, 24, 30], [36, 58, 92]]
+  },
+  "sena": {
+    "source": "v-sedan--tozzo-98-low-poly-model-d43bb7",
+    "brand": "Tamura", "model": "Sena", "class": "sedan", "body": "paint",
+    "paints": [[188, 190, 192], [24, 26, 28], [236, 236, 234], [70, 20, 26], [30, 54, 84], [96, 104, 92]]
+  },
+  "brookline": {
+    "source": "v-sedan--illinois-90-low-poly-model-d60487",
+    "brand": "Halden", "model": "Brookline", "class": "sedan", "body": "paint",
+    "paints": [[22, 24, 28], [160, 150, 132], [96, 30, 34], [48, 64, 92], [196, 192, 184], [82, 90, 80]]
+  },
+  "brookline_cab": {
+    "source": "v-taxi--illinois-90-taxi-2-low-poly-model-fa1a26",
+    "brand": "Halden", "model": "Brookline Cab", "class": "taxi", "body": "livery",
+    "config": {"sign": "Taxi_Addbox|Taxi_?sign"},
+    "paints": [[244, 196, 30]]
+  },
+  "metro_cab": {
+    "source": "v-taxi--canyon-75-taxi-low-poly-model-9e8f92",
+    "brand": "Halden", "model": "Metro Cab", "class": "taxi", "body": "livery",
+    "config": {"sign": "Taxi_Addbox|Taxi_?sign|_Sign_"},
+    "paints": [[236, 190, 36]]
+  },
+  "k8": {
+    "source": "v-luxury-sedan--trinity-03-low-poly-model-32ac06",
+    "brand": "Kronberg", "model": "K8", "class": "luxury", "body": "paint",
+    "paints": [[176, 180, 184], [18, 20, 22], [236, 236, 234], [60, 64, 70], [66, 20, 26], [32, 40, 58]]
+  },
+  "k8_pullman": {
+    "source": "v-luxury-sedan--trinity-03-low-poly-model-32ac06",
+    "brand": "Kronberg", "model": "K8 Pullman", "class": "limo", "body": "paint",
+    "config": {"stretch": {"at": -0.10, "add": 0.72}, "budget": {"Body": 7600, "Interior": 1200}},
+    "paints": [[16, 17, 19], [238, 238, 236], [30, 34, 44], [120, 122, 126]]
+  },
+  "ironside": {
+    "source": "v-muscle--duke-69-low-poly-model-46fed7",
+    "brand": "Marlowe", "model": "Ironside", "class": "muscle", "body": "paint",
+    "paints": [[40, 42, 44], [176, 26, 22], [232, 156, 24], [24, 60, 40], [230, 230, 226], [38, 70, 130]]
+  },
+  "kingsnake": {
+    "source": "v-muscle--phoenix-455-71-low-poly-model-955edc",
+    "brand": "Marlowe", "model": "Kingsnake", "class": "muscle", "body": "paint",
+    "paints": [[18, 18, 20], [196, 160, 64], [150, 20, 24], [236, 236, 232], [40, 80, 64], [30, 50, 110]]
+  },
+  "caliente": {
+    "source": "v-lowrider--impala-1964-lowrider-c68508",
+    "brand": "Marlowe", "model": "Caliente", "class": "lowrider", "body": "paint",
+    "config": {"length": 18.4},
+    "paints": [[30, 120, 70], [120, 20, 60], [20, 70, 140], [200, 170, 60], [18, 18, 20], [236, 236, 232]]
+  },
+  "hayate": {
+    "source": "v-sports-coupe--jdm-sport-99-low-poly-model-6dd4ae",
+    "brand": "Tamura", "model": "Hayate", "class": "sports", "body": "paint",
+    "paints": [[28, 70, 160], [236, 236, 232], [24, 26, 28], [150, 152, 156], [200, 30, 30], [90, 40, 120]]
+  },
+  "shiden": {
+    "source": "v-sports-coupe--nissan-200sx-silvia-s14-f2a917",
+    "brand": "Tamura", "model": "Shiden", "class": "sports", "body": "paint",
+    "config": {"length": 15.3},
+    "paints": [[236, 236, 232], [24, 26, 28], [120, 20, 30], [60, 150, 190], [230, 120, 20], [130, 134, 138]]
+  },
+  "ardente": {
+    "source": "v-supercar--cheetah-84-low-poly-model-c967ab",
+    "brand": "Rossetti", "model": "Ardente", "class": "super", "body": "paint",
+    "paints": [[190, 16, 18], [18, 18, 20], [236, 236, 232], [230, 190, 20], [30, 40, 70]]
+  },
+  "furia": {
+    "source": "v-supercar--saba-v12-95-low-poly-model-3ab977",
+    "brand": "Rossetti", "model": "Furia", "class": "super", "body": "paint",
+    "paints": [[230, 190, 20], [190, 16, 18], [18, 18, 20], [236, 236, 232], [20, 90, 60]]
+  },
+  "vireo": {
+    "source": "v-supercar--2017-mclaren-720s-f7bece",
+    "brand": "Ashcombe", "model": "Vireo", "class": "super", "body": "paint",
+    "config": {"length": 15.4},
+    "paints": [[230, 110, 20], [236, 236, 232], [24, 26, 28], [40, 70, 140], [120, 124, 128]]
+  },
+  "nyx": {
+    "source": "v-supercar--fictional-supercar-v12-goblin-0a20e4",
+    "brand": "Velacor", "model": "Nyx", "class": "hyper", "body": "paint",
+    "config": {"length": 15.5},
+    "paints": [[18, 18, 20], [170, 16, 18], [236, 236, 232], [60, 64, 70], [20, 50, 110]]
+  },
+  "trailhead": {
+    "source": "v-suv--urban-10-low-poly-model-2866ef",
+    "brand": "Oakridge", "model": "Trailhead", "class": "suv", "body": "paint",
+    "paints": [[220, 130, 30], [236, 236, 232], [30, 32, 34], [110, 116, 100], [40, 60, 96], [140, 30, 30]]
+  },
+  "bracken": {
+    "source": "v-pickup--lightbody-90-md-pickup-low-poly-mo-3b3ac5",
+    "brand": "Halden", "model": "Bracken", "class": "pickup", "body": "paint",
+    "paints": [[30, 50, 120], [236, 236, 232], [140, 24, 24], [60, 66, 56], [24, 26, 28], [170, 150, 120]]
+  },
+  "kuma": {
+    "source": "v-pickup--conquer-89-pickup-low-poly-model-6c48c9",
+    "brand": "Tamura", "model": "Kuma", "class": "pickup", "body": "paint",
+    "paints": [[220, 216, 204], [150, 30, 30], [40, 60, 40], [36, 50, 90], [120, 100, 70]]
+  },
+  "hauler": {
+    "source": "v-van--shvan-92-low-poly-model-09d718",
+    "brand": "Halden", "model": "Hauler", "class": "van", "body": "paint",
+    "paints": [[236, 236, 232], [24, 26, 28], [130, 30, 30], [60, 80, 60], [150, 152, 154], [200, 180, 140]]
+  },
+  "hauler_medic": {
+    "source": "v-ambulance--shvan-92-ambulance-low-poly-model-2856dd",
+    "brand": "Halden", "model": "Hauler Medic", "class": "ambulance", "body": "livery",
+    "paints": [[240, 240, 238]]
+  },
+  "brookline_interceptor": {
+    "source": "v-police-cruiser--illinois-90-police-cruiser-low-pol-dc8162",
+    "brand": "Halden", "model": "Brookline Interceptor", "class": "police", "body": "livery",
+    "config": {"lightbar": "Lightbar"},
+    "paints": [[240, 240, 238]]
+  },
+  "trailhead_patrol": {
+    "source": "v-police-suv--urban-10-cop-enforcer-low-poly-mod-745830",
+    "brand": "Oakridge", "model": "Trailhead Patrol", "class": "police_suv", "body": "livery",
+    "config": {"lightbar": "Lightbar"},
+    "paints": [[240, 240, 238]]
+  },
+  "vaultline": {
+    "source": "v-armored-truck--md-84-armored-low-poly-model-26e809",
+    "brand": "Brennan", "model": "Vaultline", "class": "armored", "body": "livery",
+    "paints": [[70, 74, 70]]
+  },
+  "cargo": {
+    "source": "v-box-truck--lct-3000-07-low-poly-model-3be03b",
+    "brand": "Brennan", "model": "Cargo 30", "class": "box_truck", "body": "paint",
+    "paints": [[236, 236, 232], [200, 30, 30], [30, 70, 140], [40, 90, 50], [230, 190, 40]]
+  },
+  "transit": {
+    "source": "v-bus--generic-town-bus-14fe03",
+    "brand": "Brennan", "model": "Transit 40", "class": "bus", "body": "livery",
+    "config": {"length": 44.0, "budget": {"Body": 6000, "Interior": 1000, "Wheel": 700}},
+    "paints": [[236, 236, 232]]
+  },
+  "firebrand": {
+    "source": "v-fire-truck--ladder-truck-b24cdf",
+    "brand": "Brennan", "model": "Firebrand Ladder", "class": "fire", "body": "livery",
+    "config": {"length": 38.0, "budget": {"Wheel": 500, "Body": 6000}},
+    "paints": [[190, 20, 20]]
+  }
+}
