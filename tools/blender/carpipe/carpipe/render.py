@@ -321,6 +321,32 @@ def render_to(path):
 
 
 # ------------------------------------------------------------------------------------------ car loading
+def _tintmask_nodes(m, b, tint_png, paint):
+    """Emulate Roblox SurfaceAppearance AlphaMode=TintMask: colour = lerp(ColorMap, ColorMap * Color, ColorMap.a)
+    using carpipe's <name>_Body_tintmask.png (paint pixels are neutral shading with alpha = 1)."""
+    nt = m.node_tree
+    src = b.inputs["Base Color"].links[0].from_socket if b.inputs["Base Color"].is_linked else None
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = bpy.data.images.load(tint_png, check_existing=True)
+    uv = nt.nodes.new("ShaderNodeUVMap")
+    nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
+    mul = nt.nodes.new("ShaderNodeMix")
+    mul.data_type = "RGBA"
+    mul.blend_type = "MULTIPLY"
+    mul.inputs["Factor"].default_value = 1.0
+    nt.links.new(tex.outputs["Color"], mul.inputs[6])
+    mul.inputs[7].default_value = tuple(srgb_to_lin(paint)) + (1,)
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    nt.links.new(tex.outputs["Alpha"], mix.inputs["Factor"])
+    if src is not None:
+        nt.links.new(src, mix.inputs[6])
+    else:
+        nt.links.new(tex.outputs["Color"], mix.inputs[6])
+    nt.links.new(mul.outputs[2], mix.inputs[7])
+    nt.links.new(mix.outputs[2], b.inputs["Base Color"])
+
+
 def load_glb(path, offset=(0, 0, 0), rot_z=0.0, paint=None, lights_on=False):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
@@ -347,8 +373,12 @@ def load_glb(path, offset=(0, 0, 0), rot_z=0.0, paint=None, lights_on=False):
                 m = m.copy()
                 s.material = m
                 b = m.node_tree.nodes.get("Principled BSDF")
+                tint_png = os.path.join(os.path.dirname(path), "textures",
+                                        os.path.splitext(os.path.basename(path))[0] + "_Body_tintmask.png")
                 if not b.inputs["Base Color"].is_linked:
                     b.inputs["Base Color"].default_value = tuple(srgb_to_lin(paint)) + (1,)
+                elif os.path.exists(tint_png):
+                    _tintmask_nodes(m, b, tint_png, paint)
             if base == "Body" or base == "Body2":
                 # stand-in for Roblox's glossy paint look
                 b.inputs["Metallic"].default_value = 0.0

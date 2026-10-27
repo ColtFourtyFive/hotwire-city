@@ -589,6 +589,21 @@ class Car:
                         why[k] = "overlay-shell"
                         log(f"overlay shell dropped: {self.island_name(k)}")
                         break
+        # a shell is usually split into many islands; once most of a material's area is a confirmed overlay,
+        # the rest of that material is overlay too
+        nm = len(self.mats)
+        tot = np.bincount(self.imat, weights=self.ia, minlength=nm)
+        gone = np.zeros(nm)
+        sel = np.array([w == "overlay-shell" for w in why])
+        if sel.any():
+            np.add.at(gone, self.imat[sel], self.ia[sel])
+            for mi in np.where(gone > 0.3 * np.maximum(tot, 1e-12))[0]:
+                rest = np.where((self.imat == mi) & (role != DISCARD))[0]
+                for k in rest:
+                    role[k] = DISCARD
+                    why[k] = "overlay-shell (material)"
+                if len(rest):
+                    log(f"overlay material '{self.mats[mi]['name']}': dropped {len(rest)} more islands")
 
     def visibility(self, glass_mask_faces, gone_mask_faces=None):
         """Per island: 2 = visible from outside, 1 = only visible through glass, 0 = hidden."""

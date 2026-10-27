@@ -246,7 +246,8 @@ def tint_mask(color_path, out_tint, out_overlay, paint_hint=None, uv_mask=None):
     # soften 1px
     k = mf.copy()
     k[1:-1, 1:-1] = (mf[1:-1, 1:-1] * 4 + mf[:-2, 1:-1] + mf[2:, 1:-1] + mf[1:-1, :-2] + mf[1:-1, 2:]) / 8
-    shade = np.clip(lum[..., 0] / plum, 0, 1.0)
+    # neutral shading kept from the texture; for near-black paint there is no shading to keep -> flat
+    shade = np.clip(lum[..., 0] / plum, 0, 1.0) if plum > 0.08 else np.ones_like(lum[..., 0])
     tint = c.copy()
     for ch in range(3):
         tint[..., ch] = np.where(m, shade, rgb[..., ch])
