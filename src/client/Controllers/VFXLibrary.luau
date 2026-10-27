@@ -718,13 +718,15 @@ local function ensureTicker()
 	end
 end
 
+export type StreamOpts = {
+	scale: number?, -- Size multiplier (x the tier's sizeScale for tierSize presets)
+	color: Color3?, -- constant color instead of the preset's sequence
+	rateScale: number?, -- Rate multiplier (e.g. observers' cars a bit lighter)
+	priority: boolean?, -- the local player's own effects: served first when the budget is tight
+}
+
 -- A continuous emitter parented to `parent` (an Attachment or BasePart owned by the caller; destroyed with it).
--- priority: the local player's own effects (served first when the budget is tight).
-function VFXLibrary.stream(
-	name: string,
-	parent: Instance,
-	opts: { scale: number?, color: Color3?, rateScale: number?, priority: boolean? }?
-): Stream?
+function VFXLibrary.stream(name: string, parent: Instance, opts: StreamOpts?): Stream?
 	local preset = VFX.Presets[name]
 	if not preset or preset.kind ~= "stream" then
 		return nil

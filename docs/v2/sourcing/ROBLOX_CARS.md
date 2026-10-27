@@ -2,7 +2,7 @@
 
 **Status:** done for the 11-car shortlist from `docs/v2/evidence/scout_0003_report.md`, plus 6 extras. Built 2026-10-27.
 
-**Sheet:** `docs/v2/sourcing/roblox_cars_sheet.png`. Each car is rebuilt in Blender from the files we downloaded, not screenshotted in Studio. The left image is a 3/4 front view. The right image is an orthographic side view.
+**Sheet:** `docs/v2/sourcing/roblox_cars_sheet.png`. It shows the 11 shortlisted cars, plus the T488 police SUV extra in slot 12. Each car is rebuilt in Blender from the files we downloaded, not screenshotted in Studio. The left image is a 3/4 front view. The right image is an orthographic side view. A **BACKDOOR SCRIPT** tag in red marks infected models.
 
 **Per-car mapping data:** `docs/v2/sourcing/roblox_car_maps/<assetId>.json`. Each file holds every visible part's path, its group, the rule that matched it, the hub positions, and the security findings.
 
@@ -503,11 +503,11 @@ The six "TextureConfiguration" models share one kit (the box truck and Maxima ro
 
 ## 6. Extras (downloaded and mapped; not on the required shortlist)
 
-The JSON maps are in `roblox_car_maps/`. Previews are in `assets/source/roblox/<id>/preview_*.png` (git-ignored); they are not on the sheet.
+The JSON maps are in `roblox_car_maps/`. Previews are in `assets/source/roblox/<id>/preview_*.png` (git-ignored). Only the T488 is on the sheet.
 
 | Asset | What it really is | L × W × H studs (scale) | Parts / ~tris | Verdict |
 |---|---|---|---|---|
-| `16390639371` "T488" | **The Ford Police Interceptor Utility (Explorer)** in the scout's police shot. It is the right-most car there; the scout report swapped its ID with `113053967699143`. City of Clifton livery, Whelen/Feniex/Setina lightbar and push bar, full interior with radio and dashcam. | 19.03 × 8.27 × 6.46 (×0.95) | 202 / 305k | **The real police-SUV candidate.** Wheels are separate (A-Chassis); livery baked (`Body/Paint/**` is textured); 69 Neon lightbar parts (`Body/Lightbar/**`), plus `Body/Brakes/**` and a plate model. No backdoor pattern, but 95 scripts (ELS). Too heavy for many units: about 300k tris. Strip the Ford ovals (`4462098086`, `3909259034` atlas), the Whelen/Setina/Feniex wordmarks and the "Clifton" name. |
+| `16390639371` "T488" | **The Ford Police Interceptor Utility (2020+ Explorer)** in the scout's police shot. It is the right-most car there; the scout report swapped its ID with `113053967699143`. City of Clifton livery, Whelen/Feniex/Setina lightbar and push bar, full interior with radio and dashcam. | 19.03 × 8.27 × 6.46 (×0.95) | 202 / 305k | **The real police-SUV candidate.** Wheels are separate (A-Chassis); livery baked (`Body/Paint/**` is textured); 69 Neon lightbar parts (`Body/Lightbar/**`), plus `Body/Brakes/**` and a plate model. No backdoor pattern, but 95 scripts (ELS). Too heavy for many units: about 300k tris. Strip the Ford ovals (`4462098086`, `3909259034` atlas), the Whelen/Setina/Feniex wordmarks and the "Clifton" name. |
 | `951086064` Maxima | 2009 Nissan Maxima, blue | 18.02 × 7.49 × 5.54 (×0.96) | 45 / 104k | Good-looking, untextured mid-size sedan. Its paint is named, so it is recolourable. **Suspicious** `ThrottlePatcher` reparents itself to ServerScriptService. |
 | `3204824887` ME412 | Chrysler ME Four-Twelve concept | 19.35 × 9.89 × 5.19 (×0.84) | 18 / 23k | Clean supercar silhouette, flat materials; the Chrysler wing badge is modelled. A "super"-class candidate. |
 | `10141791793` "2020 GMC 2500 AT4" | Actually a **2020 Chevrolet Silverado WT PPV** (`Body/2020 Silverado WT/PPV package`), unmarked black, with Whelen Talon and lightbar | 23.49 × 9.57 × 8.43 (×0.97) | 281 / 367k (62 unions shown as boxes) | Heavy. Unmarked-police flavour. 300 parts exceeds `AssetLibrary.MAX_STORE_PARTS` = 250, so it would be rejected as is. |

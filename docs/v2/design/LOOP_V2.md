@@ -662,7 +662,7 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
 |---|---|
 | Announce | At T−30 s, a feed card and phone text: "ARMORED TRUCK leaving <depot>", with the route drawn on the map. Route: depot → 3 bank stops on the RoadGraph, about 150 s at 35 studs/s. Needs at least 1 player at Rep 3 or more in the server. |
 | Stop it | Truck: 2,000 HP and 4 tires at 150 HP each. It halts when 2 tires are flat, HP is below 30%, or it is pinned under 3 studs/s for 4 s (ramming or PIT). Two NPC guards step out: 60 HP, pistols, 2★-level accuracy (gta_combat PoliceAim). |
-| Crack the doors | Hold CRACK at the rear doors for 8 s. Extra crackers speed it up: `8 / (1 + 0.5 × (n − 1))`. Everyone within 50 studs at crack time gets 3★. |
+| Crack the doors | Hold CRACK at the rear doors for 8 s. Extra crackers speed it up: `8 / (1 + 0.5 × (n − 1))`. Everyone within 50 studs at crack time is raised to at least 3★. |
 | Bags | 4 bags. A carrier holds 1 bag (2 with the Duffel at Rep 15) and is slowed 10% per bag. A $ blip shows on every map (`MapBlips` kind `bag`). Bags go in a car's trunk automatically when the carrier enters a car. A rookie may pick one up after a confirm prompt ("Taking event loot ends your Rookie Protection"). |
 | Deliver | At your own garage drop-off, or a party member's garage while they are online. The bag pays into the wallet on delivery. Dropped on WASTED (lies 60 s); confiscated on BUSTED. |
 | Bag value | Frozen at spawn: `bagBase = 2,000 + 120 s × medianG(server, excluding rookie or AFK players)`. At delivery: `pay = min(bagBase, 5,000 + 300 s × ownG) × wantedMult × partyMult × eventMult`. The clamp is a catch-up bounded by the deliverer's own scale; `eventMult` (Golden Truck ×5, live-ops) applies after it. |
@@ -670,17 +670,25 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
 | Unstopped | The truck reaches the last bank and despawns. |
 | Caps | 12 truck bags per player per hour at full pay, then ×0.25 (Law 10). Golden Truck (Admin Abuse): `eventMult = 5`, applied after the clamp. |
 
-### 3.7 Bank heist (big pulse, crew of 2–4)
+### 3.7 Bank heist (big pulse, solo or crew of up to 4)
+
+Ships behind `Flags.HEIST_ENABLED` (brief §3.13 puts the heist in fast follow; the flag lets it land after launch without a rebuild).
 
 **Gate:**
-- The window opens every 1,800 s and stays open for 300 s.
+- The window opens every 1,800 s and stays open for **600 s**.
 - One heist per window per server.
-- The first eligible party to start claims it: everyone within 30 studs of the bank's back door, all at Rep 10 or more and none rookie or passive.
+- The first eligible group to start claims it: the leader's party members within 30 studs of the bank's back door.
+  - **Leader:** Rep 10 or more, not rookie, not passive.
+  - **Members:** Rep 3 or more, not passive. A rookie may join after the same confirm prompt the truck uses ("Joining a heist ends your Rookie Protection").
+  - **Crew size 1–4.** A solo player can run it.
+- The lobby has an **Invite friend** button (`SocialService:PromptGameInvite`) and a 60 s countdown so a friend can join the party and reach the door.
 - The leader pays the **Heist Kit**, `10,000 + 30 s × leaderG` (a sink).
+  - **Refunded** if the crew fails after the drill finished (they really tried).
+  - **Lost** if the crew wipes or abandons before the drill starts; then, if at least 180 s of the window remain, the window **reopens** for another group. A griefer can't burn a window for free.
 
-**Roles** are picked in the lobby. With 2 players the roles pair up as Hacker+Driver and Gunman+Lookout; with 3, as Driver, Hacker, and Gunman+Lookout.
+**Roles** are picked in the lobby. Solo, one player holds all four. With 2 players the roles pair up as Hacker+Driver and Gunman+Lookout; with 3, as Driver, Hacker, and Gunman+Lookout.
 
-| Role | Unique job | Objective bonus (+5% of the total each) |
+| Role | Unique job | Objective bonus (+5% of the pot, paid to whoever completed it) |
 |---|---|---|
 | Driver | The getaway car spawns as theirs: their own car parked at the back alley, or a free Getaway Van (kind `Getaway`, not ownable). The getaway car gets +500 car XP. | Getaway under 180 s |
 | Hacker | The only one who can do the keypad hack: a 3-round pattern, 8 s. A failure triggers the alarm early. | Hack first try |
@@ -691,30 +699,33 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
 1. **Infiltrate** (≤ 60 s): hack the side door and disable 2 cameras (shoot them or hold 2 s).
 2. **Vault** (about 90 s): the drill runs for 60 s.
    - Every ~15 s it overheats. Someone must hold COOL for 1 s within 4 s, or the drill pauses.
-   - The silent alarm gives 3★ at drill start and 4★ at drill end.
-3. **Loot** (≤ 45 s): 8 bags, 4 s each to grab, at most 2 per player.
+   - The silent alarm raises the crew to at least 3★ at drill start and at least 4★ at drill end (floors, so a heist crew is never pushed to 5★ by the heist alone).
+3. **Loot** (≤ 45 s): **2 bags per crew member** (2, 4, 6 or 8), 4 s each to grab, at most 2 carried per player.
 4. **Getaway** (2–4 min): a 4★ chase with the heli sniper (gta_combat §9.1).
-   - Deliver to any crew member's garage drop-off, or the Docks safe house [world].
+   - Deliver to any crew member's garage drop-off, or the Docks safe house [world: Iron Bay on the gameplay plan].
    - Bags dropped by downed crew can be stolen by anyone. Rivals who deliver a heist bag get 50% of its value.
 5. **Payout:**
 
    ```
    bagValue = 15,000 + 450 s × crewMedianG
-   total    = Σ bagValue × wantedMult(carrier stars at delivery) × (1 + 0.05 × objectivesMet)
-   share_i  = total × split_i
-   share_i  = min(share_i, 60,000 + 3,600 s × memberG_i)   -- overflow goes to other members up to their clamp, then is lost
+   pot      = Σ delivered bagValue × wantedMult(carrier stars at delivery) × partyMult(crewSize)   -- partyMult 1.0 / 1.1 / 1.2 / 1.3
+   share_i  = pot / crewSize + 0.05 × pot × objectivesCompletedBy_i
+   share_i  = min(share_i, 60,000 + 3,600 s × memberG_i) × eventMult                           -- clamp first, events after (§3.1)
    ```
 
-   - The default split is equal. In the lobby the leader may set 15–40% per member (the total must be 100%), and members see the split before they Ready.
-   - **The split is enforced:** whoever carries the bag, every crew member is paid their share at delivery.
-   - **Stage C example:** 8 bags × $375K × 2.5 = $7.5M; +10% objectives = $8.25M; split 4 ways = **$2.06M each**. That is about 43 min of garage income for about 9 min of play, roughly 4.7×. The clamp (`60,000 + 3,600 s × G` = $2.94M at G 800) does not bind between equals. It only caps a low-G member carried by a rich crew: at G 50 the clamp is $240K.
-6. **Fail:** if every crew member is downed or busted with no bags delivered, the payout is 0 and the kit is lost.
+   - **Equal split only.** There is no leader-set split, so nobody can be talked into 15%. Objective bonuses go to whoever completed the objective.
+   - **The split is enforced:** whoever carries the bag, every crew member is paid their share at delivery. Overflow above a member's clamp is destroyed (a sink), never redistributed.
+   - **Stage C example, crew of 4 at G 800:** 8 bags × $375K × 2.5 (4★) × 1.3 = $9.75M pot; $2.44M each plus one objective each (+$488K) ≈ **$2.93M each**, just under the $2.94M clamp. That is about 61 min of garage income for about 9 min of play.
+   - **Solo at G 800:** 2 bags × $375K × 2.5 = $1.875M, plus up to 4 objectives (+$375K) = **$2.25M**, for a harder run. The party bonus is why crews earn more per head.
+   - The clamp only binds on a low-G member carried by a rich crew: at G 50 the clamp is $240K.
+6. **Fail:** if every crew member is downed or busted with no bags delivered, the payout is 0. The kit is refunded if the drill had finished (see Gate).
 
 ### 3.8 Jewelry store (server cooldown 900 s)
 
 - **The run.** 8 display cases, each smashed in 2 s with a melee weapon or one gunshot. The first smash gives 3★.
 - **Payout.** Each case pays `(800 + 30 s × G) × districtMult × wantedMult` into the wallet when smashed. Any player can smash, so it's a scramble.
 - **Gate.** Rep 8. Rookies and passive players are excluded.
+- **Visibility.** Open or closed with a countdown on the map (§3.13).
 
 ### 3.9 Chop shop and order board
 
@@ -723,7 +734,7 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
   - 3 server-wide orders, each fillable by the first 3 deliveries.
   - Examples: "Any Muscle, Rare or better", "Blue Sedan", "Any Gold finish".
   - Order mults: easy ×1.5, medium ×2, hard ×3. An order adds +50 RP.
-- **Player cars:** §2.7.1 (20% of value, capped, the victim's car survives).
+- **Player cars:** §2.7.1 (loot `chopValue` with no level or upgrade premium, capped, $0 between friends, the victim's car survives in impound and the chop counts as a loss).
 
 ### 3.10 Phone jobs (the brief's "small missions")
 
@@ -735,7 +746,7 @@ These match the "street pays 3–10× the garage" pillar: about $180K for roughl
 | Stunt jumps | Hit marked ramps (one-time 50 RP each, plus a daily repeat) | 200 + 30 s × G | Collection |
 | Lose the cops | Start at 3★ and evade within 120 s | 300 + 120 s × G | Chase practice |
 
-Jobs: 1–3 min each, 60 s cooldown between jobs, 20 paid jobs per day (unlimited unpaid).
+Jobs: 1–3 min each, 60 s cooldown between jobs, 20 full-pay jobs per day, then ×0.25 (Law 10). Onboarding missions 1–4 (§1.3) are scripted jobs from the same contact and don't count toward the 20.
 
 ### 3.11 Wanted multipliers and police escalation
 
@@ -743,27 +754,34 @@ Jobs: 1–3 min each, 60 s cooldown between jobs, 20 paid jobs per day (unlimite
 - **This document adds:**
   - **District police factor** (§6.2): `UNITS_PER_STAR {1,2,3,4,6}` × factor, rounded, still capped by `MAX_UNITS_GLOBAL 14`.
   - **Response delay** by district (spawn-to-pursuit): 8 / 6 / 5 / 5 / 4 / 3 s.
-  - **New heat keys** (`Config/Police.Heat`):
+  - **Two kinds of heat.** v1 `WantedService.addHeat` is additive (stars += n). That is right for a crime that is *extra* on top of what you were already doing, and wrong for a robbery level: an additive store (1 + 2) would end at 3★, and a pawn job (3 + 3) at 5★ and a server-wide Most Wanted every time. So:
+    - **`Config/Police.HeatFloor`** (new) is used through the new `WantedService.raiseTo(player, n, reason)`, which sets `stars = max(stars, n)` and refreshes the evade timer:
 
-    | Key | Stars |
-    |---|---|
-    | `carjackPlayer` | 2 |
-    | `storeStart` | 1 |
-    | `storeFull` | 2 |
-    | `gasStation` | 2 |
-    | `pawnShop` | 3 |
-    | `atmHack` | 2 |
-    | `jewelry` | 3 |
-    | `truckCrack` | 3 |
-    | `bankAlarm` | 3 |
-    | `bankDrill` | 4 |
-    | `mugPlayer` | 1 |
-    | `mugNpc` | 1 (50%) |
-    | `breach2` | 1 |
-    | `impoundBreak` | 2 |
-    | `flash` | 1 |
+      | Key | Floor |
+      |---|---|
+      | `storeStart` | 1 |
+      | `storeFull` | 2 |
+      | `gasStation` | 2 |
+      | `atmHack` | 2 |
+      | `pawnShop` | 3 |
+      | `jewelry` | 3 |
+      | `truckCrack` | 3 |
+      | `bankAlarm` | 3 |
+      | `bankDrill` | 4 |
 
-    The combat heat keys belong to gta_combat §9.5.
+    - **`Config/Police.Heat`** stays additive, only for acts that escalate on top of anything else:
+
+      | Key | +Stars |
+      |---|---|
+      | `carjackPlayer` | 2 |
+      | `mugPlayer` | 1 |
+      | `mugNpc` | 1 (50%) |
+      | `flash` (hot ride, §2.2) | 1 |
+      | `breach2` | 1 |
+      | `impoundBreak` | 2 |
+      | v1 keys (`carjack`, `dealerSteal`, `playerTheft`, `hotDrop`, `assault`, `copHit`) | unchanged |
+
+    The combat heat keys belong to gta_combat §9.5 and stay additive.
 - **wantedMult** `{1.0, 1.2, 1.5, 2.0, 2.5, 3.0}` applies to every §3.2 payout, to truck and heist deliveries, and to the street multiplier (+1 per star, §2.2).
 - **The evade bonus** pays only on a true evade, not on a spray, Lawyer or Lose-the-Cops clear: `stars × (100 + 15 s × G)`.
 
@@ -777,12 +795,21 @@ Jobs: 1–3 min each, 60 s cooldown between jobs, 20 paid jobs per day (unlimite
    - **Police reward** (minted, the only minted bounty), paid on top of the street bounty to the player who downs the target:
 
      ```
-     reward = (2,500 + 60 s × targetG) × min(3, 1 + 0.1 × floor(secondsAt5Star / 30))
+     growth = min(3, 1 + 0.1 × floor(secondsAt5Star / 30))
+     reward = min((2,500 + 60 s × targetG) × growth, 25,000 + 900 s × claimerG) × eventMult
      ```
 
-     It needs 60 s or more at 5★. The claimer can't be in the target's party or crew, or on their Roblox friends list. Each claimer gets 3 rewards per UTC day, once per pair per 30 min. If the police get the target (BUSTED or downed by police), nobody claims.
-   - **Survival:** a target who evades from 5★ earns `1,000 + 60 s × G × min(10, minutesAt5Star)` into the wallet, and `stats.longestFiveStar` updates the **Most Wanted** leaderboard.
+     The second term is the claimer's own clamp (§7.5.1): a G 50 claimer who downs a G 40K target gets at most $70K, not $7.2M, and an alt can't pump value into a main. It needs 60 s or more at 5★. The claimer can't be in the target's party or crew, or on their Roblox friends list. Each claimer gets 3 rewards per UTC day, once per pair per 30 min. If the police get the target (BUSTED or downed by police), nobody claims.
+   - **Survival:** a target who evades from 5★ earns `1,000 + 60 s × G × min(10, minutesAt5Star)` into the wallet, at most `SURVIVAL_PER_DAY = 2` paid survivals per UTC day, and `stats.longestFiveStar` updates the **Most Wanted** leaderboard (the board always updates).
 3. **Player-placed bounties:** not in V2.0 (§0.3).
+
+### 3.13 What's open to rob (the Jailbreak lesson)
+
+Players must never drive across the city to find "on cooldown".
+- **`CrimeState`** (server → client, sent on join and whenever a POI changes): `{ {poiId, kind, open, reopensAt?} }` for every store, gas station, ATM, the pawn shop, the jewelry store and the bank (heist window).
+- **Map icons:** lit when open; grey with a countdown ring when closed, on the minimap and the full map.
+- **Phone › Jobs › "Hot spots":** the 5 nearest open targets with distance and payout tier ($ to $$$$, from the §3.2 base and secs at the viewer's own G).
+- Per-player cooldowns (the 45 s store cooldown) show only to that player.
 
 ---
 
@@ -799,14 +826,17 @@ This document **adds or changes:**
 | D1 | Weapon unlocks | Cash price only | **Cash price plus a Rep gate** (§4.1) | Progression pacing; Robux can't shortcut power |
 | D2 | Cash pools | One "cash" | **Wallet and bank** (§0.4) | The casino pillar |
 | D3 | Hospital bill | `min(5% cash, 120 s income)`, free for rookies | `min(5% × (wallet + bank), 120 s × G)`, wallet first, free for rookies | Same size, two pools |
-| D4 | BUSTED cash | `min(10% cash, 600 s income)`, surrender halves | **35% of wallet**, uncapped; surrender halves it to 17.5%; **bank untouched** | Only the wallet is at risk now, so the share rises |
-| D5 | Drops on death | Downed players drop nothing | Same, **except LOADED players downed by a player drop 20% of wallet** | Makes LOADED a real choice, with no farming of ordinary players |
+| D4 | BUSTED cash | `min(10% cash, 600 s income)`, surrender halves | **7% of the wallet per star** (7% at 1★ … 35% at 5★), uncapped; surrender halves it; **bank untouched** | Only the wallet is at risk now; scaling with stars matches wantedMult, so a 1★ slip isn't a 5★ fine |
+| D5 | Drops on death | Downed players drop nothing | Non-wanted, non-LOADED players drop nothing. **LOADED players downed by a player drop 20% of wallet.** **Wanted players who are WASTED lose the same 7% per star as BUSTED** (any cause), plus the hospital bill, and a driven car is impounded | Dying must never be the cheap way out of a bust: surrender < BUSTED < WASTED |
 | D6 | Friendly fire | On for everyone; no crews | **Off within a party** (max 4) | Parties are a V2 pillar (§5) |
 | D7 | Rookie end conditions | Damage, rifle purchase, opt-out | Also mugging, carjacking or raiding, and picking up event loot | Closes the shield-farming exploit |
 | D8 | Passive mode | No PvP | Also: S× fixed at ×1.5, PvE crime payouts ×0.5, no event loot, no heists | The casino can't be bypassed |
 | D9 | Bounties | Zero-sum at 4★ and up | Kept, **plus** the capped 5★ Most Wanted police reward (§3.12) | The brief requires a 5★ server bounty |
 | D10 | Zapper Pass | Grandfathered | **Retired.** Its id is 0, so it was never sold, and it affected PvP. | Non-pay-to-win (§8.4) |
 | D11 | Explosives | None in V2 | Same. Heist and truck use hold, drill and hack tools, not charges. | Agrees |
+| D12 | Rookie protection | 30 min | **10 min** (`ROOKIE_SECONDS = 600`), with a HUD pill that lets the rookie opt out. Car-keeping protection is separate and lasts about 2 h (§2.8). | The brief's number; 30 min is longer than the target session and leaves launch servers with no PvP |
+| D13 | Schema migration | §13.2: `SCHEMA_VERSION 2` with a 1→2 step (`tools.bat` → `weapons.bat`, P9 welcome gift) | **No migration step.** V2 uses a fresh store `HotwireCity_v2` at `SCHEMA_VERSION = 1` (§9.3); the combat fields are part of the template. The combat workstream should not add a migration. | v1 never shipped to players |
+| D14 | Combat logging | Not specified | Leaving at 1★ or more, or In Combat while LOADED, applies the WASTED wallet loss at release; never on server shutdown (§10.3) | Leaving can't beat staying |
 
 ### 4.1 Weapon ladder (prices from gta_combat §5.2; Rep gates added)
 
@@ -821,9 +851,9 @@ This document **adds or changes:**
 | Volk Micro SMG | $6,000 | 6 | $64 / 32 | First auto |
 | Brandt Hand Cannon | $9,500 | 8 | $70 / 7 | |
 | Coastline Pump | $15,000 | 10 | $80 / 8 | Truck guards |
+| Volk "Comrade" AR | $55,000 | **10** | $120 / 30 | The poster gun; heists |
 | Brandt Tactical SMG | $24,000 | 12 | $75 / 30 | |
-| Volk "Comrade" AR | $55,000 | 15 | $120 / 30 | Heists |
-| Coastline Carbine | $85,000 | 18 | $120 / 30 | |
+| Coastline Carbine | $85,000 | **14** | $120 / 30 | |
 | Volk Marksman | $250,000 | 22 | $250 / 10 | Long-range hunting at 5★ |
 | Light armor (+50) / Heavy armor (+100) | $750 / $1,800 | 1 / 8 | — | Lost on WASTED or BUSTED |
 | Med kit (+40 HP, carry 3) | $400 | 1 | — | |
@@ -848,21 +878,23 @@ As in gta_combat §6:
 |---|---|
 | Respawn | Nearest hospital after 5 s, with 6 s spawn protection (gta_combat §7.2) |
 | Hospital bill | `min(5% × (wallet + bank), 120 s × G)`, wallet first. Free for rookies and when there was no damage source. |
-| Wallet | Untouched, **unless** LOADED and downed by a player: 20% drops as a bag (§3.4) |
+| Wallet | `loss = wallet × max(WANTED_LOSS_PER_STAR × stars, loadedShare)`, where `loadedShare = 0.20` if LOADED and downed by a player, else 0. Applied for **any** death at 1★ or more (police, player, fall), and for a LOADED player downed by a player at 0★. Paid out of `loss`, in order: the street bounty to the killer (4★+, §3.12), then the LOADED cash bag (up to 20% of the wallet); **the rest is destroyed** (a sink). At 0★ and not LOADED the wallet is untouched. |
 | Stars | Cleared |
-| Owned car being driven | Left in place. It returns home after `OWNED_RETURN_AFTER 20` s, and **it can be carjacked during those 20 s** (the PvP path to a car). A car wrecked by the killing blow goes to `repair` (180 s). |
+| Owned car being driven | **Wanted (1★+):** impounded, exactly as on BUSTED (§4.4). **Not wanted:** left in place; it returns home after `OWNED_RETURN_AFTER 20` s, and **it can be carjacked during those 20 s** (the PvP path to a car). A car wrecked by the killing blow goes to `repair` (60 s). |
 | Event loot | Truck and heist bags drop for 60 s |
 | Theft in progress | The car drops (v1 `onThiefHit` / dropped path) |
 | Street income ramp | Reset |
+
+**Why death is never cheaper than a bust.** At the same stars the order is always surrender (3.5%/★) < BUSTED (7%/★) < WASTED (7%/★ plus the hospital bill). Drawing a gun at 2★ to get shot no longer escapes the impound or the wallet loss.
 
 ### 4.4 BUSTED (economy side)
 
 | Effect | Value |
 |---|---|
-| Wallet | **−35%** (surrender: −17.5%), destroyed (a sink) |
+| Wallet | **−7% per star** (`WANTED_LOSS_PER_STAR × stars`: 7% at 1★, 35% at 5★); surrender halves it. Destroyed (a sink). |
 | Event loot | Confiscated (destroyed) |
 | Ammo and armor | −50% reserve ammo; armor 0 |
-| Owned car being driven | `status = impounded`. Release for `max(250, 3% value)`, free after 600 s, or BREAK OUT: hold 4 s at the impound lot, +2★, then drive it home. |
+| Owned car being driven | `status = impounded`. Release for `max(250, 3% value)`, **free after 120 s**, or BREAK OUT: hold 4 s at the impound lot, +2★, then drive it home. Losing your favourite car for 2 minutes stings; losing it for 10 made players log off. |
 | Loot or stolen car | Gone (theft fails back to the victim: v1 `TheftService.fail(car, "busted")`) |
 | Jail | `6 s × stars`, max 30 s, in a holding cell at Police HQ [world]. A party member can BREAK OUT (hold 5 s at the cell door, +2★ for them). Then release at HQ with an 8 s heat grace (v1). |
 | Stats | `busted += 1` |
@@ -889,7 +921,7 @@ Menace, spawn protection, revenge immunity, "In Combat" and vigilante rules are 
 
 ### 5.1 Party (session, up to 4)
 
-- **Invite.** Through Phone › Contacts, or the player list in Pause › STATS. The target sees an `Invite` card with 30 s to accept.
+- **Invite.** Through Phone › Contacts, or the player list in Pause › STATS. The target sees an `Invite` card with 30 s to accept. The party panel and the heist lobby also have **Invite friend**, which opens `SocialService:PromptGameInvite` so a friend outside the server can join (the referral reward, §7.2 S13, still applies once per account).
 - **Benefits:**
   - friendly fire off;
   - teammate blips and name colour;
@@ -911,7 +943,7 @@ Menace, spawn protection, revenge immunity, "In Combat" and vigilante rules are 
 |---|---|
 | Create | Rep 5, $25,000 (a sink). Name (filtered, 3–20 chars), tag (2–4 chars), emblem from 24 presets (no user images), crew colour from the realistic palette |
 | Size | 20 members. Ranks Leader / Officer / Member |
-| Storage | DataStore `HC_Crews_v1/<crewId>` (roster, tag, emblem, weekly crew RP). `PlayerData.crew = { id, rank, joinedAt }` |
+| Storage | DataStore `HC_Crews_v1/<crewId>` (roster, tag, emblem, weekly crew RP). `PlayerData.crew = { id, rank, joinedAt }` is a cache: **the roster wins** on any disagreement, checked on join. Name and tag uniqueness use claim keys `HC_CrewNames_v1/n_<lower(name)>` and `t_<lower(tag)>` written with `UpdateAsync` (fail if taken) before the crew is created. Ships behind `Flags.CREWS_PERSISTENT_ENABLED`; parties work without it. |
 | Benefits | Tag above your head and on the leaderboard, crew colour on map blips, **Crew weekly contract** (§6.6), Top Crew board (weekly RP) |
 | Party relation | Crew members in the same server get a one-tap "Party up" |
 | Turf | V2.x (brief "later") |
@@ -919,8 +951,8 @@ Menace, spawn protection, revenge immunity, "In Combat" and vigilante rules are 
 ### 5.3 Crew garage (answer: no shared ownership in V2.0)
 
 - **V2.1 "Car Keys":** an owner lends one parked car to a party member for the session.
-  - The borrower can drive it and earns street income into their own wallet.
-  - The owner keeps earning the car's garage income while it is lent (a "rental").
+  - The borrower can drive it and earns street income into their own wallet, at the **owner's** S× cap (a protected owner lends a ×5 car).
+  - The car earns **no garage income while lent**, so one car can't pay garage and street at once.
   - Theft rules apply to the **owner's** protections.
   - The owner can revoke at any time: the car returns home after the borrower exits.
 - **No shared title, no co-ownership:** those breed scam and dupe bugs.
@@ -931,19 +963,21 @@ Menace, spawn protection, revenge immunity, "In Combat" and vigilante rules are 
 - **Formats:** sprint (60–120 s), drag (half mile, 10–20 s), circuit (2–3 laps). 2–4 racers.
 - **Owned cars only.** Bound cars can race (but not stake). Nitro uses the car's own tank. Every server-side checkpoint must be hit; a segment faster than `VehicleService.minTravelTime` or a tainted car is disqualified.
 - **House prize.** Winner gets `500 + 20 s × G_winner` (wallet) + 150 RP + 300 car XP; others get 50 RP.
-  - Paid only with 2 or more racers at Rep 5+, for at most 10 paid wins per day, and 3 paid races per pair per day.
+  - Paid only with 2 or more racers at Rep 5+. 10 full-pay wins per day, then ×0.25 (Law 10). The pair cap stays hard: 3 paid races per pair per day (it is the alt-farming guard).
+  - Ships behind `Flags.RACES_ENABLED`.
   - No cash entry fees or wagers (§0.3).
 - **Time trials** (solo): beating par pays `250 + 30 s × G` once per day per route; Fastest Racer board per route.
 - **Pink slips** (flag `RACE_PINK_SLIPS_ENABLED`):
 
   | Rule | Value |
   |---|---|
-  | Both racers | Rep 15 or more |
-  | Both cars | Non-bound, not trade-locked, not vault-only |
+  | Both racers | Rep 15 or more, **and every trading eligibility check** (§5.5: account age, playtime, `IsPaidItemTradingAllowed`, not in combat, not wanted). Pink slips are a trade with a race in front, so they can't bypass trade policy. |
+  | Both cars | Non-bound, not trade-locked, not frozen, no `inbound`, not reward-origin within its 14-day lock |
   | Fair match | Values within ±30% and rarity order differs by at most 1 |
   | Consent | Two confirmations: a summary card with both cars' value, level, finish and serial, then a 5 s "THIS CAR WILL BE LOST" hold |
-  | Daily cap | 2 pink-slip losses per day |
-  | Transfer | No lay-low window and no insurance (it was consensual). The won car is trade-locked for 72 h. |
+  | Daily cap | 2 pink-slip losses per day; a loss counts toward the loser's `TRADE_NET_OUT_PER_DAY` (§5.5) |
+  | Pair cooldown | The same two players can stake against each other once per 7 days (`PINK_SLIP_PAIR_COOLDOWN = 604800`) |
+  | Transfer | No lay-low window and no insurance (it was consensual). The won car is trade-locked for 72 h and records `lastTransfer` (the counterparty rule, §2.8). |
   | Policy | Skill-only outcome, no chance element. Legal and policy review before enabling. |
 
 ### 5.5 Trading (secure two-step)

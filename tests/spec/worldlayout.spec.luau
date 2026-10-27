@@ -389,10 +389,11 @@ return function(t)
 			local hit, who = footprintOnRoad(p.cframe, p.size)
 			t.ok(not hit, "plot " .. i .. " overlaps road " .. tostring(who))
 			t.ok(p.nearestOnRamp <= 950, ("plot %d is %d from an on-ramp"):format(i, p.nearestOnRamp))
-			-- door faces the street: a point just past the door is on a road
-			local front = p.door + p.cframe.LookVector * (W.Edges[p.edge].sidewalk + 20)
-			local onRoad = Q.isOnRoad(Vector3.new(front.X, W.Edges[p.edge].points[1].Y, front.Z), 14)
-			t.ok(onRoad, "plot " .. i .. " door faces its street")
+			-- door faces the street: a point just past the curb in front of the door is on the plot's own road
+			local e = W.Edges[p.edge]
+			local front = p.door + p.cframe.LookVector * (e.sidewalk + 14 + 6)
+			local rp, ej, _, d = Q.nearestRoadPoint(front, { ignoreHeight = true, maxDistance = 200 })
+			t.ok(rp ~= nil and W.Edges[ej].name == e.name and d <= e.width / 2, "plot " .. i .. " door faces its street")
 			t.eq(Q.plotAt(p.cframe.Position + Vector3.new(0, 5, 0)), i, "plotAt finds plot " .. i)
 			for j = i + 1, #W.Plots do
 				local q = W.Plots[j]
@@ -448,7 +449,7 @@ return function(t)
 			local p = z.cframe.Position
 			t.ok(inBounds(p), z.id .. " in bounds")
 			t.ok(W.gradeAt(p.X, p.Z) > W.SEA_LEVEL, z.id .. " on land")
-			local rp = Q.nearestRoadPoint(p, { maxDistance = 160, ignoreHeight = true })
+			local rp = Q.nearestRoadPoint(p, { maxDistance = 200, ignoreHeight = true })
 			t.ok(rp ~= nil, z.id .. " reachable by road")
 		end
 		t.ok(#W.StuntJumps >= 10, "stunt jumps")

@@ -46,5 +46,98 @@
   "sha256": "d33e434d8ac8786654280bfaefb3dfea0d5e499632edfff926f5c6960fa985ae",
   "thumb": "thumb.jpg",
   "downloadedAt": "2026-10-27T16:08:26+00:00",
-  "notes": null
+  "notes": null,
+  "analysis": {
+    "import_dims_m": [
+      4.411,
+      1.8648,
+      1.2844
+    ],
+    "dims_m": [
+      1.865,
+      4.411,
+      1.284
+    ],
+    "front_evidence": "names(front=12,rear=11)",
+    "flipped": true,
+    "mesh_objects": 33,
+    "triangles": 19612,
+    "materials": 8,
+    "material_names": [
+      "Carbadges_misc_U",
+      "Numberplates_Misk_U",
+      "RB1c_Tire_1k",
+      "Trinity_03_bodymat",
+      "UCB_BOTTOM_LT",
+      "UCB_Interiors_2",
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "textures": 13,
+    "texture_max_px": 1024,
+    "wheel_named": [
+      "Trinity03_Bumper_Front_Trim_UCB_BOTTOM_LT_0",
+      "Trinity03_Hood_Trim_UCB_BOTTOM_LT_0",
+      "Trinity03_WheelStock_FL_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_RL_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_FR_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_RR_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_FR_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_FL_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_RL_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheel_geom": [
+      "Trinity03_WheelStock_FL_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_RL_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_FR_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_RR_RB1c_Tire_1k_0"
+    ],
+    "wheels_separate": true,
+    "logo_named": [
+      "Trinity03_Trunkdoor_Badges_Carbadges_misc_U_0",
+      "Trinity03_Bumper_Front_Badges_Carbadges_misc_U_0"
+    ],
+    "glass_materials": [
+      "UCB_Lights_and_Glass",
+      "UCB_Lights_and_Glass_Transperent"
+    ],
+    "animations": 0,
+    "object_names": [
+      "Trinity03_body_Trinity_03_bodymat_0",
+      "Trinity03_Body_glass_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_bottom_UCB_BOTTOM_LT_0",
+      "Trinity03_Interior_UCB_Interiors_2_0",
+      "Trinity03_Headlights_UCB_Lights_and_Glass_0",
+      "Trinity03_Reverse_UCB_Lights_and_Glass_0",
+      "Trinity03_Brakelights_UCB_Lights_and_Glass_0",
+      "Trinity03_Body_Taillights_glass_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_bumper_Rear_Trinity_03_bodymat_0",
+      "Trinity03_Bumper_Front_Trinity_03_bodymat_0",
+      "Trinity03_Bumper_Front_Trim_UCB_BOTTOM_LT_0",
+      "Trinity03_Bumper_foglights_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_Hood_Trinity_03_bodymat_0",
+      "Trinity03_Hood_Trim_UCB_BOTTOM_LT_0",
+      "Trinity03_Suspension_UCB_BOTTOM_LT_0",
+      "Trinity03_Steering_Wheel_UCB_Interiors_2_0",
+      "Trinity03_Glass_Rear_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_Windshield_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_Glass_Driver_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_Glass_Passengers_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_Headlight_Glass_UCB_Lights_and_Glass_Transperent_0",
+      "Trinity03_Blinkers_UCB_Lights_and_Glass_0",
+      "Trinity03_WheelStock_FL_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_RL_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_FR_RB1c_Tire_1k_0",
+      "Trinity03_WheelStock_RR_RB1c_Tire_1k_0",
+      "Trinity03_Numberplate_rear_Numberplates_Misk_U_0",
+      "Trinity03_Trunkdoor_Badges_Carbadges_misc_U_0",
+      "Trinity03_Bumper_Front_Badges_Carbadges_misc_U_0",
+      "Trinity03_CaliperStock_FR_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_FL_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_RL_RB1c_Tire_1k_0",
+      "Trinity03_CaliperStock_RR_RB1c_Tire_1k_0"
+    ],
+    "render_s": 40.1
+  }
 }

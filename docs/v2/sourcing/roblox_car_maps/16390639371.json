@@ -1,7 +1,7 @@
 {
  "assetId": 16390639371,
  "name": "T488",
- "depicts": "Ford Police Interceptor Utility (2016-19 Explorer), City of Clifton livery",
+ "depicts": "Ford Police Interceptor Utility (2020+ Explorer)",
  "forward": {
   "method": "seat:DriveSeat",
   "lookVector": [
@@ -17,8 +17,8 @@
   "width": 8.27,
   "height": 6.46
  },
- "real_length_m": 5.04,
- "suggested_uniform_scale": 0.946,
+ "real_length_m": 5.05,
+ "suggested_uniform_scale": 0.948,
  "counts": {
   "instances": 768,
   "baseParts": 237,

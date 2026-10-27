@@ -190,9 +190,10 @@ WorldLayout.Channel = {
 		{ x = 1950, z = 3050 },
 	} :: { P2 },
 	floorHalfWidth = 44,
-	wallRun = 12, -- horizontal run of the sloped concrete wall (45-ish degrees)
-	floorNorthY = 3,
-	floorSouthY = 1.5,
+	wallRun = 18, -- horizontal run of the sloped concrete wall (45-ish degrees)
+	floorNorthY = -6, -- 18 deep under the city grade (LA-River-like walls); dry: a flood gate closes the mouth
+	floorSouthY = -9,
+	gateZ = 2860, -- flood gate across the channel mouth (water beyond)
 	startOpenAt = -1950, -- north of this Z the "channel" is a natural creek bed in the foothills
 }
 
@@ -1385,16 +1386,21 @@ local H2 = trumpet("H2 Port Expressway", H1, H2center, 2, { "(southbound)", "(no
 do
 	-- profile: deck over Southgate, arching to 66 over the channel, descending to grade on the island
 	local L = WorldGen.polyLength(H2.center)
+	local top = DECK_Y + 26 -- 66: ship clearance over the channel
+	local function eased(a: number, b: number, t: number): number
+		t = math.clamp(t, 0, 1)
+		return a + (b - a) * (0.5 * t + 0.5 * t * t * (3 - 2 * t))
+	end
 	local function prof(s: number): number
 		local _, z = WorldGen.polyAt(H2.center, s)
-		if z < 2900 then
+		if z < 2620 then
 			return DECK_Y
-		elseif z < 3220 then
-			return DECK_Y + 26 * SMOOTH(2900, 3220, z)
-		elseif z < 3480 then
-			return DECK_Y + 26 * (1 - SMOOTH(3220, 3480, z))
+		elseif z < 3180 then
+			return eased(DECK_Y, top, (z - 2620) / 560)
+		elseif z < 3280 then
+			return top
 		end
-		return DECK_Y + (GRADE - DECK_Y) * SMOOTH(3480, 3880, z)
+		return eased(top, GRADE, (z - 3280) / 700)
 	end
 	local _ = L
 	for _, w in { H2.fwd, H2.bwd } do
@@ -1558,7 +1564,7 @@ addWay(
 local airportBlvd = addWay(
 	"Airport Boulevard",
 	"boulevard",
-	smooth({ { -2700, 1000 }, { -2700, 1350 }, { -2760, 1700 }, { -3150, 2000 }, { -3650, 2160 } }, 500),
+	smooth({ { -2660, 636 }, { -2700, 1000 }, { -2700, 1350 }, { -2760, 1700 }, { -3150, 2000 }, { -3650, 2160 } }, 500),
 	{ lanes = 3, median = 12 }
 )
 
@@ -1859,7 +1865,7 @@ do
 	local pts = WorldGen.polySlice(ch.points, 0, WorldGen.polyLength(ch.points))
 	-- drivable part: from the north ramp to the bay
 	local _, sN = WorldGen.polyProject(pts, 1955, -1700)
-	local _, sS = WorldGen.polyProject(pts, 1958, 2850)
+	local _, sS = WorldGen.polyProject(pts, 1958, 2700)
 	local drive = WorldGen.polySlice(pts, sN, sS)
 	local L = WorldGen.polyLength(ch.points)
 	addWay("Rust River Channel", "channel", drive, {
@@ -1880,7 +1886,7 @@ do
 		return ch.floorNorthY + (ch.floorSouthY - ch.floorNorthY) * (s / L)
 	end
 	local nx, nz = WorldGen.polyAt(drive, 0)
-	addWay("Channel Ramp North", "service", { P(2080, -1980), P(2010, -1890), P(nx, nz) }, {
+	addWay("Channel Ramp North", "service", { P(2080, -1990), P(2012, -1880), P(nx, nz) }, {
 		lanes = 1,
 		layer = -1,
 		noCross = true,
@@ -1889,8 +1895,10 @@ do
 		y0 = GRADE,
 		y1 = floorY(nz),
 	})
-	local sx, sz = WorldGen.polyAt(drive, 4050)
-	addWay("Channel Ramp South", "service", { P(sx, sz), P(2010, sz + 260), P(2085, sz + 420) }, {
+	-- south access sits in the gap between 10th Street and Grove Street (no street crosses the ramp)
+	local _, sGap = WorldGen.polyProject(drive, 1956, 1600)
+	local sx, sz = WorldGen.polyAt(drive, sGap)
+	addWay("Channel Ramp South", "service", { P(sx, sz), P(2012, sz - 200), P(2085, sz - 360) }, {
 		lanes = 1,
 		layer = -1,
 		noCross = true,
@@ -1905,6 +1913,47 @@ end
 -- 4c. Interchanges with the ring (diamonds on the surface avenues)
 -------------------------------------------------------------------------------------------------------------------------
 
+-- Snap loose ends of ground roads onto the road they were drawn to join (fillets pull control points off the final
+-- polyline): an endpoint within 45 studs of another ground road, but not on it, is moved onto it. Cul-de-sacs
+-- (keepDeadEnd) only snap their first point.
+local function snapEnds(onlyGenerated: boolean)
+	local idx = WorldGen.segIndex(128)
+	local function isGround(w: Way): boolean
+		return w.layer == 0 and not w.noCross and w.class ~= "freeway" and w.class ~= "ramp"
+	end
+	for wi, w in ways do
+		if isGround(w) then
+			for k = 1, #w.pts - 1 do
+				WorldGen.segAdd(idx, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, wi, k, 0)
+			end
+		end
+	end
+	for wi, w in ways do
+		if not isGround(w) or (onlyGenerated and not w.generated) then
+			continue
+		end
+		local ends = if w.keepDeadEnd then { 1 } else { 1, #w.pts }
+		for _, ei in ends do
+			local p = w.pts[ei]
+			local best: P2? = nil
+			local bestD = 45
+			WorldGen.segQuery(idx, p.x, p.z, 45, function(id: number)
+				if idx.owner[id] == wi then
+					return
+				end
+				local _, x, z, d = WorldGen.projectSeg(p.x, p.z, idx.ax[id], idx.az[id], idx.bx[id], idx.bz[id])
+				if d < bestD then
+					bestD = d
+					best = P(x, z)
+				end
+			end)
+			if best and bestD > 0.05 then
+				w.pts[ei] = best :: P2
+			end
+		end
+	end
+end
+snapEnds(false)
 diamond(H1, liberty, -150, -1800)
 diamond(H1, liberty, -150, 1350, 300)
 diamond(H1, crown, 1650, -250)
@@ -2349,46 +2398,7 @@ end
 
 local function cleanGenerated()
 
--- Snap loose ends of ground roads onto the road they were drawn to join (fillets pull control points off the final
--- polyline): an endpoint within 45 studs of another ground road, but not on it, is moved onto it. Cul-de-sacs
--- (keepDeadEnd) only snap their first point.
-do
-	local idx = WorldGen.segIndex(128)
-	local function isGround(w: Way): boolean
-		return w.layer == 0 and not w.noCross and w.class ~= "freeway" and w.class ~= "ramp"
-	end
-	for wi, w in ways do
-		if isGround(w) then
-			for k = 1, #w.pts - 1 do
-				WorldGen.segAdd(idx, w.pts[k].x, w.pts[k].z, w.pts[k + 1].x, w.pts[k + 1].z, wi, k, 0)
-			end
-		end
-	end
-	for wi, w in ways do
-		if not isGround(w) then
-			continue
-		end
-		local ends = if w.keepDeadEnd then { 1 } else { 1, #w.pts }
-		for _, ei in ends do
-			local p = w.pts[ei]
-			local best: P2? = nil
-			local bestD = 45
-			WorldGen.segQuery(idx, p.x, p.z, 45, function(id: number)
-				if idx.owner[id] == wi then
-					return
-				end
-				local _, x, z, d = WorldGen.projectSeg(p.x, p.z, idx.ax[id], idx.az[id], idx.bx[id], idx.bz[id])
-				if d < bestD then
-					bestD = d
-					best = P(x, z)
-				end
-			end)
-			if best and bestD > 0.05 then
-				w.pts[ei] = best :: P2
-			end
-		end
-	end
-end
+snapEnds(true)
 	-- corridor & ramp blockers, arterials: segment indexes
 	type Blocker = { w: Way, half: number, cum: { number }, L: number }
 	local blockers: { Blocker } = {}
@@ -2639,14 +2649,20 @@ local function yOnSeg(w: Way, k: number, t: number): number
 end
 
 -- Height of an already-aligned way at the point nearest (x, z), if it passes within tol.
+-- Only roads running near the terrain surface there count: a street end that merely lies under a flyover must not
+-- be lifted up to it.
 local function pinFrom(x: number, z: number, tol: number): number?
 	local best: number? = nil
 	local bestD = tol
+	local surface = heightAt(x, z)
 	WorldGen.segQuery(allIdx, x, z, tol, function(id: number)
 		local t, _, _, d = WorldGen.projectSeg(x, z, allIdx.ax[id], allIdx.az[id], allIdx.bx[id], allIdx.bz[id])
 		if d <= bestD then
-			bestD = d
-			best = yOnSeg(done[allIdx.owner[id]], allIdx.segNo[id], t)
+			local y = yOnSeg(done[allIdx.owner[id]], allIdx.segNo[id], t)
+			if math.abs(y - surface) <= 8 then
+				bestD = d
+				best = y
+			end
 		end
 	end)
 	return best
@@ -2921,7 +2937,8 @@ export type Edge = {
 	shoulder: number,
 	speed: number,
 	layer: number, -- 0 ground, 1 deck, 2 flyover, -1 channel
-	elevated: boolean, -- needs a deck + supports (any part above grade + 6)
+	elevated: boolean, -- needs a deck + supports (freeway decks, ramps, flyovers, the pier)
+	fill: number, -- max height above the natural grade (ground roads: terrain is graded up to the road)
 	bridge: boolean, -- spans water or the Rust River
 	corridor: string?, -- freeway carriageways sharing one deck
 	district: string,
@@ -2991,7 +3008,8 @@ for i, e in gedges do
 		shoulder = w.shoulder,
 		speed = w.speed,
 		layer = w.layer,
-		elevated = maxAbove > 6 or w.class == "freeway",
+		elevated = w.layer >= 1 or (w.yMode ~= "ground" and w.layer == 0 and maxAbove > 6),
+		fill = math.max(0, maxAbove),
 		bridge = bridge,
 		corridor = w.corridor,
 		district = w.district or districtAt(midX, midZ),
@@ -4319,7 +4337,7 @@ WorldLayout.HotDrops = {
 	zone("hd_plaza", "Hotwire Plaza", 320, -100, { 160, 40, 160 }),
 	zone("hd_pier", "Palmera Pier lot", -4620, -950, { 140, 40, 140 }),
 	zone("hd_gilded", "Gilded Mile rooftop lot", -2600, -900, { 140, 40, 140 }),
-	zone("hd_echo", "Echo Park", -1750, 1800, { 180, 40, 180 }),
+	zone("hd_echo", "Echo Park", -1750, 1680, { 180, 40, 160 }),
 	zone("hd_railyard", "Rail Yard", 2900, 1350, { 200, 40, 160 }),
 	zone("hd_foundry", "Brewery lot", 2800, -400, { 140, 40, 140 }),
 	zone("hd_port", "Container Yard", 1200, 4000, { 200, 40, 200 }),
@@ -4777,11 +4795,21 @@ do
 		local ux, uz = cf.RightVector.X, cf.RightVector.Z
 		local obb: WorldGen.OBB = { cx = x, cz = z, ux = ux, uz = uz, hw = w / 2, hd = d / 2 }
 		for _, c in WorldGen.obbCorners(obb) do
-			if roadClearance(c.x, c.z, 2) or not landAtLeast(c.x, c.z, 30) then
+			if not landAtLeast(c.x, c.z, 30) then
 				return
 			end
 		end
-		if roadClearance(x, z, 2) or overlapsAny(obb, 3) then
+		local vx, vz = -uz, ux
+		for i = -2, 2 do
+			for j = -2, 2 do
+				local sx = x + ux * (w / 2) * i / 2 + vx * (d / 2) * j / 2
+				local sz = z + uz * (w / 2) * i / 2 + vz * (d / 2) * j / 2
+				if roadClearance(sx, sz, 2) then
+					return
+				end
+			end
+		end
+		if overlapsAny(obb, 3) then
 			return
 		end
 		insertObb(obb)
@@ -5141,7 +5169,7 @@ addRoute(
 	"race_channel",
 	"Channel Run",
 	"race",
-	{ v(2080, -1950), v(1955, -1500), v(1955, 2400), v(2085, 2290) },
+	{ v(2080, -1950), v(1955, -1500), v(1956, 2600), v(2085, 1240) },
 	1,
 	function(e: Edge): boolean
 		return e.class ~= "freeway"

@@ -1,0 +1,537 @@
+{
+  "name": "canyon_taxi",
+  "generator": "HotwireCity tools/blender/carpipe",
+  "source": {
+    "title": "Canyon '75 Taxi - Low poly model",
+    "url": "https://sketchfab.com/3d-models/canyon-75-taxi-low-poly-model-9e8f92a215784f3d8aaaaeab1bef54c4",
+    "download": "sketchfab:9e8f92a215784f3d8aaaaeab1bef54c4",
+    "license": "CC Attribution (http://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "\"Canyon '75 Taxi - Low poly model\" by Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) on Sketchfab, licensed CC Attribution"
+  },
+  "units": "studs",
+  "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
+  "glb": "canyon_taxi.glb",
+  "dimensions": {
+    "length": 17.0,
+    "width": 6.825,
+    "height": 5.853,
+    "wheelbase": 10.231,
+    "track_front": 5.144,
+    "track_rear": 5.144,
+    "bbox_min": [
+      -3.4056,
+      -0.0044,
+      -7.9118
+    ],
+    "bbox_max": [
+      3.4197,
+      5.8487,
+      9.0882
+    ]
+  },
+  "wheels": {
+    "FL": {
+      "object": "WheelFL",
+      "center": [
+        -2.5719,
+        1.1587,
+        -5.1156
+      ],
+      "radius": 1.1543,
+      "width": 0.8793,
+      "part_center": [
+        -2.4588,
+        1.1587,
+        -5.1156
+      ],
+      "attachment_offset": [
+        -0.113,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "FR": {
+      "object": "WheelFR",
+      "center": [
+        2.5719,
+        1.1499,
+        -5.1156
+      ],
+      "radius": 1.1543,
+      "width": 0.8791,
+      "part_center": [
+        2.4599,
+        1.1499,
+        -5.1156
+      ],
+      "attachment_offset": [
+        0.112,
+        0.0,
+        -0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": true,
+      "tris": 900
+    },
+    "RL": {
+      "object": "WheelRL",
+      "center": [
+        -2.5719,
+        1.1587,
+        5.1156
+      ],
+      "radius": 1.1543,
+      "width": 0.8778,
+      "part_center": [
+        -2.397,
+        1.1587,
+        5.1156
+      ],
+      "attachment_offset": [
+        -0.1749,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    },
+    "RR": {
+      "object": "WheelRR",
+      "center": [
+        2.5719,
+        1.1499,
+        5.1156
+      ],
+      "radius": 1.1543,
+      "width": 0.8779,
+      "part_center": [
+        2.396,
+        1.1499,
+        5.1156
+      ],
+      "attachment_offset": [
+        0.1758,
+        0.0,
+        0.0
+      ],
+      "axle": [
+        1,
+        0,
+        0
+      ],
+      "steer": false,
+      "tris": 900
+    }
+  },
+  "seats": {
+    "driver": {
+      "position": [
+        -1.2968,
+        2.1071,
+        0.8185
+      ],
+      "estimated": true
+    },
+    "passenger": {
+      "position": [
+        1.2968,
+        2.1071,
+        0.8185
+      ],
+      "estimated": true
+    },
+    "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
+  },
+  "lights": {
+    "front": [
+      {
+        "position": [
+          -2.1515,
+          3.9002,
+          -7.6033
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.0698,
+          3.9337,
+          -7.6033
+        ],
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "estimated": false
+      }
+    ],
+    "rear": [
+      {
+        "position": [
+          -2.3366,
+          3.8376,
+          8.7084
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      },
+      {
+        "position": [
+          2.2556,
+          3.8532,
+          8.7084
+        ],
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "estimated": false
+      }
+    ]
+  },
+  "exhausts": [
+    {
+      "position": [
+        -1.2288,
+        0.9599,
+        8.3415
+      ],
+      "estimated": false
+    },
+    {
+      "position": [
+        -0.6754,
+        1.0766,
+        7.518
+      ],
+      "estimated": false
+    }
+  ],
+  "center_of_mass_hint": [
+    0.0,
+    1.873,
+    -0.0
+  ],
+  "paint": {
+    "route": "tintmask",
+    "primary": {
+      "object": "Body",
+      "material": "Canyon75_Bodymat",
+      "color_srgb": [
+        0.7373,
+        0.5255,
+        0.0039
+      ],
+      "textured": true,
+      "metallic": 0.5,
+      "roughness": 0.5,
+      "mask_coverage": 0.52
+    },
+    "secondary": null,
+    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+  },
+  "objects": {
+    "Body": {
+      "tris": 3594,
+      "bbox_min": [
+        -3.1746,
+        0.7855,
+        -7.6179
+      ],
+      "bbox_max": [
+        3.1827,
+        5.5227,
+        8.6592
+      ],
+      "textures": {
+        "rough": "textures/canyon_taxi_Body_rough.png",
+        "metal": "textures/canyon_taxi_Body_metal.png",
+        "normal": "textures/canyon_taxi_Body_normal.png",
+        "base": "textures/canyon_taxi_Body_base.png",
+        "tintmask": "textures/canyon_taxi_Body_tintmask.png",
+        "overlay": "textures/canyon_taxi_Body_overlay.png"
+      }
+    },
+    "Glass": {
+      "tris": 160,
+      "bbox_min": [
+        -0.478,
+        1.1995,
+        -7.9118
+      ],
+      "bbox_max": [
+        0.4845,
+        2.0885,
+        8.6248
+      ],
+      "textures": {}
+    },
+    "LightsFront": {
+      "tris": 212,
+      "bbox_min": [
+        -2.8365,
+        2.9531,
+        -7.6033
+      ],
+      "bbox_max": [
+        2.8484,
+        5.195,
+        0.1219
+      ],
+      "textures": {
+        "normal": "textures/canyon_taxi_Lights_normal.png",
+        "base": "textures/canyon_taxi_Lights_base.png",
+        "emit": "textures/canyon_taxi_Lights_emit.png"
+      }
+    },
+    "LightsRear": {
+      "tris": 146,
+      "bbox_min": [
+        -2.7666,
+        2.6325,
+        0.5525
+      ],
+      "bbox_max": [
+        2.7781,
+        5.0552,
+        8.7084
+      ],
+      "textures": {
+        "normal": "textures/canyon_taxi_Lights_normal.png",
+        "base": "textures/canyon_taxi_Lights_base.png",
+        "emit": "textures/canyon_taxi_Lights_emit.png"
+      }
+    },
+    "Trim": {
+      "tris": 2599,
+      "bbox_min": [
+        -3.3891,
+        0.4798,
+        -7.8753
+      ],
+      "bbox_max": [
+        3.4031,
+        5.8309,
+        9.0868
+      ],
+      "textures": {
+        "rough": "textures/canyon_taxi_Trim_rough.png",
+        "metal": "textures/canyon_taxi_Trim_metal.png",
+        "normal": "textures/canyon_taxi_Trim_normal.png",
+        "base": "textures/canyon_taxi_Trim_base.png",
+        "ao": "textures/canyon_taxi_Trim_ao.png"
+      }
+    },
+    "Interior": {
+      "tris": 216,
+      "bbox_min": [
+        -0.5943,
+        1.1366,
+        -7.9049
+      ],
+      "bbox_max": [
+        0.604,
+        3.4617,
+        8.624
+      ],
+      "textures": {
+        "rough": "textures/canyon_taxi_Interior_rough.png",
+        "metal": "textures/canyon_taxi_Interior_metal.png",
+        "normal": "textures/canyon_taxi_Interior_normal.png",
+        "base": "textures/canyon_taxi_Interior_base.png",
+        "ao": "textures/canyon_taxi_Interior_ao.png"
+      }
+    },
+    "WheelFL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0259,
+        0.0044,
+        -6.2818
+      ],
+      "bbox_max": [
+        -1.8918,
+        2.313,
+        -3.9494
+      ],
+      "textures": {
+        "metal": "textures/canyon_taxi_Wheel_metal.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
+        "base": "textures/canyon_taxi_Wheel_base.png",
+        "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "ao": "textures/canyon_taxi_Wheel_ao.png"
+      }
+    },
+    "WheelFR": {
+      "tris": 900,
+      "bbox_min": [
+        1.8941,
+        -0.0044,
+        -6.2818
+      ],
+      "bbox_max": [
+        3.0258,
+        2.3042,
+        -3.9494
+      ],
+      "textures": {
+        "metal": "textures/canyon_taxi_Wheel_metal.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
+        "base": "textures/canyon_taxi_Wheel_base.png",
+        "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "ao": "textures/canyon_taxi_Wheel_ao.png"
+      }
+    },
+    "WheelRL": {
+      "tris": 900,
+      "bbox_min": [
+        -3.0251,
+        0.0044,
+        3.9496
+      ],
+      "bbox_max": [
+        -1.7689,
+        2.313,
+        6.2816
+      ],
+      "textures": {
+        "metal": "textures/canyon_taxi_Wheel_metal.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
+        "base": "textures/canyon_taxi_Wheel_base.png",
+        "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "ao": "textures/canyon_taxi_Wheel_ao.png"
+      }
+    },
+    "WheelRR": {
+      "tris": 900,
+      "bbox_min": [
+        1.7669,
+        -0.0044,
+        3.9496
+      ],
+      "bbox_max": [
+        3.0252,
+        2.3042,
+        6.2816
+      ],
+      "textures": {
+        "metal": "textures/canyon_taxi_Wheel_metal.png",
+        "normal": "textures/canyon_taxi_Wheel_normal.png",
+        "base": "textures/canyon_taxi_Wheel_base.png",
+        "rough": "textures/canyon_taxi_Wheel_rough.png",
+        "ao": "textures/canyon_taxi_Wheel_ao.png"
+      }
+    }
+  },
+  "triangles": {
+    "source": 20026,
+    "total": 10527,
+    "limits": {
+      "car": 18000,
+      "body": 7000,
+      "meshpart": 20000
+    }
+  },
+  "orientation": {
+    "length_axis": "X",
+    "votes": {
+      "names": 3.0,
+      "red_lights": 0.051,
+      "white_lights": 0.0,
+      "deck_height": -0.068,
+      "cabin": 0.148,
+      "mirrors": 0.85
+    },
+    "confidence": 3.982
+  },
+  "scale": {
+    "source_length": 5.306539535522461,
+    "factor": 3.20359433604526,
+    "target_length": 17.0
+  },
+  "classes": {
+    "Body": {
+      "islands": 3,
+      "faces": 3596,
+      "area": 176.355
+    },
+    "Glass": {
+      "islands": 22,
+      "faces": 160,
+      "area": 2.275
+    },
+    "LightsFront": {
+      "islands": 9,
+      "faces": 212,
+      "area": 13.698
+    },
+    "LightsRear": {
+      "islands": 9,
+      "faces": 146,
+      "area": 15.67
+    },
+    "Trim": {
+      "islands": 102,
+      "faces": 6442,
+      "area": 273.154
+    },
+    "Interior": {
+      "islands": 5,
+      "faces": 216,
+      "area": 3.005
+    },
+    "Discard": {
+      "islands": 76,
+      "faces": 5614,
+      "area": 367.521
+    },
+    "WheelFL": {
+      "islands": 17,
+      "faces": 918,
+      "area": 23.039
+    },
+    "WheelFR": {
+      "islands": 17,
+      "faces": 918,
+      "area": 23.039
+    },
+    "WheelRL": {
+      "islands": 16,
+      "faces": 902,
+      "area": 22.897
+    },
+    "WheelRR": {
+      "islands": 16,
+      "faces": 902,
+      "area": 22.897
+    }
+  },
+  "warnings": []
+}

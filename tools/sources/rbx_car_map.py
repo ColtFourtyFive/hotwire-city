@@ -87,7 +87,7 @@ REAL_LENGTH_M = {  # approximate real-world overall length of the car each listi
     132078381973405: (4.46, "Toyota Prius XW30 2010"),
     951086064: (4.84, "Nissan Maxima A35 2009"),
     3204824887: (4.57, "Chrysler ME Four-Twelve"),
-    16390639371: (5.04, "Ford Police Interceptor Utility (2016-19 Explorer), City of Clifton livery"),
+    16390639371: (5.05, "Ford Police Interceptor Utility (2020+ Explorer)"),
     10141791793: (6.35, "GMC Sierra 2500 HD AT4 crew cab"),
     71284840505836: (4.90, "1980s panel van"),
     94301391128632: (5.38, "Ford Crown Victoria taxi"),

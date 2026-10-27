@@ -372,7 +372,13 @@ end
 
 -- Camera-space spawn point of a speed line at ring `angle`: `ahead` studs in front of the camera at normalised screen
 -- radius `screen` (1 = the screen edge along that axis) for a vertical FOV (degrees) and aspect (width / height).
-function VehicleClient.speedLinePos(angle: number, fovDeg: number, aspect: number, ahead: number, screen: number): Vector3
+function VehicleClient.speedLinePos(
+	angle: number,
+	fovDeg: number,
+	aspect: number,
+	ahead: number,
+	screen: number
+): Vector3
 	local tanV = math.tan(math.rad(math.clamp(fovDeg, 1, 179)) / 2)
 	local a = if aspect == aspect and aspect > 0 then aspect else 16 / 9
 	return Vector3.new(math.cos(angle) * screen * ahead * tanV * a, math.sin(angle) * screen * ahead * tanV, -ahead)
@@ -947,35 +953,39 @@ local function buildFx(s: Session)
 	local radius = s.controller.wheelRadius or 1.2
 	local wheels = s.controller.wheels or {}
 
-	-- rear wheels: tire smoke + dust streams, skid-mark trails at the contact patch
+	-- rear wheels: tire smoke + dust streams, skid-mark trails at the contact patch (re-fitted every frame they draw)
+	local mine: VFXLibrary.StreamOpts = { priority = true }
 	for i = 3, 4 do
+		local k = i - 2
 		local w = wheels[i]
 		local base = if w then w.attachment.Position else Vector3.new(if i == 3 then -2.5 else 2.5, -1, 4)
 		local att = trove:Add(Instance.new("Attachment"))
 		att.Name = "HC_Smoke" .. i
 		att.Position = base - Vector3.new(0, radius * 0.85, 0)
 		att.Parent = chassis
-		local smoke = VFXLibrary.stream("TireSmoke", att)
+		local smoke = VFXLibrary.stream("TireSmoke", att, mine)
 		if smoke then
-			table.insert(s.fx.smoke, smoke)
+			s.fx.smoke[k] = smoke
 		end
-		local dust = VFXLibrary.stream("Dust", att)
+		local dust = VFXLibrary.stream("Dust", att, mine)
 		if dust then
 			table.insert(s.fx.dust, dust)
 		end
-		local skid = VFXLibrary.trail("SkidMark", chassis, base - Vector3.new(0, radius - 0.08, 0))
+		s.fx.hubY[k] = base.Y
+		local contact = Vector3.new(base.X, VehicleClient.skidContactY(base.Y, radius, nil), base.Z)
+		local skid = VFXLibrary.trail("SkidMark", chassis, contact)
 		if skid then
 			trove:Add(skid.trail)
 			trove:Add(skid.a0)
 			trove:Add(skid.a1)
-			table.insert(s.fx.skids, skid)
+			s.fx.skids[k] = skid
 		end
 	end
 	local sprayAtt = trove:Add(Instance.new("Attachment"))
 	sprayAtt.Name = "HC_Spray"
 	sprayAtt.Position = Vector3.new(0, -radius * 0.6, 0)
 	sprayAtt.Parent = chassis
-	s.fx.spray = VFXLibrary.stream("WaterSpray", sprayAtt)
+	s.fx.spray = VFXLibrary.stream("WaterSpray", sprayAtt, mine)
 
 	local length = s.model:GetAttribute("Length")
 	local halfLength = math.max(chassis.Size.Z / 2, (if typeof(length) == "number" then length / 2 - 0.3 else 0))
@@ -984,8 +994,9 @@ local function buildFx(s: Session)
 	exhaust.Position = Vector3.new(0, 0, halfLength + 0.3)
 	exhaust.Parent = chassis
 	s.fx.exhaust = exhaust
-	s.fx.flame = VFXLibrary.stream("NitroFlame", exhaust)
-	s.fx.core = VFXLibrary.stream("NitroCore", exhaust)
+	s.fx.flame = VFXLibrary.stream("NitroFlame", exhaust, mine)
+	s.fx.core = VFXLibrary.stream("NitroCore", exhaust, mine)
+	s.fx.backfire = VFXLibrary.attach("Backfire", exhaust)
 	local jet = VFXLibrary.beam("NitroJet", chassis, exhaust.Position, Vector3.new(0, 0, 1))
 	if jet then
 		trove:Add(jet.beam)
@@ -1003,7 +1014,8 @@ local function buildFx(s: Session)
 	light.Parent = exhaust
 	s.fx.light = light
 
-	-- speed lines: a ring of emitters on a camera-following host (moved only while they show)
+	-- speed lines: a ring of emitters on a camera-following host (moved only while they show), fitted to the screen
+	-- edge in followSpeedLines
 	if VFXLibrary.tier().extras then
 		local host = trove:Add(Instance.new("Part"))
 		host.Name = "HC_SpeedLines"
@@ -1015,16 +1027,15 @@ local function buildFx(s: Session)
 		host.Transparency = 1
 		host.Size = Vector3.new(0.2, 0.2, 0.2)
 		host.Parent = Workspace.CurrentCamera or Workspace
-		for k = 1, SPEED_LINE_RING do
-			local a = (k - 0.5) * 2 * math.pi / SPEED_LINE_RING
+		for k, a in VehicleClient.speedLineSlots(SPEED_LINE_RING, UserInputService.TouchEnabled) do
 			local att = Instance.new("Attachment")
 			att.Name = "Line" .. k
-			att.Position =
-				Vector3.new(math.cos(a) * SPEED_LINE_RADIUS, math.sin(a) * SPEED_LINE_RADIUS * 0.62, -SPEED_LINE_AHEAD)
+			att.Position = VehicleClient.speedLinePos(a, Tuning.FOV_BASE, 16 / 9, SPEED_LINE_AHEAD, SPEED_LINE_SCREEN)
 			att.Parent = host
-			local line = VFXLibrary.stream("SpeedLines", att)
+			local line = VFXLibrary.stream("SpeedLines", att, mine)
 			if line then
 				table.insert(s.fx.speedLines, line)
+				table.insert(s.fx.lineSlots, { att = att, angle = a })
 			end
 		end
 		s.fx.speedHost = host
@@ -1065,19 +1076,15 @@ local function releaseFx(s: Session)
 	VFXLibrary.releaseStream(fx.core)
 end
 
--- Exhaust pop: flame burst out of the tailpipe + a light blink.
+-- Exhaust pop: flame burst out of the tailpipe (an emitter riding the exhaust, inheriting the car's velocity, so the
+-- pop stays at the pipe at any speed) + a light blink.
 local function backfire(s: Session, big: boolean)
 	local exhaust = s.fx.exhaust
 	if not exhaust or not exhaust.Parent then
 		return
 	end
 	s.fxBackfireAt = os.clock()
-	local cf = exhaust.WorldCFrame
-	VFXLibrary.burst(
-		"Backfire",
-		cf.Position,
-		{ direction = -s.chassis.CFrame.LookVector, count = if big then 3 else 2 }
-	)
+	VFXLibrary.emit(s.fx.backfire, if big then 3 else 2, true)
 	local light = s.fx.light
 	if light and not light.Enabled then
 		light.Color = Color3.fromRGB(255, 160, 60)
@@ -1092,7 +1099,55 @@ local function backfire(s: Session, big: boolean)
 	end
 end
 
--- Ground material under the car (every SURFACE_SAMPLE s): dust color for dirt / grass / sand, water flag.
+-- Water parts (the Stunt Park pool, fountains): decorative, CanQuery false, so rays pass through them. Found by the
+-- CollectionService tag WATER_TAG or a "...Water" name under Workspace.Map; re-searched while none were found.
+local waterParts: { BasePart } = {}
+local waterScanAt = -math.huge
+local waterMapScans = 0 -- Workspace.Map walks so far (at most WATER_MAP_SCANS: a map without water stops costing)
+local WATER_MAP_SCANS = 3
+
+local function scanWater()
+	local now = os.clock()
+	if #waterParts > 0 or now - waterScanAt < WATER_RESCAN then
+		return
+	end
+	waterScanAt = now
+	local seen: { [BasePart]: boolean } = {}
+	local function add(inst: Instance)
+		if inst:IsA("BasePart") and not seen[inst] then
+			seen[inst] = true
+			table.insert(waterParts, inst)
+		end
+	end
+	for _, inst in CollectionService:GetTagged(WATER_TAG) do
+		add(inst)
+	end
+	local map = Workspace:FindFirstChild("Map")
+	if map and waterMapScans < WATER_MAP_SCANS then
+		waterMapScans += 1
+		for _, d in map:GetDescendants() do
+			if d:IsA("BasePart") and not d.CanCollide and string.sub(d.Name, -5) == "Water" then
+				add(d)
+			end
+		end
+	end
+end
+
+local function inWaterPart(pos: Vector3, radius: number): boolean
+	scanWater()
+	for i = #waterParts, 1, -1 do
+		local part = waterParts[i]
+		if part.Parent == nil then
+			table.remove(waterParts, i)
+		elseif VehicleClient.inWaterVolume(part.CFrame:PointToObjectSpace(pos), part.Size, radius + WATER_ABOVE) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Ground material under the car (every SURFACE_SAMPLE s): dust color for dirt / grass / sand, water flag (terrain
+-- water or a water part).
 local function sampleSurface(s: Session)
 	local params = s.fx.rayParams
 	if not params then
@@ -1100,14 +1155,9 @@ local function sampleSurface(s: Session)
 	end
 	local origin = s.chassis.Position
 	local hit = Workspace:Raycast(origin, Vector3.new(0, -(s.controller.rayLength or 6) - 3, 0), params)
-	if not hit then
-		s.fxDust = nil
-		s.fxWater = false
-		return
-	end
-	local name = hit.Material.Name
-	s.fxWater = name == "Water"
-	s.fxDust = VFXLibrary.dustColor(name)
+	local name = if hit then hit.Material.Name else ""
+	s.fxWater = name == "Water" or inWaterPart(origin, s.controller.wheelRadius or 1.2)
+	s.fxDust = if s.fxWater then nil else VFXLibrary.dustColor(name)
 end
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -1397,22 +1447,26 @@ local function renderStep(s: Session, dt: number)
 		cam.FieldOfView += (target - cam.FieldOfView) * math.min(1, FOV_RESPONSE * dt)
 	end
 
-	-- FX (VFXLibrary streams: state changes only, intensity in 0.1 steps)
+	-- FX (VFXLibrary streams: setStream is free when nothing changed, intensity in 0.1 steps)
 	local fx = s.fx
 	local frac = math.clamp(c.speed / math.max(def.topSpeed, 1), 0, 1.5)
-	local slideLevel = if drifting then math.clamp(math.floor(math.abs(c.lateralSpeed) / 6) / 10 + 0.5, 0.5, 1.3) else 0
-	if drifting ~= s.fxSlideOn or slideLevel ~= s.fxSlideLevel then
-		s.fxSlideOn = drifting
-		s.fxSlideLevel = slideLevel
-		for _, st in fx.smoke do
-			VFXLibrary.setStream(st, drifting, slideLevel)
+	local radius = c.wheelRadius or 1.2
+	for k = 1, 2 do
+		-- smoke + marks only where that rear tyre is on the ground and sliding; marks ride its contact patch
+		local wheel = k + 2
+		local on, level = VehicleClient.tyreSmoke(drifting, c.wheelGrounded[wheel] == true, c.lateralSpeed)
+		local st = fx.smoke[k]
+		if st then
+			VFXLibrary.setStream(st, on, level)
 		end
-	end
-	for i, skid in fx.skids do
-		-- marks only where that rear tyre is on the ground and sliding
-		local want = drifting and c.wheelGrounded[i + 2] == true
-		if skid.trail.Enabled ~= want then
-			skid.trail.Enabled = want
+		local skid = fx.skids[k]
+		if skid then
+			if on then
+				VFXLibrary.setTrailHeight(skid, VehicleClient.skidContactY(fx.hubY[k], radius, c.wheelOffset[wheel]))
+			end
+			if skid.trail.Enabled ~= on then
+				skid.trail.Enabled = on
+			end
 		end
 	end
 	-- surface dust / water spray
@@ -1484,10 +1538,13 @@ local function renderStep(s: Session, dt: number)
 	then
 		backfire(s, false)
 	end
-	-- speed lines around the camera while boosting (lighter near top speed); followSpeedLines moves their host
+	-- speed lines around the screen edge while boosting (lighter near top speed); followSpeedLines moves their host
 	if fx.speedHost then
 		local level = if boosting then 1 elseif frac >= SPEED_LINE_FRACTION then 0.5 else 0
 		if level ~= s.fxLinesLevel then
+			if level <= 0 then
+				s.fxLinesOffAt = os.clock()
+			end
 			s.fxLinesLevel = level
 			for _, st in fx.speedLines do
 				VFXLibrary.setStream(st, level > 0, level)
@@ -1519,12 +1576,28 @@ local function shakeUndo(s: Session)
 	end
 end
 
--- The speed-line host rides the final camera (after the camera scripts + shake), only while lines show.
+-- The speed-line host rides the final camera (after the camera scripts + shake) while lines show and until the last
+-- ones died (they are locked to it). The ring is re-fitted to the screen edge when the FOV kick / viewport changes.
 local function followSpeedLines(s: Session)
-	local host = s.fx.speedHost
+	local fx = s.fx
+	local host = fx.speedHost
 	local cam = Workspace.CurrentCamera
-	if host and cam and s.fxLinesLevel > 0 then
-		host.CFrame = cam.CFrame
+	if not host or not cam then
+		return
+	end
+	if s.fxLinesLevel <= 0 and os.clock() - s.fxLinesOffAt > SPEED_LINE_LINGER then
+		return
+	end
+	host.CFrame = cam.CFrame
+	local fov = cam.FieldOfView
+	local view = cam.ViewportSize
+	local aspect = if view.Y > 0 then view.X / view.Y else 16 / 9
+	if math.abs(fov - fx.lineFov) > SPEED_LINE_REFIT or math.abs(aspect - fx.lineAspect) > 0.01 then
+		fx.lineFov = fov
+		fx.lineAspect = aspect
+		for _, slot in fx.lineSlots do
+			slot.att.Position = VehicleClient.speedLinePos(slot.angle, fov, aspect, SPEED_LINE_AHEAD, SPEED_LINE_SCREEN)
+		end
 	end
 end
 
@@ -1673,9 +1746,16 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 		fxBoost = false,
 		fxHonk = false,
 		fxAt = 0,
-		fx = { smoke = {}, skids = {}, dust = {}, speedLines = {} },
-		fxSlideOn = false,
-		fxSlideLevel = 0,
+		fx = {
+			smoke = {},
+			skids = {},
+			hubY = {},
+			dust = {},
+			speedLines = {},
+			lineSlots = {},
+			lineFov = -1,
+			lineAspect = -1,
+		},
 		fxGear = 0,
 		fxBackfireAt = 0,
 		fxSurfaceT = 0,
@@ -1685,6 +1765,7 @@ local function enter(seat: VehicleSeat, model: Model, humanoid: Humanoid)
 		fxDustColor = nil,
 		fxSprayOn = false,
 		fxLinesLevel = 0,
+		fxLinesOffAt = -math.huge,
 		prevVel = Vector3.zero,
 	}
 	session = s
