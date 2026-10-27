@@ -37,3 +37,9 @@ C_g_d012_overview_low_sw 1793137770352-wuiq3h
 C_g_d012_downtown_street 1793137774172-3s7i6z
 D_b_default_overview_low_sw 1793137789121-r7k13x
 D_b_default_downtown_street 1793137793170-wlm005
+pbr_check 1793138556464-vr4fui
+pbr_close_asphalt 1793138561730-26vewm
+pbr_close_brick 1793138565866-0gi8vt
+pbr_close_brick_retry 1793138592079-ui5dzk
+diag_brick_variants 1793138605423-aw08zb
+diag_brick_decals 1793138637157-761a2d
