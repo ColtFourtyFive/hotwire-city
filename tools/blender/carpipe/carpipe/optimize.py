@@ -188,8 +188,16 @@ def clean_degenerate(ob, dist):
     # coincident duplicates (double-sided shells modelled as two faces on the same vertices): they overlap in UV
     # space and fight in the bake.  Keep the one facing away from the part's centre.
     seen = {}
-    cen = sum((v.co for v in bm.verts), bm.verts[0].co.copy() * 0) / max(len(bm.verts), 1) if bm.verts else None
+    bm.verts.ensure_lookup_table()
+    bm.verts.index_update()
+    cen = None
+    if len(bm.verts):
+        co = np.array([v.co[:] for v in bm.verts])
+        from mathutils import Vector
+        cen = Vector(co.mean(0))
     for f in bm.faces:
+        if cen is None:
+            break
         if f in bad:
             continue
         key = tuple(sorted(v.index for v in f.verts))
