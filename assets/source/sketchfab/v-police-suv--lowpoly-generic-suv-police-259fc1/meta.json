@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "259fc16c23d548ba8d5802c563d8ebdc",
+  "slug": "v-police-suv--lowpoly-generic-suv-police-259fc1",
+  "name": "Lowpoly Generic SUV Police",
+  "class": "police_suv",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "mk2design",
+    "displayName": "mk2design",
+    "profileUrl": "https://sketchfab.com/mk2design"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/lowpoly-generic-suv-police-259fc16c23d548ba8d5802c563d8ebdc",
+  "faceCount": 9042,
+  "vertexCount": 5870,
+  "materialCount": 7,
+  "textureCount": 5,
+  "animationCount": 0,
+  "likeCount": 337,
+  "tags": [
+    "police",
+    "911",
+    "suv",
+    "traffic",
+    "4x4",
+    "german",
+    "sportscar",
+    "offroad",
+    "american",
+    "emergency",
+    "freebie",
+    "vehicle",
+    "lowpoly",
+    "mobile",
+    "car",
+    "free"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Free to use. Enjoy.\n\n9004 triangles",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-police-suv--lowpoly-generic-suv-police-259fc1/model.glb",
+  "fileBytes": 2176228,
+  "sha256": "ea58a0f5a0a6045ced012104624511a55e3b925cbcd3644f14a8ce0cd7bfbbb4",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:37+00:00",
+  "notes": null
+}

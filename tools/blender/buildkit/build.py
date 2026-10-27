@@ -145,7 +145,8 @@ def export_glb(B, out_dir, textures=True):
 
 
 # ----------------------------------------------------------------------------- quick preview
-def preview(B, path, night=False, cam=None, samples=64, sky="sky_late_afternoon", sun_az=-55.0, props=True):
+def preview(B, path, night=False, cam=None, samples=64, sky="sky_late_afternoon", sun_az=-55.0, props=True,
+            backfaces=False):
     S.reset()
     if night:
         S.night()
@@ -163,9 +164,28 @@ def preview(B, path, night=False, cam=None, samples=64, sky="sky_late_afternoon"
     if cam is None:
         cam = dict(loc=(-W * 0.62 - 10, -D / 2 - 12 - 40, 7.0), target=(W * 0.05, -D / 2, H * 0.36), lens=24)
     S.camera(cam["loc"], cam["target"], cam.get("lens", 24), cam.get("shift_y", 0.0))
+    if backfaces:
+        backface_debug()
     S.haze(night=night)
     S.render(path, samples=samples)
     return objs
+
+
+def backface_debug():
+    """Replace every material with grey-front / red-back (Roblox culls back faces: anything red is wrong)."""
+    m = bpy.data.materials.new("BackfaceDebug")
+    m.use_nodes = True
+    nt = m.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"
+    mix.inputs[6].default_value = (0.6, 0.6, 0.6, 1)
+    mix.inputs[7].default_value = (1.0, 0.0, 0.0, 1)
+    nt.links.new(geo.outputs["Backfacing"], mix.inputs[0])
+    nt.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
+    for ob in bpy.data.objects:
+        if ob.type == "MESH" and ob.data.materials:
+            ob.data.materials[0] = m
 
 
 def main():
@@ -178,6 +198,7 @@ def main():
     ap.add_argument("--sky", default="sky_late_afternoon")
     ap.add_argument("--sun", type=float, default=-55.0)
     ap.add_argument("--export")
+    ap.add_argument("--backfaces", action="store_true", help="debug render: back faces red")
     ap.add_argument("--kw", default="{}", help="json overrides for the archetype")
     ap.add_argument("--cam", default=None, help='json {"loc":[x,y,z],"target":[x,y,z],"lens":24}')
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else None)
@@ -186,7 +207,8 @@ def main():
     st = B.stats()
     print("stats", B.name, st, "total", sum(st.values()), "footprint", B.footprint, "height", round(B.height, 1))
     if a.render:
-        preview(B, a.render, night=a.night, cam=json.loads(a.cam) if a.cam else None, samples=a.samples, sky=a.sky, sun_az=a.sun)
+        preview(B, a.render, night=a.night, cam=json.loads(a.cam) if a.cam else None, samples=a.samples, sky=a.sky, sun_az=a.sun,
+                backfaces=a.backfaces)
     if a.export:
         p, meta = export_glb(B, a.export)
         print("exported", p, meta["total_tris"], "max part", meta["max_part_tris"])

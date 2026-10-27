@@ -1,0 +1,52 @@
+{
+  "source": "sketchfab",
+  "uid": "d43bb748da364af2b3f0a9348365f0fb",
+  "slug": "v-sedan--tozzo-98-low-poly-model-d43bb7",
+  "name": "Tozzo '98 - Low poly model",
+  "class": "sedan",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/tozzo-98-low-poly-model-d43bb748da364af2b3f0a9348365f0fb",
+  "faceCount": 17928,
+  "vertexCount": 10787,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 138,
+  "tags": [
+    "sedan",
+    "urban",
+    "automotive",
+    "jdm",
+    "low-poly-model",
+    "automotivedesign",
+    "2000s",
+    "genericvehicle",
+    "low-poly",
+    "lowpoly",
+    "car"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Low poly model of semi-stock Japanese sedan, adoptet for US market with innovative design for 1998.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-sedan--tozzo-98-low-poly-model-d43bb7/model.glb",
+  "fileBytes": 7364756,
+  "sha256": "5e8a54028284f4bf905ad67d37d5d9bf1e2930794a66da724c9732d29ec74b89",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:43+00:00",
+  "notes": null
+}

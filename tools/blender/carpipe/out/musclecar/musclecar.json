@@ -12,8 +12,8 @@
   "coordinates": "Roblox/glTF: +X = car right, +Y = up, -Z = forward (front of the car). Origin: ground plane, centred between the wheel contact patches.",
   "glb": "musclecar.glb",
   "dimensions": {
-    "length": 6.593,
-    "width": 17.5,
+    "length": 17.5,
+    "width": 6.593,
     "height": 5.31,
     "wheelbase": 10.178,
     "track_front": 5.703,
@@ -143,18 +143,18 @@
     "driver": {
       "position": [
         -1.3715,
-        2.2384,
-        -0.4187
+        2.6768,
+        0.8787
       ],
       "estimated": false
     },
     "passenger": {
       "position": [
-        3.325,
-        1.9117,
-        0.8143
+        1.3715,
+        2.6768,
+        0.9445
       ],
-      "estimated": true
+      "estimated": false
     },
     "note": "left-hand drive assumed (driver on -X). Position = hip point; put the VehicleSeat just below it."
   },
@@ -256,22 +256,21 @@
     -0.0
   ],
   "paint": {
-    "route": "tintmask",
+    "route": "strip",
     "primary": {
       "object": "Body",
       "material": "Body",
       "color_srgb": [
-        1.0,
-        1.0,
-        1.0
+        0.93,
+        0.68,
+        0.08
       ],
-      "textured": true,
+      "textured": false,
       "metallic": 0.0,
-      "roughness": 1.0,
-      "mask_coverage": 0.892
+      "roughness": 1.0
     },
     "secondary": null,
-    "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
+    "how_to_recolor": "strip: Body has no texture -> set MeshPart.Color (and Material=SmoothPlastic/Metal). Optional SurfaceAppearance: ColorMap=Body_ao (grey), NormalMap=Body_normal, AlphaMode=TintMask, then script SurfaceAppearance.Color."
   },
   "objects": {
     "Body": {
@@ -287,12 +286,8 @@
         8.6837
       ],
       "textures": {
-        "rough": "textures/musclecar_Body_rough.png",
         "normal": "textures/musclecar_Body_normal.png",
-        "metal": "textures/musclecar_Body_metal.png",
-        "base": "textures/musclecar_Body_base.png",
-        "tintmask": "textures/musclecar_Body_tintmask.png",
-        "overlay": "textures/musclecar_Body_overlay.png"
+        "ao": "textures/musclecar_Body_ao.png"
       }
     },
     "Glass": {
@@ -322,8 +317,8 @@
         -7.5159
       ],
       "textures": {
-        "normal": "textures/musclecar_Lights_normal.png",
         "emit": "textures/musclecar_Lights_emit.png",
+        "normal": "textures/musclecar_Lights_normal.png",
         "base": "textures/musclecar_Lights_base.png"
       }
     },
@@ -340,8 +335,8 @@
         8.5485
       ],
       "textures": {
-        "normal": "textures/musclecar_Lights_normal.png",
         "emit": "textures/musclecar_Lights_emit.png",
+        "normal": "textures/musclecar_Lights_normal.png",
         "base": "textures/musclecar_Lights_base.png"
       }
     },
@@ -360,8 +355,8 @@
       "textures": {
         "rough": "textures/musclecar_Trim_rough.png",
         "normal": "textures/musclecar_Trim_normal.png",
-        "metal": "textures/musclecar_Trim_metal.png",
         "base": "textures/musclecar_Trim_base.png",
+        "metal": "textures/musclecar_Trim_metal.png",
         "ao": "textures/musclecar_Trim_ao.png"
       }
     },
@@ -380,8 +375,8 @@
       "textures": {
         "rough": "textures/musclecar_Interior_rough.png",
         "normal": "textures/musclecar_Interior_normal.png",
-        "metal": "textures/musclecar_Interior_metal.png",
         "base": "textures/musclecar_Interior_base.png",
+        "metal": "textures/musclecar_Interior_metal.png",
         "ao": "textures/musclecar_Interior_ao.png"
       }
     },
@@ -398,10 +393,10 @@
         -3.8619
       ],
       "textures": {
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "base": "textures/musclecar_Wheel_base.png",
         "rough": "textures/musclecar_Wheel_rough.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "base": "textures/musclecar_Wheel_base.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
@@ -418,10 +413,10 @@
         -3.8619
       ],
       "textures": {
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "base": "textures/musclecar_Wheel_base.png",
         "rough": "textures/musclecar_Wheel_rough.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "base": "textures/musclecar_Wheel_base.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
@@ -438,10 +433,10 @@
         6.3163
       ],
       "textures": {
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "base": "textures/musclecar_Wheel_base.png",
         "rough": "textures/musclecar_Wheel_rough.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "base": "textures/musclecar_Wheel_base.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     },
@@ -458,10 +453,10 @@
         6.3163
       ],
       "textures": {
-        "normal": "textures/musclecar_Wheel_normal.png",
-        "metal": "textures/musclecar_Wheel_metal.png",
-        "base": "textures/musclecar_Wheel_base.png",
         "rough": "textures/musclecar_Wheel_rough.png",
+        "metal": "textures/musclecar_Wheel_metal.png",
+        "normal": "textures/musclecar_Wheel_normal.png",
+        "base": "textures/musclecar_Wheel_base.png",
         "ao": "textures/musclecar_Wheel_ao.png"
       }
     }
@@ -479,13 +474,13 @@
     "length_axis": "Y",
     "votes": {
       "names": 2.653,
-      "red_lights": 0.349,
+      "red_lights": 0.0,
       "white_lights": 0.0,
       "deck_height": 0.53,
       "cabin": 0.573,
       "mirrors": 0.88
     },
-    "confidence": 4.985
+    "confidence": 4.636
   },
   "scale": {
     "source_length": 4.848599910736084,

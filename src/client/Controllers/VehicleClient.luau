@@ -1251,7 +1251,6 @@ local function simStep(s: Session, dt: number)
 		s.recentMax = speed
 	end
 end
-end
 
 local function renderStep(s: Session, dt: number)
 	if session ~= s or not ui then

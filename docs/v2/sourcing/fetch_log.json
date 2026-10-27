@@ -468,5 +468,85 @@
   "mb": 7.6,
   "license": "by",
   "conversion": "none"
+ },
+ "745830362bb342128ef6509345606ffe": {
+  "status": "ok",
+  "slug": "v-police-suv--urban-10-cop-enforcer-low-poly-mod-745830",
+  "class": "police_suv",
+  "kind": "vehicle",
+  "name": "Urban '10 Cop Enforcer - Low poly model",
+  "mb": 6.8,
+  "license": "by",
+  "conversion": "none"
+ },
+ "259fc16c23d548ba8d5802c563d8ebdc": {
+  "status": "ok",
+  "slug": "v-police-suv--lowpoly-generic-suv-police-259fc1",
+  "class": "police_suv",
+  "kind": "vehicle",
+  "name": "Lowpoly Generic SUV Police",
+  "mb": 2.2,
+  "license": "by",
+  "conversion": "none"
+ },
+ "7fd6e15785fa4aa9bfd6e31eb7c97ba6": {
+  "status": "ok",
+  "slug": "v-sedan--kiri-10-low-poly-model-7fd6e1",
+  "class": "sedan",
+  "kind": "vehicle",
+  "name": "Kiri '10 - Low poly model",
+  "mb": 7.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "d43bb748da364af2b3f0a9348365f0fb": {
+  "status": "ok",
+  "slug": "v-sedan--tozzo-98-low-poly-model-d43bb7",
+  "class": "sedan",
+  "kind": "vehicle",
+  "name": "Tozzo '98 - Low poly model",
+  "mb": 7.4,
+  "license": "by",
+  "conversion": "none"
+ },
+ "3cf0bc6c19d14080a2cfdb80bc3efc57": {
+  "status": "ok",
+  "slug": "v-sedan--2006-toyota-camry-24-g-limited-3cf0bc",
+  "class": "sedan",
+  "kind": "vehicle",
+  "name": "2006 Toyota Camry 24 G Limited",
+  "mb": 4.3,
+  "license": "by",
+  "conversion": "none"
+ },
+ "d604871eee5b4181bb298163b0b675b7": {
+  "status": "ok",
+  "slug": "v-sedan--illinois-90-low-poly-model-d60487",
+  "class": "sedan",
+  "kind": "vehicle",
+  "name": "Illinois '90 - Low poly model",
+  "mb": 7.6,
+  "license": "by",
+  "conversion": "none"
+ },
+ "2e1a3699de7e4f688d328dc005ef1aac": {
+  "status": "ok",
+  "slug": "v-sports-coupe--generic-coupe-azura-2e1a36",
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "name": "Generic Coupe \"Azura\"",
+  "mb": 5.1,
+  "license": "by",
+  "conversion": "none"
+ },
+ "6dd4ae19c454414d9eed2bc524515d78": {
+  "status": "ok",
+  "slug": "v-sports-coupe--jdm-sport-99-low-poly-model-6dd4ae",
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "name": "JDM Sport '99 - Low Poly model",
+  "mb": 7.5,
+  "license": "by",
+  "conversion": "none"
  }
 }

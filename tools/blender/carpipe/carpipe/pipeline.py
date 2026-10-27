@@ -60,6 +60,13 @@ def run(model_path: str, out_dir: str, name: str, cfg: dict | None = None) -> di
 
     # ---------------------------------------------------------------- low-poly versions
     lows = {}
+    if "Body" in his and "Body2" in his:  # primary + secondary paint share the 8k body budget by area
+        a1 = float(car.ia[car.irole == analyze.BODY].sum())
+        a2 = float(car.ia[car.irole == analyze.BODY2].sum())
+        tot = budget["Body"] + budget["Body2"]
+        share2 = min(0.4, max(0.1, a2 / max(a1 + a2, 1e-9)))
+        budget["Body2"] = int(tot * share2)
+        budget["Body"] = tot - budget["Body2"]
     for nm, hi in his.items():
         b = budget["Wheel"] if nm in wheel_names else budget.get(nm, 2000)
         lows[nm] = optimize.make_low(hi, nm, b, L, symmetric=nm in ("Body", "Body2", "Glass"))

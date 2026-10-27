@@ -285,6 +285,31 @@ local function visit(inst, parentId, depth, parentPath)
 		if en ~= nil then
 			props.Enabled = en
 		end
+		-- security scan only: the source itself is never written out
+		local src = get(inst, "Source")
+		if typeof(src) == "string" then
+			local scan = { bytes = #src, flags = {}, requireIds = {} }
+			for id in string.gmatch(src, "require%s*%(%s*(%d+)%s*%)") do
+				table.insert(scan.requireIds, id)
+			end
+			local checks = {
+				{ "getfenv", "getfenv" }, { "setfenv", "setfenv" }, { "loadstring", "loadstring" },
+				{ "HttpService", "HttpService" }, { "HttpGet", "HttpGet" }, { "InsertService", "InsertService" },
+				{ "GetObjects", "GetObjects" }, { "MarketplaceService", "MarketplaceService" },
+				{ "TeleportService", "TeleportService" }, { "string%.reverse", "string.reverse" },
+				{ "\\%d%d%d?\\%d%d%d?\\%d%d%d?", "escaped-bytes" }, { "_G%.", "_G" },
+				{ "PromptPurchase", "PromptPurchase" }, { "Players%.%w+:Kick", "Kick" },
+			}
+			for _, c in checks do
+				if string.find(src, c[1]) then
+					table.insert(scan.flags, c[2])
+				end
+			end
+			if #src > 0 and #src > 20000 and not string.find(string.sub(src, 1, 2000), "\n") then
+				table.insert(scan.flags, "long-single-line")
+			end
+			props.Scan = scan
+		end
 	end
 	local okA, attrs = pcall(function()
 		return inst:GetAttributes()

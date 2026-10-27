@@ -563,6 +563,116 @@ function WorldGen.hashBox(
 end
 
 -------------------------------------------------------------------------------------------------------------------------
+-- Cumulative-length polylines (O(log n) point-at-distance) and a segment spatial index
+-------------------------------------------------------------------------------------------------------------------------
+
+-- Cumulative arc length at each vertex (cum[1] = 0).
+function WorldGen.polyCum(pts: { any }): { number }
+	local cum = table.create(#pts, 0)
+	for i = 2, #pts do
+		cum[i] = cum[i - 1] + WorldGen.dist(pts[i - 1].x, pts[i - 1].z, pts[i].x, pts[i].z)
+	end
+	return cum
+end
+
+-- Same as polyAt but with a precomputed cum table: (x, z, tx, tz, segment, t).
+function WorldGen.polyAtCum(pts: { any }, cum: { number }, s: number): (number, number, number, number, number, number)
+	local n = #pts
+	if n == 1 then
+		return pts[1].x, pts[1].z, 1, 0, 1, 0
+	end
+	s = math.clamp(s, 0, cum[n])
+	local lo, hi = 1, n - 1
+	while lo < hi do
+		local mid = (lo + hi + 1) // 2
+		if cum[mid] <= s then
+			lo = mid
+		else
+			hi = mid - 1
+		end
+	end
+	local i = lo
+	-- skip zero-length segments
+	while i < n - 1 and cum[i + 1] - cum[i] < 1e-9 do
+		i += 1
+	end
+	local a, b = pts[i], pts[i + 1]
+	local len = cum[i + 1] - cum[i]
+	if len < 1e-9 then
+		return b.x, b.z, 1, 0, i, 1
+	end
+	local t = math.clamp((s - cum[i]) / len, 0, 1)
+	return a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t, (b.x - a.x) / len, (b.z - a.z) / len, i, t
+end
+
+export type SegIndex = {
+	cell: number,
+	cells: { [number]: { number } },
+	ax: { number },
+	az: { number },
+	bx: { number },
+	bz: { number },
+	owner: { number },
+	segNo: { number },
+	stamp: { number },
+	gen: number,
+}
+
+function WorldGen.segIndex(cell: number): SegIndex
+	return { cell = cell, cells = {}, ax = {}, az = {}, bx = {}, bz = {}, owner = {}, segNo = {}, stamp = {}, gen = 0 }
+end
+
+-- Add segment a-b belonging to `owner` (its segment number segNo); pad widens the hashed box.
+function WorldGen.segAdd(
+	idx: SegIndex,
+	ax: number,
+	az: number,
+	bx: number,
+	bz: number,
+	owner: number,
+	segNo: number,
+	pad: number
+)
+	table.insert(idx.ax, ax)
+	table.insert(idx.az, az)
+	table.insert(idx.bx, bx)
+	table.insert(idx.bz, bz)
+	table.insert(idx.owner, owner)
+	table.insert(idx.segNo, segNo)
+	table.insert(idx.stamp, 0)
+	local id = #idx.ax
+	WorldGen.hashBox(
+		idx.cells,
+		idx.cell,
+		math.min(ax, bx) - pad,
+		math.min(az, bz) - pad,
+		math.max(ax, bx) + pad,
+		math.max(az, bz) + pad,
+		id
+	)
+end
+
+-- Calls fn(segmentId) once for every segment hashed into a cell overlapping the box around (x, z) +- r.
+function WorldGen.segQuery(idx: SegIndex, x: number, z: number, r: number, fn: (number) -> ())
+	idx.gen += 1
+	local gen = idx.gen
+	local cell = idx.cell
+	for cx = math.floor((x - r) / cell), math.floor((x + r) / cell) do
+		for cz = math.floor((z - r) / cell), math.floor((z + r) / cell) do
+			local list = idx.cells[cellKey(cx, cz)]
+			if list then
+				for _, id in list do
+					if idx.stamp[id] ~= gen then
+						idx.stamp[id] = gen
+						fn(id)
+					end
+				end
+			end
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------------------
 -- Planarize: ways -> nodes + edges
 -------------------------------------------------------------------------------------------------------------------------
 

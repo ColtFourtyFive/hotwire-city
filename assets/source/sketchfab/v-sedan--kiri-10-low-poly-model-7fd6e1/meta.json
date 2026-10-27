@@ -1,0 +1,58 @@
+{
+  "source": "sketchfab",
+  "uid": "7fd6e15785fa4aa9bfd6e31eb7c97ba6",
+  "slug": "v-sedan--kiri-10-low-poly-model-7fd6e1",
+  "name": "Kiri '10 - Low poly model",
+  "class": "sedan",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/kiri-10-low-poly-model-7fd6e15785fa4aa9bfd6e31eb7c97ba6",
+  "faceCount": 13035,
+  "vertexCount": 8369,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 291,
+  "tags": [
+    "automobile",
+    "sedan",
+    "prop",
+    "saloon",
+    "generic",
+    "automotive",
+    "props",
+    "parking",
+    "cardesign",
+    "low-poly-model",
+    "economy",
+    "genericvehicle",
+    "low-poly",
+    "vehicle",
+    "lowpoly",
+    "car",
+    "city"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Simple generic economy class sedan based on asian design features of last decade.\n\n21.03.2025 Update: Improved geometry, unwrapped Body UV, New rims, Textures and many other small improvments.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-sedan--kiri-10-low-poly-model-7fd6e1/model.glb",
+  "fileBytes": 7099356,
+  "sha256": "1cde66fff03a2716ffa3492d162e4405ca595b0a0f39681b254bad6f2f493d32",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:39+00:00",
+  "notes": null
+}

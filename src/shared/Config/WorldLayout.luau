@@ -31,7 +31,9 @@ type P3 = WorldGen.P3
 local WorldLayout = {}
 local _t0 = os.clock()
 local function _T(label: string)
-	if _G.WL_TIMING then print(('%7.3f  %s'):format(os.clock() - _t0, label)) end
+	if _G.WL_TIMING then
+		print(("%7.3f  %s"):format(os.clock() - _t0, label))
+	end
 end
 
 WorldLayout.VERSION = 2
@@ -169,7 +171,14 @@ WorldLayout.Water = {
 	{
 		name = "Mesa Reservoir",
 		level = 74,
-		points = { { x = 2550, z = -2950 }, { x = 3050, z = -3150 }, { x = 3450, z = -2950 }, { x = 3400, z = -2600 }, { x = 2950, z = -2470 }, { x = 2600, z = -2600 } },
+		points = {
+			{ x = 2550, z = -2950 },
+			{ x = 3050, z = -3150 },
+			{ x = 3450, z = -2950 },
+			{ x = 3400, z = -2600 },
+			{ x = 2950, z = -2470 },
+			{ x = 2600, z = -2600 },
+		},
 	},
 }
 
@@ -206,7 +215,18 @@ local coastPoly: { P2 } = WorldLayout.Coast :: any
 local islandPoly: { P2 } = WorldLayout.Islands[1].points :: any
 
 -- Sunwood Hills crest height along X (piecewise linear).
-local HILL_CREST = { { -5200, 30 }, { -4600, 70 }, { -4000, 120 }, { -3200, 150 }, { -2200, 230 }, { -1300, 250 }, { -300, 215 }, { 700, 170 }, { 1500, 130 }, { 2300, 120 } }
+local HILL_CREST = {
+	{ -5200, 30 },
+	{ -4600, 70 },
+	{ -4000, 120 },
+	{ -3200, 150 },
+	{ -2200, 230 },
+	{ -1300, 250 },
+	{ -300, 215 },
+	{ 700, 170 },
+	{ 1500, 130 },
+	{ 2300, 120 },
+}
 local function crestAt(x: number): number
 	if x <= HILL_CREST[1][1] then
 		return HILL_CREST[1][2]
@@ -343,9 +363,9 @@ local function gradeAt(x: number, z: number): number
 		if kind == "quay" then
 			return -26
 		elseif kind == "beach" then
-			return math.max(-46, SHORE_Y.beach - 0.035 * (-d) - 0.6)
+			return math.max(-46, SHORE_Y.beach - 0.035 * -d - 0.6)
 		end
-		return math.max(-64, 1 - 0.18 * (-d) - 3)
+		return math.max(-64, 1 - 0.18 * -d - 3)
 	end
 	local inland = inlandHeight(x, z)
 	local band = COAST_BAND[kind]
@@ -390,15 +410,61 @@ WorldLayout.heightAt = heightAt
 
 -- Named terrain zones (for the terrain builder's material painting and the spec).
 WorldLayout.TerrainZones = {
-	{ name = "City Basin", kind = "flat", y = GRADE, material = "Asphalt/Concrete", note = "Downtown, Midtown, Southgate, Foundry, Rust Flats: graded flat at Y 12" },
-	{ name = "Palmera Beach", kind = "beach", material = "Sand", note = "300-stud sand band from the waterline (Y 0.8) up to the boardwalk (Y 12)" },
-	{ name = "Sunwood Hills", kind = "hills", material = "Grass/Rock/LeafyGrass", note = "rises from the hill foot (Z ~ -2000) to a 230-250 crest at Z ~ -3050; north side plateau to the cliffs" },
-	{ name = "Sunwood Canyon", kind = "canyon", material = "Ground/Rock", note = "H9 valley; floor climbs to Y 58 at the pass, falls to Hidden Cove" },
-	{ name = "Red Mesa Foothills", kind = "hills", material = "Ground/Sandstone", note = "rolling 70-140 hills north of the Foundry" },
-	{ name = "Red Mesa Desert", kind = "desert", material = "Sand/Sandstone", note = "dunes + flat-topped mesas (85-130 tall)" },
-	{ name = "Iron Bay", kind = "quay", material = "Concrete", note = "port island and channel walls, quays at Y 12, 26-deep water" },
-	{ name = "Rust River", kind = "channel", material = "Concrete", note = "concrete storm channel, floor Y 3 -> 1.5, 88 wide, walls 12 run" },
-	{ name = "Ocean", kind = "ocean", material = "Water", note = "sea level 0, beach shelves gently, cliffs drop fast" },
+	{
+		name = "City Basin",
+		kind = "flat",
+		y = GRADE,
+		material = "Asphalt/Concrete",
+		note = "Downtown, Midtown, Southgate, Foundry, Rust Flats: graded flat at Y 12",
+	},
+	{
+		name = "Palmera Beach",
+		kind = "beach",
+		material = "Sand",
+		note = "300-stud sand band from the waterline (Y 0.8) up to the boardwalk (Y 12)",
+	},
+	{
+		name = "Sunwood Hills",
+		kind = "hills",
+		material = "Grass/Rock/LeafyGrass",
+		note = "rises from the hill foot (Z ~ -2000) to a 230-250 crest at Z ~ -3050; north side plateau to the cliffs",
+	},
+	{
+		name = "Sunwood Canyon",
+		kind = "canyon",
+		material = "Ground/Rock",
+		note = "H9 valley; floor climbs to Y 58 at the pass, falls to Hidden Cove",
+	},
+	{
+		name = "Red Mesa Foothills",
+		kind = "hills",
+		material = "Ground/Sandstone",
+		note = "rolling 70-140 hills north of the Foundry",
+	},
+	{
+		name = "Red Mesa Desert",
+		kind = "desert",
+		material = "Sand/Sandstone",
+		note = "dunes + flat-topped mesas (85-130 tall)",
+	},
+	{
+		name = "Iron Bay",
+		kind = "quay",
+		material = "Concrete",
+		note = "port island and channel walls, quays at Y 12, 26-deep water",
+	},
+	{
+		name = "Rust River",
+		kind = "channel",
+		material = "Concrete",
+		note = "concrete storm channel, floor Y 3 -> 1.5, 88 wide, walls 12 run",
+	},
+	{
+		name = "Ocean",
+		kind = "ocean",
+		material = "Water",
+		note = "sea level 0, beach shelves gently, cliffs drop fast",
+	},
 }
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -474,7 +540,14 @@ local DISTRICTS: { DistrictDef } = {
 			depth = { 110, 150 },
 			setback = { 0, 6 },
 			density = 0.96,
-			uses = { { "office_tower", 46 }, { "residential_tower", 18 }, { "hotel", 8 }, { "parking_garage", 8 }, { "plaza", 6 }, { "retail", 14 } },
+			uses = {
+				{ "office_tower", 46 },
+				{ "residential_tower", 18 },
+				{ "hotel", 8 },
+				{ "parking_garage", 8 },
+				{ "plaza", 6 },
+				{ "retail", 14 },
+			},
 		},
 		sidewalk = 14,
 	},
@@ -496,7 +569,16 @@ local DISTRICTS: { DistrictDef } = {
 			depth = { 90, 125 },
 			setback = { 0, 8 },
 			density = 0.92,
-			uses = { { "office_midrise", 22 }, { "apartment", 26 }, { "retail", 24 }, { "restaurant", 8 }, { "hotel", 5 }, { "parking_lot", 9 }, { "parking_garage", 4 }, { "nightclub", 2 } },
+			uses = {
+				{ "office_midrise", 22 },
+				{ "apartment", 26 },
+				{ "retail", 24 },
+				{ "restaurant", 8 },
+				{ "hotel", 5 },
+				{ "parking_lot", 9 },
+				{ "parking_garage", 4 },
+				{ "nightclub", 2 },
+			},
 		},
 		sidewalk = 13,
 	},
@@ -517,7 +599,14 @@ local DISTRICTS: { DistrictDef } = {
 			depth = { 80, 110 },
 			setback = { 4, 12 },
 			density = 0.86,
-			uses = { { "beach_hotel", 28 }, { "apartment", 26 }, { "retail", 18 }, { "restaurant", 14 }, { "parking_lot", 8 }, { "motel", 6 } },
+			uses = {
+				{ "beach_hotel", 28 },
+				{ "apartment", 26 },
+				{ "retail", 18 },
+				{ "restaurant", 14 },
+				{ "parking_lot", 8 },
+				{ "motel", 6 },
+			},
 		},
 		sidewalk = 14,
 	},
@@ -526,7 +615,15 @@ local DISTRICTS: { DistrictDef } = {
 		name = "Sunwood Hills",
 		style = "hills_mansion",
 		materials = { "WhiteStucco", "Travertine", "Glass", "Wood" },
-		poly = poly({ { -5200, -2250 }, { -3760, -2250 }, { -3760, -1900 }, { 1800, -1880 }, { 2300, -4300 }, { 1500, -4800 }, { -5200, -4600 } }),
+		poly = poly({
+			{ -5200, -2250 },
+			{ -3760, -2250 },
+			{ -3760, -1900 },
+			{ 1800, -1880 },
+			{ 2300, -4300 },
+			{ 1500, -4800 },
+			{ -5200, -4600 },
+		}),
 		priority = 1,
 		height = { 22, 42 },
 		density = 0.55,
@@ -559,7 +656,16 @@ local DISTRICTS: { DistrictDef } = {
 			depth = { 100, 140 },
 			setback = { 0, 6 },
 			density = 0.86,
-			uses = { { "loft", 34 }, { "warehouse", 22 }, { "brewery", 7 }, { "gallery", 7 }, { "retail", 10 }, { "parking_lot", 10 }, { "office_midrise", 6 }, { "nightclub", 4 } },
+			uses = {
+				{ "loft", 34 },
+				{ "warehouse", 22 },
+				{ "brewery", 7 },
+				{ "gallery", 7 },
+				{ "retail", 10 },
+				{ "parking_lot", 10 },
+				{ "office_midrise", 6 },
+				{ "nightclub", 4 },
+			},
 		},
 		sidewalk = 13,
 	},
@@ -601,7 +707,16 @@ local DISTRICTS: { DistrictDef } = {
 			depth = { 90, 110 },
 			setback = { 18, 24 },
 			density = 0.9,
-			uses = { { "house", 70 }, { "duplex", 10 }, { "corner_store", 4 }, { "retail_strip", 6 }, { "church", 2 }, { "park", 3 }, { "parking_lot", 3 }, { "apartment", 2 } },
+			uses = {
+				{ "house", 70 },
+				{ "duplex", 10 },
+				{ "corner_store", 4 },
+				{ "retail_strip", 6 },
+				{ "church", 2 },
+				{ "park", 3 },
+				{ "parking_lot", 3 },
+				{ "apartment", 2 },
+			},
 		},
 		sidewalk = 12,
 	},
@@ -610,7 +725,14 @@ local DISTRICTS: { DistrictDef } = {
 		name = "Iron Bay",
 		style = "port",
 		materials = { "Concrete", "CorrugatedMetal", "PaintedSteel" },
-		poly = poly({ { -1950, 3380 }, { 2800, 3360 }, { 3150, 3820 }, { 2820, 4560 }, { -1250, 4660 }, { -2000, 4080 } }),
+		poly = poly({
+			{ -1950, 3380 },
+			{ 2800, 3360 },
+			{ 3150, 3820 },
+			{ 2820, 4560 },
+			{ -1250, 4660 },
+			{ -2000, 4080 },
+		}),
 		priority = 2,
 		height = { 20, 64 },
 		density = 0.8,
@@ -631,7 +753,15 @@ local DISTRICTS: { DistrictDef } = {
 		name = "Hotwire International",
 		style = "airport",
 		materials = { "Concrete", "Glass", "PaintedSteel" },
-		poly = poly({ { -5750, 1720 }, { -2560, 1720 }, { -2560, 2200 }, { -2240, 3250 }, { -2720, 4120 }, { -4320, 4280 }, { -5600, 3900 } }),
+		poly = poly({
+			{ -5750, 1720 },
+			{ -2560, 1720 },
+			{ -2560, 2200 },
+			{ -2240, 3250 },
+			{ -2720, 4120 },
+			{ -4320, 4280 },
+			{ -5600, 3900 },
+		}),
 		priority = 2,
 		height = { 20, 90 },
 		density = 0.6,
@@ -664,7 +794,14 @@ local DISTRICTS: { DistrictDef } = {
 			depth = { 80, 120 },
 			setback = { 8, 16 },
 			density = 0.75,
-			uses = { { "house", 44 }, { "shop", 20 }, { "diner", 8 }, { "motel", 8 }, { "shed", 12 }, { "parking_lot", 8 } },
+			uses = {
+				{ "house", 44 },
+				{ "shop", 20 },
+				{ "diner", 8 },
+				{ "motel", 8 },
+				{ "shed", 12 },
+				{ "parking_lot", 8 },
+			},
 		},
 		sidewalk = 10,
 	},
@@ -673,7 +810,19 @@ local DISTRICTS: { DistrictDef } = {
 		name = "Red Mesa",
 		style = "desert_rural",
 		materials = { "Sandstone", "WoodSiding", "CorrugatedMetal" },
-		poly = poly({ { 1800, -1880 }, { 1590, -1900 }, { 3300, -1900 }, { 3300, 430 }, { 3720, 430 }, { 3720, 3100 }, { 4000, 4100 }, { 6400, 4100 }, { 6400, -5000 }, { 1500, -5000 }, { 2300, -4300 } }),
+		poly = poly({
+			{ 1800, -1880 },
+			{ 1590, -1900 },
+			{ 3300, -1900 },
+			{ 3300, 430 },
+			{ 3720, 430 },
+			{ 3720, 3100 },
+			{ 4000, 4100 },
+			{ 6400, 4100 },
+			{ 6400, -5000 },
+			{ 1500, -5000 },
+			{ 2300, -4300 },
+		}),
 		priority = 1,
 		height = { 14, 30 },
 		density = 0.15,
@@ -823,7 +972,13 @@ local function addWay(name: string, class: RoadClass, pts: { P2 }, o: WayOpts?):
 		keepDeadEnd = opts.keepDeadEnd == true,
 		traffic = if opts.traffic ~= nil
 			then opts.traffic
-			else (class ~= "pier" and class ~= "channel" and class ~= "runway" and class ~= "service" and class ~= "alley"),
+			else (
+				class ~= "pier"
+				and class ~= "channel"
+				and class ~= "runway"
+				and class ~= "service"
+				and class ~= "alley"
+			),
 		corridor = opts.corridor,
 		generated = opts.generated == true,
 		district = opts.district,
@@ -866,13 +1021,7 @@ end
 -- runs with the centerline direction on its right-hand side.
 type Corridor = { name: string, center: { P2 }, fwd: Way, bwd: Way, offset: number }
 
-local function corridor(
-	name: string,
-	center: { P2 },
-	lanes: number,
-	labels: { string },
-	o: WayOpts?
-): Corridor
+local function corridor(name: string, center: { P2 }, lanes: number, labels: { string }, o: WayOpts?): Corridor
 	local cw = lanes * LANE + S.FREEWAY_SHOULDER_OUT + S.FREEWAY_SHOULDER_IN
 	local off = cw / 2 + S.CARRIAGEWAY_GAP / 2
 	local function make(pts: { P2 }, label: string): Way
@@ -914,7 +1063,13 @@ local function easedRamp(y0: number, y1: number): (number, number) -> number
 end
 
 -- Flyover profile: deck at both ends, `top` across the middle (rise over riseLen, fall over fallLen).
-local function humpProfile(yEnd0: number, top: number, yEnd1: number, riseLen: number, fallLen: number): (number, number) -> number
+local function humpProfile(
+	yEnd0: number,
+	top: number,
+	yEnd1: number,
+	riseLen: number,
+	fallLen: number
+): (number, number) -> number
 	return function(s: number, L: number): number
 		local r = math.min(riseLen, L * 0.45)
 		local f = math.min(fallLen, L * 0.45)
@@ -973,9 +1128,13 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 		local endS = Lm
 		local q, qx, qz = portAt(Out, endS)
 		local k = 0.42 * WorldGen.dist(p.x, p.z, q.x, q.z)
-		local pts =
-			WorldGen.bezier(p, P(p.x + tx * k, p.z + tz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
-		addWay(name .. " ramp", "ramp", pts, { oneWay = true, layer = 1, noCross = true, yMode = "fixed", fixedY = DECK_Y })
+		local pts = WorldGen.bezier(p, P(p.x + tx * k, p.z + tz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
+		addWay(
+			name .. " ramp",
+			"ramp",
+			pts,
+			{ oneWay = true, layer = 1, noCross = true, yMode = "fixed", fixedY = DECK_Y }
+		)
 	end
 	-- 2. In -> N (direct, right merge after the junction)
 	do
@@ -983,9 +1142,13 @@ local function trumpet(name: string, main: Corridor, branchCenter: { P2 }, lanes
 		local p, px, pz = portAt(In, inL - Lm)
 		local _, q, qx, qz = portOn(N, L(ob + Ln, o).x, L(ob + Ln, o).z)
 		local k = 0.42 * WorldGen.dist(p.x, p.z, q.x, q.z)
-		local pts =
-			WorldGen.bezier(p, P(p.x + px * k, p.z + pz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
-		addWay(name .. " ramp", "ramp", pts, { oneWay = true, layer = 1, noCross = true, yMode = "fixed", fixedY = DECK_Y })
+		local pts = WorldGen.bezier(p, P(p.x + px * k, p.z + pz * k), P(q.x - qx * k, q.z - qz * k), q, 24)
+		addWay(
+			name .. " ramp",
+			"ramp",
+			pts,
+			{ oneWay = true, layer = 1, noCross = true, yMode = "fixed", fixedY = DECK_Y }
+		)
 	end
 	-- 3. In -> F: over the bridge, then a 270-degree loop on the far side merging into F
 	do
@@ -1085,7 +1248,13 @@ local function diamond(main: Corridor, ave: Way, cx: number, cz: number, Ld: num
 			local pts: { P2 }
 			if kind == "off" then
 				local k = 0.42 * WorldGen.dist(port.x, port.z, l0.x, l0.z)
-				pts = WorldGen.bezier(port, P(port.x + ptx * k, port.z + ptz * k), P(l0.x - ux * k, l0.z - uz * k), l0, 24)
+				pts = WorldGen.bezier(
+					port,
+					P(port.x + ptx * k, port.z + ptz * k),
+					P(l0.x - ux * k, l0.z - uz * k),
+					l0,
+					24
+				)
 				table.insert(pts, term)
 				addWay(main.name .. " off-ramp", "ramp", pts, {
 					oneWay = true,
@@ -1097,7 +1266,15 @@ local function diamond(main: Corridor, ave: Way, cx: number, cz: number, Ld: num
 			else
 				local k = 0.42 * WorldGen.dist(l0.x, l0.z, port.x, port.z)
 				pts = { term }
-				for _, q in WorldGen.bezier(l0, P(l0.x + ux * k, l0.z + uz * k), P(port.x - ptx * k, port.z - ptz * k), port, 24) do
+				for _, q in
+					WorldGen.bezier(
+						l0,
+						P(l0.x + ux * k, l0.z + uz * k),
+						P(port.x - ptx * k, port.z - ptz * k),
+						port,
+						24
+					)
+				do
 					table.insert(pts, q)
 				end
 				addWay(main.name .. " on-ramp", "ramp", pts, {
@@ -1166,7 +1343,8 @@ local ringCenter = WorldGen.fillet(RING_CTRL, 600, nil, 40)
 local H1 = corridor("H1 Ring Freeway", ringCenter, 3, { "(clockwise)", "(counter-clockwise)" })
 
 -- H2 Port Expressway: south from the ring over Southgate and the Iron Bay Bridge onto the port island.
-local H2center: { P2 } = { P(700, 1350), P(700, 1950), P(700, 2600), P(700, 3000), P(700, 3420), P(700, 3800), P(700, 4020) }
+local H2center: { P2 } =
+	{ P(700, 1350), P(700, 1950), P(700, 2600), P(700, 3000), P(700, 3420), P(700, 3800), P(700, 4020) }
 local H2 = trumpet("H2 Port Expressway", H1, H2center, 2, { "(southbound)", "(northbound)" })
 do
 	-- profile: deck over Southgate, arching to 66 over the channel, descending to grade on the island
@@ -1236,28 +1414,54 @@ end
 local palmera = addWay(
 	"Palmera Drive",
 	"boulevard",
-	smooth({ { -4440, -2160 }, { -4470, -1500 }, { -4500, -500 }, { -4480, 500 }, { -4540, 1300 }, { -4700, 1900 } }, 900),
+	smooth(
+		{ { -4440, -2160 }, { -4470, -1500 }, { -4500, -500 }, { -4480, 500 }, { -4540, 1300 }, { -4700, 1900 } },
+		900
+	),
 	{ lanes = 2, median = 16, parking = true, sidewalk = 14 }
 )
 
 local crown = addWay(
 	"Crown Boulevard",
 	"boulevard",
-	smooth({ { -4495, -330 }, { -3650, -350 }, { -2900, -330 }, { -2100, -270 }, { -1240, -250 }, { 1650, -250 }, { 2300, -250 }, { 3000, -330 } }, 700),
+	smooth({
+		{ -4495, -330 },
+		{ -3650, -350 },
+		{ -2900, -330 },
+		{ -2100, -270 },
+		{ -1240, -250 },
+		{ 1650, -250 },
+		{ 2300, -250 },
+		{ 3000, -330 },
+	}, 700),
 	{ lanes = 3, median = 12 }
 )
 
 local mission = addWay(
 	"Mission Avenue",
 	"avenue",
-	smooth({ { -4482, 700 }, { -3650, 660 }, { -2600, 630 }, { -1240, 650 }, { 1650, 650 }, { 2400, 660 }, { 3600, 720 } }, 700),
+	smooth(
+		{ { -4482, 700 }, { -3650, 660 }, { -2600, 630 }, { -1240, 650 }, { 1650, 650 }, { 2400, 660 }, { 3600, 720 } },
+		700
+	),
 	{ lanes = 2, median = 10, parking = true }
 )
 
 local sunwood = addWay(
 	"Sunwood Boulevard",
 	"avenue",
-	smooth({ { -4441, -2080 }, { -3600, -2140 }, { -2600, -2100 }, { -1500, -2170 }, { -500, -2120 }, { 500, -2160 }, { 1500, -2080 }, { 2050, -2040 }, { 2430, -1960 }, { 3150, -1820 } }, 600),
+	smooth({
+		{ -4441, -2080 },
+		{ -3600, -2140 },
+		{ -2600, -2100 },
+		{ -1500, -2170 },
+		{ -500, -2120 },
+		{ 500, -2160 },
+		{ 1500, -2080 },
+		{ 2050, -2040 },
+		{ 2430, -1960 },
+		{ 3150, -1820 },
+	}, 600),
 	{ lanes = 2, median = 8, parking = false }
 )
 
@@ -1271,7 +1475,15 @@ local liberty = addWay(
 local harbor = addWay(
 	"Harbor Avenue",
 	"avenue",
-	smooth({ { -1100, -250 }, { -1100, 650 }, { -1100, 1350 }, { -1100, 2270 }, { -1100, 2990 }, { -1100, 3480 }, { -1100, 3560 } }),
+	smooth({
+		{ -1100, -250 },
+		{ -1100, 650 },
+		{ -1100, 1350 },
+		{ -1100, 2270 },
+		{ -1100, 2990 },
+		{ -1100, 3480 },
+		{ -1100, 3560 },
+	}),
 	{ lanes = 2, median = 6, parking = false, bridges = {} }
 )
 
@@ -1285,7 +1497,10 @@ local gilded = addWay(
 local vista = addWay(
 	"Vista Avenue",
 	"avenue",
-	smooth({ { -2300, -2100 }, { -2300, -1200 }, { -2330, -300 }, { -2360, 640 }, { -2380, 1350 }, { -2400, 2250 } }, 700),
+	smooth(
+		{ { -2300, -2100 }, { -2300, -1200 }, { -2330, -300 }, { -2360, 640 }, { -2380, 1350 }, { -2400, 2250 } },
+		700
+	),
 	{ lanes = 2, median = 8, parking = true }
 )
 
@@ -1313,7 +1528,16 @@ local airportBlvd = addWay(
 local southgateAve = addWay(
 	"Southgate Avenue",
 	"avenue",
-	smooth({ { -3150, 2000 }, { -2400, 2250 }, { -1100, 2270 }, { -150, 2260 }, { 1000, 2290 }, { 2085, 2290 }, { 2450, 2300 }, { 3500, 2350 } }, 700),
+	smooth({
+		{ -3150, 2000 },
+		{ -2400, 2250 },
+		{ -1100, 2270 },
+		{ -150, 2260 },
+		{ 1000, 2290 },
+		{ 2085, 2290 },
+		{ 2450, 2300 },
+		{ 3500, 2350 },
+	}, 700),
 	{ lanes = 2, median = 8, parking = true }
 )
 
@@ -1321,15 +1545,38 @@ local southgateAve = addWay(
 local terminalLoop = addWay(
 	"Terminal Drive",
 	"avenue",
-	smooth({ { -3650, 2160 }, { -4050, 2280 }, { -4450, 2280 }, { -4600, 2120 }, { -4380, 1980 }, { -3900, 1990 }, { -3650, 2160 } }, 140),
+	smooth({
+		{ -3650, 2160 },
+		{ -4050, 2280 },
+		{ -4450, 2280 },
+		{ -4600, 2120 },
+		{ -4380, 1980 },
+		{ -3900, 1990 },
+		{ -3650, 2160 },
+	}, 140),
 	{ lanes = 2, oneWay = true, median = 0, parking = false, sidewalk = 14 }
 )
-addWay("Palmera Drive", "boulevard", smooth({ { -4700, 1900 }, { -4650, 2050 }, { -4600, 2120 } }, 100), { lanes = 2, median = 16, parking = false })
+addWay(
+	"Palmera Drive",
+	"boulevard",
+	smooth({ { -4700, 1900 }, { -4650, 2050 }, { -4600, 2120 } }, 100),
+	{ lanes = 2, median = 16, parking = false }
+)
 
 -- Hangar row road + runway (airside: restricted, no traffic).
-addWay("Hangar Road", "service", smooth({ { -3900, 1990 }, { -3500, 2560 }, { -3000, 2700 }, { -2600, 2900 } }, 300), { lanes = 1, traffic = false, keepDeadEnd = true })
+addWay(
+	"Hangar Road",
+	"service",
+	smooth({ { -3900, 1990 }, { -3500, 2560 }, { -3000, 2700 }, { -2600, 2900 } }, 300),
+	{ lanes = 1, traffic = false, keepDeadEnd = true }
+)
 addWay("Runway 09/27", "runway", { P(-5150, 3330), P(-2780, 3330) }, { lanes = 2, keepDeadEnd = true })
-addWay("Taxiway Alpha", "service", { P(-3000, 2700), P(-3000, 3150), P(-2900, 3330) }, { lanes = 1, traffic = false, keepDeadEnd = true })
+addWay(
+	"Taxiway Alpha",
+	"service",
+	{ P(-3000, 2700), P(-3000, 3150), P(-2900, 3330) },
+	{ lanes = 1, traffic = false, keepDeadEnd = true }
+)
 
 -- Coast Highway: the scenic loop (divided rural highway) from Hidden Cove around the north and east coast to Rust Flats.
 local coastHwy = addWay(
@@ -1364,7 +1611,10 @@ local coastHwy = addWay(
 local cliffside = addWay(
 	"Cliffside Road",
 	"rural",
-	smooth({ { -4440, -2160 }, { -4560, -2700 }, { -4380, -3250 }, { -3920, -3610 }, { -3350, -3760 }, { -2960, -3640 } }, 400),
+	smooth(
+		{ { -4440, -2160 }, { -4560, -2700 }, { -4380, -3250 }, { -3920, -3610 }, { -3350, -3760 }, { -2960, -3640 } },
+		400
+	),
 	{ lanes = 1 }
 )
 
@@ -1372,14 +1622,25 @@ local cliffside = addWay(
 local redMesa = addWay(
 	"Red Mesa Road",
 	"rural",
-	smooth({ { 3000, -330 }, { 3500, -520 }, { 3900, -560 }, { 4330, -560 }, { 4780, -560 }, { 5200, -640 }, { 5620, -680 } }, 500),
+	smooth({
+		{ 3000, -330 },
+		{ 3500, -520 },
+		{ 3900, -560 },
+		{ 4330, -560 },
+		{ 4780, -560 },
+		{ 5200, -640 },
+		{ 5620, -680 },
+	}, 500),
 	{ lanes = 1 }
 )
 
 local foothill = addWay(
 	"Foothill Road",
 	"rural",
-	smooth({ { 3150, -1820 }, { 3500, -2150 }, { 3720, -2600 }, { 4150, -3100 }, { 4500, -3650 }, { 4600, -4000 } }, 500),
+	smooth(
+		{ { 3150, -1820 }, { 3500, -2150 }, { 3720, -2600 }, { 4150, -3100 }, { 4500, -3650 }, { 4600, -4000 } },
+		500
+	),
 	{ lanes = 1 }
 )
 
@@ -1390,9 +1651,24 @@ local dustbowl = addWay(
 	{ lanes = 1 }
 )
 addWay("Mesa Cutoff", "rural", smooth({ { 3600, 720 }, { 3900, 900 }, { 4150, 1050 } }, 300), { lanes = 1 })
-addWay("Quarry Road", "dirt", smooth({ { 5660, -2600 }, { 5250, -2850 }, { 4700, -2950 } }, 300), { keepDeadEnd = true, traffic = false })
-addWay("Windfarm Road", "dirt", smooth({ { 3700, -4190 }, { 3900, -3700 }, { 4300, -3450 } }, 300), { keepDeadEnd = true, traffic = false })
-addWay("Northpoint Road", "rural", smooth({ { 1600, -4330 }, { 1560, -4560 } }, 100), { keepDeadEnd = true, traffic = false })
+addWay(
+	"Quarry Road",
+	"dirt",
+	smooth({ { 5660, -2600 }, { 5250, -2850 }, { 4700, -2950 } }, 300),
+	{ keepDeadEnd = true, traffic = false }
+)
+addWay(
+	"Windfarm Road",
+	"dirt",
+	smooth({ { 3700, -4190 }, { 3900, -3700 }, { 4300, -3450 } }, 300),
+	{ keepDeadEnd = true, traffic = false }
+)
+addWay(
+	"Northpoint Road",
+	"rural",
+	smooth({ { 1600, -4330 }, { 1560, -4560 } }, 100),
+	{ keepDeadEnd = true, traffic = false }
+)
 
 -- Sunwood Hills: ridge drive, switchbacks, observatory road, mansion lanes.
 local skyline = addWay(
@@ -1442,18 +1718,59 @@ addWay(
 	smooth({ { -3600, -2140 }, { -3850, -2380 }, { -3550, -2620 }, { -3900, -2840 }, { -4100, -2950 } }, 140),
 	{ lanes = 1, maxGrade = 0.15 }
 )
-addWay("Laurel Crest", "street", smooth({ { -2100, -3260 }, { -2050, -2900 }, { -2250, -2650 } }, 160), { keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 })
-addWay("Bel Mar Lane", "street", smooth({ { -950, -3180 }, { -900, -3520 }, { -1150, -3700 } }, 160), { keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 })
-addWay("Ocean Crest Way", "street", smooth({ { -3550, -3120 }, { -3450, -3480 }, { -3700, -3700 } }, 160), { keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 })
-addWay("Hollow Oak Drive", "street", smooth({ { 100, -3200 }, { 300, -3520 }, { 150, -3780 } }, 160), { keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 })
-addWay("Sunwood Terrace", "street", smooth({ { -500, -2120 }, { -700, -2380 }, { -900, -2420 } }, 120), { keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 })
-addWay("Canyon View Drive", "street", smooth({ { 700, -3050 }, { 650, -2700 }, { 900, -2450 } }, 160), { keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 })
+addWay(
+	"Laurel Crest",
+	"street",
+	smooth({ { -2100, -3260 }, { -2050, -2900 }, { -2250, -2650 } }, 160),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Bel Mar Lane",
+	"street",
+	smooth({ { -950, -3180 }, { -900, -3520 }, { -1150, -3700 } }, 160),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Ocean Crest Way",
+	"street",
+	smooth({ { -3550, -3120 }, { -3450, -3480 }, { -3700, -3700 } }, 160),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Hollow Oak Drive",
+	"street",
+	smooth({ { 100, -3200 }, { 300, -3520 }, { 150, -3780 } }, 160),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Sunwood Terrace",
+	"street",
+	smooth({ { -500, -2120 }, { -700, -2380 }, { -900, -2420 } }, 120),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
+addWay(
+	"Canyon View Drive",
+	"street",
+	smooth({ { 700, -3050 }, { 650, -2700 }, { 900, -2450 } }, 160),
+	{ keepDeadEnd = true, parking = false, sidewalk = 0, maxGrade = 0.16 }
+)
 
 -- Iron Bay: terminal ring road + container road.
 local terminalWay = addWay(
 	"Terminal Way",
 	"avenue",
-	smooth({ { -1100, 3560 }, { 700, 3560 }, { 2550, 3560 }, { 2800, 3880 }, { 2560, 4320 }, { 700, 4380 }, { -1050, 4400 }, { -1650, 4020 }, { -1550, 3640 }, { -1100, 3560 } }, 220),
+	smooth({
+		{ -1100, 3560 },
+		{ 700, 3560 },
+		{ 2550, 3560 },
+		{ 2800, 3880 },
+		{ 2560, 4320 },
+		{ 700, 4380 },
+		{ -1050, 4400 },
+		{ -1650, 4020 },
+		{ -1550, 3640 },
+		{ -1100, 3560 },
+	}, 220),
 	{ lanes = 2, median = 0, parking = false, sidewalk = 10 }
 )
 addWay("Container Road", "street", { P(-1600, 4000), P(700, 4020), P(2780, 3980) }, { parking = false, sidewalk = 8 })
@@ -1580,8 +1897,25 @@ local GRIDS: { GridSpec } = {
 		oneWayU = { [1] = 1, [2] = -1, [3] = 1, [4] = -1, [5] = 1, [6] = -1 },
 		oneWayV = { [2] = 1, [3] = -1, [4] = 1, [5] = -1, [6] = 1, [7] = -1 },
 		drop = 0.04,
-		namesU = { "Ash Street", "Birch Street", "Cedar Street", "Dover Street", "Elm Street", "Flint Street", "Granite Street" },
-		namesV = { "1st Street", "2nd Street", "3rd Street", "4th Street", "6th Street", "7th Street", "9th Street", "10th Street" },
+		namesU = {
+			"Ash Street",
+			"Birch Street",
+			"Cedar Street",
+			"Dover Street",
+			"Elm Street",
+			"Flint Street",
+			"Granite Street",
+		},
+		namesV = {
+			"1st Street",
+			"2nd Street",
+			"3rd Street",
+			"4th Street",
+			"6th Street",
+			"7th Street",
+			"9th Street",
+			"10th Street",
+		},
 		seed = 101,
 	},
 	{
@@ -1593,8 +1927,31 @@ local GRIDS: { GridSpec } = {
 		clip = poly({ { -3570, -1700 }, { -1240, -1700 }, { -1240, 1280 }, { -3570, 1280 } }),
 		parking = true,
 		drop = 0.12,
-		namesU = { "Rosewood Ave", "Larchmont St", "Fairfax St", "La Paz St", "Highland St", "Orange St", "Cahuenga St", "Wilcox St", "Gower St" },
-		namesV = { "Fountain St", "Romaine St", "Willoughby St", "Melrose St", "Beverly St", "Rosalind St", "Oakwood St", "Clinton St", "Rangely St", "Waring St", "Lemon St", "Lindo St" },
+		namesU = {
+			"Rosewood Ave",
+			"Larchmont St",
+			"Fairfax St",
+			"La Paz St",
+			"Highland St",
+			"Orange St",
+			"Cahuenga St",
+			"Wilcox St",
+			"Gower St",
+		},
+		namesV = {
+			"Fountain St",
+			"Romaine St",
+			"Willoughby St",
+			"Melrose St",
+			"Beverly St",
+			"Rosalind St",
+			"Oakwood St",
+			"Clinton St",
+			"Rangely St",
+			"Waring St",
+			"Lemon St",
+			"Lindo St",
+		},
 		seed = 202,
 	},
 	{
@@ -1607,7 +1964,22 @@ local GRIDS: { GridSpec } = {
 		parking = true,
 		drop = 0.0,
 		namesU = { "Breaker Street" },
-		namesV = { "Coral St", "Shell St", "Marlin St", "Pelican St", "Sandbar St", "Tarpon St", "Kelp St", "Gull St", "Reef St", "Tide St", "Dune St", "Surf St", "Wave St", "Palm St" },
+		namesV = {
+			"Coral St",
+			"Shell St",
+			"Marlin St",
+			"Pelican St",
+			"Sandbar St",
+			"Tarpon St",
+			"Kelp St",
+			"Gull St",
+			"Reef St",
+			"Tide St",
+			"Dune St",
+			"Surf St",
+			"Wave St",
+			"Palm St",
+		},
 		seed = 303,
 	},
 	{
@@ -1620,7 +1992,20 @@ local GRIDS: { GridSpec } = {
 		parking = true,
 		warp = { 55, 1100 },
 		drop = 0.1,
-		namesU = { "Alameda St", "Avalon Blvd", "Compton St", "Denker Ave", "Ely St", "Figueroa St", "Grand St", "Hoover St", "Imperial St", "Jefferson St", "Kansas Ave", "Lemon Ave" },
+		namesU = {
+			"Alameda St",
+			"Avalon Blvd",
+			"Compton St",
+			"Denker Ave",
+			"Ely St",
+			"Figueroa St",
+			"Grand St",
+			"Hoover St",
+			"Imperial St",
+			"Jefferson St",
+			"Kansas Ave",
+			"Lemon Ave",
+		},
 		namesV = { "Grove Street", "Forest Ave", "Jamestown Rd", "Kingsley Dr", "Normandie St", "Orchard Ave" },
 		seed = 404,
 	},
@@ -1905,7 +2290,16 @@ local function cleanGenerated()
 	local arterials: { Way } = {}
 	for i = 1, authoredCount do
 		local w = ways[i]
-		if w.layer == 0 and (w.class == "boulevard" or w.class == "avenue" or w.class == "street" or w.class == "highway" or w.class == "rural") then
+		if
+			w.layer == 0
+			and (
+				w.class == "boulevard"
+				or w.class == "avenue"
+				or w.class == "street"
+				or w.class == "highway"
+				or w.class == "rural"
+			)
+		then
 			table.insert(arterials, w)
 		end
 	end
@@ -2206,7 +2600,9 @@ local function alignWay(w: Way)
 		-- backward pass
 		local nextY: number? = nil
 		for k = n, 1, -1 do
-			local seg = if k < n then WorldGen.dist(withPins[k].x, withPins[k].z, withPins[k + 1].x, withPins[k + 1].z) else 0
+			local seg = if k < n
+				then WorldGen.dist(withPins[k].x, withPins[k].z, withPins[k + 1].x, withPins[k + 1].z)
+				else 0
 			local y = ys[k]
 			if nextY ~= nil then
 				y = math.clamp(y, (nextY :: number) - g * seg, (nextY :: number) + g * seg)
@@ -2501,7 +2897,8 @@ export type Intersection = {
 }
 
 local MAJOR: { [string]: boolean } = { boulevard = true, avenue = true, highway = true }
-local URBAN: { [string]: boolean } = { downtown = true, midtown = true, beach = true, foundry = true, port = true, airport = true }
+local URBAN: { [string]: boolean } =
+	{ downtown = true, midtown = true, beach = true, foundry = true, port = true, airport = true }
 
 local Intersections: { Intersection } = {}
 
@@ -2746,12 +3143,19 @@ export type Plot = {
 type Reserved = { obb: WorldGen.OBB, what: string }
 local reserved: { Reserved } = {}
 
-local FRONTAGE_CLASSES: { [string]: boolean } = { boulevard = true, avenue = true, street = true, rural = true, highway = true }
+local FRONTAGE_CLASSES: { [string]: boolean } =
+	{ boulevard = true, avenue = true, street = true, rural = true, highway = true }
 
 type PlaceOpts = { classes: { [string]: boolean }?, setback: number?, side: number?, road: string? }
 
 -- Place a w x d footprint fronting the road nearest (x, z). Returns cframe, entrance, edge, obb (or nil).
-local function placeOnFrontage(x: number, z: number, w: number, d: number, o: PlaceOpts?): (CFrame?, Vector3, number, WorldGen.OBB?)
+local function placeOnFrontage(
+	x: number,
+	z: number,
+	w: number,
+	d: number,
+	o: PlaceOpts?
+): (CFrame?, Vector3, number, WorldGen.OBB?)
 	local opts: PlaceOpts = o or {}
 	local classes = opts.classes or FRONTAGE_CLASSES
 	local ei = WorldGen.nearestEdge(edgeIndex, x, z, 900, function(i: number): boolean
@@ -2832,78 +3236,600 @@ end
 -- Hotwire City POIs (parody brands of our own; never Rockstar names). at = rough position, snapped to a frontage.
 local POI_DEFS: { PoiDef } = {
 	-- Hub / onboarding
-	{ id = "HotwirePlaza", name = "Hotwire Plaza", kind = "plaza", at = { 320, -100 }, size = { 280, 0, 260 }, road = "Crown Boulevard", setback = 0, tags = { "events", "cashRain", "defaultSpawn" } },
+	{
+		id = "HotwirePlaza",
+		name = "Hotwire Plaza",
+		kind = "plaza",
+		at = { 320, -100 },
+		size = { 280, 0, 260 },
+		road = "Crown Boulevard",
+		setback = 0,
+		tags = { "events", "cashRain", "defaultSpawn" },
+	},
 	-- Cars
-	{ id = "Dealership", name = "Hotwire Motors", kind = "dealership", at = { -2000, -400 }, size = { 260, 40, 190 }, road = "Crown Boulevard", setback = 10, tags = { "showroom" } },
-	{ id = "LuxuryDealer", name = "Legendaire Autos", kind = "dealership", brand = "Legendaire", at = { -2650, -950 }, size = { 200, 36, 150 }, road = "Gilded Mile", setback = 10, tags = { "showroom", "luxury" } },
-	{ id = "CustomsRust", name = "Hotwire Customs", kind = "customs", brand = "Hotwire Customs", at = { 2600, 1700 }, size = { 150, 30, 130 }, setback = 12 },
-	{ id = "CustomsBeach", name = "Hotwire Customs Palmera", kind = "customs", brand = "Hotwire Customs", at = { -3950, 1250 }, size = { 140, 30, 120 }, setback = 12 },
-	{ id = "CustomsCactus", name = "Hotwire Customs Red Mesa", kind = "customs", brand = "Hotwire Customs", at = { 4600, -420 }, size = { 130, 28, 110 }, setback = 12 },
-	{ id = "SprayMidtown", name = "Fresh Coat Midtown", kind = "spray", brand = "Fresh Coat", at = { -3300, 300 }, size = { 90, 26, 90 }, setback = 8 },
-	{ id = "SpraySouthgate", name = "Fresh Coat Southgate", kind = "spray", brand = "Fresh Coat", at = { 300, 2700 }, size = { 90, 26, 90 }, setback = 8 },
-	{ id = "SprayFoundry", name = "Fresh Coat Foundry", kind = "spray", brand = "Fresh Coat", at = { 3000, -1250 }, size = { 90, 26, 90 }, setback = 8 },
-	{ id = "SprayHills", name = "Fresh Coat Sunwood", kind = "spray", brand = "Fresh Coat", at = { -3300, -2200 }, size = { 90, 26, 90 }, road = "Sunwood Boulevard", setback = 8 },
-	{ id = "SprayMesa", name = "Fresh Coat Coastside", kind = "spray", brand = "Fresh Coat", at = { 5450, 1700 }, size = { 90, 26, 90 }, road = "Coast Highway", setback = 20 },
-	{ id = "ChopShop", name = "Rusty's Chop Shop", kind = "chop", at = { 3300, 2550 }, size = { 220, 30, 200 }, setback = 16, tags = { "junkyard" } },
-	{ id = "ChopPort", name = "Dockside Salvage", kind = "chop", at = { 2300, 4250 }, size = { 160, 28, 140 }, road = "Terminal Way", setback = 16 },
+	{
+		id = "Dealership",
+		name = "Hotwire Motors",
+		kind = "dealership",
+		at = { -2000, -400 },
+		size = { 260, 40, 190 },
+		road = "Crown Boulevard",
+		setback = 10,
+		tags = { "showroom" },
+	},
+	{
+		id = "LuxuryDealer",
+		name = "Legendaire Autos",
+		kind = "dealership",
+		brand = "Legendaire",
+		at = { -2650, -950 },
+		size = { 200, 36, 150 },
+		road = "Gilded Mile",
+		setback = 10,
+		tags = { "showroom", "luxury" },
+	},
+	{
+		id = "CustomsRust",
+		name = "Hotwire Customs",
+		kind = "customs",
+		brand = "Hotwire Customs",
+		at = { 2600, 1700 },
+		size = { 150, 30, 130 },
+		setback = 12,
+	},
+	{
+		id = "CustomsBeach",
+		name = "Hotwire Customs Palmera",
+		kind = "customs",
+		brand = "Hotwire Customs",
+		at = { -3950, 1250 },
+		size = { 140, 30, 120 },
+		setback = 12,
+	},
+	{
+		id = "CustomsCactus",
+		name = "Hotwire Customs Red Mesa",
+		kind = "customs",
+		brand = "Hotwire Customs",
+		at = { 4600, -420 },
+		size = { 130, 28, 110 },
+		setback = 12,
+	},
+	{
+		id = "SprayMidtown",
+		name = "Fresh Coat Midtown",
+		kind = "spray",
+		brand = "Fresh Coat",
+		at = { -3300, 300 },
+		size = { 90, 26, 90 },
+		setback = 8,
+	},
+	{
+		id = "SpraySouthgate",
+		name = "Fresh Coat Southgate",
+		kind = "spray",
+		brand = "Fresh Coat",
+		at = { 300, 2700 },
+		size = { 90, 26, 90 },
+		setback = 8,
+	},
+	{
+		id = "SprayFoundry",
+		name = "Fresh Coat Foundry",
+		kind = "spray",
+		brand = "Fresh Coat",
+		at = { 3000, -1250 },
+		size = { 90, 26, 90 },
+		setback = 8,
+	},
+	{
+		id = "SprayHills",
+		name = "Fresh Coat Sunwood",
+		kind = "spray",
+		brand = "Fresh Coat",
+		at = { -3300, -2200 },
+		size = { 90, 26, 90 },
+		road = "Sunwood Boulevard",
+		setback = 8,
+	},
+	{
+		id = "SprayMesa",
+		name = "Fresh Coat Coastside",
+		kind = "spray",
+		brand = "Fresh Coat",
+		at = { 5450, 1700 },
+		size = { 90, 26, 90 },
+		road = "Coast Highway",
+		setback = 20,
+	},
+	{
+		id = "ChopShop",
+		name = "Rusty's Chop Shop",
+		kind = "chop",
+		at = { 3300, 2550 },
+		size = { 220, 30, 200 },
+		setback = 16,
+		tags = { "junkyard" },
+	},
+	{
+		id = "ChopPort",
+		name = "Dockside Salvage",
+		kind = "chop",
+		at = { 2300, 4250 },
+		size = { 160, 28, 140 },
+		road = "Terminal Way",
+		setback = 16,
+	},
 	-- Weapons
-	{ id = "GunSouthgate", name = "Lock & Load Southgate", kind = "gunshop", brand = "Lock & Load", at = { -600, 2350 }, size = { 70, 22, 80 }, setback = 4 },
-	{ id = "GunFoundry", name = "Lock & Load Foundry", kind = "gunshop", brand = "Lock & Load", at = { 2700, -120 }, size = { 70, 22, 80 }, setback = 4 },
-	{ id = "GunBeach", name = "Lock & Load Palmera", kind = "gunshop", brand = "Lock & Load", at = { -4150, 900 }, size = { 70, 22, 80 }, setback = 4 },
-	{ id = "GunCactus", name = "Lock & Load Red Mesa", kind = "gunshop", brand = "Lock & Load", at = { 4200, -680 }, size = { 70, 22, 80 }, setback = 6 },
+	{
+		id = "GunSouthgate",
+		name = "Lock & Load Southgate",
+		kind = "gunshop",
+		brand = "Lock & Load",
+		at = { -600, 2350 },
+		size = { 70, 22, 80 },
+		setback = 4,
+	},
+	{
+		id = "GunFoundry",
+		name = "Lock & Load Foundry",
+		kind = "gunshop",
+		brand = "Lock & Load",
+		at = { 2700, -120 },
+		size = { 70, 22, 80 },
+		setback = 4,
+	},
+	{
+		id = "GunBeach",
+		name = "Lock & Load Palmera",
+		kind = "gunshop",
+		brand = "Lock & Load",
+		at = { -4150, 900 },
+		size = { 70, 22, 80 },
+		setback = 4,
+	},
+	{
+		id = "GunCactus",
+		name = "Lock & Load Red Mesa",
+		kind = "gunshop",
+		brand = "Lock & Load",
+		at = { 4200, -680 },
+		size = { 70, 22, 80 },
+		setback = 6,
+	},
 	-- Money
-	{ id = "Bank", name = "Pinnacle Reserve Bank", kind = "bank", at = { -500, -250 }, size = { 220, 160, 170 }, road = "Crown Boulevard", setback = 10, tags = { "heist", "vault" } },
-	{ id = "BranchMidtown", name = "Coinstack Savings Midtown", kind = "bank_branch", brand = "Coinstack", at = { -2600, 320 }, size = { 80, 26, 80 }, tags = { "armoredStop", "robbable" } },
-	{ id = "BranchBeach", name = "Coinstack Savings Palmera", kind = "bank_branch", brand = "Coinstack", at = { -4250, -1300 }, size = { 80, 26, 80 }, tags = { "armoredStop", "robbable" } },
-	{ id = "BranchSouthgate", name = "Coinstack Savings Southgate", kind = "bank_branch", brand = "Coinstack", at = { -1000, 1900 }, size = { 80, 26, 80 }, tags = { "armoredStop", "robbable" } },
-	{ id = "BranchFoundry", name = "Coinstack Savings Foundry", kind = "bank_branch", brand = "Coinstack", at = { 2650, -650 }, size = { 80, 26, 80 }, tags = { "armoredStop", "robbable" } },
-	{ id = "BranchCactus", name = "Coinstack Savings Red Mesa", kind = "bank_branch", brand = "Coinstack", at = { 4420, -450 }, size = { 70, 22, 70 }, tags = { "armoredStop", "robbable" } },
-	{ id = "Jewelry", name = "Glitter & Gold Jewelers", kind = "jewelry", at = { -2250, -680 }, size = { 90, 40, 90 }, road = "Gilded Mile", setback = 4, tags = { "heist", "robbable" } },
-	{ id = "ArmoredDepot", name = "Stackhouse Security Depot", kind = "armored_depot", at = { 2950, 1900 }, size = { 220, 30, 180 }, setback = 16, tags = { "armoredStart" } },
+	{
+		id = "Bank",
+		name = "Pinnacle Reserve Bank",
+		kind = "bank",
+		at = { -500, -250 },
+		size = { 220, 160, 170 },
+		road = "Crown Boulevard",
+		setback = 10,
+		tags = { "heist", "vault" },
+	},
+	{
+		id = "BranchMidtown",
+		name = "Coinstack Savings Midtown",
+		kind = "bank_branch",
+		brand = "Coinstack",
+		at = { -2600, 320 },
+		size = { 80, 26, 80 },
+		tags = { "armoredStop", "robbable" },
+	},
+	{
+		id = "BranchBeach",
+		name = "Coinstack Savings Palmera",
+		kind = "bank_branch",
+		brand = "Coinstack",
+		at = { -4250, -1300 },
+		size = { 80, 26, 80 },
+		tags = { "armoredStop", "robbable" },
+	},
+	{
+		id = "BranchSouthgate",
+		name = "Coinstack Savings Southgate",
+		kind = "bank_branch",
+		brand = "Coinstack",
+		at = { -1000, 1900 },
+		size = { 80, 26, 80 },
+		tags = { "armoredStop", "robbable" },
+	},
+	{
+		id = "BranchFoundry",
+		name = "Coinstack Savings Foundry",
+		kind = "bank_branch",
+		brand = "Coinstack",
+		at = { 2650, -650 },
+		size = { 80, 26, 80 },
+		tags = { "armoredStop", "robbable" },
+	},
+	{
+		id = "BranchCactus",
+		name = "Coinstack Savings Red Mesa",
+		kind = "bank_branch",
+		brand = "Coinstack",
+		at = { 4420, -450 },
+		size = { 70, 22, 70 },
+		tags = { "armoredStop", "robbable" },
+	},
+	{
+		id = "Jewelry",
+		name = "Glitter & Gold Jewelers",
+		kind = "jewelry",
+		at = { -2250, -680 },
+		size = { 90, 40, 90 },
+		road = "Gilded Mile",
+		setback = 4,
+		tags = { "heist", "robbable" },
+	},
+	{
+		id = "ArmoredDepot",
+		name = "Stackhouse Security Depot",
+		kind = "armored_depot",
+		at = { 2950, 1900 },
+		size = { 220, 30, 180 },
+		setback = 16,
+		tags = { "armoredStart" },
+	},
 	-- Convenience stores (robbable)
-	{ id = "StoreSouthgate", name = "QuikStop 24 Southgate", kind = "convenience", brand = "QuikStop 24", at = { 100, 2600 }, size = { 70, 18, 70 }, tags = { "robbable" } },
-	{ id = "StoreBeach", name = "Sip-N-Go Palmera", kind = "convenience", brand = "Sip-N-Go", at = { -4200, 300 }, size = { 70, 18, 70 }, tags = { "robbable" } },
-	{ id = "StoreMidtown", name = "Lucky Mart Midtown", kind = "convenience", brand = "Lucky Mart", at = { -3200, -900 }, size = { 70, 18, 70 }, tags = { "robbable" } },
-	{ id = "StoreRust", name = "QuikStop 24 Rust Flats", kind = "convenience", brand = "QuikStop 24", at = { 2900, 2200 }, size = { 70, 18, 70 }, tags = { "robbable" } },
-	{ id = "StoreFoundry", name = "Sip-N-Go Foundry", kind = "convenience", brand = "Sip-N-Go", at = { 2300, -1500 }, size = { 70, 18, 70 }, tags = { "robbable" } },
-	{ id = "StoreCactus", name = "Lucky Mart Red Mesa", kind = "convenience", brand = "Lucky Mart", at = { 4150, -400 }, size = { 70, 18, 70 }, tags = { "robbable" } },
-	{ id = "StoreHills", name = "QuikStop 24 Sunwood", kind = "convenience", brand = "QuikStop 24", at = { -1000, -2250 }, size = { 70, 18, 70 }, road = "Sunwood Boulevard", tags = { "robbable" } },
-	{ id = "StoreDowntown", name = "Sip-N-Go Pinnacle", kind = "convenience", brand = "Sip-N-Go", at = { 900, 900 }, size = { 60, 18, 60 }, tags = { "robbable" } },
+	{
+		id = "StoreSouthgate",
+		name = "QuikStop 24 Southgate",
+		kind = "convenience",
+		brand = "QuikStop 24",
+		at = { 100, 2600 },
+		size = { 70, 18, 70 },
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreBeach",
+		name = "Sip-N-Go Palmera",
+		kind = "convenience",
+		brand = "Sip-N-Go",
+		at = { -4200, 300 },
+		size = { 70, 18, 70 },
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreMidtown",
+		name = "Lucky Mart Midtown",
+		kind = "convenience",
+		brand = "Lucky Mart",
+		at = { -3200, -900 },
+		size = { 70, 18, 70 },
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreRust",
+		name = "QuikStop 24 Rust Flats",
+		kind = "convenience",
+		brand = "QuikStop 24",
+		at = { 2900, 2200 },
+		size = { 70, 18, 70 },
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreFoundry",
+		name = "Sip-N-Go Foundry",
+		kind = "convenience",
+		brand = "Sip-N-Go",
+		at = { 2300, -1500 },
+		size = { 70, 18, 70 },
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreCactus",
+		name = "Lucky Mart Red Mesa",
+		kind = "convenience",
+		brand = "Lucky Mart",
+		at = { 4150, -400 },
+		size = { 70, 18, 70 },
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreHills",
+		name = "QuikStop 24 Sunwood",
+		kind = "convenience",
+		brand = "QuikStop 24",
+		at = { -1000, -2250 },
+		size = { 70, 18, 70 },
+		road = "Sunwood Boulevard",
+		tags = { "robbable" },
+	},
+	{
+		id = "StoreDowntown",
+		name = "Sip-N-Go Pinnacle",
+		kind = "convenience",
+		brand = "Sip-N-Go",
+		at = { 900, 900 },
+		size = { 60, 18, 60 },
+		tags = { "robbable" },
+	},
 	-- Gas stations (robbable kiosk, fuel = cosmetic for now)
-	{ id = "GasMidtown", name = "Petrolux Midtown", kind = "gas", brand = "Petrolux", at = { -1700, 1000 }, size = { 140, 20, 120 }, setback = 4 },
-	{ id = "GasSouthgate", name = "Sunburst Gas Southgate", kind = "gas", brand = "Sunburst", at = { -2200, 2700 }, size = { 140, 20, 120 }, setback = 4 },
-	{ id = "GasFoundry", name = "Petrolux Foundry", kind = "gas", brand = "Petrolux", at = { 3100, -1650 }, size = { 140, 20, 120 }, setback = 4 },
-	{ id = "GasRust", name = "Sunburst Gas Rust Flats", kind = "gas", brand = "Sunburst", at = { 3350, 700 }, size = { 140, 20, 120 }, setback = 4 },
-	{ id = "GasBeach", name = "Petrolux Palmera", kind = "gas", brand = "Petrolux", at = { -4250, 1450 }, size = { 140, 20, 120 }, setback = 4 },
-	{ id = "GasCoastNorth", name = "Sunburst Gas Hidden Cove", kind = "gas", brand = "Sunburst", at = { -2300, -3900 }, size = { 140, 20, 120 }, road = "Coast Highway", setback = 20 },
-	{ id = "GasRedMesa", name = "Petrolux Red Mesa", kind = "gas", brand = "Petrolux", at = { 5300, -700 }, size = { 140, 20, 120 }, road = "Red Mesa Road", setback = 20 },
-	{ id = "GasCoastEast", name = "Sunburst Gas Dustbowl", kind = "gas", brand = "Sunburst", at = { 5150, 2750 }, size = { 140, 20, 120 }, road = "Coast Highway", setback = 20 },
-	{ id = "GasCactus", name = "Fuel Rush Cactus Junction", kind = "gas", brand = "Fuel Rush", at = { 4600, -620 }, size = { 120, 20, 110 }, setback = 6 },
+	{
+		id = "GasMidtown",
+		name = "Petrolux Midtown",
+		kind = "gas",
+		brand = "Petrolux",
+		at = { -1700, 1000 },
+		size = { 140, 20, 120 },
+		setback = 4,
+	},
+	{
+		id = "GasSouthgate",
+		name = "Sunburst Gas Southgate",
+		kind = "gas",
+		brand = "Sunburst",
+		at = { -2200, 2700 },
+		size = { 140, 20, 120 },
+		setback = 4,
+	},
+	{
+		id = "GasFoundry",
+		name = "Petrolux Foundry",
+		kind = "gas",
+		brand = "Petrolux",
+		at = { 3100, -1650 },
+		size = { 140, 20, 120 },
+		setback = 4,
+	},
+	{
+		id = "GasRust",
+		name = "Sunburst Gas Rust Flats",
+		kind = "gas",
+		brand = "Sunburst",
+		at = { 3350, 700 },
+		size = { 140, 20, 120 },
+		setback = 4,
+	},
+	{
+		id = "GasBeach",
+		name = "Petrolux Palmera",
+		kind = "gas",
+		brand = "Petrolux",
+		at = { -4250, 1450 },
+		size = { 140, 20, 120 },
+		setback = 4,
+	},
+	{
+		id = "GasCoastNorth",
+		name = "Sunburst Gas Hidden Cove",
+		kind = "gas",
+		brand = "Sunburst",
+		at = { -2300, -3900 },
+		size = { 140, 20, 120 },
+		road = "Coast Highway",
+		setback = 20,
+	},
+	{
+		id = "GasRedMesa",
+		name = "Petrolux Red Mesa",
+		kind = "gas",
+		brand = "Petrolux",
+		at = { 5300, -700 },
+		size = { 140, 20, 120 },
+		road = "Red Mesa Road",
+		setback = 20,
+	},
+	{
+		id = "GasCoastEast",
+		name = "Sunburst Gas Dustbowl",
+		kind = "gas",
+		brand = "Sunburst",
+		at = { 5150, 2750 },
+		size = { 140, 20, 120 },
+		road = "Coast Highway",
+		setback = 20,
+	},
+	{
+		id = "GasCactus",
+		name = "Fuel Rush Cactus Junction",
+		kind = "gas",
+		brand = "Fuel Rush",
+		at = { 4600, -620 },
+		size = { 120, 20, 110 },
+		setback = 6,
+	},
 	-- Police (HCPD)
-	{ id = "PoliceHQ", name = "HCPD Headquarters", kind = "police", at = { -700, 350 }, size = { 220, 90, 180 }, setback = 10, tags = { "policeSpawn", "jail", "bustedRelease", "helipad" } },
-	{ id = "PoliceBeach", name = "HCPD Palmera Precinct", kind = "police", at = { -4000, -800 }, size = { 120, 34, 110 }, tags = { "policeSpawn" } },
-	{ id = "PoliceSouthgate", name = "HCPD Southgate Precinct", kind = "police", at = { -300, 1950 }, size = { 120, 34, 110 }, tags = { "policeSpawn" } },
-	{ id = "PoliceHills", name = "HCPD Sunwood Precinct", kind = "police", at = { -2700, -2200 }, size = { 120, 34, 110 }, road = "Sunwood Boulevard", tags = { "policeSpawn" } },
-	{ id = "PoliceFoundry", name = "HCPD Foundry Precinct", kind = "police", at = { 2300, 1050 }, size = { 120, 34, 110 }, tags = { "policeSpawn" } },
-	{ id = "PoliceSheriff", name = "Red Mesa Sheriff", kind = "police", at = { 4400, -250 }, size = { 110, 26, 100 }, tags = { "policeSpawn" } },
-	{ id = "PolicePort", name = "Port Authority Police", kind = "police", at = { 1500, 3650 }, size = { 120, 30, 100 }, road = "Terminal Way", tags = { "policeSpawn" } },
-	{ id = "PoliceAirport", name = "Airport Police", kind = "police", at = { -3800, 2000 }, size = { 110, 30, 100 }, road = "Terminal Drive", tags = { "policeSpawn" } },
+	{
+		id = "PoliceHQ",
+		name = "HCPD Headquarters",
+		kind = "police",
+		at = { -700, 350 },
+		size = { 220, 90, 180 },
+		setback = 10,
+		tags = { "policeSpawn", "jail", "bustedRelease", "helipad" },
+	},
+	{
+		id = "PoliceBeach",
+		name = "HCPD Palmera Precinct",
+		kind = "police",
+		at = { -4000, -800 },
+		size = { 120, 34, 110 },
+		tags = { "policeSpawn" },
+	},
+	{
+		id = "PoliceSouthgate",
+		name = "HCPD Southgate Precinct",
+		kind = "police",
+		at = { -300, 1950 },
+		size = { 120, 34, 110 },
+		tags = { "policeSpawn" },
+	},
+	{
+		id = "PoliceHills",
+		name = "HCPD Sunwood Precinct",
+		kind = "police",
+		at = { -2700, -2200 },
+		size = { 120, 34, 110 },
+		road = "Sunwood Boulevard",
+		tags = { "policeSpawn" },
+	},
+	{
+		id = "PoliceFoundry",
+		name = "HCPD Foundry Precinct",
+		kind = "police",
+		at = { 2300, 1050 },
+		size = { 120, 34, 110 },
+		tags = { "policeSpawn" },
+	},
+	{
+		id = "PoliceSheriff",
+		name = "Red Mesa Sheriff",
+		kind = "police",
+		at = { 4400, -250 },
+		size = { 110, 26, 100 },
+		tags = { "policeSpawn" },
+	},
+	{
+		id = "PolicePort",
+		name = "Port Authority Police",
+		kind = "police",
+		at = { 1500, 3650 },
+		size = { 120, 30, 100 },
+		road = "Terminal Way",
+		tags = { "policeSpawn" },
+	},
+	{
+		id = "PoliceAirport",
+		name = "Airport Police",
+		kind = "police",
+		at = { -3800, 2000 },
+		size = { 110, 30, 100 },
+		road = "Terminal Drive",
+		tags = { "policeSpawn" },
+	},
 	-- Hospitals (WASTED respawn)
-	{ id = "HospitalCentral", name = "Mount Mercy Medical Center", kind = "hospital", at = { 1000, -900 }, size = { 240, 150, 200 }, setback = 12, tags = { "respawn", "helipad" } },
-	{ id = "HospitalSouthgate", name = "Southgate Community Hospital", kind = "hospital", at = { -1500, 2650 }, size = { 200, 70, 160 }, setback = 12, tags = { "respawn" } },
-	{ id = "HospitalBeach", name = "Palmera Beach Clinic", kind = "hospital", at = { -4150, -1800 }, size = { 140, 50, 120 }, setback = 10, tags = { "respawn" } },
-	{ id = "HospitalMesa", name = "Red Mesa Medical", kind = "hospital", at = { 4100, -820 }, size = { 120, 30, 110 }, setback = 10, tags = { "respawn" } },
-	{ id = "HospitalFoundry", name = "Foundry Urgent Care", kind = "hospital", at = { 2700, -1500 }, size = { 140, 50, 120 }, setback = 10, tags = { "respawn" } },
+	{
+		id = "HospitalCentral",
+		name = "Mount Mercy Medical Center",
+		kind = "hospital",
+		at = { 1000, -900 },
+		size = { 240, 150, 200 },
+		setback = 12,
+		tags = { "respawn", "helipad" },
+	},
+	{
+		id = "HospitalSouthgate",
+		name = "Southgate Community Hospital",
+		kind = "hospital",
+		at = { -1500, 2650 },
+		size = { 200, 70, 160 },
+		setback = 12,
+		tags = { "respawn" },
+	},
+	{
+		id = "HospitalBeach",
+		name = "Palmera Beach Clinic",
+		kind = "hospital",
+		at = { -4150, -1800 },
+		size = { 140, 50, 120 },
+		setback = 10,
+		tags = { "respawn" },
+	},
+	{
+		id = "HospitalMesa",
+		name = "Red Mesa Medical",
+		kind = "hospital",
+		at = { 4100, -820 },
+		size = { 120, 30, 110 },
+		setback = 10,
+		tags = { "respawn" },
+	},
+	{
+		id = "HospitalFoundry",
+		name = "Foundry Urgent Care",
+		kind = "hospital",
+		at = { 2700, -1500 },
+		size = { 140, 50, 120 },
+		setback = 10,
+		tags = { "respawn" },
+	},
 	-- Landmark buildings with a frontage
-	{ id = "PinnacleTower", name = "Pinnacle Tower", kind = "landmark", at = { 330, -560 }, size = { 160, 760, 150 }, setback = 6, tags = { "tallest", "helipad", "skyline" } },
-	{ id = "Casino", name = "Lucky Seven Casino", kind = "landmark", at = { -2250, -1450 }, size = { 260, 120, 200 }, road = "Gilded Mile", setback = 20, tags = { "futureHeist" } },
-	{ id = "Arena", name = "Iron Bay Arena", kind = "landmark", at = { 1150, 2700 }, size = { 320, 60, 280 }, setback = 30 },
-	{ id = "Observatory", name = "Starview Observatory", kind = "landmark", at = { -520, -3080 }, size = { 160, 50, 120 }, road = "Starview Road", setback = 20, tags = { "lookout" } },
-	{ id = "Motel", name = "Sleepy Cactus Motel", kind = "motel", at = { 3980, -560 }, size = { 160, 22, 90 }, road = "Red Mesa Road", setback = 16 },
-	{ id = "Diner", name = "Rattlesnake Diner", kind = "diner", at = { 4560, -520 }, size = { 70, 18, 60 }, road = "Red Mesa Road", setback = 12 },
-	{ id = "Terminal", name = "HCI Terminal", kind = "airport_terminal", at = { -4100, 2330 }, size = { 520, 70, 220 }, road = "Terminal Drive", setback = 10, tags = { "rareSpawns" } },
-	{ id = "PortOffice", name = "Iron Bay Harbor Master", kind = "port_office", at = { -900, 3620 }, size = { 120, 40, 100 }, road = "Terminal Way", setback = 10 },
-	{ id = "MuscleBeach", name = "Muscle Beach Gym", kind = "gym", at = { -4520, 100 }, size = { 120, 6, 90 }, road = "Palmera Drive", setback = 4 },
+	{
+		id = "PinnacleTower",
+		name = "Pinnacle Tower",
+		kind = "landmark",
+		at = { 330, -560 },
+		size = { 160, 760, 150 },
+		setback = 6,
+		tags = { "tallest", "helipad", "skyline" },
+	},
+	{
+		id = "Casino",
+		name = "Lucky Seven Casino",
+		kind = "landmark",
+		at = { -2250, -1450 },
+		size = { 260, 120, 200 },
+		road = "Gilded Mile",
+		setback = 20,
+		tags = { "futureHeist" },
+	},
+	{
+		id = "Arena",
+		name = "Iron Bay Arena",
+		kind = "landmark",
+		at = { 1150, 2700 },
+		size = { 320, 60, 280 },
+		setback = 30,
+	},
+	{
+		id = "Observatory",
+		name = "Starview Observatory",
+		kind = "landmark",
+		at = { -520, -3080 },
+		size = { 160, 50, 120 },
+		road = "Starview Road",
+		setback = 20,
+		tags = { "lookout" },
+	},
+	{
+		id = "Motel",
+		name = "Sleepy Cactus Motel",
+		kind = "motel",
+		at = { 3980, -560 },
+		size = { 160, 22, 90 },
+		road = "Red Mesa Road",
+		setback = 16,
+	},
+	{
+		id = "Diner",
+		name = "Rattlesnake Diner",
+		kind = "diner",
+		at = { 4560, -520 },
+		size = { 70, 18, 60 },
+		road = "Red Mesa Road",
+		setback = 12,
+	},
+	{
+		id = "Terminal",
+		name = "HCI Terminal",
+		kind = "airport_terminal",
+		at = { -4100, 2330 },
+		size = { 520, 70, 220 },
+		road = "Terminal Drive",
+		setback = 10,
+		tags = { "rareSpawns" },
+	},
+	{
+		id = "PortOffice",
+		name = "Iron Bay Harbor Master",
+		kind = "port_office",
+		at = { -900, 3620 },
+		size = { 120, 40, 100 },
+		road = "Terminal Way",
+		setback = 10,
+	},
+	{
+		id = "MuscleBeach",
+		name = "Muscle Beach Gym",
+		kind = "gym",
+		at = { -4520, 100 },
+		size = { 120, 6, 90 },
+		road = "Palmera Drive",
+		setback = 4,
+	},
 }
 
 -- Plots (8 player garages): one per district around the core, each 1-2 blocks from a freeway ramp.
@@ -2978,9 +3904,27 @@ WorldLayout.Plots = Plots
 -- 11. Landmarks, zones, events (explicit world positions)
 -------------------------------------------------------------------------------------------------------------------------
 
-export type Landmark = { id: string, name: string, kind: string, cframe: CFrame, size: Vector3, district: string, note: string? }
+export type Landmark = {
+	id: string,
+	name: string,
+	kind: string,
+	cframe: CFrame,
+	size: Vector3,
+	district: string,
+	note: string?,
+}
 
-local function lm(id: string, name: string, kind: string, x: number, z: number, yaw: number, size: { number }, note: string?, y: number?): Landmark
+local function lm(
+	id: string,
+	name: string,
+	kind: string,
+	x: number,
+	z: number,
+	yaw: number,
+	size: { number },
+	note: string?,
+	y: number?
+): Landmark
 	local gy = y or gradeAt(x, z)
 	local pos = Vector3.new(x, gy, z)
 	local cf = CFrame.new(pos) * CFrame.Angles(0, math.rad(yaw), 0)
@@ -2996,25 +3940,128 @@ local function lm(id: string, name: string, kind: string, x: number, z: number, 
 end
 
 WorldLayout.Landmarks = {
-	lm("SunwoodSign", "SUNWOOD sign", "hill_sign", -1450, -2760, 8, { 720, 110, 20 }, "giant white letters on the south face, lit at night; faces the city", nil),
-	lm("CanyonBridge", "Canyon Bridge", "bridge", -2880, -3190, 0, { 90, 40, 760 }, "Skyline Drive arch bridge over Sunwood Canyon and the H9"),
-	lm("IronBayBridge", "Iron Bay Bridge", "bridge", 700, 3230, 0, { 120, 160, 520 }, "cable-stayed H2 bridge, deck 66 over the channel, twin pylons"),
-	lm("HarborBridge", "Harbor Bridge", "bridge", -1100, 3230, 0, { 90, 30, 480 }, "low steel lift bridge (Harbor Avenue)"),
-	lm("PalmeraPier", "Palmera Pier", "pier", -5200, -950, 0, { 1100, 4, 90 }, "wooden pier with arcade, roller coaster and the Palmera Wheel", GRADE + 1),
-	lm("PalmeraWheel", "Palmera Wheel", "ferris_wheel", -5450, -990, 90, { 20, 190, 180 }, "ferris wheel at the end of the pier", GRADE + 1),
-	lm("Boardwalk", "Palmera Boardwalk", "promenade", -4760, -300, 0, { 26, 2, 3700 }, "wooden promenade between the palm park and the sand"),
+	lm(
+		"SunwoodSign",
+		"SUNWOOD sign",
+		"hill_sign",
+		-1450,
+		-2760,
+		8,
+		{ 720, 110, 20 },
+		"giant white letters on the south face, lit at night; faces the city",
+		nil
+	),
+	lm(
+		"CanyonBridge",
+		"Canyon Bridge",
+		"bridge",
+		-2880,
+		-3190,
+		0,
+		{ 90, 40, 760 },
+		"Skyline Drive arch bridge over Sunwood Canyon and the H9"
+	),
+	lm(
+		"IronBayBridge",
+		"Iron Bay Bridge",
+		"bridge",
+		700,
+		3230,
+		0,
+		{ 120, 160, 520 },
+		"cable-stayed H2 bridge, deck 66 over the channel, twin pylons"
+	),
+	lm(
+		"HarborBridge",
+		"Harbor Bridge",
+		"bridge",
+		-1100,
+		3230,
+		0,
+		{ 90, 30, 480 },
+		"low steel lift bridge (Harbor Avenue)"
+	),
+	lm(
+		"PalmeraPier",
+		"Palmera Pier",
+		"pier",
+		-5200,
+		-950,
+		0,
+		{ 1100, 4, 90 },
+		"wooden pier with arcade, roller coaster and the Palmera Wheel",
+		GRADE + 1
+	),
+	lm(
+		"PalmeraWheel",
+		"Palmera Wheel",
+		"ferris_wheel",
+		-5450,
+		-990,
+		90,
+		{ 20, 190, 180 },
+		"ferris wheel at the end of the pier",
+		GRADE + 1
+	),
+	lm(
+		"Boardwalk",
+		"Palmera Boardwalk",
+		"promenade",
+		-4760,
+		-300,
+		0,
+		{ 26, 2, 3700 },
+		"wooden promenade between the palm park and the sand"
+	),
 	lm("Lighthouse", "Northpoint Lighthouse", "lighthouse", 1540, -4600, 0, { 40, 120, 40 }),
 	lm("WindFarm", "Red Mesa Wind Farm", "wind_farm", 4300, -3400, 0, { 900, 160, 500 }, "12 turbines on the ridge"),
 	lm("Reservoir", "Mesa Reservoir Dam", "dam", 2950, -2440, 0, { 520, 70, 50 }),
 	lm("Speedway", "Dustbowl Speedway", "race_track", 4420, 2820, 0, { 900, 30, 600 }, "dirt oval with grandstand"),
 	lm("Quarry", "Red Mesa Quarry", "quarry", 4700, -2950, 0, { 500, 60, 400 }),
-	lm("RailYard", "Rust Flats Rail Yard", "rail_yard", 2900, 1350, 0, { 1500, 10, 300 }, "8 tracks, boxcars, a gantry"),
-	lm("Cranes", "Iron Bay Gantry Cranes", "cranes", 700, 4480, 0, { 2600, 220, 80 }, "8 ship-to-shore cranes along the south quay"),
-	lm("CargoShip", "MV Rust Bucket", "ship", 600, 4680, 90, { 70, 90, 900 }, "container ship docked at the south quay", 0),
+	lm(
+		"RailYard",
+		"Rust Flats Rail Yard",
+		"rail_yard",
+		2900,
+		1350,
+		0,
+		{ 1500, 10, 300 },
+		"8 tracks, boxcars, a gantry"
+	),
+	lm(
+		"Cranes",
+		"Iron Bay Gantry Cranes",
+		"cranes",
+		700,
+		4480,
+		0,
+		{ 2600, 220, 80 },
+		"8 ship-to-shore cranes along the south quay"
+	),
+	lm(
+		"CargoShip",
+		"MV Rust Bucket",
+		"ship",
+		600,
+		4680,
+		90,
+		{ 70, 90, 900 },
+		"container ship docked at the south quay",
+		0
+	),
 	lm("ControlTower", "HCI Control Tower", "tower", -3300, 2640, 0, { 40, 160, 40 }),
 	lm("Hangars", "HCI Hangar Row", "hangars", -3050, 2900, 25, { 700, 50, 160 }, "rare / hyper spawns inside"),
 	lm("Runway", "Runway 09/27", "runway", -3965, 3330, 0, { 2400, 1, 150 }),
-	lm("StadiumLights", "Southgate Little League", "ballpark", -1750, 1800, 0, { 520, 30, 380 }, "Echo Park: ballfield, lake and palms"),
+	lm(
+		"StadiumLights",
+		"Southgate Little League",
+		"ballpark",
+		-1750,
+		1800,
+		0,
+		{ 520, 30, 380 },
+		"Echo Park: ballfield, lake and palms"
+	),
 	lm("ObservatoryDome", "Starview Dome", "observatory", -520, -3150, 0, { 90, 60, 90 }),
 	lm("CoveBeach", "Hidden Cove", "beach", -2900, -4120, 0, { 500, 2, 120 }, "secret beach under the cliffs"),
 	lm("Mesas", "Red Mesa Buttes", "mesa", 5050, -2350, 0, { 600, 130, 600 }),
@@ -3052,7 +4099,16 @@ WorldLayout.HotDrops = {
 
 -- Stunt jumps: ramp lip CFrame (LookVector = jump direction), ramp size, landing center, min speed (studs/s).
 export type StuntJump = { id: string, name: string, cframe: CFrame, size: Vector3, landing: Vector3, minSpeed: number }
-local function jump(id: string, name: string, x: number, z: number, yaw: number, landDist: number, minSpeed: number, y: number?): StuntJump
+local function jump(
+	id: string,
+	name: string,
+	x: number,
+	z: number,
+	yaw: number,
+	landDist: number,
+	minSpeed: number,
+	y: number?
+): StuntJump
 	local gy = y or gradeAt(x, z)
 	local cf = CFrame.new(x, gy, z) * CFrame.Angles(0, math.rad(yaw), 0)
 	local land = cf.Position + cf.LookVector * landDist
@@ -3105,9 +4161,23 @@ end
 WorldLayout.SafeZones = {}
 for _, p in POIs do
 	if p.kind == "hospital" then
-		table.insert(WorldLayout.SafeZones, { id = "safe_" .. p.id, name = p.name, cframe = p.cframe + Vector3.new(0, 20, 0), size = Vector3.new(p.size.X + 40, 40, p.size.Z + 60), district = p.district, note = "5 s spawn protection, no weapons" })
+		table.insert(WorldLayout.SafeZones, {
+			id = "safe_" .. p.id,
+			name = p.name,
+			cframe = p.cframe + Vector3.new(0, 20, 0),
+			size = Vector3.new(p.size.X + 40, 40, p.size.Z + 60),
+			district = p.district,
+			note = "5 s spawn protection, no weapons",
+		})
 	elseif p.kind == "dealership" then
-		table.insert(WorldLayout.SafeZones, { id = "safe_" .. p.id, name = p.name, cframe = p.cframe + Vector3.new(0, 20, 0), size = Vector3.new(p.size.X, 40, p.size.Z), district = p.district, note = "no weapons inside the showroom" })
+		table.insert(WorldLayout.SafeZones, {
+			id = "safe_" .. p.id,
+			name = p.name,
+			cframe = p.cframe + Vector3.new(0, 20, 0),
+			size = Vector3.new(p.size.X, 40, p.size.Z),
+			district = p.district,
+			note = "no weapons inside the showroom",
+		})
 	end
 end
 
@@ -3201,7 +4271,8 @@ local function useWeights(uses: { { any } }, r: number): string
 	return uses[#uses][1]
 end
 
-local OPEN_USES: { [string]: boolean } = { plaza = true, parking_lot = true, park = true, yard = true, container_yard = true }
+local OPEN_USES: { [string]: boolean } =
+	{ plaza = true, parking_lot = true, park = true, yard = true, container_yard = true }
 local LOW_USES: { [string]: number } = {
 	retail = 26,
 	restaurant = 22,
@@ -3248,7 +4319,8 @@ local function parcelHeight(dist: DistrictDef, use: string, x: number, z: number
 	return math.floor(h0 + (h1 - h0) * f)
 end
 
-local LOT_CLASSES: { [string]: boolean } = { boulevard = true, avenue = true, street = true, rural = true, highway = true }
+local LOT_CLASSES: { [string]: boolean } =
+	{ boulevard = true, avenue = true, street = true, rural = true, highway = true }
 
 do
 	local seq = 0
@@ -3266,7 +4338,8 @@ do
 				local px, pz, tx, tz = WorldGen.polyAt(pts, s)
 				local rx, rz = WorldGen.right(tx, tz)
 				local nx, nz = rx * side, rz * side
-				local probeX, probeZ = px + nx * (e.width / 2 + e.sidewalk + 40), pz + nz * (e.width / 2 + e.sidewalk + 40)
+				local probeX, probeZ =
+					px + nx * (e.width / 2 + e.sidewalk + 40), pz + nz * (e.width / 2 + e.sidewalk + 40)
 				local did = districtAt(probeX, probeZ)
 				local dist = districtById[did]
 				local rule = dist.lot
@@ -3508,7 +4581,10 @@ for _, p in POIs do
 					then (e.lanesF * LANE) / 2 - LANE / 2
 					else e.median / 2 + (e.lanesF - 0.5) * LANE
 				local pos = Vector3.new(px + rx * off, py, pz + rz * off)
-				table.insert(police, { cframe = CFrame.lookAt(pos, pos + Vector3.new(fx, 0, fz)), station = p.id, edge = p.edge })
+				table.insert(
+					police,
+					{ cframe = CFrame.lookAt(pos, pos + Vector3.new(fx, 0, fz)), station = p.id, edge = p.edge }
+				)
 			end
 		end
 	end
@@ -3525,7 +4601,7 @@ local hospitalRespawns: { CFrame } = {}
 for _, p in POIs do
 	if p.kind == "hospital" then
 		local look = p.cframe.LookVector
-		local pos = p.entrance - look * 0 + Vector3.new(0, S.CURB_HEIGHT, 0) - look * (-(Edges[p.edge].sidewalk / 2))
+		local pos = p.entrance - look * 0 + Vector3.new(0, S.CURB_HEIGHT, 0) - look * -(Edges[p.edge].sidewalk / 2)
 		table.insert(hospitalRespawns, CFrame.lookAt(pos, pos + look))
 	end
 end
@@ -3627,7 +4703,15 @@ local function routeThrough(
 	return all, total
 end
 
-export type Route = { id: string, name: string, kind: string, stops: { Vector3 }, path: { Vector3 }, length: number, laps: number }
+export type Route = {
+	id: string,
+	name: string,
+	kind: string,
+	stops: { Vector3 },
+	path: { Vector3 },
+	length: number,
+	laps: number,
+}
 
 local Routes: { Route } = {}
 local function poiStop(id: string): Vector3
@@ -3636,14 +4720,26 @@ local function poiStop(id: string): Vector3
 	return p.entrance
 end
 
-local function addRoute(id: string, name: string, kind: string, stops: { Vector3 }, laps: number, usable: ((Edge) -> boolean)?)
-	local useArcs = if usable then WorldGen.arcs(#Nodes, Edges, function(i: number): boolean
-		return Edges[i].oneWay
-	end, function(i: number): boolean
-		return usable(Edges[i])
-	end) else trafficArcs
+local function addRoute(
+	id: string,
+	name: string,
+	kind: string,
+	stops: { Vector3 },
+	laps: number,
+	usable: ((Edge) -> boolean)?
+)
+	local useArcs = if usable
+		then WorldGen.arcs(#Nodes, Edges, function(i: number): boolean
+			return Edges[i].oneWay
+		end, function(i: number): boolean
+			return usable(Edges[i])
+		end)
+		else trafficArcs
 	local path, length = routeThrough(id, stops, useArcs, usable)
-	table.insert(Routes, { id = id, name = name, kind = kind, stops = stops, path = path, length = length, laps = laps })
+	table.insert(
+		Routes,
+		{ id = id, name = name, kind = kind, stops = stops, path = path, length = length, laps = laps }
+	)
 end
 
 local depot = poiStop("ArmoredDepot")
@@ -3676,10 +4772,23 @@ local function v(x: number, z: number): Vector3
 	return Vector3.new(x, gradeAt(x, z), z)
 end
 
-addRoute("race_downtown", "Downtown Sprint", "race", { v(-150, -1500), v(1420, -1250), v(1420, 960), v(-800, 960), v(-800, -1250), v(-150, -1500) }, 2)
-addRoute("race_ring", "Ring Run", "race", { v(-1000, -1800), v(1650, 0), v(0, 1350), v(-3650, 0), v(-1000, -1800) }, 1, function(e: Edge): boolean
-	return e.class == "freeway" or e.class == "ramp" or e.class == "avenue" or e.class == "boulevard"
-end)
+addRoute(
+	"race_downtown",
+	"Downtown Sprint",
+	"race",
+	{ v(-150, -1500), v(1420, -1250), v(1420, 960), v(-800, 960), v(-800, -1250), v(-150, -1500) },
+	2
+)
+addRoute(
+	"race_ring",
+	"Ring Run",
+	"race",
+	{ v(-1000, -1800), v(1650, 0), v(0, 1350), v(-3650, 0), v(-1000, -1800) },
+	1,
+	function(e: Edge): boolean
+		return e.class == "freeway" or e.class == "ramp" or e.class == "avenue" or e.class == "boulevard"
+	end
+)
 addRoute("race_coast", "Coast Highway Loop", "race", {
 	v(-150, -2142),
 	v(-2700, -3000),
@@ -3690,14 +4799,33 @@ addRoute("race_coast", "Coast Highway Loop", "race", {
 	v(-150, 2260),
 	v(-150, -2142),
 }, 1)
-addRoute("race_canyon", "Sunwood Canyon Run", "race", { v(-1500, -2170), v(-1500, -3120), v(-3150, -3200), v(-4440, -2160), v(-3600, -2140) }, 1)
-addRoute("race_channel", "Channel Run", "race", { v(2080, -1950), v(1955, -1500), v(1955, 2400), v(2085, 2290) }, 1, function(e: Edge): boolean
-	return e.class ~= "freeway"
-end)
+addRoute(
+	"race_canyon",
+	"Sunwood Canyon Run",
+	"race",
+	{ v(-1500, -2170), v(-1500, -3120), v(-3150, -3200), v(-4440, -2160), v(-3600, -2140) },
+	1
+)
+addRoute(
+	"race_channel",
+	"Channel Run",
+	"race",
+	{ v(2080, -1950), v(1955, -1500), v(1955, 2400), v(2085, 2290) },
+	1,
+	function(e: Edge): boolean
+		return e.class ~= "freeway"
+	end
+)
 addRoute("race_airport", "Airport Drag", "race", { v(-5100, 3330), v(-2800, 3330) }, 1, function(e: Edge): boolean
 	return e.class == "runway"
 end)
-addRoute("race_mesa", "Red Mesa Rally", "race", { v(3000, -330), v(4330, -560), v(4200, 2100), v(4650, 3330), v(5600, 1600), v(5620, -680), v(4330, -560) }, 1)
+addRoute(
+	"race_mesa",
+	"Red Mesa Rally",
+	"race",
+	{ v(3000, -330), v(4330, -560), v(4200, 2100), v(4650, 3330), v(5600, 1600), v(5620, -680), v(4330, -560) },
+	1
+)
 
 WorldLayout.Routes = Routes
 
@@ -3718,17 +4846,45 @@ WorldLayout.Rails = {
 	{ name = "Rail Yard (8 tracks)", points = v3list({ { 2130, 1350 }, { 3700, 1350 } }), tracks = 8 },
 	{
 		name = "Red Mesa Freight Line",
-		points = v3list({ { 3700, 1350 }, { 4300, 1000 }, { 4700, 300 }, { 5200, -800 }, { 5350, -2000 }, { 5000, -3300 }, { 4300, -3800 } }),
+		points = v3list({
+			{ 3700, 1350 },
+			{ 4300, 1000 },
+			{ 4700, 300 },
+			{ 5200, -800 },
+			{ 5350, -2000 },
+			{ 5000, -3300 },
+			{ 4300, -3800 },
+		}),
 		tracks = 1,
 	},
 }
 
 WorldLayout.Paths = {
-	{ name = "Palmera Boardwalk", kind = "boardwalk", width = 26, points = v3list({ { -4770, -2050 }, { -4760, -1000 }, { -4770, 0 }, { -4780, 1000 }, { -4830, 1600 } }) },
+	{
+		name = "Palmera Boardwalk",
+		kind = "boardwalk",
+		width = 26,
+		points = v3list({ { -4770, -2050 }, { -4760, -1000 }, { -4770, 0 }, { -4780, 1000 }, { -4830, 1600 } }),
+	},
 	{ name = "Palmera Palm Park", kind = "park", width = 14, points = v3list({ { -4600, -1900 }, { -4610, 1500 } }) },
-	{ name = "Echo Park Loop", kind = "park", width = 10, points = v3list({ { -2000, 1650 }, { -1500, 1650 }, { -1500, 1950 }, { -2000, 1950 }, { -2000, 1650 } }) },
-	{ name = "Hotwire Plaza", kind = "plaza", width = 30, points = v3list({ { 200, -200 }, { 450, -200 }, { 450, 30 }, { 200, 30 } }) },
-	{ name = "Starview Trail", kind = "trail", width = 6, points = v3list({ { -1450, -2760 }, { -1000, -2900 }, { -520, -3080 } }) },
+	{
+		name = "Echo Park Loop",
+		kind = "park",
+		width = 10,
+		points = v3list({ { -2000, 1650 }, { -1500, 1650 }, { -1500, 1950 }, { -2000, 1950 }, { -2000, 1650 } }),
+	},
+	{
+		name = "Hotwire Plaza",
+		kind = "plaza",
+		width = 30,
+		points = v3list({ { 200, -200 }, { 450, -200 }, { 450, 30 }, { 200, 30 } }),
+	},
+	{
+		name = "Starview Trail",
+		kind = "trail",
+		width = 6,
+		points = v3list({ { -1450, -2760 }, { -1000, -2900 }, { -520, -3080 } }),
+	},
 }
 
 local Bridges = {}

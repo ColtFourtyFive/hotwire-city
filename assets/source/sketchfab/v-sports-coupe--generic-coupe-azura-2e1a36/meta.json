@@ -1,0 +1,55 @@
+{
+  "source": "sketchfab",
+  "uid": "2e1a3699de7e4f688d328dc005ef1aac",
+  "slug": "v-sports-coupe--generic-coupe-azura-2e1a36",
+  "name": "Generic Coupe \"Azura\"",
+  "class": "sports_coupe",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "mk2design",
+    "displayName": "mk2design",
+    "profileUrl": "https://sketchfab.com/mk2design"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/generic-coupe-azura-2e1a3699de7e4f688d328dc005ef1aac",
+  "faceCount": 36178,
+  "vertexCount": 21930,
+  "materialCount": 11,
+  "textureCount": 4,
+  "animationCount": 0,
+  "likeCount": 143,
+  "tags": [
+    "japan",
+    "sports",
+    "ready",
+    "fast",
+    "mitsubishi",
+    "midpoly",
+    "eclipse",
+    "furious",
+    "tuned",
+    "game",
+    "vehicle",
+    "lowpoly",
+    "car",
+    "sport"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Midpoly model of an generic coupe car.\n\nFree to use. Please remember to post me in credits or tag on instagram instagram.com/mk2.design/",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-sports-coupe--generic-coupe-azura-2e1a36/model.glb",
+  "fileBytes": 5136196,
+  "sha256": "504a78a996f43e543cda9cb71b4c8de7691756c0967b7d11022a401c0b87f53c",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:51+00:00",
+  "notes": null
+}

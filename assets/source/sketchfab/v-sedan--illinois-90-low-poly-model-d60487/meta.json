@@ -1,0 +1,57 @@
+{
+  "source": "sketchfab",
+  "uid": "d604871eee5b4181bb298163b0b675b7",
+  "slug": "v-sedan--illinois-90-low-poly-model-d60487",
+  "name": "Illinois '90 - Low poly model",
+  "class": "sedan",
+  "kind": "vehicle",
+  "license": {
+    "slug": "by",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "author": {
+    "username": "DanielZhabotinsky",
+    "displayName": "Daniel Zhabotinsky",
+    "profileUrl": "https://sketchfab.com/DanielZhabotinsky"
+  },
+  "modelUrl": "https://sketchfab.com/3d-models/illinois-90-low-poly-model-d604871eee5b4181bb298163b0b675b7",
+  "faceCount": 19354,
+  "vertexCount": 12553,
+  "materialCount": 8,
+  "textureCount": 20,
+  "animationCount": 0,
+  "likeCount": 376,
+  "tags": [
+    "police",
+    "vehicles",
+    "sedan",
+    "chase",
+    "cruiser",
+    "generic",
+    "automotive",
+    "cop",
+    "90s",
+    "low-poly-model",
+    "automotivedesign",
+    "copcar",
+    "low-poly-car",
+    "american-car",
+    "lowpoly",
+    "policecruiser"
+  ],
+  "categories": [
+    "cars-vehicles"
+  ],
+  "description": "Model of an American sedan of the 90s in a police package. The design is inspired not only by famous police cruisers of the 90s, but also by cab-forward designs, to give a more European appearance to the body.\n\nI unconditionally give you permission to use this model at your discretion, modify it or implement it into a digital product. Use the model as you see fit and have a nice day.\n\nUptade: The body geometry has been updated - the absurd proportions have become less absurd. Pushbar removed, small features added. Body material now got it UV Unwrapped.",
+  "archive": "glb",
+  "conversion": "none",
+  "file": "assets/source/sketchfab/v-sedan--illinois-90-low-poly-model-d60487/model.glb",
+  "fileBytes": 7590708,
+  "sha256": "4f4ba94d9d8a25a91c6a0f08230e10498c331cbc10f725b3756540755fc72011",
+  "thumb": "thumb.jpg",
+  "downloadedAt": "2026-10-27T16:09:48+00:00",
+  "notes": null
+}
