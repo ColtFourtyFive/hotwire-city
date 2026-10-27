@@ -244,7 +244,7 @@
       "textured": true,
       "metallic": 0.0,
       "roughness": 0.4000000059604645,
-      "mask_coverage": 0.681
+      "mask_coverage": 0.545
     },
     "secondary": null,
     "how_to_recolor": "tintmask: SurfaceAppearance ColorMap=Body_tintmask.png with AlphaMode=TintMask and script SurfaceAppearance.Color; or MeshPart.TextureID=Body_overlay.png (paint is transparent) and set MeshPart.Color."
@@ -263,10 +263,10 @@
         7.1341
       ],
       "textures": {
-        "metal": "textures/uaz452_Body_metal.png",
-        "base": "textures/uaz452_Body_base.png",
-        "normal": "textures/uaz452_Body_normal.png",
         "rough": "textures/uaz452_Body_rough.png",
+        "normal": "textures/uaz452_Body_normal.png",
+        "base": "textures/uaz452_Body_base.png",
+        "metal": "textures/uaz452_Body_metal.png",
         "tintmask": "textures/uaz452_Body_tintmask.png",
         "overlay": "textures/uaz452_Body_overlay.png"
       }
@@ -284,10 +284,10 @@
         7.4045
       ],
       "textures": {
-        "metal": "textures/uaz452_Trim_metal.png",
-        "base": "textures/uaz452_Trim_base.png",
-        "normal": "textures/uaz452_Trim_normal.png",
         "rough": "textures/uaz452_Trim_rough.png",
+        "normal": "textures/uaz452_Trim_normal.png",
+        "base": "textures/uaz452_Trim_base.png",
+        "metal": "textures/uaz452_Trim_metal.png",
         "ao": "textures/uaz452_Trim_ao.png"
       }
     },
@@ -304,9 +304,9 @@
         -2.6956
       ],
       "textures": {
-        "rough": "textures/uaz452_Wheel_rough.png",
-        "base": "textures/uaz452_Wheel_base.png",
         "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
         "normal": "textures/uaz452_Wheel_normal.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -324,9 +324,9 @@
         -2.6956
       ],
       "textures": {
-        "rough": "textures/uaz452_Wheel_rough.png",
-        "base": "textures/uaz452_Wheel_base.png",
         "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
         "normal": "textures/uaz452_Wheel_normal.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -344,9 +344,9 @@
         5.2529
       ],
       "textures": {
-        "rough": "textures/uaz452_Wheel_rough.png",
-        "base": "textures/uaz452_Wheel_base.png",
         "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
         "normal": "textures/uaz452_Wheel_normal.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
@@ -364,9 +364,9 @@
         5.2529
       ],
       "textures": {
-        "rough": "textures/uaz452_Wheel_rough.png",
-        "base": "textures/uaz452_Wheel_base.png",
         "metal": "textures/uaz452_Wheel_metal.png",
+        "base": "textures/uaz452_Wheel_base.png",
+        "rough": "textures/uaz452_Wheel_rough.png",
         "normal": "textures/uaz452_Wheel_normal.png",
         "ao": "textures/uaz452_Wheel_ao.png"
       }
