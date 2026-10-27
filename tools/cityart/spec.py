@@ -198,6 +198,26 @@ LOADING = [
 ]
 
 
+# CONTENT SAFETY (docs/v2/CONTENT_SAFETY.md): removed after the 2026-10-27 account moderation ("Privacy: Giving PII"
+# on photoreal people). Never re-add photoreal people, faces, phone numbers, names or political content.
+EXCLUDED = {
+    "bb_overshare", "bus_iron_tide", "bb_iron_tide", "bus_overshare", "bb_drip_district", "bbp_drip_district",
+    "poster_arena", "poster_mayor", "flyer_missing_car", "flyer_lost_cat", "flyer_for_rent", "bbp_bean_there",
+    "loading_crew", "loading_hotwire", "loading_chase",
+}
+
+
+def _keep(item):
+    return item["id"] not in EXCLUDED
+
+
+BILLBOARDS = [b for b in BILLBOARDS if _keep(b)]
+SIGNS = [s for s in SIGNS if _keep(s)]
+POSTERS = [p for p in POSTERS if _keep(p)]
+GRAFFITI = [g for g in GRAFFITI if _keep(g)]
+LOADING = [x for x in LOADING if _keep(x)]
+
+
 def all_items():
     """Yield (category, item) with raw stem, aspect and final file path filled in."""
     for k in BRANDS:

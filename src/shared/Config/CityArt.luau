@@ -360,13 +360,6 @@ CityArt.billboards = {
 		copy = "COFFEE SO STRONG IT HAS A RECORD.",
 	},
 	{
-		id = "bb_overshare",
-		brand = "overshare",
-		aspect = "2:1",
-		image = "rbxassetid://130712758781197",
-		copy = "EVERYONE IS WATCHING. ISN'T THAT NICE?",
-	},
-	{
 		id = "bb_hotwire_motors",
 		brand = "hotwire_motors",
 		aspect = "2:1",
@@ -381,25 +374,11 @@ CityArt.billboards = {
 		copy = "FILL UP. FEEL RICH. BRIEFLY.",
 	},
 	{
-		id = "bb_drip_district",
-		brand = "drip_district",
-		aspect = "2:1",
-		image = "rbxassetid://140533778774624",
-		copy = "THIS HOODIE COSTS MORE THAN YOUR CAR.",
-	},
-	{
 		id = "bb_neon_fm",
 		brand = "neon_fm",
 		aspect = "2:1",
 		image = "rbxassetid://131935255355880",
 		copy = "24/7 SYNTH. ZERO TALKING.",
-	},
-	{
-		id = "bb_iron_tide",
-		brand = "iron_tide",
-		aspect = "2:1",
-		image = "rbxassetid://109767692653481",
-		copy = "IT'S ALWAYS SUMMER. NO EXCUSES.",
 	},
 	{ id = "bb_tourism", aspect = "2:1", image = "rbxassetid://75106983913326", copy = "SUN. SURF. LOCK YOUR DOORS." },
 	{
@@ -466,25 +445,11 @@ CityArt.billboards = {
 		copy = "5G* (*5 GLITCHES PER MINUTE)",
 	},
 	{
-		id = "bbp_bean_there",
-		brand = "bean_there",
-		aspect = "1:2",
-		image = "rbxassetid://103434503704308",
-		copy = "WE SPELL YOUR NAME WRONG ON PURPOSE.",
-	},
-	{
 		id = "bbp_patty_wagon",
 		brand = "patty_wagon",
 		aspect = "1:2",
 		image = "rbxassetid://132151376632424",
 		copy = "BREAKFAST AT 3 AM. WE DON'T JUDGE.",
-	},
-	{
-		id = "bbp_drip_district",
-		brand = "drip_district",
-		aspect = "1:2",
-		image = "rbxassetid://134841119301826",
-		copy = "ACT RICH.",
 	},
 } :: { Billboard }
 
@@ -840,30 +805,6 @@ CityArt.signs = {
 
 CityArt.posters = {
 	{
-		id = "flyer_missing_car",
-		kind = "flyer",
-		aspect = "2:3",
-		image = "rbxassetid://129993137797338",
-		title = "Missing: my car",
-		districts = { "midtown", "southgate" },
-	},
-	{
-		id = "flyer_lost_cat",
-		kind = "flyer",
-		aspect = "2:3",
-		image = "rbxassetid://105644716721053",
-		title = "Lost cat: Sir Fluffington",
-		districts = { "southgate", "beach" },
-	},
-	{
-		id = "flyer_for_rent",
-		kind = "flyer",
-		aspect = "2:3",
-		image = "rbxassetid://88108313811659",
-		title = "For rent: 1 bed, 0 windows",
-		districts = { "downtown", "midtown" },
-	},
-	{
 		id = "poster_synth_night",
 		kind = "poster",
 		brand = "neon_fm",
@@ -871,22 +812,6 @@ CityArt.posters = {
 		image = "rbxassetid://77080412750372",
 		title = "Sunset Synth Night",
 		districts = { "beach", "foundry" },
-	},
-	{
-		id = "poster_mayor",
-		kind = "poster",
-		aspect = "2:3",
-		image = "rbxassetid://140626031370831",
-		title = "Re-elect Mayor Buck Hansen",
-		districts = { "downtown", "midtown", "southgate" },
-	},
-	{
-		id = "poster_arena",
-		kind = "poster",
-		aspect = "2:3",
-		image = "rbxassetid://94384907101515",
-		title = "Hammerheads vs Scorpions",
-		districts = { "southgate", "downtown" },
 	},
 	{
 		id = "poster_speedway",
@@ -905,15 +830,6 @@ CityArt.posters = {
 		districts = { "downtown", "midtown", "southgate" },
 	},
 	{
-		id = "bus_overshare",
-		kind = "busstop",
-		brand = "overshare",
-		aspect = "2:3",
-		image = "rbxassetid://134818856753562",
-		title = "Delete nothing.",
-		districts = {},
-	},
-	{
 		id = "bus_kazoku",
 		kind = "busstop",
 		brand = "kazoku",
@@ -929,15 +845,6 @@ CityArt.posters = {
 		aspect = "2:3",
 		image = "rbxassetid://124758404261906",
 		title = "Allergies? Aisle 4.",
-		districts = {},
-	},
-	{
-		id = "bus_iron_tide",
-		kind = "busstop",
-		brand = "iron_tide",
-		aspect = "2:3",
-		image = "rbxassetid://118565282773508",
-		title = "Do you even lift?",
 		districts = {},
 	},
 	{
@@ -1043,11 +950,7 @@ CityArt.graffiti = {
 	},
 } :: { Graffiti }
 
-CityArt.loading = {
-	{ id = "loading_crew", title = "The Crew", aspect = "16:9", image = "rbxassetid://135201217244072" },
-	{ id = "loading_chase", title = "The Chase", aspect = "16:9", image = "rbxassetid://94413819411931" },
-	{ id = "loading_hotwire", title = "Hotwired", aspect = "16:9", image = "rbxassetid://130960448344186" },
-} :: { Loading }
+CityArt.loading = {} :: { Loading }
 
 -- Lookups ------------------------------------------------------------------------------------------------------
 

@@ -43,9 +43,54 @@ return function(t)
 		t.ok(brands >= 16 and brands <= 24, "16-24 brands, got " .. brands)
 		t.ok(#CityArt.billboards >= 24 and #CityArt.billboards <= 32, "24-32 billboards")
 		t.ok(#CityArt.signs >= 30, "30+ signs")
-		t.ok(#CityArt.posters >= 8, "posters/flyers/bus ads")
+		t.ok(#CityArt.posters >= 6, "posters/flyers/bus ads")
 		t.ok(#CityArt.graffiti >= 6, "graffiti")
-		t.ok(#CityArt.loading >= 2 and #CityArt.loading <= 3, "2-3 loading pieces")
+		-- The people-based key art was pulled for content safety; face-free car renders replace it later.
+		t.ok(#CityArt.loading <= 3, "0-3 loading pieces")
+	end)
+
+	t.test("content safety: images pulled after the account moderation never come back", function()
+		-- docs/v2/CONTENT_SAFETY.md: photoreal people / PII. Mirrors tools/cityart/spec.py EXCLUDED.
+		local pulled = {
+			"bb_overshare",
+			"bus_iron_tide",
+			"bb_iron_tide",
+			"bus_overshare",
+			"bb_drip_district",
+			"bbp_drip_district",
+			"poster_arena",
+			"poster_mayor",
+			"flyer_missing_car",
+			"flyer_lost_cat",
+			"flyer_for_rent",
+			"bbp_bean_there",
+			"loading_crew",
+			"loading_hotwire",
+			"loading_chase",
+		}
+		local pulledAssets = {
+			"130712758781197",
+			"118565282773508",
+			"109767692653481",
+			"134818856753562",
+			"140533778774624",
+			"134841119301826",
+			"94384907101515",
+			"140626031370831",
+			"129993137797338",
+			"105644716721053",
+			"88108313811659",
+			"103434503704308",
+			"135201217244072",
+			"130960448344186",
+			"94413819411931",
+		}
+		for _, e in allImages() do
+			t.ok(table.find(pulled, e.id) == nil, e.id .. " was pulled for content safety")
+			for _, a in pulledAssets do
+				t.ok(e.image ~= "rbxassetid://" .. a, e.id .. " uses pulled asset " .. a)
+			end
+		end
 	end)
 
 	t.test("every entry has an rbxassetid and a valid aspect", function()
