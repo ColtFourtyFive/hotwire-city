@@ -16,8 +16,12 @@
 --    select; Backspace / B back. Movement keys are sunk so the player stays at the counter.
 --  * Mouse (job 0006 bug 3): rows are explicit Active buttons over the panel (ZIndex 3). While open the shop holds
 --    UI/UIFocus "gunshop": the Roblox chat window (left-middle, a CoreGui that swallowed clicks on the rows under it)
---    steps aside via UI/CoreGuiSetup, and a click that misses the menu never fires the gun.
--- Public: isOpen(), open(), close(); pure helpers _menu(menuId, ctx) and _ammoQuote(def, reserve, full).
+--    steps aside via UI/CoreGuiSetup, and a click that misses the menu never fires the gun. A left click is also
+--    hit-tested against the row rects on UserInputService.InputBegan (which fires even when a CoreGui or another
+--    layer ate the click), so a row under the cursor always takes it; the row's own Activated then skips that click
+--    (one activation per click, pure helpers _hitRow / _mouseDedupe).
+-- Public: isOpen(), open(), close(); pure helpers _menu(menuId, ctx), _ammoQuote(def, reserve, full), _hitRow(pos,
+-- rects), _mouseDedupe(isMouse, pressTaken).
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -312,6 +316,29 @@ function GunShopUI._touchRows(canvasHeight: number): number
 	return math.clamp(math.floor(inner / GunShopUI.ROW_H_TOUCH), 3, GunShopUI.MAX_ROWS_TOUCH)
 end
 
+export type HitRect = { x: number, y: number, w: number, h: number, visible: boolean }
+
+-- The visible row whose rect holds `pos` (pure, tested). Rects are AbsolutePosition / AbsoluteSize, the same space as
+-- a mouse InputObject.Position (both exclude the top-bar inset). nil when the click missed every row.
+function GunShopUI._hitRow(pos: Vector2, rects: { HitRect }): number?
+	for i, r in rects do
+		if r.visible and pos.X >= r.x and pos.X < r.x + r.w and pos.Y >= r.y and pos.Y < r.y + r.h then
+			return i
+		end
+	end
+	return nil
+end
+
+-- Should a row's own Activated run for this click (pure, tested)? A mouse click the InputBegan hit-test already took
+-- (`pressTaken`) is skipped: the row may show another menu by the time the button is released. Touch / gamepad
+-- activations always run.
+function GunShopUI._mouseDedupe(isMouse: boolean, pressTaken: boolean): boolean
+	return not (isMouse and pressTaken)
+end
+
+-- Set on every left press: true when the hit-test took it (cleared by the row's Activated on release).
+local pressTaken = false
+
 local function maxRows(): number
 	if not touch() then
 		return GunShopUI.MAX_ROWS
@@ -538,11 +565,18 @@ local function build(): View
 				end
 			end
 		end)
-		b.Activated:Connect(function()
-			if isOpenFlag then
-				selected = scroll + idx
-				activateRow(selected)
+		b.Activated:Connect(function(input: InputObject?)
+			if not isOpenFlag then
+				return
 			end
+			-- a left click the InputBegan hit-test already took (start()) must not buy twice
+			local mouse = input ~= nil and input.UserInputType == Enum.UserInputType.MouseButton1
+			if not GunShopUI._mouseDedupe(mouse, pressTaken) then
+				pressTaken = false
+				return
+			end
+			selected = scroll + idx
+			activateRow(selected)
 		end)
 		rows[i] = { button = b, label = l, value = val }
 	end
@@ -1066,6 +1100,31 @@ function GunShopUI.start()
 	end)
 	player.CharacterAdded:Connect(function()
 		GunShopUI.close()
+	end)
+	-- job 0006 bug 3: the row under a left click takes it even when something else (the CoreGui chat window, a
+	-- transparent layer) processed the click first; the row's own Activated then skips it (_mouseDedupe)
+	UserInputService.InputBegan:Connect(function(input: InputObject, _processed: boolean)
+		local v = view
+		if not isOpenFlag or not v or input.UserInputType ~= Enum.UserInputType.MouseButton1 or touch() then
+			return
+		end
+		local rects: { HitRect } = {}
+		for i, rv in v.rows do
+			local b = rv.button
+			rects[i] = {
+				x = b.AbsolutePosition.X,
+				y = b.AbsolutePosition.Y,
+				w = b.AbsoluteSize.X,
+				h = b.AbsoluteSize.Y,
+				visible = b.Visible and v.gui.Enabled,
+			}
+		end
+		local hit = GunShopUI._hitRow(Vector2.new(input.Position.X, input.Position.Y), rects)
+		pressTaken = hit ~= nil
+		if hit then
+			selected = scroll + hit
+			activateRow(selected)
+		end
 	end)
 	local outside = 0
 	local acc = 0

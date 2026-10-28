@@ -565,9 +565,20 @@ local function takePenalty(player: Player, mult: number?): number
 		local paid = false
 		if typeof(DataService.spendCash) == "function" then
 			local ok2, res = pcall(DataService.spendCash, player, penalty)
-			paid = ok2 and res == true
-		end
-		if not paid and typeof(DataService.addCash) == "function" then
+			if ok2 then
+				paid = res == true
+			else
+				-- spendCash threw part-way (it deducts before markDirty): count what actually left the wallet and
+				-- never charge again through addCash (job 0006 bug 5: one arrest, one bail)
+				local now = if typeof(data.cash) == "number" then data.cash else cash
+				paid = now <= cash - penalty
+				warn(("[WantedService] spendCash errored during a bust (%s); bail %s"):format(
+					tostring(res),
+					if paid then "was taken" else "skipped"
+				))
+			end
+		elseif typeof(DataService.addCash) == "function" then
+			-- only without spendCash (older DataService): a refused spendCash means "not loaded", never charge twice
 			local ok3, res3 = pcall(DataService.addCash, player, -penalty, "busted")
 			paid = ok3 and res3 ~= nil -- addCash returns the new balance, nil when not loaded
 		end
