@@ -37,7 +37,6 @@ local WorldQuery = H.require("src/shared/Util/WorldQuery")
 local Look = H.require("src/shared/Config/Look")
 local Markings = H.require("src/server/Systems/World/Markings")
 local Terrain = H.require("src/server/Systems/World/Terrain")
-local MapConfig = H.require("src/shared/Config/Map")
 
 local t0 = os.clock()
 local folder = MapBuilder.build(H.workspace, { terrain = false })
@@ -58,10 +57,7 @@ local function r3(v)
 end
 
 local parts = {}
-for _, p in folder:GetDescendants() do
-	if not p:IsA("BasePart") then
-		continue
-	end
+local function addPart(p)
 	local shape = "Block"
 	if p:IsA("WedgePart") then
 		shape = "Wedge"
@@ -107,6 +103,34 @@ for _, p in folder:GetDescendants() do
 		g = if glow then true else nil,
 	})
 end
+for _, p in folder:GetDescendants() do
+	if p:IsA("BasePart") then
+		addPart(p)
+	end
+end
+local worldParts = #parts
+
+-- PlotService's real garage buildings on the v2 plot frames (v1 plot-local layout: this is the check that the
+-- interiors still fit their pads); A3's / other systems' structures stay stand-ins below
+local garageParts = 0
+do
+	local okP, PlotService = pcall(H.require, "src/server/Systems/PlotService")
+	for i = 1, #WorldLayout.Plots do
+		local ok, model = pcall(function()
+			return PlotService.buildGarageModel(i)
+		end)
+		if okP and ok and model then
+			for _, p in model:GetDescendants() do
+				if p:IsA("BasePart") and p.Transparency < 1 then
+					addPart(p)
+					garageParts += 1
+				end
+			end
+		else
+			print("garage " .. i .. ": PlotService.buildGarageModel failed: " .. tostring(model))
+		end
+	end
+end
 
 -- stand-ins for what other systems build (rendered as such, labelled in the evidence)
 local standins = {}
@@ -151,43 +175,36 @@ for _, pc in WorldLayout.Parcels do
 		})
 	end
 end
-local G = MapConfig.Garage
-for _, plot in WorldLayout.Plots do
-	local cf = plot.cframe * CFrame.new(0, G.WALL_HEIGHT / 2, (G.FRONT_Z + G.BACK_Z) / 2)
-	local c = { cf:GetComponents() }
-	table.insert(standins, {
-		kind = "garage",
-		c = c,
-		z = { G.HALF_WIDTH * 2 + 4, G.WALL_HEIGHT, G.BACK_Z - G.FRONT_Z + 4 },
-		door = { G.DOOR_WIDTH, G.DOOR_HEIGHT },
-	})
-end
-
 -- camera presets on real geometry ---------------------------------------------------------------------------------
 local views = {}
 local function view(name, pos, target, fov, note)
 	views[name] = { pos = { pos.X, pos.Y, pos.Z }, target = { target.X, target.Y, target.Z }, fov = fov, note = note }
 end
--- 1 overview: from the south-south-west over the bay, looking at downtown with the hills behind
-view("overview", Vector3.new(-1900, 2300, 6200), Vector3.new(200, 0, -900), 46, "the island from the south")
--- 2 downtown street level: on the boulevard nearest Pinnacle Tower, 400 studs out, looking at the tower
+-- 1 overview: the whole island from high over the south sea (core, hills, sign, desert, port and airport in frame)
+view("overview", Vector3.new(700, 8200, 11800), Vector3.new(300, 0, -500), 52, "the whole island from the south")
+-- 2 downtown street level: on the downtown avenue / boulevard that passes nearest Pinnacle Tower, eye height in the
+-- kerb lane, looking down the street canyon (the street wall, not one tower)
 do
 	local pin = WorldQuery.poi("PinnacleTower").cframe.Position
-	local best, bestD = nil, math.huge
+	local best, bestScore = nil, math.huge
 	for ei, e in WorldLayout.Edges do
-		if (e.class == "boulevard" or e.class == "avenue") and e.layer == 0 and not e.elevated then
+		if (e.class == "boulevard" or e.class == "avenue") and e.layer == 0 and not e.elevated and e.length > 520 then
 			local p = e.points[(#e.points + 1) // 2]
-			local d = (Vector3.new(p.X, 0, p.Z) - Vector3.new(pin.X, 0, pin.Z)).Magnitude
-			if d > 380 and d < bestD then
-				best, bestD = ei, d
+			if WorldLayout.districtAt(p.X, p.Z) == "downtown" then
+				local d = (Vector3.new(p.X, 0, p.Z) - Vector3.new(pin.X, 0, pin.Z)).Magnitude
+				if d < bestScore then
+					best, bestScore = ei, d
+				end
 			end
 		end
 	end
 	local e = WorldLayout.Edges[best]
-	local p = e.points[(#e.points + 1) // 2]
-	local cf = WorldQuery.laneCFrame(best, 1, 1, WorldLayout.Edges[best].length / 2)
-	local pos = cf.Position + Vector3.new(0, 6, 0)
-	view("downtown_street", pos, Vector3.new(pin.X, pos.Y + 120, pin.Z), 62, "street level on " .. e.name)
+	local lanes = math.max(e.lanesF, 1)
+	local s0 = e.length * 0.12
+	local cf = WorldQuery.laneCFrame(best, lanes, 1, s0)
+	local far = WorldQuery.laneCFrame(best, 1, 1, math.min(e.length, s0 + 900))
+	local pos = cf.Position + Vector3.new(0, 7, 0)
+	view("downtown_street", pos, far.Position + Vector3.new(0, 75, 0), 66, "street level on " .. e.name)
 end
 -- 3 freeway interchange: the node with the most ramp / freeway edges at deck level, seen from 420 up
 do
@@ -220,7 +237,8 @@ do
 	local c = best.pos
 	view("freeway_interchange", c + Vector3.new(-520, 380, 640), c, 55, "stack interchange (" .. bestN .. " ramp ends within 450)")
 end
--- 4 Palmera beach: from the sand looking out along the pier
+-- 4 Palmera beach: on the sand south of the pier, near the water line, looking north-east along the beach (pier on
+-- the left, the boardwalk, palms and beach hotels on the right)
 do
 	local pierEdge = nil
 	for ei, e in WorldLayout.Edges do
@@ -230,12 +248,12 @@ do
 	end
 	local e = WorldLayout.Edges[pierEdge]
 	local a, b = e.points[1], e.points[#e.points]
-	local dir = (b - a).Unit
+	local dir = Vector3.new(b.X - a.X, 0, b.Z - a.Z).Unit -- toward the sea
 	local side = Vector3.new(-dir.Z, 0, dir.X)
-	-- the beach is ~700 studs of sand before the water line, so the camera stands well up the sand and above it
-	-- (from boardwalk height the ocean is a sliver at the horizon)
-	local pos = a + dir * 380 + side * 330 + Vector3.new(0, 70, 0)
-	view("palmera_beach", pos, a + dir * 1050 + Vector3.new(0, -25, 0), 60, "Palmera Beach and the pier")
+	local p = a + dir * 260 - side * 520
+	local pos = Vector3.new(p.X, math.max(WorldLayout.heightAt(p.X, p.Z), 1) + 16, p.Z)
+	local t = a - dir * 260 + side * 420
+	view("palmera_beach", pos, Vector3.new(t.X, 34, t.Z), 64, "Palmera Beach, the pier and the boardwalk")
 end
 -- 5 a garage plot: Palmera Garage from across the street
 do
@@ -245,13 +263,13 @@ do
 	local pos = front + cf.LookVector * 110 + cf.RightVector * 70 + Vector3.new(0, 42, 0)
 	view("garage_plot", pos, cf.Position + Vector3.new(0, 8, 0), 58, plot.name)
 end
--- 6 hillside sign: from the hills road below the ridge, looking up at SUNWOOD
+-- 6 hillside sign: from Midtown rooftop height down Liberty Avenue's axis, the sign on the ridge over the hills
 do
 	local sign = WorldQuery.landmark("SunwoodSign")
 	local cf = sign.cframe
-	local pos = cf.Position + cf.LookVector * 1400 + Vector3.new(-200, -40, 0)
-	pos = Vector3.new(pos.X, math.max(WorldLayout.heightAt(pos.X, pos.Z) + 60, pos.Y), pos.Z)
-	view("hillside_sign", pos, cf.Position + Vector3.new(0, 70, 0), 40, "the SUNWOOD sign on the summit ridge")
+	local p = cf.Position + cf.LookVector * 3600
+	local pos = Vector3.new(p.X, WorldLayout.heightAt(p.X, p.Z) + 150, p.Z)
+	view("hillside_sign", pos, cf.Position + Vector3.new(0, 30, 0), 30, "the SUNWOOD sign on the summit ridge, from the city")
 end
 
 local out = {
@@ -266,7 +284,7 @@ local out = {
 	bounds = { WorldLayout.Bounds.min.X, WorldLayout.Bounds.min.Z, WorldLayout.Bounds.max.X, WorldLayout.Bounds.max.Z },
 }
 fs.writeFile(outDir .. "/world.json", serde.encode("json", out))
-print(("wrote %s/world.json: %d parts, %d stand-ins"):format(outDir, #parts, #standins))
+print(("wrote %s/world.json: %d world parts + %d garage parts, %d stand-ins"):format(outDir, worldParts, garageParts, #standins))
 
 -- terrain on an 8-stud grid ------------------------------------------------------------------------------------------
 if withTerrain then

@@ -35,6 +35,10 @@ Terrain.BOTTOM = -72
 Terrain.SINK = 0.4
 Terrain.ROAD_SINK = 0.9
 Terrain.SEABED = -58
+-- Roblox draws (and collides with) the terrain surface half a voxel above the occupancy we write, for FillBlock and
+-- WriteVoxels alike: a fill to 11.6 at RES 4 surfaces at 13.594 (engine probe 2026-10-28, matching job 0018's buried
+-- roads). Terrain.write subtracts this so the surface lands on the heights Terrain.chunk computes.
+Terrain.ENGINE_LIFT = Terrain.RES / 2
 
 local N = Terrain.CHUNK // Terrain.RES -- columns per chunk side (16)
 local LAT = Terrain.LATTICE
@@ -246,7 +250,16 @@ local function materialFor(
 		return if h < 14.5 then M.Sand else M.Grass
 	end
 	if URBAN[district] then
-		return M.Ground
+		-- leftover ground between lots: paved in the core and the container port, verge grass on the airfield, dirt
+		-- with grass patches elsewhere (a basin of bare tan dirt read as desert in the previews)
+		if district == "downtown" or district == "port" then
+			return M.Concrete
+		elseif district == "airport" then
+			return if n > -0.35 then M.Grass else M.Ground
+		elseif district == "midtown" then
+			return if n > 0.05 then M.Grass else M.Ground
+		end
+		return if n > 0.4 then M.Grass else M.Ground
 	end
 	return M.Grass
 end
@@ -501,27 +514,25 @@ end
 function Terrain.write(terrain: Terrain, ch: Chunk)
 	local C = Terrain.CHUNK
 	local R = Terrain.RES
+	local LIFT = Terrain.ENGINE_LIFT
 	local cxw, czw = ch.x0 + C / 2, ch.z0 + C / 2
 	if ch.deepSea then
-		local hTop = ch.h[1]
+		local hTop = ch.h[1] - LIFT
+		local waterTop = ch.waterTop - LIFT
 		terrain:FillBlock(
 			CFrame.new(cxw, (Terrain.BOTTOM + hTop) / 2, czw),
 			Vector3.new(C, hTop - Terrain.BOTTOM, C),
 			ch.mat[1]
 		)
 		Terrain.stats.fills += 1
-		if ch.waterTop > hTop then
-			terrain:FillBlock(
-				CFrame.new(cxw, (hTop + ch.waterTop) / 2, czw),
-				Vector3.new(C, ch.waterTop - hTop, C),
-				M.Water
-			)
+		if waterTop > hTop then
+			terrain:FillBlock(CFrame.new(cxw, (hTop + waterTop) / 2, czw), Vector3.new(C, waterTop - hTop, C), M.Water)
 			Terrain.stats.fills += 1
 		end
 		return
 	end
-	local yLow = math.max(Terrain.BOTTOM, math.floor((ch.minH - R) / R) * R)
-	local top = math.max(ch.maxH, ch.waterTop)
+	local yLow = math.max(Terrain.BOTTOM, math.floor((ch.minH - LIFT - R) / R) * R)
+	local top = math.max(ch.maxH, ch.waterTop) - LIFT
 	local yHigh = math.ceil(top / R) * R + R
 	if yLow > Terrain.BOTTOM then
 		terrain:FillBlock(
@@ -547,8 +558,8 @@ function Terrain.write(terrain: Terrain, ch: Chunk)
 	for ix = 0, N - 1 do
 		for iz = 0, N - 1 do
 			local i = ix * N + iz + 1
-			local hv = ch.h[i]
-			local wl = ch.water[i]
+			local hv = ch.h[i] - LIFT
+			local wl = ch.water[i] - LIFT
 			local m = ch.mat[i]
 			for iy = 0, ny - 1 do
 				local vy = yLow + iy * R

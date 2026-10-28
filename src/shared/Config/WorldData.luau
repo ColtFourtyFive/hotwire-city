@@ -32344,7 +32344,6 @@ local DATA = {
 			tags = { "showroom", "luxury" },
 		},
 		{
-			brand = "Second Gear",
 			cframe = C(3097.097,12,162.484,174.0021),
 			district = "foundry",
 			edge = 1023,
@@ -34163,5 +34162,5 @@ local DATA = {
 		{ 2175.358, -3623.75, 160 },
 	},
 }
-DATA.hash = "439d710f"
+DATA.hash = "873b3881"
 return (DATA :: any)

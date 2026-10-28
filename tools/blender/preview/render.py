@@ -172,7 +172,7 @@ _mats = {}
 MATDEF = {}
 for m in json.load(open(os.path.join(MATS, "materials.json")))["materials"]:
     MATDEF[m["variant"]] = m
-HAZE = {"color": (0.56, 0.66, 0.80), "dist": 9000.0, "max": 0.8}
+HAZE = {"color": (0.52, 0.62, 0.76), "dist": 9000.0, "max": 0.62}
 
 
 def haze_wrap(nt, shader_out):
@@ -586,6 +586,45 @@ def add_standins(standins, focus, radius):
         attr.data.foreach_set("color", arr.ravel())
 
 
+def add_a3_buildings(a3_root, placements, focus, radius):
+    """Package A3's real building set (its uploaded GLBs, surfaced by its own render_city.py) at the plans its
+    BuildingService makes over THIS world's parcels (a3_placements.luau). A3 renders in Blender = (-x, z, y); this
+    renderer uses (x, -z, y): the two differ by a half turn about Blender Z. Returns the building count."""
+    from mathutils import Matrix
+    kit = os.path.join(os.path.abspath(a3_root), "tools", "blender", "buildkit")
+    if kit not in sys.path:
+        sys.path.insert(0, kit)
+    import render_city as RC  # noqa: E402  (A3's module, from the A3 snapshot)
+    RC._mats.clear()
+    RC._tpl.clear()
+    cat = json.load(open(RC.CATALOG))["variants"]
+    col = bpy.data.collections.new("A3Buildings")
+    bpy.context.scene.collection.children.link(col)
+    n = 0
+    for b in placements["buildings"]:
+        c = b["cframe"]
+        if focus is not None and (c[0] - focus[0]) ** 2 + (c[2] - focus[2]) ** 2 > radius * radius:
+            continue
+        if b["kind"] == "template" and b.get("template") in cat:
+            RC.place_building(col, b, cat, False)
+        else:
+            RC.place_massing(col, b, False)
+        n += 1
+    half = Matrix.Rotation(math.pi, 4, "Z")
+    for ob in col.objects:
+        ob.matrix_world = half @ ob.matrix_world
+    # the same distance haze as everything else
+    for m in RC._mats.values():
+        nt = m.node_tree
+        out = next((nd for nd in nt.nodes if nd.type == "OUTPUT_MATERIAL"), None)
+        if out is None or not out.inputs["Surface"].links or m.get("hazed"):
+            continue
+        src = out.inputs["Surface"].links[0].from_socket
+        nt.links.new(haze_wrap(nt, src), out.inputs["Surface"])
+        m["hazed"] = True
+    return n
+
+
 TERRAIN_VARIANT = {
     "Grass": ("HC_Grass", None),
     "LeafyGrass": ("HC_Grass", (0.42, 0.50, 0.30)),
@@ -631,6 +670,108 @@ def mesh_np(name, verts, faces, cols, material, smooth=True):
     return ob
 
 
+def terrain_mesh(name, verts, faces, attrs, material):
+    """verts (N, 3) Roblox space, faces (F, 4) quads, attrs {name: (N,) float weights per vertex}."""
+    used, inv = np.unique(faces.ravel(), return_inverse=True)
+    faces = inv.reshape(faces.shape).astype(np.int32)
+    v = to_blender(verts[used])
+    me = bpy.data.meshes.new(name)
+    me.vertices.add(len(v))
+    me.vertices.foreach_set("co", v.ravel())
+    F, k = faces.shape
+    me.loops.add(F * k)
+    me.loops.foreach_set("vertex_index", faces.ravel())
+    me.polygons.add(F)
+    me.polygons.foreach_set("loop_start", (np.arange(F, dtype=np.int32) * k))
+    me.polygons.foreach_set("loop_total", np.full(F, k, np.int32))
+    for an, w in attrs.items():
+        at = me.attributes.new(an, "FLOAT", "POINT")
+        at.data.foreach_set("value", w[used].astype(np.float32))
+    me.validate()
+    me.update()
+    me.shade_smooth()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.data.materials.append(material)
+    return ob
+
+
+def terrain_blend_material(entries):
+    """entries: ((attribute, MaterialVariant, linear tint), ...): the variants' box-projected maps mixed by the
+    per-vertex weight attributes (colour x tint, roughness, normal)."""
+    key = ("terrain_blend",) + entries
+    if key in _mats:
+        return _mats[key]
+    m, nt, out = new_mat("terrain_blend")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    acc = {"col": None, "rough": None, "nrm": None}
+
+    def add(kind, sock):
+        if acc[kind] is None:
+            acc[kind] = sock
+            return
+        if kind == "rough":
+            n = nt.nodes.new("ShaderNodeMath")
+            n.operation = "ADD"
+        else:
+            n = nt.nodes.new("ShaderNodeVectorMath")
+            n.operation = "ADD"
+        nt.links.new(acc[kind], n.inputs[0])
+        nt.links.new(sock, n.inputs[1])
+        acc[kind] = n.outputs[0]
+
+    for attr, var, tint in entries:
+        d = MATDEF[var]
+        mp = nt.nodes.new("ShaderNodeMapping")
+        s = 1.0 / d["studsPerTile"]
+        mp.inputs["Scale"].default_value = (s, s, s)
+        nt.links.new(tc.outputs["Object"], mp.inputs["Vector"])
+        at = nt.nodes.new("ShaderNodeAttribute")
+        at.attribute_type = "GEOMETRY"
+        at.attribute_name = attr
+        for kind, non_color in (("color", False), ("roughness", True), ("normal", True)):
+            f = d["files"].get(kind)
+            if not f:
+                continue
+            t = nt.nodes.new("ShaderNodeTexImage")
+            t.image = img(os.path.join(ROOT, f), non_color)
+            t.projection = "BOX"
+            t.projection_blend = 0.25
+            nt.links.new(mp.outputs[0], t.inputs["Vector"])
+            if kind == "roughness":
+                r = nt.nodes.new("ShaderNodeMath")
+                r.operation = "MULTIPLY"
+                nt.links.new(t.outputs["Color"], r.inputs[0])
+                nt.links.new(at.outputs["Fac"], r.inputs[1])
+                add("rough", r.outputs[0])
+                continue
+            src = t.outputs["Color"]
+            if kind == "color":
+                tm = nt.nodes.new("ShaderNodeVectorMath")
+                tm.operation = "MULTIPLY"
+                tm.inputs[1].default_value = tint
+                nt.links.new(src, tm.inputs[0])
+                src = tm.outputs[0]
+            sc = nt.nodes.new("ShaderNodeVectorMath")
+            sc.operation = "SCALE"
+            nt.links.new(src, sc.inputs[0])
+            nt.links.new(at.outputs["Fac"], sc.inputs["Scale"])
+            add("col" if kind == "color" else "nrm", sc.outputs[0])
+    if acc["col"] is not None:
+        nt.links.new(acc["col"], bsdf.inputs["Base Color"])
+    if acc["rough"] is not None:
+        nt.links.new(acc["rough"], bsdf.inputs["Roughness"])
+    if acc["nrm"] is not None:
+        nm = nt.nodes.new("ShaderNodeNormalMap")
+        nm.inputs["Strength"].default_value = 0.6
+        nt.links.new(acc["nrm"], nm.inputs["Color"])
+        nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
+    nt.links.new(haze_wrap(nt, bsdf.outputs[0]), out.inputs["Surface"])
+    _mats[key] = m
+    return m
+
+
 def add_terrain(dump, center, fine_r, coarse=4, fine=1):
     meta = json.load(open(os.path.join(dump, "terrain.json")))
     nx, nz, step = meta["nx"], meta["nz"], meta["step"]
@@ -670,14 +811,30 @@ def add_terrain(dump, center, fine_r, coarse=4, fine=1):
         cxw, czw = x0 + xs[I] * step, z0 + zs[J] * step
         if hole is not None:
             keep &= ~((cxw > hole[0]) & (cxw < hole[2]) & (czw > hole[1]) & (czw < hole[3]))
-        mids = M[zs[J], xs[I]]
-        for mid in np.unique(mids[keep]):
-            sel = keep & (mids == mid)
+        # one mesh, materials blended per vertex over about one grid cell (Roblox terrain blends neighbouring voxel
+        # materials; hard per-cell material edges drew the hillsides as pixel art)
+        mv = M[np.ix_(zs, xs)].astype(np.int32)
+        weights = {}
+        for mid in np.unique(mv):
+            w = np.pad((mv == mid).astype(np.float32), 1, mode="edge")
+            nzv, nxv = mv.shape
+            w = sum(w[1 + dz: 1 + dz + nzv, 1 + dx: 1 + dx + nxv] for dz in (-1, 0, 1) for dx in (-1, 0, 1)) / 9.0
+            if w.max() >= 0.3:
+                weights[int(mid)] = w.ravel()
+        total = np.maximum(sum(weights.values()), 1e-6)
+        entries, attrs = [], {}
+        for mid, w in sorted(weights.items()):
             name = names[mid - 1] if 0 < mid <= len(names) else "Ground"
             var, tint = TERRAIN_VARIANT.get(name, ("HC_DryGrass", None))
-            col = srgb_to_lin(colors.get(name, [200, 190, 160]))
-            cols = np.tile(col, (int(sel.sum()), 1)).astype(np.float32)
-            mesh_np("terrain_%s_%d" % (name, k), verts, faces[sel], cols, pbr_material("terrain_" + name, var, tint=tint))
+            lin = tuple(float(x) for x in (tint if tint is not None else srgb_to_lin(colors.get(name, [200, 190, 160]))))
+            attr = "w_%s" % name
+            if attr in attrs:
+                attrs[attr] = attrs[attr] + w / total
+                continue
+            attrs[attr] = w / total
+            entries.append((attr, var, lin))
+        if keep.any():
+            terrain_mesh("terrain_%d" % k, verts, faces[keep], attrs, terrain_blend_material(tuple(entries)))
         wl = W[zs[J], xs[I]]
         ws = keep & (wl > -9000)
         if ws.any():
@@ -710,13 +867,15 @@ def water_material():
         return _mats[key]
     m, nt, out = new_mat("water")
     bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
-    bsdf.inputs["Base Color"].default_value = (0.012, 0.05, 0.07, 1)
-    bsdf.inputs["Roughness"].default_value = 0.06
+    # Look.Water: colour (22, 72, 84), reflectance 1, small waves
+    bsdf.inputs["Base Color"].default_value = (0.008, 0.065, 0.088, 1)
+    bsdf.inputs["Roughness"].default_value = 0.09
     bsdf.inputs["Specular IOR Level"].default_value = 0.6
     noise = nt.nodes.new("ShaderNodeTexNoise")
-    noise.inputs["Scale"].default_value = 0.08
+    noise.inputs["Scale"].default_value = 0.035
+    noise.inputs["Detail"].default_value = 6.0
     bump = nt.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.08
+    bump.inputs["Strength"].default_value = 0.22
     tc = nt.nodes.new("ShaderNodeTexCoord")
     nt.links.new(tc.outputs["Object"], noise.inputs["Vector"])
     nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
@@ -728,14 +887,20 @@ def water_material():
 
 # --------------------------------------------------------------------------------------------- main
 
+SUN_OFFSET = {
+    # degrees the sun sits off the camera's back (positive = toward the camera's right; default 40)
+    "downtown_street": 55,
+    "palmera_beach": -40,
+}
+
 VIEW_SETTINGS = {
     # name: (parts radius around the target, fine-terrain radius, coarse step, haze distance)
-    "overview": (None, 0, 4, 26000),
+    "overview": (None, 0, 4, 42000),
     "downtown_street": (2600, 1400, 4, 9000),
     "freeway_interchange": (2600, 1600, 4, 14000),
     "palmera_beach": (3200, 1600, 4, 12000),
     "garage_plot": (1800, 900, 4, 9000),
-    "hillside_sign": (6000, 2400, 4, 18000),
+    "hillside_sign": (4600, 1600, 4, 22000),
 }
 
 
@@ -747,9 +912,14 @@ def main():
     ap.add_argument("--samples", type=int, default=40)
     ap.add_argument("--res", default="960x540")
     ap.add_argument("--no-standins", action="store_true")
+    ap.add_argument("--a3", default=None, help="A3 snapshot root (see README): place A3's real buildings")
+    ap.add_argument("--a3-placements", default=None, help="a3_placements.luau output (default <dump>/a3_placements.json)")
     a = ap.parse_args()
     res = tuple(int(x) for x in a.res.split("x"))
     data = json.load(open(os.path.join(a.dump, "world.json")))
+    a3 = None
+    if a.a3:
+        a3 = json.load(open(a.a3_placements or os.path.join(a.dump, "a3_placements.json")))
     os.makedirs(a.out, exist_ok=True)
     for name in a.views.split(","):
         view = data["views"][name]
@@ -757,13 +927,21 @@ def main():
         HAZE["dist"] = haze
         t0 = time.time()
         reset(res, min(a.samples, 48))
-        world_light()
+        # late-afternoon sun from behind the camera's shoulder (a lit street wall, not a backlit one); a view may pin
+        # its own azimuth / elevation
+        dx, dz = view["target"][0] - view["pos"][0], view["target"][2] - view["pos"][2]
+        heading = math.degrees(math.atan2(-dz, dx))  # Blender azimuth of the view direction (x, -z)
+        sun_az = view.get("sunAz", heading + 180 + SUN_OFFSET.get(name, 40))
+        world_light(sun_az=sun_az, sun_el=view.get("sunEl", 28.0))
         camera(view)
         tgt = view["target"]
         focus = None if prad is None else (tgt[0], tgt[1], tgt[2])
         # parts near the target; the overview keeps everything
         nf = add_parts(data["parts"], focus, prad or 1e9)
-        if not a.no_standins:
+        if a3 is not None:
+            add_a3_buildings(a.a3, a3, focus, prad or 1e9)
+            add_standins([s for s in data["standins"] if s["kind"] != "building"], focus, prad or 1e9)
+        elif not a.no_standins:
             add_standins(data["standins"], focus, prad or 1e9)
         add_terrain(a.dump, tgt if frad else (0, 0, 0), frad, coarse=coarse)
         path = os.path.join(a.out, name + ".png")

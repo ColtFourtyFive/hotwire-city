@@ -422,12 +422,8 @@ local function plaza(ctx: Ctx, m: Model, F: CFrame, poi: POI)
 	local spawnLocal = F:PointToObjectSpace(spawnPos)
 	for i, b in
 		{
-			{ stat = "totalEarned", x = W * 0.22, glow = Color3.fromRGB(255, 220, 60) },
-			{
-				stat = "steals",
-				x = W * 0.32,
-				glow = Color3.fromRGB(255, 52, 140),
-			},
+			{ stat = "totalEarned", x = W * 0.22 },
+			{ stat = "steals", x = W * 0.32 },
 		}
 	do
 		local lp = Vector3.new(b.x, CURB + 13.5, (if i == 1 then -1 else 1) * D * 0.18)
@@ -446,19 +442,12 @@ local function plaza(ctx: Ctx, m: Model, F: CFrame, poi: POI)
 		board:SetAttribute("Stat", b.stat)
 		board:SetAttribute("Face", "Front")
 		CollectionService:AddTag(board, "LeaderboardBoard")
-		local glow = Kit.part(
-			ctx,
-			"BoardGlow",
-			Vector3.new(25.4, 16.4, 0.5),
-			cf * CFrame.new(0, 0, 0.4),
-			Kit.style("neon_warm"),
-			{
-				parent = m,
-				collide = false,
-				shadow = false,
-			}
-		)
-		glow.Color = b.glow
+		-- a plain dark metal bezel (no neon outline: the kill list bans neon stripes on edges)
+		Kit.part(ctx, "BoardFrame", Vector3.new(25.4, 16.4, 0.5), cf * CFrame.new(0, 0, 0.4), Kit.style("metal_dark"), {
+			parent = m,
+			collide = false,
+			shadow = false,
+		})
 		Kit.part(ctx, "BoardLeg", Vector3.new(1.2, 7, 1.2), cf * CFrame.new(0, -10.5, 0.3), Kit.style("metal_grey"), {
 			parent = m,
 		})
