@@ -1,5 +1,8 @@
 # Job 0016: GTA player characters and the on-foot feel (Play solo)
 
+> **Lead (2026-10-28): run this on place version 35 or later.** Main was uploaded with characters, polish and the new skies; the map is still v1 until wave A merges. Open it with File → Open from Roblox, and **do not connect Rojo**; ignore any `rojo serve` step below. Never save or publish.
+
+
 **Goal:** the first real-engine look at package C4a (branch `v2/characters`, merged by the integrator):
 
 - **Characters:** every player spawns as a realistic GTA-style character (realistic body, dynamic head, skin tone,

@@ -1,5 +1,8 @@
 # Job 0017: C4b polish re-check (job 0006 bugs 1–5, the nits, and the de-Robloxify fixes)
 
+> **Lead (2026-10-28): run this on place version 35 or later.** Main was uploaded with characters, polish and the new skies; the map is still v1 until wave A merges. Open it with File → Open from Roblox, and **do not connect Rojo**; ignore any `rojo serve` step below. Never save or publish.
+
+
 **Goal:** re-test, in the real engine, every bug and nit job 0006 routed to C4b polish, plus the new GTA-style interaction prompts. This job is about the **UI and the bust path only**.
 - The world, characters, cars and police looks belong to other packages: score them in job 0018 and its successors, not here.
 - `docs/v2/DEROBLOX_AUDIT.md` lists what C4b fixed and what it routed elsewhere.
