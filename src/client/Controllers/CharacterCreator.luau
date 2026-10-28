@@ -49,6 +49,7 @@ local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local ListMenu = require(UI:WaitForChild("ListMenu"))
 local UISound = require(UI:WaitForChild("UISound"))
+local UIFocus = require(UI:WaitForChild("UIFocus")) -- C4 merge integration point (C4b UIFocus "creator")
 
 local CharacterCreator = {}
 
@@ -485,6 +486,9 @@ local function setBlocked(s: Session, on: boolean)
 		return
 	end
 	s.blocked = on
+	-- C4 merge integration point: the creator holds the cursor (UIFocus "creator": no firing from its clicks, the
+	-- chat window steps aside, a gun shop under it closes)
+	UIFocus.set("creator", on)
 	if on then
 		ContextActionService:BindActionAtPriority(
 			CharacterCreator.BLOCK_ACTION,
