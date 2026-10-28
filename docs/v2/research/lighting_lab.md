@@ -86,3 +86,46 @@ Full report: `docs/v2/evidence/look_0011_partial_report.md`.
 4. **Golden hour** is warm-neutral, not sepia (subtle). The moon is hidden. Keep density 0.18.
 5. **Blue hour** reads as night: its sky has no blue gradient. It needs a blue-hour sky that keeps a gradient with the sun just below the horizon.
 6. **Still to redo after the moderation clears:** step 4, PBR slabs. Texture loads currently return 403.
+
+# Lighting lab, round 5 (analysis of jobs 0009 / 0011, no new Studio run; backlog 14)
+
+Tools: `tools/look/procedural_sky.py` (`fit`, `calibrate`, the sky build) and `tools/look/sky_calibration.json` (the
+shots). Evidence: `docs/v2/evidence/look_night/`. Job 0012 (`studio/jobs/0012-night-sky.md`) verifies the result.
+
+1. **The reddish-brown night sky is the engine, not the HDRI.** At the held clock (engine sun −3°) the engine draws a
+   skybox face as `rendered_lin = A * face_lin^1.2`, before the ColorCorrection.
+   - The fit is `A = G(el) * 2^(1.2 * (EV − 2)) * (2.78, 1, B/G(el))`.
+   - G is about 0.12 at the horizon at EV +2: the sky renders about 8× darker than the face (linear G), and about 20×
+     at the night's +0.8.
+   - B/G falls from about 1.15 at 4° elevation to about 0.8 at 25°.
+   - R/G is 2.78, flat from 78° to 171° from the sun.
+   - The same parameters fit both shots, at Exposure +2 and at +0.8, within ±10 % in every band and channel
+     (`model_validation.png`).
+   - So the navy-grey HDRI could only render maroon. A blue grade cannot fix it without turning the city blue.
+2. **Job 0011's night sky was the cached DAY sky.** The night faces 403'd during the moderation, and the engine kept
+   the previous faces.
+   - The day faces at the night yaw (−72.6°) match the shot with luminance correlation 0.89. Every other sky stays
+     at 0.6 or below.
+   - That shot is the second calibration point.
+   - Job 0009's diag shot had half of the sky pure black (faces not loaded). Those pixels are masked.
+3. **Ceiling.** A white face renders at most about (64, 40, 32) at the night zenith and (74, 47, 59) at the horizon.
+   At dusk (EV +0.6) it is about (68, 38, 26) at the zenith. G and B are the limits.
+   - No texture can make this engine's held-clock sky brighter than that.
+   - The sky can only be a dark gradient, much darker than GTA V's dusk.
+4. **Fix: procedural, pre-compensated skies.** `night`, `blue` (dusk) and `dawn` are built as the inverse of the
+   fitted transfer, applied to the colours wanted on screen at the preset's exposure and grade.
+   - The raw faces are pale cyan-blue; the engine turns them back into deep blue.
+   - Targets stay under the ceiling, with a soft roll-off near it.
+   - The stars are painted into the faces (`StarCount` 0).
+   - The night is one texture for both holds, built for the geometric mean of the evening and morning casts. There
+     is no swap at the midnight jump.
+5. **Not measured yet; job 0012 must shoot these.** They are hedged in `procedural_sky.py`:
+   - **The zenith** (above 30°). B/G there is assumed 0.54, between the fit's extrapolation (0.44) and a flat
+     continuation (0.79).
+   - **The sun's side** (within 75° of the sun). R/G is assumed 2.3. If it is really 2.8, the dusk glow renders more
+     orange; if 1.8, more yellow. It never renders olive.
+   - Whether the 2.78 cast also holds at −1.5° (the start of dusk and the end of dawn).
+   - The engine's dusk haze band (0–2°, blue-grey at Haze 0.7) sits over the bottom of the warm glow. That is why the
+     glow reaches about 8°.
+6. **Swaps.** blue → night at 19.5 and night → dawn at 5.0 change the sun-side glow and little else. The rendered mean
+   sky moves from about (7, 13, 24) to (6, 10, 23). Both swaps get a 0.35 EV dip; the day ↔ twilight swaps keep 0.2.

@@ -398,9 +398,14 @@ return function(t)
 		t.eq(L.skyAt(17.3), "day", "golden hour: golden light under the day sky")
 		t.eq(L.skyAt(7), "day")
 		t.eq(L.skyAt(18.8), "blue")
-		t.eq(L.skyAt(5.3), "blue")
+		t.eq(L.skyAt(5.3), "dawn", "its own dawn sky (warm on the east side)")
 		t.eq(L.skyAt(23), "night")
 		t.eq(L.skyAt(1), "night", "wraps over midnight")
+		t.eq(
+			L.skyAt(Look.EngineClock.jumpHour - 0.01),
+			L.skyAt(Look.EngineClock.jumpHour + 0.01),
+			"no swap at the jump"
+		)
 		t.eq(L.skyAt(sched[1].hour - 0.01), sched[#sched].sky, "before the first entry = the last sky")
 		local afterNoon
 		for _, e in sched do
@@ -431,8 +436,15 @@ return function(t)
 			if before == "night" or e.sky == "night" then
 				t.ok(L.nightFactorAt(e.hour) >= 0.9, pair .. " swaps in the dark")
 			end
-			-- masked: the full exposure dip at the swap
-			t.near(L.swapDipAt(e.hour), Look.SkySwap.exposureDip, 1e-6, "exposure dip at " .. pair)
+			-- masked: the swap's own exposure dip (or the default) at the swap, a short gentle one
+			local depth = e.dip or Look.SkySwap.exposureDip
+			t.near(L.swapDipAt(e.hour), depth, 1e-6, "exposure dip at " .. pair)
+			t.ok(depth >= Look.SkySwap.exposureDip and depth <= 0.5, pair .. " dip depth " .. depth)
+			-- twilight <-> night changes the most (the sun-side glow goes): a deeper dip than day <-> twilight
+			local twilightNight = (before == "night") ~= (e.sky == "night")
+			if twilightNight then
+				t.ok(depth > Look.SkySwap.exposureDip, pair .. " gets a deeper dip")
+			end
 		end
 		t.ok(L.swapDipAt(12) < 1e-6, "no dip at noon")
 		t.near(L.swapDipAt(Look.EngineClock.jumpHour), Look.SkySwap.exposureDip, 1e-6, "the engine jump is masked too")
@@ -458,9 +470,11 @@ return function(t)
 			t.ok(sky ~= "golden", "golden is not scheduled at " .. h)
 			if sky == "day" then
 				t.ok(el >= -2, "day sky only around a risen engine sun at " .. h .. " (" .. el .. ")")
-			elseif sky == "blue" then
-				t.ok(el < 0, "blue sky only with the engine sun down at " .. h)
-				t.ok(L.nightFactorAt(h) > 0, "blue sky only at twilight at " .. h)
+			elseif sky == "blue" or sky == "dawn" then
+				t.ok(el < 0, sky .. " sky only with the engine sun down at " .. h)
+				t.ok(L.nightFactorAt(h) > 0, sky .. " sky only at twilight at " .. h)
+				t.eq(sky == "dawn", h < 12, "dawn in the morning, blue (dusk) in the evening at " .. h)
+				t.eq(Look.Skies[sky].followSun, true, sky .. " glow follows the engine sun")
 			elseif sky == "night" then
 				t.ok(L.nightFactorAt(h) >= 0.9, "night sky only in the dark at " .. h)
 				t.ok(el < 0, "night sky with the engine sun down at " .. h)
@@ -468,6 +482,56 @@ return function(t)
 		end
 		-- the golden faces are still generated (Look.Skies), just not scheduled
 		t.ok(Look.Skies.golden ~= nil, "golden sky kept in the generated data")
+	end)
+
+	t.test("swap dip: per-entry depth, a gaussian around each swap, overlapping dips never add up", function()
+		local S = Look.SkySwap
+		local deep
+		for _, e in Look.SkySchedule do
+			if e.dip then
+				deep = e
+			end
+		end
+		t.ok(deep ~= nil, "at least one swap has its own (deeper) dip")
+		t.near(L.swapDipAt(deep.hour), deep.dip, 1e-9, "full depth at the swap")
+		t.near(L.swapDipAt(deep.hour + S.width), deep.dip * math.exp(-1), 1e-9, "1/e one width away")
+		t.near(L.swapDipAt(deep.hour - S.width), L.swapDipAt(deep.hour + S.width), 1e-9, "symmetric")
+		t.near(L.swapDipAt(deep.hour + 24), L.swapDipAt(deep.hour), 1e-9, "game hours wrap")
+		-- the deepest of all dips anywhere, never a sum
+		local maxDepth = S.exposureDip
+		for _, e in Look.SkySchedule do
+			maxDepth = math.max(maxDepth, e.dip or S.exposureDip)
+		end
+		for h = 0, 23.99, 0.01 do
+			t.ok(L.swapDipAt(h) <= maxDepth + 1e-9, "dips never add up at " .. h)
+		end
+		-- the dip lands in the look's exposure (and nowhere else)
+		local h = deep.hour
+		local lookAt = L.lookAt(h)
+		local keys = Look.Keys
+		local a, b = keys[1], keys[#keys]
+		for i = 1, #keys - 1 do
+			if h >= keys[i].hour and h <= keys[i + 1].hour then
+				a, b = keys[i], keys[i + 1]
+			end
+		end
+		local t0 = (h - a.hour) / (b.hour - a.hour)
+		t0 = t0 * t0 * (3 - 2 * t0)
+		local undipped = Look.Presets[a.preset].exposure
+			+ (Look.Presets[b.preset].exposure - Look.Presets[a.preset].exposure) * t0
+		t.near(lookAt.exposure, undipped - deep.dip, 1e-6, "exposure dipped by the swap's depth")
+	end)
+
+	t.test("skyFor: a valid SkyOverride wins, anything else falls back to the schedule", function()
+		for _, h in { 1, 5.3, 12, 18.8, 23 } do
+			t.eq(L.skyFor(h, nil), L.skyAt(h), "no override at " .. h)
+			t.eq(L.skyFor(h, "golden"), "golden", "a generated sky, even an unscheduled one, at " .. h)
+			t.eq(L.skyFor(h, "night"), "night")
+			t.eq(L.skyFor(h, "noSuchSky"), L.skyAt(h), "unknown name ignored at " .. h)
+			t.eq(L.skyFor(h, 3), L.skyAt(h), "wrong type ignored")
+			t.eq(L.skyFor(h, true), L.skyAt(h), "wrong type ignored")
+		end
+		t.ok(L.OVERRIDE_ATTRIBUTES.SkyOverride ~= nil, "documented with the other lab overrides")
 	end)
 
 	-- Sun model (measured in the real engine) --------------------------------------------------------------------------
@@ -854,7 +918,7 @@ return function(t)
 		do
 			t.ok(Look.Decals[need] ~= nil, "decal " .. need)
 		end
-		for _, sky in { "day", "golden", "blue", "night" } do
+		for _, sky in { "day", "golden", "blue", "night", "dawn" } do
 			local s = Look.Skies[sky]
 			t.ok(s ~= nil, "sky " .. sky)
 			for _, f in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do
@@ -864,10 +928,17 @@ return function(t)
 			t.ok(type(s.horizonGlowAzimuth) == "number", sky .. " horizon glow azimuth")
 			t.ok(type(s.celestialBodiesShown) == "boolean", sky .. " celestial flag")
 		end
-		-- overcast / light-polluted skies: no stars; the night deck already has its moonlit clouds (no second moon)
-		t.eq(Look.Skies.night.starCount, 0, "no stars over the night cloud deck")
-		t.eq(Look.Skies.blue.starCount, 0, "no stars at blue hour over the city")
-		t.eq(Look.Skies.night.celestialBodiesShown, false, "no engine moon disc over the night deck")
+		-- the procedural skies paint their own (pre-compensated) stars: the engine's would come out red-brown at the held
+		-- clock; no engine moon over the night sky (it would sit on the -3 deg sun's antipode all night)
+		for _, sky in { "night", "blue", "dawn" } do
+			t.eq(Look.Skies[sky].starCount, 0, "no engine stars on " .. sky)
+		end
+		t.eq(Look.Skies.night.celestialBodiesShown, false, "no engine moon disc over the night sky")
+		-- the three procedural skies share one Dn face (one texture to load)
+		t.eq(Look.Skies.night.faces.Dn, Look.Skies.blue.faces.Dn, "shared Dn")
+		t.eq(Look.Skies.night.faces.Dn, Look.Skies.dawn.faces.Dn, "shared Dn")
+		t.eq(Look.Skies.dawn.clouds, 0)
+		t.eq(Look.Skies.blue.clouds, 0)
 		t.eq(Look.Skies.day.celestialBodiesShown, true, "engine sun disc by day (the HDRI sun is painted out)")
 		-- skies with painted clouds do not get a second volumetric layer
 		t.eq(Look.Skies.day.clouds, 0)
@@ -944,8 +1015,33 @@ return function(t)
 		end
 		t.eq(seen.golden, nil, "the unscheduled golden sky is not preloaded")
 		local ids = LookClient.skyAssetList("night")
-		t.eq(#ids, 6 * nScheduled, "six faces per scheduled sky")
-		t.eq(ids[1], Look.Skies.blue.faces.Bk, "night -> blue first")
+		local unique, nUnique = {}, 0
+		for name in scheduled do
+			for _, f in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do
+				local id = Look.Skies[name].faces[f]
+				if not unique[id] then
+					unique[id] = true
+					nUnique += 1
+				end
+			end
+		end
+		t.ok(nUnique < 6 * nScheduled, "some faces are shared (the procedural skies' Dn)")
+		t.eq(#ids, nUnique, "every distinct scheduled face once")
+		local listed = {}
+		for _, id in ids do
+			t.ok(not listed[id], "listed once: " .. id)
+			listed[id] = true
+			t.ok(unique[id], "a scheduled sky's face")
+		end
+		t.eq(ids[1], Look.Skies.dawn.faces.Bk, "night -> dawn first")
+		-- the shared Dn is fetched with the first sky that needs it, not again with the night sky at the end
+		local dnAt
+		for i, id in ids do
+			if id == Look.Skies.dawn.faces.Dn then
+				dnAt = i
+			end
+		end
+		t.ok(dnAt ~= nil and dnAt <= 6, "shared Dn with the first sky: " .. tostring(dnAt))
 		t.eq(#LookClient.skyOrder(nil), nScheduled, "unknown current sky: every scheduled sky")
 		local fromGolden = LookClient.skyOrder("golden")
 		t.eq(fromGolden[#fromGolden], "golden", "a sky already on screen goes last even if unscheduled")

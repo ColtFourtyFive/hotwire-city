@@ -1,42 +1,51 @@
 #!/usr/bin/env python3
-"""Procedural night and blue-hour skies, pre-compensated for what the engine does to a skybox at the held night clock
+"""Procedural night, dusk and dawn skies, pre-compensated for what the engine does to a skybox at the held night clock
 (backlog item 14; the diagnosis is in docs/v2/research/lighting_lab.md, round 5).
 
 Why procedural and why pre-compensated
   LightingService holds Lighting.ClockTime at 18.2 / 5.8 (engine sun -3 deg) all night and fakes the night with the
-  presets (Look.EngineClock). At that clock the engine renders the skybox about 50x darker than by day and strongly red.
-  Measured on job 0009's diag_night_exposure2_overview (night faces loaded, Exposure +2; `calibrate` below), after
-  undoing that shot's ColorCorrection:  rendered_lin = g * face_lin  with  g ~ (R 0.20, G 0.077, B 0.073):
-    * R/G ~2.7 on the anti-sun side, falling to ~1.75 at 100 deg from the sun;
-    * B/G ~1.08 near the horizon, ~0.77 at 20-30 deg (less blue higher up);
-    * G is flat (0.075-0.087) everywhere it was measured.
-  So the navy-grey HDRI (faces R < G < B) rendered reddish-brown, and the blue grade cannot pull it back without turning
-  the whole city blue. Here every face is the INVERSE of that transfer applied to the look we want on screen (the
-  target, display sRGB after the preset's ColorCorrection). A deep blue night therefore needs a face that looks icy
-  cyan-blue on its own; the engine's red cast turns it back into blue. A clean gradient, not a photo: the engine dims the
-  sky so far that photo detail (clouds) is lost anyway, and a gradient has no colour noise to go muddy.
+  presets (Look.EngineClock). At that clock the engine renders the skybox ~8x darker than the face at Exposure +2 (~20x
+  at the night's +0.8) and strongly red. Fitted on TWO real-engine shots of known faces (`fit`, tools/look/
+  sky_calibration.json: job 0009's night HDRI at Exposure +2, and job 0011's night shot, which showed the cached DAY
+  faces at Exposure +0.8), after undoing each shot's ColorCorrection:
+      rendered_lin = A(el, psi) * face_lin ** gamma,   A = G(el) * 2 ** (gamma * (EV - 2)) * (R/G, 1, B/G(el))
+    * R/G = 2.8, flat over everything measured (2..27 deg elevation, 78..180 deg from the sun), in both shots;
+    * B/G falls with elevation: ~1.1 at the horizon, ~0.95 at 12 deg, ~0.83 at 21 deg;
+    * G falls slowly with elevation; the two shots agree within ~3 % once the exposure is accounted for.
+  So the navy-grey night HDRI (faces R < G < B) rendered reddish-brown, and the blue grade cannot pull it back without
+  turning the whole city blue. Here every face is the INVERSE of that transfer applied to the look we want on screen
+  (the target, display sRGB after the preset's ColorCorrection). A deep blue night needs a face that looks pale cyan-blue
+  on its own; the engine's red cast turns it back into blue. A clean gradient, not a photo: the engine dims the sky so
+  far that photo detail (clouds) is lost anyway, and a gradient has no colour noise to go muddy.
 
-  The ceiling: a white face renders at most ~(60, 35, 40) at the night state and ~(55, 40, 42) at the blue hour (G and
-  B are the limits). Targets stay under it; a pixel that would still clip is scaled down as a whole (hue kept).
+  Unmeasured, so hedged: the zenith (B/G continues its measured fall to bg_high) and the sun's side (< 75 deg from the
+  sun, R/G rg_near = 2.3 instead of 2.8: an error either way turns the dusk glow orange or yellow, never olive). The
+  night sky is one texture for both holds (sun west before midnight, east after): built for the geometric mean of the
+  two casts. Job 0012 shoots every one of these regions; add its shots to sky_calibration.json and re-run `fit`.
+
+  The ceiling: a white face renders at most ~(80, 50, 40) at the night zenith and less at dusk (G and B are the
+  limits). Targets stay under it; a pixel that would still clip is scaled down as a whole (hue kept).
 
 Skies (six 1024 px faces each, the engine-verified mapping of hdri_to_skybox.py; one shared Dn face):
-  night      clear night: blue-black zenith, cool blue-grey horizon, subtle stars, faint warm city glow at sky azimuth 90
-             (= +X: the night sky does not follow the sun; LightingService parks horizonGlowAzimuth on +X, inland)
-  nightMild  the same target, compensated at MILD_STRENGTH (A/B in job 0012: Workspace "SkyOverride" = "nightMild")
-  blue       dusk: amber glow on the sun side (sky azimuth 0 = glowAzimuth, kept on the engine sun), pink belt opposite,
-             deep blue zenith, a few first stars
-  dawn       dawn: the same build, peach / pink instead of amber
+  night  clear night: blue-black zenith, cool blue-grey horizon, subtle stars, faint warm city glow at sky azimuth 90
+         (= +X: the night sky does not follow the sun; LightingService parks horizonGlowAzimuth on +X, inland)
+  blue   dusk: amber glow on the sun side (sky azimuth 0 = glowAzimuth, kept on the engine sun), mauve belt opposite,
+         deep blue zenith, a few first stars
+  dawn   dawn: the same build, pale peach-gold instead of amber
 
 Commands
   python3 -I tools/look/procedural_sky.py [--only night,blue] [--evidence]
-      faces -> assets/sky/<sky>/{ft,bk,lf,rt,up,dn}.png (dn = assets/sky/shared/dn_twilight.png for every sky here),
+      faces -> assets/sky/<sky>/{ft,bk,lf,rt,up}.png + assets/sky/shared/dn_twilight.png (every sky's Dn),
       metadata -> assets/sky/skies.json (other skies untouched), previews -> docs/v2/evidence/look_night/
+  python3 -I tools/look/procedural_sky.py fit [--spec tools/look/sky_calibration.json]
+      refits ENGINE from every listed real-engine shot and prints the per-region residuals
   python3 -I tools/look/procedural_sky.py calibrate --shot <png> --faces <dir> --yaw <deg> --exposure <EV>
       --tint R,G,B --contrast C --saturation S [--camera x,y,z,lx,ly,lz] [--clock 18.2]
-      refits the engine transfer from a real-engine screenshot of a known sky (job 0012 can re-run it on new shots).
+      one shot's transfer per region (diagnostic table)
 """
 
 import argparse
+import io
 import json
 import math
 import os
@@ -55,34 +64,33 @@ import lookcommon as lc  # noqa: E402
 FACE = 1024
 EVIDENCE_DIR = os.path.join(lc.ROOT, "docs", "v2", "evidence", "look_night")
 SHARED_DN = os.path.join(lc.SKY_DIR, "shared", "dn_twilight.png")
+SPEC = os.path.join(HERE, "sky_calibration.json")
+OLD_REV = "3d0a965"  # the last commit with the HDRI night / blue faces (before / after evidence)
 
 # ---------------------------------------------------------------------------------------------------------------
-# The engine transfer at the held clock (sun -3 deg), measured (see the docstring and `calibrate`)
+# The engine transfer at the held clock (sun -3 deg), fitted by `fit` on tools/look/sky_calibration.json
 # ---------------------------------------------------------------------------------------------------------------
 
-# rendered_lin_c = A_c * face_lin_c ** gamma, with A_c = A_c(ref_ev) * 2 ** (gamma * (EV - ref_ev)) (the exposure acts
-# before the tone curve that makes gamma > 1) and A = G * (rg, 1, bg). Fitted on job 0009's diag shot (`calibrate`):
-# gamma 1.2-1.35 fits the brightness bins best and also covers part of the chroma gain the shot shows (inside narrow
-# windows the rendered log R/G moves ~1.5x as much as the face's). Measured over 3-26 deg elevation and 115-175 deg from
-# the sun only: the zenith and the sun side are extrapolated (they are what job 0012 must look at).
 ENGINE = dict(
-    ref_ev=2.0,  # the calibration shot's ExposureCompensation
-    gamma=1.35,
-    # s = smoothstep(psi0, psi1, degrees from the engine sun): 0 on the sun's side, 1 anti-sun
-    psi0=90.0,
-    psi1=150.0,
-    g_high=0.142,  # G well above the horizon, anti-sun (0.143-0.151 at 16-26 deg, 125-180 deg from the sun)
-    g_low=0.022,  # extra G at the horizon (0.161-0.172 at 2-8 deg), fading over g_scale deg above 4 deg
-    g_scale=10.0,
-    g_sun=0.45,  # G x (1 + g_sun) on the sun's side (0.19 at 100-125 deg, 0.23 at 60-100 deg)
-    rg_near=1.85,  # R/G on the sun's side (1.81 at 60-100 deg, 2.27-2.34 at 100-125 deg) ...
-    rg_far=2.80,  # ... and anti-sun (2.71-2.85)
-    bg_near=0.70,  # B/G well above the horizon, sun's side (0.71-0.72) ...
-    bg_far=0.85,  # ... and anti-sun (0.88)
-    bg_low=0.22,  # extra B/G at the horizon (1.01-1.08 at 2-8 deg), fading over bg_scale deg above 4 deg
-    bg_scale=13.0,
+    ref_ev=2.0,  # A is quoted at ExposureCompensation +2 and scales by 2 ** (gamma * (EV - ref_ev))
+    gamma=1.2,  # best joint fit of the two shots (1.1-1.35 all fit within a few %)
+    # G(el) = g_high + g_low * exp(-el / g_scale). `fit`: 0.0953 + 0.0328 exp(-el / 30) over 2-30 deg; the zenith is
+    # extrapolated (0.096 by the fit, 0.110 if flat above 25 deg: 0.101 here)
+    g_high=0.100,
+    g_low=0.027,
+    g_scale=25.0,
+    # B/G(el) = bg_high + bg_low * exp(-el / bg_scale). `fit`: 0.38 + 0.904 exp(-el / 32) over 2-30 deg (within 4 % of
+    # this there); the zenith is extrapolated: 0.44 by the fit, 0.79 if flat above 25 deg, 0.54 here
+    bg_high=0.52,
+    bg_low=0.72,
+    bg_scale=26.0,
+    # R/G: rg_far measured (`fit` 2.774, flat over 78-171 deg from the sun in both shots); rg_near is the hedge for the
+    # unmeasured sun side (< psi1): halfway (in log) between the measured 2.8 and job 0009's dubious 1.8
+    rg_far=2.78,
+    rg_near=2.3,
+    psi0=40.0,
+    psi1=75.0,
 )
-MILD_STRENGTH = 0.7  # nightMild: the cast's colour ratios raised to this power (70 % of the compensation, in log space)
 HOLD_ELEVATION = -3.0  # deg, both engine-clock holds (Look.EngineClock)
 
 
@@ -112,18 +120,20 @@ def azimuth(dirs):
     return np.degrees(np.arctan2(dirs[..., 0], -dirs[..., 2]))
 
 
-def engine_gain(dirs, sun, ev, strength=1.0):
+def sun_angle(dirs, sun):
+    return np.degrees(np.arccos(np.clip((dirs * sun).sum(-1), -1, 1)))
+
+
+def engine_gain(dirs, sun, ev, E=None):
     """Per-channel A_c of the engine transfer (rendered_lin = A_c * face_lin ** gamma, before the ColorCorrection) for
-    face texels seen in `dirs` (sun = engine sun direction, ev = ExposureCompensation). strength < 1 keeps only that
-    share of the colour cast (log space): used to build a less compensated variant, never to simulate."""
-    E = ENGINE
-    psi = np.degrees(np.arccos(np.clip((dirs * sun).sum(-1), -1, 1)))
-    above = np.clip(elevation(dirs) - 4.0, 0, None)
-    s = smoothstep(E["psi0"], E["psi1"], psi)
-    g = (E["g_high"] + E["g_low"] * np.exp(-above / E["g_scale"])) * (1 + E["g_sun"] * (1 - s))
+    face texels seen in `dirs` (sun = engine sun direction, ev = ExposureCompensation)."""
+    E = E or ENGINE
+    el = np.clip(elevation(dirs), 0, None)
+    g = E["g_high"] + E["g_low"] * np.exp(-el / E["g_scale"])
+    s = smoothstep(E["psi0"], E["psi1"], sun_angle(dirs, sun))
     rg = E["rg_near"] + (E["rg_far"] - E["rg_near"]) * s
-    bg = E["bg_near"] + (E["bg_far"] - E["bg_near"]) * s + E["bg_low"] * np.exp(-above / E["bg_scale"])
-    ratio = np.stack([rg, np.ones_like(rg), bg], -1) ** strength
+    bg = E["bg_high"] + E["bg_low"] * np.exp(-el / E["bg_scale"])
+    ratio = np.stack([rg, np.ones_like(rg), bg], -1)
     return (g[..., None] * 2.0 ** (E["gamma"] * (ev - E["ref_ev"])) * ratio).astype(np.float32)
 
 
@@ -156,18 +166,23 @@ def forward(face_srgb, gain, g):
     return grade(lc.linear_to_srgb(np.clip(lin, 0, 1)), g)
 
 
+KNEE = 0.85  # face-space peak where the soft roll-off toward the ceiling starts
+
+
 def inverse(target_srgb, gain, g):
-    """Wanted display sRGB -> face sRGB, and the share of pixels over the ceiling (a white face). Those are scaled down
-    as a whole in face space, which scales the rendered colour uniformly too: the hue is kept, only darker."""
+    """Wanted display sRGB -> face sRGB, and the share of pixels over the ceiling (a white face). Pixels whose largest
+    channel would pass KNEE are scaled down as a whole in face space (a smooth roll-off that reaches 1.0 only at
+    infinity), which scales the rendered colour uniformly too: the hue is kept, only darker, and the noise and stars
+    near the ceiling are compressed, never flattened."""
     need = (lc.srgb_to_linear(np.clip(ungrade(target_srgb, g), 0, 1)) / gain) ** (1.0 / ENGINE["gamma"])
-    peak = need.max(-1, keepdims=True)
-    over = peak > 1.0
-    need = np.where(over, need / np.maximum(peak, 1e-6), need)
-    return lc.linear_to_srgb(np.clip(need, 0, 1)), float(over.mean())
+    peak = np.maximum(need.max(-1, keepdims=True), 1e-6)
+    over = float((peak > 1.0).mean())
+    need = need * lc.soft_clip(peak, KNEE) / peak
+    return lc.linear_to_srgb(np.clip(need, 0, 1)), over
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# Render states (the presets at a reference GAME hour, from Config/Look via tools/look/export_look.luau)
+# Render states (the presets at a GAME hour, from Config/Look via tools/look/export_look.luau)
 # ---------------------------------------------------------------------------------------------------------------
 
 _LOOK = None
@@ -190,37 +205,79 @@ def _lerp(a, b, t):
     return {k: _lerp(a[k], b[k], t) for k in a}
 
 
-def preset_at(hour):
-    """LightingService.lookAt without the caps / overrides, plus the swap dip (same maths)."""
+def swap_dip(hour):
+    """LightingService.swapDipAt (same maths)."""
     L = look_data()
-    keys = L["Keys"]
-    a, b = keys[0], keys[-1]
-    for i in range(len(keys) - 1):
-        if keys[i]["hour"] <= hour <= keys[i + 1]["hour"]:
-            a, b = keys[i], keys[i + 1]
-            break
-    span = b["hour"] - a["hour"]
-    t = (hour - a["hour"]) / span if span > 0 else 0.0
-    t = t * t * (3 - 2 * t)
-    p = _lerp(L["Presets"][a["preset"]], L["Presets"][b["preset"]], t)
     swap = L["SkySwap"]
     dips = [(swap["exposureDip"], L["EngineClock"]["jumpHour"])]
     dips += [(e.get("dip", swap["exposureDip"]), e["hour"]) for e in L["SkySchedule"]]
     best = 0.0
     for depth, at in dips:
-        d = abs(hour - at % 24)
+        d = abs(hour % 24 - at % 24)
         d = min(d, 24 - d)
         best = max(best, depth * math.exp(-(d / swap["width"]) ** 2))
-    p["exposure"] -= best
+    return best
+
+
+def preset_at(hour):
+    """LightingService.lookAt without the caps / overrides, plus the swap dip (same maths)."""
+    L = look_data()
+    h = hour % 24
+    keys = L["Keys"]
+    a, b = keys[0], keys[-1]
+    for i in range(len(keys) - 1):
+        if keys[i]["hour"] <= h <= keys[i + 1]["hour"]:
+            a, b = keys[i], keys[i + 1]
+            break
+    span = b["hour"] - a["hour"]
+    t = (h - a["hour"]) / span if span > 0 else 0.0
+    t = t * t * (3 - 2 * t)
+    p = _lerp(L["Presets"][a["preset"]], L["Presets"][b["preset"]], t)
+    p["exposure"] -= swap_dip(h)
     return p
 
 
-def state(hour, clock):
-    """Exposure + grade at a game hour, the engine sun at an engine clock."""
+def engine_clock(hour):
+    """LightingService.engineClockAt (same maths)."""
+    E = look_data()["EngineClock"]
+    h = hour % 24
+    ease = E["ease"]
+    eve0 = E["eveningHold"] - ease / 2
+    eve1 = eve0 + ease
+    morn1 = E["morningHold"] + ease / 2
+    morn0 = morn1 - ease
+    if morn1 <= h <= eve0:
+        return h
+    if eve0 < h < eve1:
+        d = h - eve0
+        return eve0 + d - d * d / (2 * ease)
+    if morn0 < h < morn1:
+        u = morn1 - h
+        return morn1 - u + u * u / (2 * ease)
+    if (h - eve1) % 24 < (E["jumpHour"] - eve1) % 24:
+        return E["eveningHold"]
+    return E["morningHold"]
+
+
+def sky_at(hour):
+    """LightingService.skyAt (same maths)."""
+    sched = look_data()["SkySchedule"]
+    h = hour % 24
+    name = sched[-1]["sky"]
+    for e in sched:
+        if h >= e["hour"]:
+            name = e["sky"]
+    return name
+
+
+def state(hour, clock=None):
+    """Exposure + grade at a game hour; the engine sun at `clock` (default: the engine clock of that hour)."""
     p = preset_at(hour)
     cc = p["colorCorrection"]
+    clock = engine_clock(hour) if clock is None else clock
     return dict(ev=p["exposure"], sun=sun_dir(clock), grade=dict(tint=cc["tint"], saturation=cc["saturation"],
-                                                                 contrast=cc["contrast"]), hour=hour, clock=clock)
+                                                                 contrast=cc["contrast"]), hour=hour, clock=clock,
+                haze=p["atmosphere"]["haze"])
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -263,7 +320,7 @@ def stars(n, seed):
     v = rng.normal(size=(n, 3)).astype(np.float32)
     v /= np.linalg.norm(v, axis=1, keepdims=True)
     m = rng.random(n) ** 3  # mostly faint, a few bright
-    amp = 0.0012 + 0.020 * m  # linear display add at the peak texel
+    amp = 0.0016 + 0.026 * m  # linear display add at the peak texel
     kind = rng.random(n)
     col = np.where(kind[:, None] < 0.5, np.array([0.86, 0.93, 1.0]),
                    np.where(kind[:, None] < 0.85, np.array([1.0, 1.0, 1.0]), np.array([1.0, 0.93, 0.82])))
@@ -293,37 +350,41 @@ def splat_stars(face, sv, samp, n=FACE, sigma=0.62):
     return layer
 
 
-# Control colours (display sRGB 0..255: what the frame should show at the sky's reference state).
+# Control colours (display sRGB 0..255: what the frame should show at the sky's reference state). GTA V's clear night
+# over the city: a deep blue (not black) zenith, a lighter cool blue-grey band at the horizon, stars, and a dim
+# sodium glow only just above the city; its dusk: amber on the sun's side under a pale teal band, deep blue overhead,
+# a cool mauve belt over the blue-grey earth shadow opposite. Both are far darker here than in GTA: the engine caps the
+# sky at about G 50 / B 40 at night (module docstring), so the targets keep the hue relations, not GTA's brightness.
 NIGHT = dict(
-    zenith=(6, 9, 21),  # blue-black
-    mid=(11, 16, 30),  # at 12 deg
-    horizon=(22, 29, 41),  # cool blue-grey
-    glow=(58, 44, 34),  # warm sodium city glow the horizon blends toward, centred on glow_az ...
-    glow_mix=0.6,  # ... at most this much
+    zenith=(6, 10, 24),  # blue-black (the B ceiling there is ~32; stars need headroom)
+    mid=(12, 18, 36),  # at 12 deg
+    horizon=(28, 36, 52),  # cool blue-grey
+    glow=(72, 50, 32),  # warm sodium city glow the horizon blends toward, centred on glow_az ...
+    glow_mix=0.75,  # ... at most this much, right at the horizon, gone by ~8 deg
     glow_az=90.0,
 )
 TWILIGHT = {
     "blue": dict(
-        # deep blue overhead, ~1.5x the night's zenith: bluer than the night, but close enough that the blue -> night
-        # swap at 19:30 (under its exposure dip) is a small step, not a pop
-        zenith=(8, 14, 34),
-        mid=(13, 22, 40),  # 12 deg, away from the sun
-        mid_sun=(22, 32, 48),  # 12 deg on the sun's side: a paler, slightly teal blue above the glow
-        anti=(28, 33, 45),  # anti-sun horizon: blue-grey earth shadow
-        belt=(37, 31, 44),  # the pink belt just above it
-        sun=(80, 50, 27),  # sun-side horizon: amber / orange (the R ceiling there is ~80)
-        core=(84, 54, 28),  # right under the sun
-        warm=(64, 50, 42),  # sun side at ~7 deg: peach, between the amber and the blue
+        # deep blue overhead, about the night's zenith: the blue -> night swap at 19:30 (under its exposure dip) is
+        # mostly the sun-side glow going, not a jump of the whole dome
+        zenith=(5, 10, 22),  # (the B ceiling there is ~26 at dusk)
+        mid=(11, 21, 36),  # 12 deg, away from the sun
+        mid_sun=(20, 30, 38),  # 12 deg on the sun's side: a paler, slightly teal blue above the glow
+        anti=(30, 36, 48),  # anti-sun horizon: blue-grey earth shadow
+        belt=(40, 33, 46),  # the cool mauve belt just above it
+        sun=(70, 40, 16),  # sun-side horizon: saturated amber-orange (at the R and G ceilings there)
+        core=(72, 41, 16),  # right under the sun
+        warm=(60, 42, 30),  # sun side at ~5 deg: peach-orange, between the amber and the blue
     ),
     "dawn": dict(
-        zenith=(7, 13, 32),
-        mid=(12, 21, 39),
-        mid_sun=(22, 33, 49),  # a touch more cyan than dusk
-        anti=(27, 32, 44),
-        belt=(35, 30, 43),
-        sun=(74, 54, 40),  # pale peach: softer and less orange than dusk (pink reads maroon this dark)
-        core=(80, 60, 43),
-        warm=(58, 50, 48),
+        zenith=(5, 10, 21),
+        mid=(10, 20, 35),
+        mid_sun=(21, 31, 39),  # a touch more cyan than dusk
+        anti=(29, 35, 47),
+        belt=(38, 32, 45),
+        sun=(64, 43, 22),  # pale peach-gold: softer and less orange than dusk (pink reads maroon this dark)
+        core=(66, 44, 22),
+        warm=(56, 45, 34),
     ),
 }
 
@@ -334,7 +395,7 @@ def night_target(dirs):
     c = two_scale(el, L(T["zenith"]), L(T["mid"]), L(T["horizon"]))
     d = np.abs((az - T["glow_az"] + 180) % 360 - 180)
     e = np.clip(el, 0, None)
-    glow = 0.75 * np.exp(-(d / 30) ** 2) * np.exp(-e / 4.0) + 0.25 * np.exp(-(d / 70) ** 2) * np.exp(-e / 11.0)
+    glow = 0.8 * np.exp(-(d / 30) ** 2) * np.exp(-e / 3.0) + 0.2 * np.exp(-(d / 70) ** 2) * np.exp(-e / 7.0)
     w = (T["glow_mix"] * glow)[..., None]
     c = c * (1 - w) + L(T["glow"]) * w
     c = c * (1 + 0.05 * soft_noise(dirs, 11))[..., None]
@@ -356,8 +417,9 @@ def twilight_target(dirs, T):
     ca = two_scale(el, L(T["zenith"]), mid, hor, a=3.5, b=20.0)
     cb = two_scale(el, L(T["zenith"]), mid, hor, a=6.0, b=24.0)
     c = ca * (1 - w_sun) + cb * w_sun
-    # peach band on the sun side, ~4-12 deg, between the amber horizon and the blue
-    band = (w_sun * np.exp(-((e - 7) / 5) ** 2)[..., None]) * 0.5
+    # peach band on the sun side, ~2-9 deg, between the amber horizon and the blue (the engine's own haze band covers
+    # 0-2 deg at dusk, job 0011 D, so the warmth has to reach above it; higher or wider, this dark, it reads brown)
+    band = (w_sun * np.exp(-((e - 5) / 4) ** 2)[..., None]) * 0.4
     c = c * (1 - band) + L(T["warm"]) * band
     # the belt of Venus opposite the sun, ~3-9 deg over the blue-grey earth shadow
     belt = (w_anti * np.exp(-((e - 6) / 3.5) ** 2)[..., None]) * 0.55
@@ -372,19 +434,15 @@ def twilight_target(dirs, T):
 # ---------------------------------------------------------------------------------------------------------------
 
 # The night sky does not follow the sun (its city glow stays inland), but the engine's cast does: the held sun is in the
-# west until the midnight jump and in the east after it. One texture cannot be right for both, so the night is built
-# twice from the same target and swapped AT the jump (same instant, under its exposure dip): the frame stays the same.
+# west until the midnight jump and in the east after it. Where the cast differs (only the hedged sun side, < 75 deg
+# from the sun), the night is built for the geometric mean of both holds: one texture all night, no swap at the jump.
 SKY_DEFS = {
-    "night": dict(kind="night", strength=1.0, hour=22.5, clocks=(18.2,), follow=False, celestial=False,
-                  use="19:30-00:00 night (evening hold, sun west): blue-black sky, subtle stars, warm city glow at +X"),
-    "nightLate": dict(kind="night", strength=1.0, hour=2.0, clocks=(5.8,), follow=False, celestial=False,
-                      use="00:00-05:00 night (morning hold, sun east): the same look, compensated for the other side"),
-    "nightMild": dict(kind="night", strength=MILD_STRENGTH, hour=22.5, clocks=(18.2,), follow=False,
-                      celestial=False, use="A/B only (Workspace SkyOverride): 'night' at 70 % compensation"),
-    "blue": dict(kind="twilight", palette="blue", strength=1.0, hour=18.9, clocks=(18.2,), follow=True, celestial=True,
-                 use="18:21-19:30 dusk: amber glow on the sun side, pink belt opposite, deep blue zenith"),
-    "dawn": dict(kind="twilight", palette="dawn", strength=1.0, hour=5.3, clocks=(5.8,), follow=True, celestial=True,
-                 use="05:00-05:39 dawn: peach / pink glow on the sun side, deep blue zenith"),
+    "night": dict(kind="night", hour=22.5, clocks=(18.2, 5.8), follow=False, celestial=False,
+                  use="19:30-05:00 night: blue-black sky, cool horizon, subtle stars, faint warm city glow at +X"),
+    "blue": dict(kind="twilight", palette="blue", hour=18.9, clocks=(18.2,), follow=True, celestial=True,
+                 use="18:21-19:30 dusk: amber glow on the sun side, mauve belt opposite, deep blue zenith"),
+    "dawn": dict(kind="twilight", palette="dawn", hour=5.3, clocks=(5.8,), follow=True, celestial=True,
+                 use="05:00-05:39 dawn: pale peach-gold glow on the sun side, deep blue zenith"),
 }
 
 
@@ -393,8 +451,8 @@ def sky_gain(dirs, sdef, st_ev):
     of the evening and morning casts. A following sky has the engine sun on its glow (sky azimuth 0) at -3 deg."""
     if sdef["follow"]:
         sun = dir_from(np.float32(0.0), np.float32(HOLD_ELEVATION))
-        return engine_gain(dirs, sun, st_ev, sdef["strength"])
-    gs = [engine_gain(dirs, sun_dir(c), st_ev, sdef["strength"]) for c in sdef["clocks"]]
+        return engine_gain(dirs, sun, st_ev)
+    gs = [engine_gain(dirs, sun_dir(c), st_ev) for c in sdef["clocks"]]
     return np.exp(np.mean([np.log(g) for g in gs], axis=0)).astype(np.float32)
 
 
@@ -457,9 +515,8 @@ def write_sky(name, faces, st, clip):
         hdri=None, source="procedural (tools/look/procedural_sky.py), no third-party source", use=sdef["use"],
         files=files, starCount=0, followSun=sdef["follow"], celestialBodiesShown=sdef["celestial"], clouds=0.0,
         glowAzimuth=glow_az, glowElevation=HOLD_ELEVATION, horizonGlowAzimuth=horizon_az,
-        grading=dict(engine=ENGINE, strength=sdef["strength"], reference_hour=sdef["hour"],
-                     reference_clocks=list(sdef["clocks"]), exposure=round(st["ev"], 3), grade=st["grade"],
-                     clipped_share=round(clip, 5)),
+        grading=dict(engine=ENGINE, reference_hour=sdef["hour"], reference_clocks=list(sdef["clocks"]),
+                     exposure=round(st["ev"], 3), grade=st["grade"], clipped_share=round(clip, 5)),
         hazeColor=list(hz), sha1={k: lc.sha1(os.path.join(lc.ROOT, f)) for k, f in files.items()})
     meta_all["skies"] = skies
     meta_all.setdefault("faceMapping", {k: dict(v) for k, v in hs.FACES.items()})
@@ -467,15 +524,49 @@ def write_sky(name, faces, st, clip):
     return files
 
 
+def drop_skies(names):
+    """Removes skies this tool no longer builds from skies.json (their PNGs are deleted by the caller / git)."""
+    meta_path = os.path.join(lc.SKY_DIR, "skies.json")
+    meta_all = lc.read_json(meta_path, {}) or {}
+    for n in names:
+        meta_all.get("skies", {}).pop(n, None)
+    lc.write_json(meta_path, meta_all)
+
+
 # ---------------------------------------------------------------------------------------------------------------
-# Evidence: what the frame should show (the forward model), from the job 0009 / 0012 cameras
+# Inputs from git (calibration shots and the old faces live on other commits / branches)
+# ---------------------------------------------------------------------------------------------------------------
+
+
+def read_bytes(ref):
+    """`git:<rev>:<path>` via git show (read-only), else a path relative to the repo root."""
+    if ref.startswith("git:"):
+        rev, path = ref[4:].split(":", 1)
+        return subprocess.run(["git", "show", "%s:%s" % (rev, path)], cwd=lc.ROOT, capture_output=True,
+                              check=True).stdout
+    with open(os.path.join(lc.ROOT, ref), "rb") as f:
+        return f.read()
+
+
+def load_image(ref):
+    return np.asarray(Image.open(io.BytesIO(read_bytes(ref))).convert("RGB"), dtype=np.float32) / 255.0
+
+
+def load_faces(ref):
+    sep = "/" if not ref.endswith("/") else ""
+    return {k: load_image(ref + sep + k + ".png") for k in hs.FACES}
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Evidence: what the frame should show (the forward model), from the job 0009 / 0011 / 0012 cameras
 # ---------------------------------------------------------------------------------------------------------------
 
 CAMERAS = {
-    "overview_low_sw": ((-700, 180, -700), (0, 20, 0)),
     "downtown_street": ((60, 12, 160), (60, 40, 0)),
-    "look_up": ((0, 10, 0), (0, 1000, -0.001)),
+    "overview_low_sw": ((-700, 180, -700), (0, 20, 0)),
+    "look_up": ((60, 12, 160), (60, 1000, 160)),  # image top = -Z (job 0012: CFrame.lookAt(pos, pos + Y, -Z))
 }
+JOB_HOURS = (19.0, 20.5, 22.5, 2.0, 5.5)  # studio/jobs/0012-night-sky.md
 
 
 def camera_dirs(w, h, pos, look, fov=70.0):
@@ -521,12 +612,26 @@ def sample_faces(faces, dirs):
     return out
 
 
+# The engine's own haze band at the horizon (measured, job 0011 D at dusk: Haze 0.7, Atmosphere colour (120, 124, 134);
+# 0-1 deg (51, 55, 75), 1-2 deg (44, 39, 54), gone by ~3 deg; on the anti-sun side only, the sun side is unmeasured).
+# Overlaid on the twilight previews in proportion to the preset's haze above the night's 0.35 (where none was seen).
+DUSK_HAZE = (52, 56, 76)
+
+
+def haze_overlay(img, dirs, st):
+    k = np.clip((st["haze"] - 0.35) / (0.7 - 0.35), 0, 1)
+    if k <= 0:
+        return img
+    el = elevation(dirs)
+    w = (0.85 * k * smoothstep(2.5, 0.0, el) * smoothstep(-1.5, -0.5, el))[..., None]
+    return img * (1 - w) + np.array(DUSK_HAZE, np.float32) / 255.0 * w
+
+
 def render_view(faces, cam, yaw, st, w=840, h=540):
     dirs = camera_dirs(w, h, *cam)
-    local = rot_y(dirs, yaw)
-    tex = sample_faces(faces, local)
-    gain = engine_gain(dirs, st["sun"], st["ev"])
-    return forward(tex, gain, st["grade"])
+    tex = sample_faces(faces, rot_y(dirs, yaw))
+    out = forward(tex, engine_gain(dirs, st["sun"], st["ev"]), st["grade"])
+    return haze_overlay(out, dirs, st)
 
 
 def render_pano(faces, yaw, st, w=1024):
@@ -536,23 +641,33 @@ def render_pano(faces, yaw, st, w=1024):
     A, E = np.meshgrid(az, el)
     dirs = dir_from(A, E)
     tex = sample_faces(faces, rot_y(dirs, yaw))
-    return forward(tex, engine_gain(dirs, st["sun"], st["ev"]), st["grade"])
+    return haze_overlay(forward(tex, engine_gain(dirs, st["sun"], st["ev"]), st["grade"]), dirs, st)
 
 
-def sky_yaw(name, st):
-    sdef = SKY_DEFS.get(name)
-    if sdef and not sdef["follow"]:
-        return 0.0  # horizonGlowAzimuth 90 parked on fixedGlowAzimuth 90
+def sun_azimuth(st):
     s = st["sun"]
-    return ((0.0 - math.degrees(math.atan2(s[0], -s[2]))) + 180) % 360 - 180  # glowAzimuth 0 -> sun azimuth
+    return math.degrees(math.atan2(s[0], -s[2]))
 
 
-def tile(images, labels, cols, title, path, scale=1.0):
+def sky_yaw(name, st, old=False):
+    """SkyboxOrientation.Y LightingService writes for a sky (SKY_DEFS) or, with old=True, for the HDRI skies at OLD_REV
+    (night: horizon glow 17.4 parked on +X; blue: glow 32.7 on the sun)."""
+    if old:
+        raw = (17.4 - 90.0) if name == "night" else (32.7 - sun_azimuth(st))
+        return (raw + 180) % 360 - 180
+    if not SKY_DEFS[name]["follow"]:
+        return 0.0  # horizonGlowAzimuth 90 parked on fixedGlowAzimuth 90
+    return ((0.0 - sun_azimuth(st)) + 180) % 360 - 180  # glowAzimuth 0 -> sun azimuth
+
+
+def tile(images, labels, cols, title, path, scale=1.0, notes=()):
     h, w = images[0].shape[:2]
-    pad, top = 8, 34
+    pad, top = 8, 34 + 18 * len(notes)
     rows = (len(images) + cols - 1) // cols
     sheet = Image.new("RGB", (cols * (w + pad) + pad, top + rows * (h + pad + 4)), (14, 14, 16))
     lc.label(sheet, (pad, 8), title, size=15, fill=(255, 214, 140))
+    for i, n in enumerate(notes):
+        lc.label(sheet, (pad, 30 + 18 * i), n, size=12, fill=(200, 200, 200))
     for i, (im, lab) in enumerate(zip(images, labels)):
         x = pad + (i % cols) * (w + pad)
         y = top + (i // cols) * (h + pad + 4)
@@ -565,69 +680,190 @@ def tile(images, labels, cols, title, path, scale=1.0):
     return path
 
 
+def mean_sky(faces, yaw, st, n=96):
+    """Mean display colour (0..255) of the whole sky above 2 deg, as rendered (for the swap steps)."""
+    az = (np.arange(4 * n) + 0.5) / (4 * n) * 360 - 180
+    el = 2 + (np.arange(n) + 0.5) / n * 88
+    A, E = np.meshgrid(az, el)
+    dirs = dir_from(A, E)
+    img = haze_overlay(forward(sample_faces(faces, rot_y(dirs, yaw)), engine_gain(dirs, st["sun"], st["ev"]),
+                               st["grade"]), dirs, st)
+    wts = np.cos(np.radians(E))[..., None]
+    return (img * wts).sum((0, 1)) / wts.sum() * 255
+
+
 def evidence(built):
     out = []
-    rows = [("night", 18.2, "game 22.5, evening hold"), ("nightLate", 5.8, "game 2.0, morning hold"),
-            ("nightMild", 18.2, "game 22.5, A/B"), ("night", 5.8, "WRONG HOLD: why there are two")]
-    rows = [r for r in rows if r[0] in built]
-    if rows:
-        imgs, labs = [], []
-        for nm, clock, what in rows:
-            st = state(22.5 if clock > 12 else 2.0, clock)
-            for cam in ("overview_low_sw", "downtown_street", "look_up"):
-                imgs.append(render_view(built[nm], CAMERAS[cam], sky_yaw(nm, st), st))
-                labs.append("%s  %s  (%s, EV %+.2f)" % (nm, cam, what, st["ev"]))
-        out.append(tile(imgs, labs, 3, "Night skies, SIMULATED in-game (engine transfer measured at the held clock + the "
-                        "night grade). Sky only: the city covers the lower part in game.",
-                        os.path.join(EVIDENCE_DIR, "night_sim_views.png"), 0.75))
-    tw = [n for n in ("blue", "dawn") if n in built]
-    if tw:
-        imgs, labs = [], []
-        for nm in tw:
-            hour, clock = (18.9, 18.2) if nm == "blue" else (5.3, 5.8)
-            st = state(hour, clock)
-            yaw = sky_yaw(nm, st)
-            sun_az = math.degrees(math.atan2(st["sun"][0], -st["sun"][2]))
-            for lab, look in (("sunward", sun_az), ("anti-sun", sun_az + 180)):
-                a = math.radians(look)
-                cam = ((0, 30, 0), (1000 * math.sin(a), 30 + 1000 * math.tan(math.radians(12)), -1000 * math.cos(a)))
-                imgs.append(render_view(built[nm], cam, yaw, st))
-                labs.append("%s  %s  (game %.1f, EV %+.2f)" % (nm, lab, hour, st["ev"]))
-            imgs.append(render_view(built[nm], CAMERAS["look_up"], yaw, st))
-            labs.append("%s  look_up" % nm)
-        out.append(tile(imgs, labs, 3, "Blue hour (dusk) and dawn skies, SIMULATED in-game at the engine hold (sun -3 deg)."
-                        " Sky only.", os.path.join(EVIDENCE_DIR, "twilight_sim_views.png"), 0.75))
-    # panoramas of every sky, simulated
+    old = {"night": load_faces("git:%s:assets/sky/night" % OLD_REV), "blue": load_faces("git:%s:assets/sky/blue" % OLD_REV)}
+    hud = "Sky only: the city covers the lower part in game; the engine's dusk haze band (0-2 deg) is overlaid."
+    # 1. what job 0012 should see, at its five lock hours and three cameras
+    imgs, labs = [], []
+    for hour in JOB_HOURS:
+        name = sky_at(hour)
+        st = state(hour)
+        for cam in ("downtown_street", "overview_low_sw", "look_up"):
+            imgs.append(render_view(built[name], CAMERAS[cam], sky_yaw(name, st), st))
+            labs.append("%04.1f  %s  sky %s  EV %+.2f  clock %.2f" % (hour, cam, name, st["ev"], st["clock"]))
+    out.append(tile(imgs, labs, 3, "Job 0012 preview: the NEW skies SIMULATED in-game (fitted engine transfer + the "
+                    "preset's exposure and grade at each lock hour)", os.path.join(EVIDENCE_DIR, "job0012_sim.png"),
+                    0.75, notes=(hud,)))
+    # 2. before / after at the same hours
+    imgs, labs = [], []
+    for hour in (19.0, 22.5, 5.5):
+        name = sky_at(hour)
+        oname = "night" if name == "night" else "blue"
+        st = state(hour)
+        for cam in ("overview_low_sw", "look_up"):
+            imgs.append(render_view(old[oname], CAMERAS[cam], sky_yaw(oname, st, old=True), st))
+            labs.append("BEFORE %04.1f %s (HDRI '%s' faces)" % (hour, cam, oname))
+            imgs.append(render_view(built[name], CAMERAS[cam], sky_yaw(name, st), st))
+            labs.append("AFTER  %04.1f %s (procedural '%s')" % (hour, cam, name))
+    out.append(tile(imgs, labs, 4, "Before / after, both SIMULATED with the same fitted engine transfer and grade",
+                    os.path.join(EVIDENCE_DIR, "before_after.png"), 0.6, notes=(hud,)))
+    # 3. twilight: sunward / anti-sun / straight up
+    imgs, labs = [], []
+    for nm, hour in (("blue", 18.9), ("dawn", 5.3)):
+        st = state(hour)
+        yaw = sky_yaw(nm, st)
+        sa = sun_azimuth(st)
+        for lab, look in (("sunward", sa), ("anti-sun", sa + 180)):
+            a = math.radians(look)
+            cam = ((0, 30, 0), (1000 * math.sin(a), 30 + 1000 * math.tan(math.radians(12)), -1000 * math.cos(a)))
+            imgs.append(render_view(built[nm], cam, yaw, st))
+            labs.append("%s  %s  (game %.1f, EV %+.2f)" % (nm, lab, hour, st["ev"]))
+        imgs.append(render_view(built[nm], CAMERAS["look_up"], yaw, st))
+        labs.append("%s  look_up" % nm)
+    out.append(tile(imgs, labs, 3, "Dusk ('blue') and dawn skies, SIMULATED in-game at the engine hold (sun -3 deg)",
+                    os.path.join(EVIDENCE_DIR, "twilight_sim_views.png"), 0.75, notes=(hud,)))
+    # 4. panoramas, simulated vs raw texture
     imgs, labs = [], []
     for nm, faces in built.items():
         sdef = SKY_DEFS[nm]
-        hour, clock = sdef["hour"], sdef["clocks"][0]
-        st = state(hour, clock)
-        imgs.append(render_pano(faces, sky_yaw(nm, st), st))
-        labs.append("%s  simulated, game %.1f (world azimuth -180..180, el -10..80; centre = -Z)" % (nm, hour))
-        raw = np.zeros_like(imgs[-1])
-        az = (np.arange(raw.shape[1]) + 0.5) / raw.shape[1] * 360 - 180
-        el = 80 - (np.arange(raw.shape[0]) + 0.5) / raw.shape[0] * 90
+        st = state(sdef["hour"], sdef["clocks"][0])
+        yaw = sky_yaw(nm, st)
+        imgs.append(render_pano(faces, yaw, st))
+        labs.append("%s  simulated, game %.1f (world azimuth -180..180, el -10..80; centre = -Z)" % (nm, sdef["hour"]))
+        az = (np.arange(1024) + 0.5) / 1024 * 360 - 180
+        el = 80 - (np.arange(256) + 0.5) / 256 * 90
         A, E = np.meshgrid(az, el)
-        raw = sample_faces(faces, rot_y(dir_from(A, E), sky_yaw(nm, st)))
-        imgs.append(raw)
+        imgs.append(sample_faces(faces, rot_y(dir_from(A, E), yaw)))
         labs.append("%s  RAW faces as uploaded (pre-compensated: the engine turns this cyan back into blue)" % nm)
     out.append(tile(imgs, labs, 2, "Panoramas: simulated in-game vs the raw uploaded texture",
                     os.path.join(EVIDENCE_DIR, "panoramas.png"), 0.8))
+    # 5. the model against the real engine: every calibration shot next to the model's render of the same faces
+    imgs, labs = [], []
+    for s in json.load(open(SPEC))["shots"]:
+        real = load_image(s["shot"])
+        h, w = real.shape[:2]
+        h2, w2 = h // 2, w // 2
+        dirs = camera_dirs(w2, h2, s["camera"][:3], s["camera"][3:], s.get("fov", 70.0))
+        g = dict(tint=s["tint"], saturation=s["saturation"], contrast=s["contrast"])
+        model = forward(sample_faces(load_faces(s["faces"]), rot_y(dirs, s["yaw"])),
+                        engine_gain(dirs, sun_dir(s["clock"]), s["exposure"]), g)
+        model = np.where((elevation(dirs) > 0)[..., None], model, 0.0)
+        imgs.append(np.asarray(Image.fromarray(lc.to_u8(real)).resize((w2, h2), Image.LANCZOS)) / 255.0)
+        labs.append("REAL: " + s["name"][:70])
+        imgs.append(model)
+        labs.append("MODEL: same faces / yaw / exposure %+.1f / grade, fitted transfer (sky only)" % s["exposure"])
+    out.append(tile(imgs, labs, 2, "The fitted engine transfer reproduces the reddish-brown sky of both real-engine "
+                    "shots (tools/look/sky_calibration.json)", os.path.join(EVIDENCE_DIR, "model_validation.png"), 0.8))
+    # 6. cross sheets
     for nm, faces in built.items():
         sdef = SKY_DEFS[nm]
-        meta = dict(hdri="procedural", sunAzimuth=None, sunElevation=None)
         st = state(sdef["hour"], sdef["clocks"][0])
-        eq = render_pano(faces, 0.0, st, w=1024)
         p = os.path.join(EVIDENCE_DIR, "cross_%s.png" % nm)
-        hs.cross_sheet(nm, faces, eq, meta, p)
+        hs.cross_sheet(nm, faces, render_pano(faces, 0.0, st, w=1024), dict(hdri="procedural"), p)
         out.append(p)
+    # 7. the swap steps (printed; job 0012 judges them)
+    if {"night", "blue", "dawn"} <= set(built):
+        for hour, a, b in ((19.5, "blue", "night"), (5.0, "night", "dawn")):
+            st = state(hour)
+            ma = mean_sky(built[a], sky_yaw(a, st), st)
+            mb = mean_sky(built[b], sky_yaw(b, st), st)
+            print("swap %04.1f %s -> %s: mean sky %s -> %s (EV dip %.2f)" % (hour, a, b, ma.round(1), mb.round(1),
+                                                                            swap_dip(hour)))
     return out
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# Calibration: refit the engine transfer from a real-engine screenshot of a known sky
+# Fitting the engine transfer to real-engine shots of known faces
 # ---------------------------------------------------------------------------------------------------------------
+
+
+def shot_samples(s, gamma, step=2):
+    """Per-pixel (dirs, rendered_lin at ref EV, face_lin ** gamma) for one calibration shot (HUD, unloaded / black
+    pixels and everything outside 2..30 deg elevation masked)."""
+    img = load_image(s["shot"])
+    h, w = img.shape[:2]
+    cam = s["camera"]
+    dirs = camera_dirs(w, h, cam[:3], cam[3:], s.get("fov", 70.0))
+    el = elevation(dirs)
+    mask = (el > 2.0) & (el < 30.0) & (img.max(-1) > 3 / 255)
+    for x0, y0, x1, y1 in s.get("hud", []):
+        mask[y0:y1, x0:x1] = False
+    sub = np.zeros_like(mask)
+    sub[::step, ::step] = True
+    mask &= sub
+    faces = load_faces(s["faces"])
+    g = dict(tint=s["tint"], saturation=s["saturation"], contrast=s["contrast"])
+    r = lc.srgb_to_linear(np.clip(ungrade(img, g), 0, 1))[mask] / 2.0 ** (gamma * (s["exposure"] - ENGINE["ref_ev"]))
+    t = lc.srgb_to_linear(sample_faces(faces, rot_y(dirs[mask], s["yaw"]))) ** gamma
+    return dirs[mask], r, t
+
+
+def _lsq(cols, y, wts):
+    M = np.stack(cols, -1) * wts[:, None]
+    sol, *_ = np.linalg.lstsq(M, y * wts, rcond=None)
+    res = (np.stack(cols, -1) @ sol - y) * wts
+    return sol, float(np.sqrt((res ** 2).mean()))
+
+
+def fit(a):
+    spec = json.load(open(a.spec))
+    shots = spec["shots"]
+    best = None
+    for gamma in (1.0, 1.1, 1.2, 1.3, 1.4):
+        data = [shot_samples(s, gamma) for s in shots]
+        D = np.concatenate([d for d, _, _ in data])
+        R = np.concatenate([r for _, r, _ in data])
+        T = np.concatenate([t for _, _, t in data])
+        # every shot weighs the same, and inside a shot every pixel relative to the shot's mean
+        W = np.concatenate([np.full(len(r), 1.0 / (len(r) ** 0.5 * r[:, 1].mean())) for _, r, _ in data])
+        el = elevation(D)
+        for gs in (6.0, 10.0, 14.0, 20.0, 30.0):
+            (gh, gl), err = _lsq([T[:, 1], np.exp(-el / gs) * T[:, 1]], R[:, 1], W)
+            if best is None or err < best[0]:
+                best = (err, gamma, gs, gh, gl, D, R, T, W, el)
+    err, gamma, gs, gh, gl, D, R, T, W, el = best
+    G = gh + gl * np.exp(-el / gs)
+    sun = sun_dir(shots[0]["clock"])
+    psi = sun_angle(D, sun)
+    far = psi >= ENGINE["psi1"]
+    (rg,), _ = _lsq([(G * T[:, 0])[far]], R[far, 0], W[far])
+    bbest = None
+    for bs in (6.0, 10.0, 14.0, 18.0, 24.0, 32.0):
+        (bh, bl), berr = _lsq([G * T[:, 2], np.exp(-el / bs) * G * T[:, 2]], R[:, 2], W)
+        if bbest is None or berr < bbest[0]:
+            bbest = (berr, bs, bh, bl)
+    _, bs, bh, bl = bbest
+    print("pixels %d over %d shots, psi %.0f..%.0f deg from the sun" % (len(R), len(shots), psi.min(), psi.max()))
+    print("fit: gamma %.2f  G = %.4f + %.4f exp(-el / %.0f)  R/G %.3f  B/G = %.3f + %.3f exp(-el / %.0f)" % (
+        gamma, gh, gl, gs, rg, bh, bl, bs))
+    print("ENGINE in use: gamma %.2f g %.4f + %.4f / %.0f  rg %.2f (sun side %.2f)  bg %.3f + %.3f / %.0f" % (
+        ENGINE["gamma"], ENGINE["g_high"], ENGINE["g_low"], ENGINE["g_scale"], ENGINE["rg_far"], ENGINE["rg_near"],
+        ENGINE["bg_high"], ENGINE["bg_low"], ENGINE["bg_scale"]))
+    # residual check of ENGINE per shot and band: rendered / modelled (1 = exact)
+    for s in shots:
+        d, r, t = shot_samples(s, ENGINE["gamma"])
+        A = engine_gain(d, sun_dir(s["clock"]), ENGINE["ref_ev"])
+        e = elevation(d)
+        print(" ", s["name"][:60])
+        for lo, hi in ((2, 6), (6, 12), (12, 20), (20, 30)):
+            m = (e >= lo) & (e < hi)
+            if m.sum() < 500:
+                continue
+            ratio = (r[m] * (A[m] * t[m])).sum(0) / ((A[m] * t[m]) ** 2).sum(0)
+            print("    el %2d-%2d  data / ENGINE  R %.2f  G %.2f  B %.2f  (n %d)" % (lo, hi, *ratio, m.sum()))
 
 
 def calibrate(a):
@@ -656,27 +892,10 @@ def calibrate(a):
     tl = tl0 ** gam
     gain = (rl * tl).sum(0) / (tl * tl).sum(0)
     corr = [float(np.corrcoef(tl[:, c], rl[:, c])[0, 1]) for c in range(3)]
-    sun = sun_dir(a.clock)
-    psi = np.degrees(np.arccos(np.clip((dirs[mask] * sun).sum(-1), -1, 1)))
+    psi = sun_angle(dirs[mask], sun_dir(a.clock))
     e = el[mask]
     print("pixels %d  gamma %.2f  A at EV %+.1f: R %.4f G %.4f B %.4f  (R/G %.2f, B/G %.2f)  corr %s" % (
         mask.sum(), gam, ENGINE["ref_ev"], *gain, gain[0] / gain[1], gain[2] / gain[1], [round(c, 3) for c in corr]))
-    # how much of the face's own hue comes through: inside narrow windows, slope of log rendered R/G vs log face R/G
-    # (1 = exactly what `gamma` predicts; more = the engine boosts sky chroma beyond it)
-    slopes = []
-    for plo, phi in ((100, 125), (125, 150), (150, 180)):
-        for elo, ehi in ((3, 10), (10, 18), (18, 30), (30, 60)):
-            m = (psi >= plo) & (psi < phi) & (e >= elo) & (e < ehi) & (rl[:, 0] > 0) & (rl[:, 1] > 0)
-            if m.sum() < 3000:
-                continue
-            x = np.log(tl[m, 0] / tl[m, 1])
-            y = np.log(rl[m, 0] / rl[m, 1])
-            if np.std(x) < 0.02:
-                continue
-            (s, _), *_ = np.linalg.lstsq(np.stack([x, np.ones_like(x)], -1), y, rcond=None)
-            slopes.append(s)
-    if slopes:
-        print("chroma slope beyond gamma, median of %d windows: %.2f" % (len(slopes), float(np.median(slopes))))
     print("rows: elevation; cols: degrees from the sun; cells: R/G | B/G | G (A, gamma domain)")
     for elo, ehi in ((2, 8), (8, 16), (16, 26), (26, 45), (45, 90)):
         row = []
@@ -694,6 +913,11 @@ def calibrate(a):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "fit":
+        ap = argparse.ArgumentParser(prog="procedural_sky.py fit")
+        ap.add_argument("--spec", default=SPEC)
+        fit(ap.parse_args(sys.argv[2:]))
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "calibrate":
         ap = argparse.ArgumentParser(prog="procedural_sky.py calibrate")
         ap.add_argument("--shot", required=True)
@@ -716,7 +940,8 @@ def main():
     ap.add_argument("--evidence", action="store_true")
     a = ap.parse_args()
     only = set(filter(None, a.only.split(",")))
-    star_field = stars(5200, 7)
+    drop_skies([n for n in ("nightLate", "nightMild") if n not in SKY_DEFS])
+    star_field = stars(6500, 7)
     built = {}
     for name in SKY_DEFS:
         if only and name not in only:
@@ -725,7 +950,7 @@ def main():
         write_sky(name, faces, st, clip)
         built[name] = {k: lc.load_rgb(os.path.join(lc.ROOT, f)) for k, f in
                        lc.read_json(os.path.join(lc.SKY_DIR, "skies.json"))["skies"][name]["files"].items()}
-        print("%-9s EV %+.2f tint %s  clipped %.3f%%" % (name, st["ev"], st["grade"]["tint"], 100 * clip))
+        print("%-6s EV %+.2f tint %s  clipped %.3f%%" % (name, st["ev"], st["grade"]["tint"], 100 * clip))
     if a.evidence:
         for p in evidence(built):
             print("evidence", lc.rel(p))

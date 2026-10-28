@@ -1,11 +1,11 @@
 --!strict
 -- LookClient (v2 look, owned by the look package with Config/Look + LightingService).
 --
--- Preloads the faces of every SCHEDULED sky (Look.SkySchedule: day, blue, night, nightLate, dawn) in the background, a
--- few seconds after joining, so the first sky swap on this client (blue at 18:21, night at 19:30, nightLate at 00:00,
--- dawn at 05:00, day at 05:39 game time) does not stream 1024 px faces live (a face shared by several skies, like the
--- procedural skies' Dn, is loaded once): until a face arrives the engine shows it blank or stale, a
--- worse pop than the swap itself, worst on phones. The sky that comes up next is loaded first. The server's sky
+-- Preloads the faces of every SCHEDULED sky (Look.SkySchedule: day, blue, night, dawn) in the background, a few seconds
+-- after joining, so the first sky swap on this client (blue at 18:21, night at 19:30, dawn at 05:00, day at 05:39 game
+-- time) does not stream 1024 px faces live (a face shared by several skies, like the procedural skies' Dn, is loaded
+-- once): until a face arrives the engine shows it blank or stale (job 0009 shot half a night sky black), a worse pop
+-- than the swap itself, worst on phones. The sky that comes up next is loaded first. The server's sky
 -- (Lighting attribute "Sky") is already on screen and goes last. Skies that are generated but not scheduled (golden,
 -- dropped after lab round 2: its swap with the day sky could not be hidden) are not preloaded: six fewer 1024 px
 -- textures in a phone's memory. A Studio edit-mode lab never sees the problem because Studio has the textures cached.

@@ -381,20 +381,19 @@ Look.Keys = {
 }
 
 ---------------------------------------------------------------------------------------------------------------------
--- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Four sky changes a day, all with the ENGINE
+-- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Four sky swaps a day, all with the ENGINE
 -- sun below the horizon, each under a short exposure dip (Look.SkySwap; `dip` overrides its depth for one entry):
---   nightLate -> dawn in the dark, dawn -> day just before the engine sunrise, day -> blue (dusk) just after the engine
---   sunset, blue -> night in the dark;
--- plus night -> nightLate AT the engine-clock jump (Look.EngineClock.jumpHour, same tick, same dip): the two night skies
--- are the same picture, each pre-compensated for the engine's colour cast with the held sun on its own side (west
--- before the jump, east after it), so the frame does not change (backlog 14, research/lighting_lab.md round 5).
+--   night -> dawn in the dark, dawn -> day just before the engine sunrise, day -> blue (dusk) just after the engine
+--   sunset, blue -> night in the dark.
+-- The engine-clock jump at midnight (Look.EngineClock.jumpHour) swaps no sky: the night sky is built for both holds.
 --
--- The night, dawn and dusk skies are procedural (tools/look/procedural_sky.py), not HDRIs: the engine renders a skybox
--- at the held -3 deg sun ~50x darker than by day and strongly red (R/G ~2.8), which is what turned the navy-grey night
--- HDRI reddish-brown (job 0011). Their faces are the inverse of that measured transfer applied to the look we want on
--- screen at the preset's grade: a deep blue night needs a cyan-blue face. The twilight <-> night swaps change the most
--- (the sun-side glow goes, stars come out), so they get a deeper dip; the dusk zenith is kept within ~1.5x of the
--- night's so that step stays small.
+-- The night, dawn and dusk skies are procedural (tools/look/procedural_sky.py), not HDRIs (backlog 14,
+-- research/lighting_lab.md round 5): the engine renders a skybox at the held -3 deg sun ~20x darker than the face and
+-- strongly red (R/G 2.8, measured on two real-engine shots), which is what turned the navy-grey night HDRI
+-- reddish-brown (jobs 0009 / 0011). Their faces are the inverse of that measured transfer applied to the look we want
+-- on screen at the preset's grade: a deep blue night needs a pale cyan-blue face. The twilight <-> night swaps change
+-- the most (the sun-side glow goes, the stars come out), so they get a deeper dip; the dusk and dawn zeniths match the
+-- night's, so the rest of the dome does not step.
 --
 -- No golden sky (decision after lab round 2 S3). The day <-> golden swap popped visibly: thin warm wisps <-> white
 -- cumulus, seen straight through a Haze 1.2 bump, and the facades shifted with it because the sky feeds ambient and
@@ -413,7 +412,6 @@ export type SkySwapEntry = {
 }
 
 Look.SkySchedule = {
-	{ hour = 0, sky = "nightLate" }, -- = EngineClock.jumpHour: the held sun jumps to the east in the same tick
 	{ hour = 5.0, sky = "dawn", dip = 0.35 }, -- NightFactor 0.99; engine sun held at -3 deg (east)
 	{ hour = 5.65, sky = "day" }, -- engine ClockTime 5.90: sun -1.5 deg, just before the engine sunrise
 	{ hour = 18.35, sky = "blue" }, -- engine ClockTime 18.10: sun -1.5 deg, just after the engine sunset
@@ -446,8 +444,7 @@ Look.SkyStyle = {
 	-- spin the painted clouds, so the day sky lags there and catches up in the afternoon. Swaps snap.
 	maxYawRate = 0.3,
 	yawEpsilon = 0.02, -- degrees; SkyboxOrientation is only rewritten past this (steps are ~0.075 deg at 4 Hz)
-	-- Skies that do not follow the sun (night, nightLate) park their horizon glow (the warm city glow) here: east / +X,
-	-- inland. The Palmera Beach ocean horizon is the -X side (WorldLayout coast), and should stay dark.
+	-- Skies that do not follow the sun (night) park their horizon glow (the warm city glow) here: east / +X, inland. The Palmera Beach ocean horizon is the -X side (WorldLayout coast), and should stay dark.
 	fixedGlowAzimuth = 90,
 }
 
@@ -504,8 +501,8 @@ Look.Water = {
 --   "AtmosphereDensityOverride" (number)  "AtmosphereHazeOverride" (number)  "ExposureOverride" (EV)
 --   "BrightnessOverride" (number)  "OutdoorAmbientOverride" (Color3)  "TintOverride" (Color3, ColorCorrection)
 --   "SaturationOverride" (number, ColorCorrection)  "MoonSizeOverride" (degrees, 0 hides the engine moon)
---   "SkyOverride" (string, a Look.Skies name: that sky instead of Look.SkySchedule, e.g. the "nightMild" A/B of job
---   0012; yaw / stars / sun-moon discs follow that sky's own settings)
+--   "SkyOverride" (string, a Look.Skies name: that sky instead of Look.SkySchedule, e.g. "night" at 19.0 to compare
+--   it with the dusk sky in job 0012; yaw / stars / sun-moon discs follow that sky's own settings)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- BEGIN GENERATED (tools/look/gen_project.py) - do not edit by hand
@@ -957,20 +954,37 @@ Look.Decals = Decals
 local Skies: { [string]: SkyDef } = {
 	blue = {
 		faces = {
-			Bk = "rbxassetid://88562914711616",
-			Dn = "rbxassetid://117299015005250",
-			Ft = "rbxassetid://122246640713360",
-			Lf = "rbxassetid://79579945003167",
-			Rt = "rbxassetid://96569696092312",
-			Up = "rbxassetid://128421368724949",
+			Bk = "rbxassetid://70683400363590",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://105412262655867",
+			Lf = "rbxassetid://140732642740499",
+			Rt = "rbxassetid://117518356221659",
+			Up = "rbxassetid://101185202023069",
 		},
-		glowAzimuth = 32.7,
-		horizonGlowAzimuth = 48.1,
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 0,
 		followSun = true,
 		starCount = 0,
 		celestialBodiesShown = true,
-		clouds = 1,
-		hazeColor = { 120, 112, 122 },
+		clouds = 0,
+		hazeColor = { 30, 36, 48 },
+	},
+	dawn = {
+		faces = {
+			Bk = "rbxassetid://88297669138388",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://104691054390275",
+			Lf = "rbxassetid://115868303766379",
+			Rt = "rbxassetid://137318548242974",
+			Up = "rbxassetid://115259817645274",
+		},
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 0,
+		followSun = true,
+		starCount = 0,
+		celestialBodiesShown = true,
+		clouds = 0,
+		hazeColor = { 29, 35, 47 },
 	},
 	day = {
 		faces = {
@@ -1012,20 +1026,20 @@ local Skies: { [string]: SkyDef } = {
 	},
 	night = {
 		faces = {
-			Bk = "rbxassetid://90717854341912",
-			Dn = "rbxassetid://71763556424955",
-			Ft = "rbxassetid://98461351795375",
-			Lf = "rbxassetid://79552634608475",
-			Rt = "rbxassetid://79230279114248",
-			Up = "rbxassetid://80685099604519",
+			Bk = "rbxassetid://86999547269242",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://139435704740562",
+			Lf = "rbxassetid://125463269368696",
+			Rt = "rbxassetid://99753931935148",
+			Up = "rbxassetid://109124646573605",
 		},
-		glowAzimuth = 35.5,
-		horizonGlowAzimuth = 17.4,
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 90,
 		followSun = false,
 		starCount = 0,
 		celestialBodiesShown = false,
 		clouds = 0,
-		hazeColor = { 53, 54, 56 },
+		hazeColor = { 28, 36, 52 },
 	},
 }
 Look.Skies = Skies
