@@ -253,7 +253,11 @@ local function materialFor(
 		-- leftover ground between lots: paved in the core and the container port, verge grass on the airfield, dirt
 		-- with grass patches elsewhere (a basin of bare tan dirt read as desert in the previews)
 		if district == "downtown" or district == "port" then
-			return M.Concrete
+			-- Asphalt, not Concrete: Concrete, Pavement, Rock, Basalt, Slate and Cobblestone mesh with displaced, blocky
+			-- surfaces that snap up to a voxel boundary at low occupancy (engine probe 2026-10-28: a column written to
+			-- 11.6 surfaces at 12.0, flush with the road tops, so the asphalt z-fought). Asphalt, Ground, Grass, Sand,
+			-- Mud and Limestone land on the written height to within 0.01.
+			return M.Asphalt
 		elseif district == "airport" then
 			return if n > -0.35 then M.Grass else M.Ground
 		elseif district == "midtown" then
