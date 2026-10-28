@@ -14,10 +14,12 @@ below-horizon fill (the puresky lower half is a mirror of the sky), and the HDRI
 it does not double the engine sun. The measured HDRI sun direction (after mapping) is recorded so LightingService can
 rotate the sky (Sky.SkyboxOrientation.Y) to put the HDRI's sun glow where the engine sun is.
 
-Outputs: assets/sky/<name>/{ft,bk,lf,rt,up,dn}.png (1024 px), assets/sky/skies.json,
+Skies: day and golden only. The night, dawn and dusk skies come from tools/look/procedural_sky.py (backlog 14).
+
+Outputs: assets/sky/<name>/{ft,bk,lf,rt,up,dn}.png (1024 px), assets/sky/skies.json (other skies' entries kept),
          docs/v2/early/look/sky_<name>_cross.png
 
-Usage: python3 -I tools/look/hdri_to_skybox.py --hdri-dir <dir with <id>_4k.hdr> [--only day,night] [--cache <dir>]
+Usage: python3 -I tools/look/hdri_to_skybox.py --hdri-dir <dir with <id>_4k.hdr> [--only day,golden] [--cache <dir>]
        (4k = 4096x2048 equirect gives 1024 px per 90-degree face; --fetch downloads missing 4k files from Poly Haven)
 """
 
@@ -72,14 +74,9 @@ SKIES = {
                    tint=(1.0, 0.985, 0.95), sun=dict(core=1.4, edge=6.0, glow=0.5), below=0.35, contrast=1.0,
                    star_count=0, follow_sun=True, celestial=True, clouds=0.0,
                    use="05:57-07:15 and 16:45-18:06 golden hours, sun 0-18 deg (glow follows the engine sun)"),
-    "blue": dict(hdri="qwantani_dusk_2_puresky", ev=-0.35, sat=0.5, horizon=0.18, horizon_w=8.0, haze_white=0.2,
-                 tint=(0.94, 0.97, 1.04), sun=None, below=0.45, contrast=1.0, star_count=0, follow_sun=True,
-                 celestial=True, clouds=1.0,
-                 use="05:00-05:57 and 18:06-19:30 blue hours (sun below the horizon); volumetric clouds kept"),
-    "night": dict(hdri="kloppenheim_07_puresky", ev=-2.1, sat=0.42, horizon=0.12, horizon_w=8.0, haze_white=0.0,
-                  tint=(0.92, 0.96, 1.0), sun=None, below=0.55, contrast=1.05, star_count=0, follow_sun=False,
-                  celestial=False, clouds=0.0,
-                  use="19:30-05:00 night: moonlit cloud deck (no engine moon/stars), warm city glow parked inland"),
+    # "blue" (qwantani_dusk_2_puresky) and "night" (kloppenheim_07_puresky) used to be built here. They rendered
+    # reddish-brown / maroon at the held night clock (jobs 0009 / 0011, backlog 14): the engine's sky cast at a -3 deg sun
+    # is R/G ~2.8. The night, dawn and dusk skies now come from tools/look/procedural_sky.py, pre-compensated for it.
 }
 
 # ---------------------------------------------------------------------------------------------------------------

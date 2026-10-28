@@ -1,0 +1,32 @@
+Rendered sky colours (model) per region at each sky's reference state; written by tools/look/procedural_sky.py --evidence
+swap 19.5 blue -> night: mean sky [ 8.1 14.8 25.6] -> [ 6.2 10.8 25.2] (EV dip 0.35; engine clock 18.20 -> 18.20)
+swap 00.0 night -> nightLate: mean sky [ 6.  10.5 24.7] -> [ 5.1  9.1 22.5] (EV dip 0.30; engine clock 18.20 -> 5.80)
+swap 05.0 nightLate -> dawn: mean sky [ 6.2 10.5 24.7] -> [ 9.8 16.9 27.8] (EV dip 0.35; engine clock 5.80 -> 5.80)
+night      zenith (60-90 deg)           rgb (  6.0  10.1  24.2)  hue 226  sat 0.75  val  24
+night      mid, away (12-30)            rgb (  9.7  15.3  32.4)  hue 225  sat 0.70  val  32
+night      mid, glow side (12-30)       rgb ( 10.2  15.5  32.3)  hue 225  sat 0.69  val  32
+night      low, away (3-8)              rgb ( 17.3  24.0  41.7)  hue 224  sat 0.58  val  42
+night      low, glow side (3-8)         rgb ( 23.6  27.5  40.9)  hue 226  sat 0.42  val  41
+night      horizon, glow side (0.5-3)   rgb ( 37.9  37.7  43.9)  hue 242  sat 0.14  val  44
+night      horizon, away (0.5-3)        rgb ( 23.4  30.8  47.3)  hue 222  sat 0.51  val  47
+nightLate  zenith (60-90 deg)           rgb (  5.4   9.4  22.7)  hue 226  sat 0.76  val  23
+nightLate  mid, away (12-30)            rgb (  8.8  13.6  29.7)  hue 226  sat 0.70  val  30
+nightLate  mid, glow side (12-30)       rgb (  9.0  13.7  29.5)  hue 226  sat 0.69  val  30
+nightLate  low, away (3-8)              rgb ( 16.0  21.6  38.6)  hue 225  sat 0.58  val  39
+nightLate  low, glow side (3-8)         rgb ( 20.3  24.2  38.2)  hue 227  sat 0.47  val  38
+nightLate  horizon, glow side (0.5-3)   rgb ( 31.9  33.5  42.7)  hue 231  sat 0.25  val  43
+nightLate  horizon, away (0.5-3)        rgb ( 21.7  28.0  44.3)  hue 223  sat 0.51  val  44
+blue       zenith (60-90 deg)           rgb (  7.0  14.3  27.5)  hue 219  sat 0.75  val  28
+blue       mid, away (12-30)            rgb ( 14.0  26.0  41.5)  hue 214  sat 0.66  val  42
+blue       mid, glow side (12-30)       rgb ( 18.1  28.5  41.9)  hue 214  sat 0.57  val  42
+blue       low, away (3-8)              rgb ( 29.3  37.0  54.6)  hue 222  sat 0.46  val  55
+blue       low, glow side (3-8)         rgb ( 61.2  46.4  34.9)  hue  26  sat 0.43  val  61
+blue       horizon, glow side (0.5-3)   rgb ( 66.3  49.7  38.0)  hue  25  sat 0.43  val  66
+blue       horizon, away (0.5-3)        rgb ( 34.1  42.8  61.1)  hue 221  sat 0.44  val  61
+dawn       zenith (60-90 deg)           rgb (  6.9  13.9  26.5)  hue 219  sat 0.74  val  26
+dawn       mid, away (12-30)            rgb ( 13.5  25.0  39.5)  hue 213  sat 0.66  val  40
+dawn       mid, glow side (12-30)       rgb ( 17.5  27.9  39.9)  hue 212  sat 0.56  val  40
+dawn       low, away (3-8)              rgb ( 28.3  35.9  52.6)  hue 221  sat 0.46  val  53
+dawn       low, glow side (3-8)         rgb ( 56.2  45.9  37.9)  hue  26  sat 0.33  val  56
+dawn       horizon, glow side (0.5-3)   rgb ( 61.3  49.0  41.2)  hue  23  sat 0.33  val  61
+dawn       horizon, away (0.5-3)        rgb ( 33.2  41.9  59.4)  hue 220  sat 0.44  val  59

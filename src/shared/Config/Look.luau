@@ -62,7 +62,7 @@ export type DecalDef = {
 
 export type SkyDef = {
 	faces: { [string]: string }, -- Bk/Dn/Ft/Lf/Rt/Up -> rbxassetid (Image assets)
-	glowAzimuth: number, -- degrees, 0 = -Z, 90 = +X (azimuth of the HDRI's brightest region / sun before rotation)
+	glowAzimuth: number, -- degrees, 0 = -Z, 90 = +X (azimuth of the sky's sun glow / brightest region before rotation)
 	horizonGlowAzimuth: number, -- brightest part of the 0..6 deg band (a night sky's city glow)
 	sunAzimuth: number?,
 	sunElevation: number?,
@@ -183,13 +183,32 @@ Look.Caps = {
 	hazeMax = 1.2,
 }
 
--- LOCKED by lab round 2 (job 0007 S1) for the sunlit presets (day, goldenMorning, goldenEvening): Offset made no
--- visible difference at Density 0.27 (captures at Offset 0 and 1.0 were pixel-identical), and Haze 0.8 + Offset 0.25
--- was the best pair (hazy but readable, white-grey horizon; Haze 1.2 greys the lower sky). Do not tune these again.
--- The blue-hour and night presets keep the same Offset and their own (lower) Haze.
+-- LOCKED by lab round 2 (job 0007 S1) for the DAY preset: Offset made no visible difference at Density 0.27 (captures
+-- at Offset 0 and 1.0 were pixel-identical), and Haze 0.8 + Offset 0.25 was the best pair (hazy but readable,
+-- white-grey horizon; Haze 1.2 greys the lower sky). Do not tune these again. The blue-hour and night presets keep the
+-- same Offset and their own (lower) Haze. The golden presets have their own Atmosphere (Look.GoldenAtmosphere).
 Look.AtmosphereLock = {
 	offset = 0.25,
 	haze = 0.8,
+}
+
+-- Golden hour Atmosphere (job 0018 vibe audit, docs/v2/VIBE_ROUTING.md row 13): from the low south-west aerial at
+-- 17.6 a flat grey haze wall swallowed the city beyond ~600 studs. Two causes:
+--   * draw distance: at client quality Automatic nothing past a few hundred studs is drawn (job 0011: a flat grey frame
+--     even at Density 0.01; the whole city at Level 21). The Atmosphere cannot fix that (SLIM / StreamingMesh can, the
+--     streaming wave owns it), but it decides what the empty far band LOOKS like: with the camera facing away from the
+--     low sun that band is the Decay hue, and a dull (126, 126, 134) Decay under Haze 0.8 read as a smog wall;
+--   * the haze itself: Density 0.18 + Haze 0.8 was the day's milky noon haze, held into the low sun.
+-- GTA V's golden hour is the opposite: a warm, clear long view, gentle aerial perspective, a warm glow round the sun.
+-- So, for both golden presets: thinner fog (Density 0.13, job 0011's "crisp but gentle" band), a thinner horizon band
+-- (Haze 0.5, kept > 0 because Glare needs it), Offset 0.4 (distant towers silhouette against the sky instead of fading
+-- into it; no visible effect was measured at Density 0.27, job 0012 sweeps it), a strong warm Glare round the low sun
+-- (0.8 / 0.7), a light warm-cream Color on the sun side, and a light rose-grey Decay away from it: aerial perspective
+-- that recedes warm-pale, never grey. Still no sepia (job 0009): the colours stay light and low-chroma, the grade keeps
+-- its faint warm tint and no saturation boost, and the warmth comes from the engine's low sun on the facades.
+Look.GoldenAtmosphere = {
+	offset = 0.4,
+	haze = 0.5,
 }
 
 -- Atmosphere.Density: THE single fog tunable of each preset (the presets below read it from here). Job 0009 (real
@@ -197,11 +216,12 @@ Look.AtmosphereLock = {
 -- downtown, on a city ~3 km across. Lowered so a skyline 1,500-2,500 studs away stays readable with gentle aerial
 -- perspective; Offset 0.25 / Haze 0.8 stay locked (above). Job 0011 sweeps 0.12 / 0.16 / 0.2 / 0.27 at noon from the
 -- overview cameras (Workspace "AtmosphereDensityOverride") and picks the final values. Night stays the thinnest: the
--- far city lights and the night sky's horizon glow must read through it.
+-- far city lights and the night sky's horizon glow must read through it. Golden: 0.13 since job 0018 (row 13, see
+-- Look.GoldenAtmosphere; job 0011 kept 0.18 at Level 21, the owner saw a haze wall).
 Look.AtmosphereDensity = {
 	day = 0.16,
-	goldenMorning = 0.18,
-	goldenEvening = 0.18,
+	goldenMorning = 0.13,
+	goldenEvening = 0.13,
 	blueMorning = 0.16,
 	blueEvening = 0.16,
 	night = 0.12,
@@ -221,17 +241,30 @@ Look.Tuning = { hazeScale = 1, densityScale = 1 } :: Tuning
 -- showed the night HDRI and a readable city: the engine already darkens a -3 deg world heavily, so the presets must
 -- LIFT it ~2 stops (positive ExposureCompensation, a moonlight-level key, a brighter cool OutdoorAmbient), not darken
 -- it further. "Still clearly night" comes from the low key light, the cool desaturated grade, the dark navy haze and
--- the night HDRI. The engine also tints that held world and its sky reddish-brown (the HDRI itself is navy-grey), so
--- the night grade is a clear blue tint (Look.Presets.night.colorCorrection). The blue hour sits between golden and
--- night and is never darker than the night. Haze / decay / cloud colours are neutral blue-grey with red never above
--- green (no magenta, tested). Job 0011 sweeps night exposure and tint ("ExposureOverride", "TintOverride").
+-- the night sky. The engine also tints that held world and its sky reddish-brown, so the night grade is a clear blue
+-- tint (Look.Presets.night.colorCorrection; job 0011 kept Exposure +0.8 and tint (212, 226, 255)). The blue hour sits
+-- between golden and night and is never darker than the night. Haze / decay / cloud colours are neutral blue-grey with
+-- red never above green (no magenta, tested). Job 0011 swept night exposure and tint ("ExposureOverride",
+-- "TintOverride").
+--
+-- The night / dawn / dusk sky faces are built AGAINST these presets (tools/look/procedural_sky.py reads the exposure
+-- and ColorCorrection at its reference hours and pre-compensates the engine's sky cast for them): after changing the
+-- night or blue-hour exposure or grade, re-run it (and re-upload), or the sky drifts from its target colours.
+--
+-- Blue hour exposure (+1.0, above the night's +0.8; was +0.6 until job 0018): at the held sun the engine renders the
+-- sky ~20x darker than its face, with a hard ceiling (a white face renders at most ~(70, 45, 55) at the horizon,
+-- research/lighting_lab.md round 5), so at +0.6 the dusk sky was darker than the NIGHT sky and its warm-to-blue
+-- gradient could not read (job 0011: "blue hour reads as night"). The sky's ceiling scales as 2^(1.2 * EV); the city
+-- gets ~0.4 EV brighter, which is what job 0011 saw at night +1.2 ("reads as dusk / early night"): right for dusk.
 --
 -- Golden hour (job 0009): the old warm Atmosphere colour + warm tint + saturation boost read sepia / brown (dusty,
--- smoggy) on top of the engine's own orange low sun. The grade is now warm-but-neutral: near-neutral haze, a faint
--- warm tint, no saturation boost; the warmth comes from the engine's low sun itself.
+-- smoggy) on top of the engine's own orange low sun. The grade is now warm-but-neutral: a faint warm tint, no
+-- saturation boost; the warmth comes from the engine's low sun itself. Its Atmosphere is thinner and clearer since
+-- job 0018 (Look.GoldenAtmosphere): light warm-cream haze toward the sun, light rose-grey away from it.
 ---------------------------------------------------------------------------------------------------------------------
 
 local LOCK = Look.AtmosphereLock
+local GOLDEN = Look.GoldenAtmosphere
 local DENSITY = Look.AtmosphereDensity
 
 local Presets: { [string]: Preset } = {
@@ -262,11 +295,11 @@ local Presets: { [string]: Preset } = {
 		shadowSoftness = 0.16,
 		atmosphere = {
 			density = DENSITY.goldenMorning,
-			offset = LOCK.offset,
-			haze = LOCK.haze,
-			glare = 0.4,
-			color = { 212, 208, 200 },
-			decay = { 124, 126, 134 },
+			offset = GOLDEN.offset,
+			haze = GOLDEN.haze,
+			glare = 0.7,
+			color = { 224, 214, 198 }, -- a touch fresher than the evening
+			decay = { 146, 142, 146 },
 		},
 		bloom = { intensity = 0.5, size = 26, threshold = 1.6 },
 		colorCorrection = { brightness = 0, contrast = 0.1, saturation = 0, tint = { 255, 251, 245 } },
@@ -281,11 +314,11 @@ local Presets: { [string]: Preset } = {
 		shadowSoftness = 0.18,
 		atmosphere = {
 			density = DENSITY.goldenEvening,
-			offset = LOCK.offset,
-			haze = LOCK.haze,
-			glare = 0.45,
-			color = { 218, 211, 200 },
-			decay = { 126, 126, 134 },
+			offset = GOLDEN.offset,
+			haze = GOLDEN.haze,
+			glare = 0.8, -- the warm glow round the low sun (needs Haze > 0)
+			color = { 228, 212, 192 }, -- light warm cream toward the sun
+			decay = { 152, 144, 142 }, -- light rose-grey away from it (job 0018: (126, 126, 134) read as a smog wall)
 		},
 		bloom = { intensity = 0.55, size = 28, threshold = 1.55 },
 		colorCorrection = { brightness = 0, contrast = 0.1, saturation = 0, tint = { 255, 250, 242 } },
@@ -294,7 +327,7 @@ local Presets: { [string]: Preset } = {
 	},
 	blueMorning = {
 		brightness = 1.5,
-		exposure = 0.6,
+		exposure = 1.0, -- above the night's: the twilight sky needs the headroom (see the note above)
 		ambient = { 12, 13, 18 },
 		outdoorAmbient = { 82, 92, 112 },
 		shadowSoftness = 0.3,
@@ -313,7 +346,7 @@ local Presets: { [string]: Preset } = {
 	},
 	blueEvening = {
 		brightness = 1.4,
-		exposure = 0.6,
+		exposure = 1.0,
 		ambient = { 12, 13, 18 },
 		outdoorAmbient = { 84, 92, 110 },
 		shadowSoftness = 0.3,
@@ -341,15 +374,16 @@ local Presets: { [string]: Preset } = {
 		atmosphere = {
 			density = DENSITY.night,
 			offset = LOCK.offset,
-			haze = 0.35, -- thin: the night HDRI's moonlit clouds and city-glow band stay visible above the haze
+			haze = 0.35, -- thin: the night sky's stars and city-glow band stay visible above the haze
 			glare = 0,
 			color = { 40, 43, 50 },
 			decay = { 20, 22, 27 },
 		},
 		-- lab round 2 S6 (windows bloomed into slabs at 1.05 / 1.0); threshold up a little more for the +0.8 EV lift
 		bloom = { intensity = 0.6, size = 26, threshold = 1.4 },
-		-- a clear blue tint + desaturation: cancels the engine's reddish-brown cast on the held night sky (job 0009)
-		-- while warm lamps and windows stay warm
+		-- a clear blue tint + desaturation: cools the engine's reddish-brown cast on the held world (job 0009) while warm
+		-- lamps and windows stay warm. It cannot fix the sky alone (job 0011): the night sky faces are pre-compensated
+		-- for this grade instead (Look.SkySchedule)
 		colorCorrection = { brightness = 0, contrast = 0.12, saturation = -0.2, tint = { 212, 226, 255 } },
 		sunRays = { intensity = 0, spread = 0.5 },
 		clouds = { cover = 0.3, density = 0.4, color = { 48, 52, 62 } },
@@ -375,10 +409,24 @@ Look.Keys = {
 }
 
 ---------------------------------------------------------------------------------------------------------------------
--- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Four swaps a day, all with the ENGINE sun
--- below the horizon, each under a short exposure dip (Look.SkySwap):
---   night -> blue in the dark, blue -> day just before the engine sunrise, day -> blue just after the engine sunset,
---   blue -> night in the dark.
+-- Sky schedule (GAME hours; each entry holds until the next, wraps at 24). Five sky swaps a day, all with the ENGINE
+-- sun below the horizon, each under a short exposure dip (Look.SkySwap; `dip` overrides its depth for one entry):
+--   night -> nightLate at midnight, in the SAME tick as the engine-clock jump (Look.EngineClock.jumpHour) and under
+--   its dip; nightLate -> dawn in the dark, dawn -> day just before the engine sunrise, day -> blue (dusk) just after
+--   the engine sunset, blue -> night in the dark.
+-- Why two night skies (job 0018 row 12): the engine's cast on the sky depends on where the held sun is (west until the
+-- jump, east after it; the sun side is cast less red). One texture for both holds could only be right on average and
+-- changed colour at the jump; `night` is pre-compensated for the evening hold and `nightLate` for the morning hold, so
+-- each is exact for the clock it is seen under, and the jump + swap is one masked step. nightLate is also the late
+-- night: a slightly deeper zenith, a fainter city glow, a few more stars.
+--
+-- The night, dawn and dusk skies are procedural (tools/look/procedural_sky.py), not HDRIs (backlog 14,
+-- research/lighting_lab.md round 5): the engine renders a skybox at the held -3 deg sun ~20x darker than the face and
+-- strongly red (R/G 2.8, measured on two real-engine shots), which is what turned the navy-grey night HDRI
+-- reddish-brown (jobs 0009 / 0011). Their faces are the inverse of that measured transfer applied to the look we want
+-- on screen at the preset's grade: a deep blue night needs a pale cyan-blue face. The twilight <-> night swaps change
+-- the most (the sun-side glow goes, the stars come out), so they get a deeper dip; the dusk and dawn zeniths match the
+-- night's, so the rest of the dome does not step.
 --
 -- No golden sky (decision after lab round 2 S3). The day <-> golden swap popped visibly: thin warm wisps <-> white
 -- cumulus, seen straight through a Haze 1.2 bump, and the facades shifted with it because the sky feeds ambient and
@@ -390,17 +438,25 @@ Look.Keys = {
 -- desaturated day dome. The golden faces stay in Look.Skies (generated) but are not scheduled or preloaded.
 ---------------------------------------------------------------------------------------------------------------------
 
+export type SkySwapEntry = {
+	hour: number, -- GAME hour the sky comes up
+	sky: string, -- a Look.Skies name
+	dip: number?, -- this swap's ExposureCompensation dip in EV (default Look.SkySwap.exposureDip)
+}
+
 Look.SkySchedule = {
-	{ hour = 5.0, sky = "blue" }, -- NightFactor 0.99; engine sun held at -3 deg
+	{ hour = 0, sky = "nightLate", dip = 0.3 }, -- = EngineClock.jumpHour: west hold -> east hold in the same tick
+	{ hour = 5.0, sky = "dawn", dip = 0.35 }, -- NightFactor 0.99; engine sun held at -3 deg (east)
 	{ hour = 5.65, sky = "day" }, -- engine ClockTime 5.90: sun -1.5 deg, just before the engine sunrise
 	{ hour = 18.35, sky = "blue" }, -- engine ClockTime 18.10: sun -1.5 deg, just after the engine sunset
-	{ hour = 19.5, sky = "night" }, -- NightFactor 1
-}
+	{ hour = 19.5, sky = "night", dip = 0.35 }, -- NightFactor 1; engine sun held at -3 deg (west)
+} :: { SkySwapEntry }
 
 -- Mask for sky swaps and the engine-clock jump (Look.EngineClock.jumpHour): ExposureCompensation dips by up to
 -- exposureDip EV (gaussian over +-width game hours, ~20 real seconds at dusk), so the frame is slightly darker while
--- the sky (and the sky-fed ambient) changes. The old haze bump is gone: lab round 2 saw the swap straight through it,
--- and the day Haze is locked (Look.AtmosphereLock). Volumetric cloud cover also blends over +-width around a swap.
+-- the sky (and the sky-fed ambient) changes; a schedule entry's `dip` sets its own depth. The old haze bump is gone:
+-- lab round 2 saw the swap straight through it, and the day Haze is locked (Look.AtmosphereLock). Volumetric cloud
+-- cover also blends over +-width around a swap.
 Look.SkySwap = {
 	exposureDip = 0.2,
 	width = 0.25,
@@ -410,8 +466,8 @@ Look.SkyStyle = {
 	sunAngularSize = 10, -- real sun ~0.5 deg; 21 default reads storybook
 	-- Job 0009: a large pale moon disc sat on the horizon opposite the golden-hour sun, next to a bright cumulus day
 	-- sky. The engine moon is now small and HIDDEN (Sky.MoonAngularSize 0) whenever the engine sun is above
-	-- moonHideAboveElevation (LightingService.moonSizeAt); it only shows at twilight under the blue sky (the night sky
-	-- hides all celestial bodies anyway). Live override: Workspace "MoonSizeOverride" (degrees, 0 hides).
+	-- moonHideAboveElevation (LightingService.moonSizeAt); it only shows at twilight under the dusk / dawn skies (the
+	-- night skies hide all celestial bodies anyway). Live override: Workspace "MoonSizeOverride" (degrees, 0 hides).
 	moonAngularSize = 1.5,
 	moonHideAboveElevation = -2, -- deg, engine sun; below both day <-> blue swaps (-1.5): never under the day sky
 	-- SkyboxOrientation.Y = yawSign * (sky glow azimuth - target azimuth), the CFrame.Angles(0, y, 0) convention.
@@ -422,8 +478,7 @@ Look.SkyStyle = {
 	-- spin the painted clouds, so the day sky lags there and catches up in the afternoon. Swaps snap.
 	maxYawRate = 0.3,
 	yawEpsilon = 0.02, -- degrees; SkyboxOrientation is only rewritten past this (steps are ~0.075 deg at 4 Hz)
-	-- Skies that do not follow the sun (night) park their horizon glow (the HDRI's warm city glow) here: east / +X,
-	-- inland. The Palmera Beach ocean horizon is the -X side (WorldLayout coast), and should stay dark.
+	-- Skies that do not follow the sun (night) park their horizon glow (the warm city glow) here: east / +X, inland. The Palmera Beach ocean horizon is the -X side (WorldLayout coast), and should stay dark.
 	fixedGlowAzimuth = 90,
 }
 
@@ -480,6 +535,10 @@ Look.Water = {
 --   "AtmosphereDensityOverride" (number)  "AtmosphereHazeOverride" (number)  "ExposureOverride" (EV)
 --   "BrightnessOverride" (number)  "OutdoorAmbientOverride" (Color3)  "TintOverride" (Color3, ColorCorrection)
 --   "SaturationOverride" (number, ColorCorrection)  "MoonSizeOverride" (degrees, 0 hides the engine moon)
+--   "SkyOverride" (string, a Look.Skies name: that sky instead of Look.SkySchedule, e.g. "night" at 19.0 to compare
+--   it with the dusk sky in job 0012; yaw / stars / sun-moon discs follow that sky's own settings)
+--   "AtmosphereGlareOverride" (number)  "AtmosphereColorOverride" / "AtmosphereDecayOverride" (Color3): the golden
+--   hour sweep of job 0012 (Look.GoldenAtmosphere)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- BEGIN GENERATED (tools/look/gen_project.py) - do not edit by hand
@@ -931,20 +990,37 @@ Look.Decals = Decals
 local Skies: { [string]: SkyDef } = {
 	blue = {
 		faces = {
-			Bk = "rbxassetid://88562914711616",
-			Dn = "rbxassetid://117299015005250",
-			Ft = "rbxassetid://122246640713360",
-			Lf = "rbxassetid://79579945003167",
-			Rt = "rbxassetid://96569696092312",
-			Up = "rbxassetid://128421368724949",
+			Bk = "rbxassetid://97757961136617",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://79742849062319",
+			Lf = "rbxassetid://129863789995610",
+			Rt = "rbxassetid://86621266446209",
+			Up = "rbxassetid://135650798270190",
 		},
-		glowAzimuth = 32.7,
-		horizonGlowAzimuth = 48.1,
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 0,
 		followSun = true,
 		starCount = 0,
 		celestialBodiesShown = true,
-		clouds = 1,
-		hazeColor = { 120, 112, 122 },
+		clouds = 0,
+		hazeColor = { 28, 40, 58 },
+	},
+	dawn = {
+		faces = {
+			Bk = "rbxassetid://98043044936404",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://129901905692620",
+			Lf = "rbxassetid://123519574914603",
+			Rt = "rbxassetid://73235550196971",
+			Up = "rbxassetid://78912621534818",
+		},
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 0,
+		followSun = true,
+		starCount = 0,
+		celestialBodiesShown = true,
+		clouds = 0,
+		hazeColor = { 27, 39, 56 },
 	},
 	day = {
 		faces = {
@@ -986,20 +1062,37 @@ local Skies: { [string]: SkyDef } = {
 	},
 	night = {
 		faces = {
-			Bk = "rbxassetid://90717854341912",
-			Dn = "rbxassetid://71763556424955",
-			Ft = "rbxassetid://98461351795375",
-			Lf = "rbxassetid://79552634608475",
-			Rt = "rbxassetid://79230279114248",
-			Up = "rbxassetid://80685099604519",
+			Bk = "rbxassetid://94984348100656",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://102872066736317",
+			Lf = "rbxassetid://95939202131007",
+			Rt = "rbxassetid://95896070267520",
+			Up = "rbxassetid://88812082275800",
 		},
-		glowAzimuth = 35.5,
-		horizonGlowAzimuth = 17.4,
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 90,
 		followSun = false,
 		starCount = 0,
 		celestialBodiesShown = false,
 		clouds = 0,
-		hazeColor = { 53, 54, 56 },
+		hazeColor = { 28, 36, 52 },
+	},
+	nightLate = {
+		faces = {
+			Bk = "rbxassetid://110094107388282",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://93141238500720",
+			Lf = "rbxassetid://88251663305809",
+			Rt = "rbxassetid://74764785598053",
+			Up = "rbxassetid://85952127286680",
+		},
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 90,
+		followSun = false,
+		starCount = 0,
+		celestialBodiesShown = false,
+		clouds = 0,
+		hazeColor = { 26, 33, 49 },
 	},
 }
 Look.Skies = Skies

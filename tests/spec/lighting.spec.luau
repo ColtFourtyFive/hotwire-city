@@ -294,10 +294,16 @@ return function(t)
 		L.setClockTime(22.5)
 		t.near(Lighting.ClockTime, 3.33, 1e-6, "the hold costs no writes")
 		t.eq(Workspace:GetAttribute("NightFactor"), 1)
+		L.setClockTime(E.jumpHour - 0.01)
+		t.eq(Lighting:GetAttribute("Sky"), "night", "the evening-hold night sky up to the jump")
+		local nightFt = Lighting:FindFirstChildOfClass("Sky").SkyboxFt
 		L.setClockTime(E.jumpHour + 0.01)
 		t.near(Lighting.ClockTime, E.morningHold, 1e-3, "jumped to the morning hold")
 		t.eq(Workspace:GetAttribute("NightFactor"), 1, "still full night: NightFactor follows the game hour")
-		t.eq(Lighting:GetAttribute("Sky"), "night", "the fixed night sky is up across the jump")
+		t.eq(Lighting:GetAttribute("Sky"), "nightLate", "the morning-hold night sky comes up with the jump")
+		local ft = Lighting:FindFirstChildOfClass("Sky").SkyboxFt
+		t.ok(ft ~= nightFt and ft == Look.Skies.nightLate.faces.Ft, "its faces written in the same apply")
+		t.ok(Lighting.ExposureCompensation < Look.Presets.night.exposure - 0.2, "under the exposure dip")
 		L.setClockTime(3)
 		t.near(Lighting.ClockTime, E.morningHold, 1e-3, "morning hold")
 		-- the lab override pins the engine clock without touching the game hour
@@ -369,6 +375,17 @@ return function(t)
 			1e-3,
 			"night city glow parked inland"
 		)
+		L.setClockTime(2)
+		t.eq(Lighting:GetAttribute("Sky"), "nightLate", "after the midnight jump: the morning-hold night sky")
+		t.eq(sky.SkyboxBk, Look.Skies.nightLate.faces.Bk, "nightLate faces")
+		t.eq(sky.SkyboxUp, Look.Skies.nightLate.faces.Up)
+		t.eq(sky.CelestialBodiesShown, false, "no engine moon over the late night")
+		t.near(
+			sky.SkyboxOrientation.Y,
+			L.yawToward(Look.Skies.nightLate.horizonGlowAzimuth, Look.SkyStyle.fixedGlowAzimuth),
+			1e-3,
+			"late-night city glow parked inland too"
+		)
 		L.setClockTime(18.8)
 		t.eq(Lighting:GetAttribute("Sky"), "blue")
 		t.eq(sky.SkyboxLf, Look.Skies.blue.faces.Lf, "blue faces")
@@ -376,6 +393,42 @@ return function(t)
 		L.setClockTime(17.3)
 		t.eq(Lighting:GetAttribute("Sky"), "day", "golden hour under the day sky (no day <-> golden swap)")
 		t.eq(sky.SkyboxLf, Look.Skies.day.faces.Lf)
+		L.setClockTime(5.3)
+		t.eq(Lighting:GetAttribute("Sky"), "dawn", "its own dawn sky before sunrise")
+		t.eq(sky.SkyboxFt, Look.Skies.dawn.faces.Ft, "dawn faces")
+		t.eq(sky.CelestialBodiesShown, Look.Skies.dawn.celestialBodiesShown)
+		L._sunDirection = real
+	end)
+
+	t.test("sky: SkyOverride forces a sky with its own settings; unknown / wrong-typed values are ignored", function()
+		local sky = Lighting:FindFirstChildOfClass("Sky")
+		local real = L._sunDirection
+		L._sunDirection = function()
+			return Vector3.new(-0.98, -0.05, 0.18) -- the held evening sun (west, -3 deg)
+		end
+		L.setClockTime(19.0)
+		t.eq(Lighting:GetAttribute("Sky"), "blue", "the schedule at 19.0")
+		Workspace:SetAttribute("SkyOverride", "night")
+		L._applySky(19.0, 0.25)
+		t.eq(Lighting:GetAttribute("Sky"), "night", "forced")
+		t.eq(sky.SkyboxUp, Look.Skies.night.faces.Up, "the forced sky's faces")
+		t.eq(sky.CelestialBodiesShown, Look.Skies.night.celestialBodiesShown, "the forced sky's own discs")
+		t.near(
+			sky.SkyboxOrientation.Y,
+			L.yawToward(Look.Skies.night.horizonGlowAzimuth, Look.SkyStyle.fixedGlowAzimuth),
+			1e-3,
+			"the forced sky's own yaw rule (parked, not following the sun)"
+		)
+		Workspace:SetAttribute("SkyOverride", "noSuchSky")
+		L._applySky(19.0, 0.25)
+		t.eq(Lighting:GetAttribute("Sky"), "blue", "an unknown name falls back to the schedule")
+		t.eq(sky.SkyboxUp, Look.Skies.blue.faces.Up)
+		Workspace:SetAttribute("SkyOverride", 3)
+		L._applySky(19.0, 0.25)
+		t.eq(Lighting:GetAttribute("Sky"), "blue", "a wrong-typed value is ignored")
+		Workspace:SetAttribute("SkyOverride", nil)
+		L.setClockTime(12)
+		t.eq(Lighting:GetAttribute("Sky"), "day")
 		L._sunDirection = real
 	end)
 
@@ -430,11 +483,25 @@ return function(t)
 			end
 		end
 		L.setClockTime(blueMid)
-		t.ok(clouds.Cover > 0.2, "volumetric clouds over the clear blue-hour sky: " .. clouds.Cover)
-		Workspace:SetAttribute("CloudsOverride", 0)
-		L.setClockTime(blueMid + 0.01)
-		t.near(clouds.Cover, 0, 1e-6, "override 0 hides them")
-		Workspace:SetAttribute("CloudsOverride", nil)
+		local blueCover = Look.Presets.blueEvening.clouds.cover * Look.Skies.blue.clouds
+		t.near(clouds.Cover, blueCover, 0.03, "blue-hour cover share: " .. clouds.Cover)
+		-- backlog 14: the procedural dusk / dawn / night skies are clear (the gradient and stars stay visible)
+		t.near(clouds.Cover, 0, 1e-6, "no volumetric layer over the clear dusk sky")
+		L.setClockTime(23)
+		t.near(clouds.Cover, 0, 1e-6, "none over the clear night sky")
+		-- the lab multiplier: wherever a sky keeps a share, CloudsOverride scales it (0 hides it)
+		local hour
+		for h = 0, 23.5, 0.5 do
+			if hour == nil and L.cloudScaleAt(h) > 0.5 then
+				hour = h
+			end
+		end
+		if hour then
+			Workspace:SetAttribute("CloudsOverride", 0)
+			L.setClockTime(hour)
+			t.near(clouds.Cover, 0, 1e-6, "override 0 hides them")
+			Workspace:SetAttribute("CloudsOverride", nil)
+		end
 		L.setClockTime(12)
 	end)
 
