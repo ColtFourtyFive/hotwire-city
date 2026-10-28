@@ -120,8 +120,6 @@ local Sounds = {
 	Eng_Police_Idle = loop(9112735119, 0.6, 6.498, 10.516, { pitch = 0.94 }),
 	Eng_Police_On = loop(9112734195, 0.38, 0.596, 5.868),
 	Eng_Police_Off = loop(9112734376, 0.3, 1.002, 5.345, { lowpass = true }),
-	-- legacy single engine loop (v1 key)
-	EngineLoop = loop(80317022777602, 0.45),
 
 	-------------------------------------------------------------------------------------------------------------------
 	-- Car foley
@@ -131,14 +129,13 @@ local Sounds = {
 	Ignition = one(9116176570, 1.0, { start = 0, stop = 0.62 }), -- keys into the ignition
 	CarDoor = { id = a(125094987563505), volume = 0.6 },
 	DoorSlam = one(9120370628, 0.55, { rollOff = 90 }),
-	HotwireCrackle = loop(9114238020, 1.6, 2.0, 15.379), -- soft electrical arcing while hotwiring
+	HotwireCrackle = loop(9114238020, 3.0, 2.0, 15.379), -- soft electrical arcing (a -41 dB take: high Volume)
 	TireScreech = loop(9120398722, 0.3, 25.5, 29.709), -- sustained tyre squeal (lateral slip)
 	PeelOut = { id = a(9113661285), volume = 0.5 },
 	SurfaceGravel = loop(9126156741, 1.2, 12.5, 17.139), -- tyres on dirt / gravel / sand
 	ScrapeLoop = loop(9112832551, 0.42, 4.0, 10.87), -- metal dragging on asphalt (grinding a wall)
 	WindInterior = loop(9118747525, 0.8), -- wind at speed, heard inside the car only
 	Crash = { id = a(9118708982), volume = 0.7 },
-	MetalHit = { id = a(9116546593), volume = 0.6 },
 	GlassBreak = one(9114590297, 0.5, { start = 0.7 }),
 	Impact_Light1 = one(9113267435, 0.75, { rollOff = 140, pitchVar = 0.06 }),
 	Impact_Light2 = one(9113267039, 0.6, { rollOff = 140, pitchVar = 0.06 }),
@@ -168,7 +165,6 @@ local Sounds = {
 	Siren_Yelp = loop(9119165419, 0.55, 14.999, 17.189), -- recorded yelp cycle
 	Siren_Distant = loop(9112871822, 1.4), -- group of units wailing far away (wanted layer)
 	Siren = { id = a(9119165131), volume = 0.5, looped = true }, -- v1 keys (stolen-car alarm)
-	SirenAlt = { id = a(9119165140), volume = 0.5, looped = true },
 	-- dispatch radio: squelch, static and beeps only (no talk)
 	Dispatch_Squelch1 = one(9118019216, 0.25),
 	Dispatch_Squelch2 = one(9118021734, 0.25),
@@ -276,8 +272,8 @@ local Sounds = {
 	Amb_Airport_Night = loop(9112772108, 0.55), -- distant traffic, a few crickets
 	Amb_Freeway = loop(9112784654, 0.6), -- Southern California freeway traffic (near freeways)
 	-- one-shots
-	Amb_SirenFar1 = one(9119163066, 0.35, { stop = 24 }),
-	Amb_SirenFar2 = one(9119163012, 0.35, { stop = 22 }),
+	Amb_SirenFar1 = one(9119163066, 0.35, { start = 4.6, stop = 24 }), -- 4.9 s lead silence trimmed (audit)
+	Amb_SirenFar2 = one(9119163012, 0.35, { start = 0.4, stop = 22 }),
 	Amb_Horn1 = one(9120385772, 0.35, { pitchVar = 0.08 }),
 	Amb_Horn2 = one(9120386248, 0.35, { pitchVar = 0.08 }),
 	Amb_Horn3 = one(9114661198, 0.3, { pitchVar = 0.05 }),
@@ -285,18 +281,15 @@ local Sounds = {
 	Amb_Dog2 = one(9113956178, 0.3, { pitch = 0.92, pitchVar = 0.06 }),
 	Amb_Dog3 = one(9113955086, 0.3, { pitch = 0.92, pitchVar = 0.06 }),
 	Amb_CarAlarm = one(9113719289, 0.25),
-	Amb_Plane1 = one(9113864890, 0.4, { stop = 34 }),
-	Amb_Plane2 = one(9113864886, 0.4, { stop = 26 }),
+	Amb_Plane1 = one(9113864890, 0.7, { start = 2.0, stop = 34 }), -- quiet, distant take: louder
+	Amb_Plane2 = one(9113864886, 0.5, { start = 2.1, stop = 26 }),
 	Amb_Gull1 = one(9118858279, 0.35, { pitchVar = 0.06 }),
 	Amb_Gull2 = one(9118858265, 0.35, { pitchVar = 0.06 }),
 	Amb_Gull3 = one(9118858259, 0.35, { pitchVar = 0.06 }),
-	Amb_Coyote = one(9113950627, 0.35),
+	Amb_Coyote = one(9113950627, 0.35, { start = 0.3 }),
 	Amb_Clank1 = one(9125672726, 0.3, { pitchVar = 0.1 }),
 	Amb_Clank2 = one(9116751108, 0.35, { pitchVar = 0.1 }),
 	Amb_TrainHorn = one(9112772271, 0.4, { stop = 26 }),
-	-- v1 keys
-	CityAmbience = loop(9112758500, 0.25),
-	Traffic = loop(9112891352, 0.15),
 
 	-------------------------------------------------------------------------------------------------------------------
 	-- Car radio: 2D music on the music channel while the local player drives (muffled 3D for people outside the car).

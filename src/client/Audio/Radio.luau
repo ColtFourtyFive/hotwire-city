@@ -322,6 +322,15 @@ function Radio.setInCar(on: boolean, model: Model?)
 		notify()
 	end
 	publish()
+	if on then
+		-- the server may register us as the driver a moment after our seat event: say it again shortly
+		task.delay(1.5, function()
+			if inCar then
+				published = nil
+				publish()
+			end
+		end)
+	end
 end
 
 -- Next (+1) / previous (-1) position (through RADIO OFF). The label retunes at once; in a car the station's track

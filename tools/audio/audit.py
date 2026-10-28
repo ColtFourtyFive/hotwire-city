@@ -64,6 +64,16 @@ LICENSED = {
     1: "Roblox",
     3529469: "Roblox Resources",  # verified group run by Roblox's CreatorKnowledge account (template / docs assets)
 }
+# Soft flags a human reviewed and accepted, with the reason (shown in the report; the flag stays in the table so a
+# changed file is still visible). Keyed by Config/Sounds key; "Radio_*" covers every radio track.
+REVIEWED = {
+    "Radio_*": {"CLIP": "APM masters are loud (inter-sample overs after lossy decode); played at Volume 0.26-0.32 on "
+                        "HC_Music under a 0.85 group base, > 10 dB of headroom in the mix."},
+    "Melee_Punch2": {"CLIP": "0.3 % of samples on a punch transient; played at 0.62, inaudible."},
+    "HotwireCrackle": {"QUIET_REGION": "a soft electrical-arcing take (-41 dB RMS); compensated with Volume 3.0."},
+    "Amb_Plane1": {"QUIET_REGION": "a distant overhead plane: meant to sit under the bed; Volume raised to 0.7.",
+                   "LONG": "34 s PlaybackRegion of a 76 s fly-over: an overhead pass is long by nature."},
+}
 VOICE_WORDS = re.compile(r"\b(voice|voices|talk|talking|speech|speaks?|dispatcher|announcer|chatter|vocal|says|"
                          r"spoken|conversation|walla|crowd talk|scanner)\b", re.I)
 TOOLBOX_DETAILS = "https://apis.roblox.com/toolbox-service/v1/items/details?assetIds={ids}"
@@ -457,6 +467,32 @@ def write_report(report, builtin, bad):
         ]))
     lines.append("")
     lines.append("Built-in engine sounds (not audited): " + ", ".join(f"`{b['key']}`" for b in builtin))
+    lines.append("")
+    # reviewed soft flags (REVIEWED): which flagged keys a human accepted, and why
+    reviewed = []
+    for r in report:
+        for key in r["keys"]:
+            rules = REVIEWED.get(key) or (REVIEWED.get("Radio_*") if key.startswith("Radio_") else None) or {}
+            for flag in r["flags"]:
+                if flag in rules:
+                    reviewed.append((key, flag, rules[flag]))
+    if reviewed:
+        lines.append("## Reviewed soft flags")
+        lines.append("")
+        lines.append(fmt_row(["key", "flag", "decision"]))
+        lines.append(fmt_row(["---"] * 3))
+        for key, flag, why in sorted(reviewed):
+            lines.append(fmt_row([key, flag, why]))
+        lines.append("")
+    open_soft = []
+    for r in report:
+        for flag in r["flags"]:
+            covered = any(
+                flag in (REVIEWED.get(k) or (REVIEWED.get("Radio_*") if k.startswith("Radio_") else None) or {})
+                for k in r["keys"])
+            if not covered:
+                open_soft.append(f"{r['id']} {flag} ({', '.join(r['keys'])})")
+    lines.append(f"Unreviewed flags: {len(open_soft)}" + (": " + "; ".join(open_soft) if open_soft else "."))
     lines.append("")
     os.makedirs(os.path.dirname(OUT_MD), exist_ok=True)
     with open(OUT_MD, "w") as f:

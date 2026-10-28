@@ -938,40 +938,6 @@
  {
   "flags": [],
   "hard": [],
-  "id": 9112758500,
-  "info": {
-   "clip_ratio": 0.0,
-   "duration": 48.22,
-   "format": "ogg",
-   "lead_silence": 0.0,
-   "peak_db": -10.5,
-   "regions": {},
-   "rms_db": -29.6,
-   "silent_share": 0.0,
-   "trail_silence": 0.0
-  },
-  "keys": [
-   "CityAmbience"
-  ],
-  "meta": {
-   "approved": true,
-   "artist": "Pro Sound Effects",
-   "audioType": "Unknown",
-   "creator": "ProSoundEffects",
-   "creatorId": 7462895450,
-   "description": "City Ambience, By US Capitol, Afternoon, Distant Siren, Traffic, Occasional Car Over Metal Plate, Loop\n\nDuration: 48.2 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
-   "duration": 48,
-   "free": true,
-   "name": "City Ambience 3 (SFX)",
-   "title": "City Ambience 3 (SFX)",
-   "typeId": 3,
-   "verified": true,
-   "visibility": 0
-  }
- },
- {
-  "flags": [],
-  "hard": [],
   "id": 9112759731,
   "info": {
    "clip_ratio": 0.0,
@@ -1597,40 +1563,6 @@
    "free": true,
    "name": "Siren Composite 1 (SFX)",
    "title": "Siren Composite 1 (SFX)",
-   "typeId": 3,
-   "verified": true,
-   "visibility": 0
-  }
- },
- {
-  "flags": [],
-  "hard": [],
-  "id": 9112891352,
-  "info": {
-   "clip_ratio": 0.0,
-   "duration": 46.01,
-   "format": "ogg",
-   "lead_silence": 0.0,
-   "peak_db": -4.6,
-   "regions": {},
-   "rms_db": -25.7,
-   "silent_share": 0.0,
-   "trail_silence": 0.0
-  },
-  "keys": [
-   "Traffic"
-  ],
-  "meta": {
-   "approved": true,
-   "artist": "Pro Sound Effects",
-   "audioType": "Unknown",
-   "creator": "ProSoundEffects",
-   "creatorId": 7462895450,
-   "description": "Urban Traffic, New York City, Overhead Perspective, Diffuse and Muted, Siren Wailing, Horn Honks, Short Yelp of Siren, Loop\n\nDuration: 46.0 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
-   "duration": 46,
-   "free": true,
-   "name": "Urban Traffic 2 (SFX)",
-   "title": "Urban Traffic 2 (SFX)",
    "typeId": 3,
    "verified": true,
    "visibility": 0
@@ -2525,9 +2457,7 @@
   }
  },
  {
-  "flags": [
-   "LEAD_SILENCE"
-  ],
+  "flags": [],
   "hard": [],
   "id": 9113864886,
   "info": {
@@ -2543,12 +2473,12 @@
      "lead_silence": 2.4,
      "peak_db": -16.5,
      "region": [
-      0,
+      2.1,
       26
      ],
      "region_oob": false,
      "region_rms_db": -33.8,
-     "region_steady_db": 34.5,
+     "region_steady_db": 6.2,
      "rms_db": -35.3,
      "silent_share": 0.16,
      "trail_silence": 5.55
@@ -2579,7 +2509,6 @@
  },
  {
   "flags": [
-   "LEAD_SILENCE",
    "LONG",
    "QUIET_REGION"
   ],
@@ -2598,12 +2527,12 @@
      "lead_silence": 2.3,
      "peak_db": -23.3,
      "region": [
-      0,
+      2,
       34
      ],
      "region_oob": false,
      "region_rms_db": -40.4,
-     "region_steady_db": 25.0,
+     "region_steady_db": 4.5,
      "rms_db": -40.9,
      "silent_share": 0.18,
      "trail_silence": 4.15
@@ -2667,9 +2596,7 @@
   }
  },
  {
-  "flags": [
-   "LEAD_SILENCE"
-  ],
+  "flags": [],
   "hard": [],
   "id": 9113950627,
   "info": {
@@ -2678,7 +2605,24 @@
    "format": "ogg",
    "lead_silence": 0.35,
    "peak_db": -15.4,
-   "regions": {},
+   "regions": {
+    "Amb_Coyote": {
+     "clip_ratio": 0.0,
+     "duration": 2.34,
+     "lead_silence": 0.35,
+     "peak_db": -15.4,
+     "region": [
+      0.3,
+      2.34
+     ],
+     "region_oob": false,
+     "region_rms_db": -31.9,
+     "region_steady_db": 21.9,
+     "rms_db": -31.9,
+     "silent_share": 0.67,
+     "trail_silence": 0.95
+    }
+   },
    "rms_db": -31.9,
    "silent_share": 0.67,
    "trail_silence": 0.95
@@ -3727,8 +3671,7 @@
    "trail_silence": 0.95
   },
   "keys": [
-   "Melee_Metal",
-   "MetalHit"
+   "Melee_Metal"
   ],
   "meta": {
    "approved": true,
@@ -4499,9 +4442,7 @@
   }
  },
  {
-  "flags": [
-   "LEAD_SILENCE"
-  ],
+  "flags": [],
   "hard": [],
   "id": 9119163012,
   "info": {
@@ -4517,12 +4458,12 @@
      "lead_silence": 0.5,
      "peak_db": -11.5,
      "region": [
-      0,
+      0.4,
       22
      ],
      "region_oob": false,
      "region_rms_db": -35.0,
-     "region_steady_db": 8.3,
+     "region_steady_db": 3.9,
      "rms_db": -27.8,
      "silent_share": 0.07,
      "trail_silence": 3.15
@@ -4552,9 +4493,7 @@
   }
  },
  {
-  "flags": [
-   "LEAD_SILENCE"
-  ],
+  "flags": [],
   "hard": [],
   "id": 9119163066,
   "info": {
@@ -4570,12 +4509,12 @@
      "lead_silence": 4.9,
      "peak_db": -10.0,
      "region": [
-      0,
+      4.6,
       24
      ],
      "region_oob": false,
      "region_rms_db": -26.9,
-     "region_steady_db": 14.6,
+     "region_steady_db": 7.3,
      "rms_db": -27.7,
      "silent_share": 0.25,
      "trail_silence": 2.75
@@ -4652,40 +4591,6 @@
    "free": true,
    "name": "Siren Wail 1 (SFX)",
    "title": "Siren Wail 1 (SFX)",
-   "typeId": 3,
-   "verified": true,
-   "visibility": 0
-  }
- },
- {
-  "flags": [],
-  "hard": [],
-  "id": 9119165140,
-  "info": {
-   "clip_ratio": 0.0,
-   "duration": 30.44,
-   "format": "ogg",
-   "lead_silence": 0.2,
-   "peak_db": -7.7,
-   "regions": {},
-   "rms_db": -23.0,
-   "silent_share": 0.07,
-   "trail_silence": 0.75
-  },
-  "keys": [
-   "SirenAlt"
-  ],
-  "meta": {
-   "approved": true,
-   "artist": "Pro Sound Effects",
-   "audioType": "Unknown",
-   "creator": "ProSoundEffects",
-   "creatorId": 7462895450,
-   "description": "Siren Wail, Start and Away, Back In and Stop, Off, Emergency, Ambulance\n\nDuration: 30.4 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
-   "duration": 30,
-   "free": true,
-   "name": "Siren Wail 2 (SFX)",
-   "title": "Siren Wail 2 (SFX)",
    "typeId": 3,
    "verified": true,
    "visibility": 0
@@ -5911,8 +5816,7 @@
   "keys": [
    "Eng_Compact_Idle",
    "Eng_Compact_Off",
-   "Eng_Compact_On",
-   "EngineLoop"
+   "Eng_Compact_On"
   ],
   "meta": {
    "approved": true,

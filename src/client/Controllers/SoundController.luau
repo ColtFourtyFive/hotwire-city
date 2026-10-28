@@ -163,6 +163,10 @@ function SoundController.play(key: string, position: Vector3?): Sound?
 	end
 	if positional then
 		local pos = position :: Vector3
+		if key == "CarDoor" then
+			LocalCar.door(pos) -- de-duplicated with the door LocalCar plays on getting in
+			return nil
+		end
 		local k, d = key, def
 		if key == "Horn" or key == "AirHorn" then
 			local classHorn = Engines.hornNear(pos)

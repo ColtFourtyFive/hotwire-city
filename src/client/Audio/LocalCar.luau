@@ -58,6 +58,7 @@ local state: EngineModel.State = EngineModel.newState(profile)
 local mix: EngineModel.Mix = EngineModel.newMix()
 local enteredAt = 0
 local lastPop = 0
+local lastDoor = -math.huge
 local surfaceT = 0
 local scrapeT = 0
 local surfaceName: string? = nil
@@ -232,6 +233,19 @@ function LocalCar.getEngineSet(): string
 	return engineSet
 end
 
+LocalCar.DOOR_GAP = 1.2
+
+-- A car door at `position`, at most once per DOOR_GAP: getting in plays one, and the garage's drive-out sends its own
+-- (the `Sound` remote) at almost the same moment.
+function LocalCar.door(position: Vector3)
+	local now = os.clock()
+	if now - lastDoor < LocalCar.DOOR_GAP then
+		return
+	end
+	lastDoor = now
+	oneShot("CarDoor", position)
+end
+
 -- VehicleClient exposes a Backfire signal (integration point): upshift / nitro pops follow the exhaust flame.
 function LocalCar.setBackfireSignal(present: boolean)
 	hasBackfireSignal = present
@@ -310,7 +324,10 @@ function LocalCar.enter(m: Model, ctrl: any)
 	end
 	params.FilterDescendantsInstances = filter
 	rayParams = params
-	-- key click, then the starter
+	-- door, key click, then the starter
+	if chassis then
+		LocalCar.door(chassis.Position)
+	end
 	oneShot("Ignition", nil, 1, Mix.PRIORITY.ui)
 	task.delay(LocalCar.IGNITION_DELAY, function()
 		if active and model == m and chassis then
@@ -327,6 +344,10 @@ function LocalCar.exit()
 	local c = chassis
 	if c and c.Parent then
 		oneShot("EngineStop", c.Position)
+		local at = c.Position
+		task.delay(0.45, function()
+			oneShot("DoorSlam", at)
+		end)
 	end
 	for _, layer in { idle, on, off, squeal, rumble, scrape, wind } do
 		stopLayer(layer)

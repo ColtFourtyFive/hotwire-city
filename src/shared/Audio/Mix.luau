@@ -83,7 +83,7 @@ function Mix.channelFor(key: string, positional: boolean): string
 	if string.sub(key, 1, 6) == "Radio_" or key == "RadioStatic" then
 		return "music"
 	end
-	if string.sub(key, 1, 4) == "Amb_" or key == "CityAmbience" or key == "Traffic" then
+	if string.sub(key, 1, 4) == "Amb_" then
 		return "ambience"
 	end
 	if not positional then

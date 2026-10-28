@@ -87,6 +87,7 @@ local candPool: { Cand } = {}
 local chosen: { [any]: boolean } = {}
 local held: { [Car]: boolean } = {}
 local rng = Random.new()
+local scanNo = 0
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Registry
@@ -107,27 +108,38 @@ function Engines.topSpeedFor(carId: any, kind: any): number
 	return Engines.DEFAULT_TOP_SPEED
 end
 
+-- The chassis (cheap; every scan for cars without one yet).
+local function resolveChassis(car: Car): BasePart?
+	local c = car.chassis
+	if c and c.Parent then
+		return c
+	end
+	local model = car.model
+	local primary = model.PrimaryPart or model:FindFirstChild("Chassis")
+	car.chassis = if primary and primary:IsA("BasePart") then primary else nil
+	return car.chassis
+end
+
+-- Seat, engine set and flags (only for cars near enough to matter; the recursive seat search runs once per car
+-- identity, not every scan: traffic bodies have no DriverSeat).
 local function resolve(car: Car)
 	local model = car.model
-	local c = car.chassis
-	if not (c and c.Parent) then
-		local primary = model.PrimaryPart or model:FindFirstChild("Chassis")
-		car.chassis = if primary and primary:IsA("BasePart") then primary else nil
-	end
-	local s = car.seat
-	if not (s and s.Parent) then
-		local seat = model:FindFirstChild("DriverSeat", true)
-		car.seat = if seat and seat:IsA("VehicleSeat") then seat else nil
-	end
 	local carId = model:GetAttribute("CarId")
 	local kind = model:GetAttribute("Kind")
-	if carId ~= car.carId or kind ~= car.kind then
+	local changed = carId ~= car.carId or kind ~= car.kind
+	if changed then
 		car.carId = carId
 		car.kind = kind
 		local def = if typeof(carId) == "string" then Cars.get(carId) else nil
 		car.police = EngineClass.isPolice(kind, def) or CollectionService:HasTag(model, "Police")
 		car.set = EngineClass.resolve(model:GetAttribute("EngineClass"), if car.police then "Police" else kind, def)
 		car.topSpeed = Engines.topSpeedFor(carId, kind)
+	end
+	local s = car.seat
+	-- (a missing seat is looked for again every 20th scan: it may stream in after the model)
+	if changed or (s ~= nil and s.Parent == nil) or (s == nil and scanNo % 20 == 0) then
+		local seat = model:FindFirstChild("DriverSeat", true)
+		car.seat = if seat and seat:IsA("VehicleSeat") then seat else nil
 	end
 	car.traffic = CollectionService:HasTag(model, "Traffic")
 end
@@ -156,6 +168,7 @@ local function track(inst: Instance)
 		vel = Vector3.zero,
 	}
 	cars[inst] = car
+	resolveChassis(car)
 	resolve(car)
 end
 
@@ -314,6 +327,7 @@ function Engines.scan(listener: Vector3, enabled: boolean)
 		return
 	end
 	local localModel = LocalCar.getModel()
+	scanNo += 1
 	table.clear(cands)
 	local n = 0
 	for model, car in cars do
@@ -324,11 +338,11 @@ function Engines.scan(listener: Vector3, enabled: boolean)
 		if model == localModel then
 			continue
 		end
-		resolve(car)
-		local c = car.chassis
-		if c and (car.traffic or EngineClass.isEngineEligible(car.kind, hasDriver(car))) then
-			local dist = (c.Position - listener).Magnitude
-			if dist <= EngineModel.MAX_RANGE then
+		local c = resolveChassis(car)
+		local dist = if c then (c.Position - listener).Magnitude else math.huge
+		if dist <= EngineModel.MAX_RANGE then
+			resolve(car)
+			if car.traffic or EngineClass.isEngineEligible(car.kind, hasDriver(car)) then
 				n += 1
 				local entry = candPool[n]
 				if not entry then

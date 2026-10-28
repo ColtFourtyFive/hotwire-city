@@ -261,7 +261,8 @@ function EngineModel.step(
 	local band = p.shiftRpm - p.idleRpm
 	local target: number
 	if free then
-		target = p.idleRpm + (p.redline - p.idleRpm) * thr * 0.97
+		-- full throttle reaches the redline (and bounces off the limiter), part throttle holds below it
+		target = p.idleRpm + (p.redline - p.idleRpm) * math.min(1, thr * 1.03)
 	else
 		local top = shifts[st.gear + 1] or 1
 		target = p.idleRpm + band * f / math.max(top, 0.05)
