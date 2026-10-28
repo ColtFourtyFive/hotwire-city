@@ -1,0 +1,33 @@
+{
+  "note": "Real-engine shots of KNOWN sky faces at the held night clock, for `procedural_sky.py fit` (backlog 14, research/lighting_lab.md round 5). `git:<rev>:<path>` is read with git show. HUD boxes are x0,y0,x1,y1 in shot pixels. Add job 0012's shots here (with their exposure / grade / yaw) and re-run `fit`.",
+  "shots": [
+    {
+      "name": "job 0009 diag_night_exposure2_overview (night HDRI faces; the right half of the sky had not loaded, pure black, masked)",
+      "shot": "git:origin/studio-results:studio/results/0009/diag_night_exposure2_overview.png",
+      "faces": "git:3d0a965:assets/sky/night",
+      "yaw": -72.6,
+      "clock": 18.2,
+      "exposure": 2.0,
+      "tint": [228, 236, 255],
+      "contrast": 0.14,
+      "saturation": -0.12,
+      "camera": [-700, 180, -700, 0, 20, 0],
+      "fov": 70,
+      "hud": [[620, 80, 1050, 205], [535, 245, 1150, 430], [0, 400, 380, 1080]]
+    },
+    {
+      "name": "job 0011 B_n_default_overview_low_sw (the night faces 403'd: the engine kept the cached DAY faces, at the night yaw; luminance correlation 0.89 at yaw -72 vs <= 0.6 for every other sky)",
+      "shot": "git:origin/studio-results:studio/results/0011/B_n_default_overview_low_sw.png",
+      "faces": "git:3d0a965:assets/sky/day",
+      "yaw": -72.6,
+      "clock": 18.2,
+      "exposure": 0.8,
+      "tint": [212, 226, 255],
+      "contrast": 0.12,
+      "saturation": -0.2,
+      "camera": [-700, 180, -700, 0, 20, 0],
+      "fov": 70,
+      "hud": [[620, 80, 1050, 205], [535, 245, 1150, 430], [0, 400, 380, 1080]]
+    }
+  ]
+}
