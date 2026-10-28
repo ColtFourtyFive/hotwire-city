@@ -246,7 +246,16 @@ local function materialFor(
 		return if h < 14.5 then M.Sand else M.Grass
 	end
 	if URBAN[district] then
-		return M.Ground
+		-- leftover ground between lots: paved in the core and the container port, verge grass on the airfield, dirt
+		-- with grass patches elsewhere (a basin of bare tan dirt read as desert in the previews)
+		if district == "downtown" or district == "port" then
+			return M.Concrete
+		elseif district == "airport" then
+			return if n > -0.35 then M.Grass else M.Ground
+		elseif district == "midtown" then
+			return if n > 0.05 then M.Grass else M.Ground
+		end
+		return if n > 0.4 then M.Grass else M.Ground
 	end
 	return M.Grass
 end

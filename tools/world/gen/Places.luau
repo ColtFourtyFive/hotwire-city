@@ -712,7 +712,7 @@ return function(WorldLayout: any)
 			id = "UsedCars",
 			name = "Second Gear Motors",
 			kind = "dealership",
-			brand = "Second Gear",
+			-- no `brand`: a one-site lot, not a chain (Config/CityArt has no sign for it; the POI's text sign reads its name)
 			at = { 2600, 300 },
 			size = { 200, 24, 150 },
 			setback = 8,

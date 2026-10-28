@@ -175,9 +175,10 @@ return function(t)
 	end)
 
 	-- map ------------------------------------------------------------------------------------------------------------
-	t.test("MapLayout: 2 hospitals (nearest wins), 2 gun stores, safe zones contain their centres", function()
+	-- v2 world: one respawn per hospital POI (5) and one counter per Lock & Load (5); the shim answers from WorldLayout
+	t.test("MapLayout: hospitals (nearest wins), gun stores, safe zones contain their centres", function()
 		local hs = MapLayout.hospitals()
-		t.eq(#hs, 2)
+		t.ok(#hs >= 2, "at least two hospitals")
 		local cf1, name1 = MapLayout.hospitalCFrame(hs[1].cframe.Position + V3.new(3, 0, 3))
 		t.eq(name1, hs[1].name)
 		t.ok((cf1.Position - hs[1].cframe.Position).Magnitude < 1e-6)
@@ -185,7 +186,7 @@ return function(t)
 		t.eq(name2, hs[2].name)
 		local _, fallback = MapLayout.hospitalCFrame(nil)
 		t.ok(typeof(fallback) == "string")
-		t.eq(#MapLayout.gunStores(), 2)
+		t.ok(#MapLayout.gunStores() >= 2, "at least two gun stores")
 		local kinds = {}
 		for _, z in MapLayout.safeZones() do
 			kinds[z.kind] = true
