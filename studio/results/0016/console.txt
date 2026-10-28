@@ -1,0 +1,10 @@
+# Job 0016 console: solo Play, place v35+, LogService on Server and Client at the end of the session (405 client lines)
+## Server
+- No errors.
+- No warnings mention AppearanceService, FootService, FootCamera, FootMovement, NameTags, CharacterCreator, ApplyDescription or HumanoidDescription.
+- No "[AppearanceService] ... missing garments / hair / shoes" lines.
+## Client
+- No errors.
+- [MinimapController] slow GPS route: ~370 warnings, about one per second while the creator / Wardrobe was open (04:07:44–04:11:40 and 04:19:37–04:22:13 UTC). Most were 8–25 ms; spikes:
+  55.7, 101.7, 117.1, 117.3, 126.7 and 329.7 ms (04:17:42).
+- Nothing else from the flagged systems.
