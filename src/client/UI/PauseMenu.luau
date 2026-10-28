@@ -27,6 +27,7 @@ local Workspace = game:GetService("Workspace")
 local Theme = require(script.Parent.Theme)
 local Kit = require(script.Parent.Kit)
 local RichText = require(script.Parent.RichText)
+local UIFocus = require(script.Parent.UIFocus)
 local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"):WaitForChild("Signal"))
 
 local PauseMenu = {}
@@ -439,6 +440,7 @@ function PauseMenu:open(tabId: string?)
 	self:_build()
 	if not self.opened then
 		self.opened = true
+		UIFocus.set("pause", true) -- C4b: no firing from the menu's clicks; the chat window steps aside
 		self.back.Enabled = true
 		self.gui.Enabled = true
 		local cam = Workspace.CurrentCamera
@@ -492,6 +494,7 @@ function PauseMenu:close()
 		return
 	end
 	self.opened = false
+	UIFocus.set("pause", false)
 	ContextActionService:UnbindAction(ACTION)
 	self.back.Enabled = false
 	self.gui.Enabled = false

@@ -36,8 +36,8 @@ export type UpgradeDef = {
 Economy.Upgrades = {
 	lock = {
 		id = "lock",
-		name = "Laser Lock",
-		description = "How long your garage laser gate stays locked.",
+		name = "Garage Lock", -- C4b: was "Laser Lock" (display name only; the id stays)
+		description = "How long your garage stays locked.",
 		maxLevel = 3,
 		prices = { 2500, 30000, 350000 },
 		values = { 45, 60, 90, 120 }, -- seconds
@@ -92,7 +92,8 @@ Economy.Tools = {
 	taser = {
 		id = "taser",
 		name = "Kessler Stun Gun",
-		description = "Fires two barbed probes up to 60 studs. Stuns the target and drops a driver out of the seat.",
+		-- C4b: metres like the HUD (60 studs x 0.28), never "studs"
+		description = "Fires two barbed probes up to 17 metres. Stuns the target and drops a driver out of the seat.",
 		price = 15000,
 		cooldown = 6,
 	},

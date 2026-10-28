@@ -687,7 +687,7 @@ local function expireHotDrop(hd: HotDrop, reason: string)
 		end
 	end
 	if reason == "expired" then
-		feed("💨 Nobody claimed the <b>HOT DROP</b>… it vanished!")
+		feed("Nobody claimed the hot drop. It's gone.")
 	end
 end
 
@@ -735,13 +735,13 @@ local function canClaim(hd: HotDrop, player: Player): (boolean, string?)
 	end
 	local DataService = sys("DataService")
 	if DataService and typeof(DataService.isLoaded) == "function" and not DataService.isLoaded(player) then
-		return false, "Still loading. Try again in a sec!"
+		return false, "Still loading. Try again in a moment."
 	end
 	local V = sys("VehicleService")
 	if V and typeof(V.getDriving) == "function" then
 		local ok, driving = pcall(V.getDriving, player)
 		if ok and driving ~= nil then
-			return false, "Get out of your car first!"
+			return false, "Get out of your car first."
 		end
 	end
 	return true, nil
@@ -793,14 +793,12 @@ local function claimHotDrop(hd: HotDrop, player: Player)
 
 	local label = carLabel(hd.carId, hd.mutation)
 	local hex = rarityColor(hd.rarity):ToHex()
-	feed(
-		`🔥 <b>{richEscape(player.DisplayName)}</b> grabbed the HOT DROP: <font color="#{hex}"><b>{richEscape(label)}</b></font>!`
-	)
+	feed(`<b>{richEscape(player.DisplayName)}</b> took the hot drop: <font color="#{hex}">{richEscape(label)}</font>.`)
 	Net.fireClient(
 		"Notify",
 		player,
 		"success",
-		"🔥 YOU GOT THE HOT DROP! Drive it home before the cops catch you!",
+		"You took the hot drop. Get it to your garage before the police catch up.",
 		5
 	)
 	Net.fireClient("Sound", player, "CashBig", hd.position)
@@ -812,7 +810,7 @@ local function claimHotDrop(hd: HotDrop, player: Player)
 			"Notify",
 			player,
 			"warning",
-			"📦 Your garage is full! Sell a car first, or chop this one at the Chop Shop.",
+			"Your garage is full. Sell a car first, or take this one to the chop shop.",
 			6
 		)
 	end
@@ -826,11 +824,11 @@ function addClaimPrompt(hd: HotDrop)
 		return
 	end
 	local def = Cars.get(hd.carId)
-	local objectText = "🔥 " .. (if def then carLabel(hd.carId, hd.mutation) else "HOT DROP")
+	local objectText = if def then carLabel(hd.carId, hd.mutation) else "Hot drop"
 	local V = sys("VehicleService")
 	if V and typeof(V.addStealPrompt) == "function" then
 		local ok, res = pcall(V.addStealPrompt, car, {
-			actionText = "CLAIM HOT DROP",
+			actionText = "Hotwire",
 			holdDuration = Events.HOT_DROP_HOLD,
 			objectText = objectText,
 			canSteal = function(player: Player): (boolean, string?)
@@ -856,7 +854,7 @@ function addClaimPrompt(hd: HotDrop)
 	end
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "HotDropPrompt"
-	prompt.ActionText = "CLAIM HOT DROP"
+	prompt.ActionText = "Claim hot drop"
 	prompt.ObjectText = objectText
 	prompt.HoldDuration = Events.HOT_DROP_HOLD
 	prompt.MaxActivationDistance = 12
@@ -995,23 +993,21 @@ end
 local function runHotDrop(hd: HotDrop)
 	local color = rarityColor(hd.rarity)
 	local label = carLabel(hd.carId, hd.mutation)
-	local rarityName = string.upper(hd.rarity)
 
 	-- Countdown: beacon goes up immediately so everyone can start driving there.
-	local beacon = EventService._buildBeacon(hd.cframe, color, rarityName .. " • " .. label)
+	local beacon = EventService._buildBeacon(hd.cframe, color, hd.rarity .. " · " .. label)
 	beacon.Parent = effectsFolder()
 	hd.beacon = beacon
 	announce(
-		"🔥 HOT DROP INCOMING!",
-		`A {rarityName} {label} lands in {Events.HOT_DROP_WARNING}s. Follow the beacon!`,
+		"Hot drop",
+		`A {hd.rarity} {label} lands in {Events.HOT_DROP_WARNING} seconds. It's marked on your map.`,
 		color,
 		"AirHorn"
 	)
-	feed(`🔥 A <font color="#{color:ToHex()}"><b>{richEscape(rarityName)}</b></font> HOT DROP is about to land!`)
 	broadcastHotDrop()
 
 	while hotDrop == hd and now() < hd.startsAt do
-		setBeaconText(hd, "🔥 LANDING " .. Format.clock(math.ceil(hd.startsAt - now())), nil)
+		setBeaconText(hd, "Landing " .. Format.clock(math.ceil(hd.startsAt - now())), nil)
 		task.wait(0.5)
 	end
 	if hotDrop ~= hd then
@@ -1062,7 +1058,7 @@ local function runHotDrop(hd: HotDrop)
 	Net.fireNear("Effect", fxPos, 500, "Confetti", { position = fxPos, rarity = hd.rarity })
 	Net.fireNear("Effect", fxPos, 500, "CashBurst", { position = fxPos })
 	Net.fireNear("Sound", fxPos, 400, "Crash", fxPos)
-	announce("🔥 HOT DROP LANDED!", `Hold to claim the {label} — first one there wins!`, color, "AirHorn")
+	announce("Hot drop", `The {label} is down. First one to hotwire it keeps it.`, color, "AirHorn")
 	broadcastHotDrop()
 	broadcastEventState()
 
@@ -1081,7 +1077,7 @@ local function runHotDrop(hd: HotDrop)
 		local secs = math.ceil(left)
 		if secs ~= lastShown then
 			lastShown = secs
-			setBeaconText(hd, "🔥 HOT DROP " .. Format.clock(secs), nil)
+			setBeaconText(hd, "Hot drop " .. Format.clock(secs), nil)
 		end
 		task.wait(0.5)
 	end
@@ -1294,12 +1290,11 @@ function EventService.startCashRain(): boolean
 	rainToken += 1
 	local token = rainToken
 	announce(
-		"💰 CASH RAIN!",
-		"Money is falling at the Spawn Plaza. GO GO GO!",
+		"Cash rain",
+		"Money is coming down over the plaza for the next 45 seconds.",
 		Color3.fromRGB(70, 235, 110),
 		"CashDrop"
 	)
-	feed("💰 <b>CASH RAIN</b> at the Spawn Plaza!")
 	broadcastEventState()
 	nextAt.cashRain = t
 		+ Events.CASH_RAIN_DURATION
@@ -1328,12 +1323,11 @@ function EventService.startRushHour(): boolean
 	local t = now()
 	timers.rushHour = EventService._stack(timers.rushHour, t, Events.RUSH_HOUR_DURATION)
 	announce(
-		"🚦 RUSH HOUR!",
-		"The streets are PACKED and rare cars are everywhere!",
+		"Rush hour",
+		"Heavy traffic citywide, and rarer cars parked on the street.",
 		Color3.fromRGB(255, 190, 40),
 		"Horn"
 	)
-	feed("🚦 <b>RUSH HOUR</b> — more traffic, rarer cars!")
 	nextAt.rushHour = timers.rushHour + rng:NextNumber(Events.RUSH_HOUR_INTERVAL[1], Events.RUSH_HOUR_INTERVAL[2])
 	broadcastEventState()
 	rerollStreet()
@@ -1344,12 +1338,11 @@ function EventService.startDoubleCash(): boolean
 	local t = now()
 	timers.doubleCash = EventService._stack(timers.doubleCash, t, Events.DOUBLE_CASH_DURATION)
 	announce(
-		"💸 2X CASH!",
-		`Every garage earns DOUBLE for {Format.clock(Events.DOUBLE_CASH_DURATION)}!`,
+		"Double cash",
+		`Every garage pays double for the next {Format.clock(Events.DOUBLE_CASH_DURATION)}.`,
 		Color3.fromRGB(70, 235, 110),
 		"CashBig"
 	)
-	feed("💸 <b>2X CASH</b> is ON for everyone!")
 	nextAt.doubleCash = timers.doubleCash
 		+ rng:NextNumber(Events.DOUBLE_CASH_INTERVAL[1], Events.DOUBLE_CASH_INTERVAL[2])
 	broadcastEventState()
@@ -1363,12 +1356,11 @@ function EventService.activateServerLuck(player: Player?): boolean
 	local who = if player then player.DisplayName else "Someone"
 	local left = timers.serverLuck - t
 	announce(
-		`🍀 {who} boosted SERVER LUCK!`,
-		`x2 rare cars for EVERYONE • {Format.clock(left)}`,
+		"Server luck",
+		`{richEscape(who)} doubled the odds of rare cars for everyone. {Format.clock(left)} left.`,
 		Color3.fromRGB(80, 230, 120),
 		"CashBig"
 	)
-	feed(`🍀 <b>{richEscape(who)}</b> boosted <b>SERVER LUCK</b> for everyone!`)
 	broadcastEventState()
 	rerollStreet()
 	return true

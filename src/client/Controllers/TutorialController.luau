@@ -150,10 +150,22 @@ local WAYPOINT_ID = "tutorial"
 local HELP_ID = "tutorial"
 local STREET_AHEAD = 70 -- studs in front of the garage door used as a "go to the street" waypoint
 local OBJECTIVE_REPEAT = 25 -- the objective line fades like GTA's; it comes back this often while a step is open
+-- GTA help text (gta_ui_language §2.6 / §5.5): the top-left box shows a hint for ~8 s and fades; it comes back only
+-- for a NEW hint (next step, another input device, "get back in the car"), never on a timer (job 0006: the hotwire
+-- hint stayed on screen for the whole session).
+TutorialController.HELP_SECONDS = 8
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests)
 -------------------------------------------------------------------------------------------------------------------------
+
+-- Should the help box show `nextText` given what it last showed (pure)? Only a different hint re-shows; nil clears.
+function TutorialController.helpAction(lastShown: string?, nextText: string?): string
+	if nextText == nil or nextText == "" then
+		return if lastShown ~= nil then "clear" else "none"
+	end
+	return if nextText ~= lastShown then "show" else "none"
+end
 
 export type Ctx = {
 	elapsed: number, -- seconds since the current step began
@@ -672,17 +684,24 @@ local function hud(): any
 	return lazy("HUDController")
 end
 
+local lastHelp: string? = nil
+
 local function showHelp(text: string?)
 	local h = hud()
 	if not h then
 		return
 	end
-	if text then
+	local action = TutorialController.helpAction(lastHelp, text)
+	if action == "show" then
+		lastHelp = text
 		if typeof(h.help) == "function" then
-			pcall(h.help, text, { id = HELP_ID, duration = math.huge })
+			pcall(h.help, text, { id = HELP_ID, duration = TutorialController.HELP_SECONDS })
 		end
-	elseif typeof(h.clearHelp) == "function" then
-		pcall(h.clearHelp, HELP_ID)
+	elseif action == "clear" then
+		lastHelp = nil
+		if typeof(h.clearHelp) == "function" then
+			pcall(h.clearHelp, HELP_ID)
+		end
 	end
 end
 

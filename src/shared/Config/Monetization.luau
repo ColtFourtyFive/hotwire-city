@@ -29,7 +29,7 @@ Monetization.Passes = {
 		key = "nitro",
 		id = 0,
 		name = "Infinite Nitro",
-		description = "Your nitro never runs out. Ever.",
+		description = "Your nitro never runs out.",
 		icon = "🔥",
 	},
 	hotwire = {
@@ -42,8 +42,8 @@ Monetization.Passes = {
 	taser = {
 		key = "taser",
 		id = 0,
-		name = "Zapper Pass",
-		description = "Own the Zapper instantly, with half cooldown.",
+		name = "Stun Gun Pass", -- C4b: was "Zapper Pass" (display name only)
+		description = "Own the Kessler Stun Gun right away, with half the cooldown.",
 		icon = "⚡",
 	},
 } :: { [string]: PassDef }
@@ -84,7 +84,7 @@ Monetization.Products = {
 		key = "server_luck",
 		id = 0,
 		name = "Server Luck x2",
-		description = "Doubles rare car spawns for EVERYONE for 15 minutes.",
+		description = "Doubles rare car spawns for everyone in the server for 15 minutes.",
 		icon = "🍀",
 	},
 	diamond_dragster = {

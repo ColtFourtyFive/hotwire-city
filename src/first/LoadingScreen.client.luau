@@ -40,14 +40,15 @@ local SAFE = 32 -- design px margin for text and the spinner
 local TIPS = {
 	"Hold E to hotwire a parked car, then drive it home.",
 	"Drive a stolen car into your garage drop-off to keep it. Every stored car earns cash.",
-	"Lock your garage with the laser gate so other players cannot take your cars.",
-	"Hot Drops put rare cars somewhere in the city. Follow the gold marker before anyone else.",
+	-- C4b: no "laser gate" / "gold marker" (the garage gets a roll-up door, the drop a flare marker: C5 vibe)
+	"Lock your garage so other players cannot take your cars.",
+	"Hot Drops put rare cars somewhere in the city. Each one is marked on your map; first one there keeps it.",
 	"Spray Shops clear your wanted level for a fee.",
 	"Open the phone to call a cab home, take jobs and claim daily rewards.",
 	"Prestige keeps your best cars and raises your income for good.",
 }
 if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
-	TIPS[1] = "Hold the HOTWIRE prompt next to a parked car, then drive it home."
+	TIPS[1] = "Hold the HOTWIRE button next to a parked car, then drive it home."
 end
 
 -- Palette + fonts mirror client/UI/Theme (that module has not replicated yet when this runs).

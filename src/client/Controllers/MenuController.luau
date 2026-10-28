@@ -1939,6 +1939,27 @@ local function refreshSettings(tab: Tab)
 			})
 		end
 	end
+	-- C4a characters (integration point): the wardrobe (CharacterCreator) and the own-avatar switch (AppearanceService)
+	local creator = lazy("CharacterCreator")
+	if creator then
+		table.insert(items, { separator = true, label = "Character" })
+		table.insert(items, {
+			id = "wardrobe",
+			label = "Wardrobe",
+			value = "",
+			desc = "Change your look: build, face, hair, outfit and walk style.",
+			data = { section = "wardrobe" },
+		})
+		local own = typeof(creator.ownAvatar) == "function" and creator.ownAvatar() == true
+		table.insert(items, {
+			id = "ownAvatar",
+			label = "Use my Roblox avatar",
+			options = { "Off", "On" },
+			optionIndex = if own then 2 else 1,
+			desc = "Play as your own Roblox avatar instead of your city look (it still walks like a local).",
+			data = { section = "ownAvatar" },
+		})
+	end
 	table.insert(items, { separator = true, label = "More" })
 	table.insert(items, { id = "codes", label = "Redeem a code", value = "PHONE", data = { section = "codes" } })
 	local tut = lazy("TutorialController")
@@ -1994,6 +2015,15 @@ local function describeSettings(tab: Tab, item: any)
 			C.TextDim,
 			if Kit.isTouch() then 16 else 12
 		)
+	elseif d.section == "wardrobe" or d.section == "ownAvatar" then
+		-- C4a characters (integration point)
+		dTitle(f, item.label)
+		dLine(f, item.desc or "", C.TextDim)
+		if d.section == "ownAvatar" then
+			local creator = lazy("CharacterCreator")
+			local own = creator ~= nil and typeof(creator.ownAvatar) == "function" and creator.ownAvatar() == true
+			dPair(f, "Now", if own then "ON" else "OFF", if own then C.Green else C.TextDim)
+		end
 	elseif d.section == "codes" then
 		dTitle(f, "Codes")
 		dLine(f, "Codes are redeemed in the Codes app on your phone.", C.TextDim)
@@ -2001,6 +2031,16 @@ local function describeSettings(tab: Tab, item: any)
 		dTitle(f, "Skip the tutorial")
 		dLine(f, "You can always find help in the phone's Jobs app.", C.TextDim)
 	end
+end
+
+-- C4a characters (integration point): the own-avatar switch.
+local function setOwnAvatar(tab: Tab, on: boolean)
+	local creator = lazy("CharacterCreator")
+	if creator and typeof(creator.setOwnAvatar) == "function" then
+		pcall(creator.setOwnAvatar, on)
+	end
+	playSound("Click")
+	refreshSettings(tab)
 end
 
 local function changeSettings(tab: Tab, item: any, index: number)
@@ -2011,6 +2051,8 @@ local function changeSettings(tab: Tab, item: any, index: number)
 	elseif d.section == "settings" then
 		setSetting(d.def, index == 2)
 		redescribe(tab, true)
+	elseif d.section == "ownAvatar" then
+		setOwnAvatar(tab, index == 2)
 	end
 end
 
@@ -2027,6 +2069,15 @@ local function selectSettings(tab: Tab, item: any)
 		setSetting(d.def, not now)
 		tab.list:setItems(tab.list.items, true)
 		redescribe(tab, true)
+	elseif d.section == "wardrobe" then
+		-- C4a characters (integration point)
+		MenuController.closePause()
+		local creator = lazy("CharacterCreator")
+		if creator and typeof(creator.open) == "function" then
+			pcall(creator.open, "wardrobe")
+		end
+	elseif d.section == "ownAvatar" then
+		setOwnAvatar(tab, item.optionIndex ~= 2)
 	elseif d.section == "codes" then
 		MenuController.closePause()
 		local phone = lazy("PhoneController")
@@ -2587,6 +2638,16 @@ function MenuController.start()
 			cam.CFrame = MenuController.cameraCFrame(cf.Position, size, VIEW_FOV, preview.yaw, CARD_PITCH)
 		end
 	end)
+	-- C4a characters (integration point): the "Use my Roblox avatar" row follows the server's answer
+	local creator = lazy("CharacterCreator")
+	if creator and typeof(creator.OwnChanged) == "table" and typeof(creator.OwnChanged.Connect) == "function" then
+		creator.OwnChanged:Connect(function()
+			local tab = activeTab()
+			if tab and tab.id == "SETTINGS" then
+				refreshSettings(tab)
+			end
+		end)
+	end
 	while true do
 		task.wait(1)
 		local tab = activeTab()

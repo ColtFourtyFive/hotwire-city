@@ -1,22 +1,29 @@
 --!strict
--- EventsClient (SPEC §7): server event presentation.
---   * HotDropState -> big countdown banner ("🔥 HOT DROP LANDING 0:15" -> "🔥 HOT DROP • CLAIM IT! 2:41") with the
---     car's rarity + name + live distance, and a waypoint to the drop (WaypointController.set("hotdrop", ...) when
---     that controller exists, otherwise a local neon Beam from your character to the beacon).
---   * EventState -> pill badges along the top of the screen: "🚦 RUSH HOUR 1:12", "💸 2X CASH 4:01",
---     "🍀 SERVER LUCK x2 12:30", "💰 CASH RAIN @ PLAZA". Pop in / shrink out; the last 10s blink. Cash Rain also
---     puts a "💰 CASH RAIN" waypoint on the Spawn Plaza while it lasts (45s is too short to go looking).
--- The pills + hot drop banner stack under the top-center HUD: below the cash pill / wanted stars
--- (HUDController.getTopStackBottom) and below the "your car is being stolen" banner while that alarm is up
--- (NotificationController.getAlertBottom). The screen has a touch scale floor so the text stays readable on phones,
--- and hides in streamer mode.
+-- EventsClient (SPEC §7; C4b polish, gta_ui_language §2.8 / §5.7): server events in GTA's language.
+--
+--   * No more mid-screen pills or banners (job 0006: the orange HOT DROP / RUSH HOUR / CASH RAIN pills covered the
+--     crosshair area). Each live event is one quiet row pinned at the GTA feed position, above the radar (in the HUD's
+--     feed host, under the newest feed cards; touch: under the help box): a translucent black row, a thin colour rule
+--     on the left, the event in sentence case ("Rush hour", "Double cash", "Cash rain at the plaza") and its time left
+--     in Kanit, red in the last 10 s. No emoji, no shouting, no pop animations.
+--   * The hot drop row has a second grey line: the distance in metres first (or "At the drop" once you are there),
+--     then rarity (small, in its GTA hue) + car, so a long car name truncates before the distance does. The start /
+--     landing announcements are the server's Announce feed cards (EventService).
+--   * Touch: the feed column runs down the left side under the help box, into the thumbstick's corner, so there only
+--     the hot drop row stays in it (it counts against the feed's 2 entries: NotificationController.cardBudget) and the
+--     timed events become GTA Online timer bars (HUDController.setTimer, top-centre on touch: "RUSH HOUR 1:12").
+--   * Waypoints: WaypointController.set("hotdrop", ...) for the drop and "cashrain" on the plaza while it lasts (a
+--     soft Beam only when WaypointController is missing).
 -- Reads state from StateController when available (it caches pushes that arrived before we started), else listens
 -- to the remotes directly. Timestamps are Workspace:GetServerTimeNow() based. Presentation only.
--- Public: getBottom(): number? real px (inset-relative) where the pills / banner end, nil when nothing is shown.
+-- Public: getBottom(): number? (v1 API, always nil now: nothing sits at the top any more), feedRowCount(): number
+--   (event rows in the feed column right now).
+-- Pure helpers (tests): Events (alias Pills), pillText, rowView, hotDropView, hotDropPhase, distanceText, dropLine,
+--   rarityColor, waypointLabel, carText, timedAsBars, barId, stackTop, fitScale (v1 layout maths, kept for the
+--   clientcore spec).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Shared: any = ReplicatedStorage:WaitForChild("Shared")
@@ -29,50 +36,65 @@ local Rarity = require(Shared.Config.Rarity)
 local UI: any = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI.Kit)
 local Theme = require(UI.Theme)
+local HudLayout = require(UI.HudLayout)
+local RichText = require(UI.RichText)
 
 local player = Players.LocalPlayer
+local C = Theme.Colors
 
 local EventsClient = {}
 
-export type PillDef = { icon: string, text: string, color: Color3, order: number, timer: boolean }
+export type EventDef = { label: string, color: Color3, order: number, timer: boolean }
 
-EventsClient.Pills = {
-	rushHour = { icon = "🚦", text = "RUSH HOUR", color = Theme.Colors.Warning, order = 1, timer = true },
-	doubleCash = { icon = "💸", text = "2X CASH", color = Theme.Colors.Cash, order = 2, timer = true },
-	serverLuck = {
-		icon = "🍀",
-		text = "SERVER LUCK x2",
-		color = Color3.fromRGB(60, 205, 120),
-		order = 3,
-		timer = true,
-	},
-	cashRain = { icon = "💰", text = "CASH RAIN @ PLAZA", color = Theme.Colors.Gold, order = 4, timer = false },
-} :: { [string]: PillDef }
+-- Sentence case, like GTA's feed. `timer` = show the time left.
+EventsClient.Events = {
+	rushHour = { label = "Rush hour", color = C.Yellow, order = 1, timer = true },
+	doubleCash = { label = "Double cash", color = C.Green, order = 2, timer = true },
+	serverLuck = { label = "Server luck x2", color = C.Blue, order = 3, timer = true },
+	cashRain = { label = "Cash rain at the plaza", color = C.Green, order = 4, timer = true },
+} :: { [string]: EventDef }
+EventsClient.Pills = EventsClient.Events -- v1 name
 
-local HOT_DROP_COLOR = Color3.fromRGB(255, 110, 40)
-local BLINK_UNDER = 10
-local TOP_DEFAULT = 78 -- design px: right under the cash pill when nothing can tell us better
+local BLINK_UNDER = 10 -- the time turns red in the last seconds (GTA timer bars)
+local TOP_DEFAULT = 78 -- v1 layout maths (stackTop), design px
 local STACK_GAP = 6
-local PILL_ROW_HEIGHT = 40
-local LIST_PAD = 10
-local BANNER_SIZE = Vector2.new(440, 118)
-local CASH_RAIN_WAYPOINT = "cashrain"
 local MIN_FIT = 0.6
+local CASH_RAIN_WAYPOINT = "cashrain"
+local METRES_PER_STUD = 0.28 -- gta_realism_gap §1 (the HUD never says "studs")
+local AT_DROP = 30 -- studs: "At the drop"
+local ROW_ORDER = 100000 -- pinned under every feed card (the feed host sorts by LayoutOrder)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Pure helpers (exported for tests)
 ---------------------------------------------------------------------------------------------------------------------
 
--- "🚦 RUSH HOUR 1:12" (timer omitted for pills without one).
+-- "Rush hour 1:12" (the row's label and time on one line; nil for an unknown event).
 function EventsClient.pillText(name: string, secondsLeft: number): string?
-	local def = EventsClient.Pills[name]
+	local def = EventsClient.Events[name]
 	if not def then
 		return nil
 	end
 	if def.timer then
-		return `{def.icon} {def.text} {Format.clock(math.ceil(math.max(0, secondsLeft)))}`
+		return `{def.label} {Format.clock(math.ceil(math.max(0, secondsLeft)))}`
 	end
-	return `{def.icon} {def.text}`
+	return def.label
+end
+
+export type RowView = { label: string, value: string, color: Color3, urgent: boolean }
+
+-- What an event row shows (nil for an unknown event).
+function EventsClient.rowView(name: string, secondsLeft: number): RowView?
+	local def = EventsClient.Events[name]
+	if not def then
+		return nil
+	end
+	local left = math.max(0, secondsLeft)
+	return {
+		label = def.label,
+		value = if def.timer then Format.clock(math.ceil(left)) else "",
+		color = def.color,
+		urgent = def.timer and left <= BLINK_UNDER,
+	}
 end
 
 export type HotDropPhase = "none" | "countdown" | "live"
@@ -97,21 +119,85 @@ function EventsClient.hotDropPhase(state: any, t: number): HotDropPhase
 	return "none"
 end
 
--- Color used for a hot drop car (Secret's near-black catalog color is swapped for a readable purple).
-function EventsClient.rarityColor(carId: string?): Color3
-	local def = if carId then Cars.get(carId) else nil
-	if not def then
-		return HOT_DROP_COLOR
+-- "420 m" / "1.3 km" from studs (GTA shows metric distances; never "studs").
+function EventsClient.distanceText(studs: number): string
+	local m = math.max(0, studs) * METRES_PER_STUD
+	if m >= 1000 then
+		return ("%.1f km"):format(m / 1000)
 	end
-	if def.rarity == "Secret" then
-		return Color3.fromRGB(190, 120, 255)
-	end
-	local tier = Rarity.Tiers[def.rarity]
-	return if tier then tier.color else HOT_DROP_COLOR
+	return ("%d m"):format(math.floor(m / 10 + 0.5) * 10)
 end
 
--- Design px (this screen) for the top of the pill/banner stack: below whichever of the HUD stack / theft alert banner
--- reaches lower (both real px, nil/0 = absent), never above the classic spot under the cash pill.
+-- GTA hue for a hot drop car's rarity (Theme.Rarity: small labels only, never glowing frames).
+function EventsClient.rarityColor(carId: string?): Color3
+	local def = if carId then Cars.get(carId) else nil
+	local hue = def and (Theme.Rarity :: any)[def.rarity]
+	return if typeof(hue) == "Color3" then hue else C.Yellow
+end
+
+-- "Legendary Halden Wren" as rich text: the rarity in its hue, the car in white (sentence case, no "MYSTERY CAR").
+function EventsClient.dropLine(carId: string?, mutation: string?): string
+	local def = if carId then Cars.get(carId) else nil
+	if not def then
+		return "Unknown car"
+	end
+	local mut = Rarity.getMutation((mutation or "None") :: any)
+	local name = RichText.escape(if mut.label ~= "" then mut.label .. " " .. def.name else def.name)
+	return RichText.color(RichText.escape(tostring(def.rarity)), EventsClient.rarityColor(carId)) .. " " .. name
+end
+
+export type DropView = { label: string, value: string, sub: string, urgent: boolean }
+
+-- The hot drop row for a state at server time `t`, `distance` studs away (nil = unknown). nil when no drop.
+function EventsClient.hotDropView(state: any, t: number, distance: number?): DropView?
+	local phase = EventsClient.hotDropPhase(state, t)
+	if phase == "none" then
+		return nil
+	end
+	local left = if phase == "countdown" then (state.startsAt or t) - t else (state.endsAt or t) - t
+	local secs = math.max(0, math.ceil(left))
+	local whereText = if distance == nil
+		then "Marked on your map"
+		elseif distance < AT_DROP then "At the drop"
+		else EventsClient.distanceText(distance)
+	return {
+		label = if phase == "countdown" then "Hot drop lands in" else "Hot drop",
+		value = Format.clock(secs),
+		-- the distance first: the AtEnd-truncated line cut it off behind long car names (event_feed mockups)
+		sub = whereText .. "  ·  " .. EventsClient.dropLine(state.carId, state.mutation),
+		urgent = phase == "live" and secs <= BLINK_UNDER,
+	}
+end
+
+-- Do timed events show as HUD timer bars instead of feed rows (pure)? On touch, when the HUD can draw them.
+function EventsClient.timedAsBars(touch: boolean, hudHasTimers: boolean): boolean
+	return touch and hudHasTimers
+end
+
+-- The HUD timer-bar id of a timed event (pure).
+function EventsClient.barId(name: string): string
+	return "event:" .. name
+end
+
+EventsClient.BAR_ORDER = 20 -- timer-bar LayoutOrder base: under the delivery timer (order 1)
+
+function EventsClient.waypointLabel(carId: string?): string
+	local def = if carId then Cars.get(carId) else nil
+	return if def then "Hot drop: " .. def.name else "Hot drop"
+end
+
+-- v1 helper (kept: other packages' specs pin it): "COMMON • GOLD <name>".
+function EventsClient.carText(carId: string?, mutation: string?): string
+	local def = if carId then Cars.get(carId) else nil
+	if not def then
+		return "MYSTERY CAR"
+	end
+	local mut = Rarity.getMutation((mutation or "None") :: any)
+	local name = if mut.label ~= "" then mut.label .. " " .. def.name else def.name
+	return string.upper(def.rarity) .. " • " .. name
+end
+
+-- v1 layout maths (the top-centre stack is gone; kept for the clientcore spec).
 function EventsClient.stackTop(hudBottom: number?, alertBottom: number?, scale: number): number
 	local s = if scale > 0 then scale else 1
 	local real = math.max(hudBottom or 0, alertBottom or 0)
@@ -121,28 +207,11 @@ function EventsClient.stackTop(hudBottom: number?, alertBottom: number?, scale: 
 	return math.max(TOP_DEFAULT, math.ceil(real / s) + STACK_GAP)
 end
 
--- Scale for the pill/banner stack starting at `top` and `needed` tall so it ends above `limit` (all design px),
--- never below MIN_FIT (readability wins over a little overlap).
 function EventsClient.fitScale(top: number, needed: number, limit: number): number
 	if needed <= 0 then
 		return 1
 	end
 	return math.clamp((limit - top) / needed, MIN_FIT, 1)
-end
-
-function EventsClient.waypointLabel(carId: string?): string
-	local def = if carId then Cars.get(carId) else nil
-	return if def then "HOT DROP: " .. string.upper(def.name) else "HOT DROP"
-end
-
-function EventsClient.carText(carId: string?, mutation: string?): string
-	local def = if carId then Cars.get(carId) else nil
-	if not def then
-		return "MYSTERY CAR"
-	end
-	local mut = Rarity.getMutation((mutation or "None") :: any)
-	local name = if mut.label ~= "" then mut.label .. " " .. def.name else def.name
-	return string.upper(def.rarity) .. " • " .. name
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -164,15 +233,7 @@ local function lazyController(name: string): any
 	return if ok and typeof(result) == "table" then result else nil
 end
 
-local function playSound(key: string)
-	local sc = lazyController("SoundController")
-	if sc and typeof(sc.play) == "function" then
-		pcall(sc.play, key)
-	end
-end
-
 local function hudHidden(): boolean
-	-- HUDController knows about the local 👁️ override before the snapshot catches up
 	local hud = lazyController("HUDController")
 	if hud and typeof(hud.isHidden) == "function" then
 		local ok, v = pcall(hud.isHidden)
@@ -180,23 +241,7 @@ local function hudHidden(): boolean
 			return v == true
 		end
 	end
-	local sc = lazyController("StateController")
-	if sc and typeof(sc.getSetting) == "function" then
-		local ok, v = pcall(sc.getSetting, "hideHud")
-		return ok and v == true
-	end
 	return false
-end
-
--- Real px number from an optional controller getter (nil when missing / failing).
-local function realFrom(controller: string, getter: string): number?
-	local c = lazyController(controller)
-	local fn = c and c[getter]
-	if typeof(fn) ~= "function" then
-		return nil
-	end
-	local ok, v = pcall(fn)
-	return if ok and typeof(v) == "number" then v else nil
 end
 
 local function serverNow(): number
@@ -204,331 +249,241 @@ local function serverNow(): number
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- UI
+-- Rows at the feed position
 ---------------------------------------------------------------------------------------------------------------------
 
-type Pill = { frame: Frame, label: TextLabel, scale: UIScale, endsAt: number, closing: boolean, blink: boolean }
+type Row = { frame: Frame, rule: Frame, label: TextLabel, value: TextLabel, sub: TextLabel?, closing: boolean }
 
-local gui: ScreenGui? = nil
-local topFrame: Frame? = nil
-local topFit: UIScale? = nil
-local topFitValue = 1
-local topY = TOP_DEFAULT
-local pillRow: Frame? = nil
-local pills: { [string]: Pill } = {}
+local rows: { [string]: Row } = {}
+local fallbackHost: Frame? = nil
 
-local banner: Frame? = nil
-local bannerScale: UIScale? = nil
-local bannerTitle: TextLabel? = nil
-local bannerTimer: TextLabel? = nil
-local bannerInfo: TextLabel? = nil
-local bannerDist: TextLabel? = nil
-local bannerStroke: UIStroke? = nil
-local bannerShown = false
+-- The HUD's feed host (above the radar; touch: under the help box) and the feed width; a small own screen at the same
+-- spot until the HUD exists.
+local function feedHost(): (Frame, number)
+	local touch = Kit.isTouch()
+	local width = if touch then HudLayout.FEED_W_TOUCH else HudLayout.FEED_W
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.getFeedHost) == "function" then
+		local ok, host = pcall(hud.getFeedHost)
+		if ok and typeof(host) == "Instance" and host:IsA("Frame") then
+			if typeof(hud.getLayout) == "function" then
+				local okL, L = pcall(hud.getLayout)
+				if okL and typeof(L) == "table" and typeof(L.feed) == "table" then
+					width = L.feed.w
+				end
+			end
+			return host, width
+		end
+	end
+	local f = fallbackHost
+	if f and f.Parent then
+		return f, width
+	end
+	local gui = Kit.screen("HC_Events", Theme.Layers.Feed, { touchMin = Theme.TouchMinScale })
+	local L = HudLayout.compute(1280, 720, touch)
+	local host = Kit.new("Frame", {
+		Name = "Events",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(L.feed.x, L.feed.y),
+		Size = UDim2.fromOffset(L.feed.w, L.feed.h),
+		Parent = gui,
+	}, {
+		Kit.list(
+			Enum.FillDirection.Vertical,
+			4,
+			Enum.HorizontalAlignment.Left,
+			if touch then Enum.VerticalAlignment.Top else Enum.VerticalAlignment.Bottom
+		),
+	})
+	fallbackHost = host
+	return host, width
+end
+
+local function makeRow(id: string, order: number, twoLines: boolean): Row
+	local host, width = feedHost()
+	local touch = Kit.isTouch()
+	local lineH = if touch then 28 else 26
+	local frame = Kit.panel({
+		Name = "Event_" .. id,
+		Size = UDim2.fromOffset(width, if twoLines then lineH + 16 else lineH),
+		LayoutOrder = ROW_ORDER + order,
+		Active = false,
+		Parent = host,
+	})
+	local rule = Kit.new("Frame", {
+		Name = "Rule",
+		Size = UDim2.new(0, 3, 1, 0),
+		BackgroundColor3 = C.Text,
+		BorderSizePixel = 0,
+		Parent = frame,
+	})
+	local label = Kit.text("", "body", if touch then 14 else 13, {
+		Name = "Label",
+		Position = UDim2.fromOffset(11, 0),
+		Size = UDim2.new(1, -78, 0, lineH),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Parent = frame,
+	})
+	local value = Kit.text("", "numeric", if touch then 17 else 16, {
+		Name = "Value",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -8, 0, 0),
+		Size = UDim2.fromOffset(64, lineH),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = frame,
+	})
+	local outline = value:FindFirstChild("Outline")
+	if outline then
+		outline:Destroy() -- digits on a panel need no outline (GTA timer bars)
+	end
+	local sub: TextLabel? = nil
+	if twoLines then
+		sub = Kit.text("", "body", if touch then 13 else 12, {
+			Name = "Sub",
+			Position = UDim2.fromOffset(11, lineH - 6),
+			Size = UDim2.new(1, -19, 0, 18),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			TextColor3 = C.TextDim,
+			Parent = frame,
+		})
+	end
+	Kit.fadeTree(frame, 1, 0)
+	Kit.fadeTree(frame, 0, 0.25)
+	return { frame = frame, rule = rule, label = label, value = value, sub = sub, closing = false }
+end
+
+local function ensureRow(id: string, order: number, twoLines: boolean): Row
+	local row = rows[id]
+	if row and not row.closing and row.frame.Parent then
+		local host = feedHost()
+		if row.frame.Parent ~= host then
+			row.frame.Parent = host -- the HUD (re)built its feed host
+		end
+		return row
+	end
+	local made = makeRow(id, order, twoLines)
+	rows[id] = made
+	return made
+end
+
+local function closeRow(id: string)
+	local row = rows[id]
+	if not row or row.closing then
+		return
+	end
+	row.closing = true
+	rows[id] = nil
+	Kit.fadeTree(row.frame, 1, 0.3)
+	task.delay(0.32, function()
+		row.frame:Destroy()
+	end)
+end
 
 local eventState: { [string]: number } = {}
 local hotDrop: any = { active = false }
-local lastPhase: HotDropPhase = "none"
-local lastSecond = -1
+local bars: { [string]: boolean } = {} -- timed events shown as HUD timer bars (touch)
 
-local function buildUI()
-	local screen = Kit.screen("EventsHUD", Theme.Layers.HUD + 1, { touchMin = Theme.TouchMinScale })
-	gui = screen
-	local top = Kit.new("Frame", {
-		Name = "Top",
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, TOP_DEFAULT),
-		Size = UDim2.fromOffset(900, PILL_ROW_HEIGHT + LIST_PAD + BANNER_SIZE.Y),
-		Parent = screen,
-	})
-	topFrame = top
-	topFit = Kit.new("UIScale", { Name = "Fit", Parent = top })
-	Kit.list(Enum.FillDirection.Vertical, LIST_PAD, Enum.HorizontalAlignment.Center).Parent = top
-
-	local row = Kit.new("Frame", {
-		Name = "Pills",
-		BackgroundTransparency = 1,
-		Size = UDim2.fromOffset(900, PILL_ROW_HEIGHT),
-		LayoutOrder = 1,
-		Parent = top,
-	})
-	Kit.list(Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center).Parent =
-		row
-	pillRow = row
-
-	-- Hot drop banner -------------------------------------------------------------------------------------------
-	local b = Kit.panel({
-		Name = "HotDropBanner",
-		Size = UDim2.fromOffset(BANNER_SIZE.X, BANNER_SIZE.Y),
-		LayoutOrder = 2,
-		Visible = false,
-		Parent = top,
-	})
-	b.BackgroundColor3 = Theme.Colors.Background
-	local stroke = b:FindFirstChildOfClass("UIStroke")
-	if stroke then
-		stroke.Color = HOT_DROP_COLOR
-		stroke.Thickness = 4
-		bannerStroke = stroke
-	end
-	local scale = Kit.new("UIScale", { Scale = 0, Parent = b })
-	bannerScale = scale
-
-	-- hot stripe across the top
-	local stripe = Kit.new("Frame", {
-		Name = "Stripe",
-		BackgroundColor3 = HOT_DROP_COLOR,
-		BorderSizePixel = 0,
-		Size = UDim2.new(1, 0, 0, 40),
-		Parent = b,
-	})
-	Kit.corner().Parent = stripe
-	Kit.new("Frame", {
-		BackgroundColor3 = HOT_DROP_COLOR,
-		BorderSizePixel = 0,
-		Position = UDim2.new(0, 0, 1, -12),
-		Size = UDim2.new(1, 0, 0, 12),
-		Parent = stripe,
-	})
-	Kit.gradient(Color3.fromRGB(255, 230, 120), Color3.fromRGB(255, 70, 70), 0).Parent = stripe
-
-	bannerTitle = Kit.label("🔥 HOT DROP INCOMING", 24, {
-		Name = "Title",
-		Size = UDim2.new(1, -20, 0, 34),
-		Position = UDim2.fromOffset(10, 3),
-		ZIndex = 2,
-		Parent = b,
-	})
-	bannerTimer = Kit.label("0:20", 38, {
-		Name = "Timer",
-		AnchorPoint = Vector2.new(1, 0),
-		Size = UDim2.fromOffset(120, 44),
-		Position = UDim2.new(1, -14, 0, 44),
-		TextXAlignment = Enum.TextXAlignment.Right,
-		TextColor3 = Theme.Colors.Warning,
-		Parent = b,
-	})
-	Kit.new("UIScale", { Parent = bannerTimer })
-	-- 20 px design text: >= ~14 real px on phones with the screen's touch scale floor
-	bannerInfo = Kit.label("LEGENDARY • ???", 20, {
-		Name = "Info",
-		Size = UDim2.new(1, -150, 0, 26),
-		Position = UDim2.fromOffset(16, 46),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		TextWrapped = false,
-		Parent = b,
-	})
-	local dist = Kit.label("📍 --", 20, {
-		Name = "Distance",
-		Size = UDim2.new(1, -150, 0, 24),
-		Position = UDim2.fromOffset(16, 76),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = Theme.Colors.TextDim,
-		TextWrapped = false,
-		TextScaled = true,
-		Parent = b,
-	})
-	Kit.new("UITextSizeConstraint", { MaxTextSize = 20, MinTextSize = 16, Parent = dist })
-	bannerDist = dist
-	banner = b
-end
-
--- Real px (inset-relative) bottom of what this screen shows at the top (pills, hot drop banner); nil when empty.
-function EventsClient.getBottom(): number?
-	local screen = gui
-	if not screen or not screen.Enabled then
-		return nil
-	end
-	local hasPills = next(pills) ~= nil
-	if not hasPills and not bannerShown then
-		return nil
-	end
-	local scale = screen:FindFirstChildOfClass("UIScale")
-	local s = if scale and scale.Scale > 0 then scale.Scale else 1
-	local h = PILL_ROW_HEIGHT + (if bannerShown then LIST_PAD + BANNER_SIZE.Y else 0)
-	return (topY + h * topFitValue) * s
-end
-
--- Keep the stack under the HUD's cash pill / wanted stars and under the theft alert banner (F17: the alarm banner
--- used to sit on top of the pills and the Hot Drop title).
-local function placeTop()
-	local screen, top = gui, topFrame
-	if not screen or not top then
+local function clearBar(name: string)
+	if not bars[name] then
 		return
 	end
-	local scale = screen:FindFirstChildOfClass("UIScale")
-	local y = EventsClient.stackTop(
-		realFrom("HUDController", "getTopStackBottom"),
-		realFrom("NotificationController", "getAlertBottom"),
-		if scale then scale.Scale else 1
-	)
-	if y ~= topY then
-		topY = y
-		TweenService:Create(top, Theme.TweenMedium, { Position = UDim2.new(0.5, 0, 0, y) }):Play()
+	bars[name] = nil
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.clearTimer) == "function" then
+		pcall(hud.clearTimer, EventsClient.barId(name))
 	end
-	-- a tall top stack (wanted + busted + theft alarm) can push the hot drop banner onto the bottom-center HUD
-	-- (theft timer / speedometer): shrink the stack to fit between them instead
-	local s = if scale and scale.Scale > 0 then scale.Scale else 1
-	local limit = screen.AbsoluteSize.Y / s
-	local clearance = realFrom("HUDController", "getBottomClearance")
-	if clearance then
-		limit -= clearance * Kit.uiScale() / s + STACK_GAP
-	end
-	local needed = PILL_ROW_HEIGHT + (if bannerShown then LIST_PAD + BANNER_SIZE.Y else 0)
-	local fit = EventsClient.fitScale(y, needed, limit)
-	if math.abs(fit - topFitValue) > 0.01 then
-		topFitValue = fit
-		local fitScale = topFit
-		if fitScale then
-			TweenService:Create(fitScale, Theme.TweenMedium, { Scale = fit }):Play()
+end
+
+-- Event rows in the feed column right now (NotificationController keeps the touch feed at 2 entries with them).
+function EventsClient.feedRowCount(): number
+	local n = 0
+	for _, row in rows do
+		if not row.closing then
+			n += 1
 		end
 	end
+	return n
 end
 
-local function makePill(name: string, def: PillDef, endsAt: number): Pill
-	local frame = Kit.new("Frame", {
-		Name = name,
-		BackgroundColor3 = def.color,
-		BorderSizePixel = 0,
-		Size = UDim2.fromOffset(0, 38),
-		AutomaticSize = Enum.AutomaticSize.X,
-		LayoutOrder = def.order,
-	})
-	Kit.corner(UDim.new(1, 0)).Parent = frame
-	Kit.stroke().Parent = frame
-	Kit.gradient(Color3.new(1, 1, 1), Color3.fromRGB(165, 165, 175)).Parent = frame
-	Kit.new("UIPadding", {
-		PaddingLeft = UDim.new(0, 16),
-		PaddingRight = UDim.new(0, 16),
-		Parent = frame,
-	})
-	local label = Kit.label("", 20, {
-		Name = "Text",
-		Size = UDim2.fromOffset(0, 38),
-		AutomaticSize = Enum.AutomaticSize.X,
-		TextWrapped = false,
-		Parent = frame,
-	})
-	local scale = Kit.new("UIScale", { Scale = 0, Parent = frame })
-	frame.Parent = pillRow
-	TweenService:Create(scale, Theme.TweenPop, { Scale = 1 }):Play()
-	return { frame = frame, label = label, scale = scale, endsAt = endsAt, closing = false, blink = false }
-end
-
-local function closePill(name: string)
-	local pill = pills[name]
-	if not pill or pill.closing then
-		return
-	end
-	pill.closing = true
-	pills[name] = nil
-	local t = TweenService:Create(pill.scale, Theme.TweenFast, { Scale = 0 })
-	t.Completed:Once(function()
-		pill.frame:Destroy()
-	end)
-	t:Play()
-end
-
-local function updatePills(t: number)
+local function updateRows(t: number)
+	local hud = lazyController("HUDController")
+	local asBars = EventsClient.timedAsBars(Kit.isTouch(), hud ~= nil and typeof(hud.setTimer) == "function")
 	for name, endsAt in eventState do
-		local def = EventsClient.Pills[name]
-		if def and endsAt > t then
-			local pill = pills[name]
-			if not pill then
-				pill = makePill(name, def, endsAt)
-				pills[name] = pill
-				playSound("Whoosh")
-			elseif pill.endsAt ~= endsAt then
-				pill.endsAt = endsAt
-				Kit.pop(pill.frame, 1.15) -- extended (e.g. stacked Server Luck)
+		local def = EventsClient.Events[name]
+		local view = EventsClient.rowView(name, endsAt - t)
+		if def and view and endsAt > t then
+			if asBars then
+				closeRow(name)
+				local ok = pcall(
+					hud.setTimer,
+					EventsClient.barId(name),
+					view.label,
+					view.value,
+					if view.urgent then C.Red else nil,
+					EventsClient.BAR_ORDER + def.order
+				)
+				bars[name] = ok or nil
+			else
+				clearBar(name)
+				local row = ensureRow(name, def.order, false)
+				row.label.Text = view.label
+				row.value.Text = view.value
+				row.value.TextColor3 = if view.urgent then C.Red else C.Text
+				row.rule.BackgroundColor3 = view.color
 			end
 		end
 	end
-	for name, pill in pills do
+	for id in rows do
+		if id ~= "hotDrop" then
+			local endsAt = eventState[id]
+			if not endsAt or endsAt <= t then
+				closeRow(id)
+			end
+		end
+	end
+	for name in bars do
 		local endsAt = eventState[name]
 		if not endsAt or endsAt <= t then
-			closePill(name)
-			continue
-		end
-		local left = endsAt - t
-		pill.label.Text = EventsClient.pillText(name, left) or ""
-		local blink = left <= BLINK_UNDER and math.floor(left * 2) % 2 == 0
-		if blink ~= pill.blink then
-			pill.blink = blink
-			pill.label.TextColor3 = if blink then Theme.Colors.Danger else Theme.Colors.Text
+			clearBar(name)
 		end
 	end
-end
-
-local function showBanner(show: boolean)
-	local b, scale = banner, bannerScale
-	if not b or not scale or show == bannerShown then
-		return
-	end
-	bannerShown = show
-	if show then
-		b.Visible = true
-		scale.Scale = 0.4
-		TweenService:Create(scale, Theme.TweenPop, { Scale = 1 }):Play()
-	else
-		local tw = TweenService:Create(scale, Theme.TweenFast, { Scale = 0 })
-		tw.Completed:Once(function()
-			if not bannerShown then
-				b.Visible = false
-			end
-		end)
-		tw:Play()
-	end
-end
-
-local function updateBanner(t: number)
-	local phase = EventsClient.hotDropPhase(hotDrop, t)
-	if phase == "none" then
-		showBanner(false)
-		return
-	end
-	local title, timer, info, dist = bannerTitle, bannerTimer, bannerInfo, bannerDist
-	if not title or not timer or not info or not dist then
-		return
-	end
-	showBanner(true)
-	local left = if phase == "countdown" then (hotDrop.startsAt or t) - t else (hotDrop.endsAt or t) - t
-	local secs = math.max(0, math.ceil(left))
-	title.Text = if phase == "countdown" then "🔥 HOT DROP LANDING IN" else "🔥 HOT DROP • CLAIM IT!"
-	timer.Text = Format.clock(secs)
-	local color = EventsClient.rarityColor(hotDrop.carId)
-	info.Text = EventsClient.carText(hotDrop.carId, hotDrop.mutation)
-	info.TextColor3 = color
-	if bannerStroke then
-		bannerStroke.Color = color
-	end
-	if secs ~= lastSecond then
-		lastSecond = secs
-		if phase == "countdown" and secs <= 5 and secs > 0 then
-			Kit.pop(timer, 1.45)
-			playSound("Click")
-		end
-		timer.TextColor3 = if phase == "live" and secs <= 30 then Theme.Colors.Danger else Theme.Colors.Warning
-	end
+	-- hot drop
+	local dist: number? = nil
 	local char = player.Character
 	local root = char and char:FindFirstChild("HumanoidRootPart")
 	if root and root:IsA("BasePart") and typeof(hotDrop.position) == "Vector3" then
-		local d = (root.Position - hotDrop.position).Magnitude
-		dist.Text = if d < 30 then "📍 YOU'RE HERE! Hold to claim" else `📍 {Format.commas(d)} studs away`
+		dist = (root.Position - hotDrop.position).Magnitude
+	end
+	local drop = EventsClient.hotDropView(hotDrop, t, dist)
+	if drop then
+		local row = ensureRow("hotDrop", 0, true)
+		row.label.Text = drop.label
+		row.value.Text = drop.value
+		row.value.TextColor3 = if drop.urgent then C.Red else C.Text
+		row.rule.BackgroundColor3 = EventsClient.rarityColor(hotDrop.carId)
+		local sub = row.sub
+		if sub then
+			sub.Text = drop.sub
+		end
 	else
-		dist.Text = "📍 Follow the beacon!"
+		closeRow("hotDrop")
 	end
 end
 
+-- v1 API: real px bottom of a top-of-screen stack. Nothing sits at the top any more.
+function EventsClient.getBottom(): number?
+	return nil
+end
+
 ---------------------------------------------------------------------------------------------------------------------
--- Waypoint (WaypointController if present, else a local Beam)
+-- Waypoint (WaypointController if present, else a soft local Beam)
 ---------------------------------------------------------------------------------------------------------------------
 
 local beamParts: { Instance } = {}
 local beamTarget: Vector3? = nil
-local beamColor: Color3 = HOT_DROP_COLOR
+local beamColor: Color3 = C.Yellow
 
 local function clearBeam()
 	for _, inst in beamParts do
@@ -566,16 +521,16 @@ local function buildBeam()
 	beam.Attachment0 = a0
 	beam.Attachment1 = a1
 	beam.Color = ColorSequence.new(beamColor)
-	beam.LightEmission = 1
-	beam.LightInfluence = 0
+	beam.LightEmission = 0.2
+	beam.LightInfluence = 0.6
 	beam.FaceCamera = true
-	beam.Width0 = 1.2
-	beam.Width1 = 3
+	beam.Width0 = 0.6
+	beam.Width1 = 1.2
 	beam.Segments = 1
 	beam.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.85),
-		NumberSequenceKeypoint.new(0.15, 0.35),
-		NumberSequenceKeypoint.new(1, 0.2),
+		NumberSequenceKeypoint.new(0, 0.9),
+		NumberSequenceKeypoint.new(0.15, 0.55),
+		NumberSequenceKeypoint.new(1, 0.45),
 	})
 	beam.Parent = anchor
 	table.insert(beamParts, anchor)
@@ -629,26 +584,22 @@ end
 -- State handling
 ---------------------------------------------------------------------------------------------------------------------
 
+local lastPhase: HotDropPhase = "none"
+
 local function onHotDrop(state: any)
 	hotDrop = if typeof(state) == "table" then state else { active = false }
 	local t = serverNow()
 	local phase = EventsClient.hotDropPhase(hotDrop, t)
 	if phase == "none" then
-		setWaypoint(nil, HOT_DROP_COLOR)
+		setWaypoint(nil, C.Yellow)
 	else
 		setWaypoint(hotDrop.position, EventsClient.rarityColor(hotDrop.carId))
 	end
-	if phase ~= lastPhase then
-		if phase == "live" and banner then
-			Kit.pop(banner, 1.12)
-		end
-		lastPhase = phase
-		lastSecond = -1
-	end
-	updateBanner(t)
+	lastPhase = phase
+	updateRows(t)
 end
 
--- 💰 Cash Rain lasts 45s at the Spawn Plaza and players spawn in their garages: mark the plaza while it is on.
+-- Cash rain lasts 45 s at the plaza and players spawn in their garages: mark the plaza while it is on.
 local cashRainMarked = false
 local function updateCashRainWaypoint(t: number)
 	local endsAt = eventState.cashRain
@@ -663,7 +614,7 @@ local function updateCashRainWaypoint(t: number)
 	if want then
 		local ok, plaza = pcall(MapLayout.poiCenter, "SpawnPlaza")
 		if ok and typeof(plaza) == "Vector3" and typeof(wc.set) == "function" then
-			pcall(wc.set, CASH_RAIN_WAYPOINT, plaza, Theme.Colors.Gold, "💰 CASH RAIN")
+			pcall(wc.set, CASH_RAIN_WAYPOINT, plaza, C.Green, "Cash rain")
 			cashRainMarked = true
 		end
 	else
@@ -685,15 +636,13 @@ local function onEventState(state: any)
 	end
 	eventState = clean
 	local t = serverNow()
-	updatePills(t)
+	updateRows(t)
 	updateCashRainWaypoint(t)
 end
 
 function EventsClient.init() end
 
 function EventsClient.start()
-	buildUI()
-
 	local sc = lazyController("StateController")
 	if sc and sc.HotDropChanged and sc.EventStateChanged then
 		sc.HotDropChanged:Connect(onHotDrop)
@@ -719,18 +668,19 @@ function EventsClient.start()
 	while true do
 		task.wait(0.25)
 		local t = serverNow()
-		local screen = gui
-		if screen then
-			screen.Enabled = not hudHidden()
+		local fb = fallbackHost
+		if fb then
+			local gui = fb:FindFirstAncestorOfClass("ScreenGui")
+			if gui then
+				gui.Enabled = not hudHidden()
+			end
 		end
-		placeTop()
-		updatePills(t)
-		updateBanner(t)
+		updateRows(t)
 		ensureWaypoint(t)
 		updateCashRainWaypoint(t)
 		if lastPhase ~= "none" and EventsClient.hotDropPhase(hotDrop, t) == "none" then
 			lastPhase = "none"
-			setWaypoint(nil, HOT_DROP_COLOR)
+			setWaypoint(nil, C.Yellow)
 		end
 	end
 end

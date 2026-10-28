@@ -16,8 +16,9 @@
 --                no curtain over a live player, no grey grade after the respawn.
 --   Shard.hide(fast?)            fades the current shard out (also removes the grade)
 --   Shard.isShowing(): boolean / Shard.currentToken(): number   (the token Shard.show returned for the message on screen)
---   Shard.setGrade(on, seconds?) the death / arrest grade: ColorCorrection Saturation -1 / Contrast 0.3 /
---                                Brightness -0.05, a light blur, the vignette and a muffled world mix (local only:
+--   Shard.setGrade(on, seconds?) the death / arrest grade (Shard.GRADE: ColorCorrection Saturation -1, Contrast 0.1,
+--                                Brightness 0: GTA's grade is grey, not black, so the 50% band still reads over a
+--                                night street), a light blur, the vignette and a muffled world mix (local only:
 --                                effects live under workspace.CurrentCamera, the EQ on the HC_SFX / HC_Music groups)
 --   Shard.fadeBlack(on, seconds?) the HC_Fade black curtain (respawn cut); a curtain that is not lifted by the caller
 --                                lifts itself after Shard.MAX_BLACK_SECONDS
@@ -25,10 +26,17 @@
 --   Shard.textMetrics(vpX, vpY)  pure: the title's UIScale (its text is laid out on the 1280x720 design canvas,
 --                                where Roblox's 100 px text cap is ~14% H) and the subtitle's max text size
 --
--- Look: a full-width translucent black band with GTA's slight keystone (15.5% of the screen height at the left edge,
--- 23% at the right; the keystone sprite from Config/UIAssets, a plain 19.5% band without it) centred at 48.8% H;
--- the title in lowercase Kanit Black, no outline; no stamps, shakes, confetti or Back easing.
+-- Look: a full-width translucent black band across the middle (centred at 48.8% H), the title in lowercase Kanit Black,
+-- no outline; no stamps, shakes, confetti or Back easing. The band is ALWAYS drawn: a plain 19.5% Frame (gta §5.9's
+-- base recipe) is the guaranteed band; GTA's slight keystone (15.5% H at the left edge, 23% at the right: the
+-- Config/UIAssets shard_band sprite) replaces it only once that image has actually loaded (ImageLabel.IsLoaded), and
+-- only while Shard.KEYSTONE_ART is on. It is OFF until Studio job 0017 g1 / g3 pass at night: job 0006's dark night
+-- shots never proved the sprite was the missing band (it was most likely there, unreadable under the old black grade),
+-- and with it off every shard of a session draws the same band.
+-- Job 0006: the band was an ImageLabel only, and the real engine showed no band at all behind "wasted" / "busted".
+--   Shard.bandPlan(resolved, loaded) / Shard.bandHeight(plan)   pure: which band draws, and its height (screen fraction)
 
+local ContentProvider = game:GetService("ContentProvider")
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local SoundService = game:GetService("SoundService")
@@ -99,10 +107,29 @@ end
 -- View
 -------------------------------------------------------------------------------------------------------------------------
 
+-- One-line switch for the keystone art: false = always the plain band (no sprite is built or preloaded). Off until
+-- job 0017 g1 / g3 pass at night with the band edges visible; then it can be tried again.
+Shard.KEYSTONE_ART = false
+
+-- The wasted / busted world grade (ColorCorrectionEffect target; DeathScreenController uses the same numbers).
+Shard.GRADE = { Saturation = -1, Contrast = 0.1, Brightness = 0 } :: { [string]: any }
+
+-- Which band draws (pure): the keystone sprite only when its id resolved AND the image has loaded; else the Frame.
+function Shard.bandPlan(resolved: boolean, loaded: boolean): string
+	return if resolved and loaded and Shard.KEYSTONE_ART then "keystone" else "frame"
+end
+
+-- The band's full height (fraction of the screen) for a plan (pure).
+function Shard.bandHeight(plan: string): number
+	return if plan == "keystone" then 0.23 else 0.195
+end
+
 type Ui = {
 	gui: ScreenGui,
-	band: GuiObject,
-	bandImage: boolean,
+	band: GuiObject, -- the band drawn by the current shard (bandFrame or keystone)
+	bandFrame: Frame, -- the guaranteed plain band
+	keystone: ImageLabel?, -- the keystone sprite (nil when the id is not configured)
+	bandImage: boolean, -- band == keystone
 	title: TextLabel,
 	titleScale: UIScale,
 	subtitle: TextLabel,
@@ -137,30 +164,38 @@ local function build(): Ui
 	if scale then
 		scale:Destroy() -- the band and text are sized in screen fractions
 	end
-	local bandId = Kit.resolveImage("shard_band")
-	local band: GuiObject
-	if bandId then
-		band = Kit.image("shard_band", {
-			Name = "Band",
+	-- the guaranteed band (plain Frame) and, when configured, the keystone sprite (shown only once loaded)
+	local bandFrame = Kit.new("Frame", {
+		Name = "Band",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.488),
+		Size = UDim2.fromScale(1, Shard.bandHeight("frame")),
+		BackgroundColor3 = C.Black,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 2,
+		Parent = gui,
+	})
+	local keystone: ImageLabel? = nil
+	if Shard.KEYSTONE_ART and Kit.resolveImage("shard_band") then
+		local img = Kit.image("shard_band", {
+			Name = "BandKeystone",
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.fromScale(0.5, 0.488),
-			Size = UDim2.fromScale(1, 0.23),
+			Size = UDim2.fromScale(1, Shard.bandHeight("keystone")),
 			ScaleType = Enum.ScaleType.Stretch,
 			ImageColor3 = C.Black,
 			ImageTransparency = 1,
+			Visible = false,
+			ZIndex = 2,
 			Parent = gui,
 		})
-	else
-		band = Kit.new("Frame", {
-			Name = "Band",
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.488),
-			Size = UDim2.fromScale(1, 0.195),
-			BackgroundColor3 = C.Black,
-			BackgroundTransparency = 1,
-			BorderSizePixel = 0,
-			Parent = gui,
-		})
+		keystone = img
+		task.spawn(function()
+			pcall(function()
+				ContentProvider:PreloadAsync({ img })
+			end)
+		end)
 	end
 	local title = Kit.new("TextLabel", {
 		Name = "Title",
@@ -224,8 +259,10 @@ local function build(): Ui
 	})
 	return {
 		gui = gui,
-		band = band,
-		bandImage = bandId ~= nil,
+		band = bandFrame,
+		bandFrame = bandFrame,
+		keystone = keystone,
+		bandImage = false,
 		title = title,
 		titleScale = titleScale,
 		subtitle = subtitle,
@@ -245,6 +282,34 @@ local function getUi(): Ui
 	local built = build()
 	ui = built
 	return built
+end
+
+local warnedKeystone = false
+
+-- Chooses this shard's band (Shard.bandPlan) and hides the other one.
+local function pickBand(u: Ui)
+	local img = u.keystone
+	local loaded = false
+	if img then
+		local ok, v = pcall(function(): any
+			return (img :: any).IsLoaded
+		end)
+		loaded = ok and v == true
+	end
+	local plan = Shard.bandPlan(img ~= nil, loaded)
+	if img and plan ~= "keystone" and not warnedKeystone then
+		warnedKeystone = true
+		warn("[Shard] keystone band art not loaded yet: drawing the plain band")
+	end
+	local useImage = plan == "keystone" and img ~= nil
+	if img then
+		img.Visible = useImage
+		img.ImageTransparency = 1
+	end
+	u.bandFrame.Visible = not useImage
+	u.bandFrame.BackgroundTransparency = 1
+	u.band = if useImage and img then img else u.bandFrame
+	u.bandImage = useImage
 end
 
 local function setBandAlpha(u: Ui, alpha: number, seconds: number)
@@ -323,7 +388,7 @@ function Shard.setGrade(on: boolean, seconds: number?)
 		blur.Name = "HC_DeathBlur"
 		blur.Size = 0
 		blur.Parent = parent
-		tween(cc, t, { Saturation = -1, Contrast = 0.3, Brightness = -0.05 }, Enum.EasingStyle.Sine)
+		tween(cc, t, Shard.GRADE, Enum.EasingStyle.Sine)
 		tween(blur, t, { Size = 3 }, Enum.EasingStyle.Sine)
 		table.insert(gradeEffects, cc)
 		table.insert(gradeEffects, blur)
@@ -416,8 +481,9 @@ function Shard.show(kind: string, title: string?, subtitle: string?, opts: ShowO
 	u.title.Text = string.lower(Kit.sanitize(title or style.title))
 	u.title.TextColor3 = style.color
 	u.subtitle.Text = RichText.format(Kit.sanitize(subtitle or ""))
-	-- band: grows from a line to its height
-	local full = if u.bandImage then 0.23 else 0.195
+	-- band: the keystone sprite once it has loaded, else the plain band (never neither); grows from a line
+	pickBand(u)
+	local full = Shard.bandHeight(if u.bandImage then "keystone" else "frame")
 	u.band.Size = UDim2.fromScale(1, 0)
 	setBandAlpha(u, style.alpha, 0)
 	tween(u.band, 0.25, { Size = UDim2.fromScale(1, full) })

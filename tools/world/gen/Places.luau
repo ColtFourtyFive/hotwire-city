@@ -1220,7 +1220,7 @@ return function(WorldLayout: any)
 		},
 		{
 			id = "Casino",
-			name = "Lucky Seven Casino",
+			name = "Grand Meridian Hotel",
 			kind = "landmark",
 			at = { -2700, -700 },
 			size = { 190, 120, 150 },
