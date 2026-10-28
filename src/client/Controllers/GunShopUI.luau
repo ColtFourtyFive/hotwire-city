@@ -53,7 +53,9 @@ GunShopUI.MAX_ROWS = 10
 GunShopUI.MAX_ROWS_TOUCH = 4
 GunShopUI.SHEET_HEIGHT = 0.4 -- touch: the sheet's share of the screen height
 GunShopUI.LAYER = 20
-GunShopUI.STORE_NAME = "Freedom Arms"
+-- C4b: the name on the building (the v2 world's Lock & Load storefronts, CityArt; C5 vibe's prompt object), not
+-- gta_combat's provisional "Freedom Arms": one store, one name
+GunShopUI.STORE_NAME = "Lock & Load"
 
 local ACTION = "HC_GunShop"
 local player = Players.LocalPlayer

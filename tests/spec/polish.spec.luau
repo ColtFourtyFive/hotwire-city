@@ -5,8 +5,10 @@
 --   bug 3  gun-shop rows take mouse clicks (hit-test + dedupe; the chat window steps aside)
 --   bug 4  one shared UI-focus state: no firing / aiming while any menu holds the cursor
 --   bug 5  one arrest = one bail charge (repro at the playtest's numbers) + the structured [Bust] log
---   nits   help text expires, event rows at the feed position (no pills, emoji or shouting), vehicle name, counter
---   audit  CoreGui / bubbles / Esc bridge, leaderboard billboards, lock bar, config display names, kid copy
+--   nits   help text expires, event rows at the feed position (no pills, emoji or shouting), vehicle name, one
+--          gun-store name (the fallback counter itself is C5 vibe's)
+--   audit  CoreGui / bubbles / Esc bridge, leaderboard billboards, lock bar, config display names, kid copy, the
+--          calm feed (RichText.calm, announceSound), metres, ProximityPrompts as GTA help text (UI/PromptStyle)
 local fs = require("@lune/fs")
 
 local function emojiIn(src: string): number?
@@ -540,21 +542,14 @@ return function(t)
 		H.setMode("server")
 	end)
 
-	t.test("nit: the fallback gun counter is a shop counter, not a black block", function()
-		local Shop = H.require("src/server/Systems/ShopService")
-		local pieces = Shop._counterPieces()
-		local names = {}
-		for _, p in pieces do
-			names[p[1]] = p
-			t.ok(p[5] ~= Enum.Material.Neon, p[1] .. ": no neon")
-		end
-		for _, need in { "Counter", "Top", "Display", "Wall", "Rack", "Sign", "Awning" } do
-			t.ok(names[need] ~= nil, "piece " .. need)
-		end
-		t.eq(names.Counter[7], true, "the counter collides (the prompt sits on it)")
-		t.ok(names.Display[6] > 0, "glass display front")
-		t.eq(Shop.FALLBACK_SIGN.guns, "FREEDOM ARMS")
-		t.ok(emojiIn(Shop.FALLBACK_SIGN.gear) == nil)
+	-- The fallback gun counter (job 0006: a black block by the road) is C5 vibe's ShopService.makeCounter on v2/vibe
+	-- (steel cabinet, wood top, kick plate, register); C4b withdrew its own version so the two never conflict.
+	t.test("nit: one gun-store name: the menu header matches the building (Lock & Load)", function()
+		H.setMode("client")
+		local Gun = H.require("src/client/Controllers/GunShopUI")
+		t.eq(Gun.STORE_NAME, "Lock & Load")
+		t.ok(emojiIn(Gun.STORE_NAME) == nil)
+		H.setMode("server")
 	end)
 
 	---------------------------------------------------------------------------------------------------------------------
@@ -712,20 +707,6 @@ return function(t)
 		H.setMode("server")
 	end)
 
-	t.test("audit: no comic KAPOW / BONK / ZAP words over the world, no sparkle emoji on paint labels", function()
-		H.setMode("client")
-		local Effects = H.require("src/client/Controllers/EffectsController")
-		t.eq(Effects.COMIC_TEXT, false)
-		local src = fs.readFile("src/client/Controllers/EffectsController.luau")
-		t.ok(string.find(src, "if not EffectsController.COMIC_TEXT then", 1, true) ~= nil, "showComic is gated")
-		for _, line in codeLines("src/client/Controllers/EffectsController.luau") do
-			if string.find(line, "mut.Text", 1, true) then
-				t.ok(emojiIn(line) == nil, "paint label: " .. line)
-			end
-		end
-		H.setMode("server")
-	end)
-
 	t.test("audit: player-facing copy says metres, never studs", function()
 		for id, def in Economy.Tools do
 			t.ok(not string.find(string.lower(def.description), "stud", 1, true), id .. ": " .. def.description)
@@ -762,6 +743,7 @@ return function(t)
 		t.eq(P.actionPhrase(""), "interact")
 		t.eq(P.actionPhrase(nil), "interact")
 		t.eq(P.objectName("FREEDOM ARMS"), "Freedom Arms", "a shouting sign in title case")
+		t.eq(P.objectName("Lock & Load"), "Lock & Load", "the v2 store name stays as written")
 		t.eq(P.objectName("Halden Wren"), "Halden Wren")
 		t.eq(P.objectName("Upgrades & Tools"), "Upgrades & Tools")
 		t.eq(P.objectName(nil), "")

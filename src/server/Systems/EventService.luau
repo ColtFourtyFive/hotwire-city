@@ -854,7 +854,7 @@ function addClaimPrompt(hd: HotDrop)
 	end
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "HotDropPrompt"
-	prompt.ActionText = "Hotwire" -- the same verb as the addStealPrompt path
+	prompt.ActionText = "Claim hot drop"
 	prompt.ObjectText = objectText
 	prompt.HoldDuration = Events.HOT_DROP_HOLD
 	prompt.MaxActivationDistance = 12
