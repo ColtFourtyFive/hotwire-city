@@ -39,6 +39,7 @@ local ORDER = {
 	"LeaderboardService",
 	"AdminService",
 	"VehicleFxService",
+	"AudioService", -- C3 audio: validates RadioTune -> car attribute RadioStation (nearby players hear the radio)
 }
 
 Net.init()

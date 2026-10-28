@@ -64,6 +64,8 @@ local player = Players.LocalPlayer
 local VehicleClient = {}
 VehicleClient.Entered = Signal.new() -- (model: Model, controller)
 VehicleClient.Exited = Signal.new() -- (model: Model)
+-- [C3 audio integration] fired on every exhaust pop (upshift / nitro start) so SoundController's pop lands with the flame
+VehicleClient.Backfire = Signal.new() -- (big: boolean)
 -- false: WheelAnimator poses the driven car's wheels using getController() (exact suspension + steer input).
 VehicleClient.positionsWheels = false
 
@@ -946,7 +948,9 @@ local function buildFx(s: Session)
 	params.FilterDescendantsInstances = exclude
 	s.fx.rayParams = params
 
-	local screech = makeLocalSound("TireScreech", chassis)
+	-- [C3 audio integration] SoundController levels our tyres by lateral slip itself (ownsLocalTyres)
+	local audio = sibling("SoundController")
+	local screech = if audio and audio.ownsLocalTyres == true then nil else makeLocalSound("TireScreech", chassis)
 	if screech then
 		trove:Add(screech)
 		screech.Volume = 0
@@ -980,6 +984,7 @@ local function backfire(s: Session, big: boolean)
 	end
 	s.fxBackfireAt = os.clock()
 	VFXLibrary.emit(s.fx.backfire, if big then 3 else 2, true)
+	VehicleClient.Backfire:Fire(big) -- [C3 audio integration]
 	local light = s.fx.light
 	if light and not light.Enabled then
 		light.Color = Color3.fromRGB(255, 160, 60)
@@ -1185,7 +1190,13 @@ local function onCrash(s: Session, drop: number)
 	s.lastCrash = os.clock()
 	pcall(crashSparks, s, drop)
 	s.shake = math.max(s.shake, Tuning.CAMERA_SHAKE_ON_CRASH * math.clamp(drop / 70, 0.5, 1.6))
-	if s.sfx and not playViaController("Crash", s.chassis.Position) then
+	-- [C3 audio integration] impacts scaled by the crash (light thud / heavy crunch / glass) when SoundController has them
+	local sc = sibling("SoundController")
+	local handled = s.sfx
+		and sc ~= nil
+		and type(sc.playImpact) == "function"
+		and pcall(sc.playImpact, drop, s.chassis.Position)
+	if s.sfx and not handled and not playViaController("Crash", s.chassis.Position) then
 		local snd = makeLocalSound("Crash", s.chassis)
 		if snd then
 			snd:Play()

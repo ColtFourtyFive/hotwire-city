@@ -1,0 +1,6227 @@
+[
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1835563783,
+  "info": {
+   "clip_ratio": 0.01544,
+   "duration": 180.27,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": 5.4,
+   "regions": {},
+   "rms_db": -8.3,
+   "silent_share": 0.02,
+   "trail_silence": 3.3
+  },
+  "keys": [
+   "Radio_WestCoastHop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Paul Erskine",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 180,
+   "free": true,
+   "name": "West Coast Hop",
+   "title": "West Coast Hop",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1835725225,
+  "info": {
+   "clip_ratio": 0.01173,
+   "duration": 155.14,
+   "format": "ogg",
+   "lead_silence": 0.25,
+   "peak_db": 5.4,
+   "regions": {},
+   "rms_db": -10.5,
+   "silent_share": 0.03,
+   "trail_silence": 3.85
+  },
+  "keys": [
+   "Radio_DiscoSapiens"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Eddy David Abidi",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 155,
+   "free": true,
+   "name": "Disco Sapiens",
+   "title": "Disco Sapiens",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1836021107,
+  "info": {
+   "clip_ratio": 0.00809,
+   "duration": 177.1,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 2.5,
+   "regions": {},
+   "rms_db": -8.0,
+   "silent_share": 0.01,
+   "trail_silence": 0.85
+  },
+  "keys": [
+   "Radio_UrbanJungleDrive"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Nicolas Baudino",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 177,
+   "free": true,
+   "name": "Urban Jungle Drive",
+   "title": "Urban Jungle Drive",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1836160527,
+  "info": {
+   "clip_ratio": 0.01437,
+   "duration": 154.07,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 3.3,
+   "regions": {},
+   "rms_db": -8.1,
+   "silent_share": 0.01,
+   "trail_silence": 1.7
+  },
+  "keys": [
+   "Radio_FatElectroFunk"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "AXS",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 154,
+   "free": true,
+   "name": "Fat Electro Funk",
+   "title": "Fat Electro Funk",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 1837115816,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 153.44,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.1,
+   "regions": {},
+   "rms_db": -15.1,
+   "silent_share": 0.03,
+   "trail_silence": 4.25
+  },
+  "keys": [
+   "Radio_NeonLights"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Bibliotheque",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Cheesy 80s 8 bit / K-pop inspired synth pop for a determined workout routine.\r\nDuration: 153 seconds\r\n\r\nGenre: Pop\r\nLibrary: Bibliotheque\r\nAlbum: SYNTHWAVE\r\nAlbum Info: \"From themes of darkness and light, from fun to heatfelt; this collection of 80s inspired synthwave tracks journeys through a wide range of emotions.\"\r\n\r\nCourtesy of APM Music.",
+   "duration": 153,
+   "free": true,
+   "name": "Neon Lights",
+   "title": "Neon Lights",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 1837115853,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 109.8,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": 0.2,
+   "regions": {},
+   "rms_db": -15.0,
+   "silent_share": 0.03,
+   "trail_silence": 2.65
+  },
+  "keys": [
+   "Radio_DeletedMemory"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Bibliotheque",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "\"Thoughtful, introspective and cerebral synth lines in repetitive cycles. Delicate.\"\r\nDuration: 109 seconds\r\n\r\nGenre: Film Score/Orchestral\r\nLibrary: Bibliotheque\r\nAlbum: SYNTHWAVE\r\nAlbum Info: \"From themes of darkness and light, from fun to heatfelt; this collection of 80s inspired synthwave tracks journeys through a wide range of emotions.\"\r\n\r\nCourtesy of APM Music.",
+   "duration": 110,
+   "free": true,
+   "name": "Deleted Memory",
+   "title": "Deleted Memory",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 1837299865,
+  "info": {
+   "clip_ratio": 0.00103,
+   "duration": 122.54,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 2.5,
+   "regions": {},
+   "rms_db": -10.6,
+   "silent_share": 0.03,
+   "trail_silence": 3.45
+  },
+  "keys": [
+   "Radio_SurfingRocking"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Mark Alberts",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 123,
+   "free": true,
+   "name": "Surfing 'n' Rocking",
+   "title": "Surfing 'n' Rocking",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1837301807,
+  "info": {
+   "clip_ratio": 0.01059,
+   "duration": 198.31,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 2.8,
+   "regions": {},
+   "rms_db": -8.4,
+   "silent_share": 0.01,
+   "trail_silence": 1.85
+  },
+  "keys": [
+   "Radio_OutrunArcade"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Boris Popov",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 198,
+   "free": true,
+   "name": "Outrun Arcade",
+   "title": "Outrun Arcade",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1837413931,
+  "info": {
+   "clip_ratio": 0.003,
+   "duration": 139.98,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 2.8,
+   "regions": {},
+   "rms_db": -9.7,
+   "silent_share": 0.02,
+   "trail_silence": 2.1
+  },
+  "keys": [
+   "Radio_TheRenegade"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Gum Collections",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "\"Surf music. Proud & determined. Twangy guitar, synth & rhythm.\"\r\nDuration: 140 seconds\r\n\r\nGenre: Rock\r\nLibrary: Gum Collections\r\nAlbum: SURF ROCK\r\nAlbum Info: Instant submersion in the tide that swept California away in the 60's.\r\n\r\nCourtesy of APM Music.",
+   "duration": 140,
+   "free": true,
+   "name": "The Renegade",
+   "title": "The Renegade",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1837664025,
+  "info": {
+   "clip_ratio": 0.00498,
+   "duration": 183.52,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 3.7,
+   "regions": {},
+   "rms_db": -11.1,
+   "silent_share": 0.02,
+   "trail_silence": 3.2
+  },
+  "keys": [
+   "Radio_Aura"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Shahrooz Raoofi",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 184,
+   "free": true,
+   "name": "Aura",
+   "title": "Aura",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1841268296,
+  "info": {
+   "clip_ratio": 0.00671,
+   "duration": 153.91,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 3.6,
+   "regions": {},
+   "rms_db": -10.2,
+   "silent_share": 0.01,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Radio_TheStickup"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Guy Buss",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 154,
+   "free": true,
+   "name": "The Stickup",
+   "title": "The Stickup",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 1847233991,
+  "info": {
+   "clip_ratio": 0.00468,
+   "duration": 175.73,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 2.8,
+   "regions": {},
+   "rms_db": -10.6,
+   "silent_share": 0.01,
+   "trail_silence": 2.45
+  },
+  "keys": [
+   "Radio_SurfRock"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Mac Prindy",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 176,
+   "free": true,
+   "name": "Surf Rock A",
+   "title": "Surf Rock A",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 1847692770,
+  "info": {
+   "clip_ratio": 0.00117,
+   "duration": 160.7,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": 2.1,
+   "regions": {},
+   "rms_db": -10.3,
+   "silent_share": 0.01,
+   "trail_silence": 1.55
+  },
+  "keys": [
+   "Radio_PartyTime"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Sonoton Vanguard",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Big synth riff in this powerful EDM club track. Detuned chords add a dark dance edge. High energy mood. 122 bpm (Dmin)Teen Culture~Propulsive~Lifestyle - Cars~Lifestyle - general\r\nDuration: 160 seconds\r\n\r\nGenre: Club/Electronica\r\nLibrary: Sonoton Vanguard\r\nAlbum: ELECTRONICA - EDM & SOUNDSCAPES\r\nAlbum Info: \"High energy, rousing EDM club bangers with electronic atmospheres and underscores.\"\r\n\r\nCou",
+   "duration": 161,
+   "free": true,
+   "name": "Edm Party Time",
+   "title": "Edm Party Time",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9044508438,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 127.99,
+   "format": "mp3",
+   "lead_silence": 0.0,
+   "peak_db": -0.2,
+   "regions": {},
+   "rms_db": -16.0,
+   "silent_share": 0.08,
+   "trail_silence": 2.0
+  },
+  "keys": [
+   "Radio_AllGood"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Bibliotheque",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Fun, jazzy, cool. Upbeat drums with playful keys. Funky and cool classic hip hop with an R&B vibe.\n\nDuration: 128 seconds\nGenre: Easy Listening\nLibrary: Bibliotheque\nAlbum: Jazzy Hip Hop: Golden Era Beats\nAlbum Info: Cool, old-school hip hop and R&B with upbeat drums, confident brass and playful melodies. Atmospheric and impactful cues with attitude.\nAsset Type: Music\n\nCourtesy of APM Music.",
+   "duration": 128,
+   "free": true,
+   "name": "All Good - Instrumental",
+   "title": "All Good - Instrumental",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9046863253,
+  "info": {
+   "clip_ratio": 0.01109,
+   "duration": 165.24,
+   "format": "mp3",
+   "lead_silence": 0.0,
+   "peak_db": 2.3,
+   "regions": {},
+   "rms_db": -10.4,
+   "silent_share": 0.01,
+   "trail_silence": 1.55
+  },
+  "keys": [
+   "Radio_Poolside"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Max Cameron Concors",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 165,
+   "free": true,
+   "name": "Poolside",
+   "title": "Poolside",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9046863579,
+  "info": {
+   "clip_ratio": 0.00632,
+   "duration": 120.1,
+   "format": "mp3",
+   "lead_silence": 0.05,
+   "peak_db": 2.2,
+   "regions": {},
+   "rms_db": -9.9,
+   "silent_share": 0.01,
+   "trail_silence": 1.5
+  },
+  "keys": [
+   "Radio_CityLights"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Inside Tracks",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 120,
+   "free": true,
+   "name": "City Lights",
+   "title": "City Lights",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9047104411,
+  "info": {
+   "clip_ratio": 0.02783,
+   "duration": 156.68,
+   "format": "mp3",
+   "lead_silence": 0.0,
+   "peak_db": 2.4,
+   "regions": {},
+   "rms_db": -9.1,
+   "silent_share": 0.02,
+   "trail_silence": 2.3
+  },
+  "keys": [
+   "Radio_BeachCushions"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Afro Dizzy",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "Peaceful, introspective, contented, music to relax to, a mellow, carefree life with the world just drifting by, warm, vibey, chilled, hypnotic, easy going. 90 bpm - Suggested for Lounge - Cool\n\nDuration: 156 seconds\nGenre: Pop\nLibrary: Afro Dizzy\nAlbum: LOFI HIP HOP\nAlbum Info: Smooth, chilled, sophisticated, dreamy hip hop beats and relaxing vinyl grooves with a stylish, retro texture and world m",
+   "duration": 157,
+   "free": true,
+   "name": "Beach Cushions",
+   "title": "Beach Cushions",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112734195,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 46.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.9,
+   "regions": {
+    "Eng_Police_On": {
+     "clip_ratio": 0.0,
+     "duration": 46.01,
+     "lead_silence": 0.0,
+     "peak_db": -5.9,
+     "region": [
+      0.752,
+      5.42
+     ],
+     "region_oob": false,
+     "region_rms_db": -16.7,
+     "region_steady_db": 1.3,
+     "rms_db": -17.6,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Sedan_Idle": {
+     "clip_ratio": 0.0,
+     "duration": 46.01,
+     "lead_silence": 0.0,
+     "peak_db": -5.9,
+     "region": [
+      25.602,
+      27.9
+     ],
+     "region_oob": false,
+     "region_rms_db": -16.2,
+     "region_steady_db": 0.6,
+     "rms_db": -17.6,
+     "seam_db": 0.4,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Sedan_Off": {
+     "clip_ratio": 0.0,
+     "duration": 46.01,
+     "lead_silence": 0.0,
+     "peak_db": -5.9,
+     "region": [
+      0.752,
+      5.42
+     ],
+     "region_oob": false,
+     "region_rms_db": -16.7,
+     "region_steady_db": 1.3,
+     "rms_db": -17.6,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Sedan_On": {
+     "clip_ratio": 0.0,
+     "duration": 46.01,
+     "lead_silence": 0.0,
+     "peak_db": -5.9,
+     "region": [
+      0.752,
+      5.42
+     ],
+     "region_oob": false,
+     "region_rms_db": -16.7,
+     "region_steady_db": 1.3,
+     "rms_db": -17.6,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -17.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Police_On",
+   "Eng_Sedan_Idle",
+   "Eng_Sedan_Off",
+   "Eng_Sedan_On"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "1964 Cadillac, Convertible, Start, Constant Drive, Stop, Medium-Speed, Air Rumble, Gear Shift, Off, Loop\n\nDuration: 46.0 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 46,
+   "free": true,
+   "name": "1964 Cadillac 1 (SFX)",
+   "title": "1964 Cadillac 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112734376,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 56.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.8,
+   "regions": {
+    "Eng_Muscle_Off": {
+     "clip_ratio": 0.0,
+     "duration": 56.01,
+     "lead_silence": 0.0,
+     "peak_db": -7.8,
+     "region": [
+      1.002,
+      5.34
+     ],
+     "region_oob": false,
+     "region_rms_db": -16.0,
+     "region_steady_db": 0.8,
+     "rms_db": -17.4,
+     "seam_db": 0.7,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Police_Off": {
+     "clip_ratio": 0.0,
+     "duration": 56.01,
+     "lead_silence": 0.0,
+     "peak_db": -7.8,
+     "region": [
+      1.002,
+      5.34
+     ],
+     "region_oob": false,
+     "region_rms_db": -16.0,
+     "region_steady_db": 0.8,
+     "rms_db": -17.4,
+     "seam_db": 0.7,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -17.4,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Muscle_Off",
+   "Eng_Police_Off"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "1969 Chevrolet Chevelle Convertible, Interior, Long and Slow Constant, Slight Acceleration, Short Coast, Long Slow, Stop, Vehicle Pass By, Engine Off, Loop\n\nDuration: 56.0 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 56,
+   "free": true,
+   "name": "1969 Chevrolet Chevelle Convertible 2 (SFX)",
+   "title": "1969 Chevrolet Chevelle Convertible 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112735119,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 64.64,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -11.9,
+   "regions": {
+    "Eng_Muscle_Idle": {
+     "clip_ratio": 0.0,
+     "duration": 64.64,
+     "lead_silence": 0.0,
+     "peak_db": -11.9,
+     "region": [
+      7.253,
+      10.49
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.7,
+     "region_steady_db": 1.7,
+     "rms_db": -22.1,
+     "seam_db": 0.6,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Muscle_On": {
+     "clip_ratio": 0.0,
+     "duration": 64.64,
+     "lead_silence": 0.0,
+     "peak_db": -11.9,
+     "region": [
+      29.304,
+      33.43
+     ],
+     "region_oob": false,
+     "region_rms_db": -21.7,
+     "region_steady_db": 1.6,
+     "rms_db": -22.1,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Police_Idle": {
+     "clip_ratio": 0.0,
+     "duration": 64.64,
+     "lead_silence": 0.0,
+     "peak_db": -11.9,
+     "region": [
+      7.253,
+      10.49
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.7,
+     "region_steady_db": 1.7,
+     "rms_db": -22.1,
+     "seam_db": 0.6,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -22.1,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Muscle_Idle",
+   "Eng_Muscle_On",
+   "Eng_Police_Idle"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "1969 Chevrolet Chevelle Convertible, On Board Exterior, Engine Start CU, Idle, Revs, Slow Constant Uphill, Engine Strain, Long Idle, Loop\n\nDuration: 64.6 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 65,
+   "free": true,
+   "name": "1969 Chevrolet Chevelle Convertible 2 (SFX)",
+   "title": "1969 Chevrolet Chevelle Convertible 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112735582,
+  "info": {
+   "clip_ratio": 0.00144,
+   "duration": 33.06,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 3.1,
+   "regions": {
+    "Eng_Truck_Off": {
+     "clip_ratio": 0.00144,
+     "duration": 33.06,
+     "lead_silence": 0.0,
+     "peak_db": 3.1,
+     "region": [
+      6.749,
+      12.25
+     ],
+     "region_oob": false,
+     "region_rms_db": -12.0,
+     "region_steady_db": 1.9,
+     "rms_db": -10.2,
+     "seam_db": 1.0,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Truck_On": {
+     "clip_ratio": 0.00144,
+     "duration": 33.06,
+     "lead_silence": 0.0,
+     "peak_db": 3.1,
+     "region": [
+      15,
+      18.74
+     ],
+     "region_oob": false,
+     "region_rms_db": -9.6,
+     "region_steady_db": 1.3,
+     "rms_db": -10.2,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -10.2,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Truck_Off",
+   "Eng_Truck_On"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "1982 Ford Cummins Diesel Dump Truck, Interior Driving Constant, Muffled Roaring Engine, Inside Movement, Bouncing, Bumpy, Acceleration, Squeaking, Ticking and Rattling, Radio Squelch, Loop\n\nDuration: 33.1 seconds\nCategory: Vehicles - Trucks\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 33,
+   "free": true,
+   "name": "1982 Diesel Dump Truck 2 (SFX)",
+   "title": "1982 Diesel Dump Truck 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112764346,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 54.89,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -0.1,
+   "regions": {},
+   "rms_db": -20.1,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Suburb_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Crickets, Night, Distant City Rumble, Distant Freight Train Constant, Very Light Crossing Bell, Plane Fly By, Car Pass By, Loop\n\nDuration: 54.9 seconds\nCategory: Ambience - Urban\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 55,
+   "free": true,
+   "name": "Crickets Distant City Rumble 1 (SFX)",
+   "title": "Crickets Distant City Rumble 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112765304,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 56.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -16.1,
+   "regions": {},
+   "rms_db": -34.1,
+   "silent_share": 0.01,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Wild_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Crickets, Heavy Activity, Night, Suburbs, Rural, Forest, Jungle, Swamp, Loop\n\nDuration: 56.0 seconds\nCategory: Insects - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 56,
+   "free": true,
+   "name": "Crickets Night 1 (SFX)",
+   "title": "Crickets Night 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112771303,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 46.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -10.4,
+   "regions": {},
+   "rms_db": -25.1,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Wild_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Distant City Traffic, Los Angeles, California, Exterior Hilltop, Wind, Birds Chirping, Leaves Rustling, Quiet Wash of Vehicles, Loop\n\nDuration: 46.0 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 46,
+   "free": true,
+   "name": "Distant City Traffic 3 (SFX)",
+   "title": "Distant City Traffic 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112772101,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 27.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -23.2,
+   "regions": {},
+   "rms_db": -36.9,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Airport_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Distant Traffic, Moderate Freeway Wash, Freight Truck Pass By, Subtle Cricket Chirp, Loop\n\nDuration: 27.0 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 27,
+   "free": true,
+   "name": "Distant Traffic 2 (SFX)",
+   "title": "Distant Traffic 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112772108,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -23.4,
+   "regions": {},
+   "rms_db": -38.5,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Airport_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Distant Traffic, Moderate Freeway Wash, Subtle Cricket Chirp, Loop\n\nDuration: 36.0 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "Distant Traffic 1 (SFX)",
+   "title": "Distant Traffic 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112772271,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 46.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -19.0,
+   "regions": {
+    "Amb_TrainHorn": {
+     "clip_ratio": 0.0,
+     "duration": 46.01,
+     "lead_silence": 0.0,
+     "peak_db": -19.0,
+     "region": [
+      0,
+      26
+     ],
+     "region_oob": false,
+     "region_rms_db": -32.4,
+     "region_steady_db": 1.4,
+     "rms_db": -32.8,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -32.8,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_TrainHorn"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Distant Train, Salton Sea, Diesel Horn, Mostly Ambience, Loop\n\nDuration: 46.0 seconds\nCategory: Trains - Diesel\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 46,
+   "free": true,
+   "name": "Distant Train 1 (SFX)",
+   "title": "Distant Train 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112782019,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -2.2,
+   "regions": {
+    "Eng_Super_Idle": {
+     "clip_ratio": 0.0,
+     "duration": 36.01,
+     "lead_silence": 0.0,
+     "peak_db": -2.2,
+     "region": [
+      26.751,
+      28.45
+     ],
+     "region_oob": false,
+     "region_rms_db": -20.8,
+     "region_steady_db": 1.3,
+     "rms_db": -17.9,
+     "seam_db": 0.6,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -17.9,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Super_Idle"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Formula one Race Car, Idle, Revs, Acceleration, Crackly Grinding Engine, Sharp Sputtering, Loop\n\nDuration: 36.0 seconds\nCategory: Vehicles - Race Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "Formula One Race Car 1 (SFX)",
+   "title": "Formula One Race Car 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112782186,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 48.98,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.0,
+   "regions": {
+    "Eng_Super_Off": {
+     "clip_ratio": 0.0,
+     "duration": 48.98,
+     "lead_silence": 0.0,
+     "peak_db": -5.0,
+     "region": [
+      5,
+      9.01
+     ],
+     "region_oob": false,
+     "region_rms_db": -20.5,
+     "region_steady_db": 0.9,
+     "rms_db": -20.0,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    },
+    "Eng_Super_On": {
+     "clip_ratio": 0.0,
+     "duration": 48.98,
+     "lead_silence": 0.0,
+     "peak_db": -5.0,
+     "region": [
+      5,
+      9.01
+     ],
+     "region_oob": false,
+     "region_rms_db": -20.5,
+     "region_steady_db": 0.9,
+     "rms_db": -20.0,
+     "seam_db": 0.2,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -20.0,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Super_Off",
+   "Eng_Super_On"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Formula one Race Car, Idle, Revs, Acceleration, Crackly Grinding Engine, Sharp Sputtering, Loop\n\nDuration: 49.0 seconds\nCategory: Vehicles - Race Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 49,
+   "free": true,
+   "name": "Formula One Race Car 2 (SFX)",
+   "title": "Formula One Race Car 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112784654,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 56.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -22.6,
+   "regions": {},
+   "rms_db": -40.2,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Freeway"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Freeway Traffic, Southern California, Active, Loop\n\nDuration: 56.0 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 56,
+   "free": true,
+   "name": "Freeway Traffic 1 (SFX)",
+   "title": "Freeway Traffic 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112789988,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -19.9,
+   "regions": {},
+   "rms_db": -34.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Port_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Harbor Air, San Pedro Docks, Night, Fishing Boats Humming, Distant City, Sea Gulls Whistling, Airy Calm, Loop\n\nDuration: 36.0 seconds\nCategory: Ambience - Nautical\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "Harbor Air 3 (SFX)",
+   "title": "Harbor Air 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112791278,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.3,
+   "regions": {},
+   "rms_db": -21.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Industrial_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Harbor Ambience, Feed Mill by River, Night, Traffic, Constant Machine Run, Rumbling Wind, Loop\n\nDuration: 36.0 seconds\nCategory: Ambience - Industrial\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "Harbor Ambience 1 (SFX)",
+   "title": "Harbor Ambience 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112832551,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 27.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -2.1,
+   "regions": {
+    "ScrapeLoop": {
+     "clip_ratio": 0.0,
+     "duration": 27.01,
+     "lead_silence": 0.0,
+     "peak_db": -2.1,
+     "region": [
+      4,
+      10.87
+     ],
+     "region_oob": false,
+     "region_rms_db": -19.2,
+     "region_steady_db": 1.3,
+     "rms_db": -17.9,
+     "seam_db": 2.0,
+     "silent_share": 0.0,
+     "trail_silence": 0.0
+    }
+   },
+   "rms_db": -17.9,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "ScrapeLoop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Music",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Muffler Drag, Plymouth Valiant, On Board, Constant, Rough Metal Scraping, Some Engine Hum, Loop\n\nDuration: 27.0 seconds\nCategory: Vehicles - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 27,
+   "free": true,
+   "name": "Muffler Drag 1 (SFX)",
+   "title": "Muffler Drag 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112865610,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -27.5,
+   "regions": {},
+   "rms_db": -41.7,
+   "silent_share": 0.02,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Desert_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Salton Sea, Desert Air, Occasional Water Movement, Waterfowl Calls, Loop\n\nDuration: 36.0 seconds\nCategory: Ambience - Nautical\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "Salton Sea 5 (SFX)",
+   "title": "Salton Sea 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112868658,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -19.0,
+   "regions": {},
+   "rms_db": -32.4,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Port_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "San Pedro Harbor, Terminal Island, Army Facility, Distant Train Horn, Seagulls, Loop\n\nDuration: 36.0 seconds\nCategory: Ambience - Nautical\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "San Pedro Harbor 1 (SFX)",
+   "title": "San Pedro Harbor 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112871822,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 56.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -22.3,
+   "regions": {},
+   "rms_db": -34.8,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Siren_Distant"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Siren Composite, Outdoors, Constant, Group of Police Cars, Distant, Wailing, Loop\n\nDuration: 56.0 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 56,
+   "free": true,
+   "name": "Siren Composite 1 (SFX)",
+   "title": "Siren Composite 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112891623,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 54.3,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -15.7,
+   "regions": {},
+   "rms_db": -30.1,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_City_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Urban Traffic, New York City, Overhead Perspective, Diffuse and Muted, Distant Horns, Traffic Jam, Loop\n\nDuration: 54.3 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 54,
+   "free": true,
+   "name": "Urban Traffic 2 (SFX)",
+   "title": "Urban Traffic 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112891671,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 95.3,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -1.1,
+   "regions": {},
+   "rms_db": -24.0,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_City_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Urban Traffic, New York City, Overhead Perspective, Diffuse and Muted, Siren Wailing, Horn Honks, Short Yelp of Siren, Loop\n\nDuration: 95.3 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 95,
+   "free": true,
+   "name": "Urban Traffic 3 (SFX)",
+   "title": "Urban Traffic 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112904460,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 70.59,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -11.7,
+   "regions": {},
+   "rms_db": -30.3,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Amb_Suburb_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "West Valley Neighborhood Presence, California, Wash of Vehicle Pass Bys, Very Active, Humming Traffic, Rumbling Engines, Airy Whirring, Dogs Barking, Loop\n\nDuration: 70.6 seconds\nCategory: Traffic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 71,
+   "free": true,
+   "name": "West Valley Neighborhood Presence 2 (SFX)",
+   "title": "West Valley Neighborhood Presence 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112910245,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.3,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.5,
+   "regions": {
+    "Mech_PumpRack": {
+     "clip_ratio": 0.0,
+     "duration": 2.3,
+     "lead_silence": 0.0,
+     "peak_db": -5.5,
+     "region": [
+      0.85,
+      1.25
+     ],
+     "region_oob": false,
+     "region_rms_db": -24.3,
+     "region_steady_db": 19.3,
+     "rms_db": -25.2,
+     "silent_share": 0.83,
+     "trail_silence": 0.55
+    },
+    "Reload_Shell": {
+     "clip_ratio": 0.0,
+     "duration": 2.3,
+     "lead_silence": 0.0,
+     "peak_db": -5.5,
+     "region": [
+      0.05,
+      0.4
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.5,
+     "region_steady_db": 18.9,
+     "rms_db": -25.2,
+     "silent_share": 0.83,
+     "trail_silence": 0.55
+    }
+   },
+   "rms_db": -25.2,
+   "silent_share": 0.83,
+   "trail_silence": 0.55
+  },
+  "keys": [
+   "Mech_PumpRack",
+   "Reload_Shell"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "12 gauge Pump Action Shotgun, Ithaca, With Cocking, Multiple Shots\n\nDuration: 2.9 seconds\nCategory: Guns - Shotguns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "12 Gauge Pump Action Shotgun 4 (SFX)",
+   "title": "12 Gauge Pump Action Shotgun 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9112913564,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.58,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.4,
+   "regions": {
+    "Shot_ShotgunFallback": {
+     "clip_ratio": 0.0,
+     "duration": 0.58,
+     "lead_silence": 0.0,
+     "peak_db": -7.4,
+     "region": [
+      0,
+      0.17
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.9,
+     "region_steady_db": 11.8,
+     "rms_db": -23.1,
+     "silent_share": 0.36,
+     "trail_silence": 0.2
+    }
+   },
+   "rms_db": -23.1,
+   "silent_share": 0.36,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Shot_ShotgunFallback"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "12 Gauge Shotgun, Pump Action, Ejecting Shell, Quick Pumps\n\nDuration: 1.1 seconds\nCategory: Guns - Shotguns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "12 Gauge Shotgun 9 (SFX)",
+   "title": "12 Gauge Shotgun 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113019260,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.33,
+   "format": "ogg",
+   "lead_silence": 0.25,
+   "peak_db": -8.6,
+   "regions": {
+    "Horn_Muscle": {
+     "clip_ratio": 0.0,
+     "duration": 1.33,
+     "lead_silence": 0.25,
+     "peak_db": -8.6,
+     "region": [
+      0.25,
+      0.85
+     ],
+     "region_oob": false,
+     "region_rms_db": -18.8,
+     "region_steady_db": 13.9,
+     "rms_db": -18.8,
+     "silent_share": 0.58,
+     "trail_silence": 0.5
+    }
+   },
+   "rms_db": -18.8,
+   "silent_share": 0.58,
+   "trail_silence": 0.5
+  },
+  "keys": [
+   "Horn_Muscle"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "2007 Dodge Charger, Horn Honking, Front Perspective\n\nDuration: 1.3 seconds\nCategory: Vehicles - Modern Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "2007 Dodge Charger Horn Honking 5 (SFX)",
+   "title": "2007 Dodge Charger Horn Honking 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113104176,
+  "info": {
+   "clip_ratio": 4e-05,
+   "duration": 1.28,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.3,
+   "regions": {
+    "Gun_Empty": {
+     "clip_ratio": 4e-05,
+     "duration": 1.28,
+     "lead_silence": 0.0,
+     "peak_db": 0.3,
+     "region": [
+      0.3,
+      0.45
+     ],
+     "region_oob": false,
+     "region_rms_db": -17.7,
+     "region_steady_db": 9.9,
+     "rms_db": -20.8,
+     "silent_share": 0.72,
+     "trail_silence": 0.75
+    }
+   },
+   "rms_db": -20.8,
+   "silent_share": 0.72,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "Gun_Empty",
+   "Reload_Mag"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ammo Magazine, Spring Release, Fast Insert, Eject, Handle, Pistol Gun, Click, Metal, Clip\n\nDuration: 2.3 seconds\nCategory: Guns - Handling\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ammo Magazine 1 (SFX)",
+   "title": "Ammo Magazine 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113180776,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.78,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.1,
+   "regions": {},
+   "rms_db": -25.2,
+   "silent_share": 0.13,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Shot_Rifle",
+   "Shot_SMG"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Assault Rifle, Steyr AUG .223 Cal Short Barrel, Single and Multiple Shot Bursts, Distant Bullets Landing, Machine Gun\n\nDuration: 0.9 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Assault Rifle 9 (SFX)",
+   "title": "Assault Rifle 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113198012,
+  "info": {
+   "clip_ratio": 0.00178,
+   "duration": 2.64,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.5,
+   "regions": {},
+   "rms_db": -13.7,
+   "silent_share": 0.63,
+   "trail_silence": 1.65
+  },
+  "keys": [
+   "Tail_Rifle",
+   "Tail_Shotgun4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Assault Rifle, M4A1 Carbine, Single Shots\n\nDuration: 3.3 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Assault Rifle 1 (SFX)",
+   "title": "Assault Rifle 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113263454,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.45,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -1.2,
+   "regions": {},
+   "rms_db": -13.4,
+   "silent_share": 0.44,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Pop_Backfire2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Balloon Pop, Resonant Impacts\n\nDuration: 0.5 seconds\nCategory: Cartoon\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Balloon Pop 1 (SFX)",
+   "title": "Balloon Pop 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113267039,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.26,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -2.7,
+   "regions": {},
+   "rms_db": -17.7,
+   "silent_share": 0.4,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Impact_Light2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Banging on Car Door, Metal Hit\n\nDuration: 0.6 seconds\nCategory: Foley - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Banging On Car Door 5 (SFX)",
+   "title": "Banging On Car Door 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113267435,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.39,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -24.0,
+   "silent_share": 0.57,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Impact_Light1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Banging on Car Door, Metal Hit\n\nDuration: 0.9 seconds\nCategory: Foley - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Banging On Car Door 10 (SFX)",
+   "title": "Banging On Car Door 10 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113267751,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.36,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.4,
+   "regions": {},
+   "rms_db": -21.3,
+   "silent_share": 0.71,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "Impact_Light3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Banging on Car Door, Metal Hit\n\nDuration: 0.4 seconds\nCategory: Foley - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Banging On Car Door 16 (SFX)",
+   "title": "Banging On Car Door 16 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113417360,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 45.57,
+   "format": "ogg",
+   "lead_silence": 1.05,
+   "peak_db": -3.0,
+   "regions": {
+    "Heli_Rotor": {
+     "clip_ratio": 0.0,
+     "duration": 45.57,
+     "lead_silence": 1.05,
+     "peak_db": -3.0,
+     "region": [
+      7.5,
+      9.77
+     ],
+     "region_oob": false,
+     "region_rms_db": -21.5,
+     "region_steady_db": 3.1,
+     "rms_db": -25.1,
+     "seam_db": 0.6,
+     "silent_share": 0.1,
+     "trail_silence": 2.85
+    }
+   },
+   "rms_db": -25.1,
+   "silent_share": 0.1,
+   "trail_silence": 2.85
+  },
+  "keys": [
+   "Heli_Rotor"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bell Huey Helicopter, Hover, Hovering Fly By, Away to Distant, Whine, Doppler Effect, Blade Chop\n\nDuration: 45.6 seconds\nCategory: Aircraft - Helicopters\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 46,
+   "free": true,
+   "name": "Bell Huey Helicopter Hover Hovering Fly By 1 (SFX)",
+   "title": "Bell Huey Helicopter Hover Hovering Fly By 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113480915,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.08,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -5.9,
+   "regions": {},
+   "rms_db": -21.9,
+   "silent_share": 0.48,
+   "trail_silence": 0.45
+  },
+  "keys": [
+   "BodyFall"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Body Fall, Impact, Thud, Slide\n\nDuration: 1.1 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Body Fall Thud 2 (SFX)",
+   "title": "Body Fall Thud 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113632396,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.9,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -2.3,
+   "regions": {},
+   "rms_db": -20.4,
+   "silent_share": 0.49,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "Impact1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Impact, Deep Heavy Thudding into Wall, Cracking, Shattering at Tail, Sprinkling\n\nDuration: 2.1 seconds\nCategory: Guns - Bullets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Bullet Impact 9 (SFX)",
+   "title": "Bullet Impact 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113632506,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.43,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -2.2,
+   "regions": {},
+   "rms_db": -21.0,
+   "silent_share": 0.57,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "Impact2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Impact, Deep Heavy Thudding into Wall, Cracking, Shattering at Tail, Sprinkling\n\nDuration: 1.7 seconds\nCategory: Guns - Bullets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Bullet Impact 10 (SFX)",
+   "title": "Bullet Impact 10 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113634361,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.4,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.2,
+   "regions": {},
+   "rms_db": -20.7,
+   "silent_share": 0.29,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Whiz1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Whiz, Whoosh By\n\nDuration: 1.2 seconds\nCategory: Guns - Bullet Whiz\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Bullet Whiz 1 (SFX)",
+   "title": "Bullet Whiz 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113634444,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.57,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -1.3,
+   "regions": {},
+   "rms_db": -18.0,
+   "silent_share": 0.18,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Whiz2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Bullet Whiz, Whoosh By\n\nDuration: 1.5 seconds\nCategory: Guns - Bullet Whiz\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Bullet Whiz 2 (SFX)",
+   "title": "Bullet Whiz 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113661285,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.71,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -5.8,
+   "regions": {},
+   "rms_db": -20.4,
+   "silent_share": 0.3,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "PeelOut"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cadillac, Peel Out, Tire Screech, Underground Parking, Various Versions\n\nDuration: 2.7 seconds\nCategory: Vehicles - Tires\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Cadillac Peel Out Tire Screech 2 (SFX)",
+   "title": "Cadillac Peel Out Tire Screech 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113719289,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 12.03,
+   "format": "ogg",
+   "lead_silence": 0.25,
+   "peak_db": -8.6,
+   "regions": {},
+   "rms_db": -19.9,
+   "silent_share": 0.12,
+   "trail_silence": 1.15
+  },
+  "keys": [
+   "Amb_CarAlarm"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Car Alarm, Exterior, Van Yelp Alarm, 2 Takes\n\nDuration: 12.0 seconds\nCategory: Vehicles - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 12,
+   "free": true,
+   "name": "Car Alarm Exterior Van Yelp Alarm 2 Takes 1 (SFX)",
+   "title": "Car Alarm Exterior Van Yelp Alarm 2 Takes 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113726510,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.74,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.3,
+   "regions": {},
+   "rms_db": -23.9,
+   "silent_share": 0.64,
+   "trail_silence": 0.45
+  },
+  "keys": [
+   "CashDrop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cash Drop, Carpet or Felt Table Hit\n\nDuration: 1.0 seconds\nCategory: Foley - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Cash Drop 4 (SFX)",
+   "title": "Cash Drop 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113728042,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.11,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -1.1,
+   "regions": {},
+   "rms_db": -21.8,
+   "silent_share": 0.17,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Cash"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cash Register, TEC135, Electronic, Drawer, Solo, Manually Opened and Closed, Multiples, No Motor\n\nDuration: 2.1 seconds\nCategory: Mechanical - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Cash Register 1 (SFX)",
+   "title": "Cash Register 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113728049,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.72,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -7.0,
+   "regions": {},
+   "rms_db": -28.6,
+   "silent_share": 0.41,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "CashBig"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Cash Register, TEC135, Electronic, Drawer, Solo, Manually Opened and Closed, Multiples, No Motor\n\nDuration: 1.7 seconds\nCategory: Mechanical - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Cash Register 2 (SFX)",
+   "title": "Cash Register 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113864886,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 52.57,
+   "format": "ogg",
+   "lead_silence": 2.4,
+   "peak_db": -16.5,
+   "regions": {
+    "Amb_Plane2": {
+     "clip_ratio": 0.0,
+     "duration": 52.57,
+     "lead_silence": 2.4,
+     "peak_db": -16.5,
+     "region": [
+      2.1,
+      26
+     ],
+     "region_oob": false,
+     "region_rms_db": -33.8,
+     "region_steady_db": 6.2,
+     "rms_db": -35.3,
+     "silent_share": 0.16,
+     "trail_silence": 5.55
+    }
+   },
+   "rms_db": -35.3,
+   "silent_share": 0.16,
+   "trail_silence": 5.55
+  },
+  "keys": [
+   "Amb_Plane2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Commercial Aircraft, Two Jet Fly Bys, Light Bird Tweets\n\nDuration: 52.6 seconds\nCategory: Aircraft - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 53,
+   "free": true,
+   "name": "Commercial Aircraft 2 (SFX)",
+   "title": "Commercial Aircraft 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "LONG",
+   "QUIET_REGION"
+  ],
+  "hard": [],
+  "id": 9113864890,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 76.34,
+   "format": "ogg",
+   "lead_silence": 2.3,
+   "peak_db": -23.3,
+   "regions": {
+    "Amb_Plane1": {
+     "clip_ratio": 0.0,
+     "duration": 76.34,
+     "lead_silence": 2.3,
+     "peak_db": -23.3,
+     "region": [
+      2,
+      34
+     ],
+     "region_oob": false,
+     "region_rms_db": -40.4,
+     "region_steady_db": 4.5,
+     "rms_db": -40.9,
+     "silent_share": 0.18,
+     "trail_silence": 4.15
+    }
+   },
+   "rms_db": -40.9,
+   "silent_share": 0.18,
+   "trail_silence": 4.15
+  },
+  "keys": [
+   "Amb_Plane1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Commercial Aircraft, Two Jet Fly Bys, Light Bird Tweets\n\nDuration: 76.3 seconds\nCategory: Aircraft - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 76,
+   "free": true,
+   "name": "Commercial Aircraft 1 (SFX)",
+   "title": "Commercial Aircraft 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113948676,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.5,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -5.1,
+   "regions": {},
+   "rms_db": -30.4,
+   "silent_share": 0.4,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "CountingMoney"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Counting Money, Twisting Wad of Bills, Paper Handling, Crinkle, Scrunch\n\nDuration: 0.5 seconds\nCategory: Paper\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Counting Money 2 (SFX)",
+   "title": "Counting Money 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113950627,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.34,
+   "format": "ogg",
+   "lead_silence": 0.35,
+   "peak_db": -15.4,
+   "regions": {
+    "Amb_Coyote": {
+     "clip_ratio": 0.0,
+     "duration": 2.34,
+     "lead_silence": 0.35,
+     "peak_db": -15.4,
+     "region": [
+      0.3,
+      2.34
+     ],
+     "region_oob": false,
+     "region_rms_db": -31.9,
+     "region_steady_db": 21.9,
+     "rms_db": -31.9,
+     "silent_share": 0.67,
+     "trail_silence": 0.95
+    }
+   },
+   "rms_db": -31.9,
+   "silent_share": 0.67,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Amb_Coyote"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Coyote, Bark, Howl, Cry, Echo, Distant, Lonesome\n\nDuration: 2.3 seconds\nCategory: Mammals - Wild\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Coyote Barks Howls Cries Echo 7 (SFX)",
+   "title": "Coyote Barks Howls Cries Echo 7 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113955086,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.28,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -23.8,
+   "regions": {},
+   "rms_db": -37.4,
+   "silent_share": 0.64,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "Amb_Dog3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Coyotes, Interior, Gruff Barking, Squeaky Howls\n\nDuration: 2.0 seconds\nCategory: Mammals - Wild\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Coyotes Gruff Barking 5 (SFX)",
+   "title": "Coyotes Gruff Barking 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113955372,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.66,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -22.2,
+   "regions": {},
+   "rms_db": -36.2,
+   "silent_share": 0.46,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Amb_Dog1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Coyotes, Interior, Gruff Barking, Squeaky Howls\n\nDuration: 0.8 seconds\nCategory: Mammals - Wild\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Coyotes Gruff Barking 8 (SFX)",
+   "title": "Coyotes Gruff Barking 8 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9113956178,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.01,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -24.3,
+   "regions": {},
+   "rms_db": -39.1,
+   "silent_share": 0.75,
+   "trail_silence": 0.45
+  },
+  "keys": [
+   "Amb_Dog2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Coyotes, Interior, Gruff Barking, Squeaky Howls\n\nDuration: 1.1 seconds\nCategory: Mammals - Wild\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Coyotes Gruff Barking 14 (SFX)",
+   "title": "Coyotes Gruff Barking 14 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114075665,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.74,
+   "format": "ogg",
+   "lead_silence": 0.5,
+   "peak_db": -3.4,
+   "regions": {
+    "Horn_Truck": {
+     "clip_ratio": 0.0,
+     "duration": 2.74,
+     "lead_silence": 0.5,
+     "peak_db": -3.4,
+     "region": [
+      0.5,
+      1.8
+     ],
+     "region_oob": false,
+     "region_rms_db": -17.4,
+     "region_steady_db": 10.0,
+     "rms_db": -17.8,
+     "silent_share": 0.48,
+     "trail_silence": 0.8
+    }
+   },
+   "rms_db": -17.8,
+   "silent_share": 0.48,
+   "trail_silence": 0.8
+  },
+  "keys": [
+   "Horn_Truck"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Diesel Truck Horn, Air Horn, Exterior, Several Blasts\n\nDuration: 2.7 seconds\nCategory: Vehicles - Horns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Diesel Truck Horn Air Horn Exterior 1 (SFX)",
+   "title": "Diesel Truck Horn Air Horn Exterior 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "QUIET_REGION"
+  ],
+  "hard": [],
+  "id": 9114238020,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 42.81,
+   "format": "ogg",
+   "lead_silence": 0.55,
+   "peak_db": -7.2,
+   "regions": {
+    "HotwireCrackle": {
+     "clip_ratio": 0.0,
+     "duration": 42.81,
+     "lead_silence": 0.55,
+     "peak_db": -7.2,
+     "region": [
+      2,
+      15.38
+     ],
+     "region_oob": false,
+     "region_rms_db": -40.7,
+     "region_steady_db": 5.9,
+     "rms_db": -41.7,
+     "seam_db": 0.1,
+     "silent_share": 0.44,
+     "trail_silence": 0.35
+    }
+   },
+   "rms_db": -41.7,
+   "silent_share": 0.44,
+   "trail_silence": 0.35
+  },
+  "keys": [
+   "HotwireCrackle"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Electric Arcing, Franceformer, Neon Transformer, Short Soft Arcing on Steel, Some Gentle Flaring, Sparks\n\nDuration: 42.8 seconds\nCategory: Electric - Arcs & Zaps\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 43,
+   "free": true,
+   "name": "Electric Arcing 2 (SFX)",
+   "title": "Electric Arcing 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114402205,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.23,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -1.8,
+   "regions": {},
+   "rms_db": -12.2,
+   "silent_share": 0.25,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "AirHorn"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ferrari 308, Car, Honking, Dual Air Horns, Discordant Buzzing Tone, Pulsing Blows of Varied Length\n\nDuration: 1.2 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ferrari 308 Car Honking Dual Air Horns 2 (SFX)",
+   "title": "Ferrari 308 Car Honking Dual Air Horns 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114402206,
+  "info": {
+   "clip_ratio": 6e-05,
+   "duration": 1.4,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 0.1,
+   "regions": {},
+   "rms_db": -10.5,
+   "silent_share": 0.15,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Horn"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ferrari 308, Car, Honking, Dual Air Horns, Discordant Buzzing Tone, Pulsing Blows of Varied Length\n\nDuration: 1.4 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ferrari 308 Car Honking Dual Air Horns 1 (SFX)",
+   "title": "Ferrari 308 Car Honking Dual Air Horns 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114402340,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.42,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -8.5,
+   "regions": {
+    "Horn_Sports": {
+     "clip_ratio": 0.0,
+     "duration": 1.42,
+     "lead_silence": 0.1,
+     "peak_db": -8.5,
+     "region": [
+      0.1,
+      1.3
+     ],
+     "region_oob": false,
+     "region_rms_db": -18.6,
+     "region_steady_db": 3.8,
+     "rms_db": -18.6,
+     "silent_share": 0.14,
+     "trail_silence": 0.1
+    }
+   },
+   "rms_db": -18.6,
+   "silent_share": 0.14,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Horn_Sports"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ferrari 308, Car, Honking, Dual Air Horns, Discordant Buzzing Tone, Pulsing Blows of Varied Length\n\nDuration: 1.4 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Ferrari 308 Car Honking Dual Air Horns 5 (SFX)",
+   "title": "Ferrari 308 Car Honking Dual Air Horns 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114580305,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.9,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -0.8,
+   "regions": {
+    "Pop_Backfire1": {
+     "clip_ratio": 0.0,
+     "duration": 2.9,
+     "lead_silence": 0.0,
+     "peak_db": -0.8,
+     "region": [
+      0,
+      0.45
+     ],
+     "region_oob": false,
+     "region_rms_db": -11.6,
+     "region_steady_db": 7.4,
+     "rms_db": -18.1,
+     "silent_share": 0.29,
+     "trail_silence": 0.8
+    }
+   },
+   "rms_db": -18.1,
+   "silent_share": 0.29,
+   "trail_silence": 0.8
+  },
+  "keys": [
+   "Pop_Backfire1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Giant PVC Pipe, Rubber Mallet Hit\n\nDuration: 3.0 seconds\nCategory: Plastic\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Giant Pvc Pipe Rubber Mallet Hits 7 (SFX)",
+   "title": "Giant Pvc Pipe Rubber Mallet Hits 7 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114590265,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 5.02,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.0,
+   "regions": {
+    "Impact_Glass2": {
+     "clip_ratio": 0.0,
+     "duration": 5.02,
+     "lead_silence": 0.0,
+     "peak_db": -6.0,
+     "region": [
+      0,
+      1.6
+     ],
+     "region_oob": false,
+     "region_rms_db": -28.5,
+     "region_steady_db": 9.2,
+     "rms_db": -29.4,
+     "silent_share": 0.62,
+     "trail_silence": 2.2
+    }
+   },
+   "rms_db": -29.4,
+   "silent_share": 0.62,
+   "trail_silence": 2.2
+  },
+  "keys": [
+   "Impact_Glass2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Glass Break, Crash, Shatter, Debris\n\nDuration: 5.0 seconds\nCategory: Glass - Breaking\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 5,
+   "free": true,
+   "name": "Glass Break 2 (SFX)",
+   "title": "Glass Break 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114590297,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.4,
+   "format": "ogg",
+   "lead_silence": 0.75,
+   "peak_db": -4.6,
+   "regions": {
+    "GlassBreak": {
+     "clip_ratio": 0.0,
+     "duration": 3.4,
+     "lead_silence": 0.75,
+     "peak_db": -4.6,
+     "region": [
+      0.7,
+      3.4
+     ],
+     "region_oob": false,
+     "region_rms_db": -26.4,
+     "region_steady_db": 15.9,
+     "rms_db": -26.4,
+     "silent_share": 0.74,
+     "trail_silence": 1.7
+    }
+   },
+   "rms_db": -26.4,
+   "silent_share": 0.74,
+   "trail_silence": 1.7
+  },
+  "keys": [
+   "GlassBreak"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Glass Break, Juice Glass, Smash\n\nDuration: 3.4 seconds\nCategory: Glass - Breaking\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Glass Break 1 (SFX)",
+   "title": "Glass Break 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114592237,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.19,
+   "format": "ogg",
+   "lead_silence": 0.5,
+   "peak_db": -5.1,
+   "regions": {
+    "Impact_Glass1": {
+     "clip_ratio": 0.0,
+     "duration": 2.19,
+     "lead_silence": 0.5,
+     "peak_db": -5.1,
+     "region": [
+      0.45,
+      1.4
+     ],
+     "region_oob": false,
+     "region_rms_db": -26.9,
+     "region_steady_db": 16.1,
+     "rms_db": -26.9,
+     "silent_share": 0.81,
+     "trail_silence": 0.8
+    }
+   },
+   "rms_db": -26.9,
+   "silent_share": 0.81,
+   "trail_silence": 0.8
+  },
+  "keys": [
+   "Impact_Glass1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Glass Breaks, Hits and Bounces, Debris Shards\n\nDuration: 2.2 seconds\nCategory: Glass - Breaking\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Glass Breaks 2 (SFX)",
+   "title": "Glass Breaks 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114661198,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.33,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.3,
+   "regions": {},
+   "rms_db": -13.8,
+   "silent_share": 0.46,
+   "trail_silence": 0.6
+  },
+  "keys": [
+   "Amb_Horn3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Greyhound Bus, Horn Honks, Short and Long, Rapid Burst at Tail, Clicking Attack\n\nDuration: 1.4 seconds\nCategory: Vehicles - Buses\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Greyhound Bus Horn Honks Short Long 1 (SFX)",
+   "title": "Greyhound Bus Horn Honks Short Long 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114725473,
+  "info": {
+   "clip_ratio": 0.00053,
+   "duration": 3.56,
+   "format": "ogg",
+   "lead_silence": 0.75,
+   "peak_db": 0.5,
+   "regions": {
+    "Tail_Shotgun1": {
+     "clip_ratio": 0.00053,
+     "duration": 3.56,
+     "lead_silence": 0.75,
+     "peak_db": 0.5,
+     "region": [
+      0.74,
+      3.56
+     ],
+     "region_oob": false,
+     "region_rms_db": -15.8,
+     "region_steady_db": 23.3,
+     "rms_db": -15.8,
+     "silent_share": 0.51,
+     "trail_silence": 1.05
+    }
+   },
+   "rms_db": -15.8,
+   "silent_share": 0.51,
+   "trail_silence": 1.05
+  },
+  "keys": [
+   "Tail_Shotgun1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Gun Retort, Weapon, Sharp Gun Shots, Reverberant Blasts\n\nDuration: 3.6 seconds\nCategory: Guns - Handling\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Gun Retort 3 (SFX)",
+   "title": "Gun Retort 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114729252,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.32,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -0.5,
+   "regions": {
+    "Shot_HandCannon": {
+     "clip_ratio": 0.0,
+     "duration": 1.32,
+     "lead_silence": 0.0,
+     "peak_db": -0.5,
+     "region": [
+      0.04,
+      1.32
+     ],
+     "region_oob": false,
+     "region_rms_db": -14.0,
+     "region_steady_db": 18.2,
+     "rms_db": -14.1,
+     "silent_share": 0.65,
+     "trail_silence": 0.85
+    }
+   },
+   "rms_db": -14.1,
+   "silent_share": 0.65,
+   "trail_silence": 0.85
+  },
+  "keys": [
+   "Shot_HandCannon"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Gun, Mini Uzi, Single Shots, Very Good\n\nDuration: 1.5 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Gun Single Shots 11 (SFX)",
+   "title": "Gun Single Shots 11 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114764435,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.22,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -11.8,
+   "regions": {},
+   "rms_db": -36.0,
+   "silent_share": 0.75,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Handcuffs"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Handcuff Movement, Metal Rattle, Ratchet\n\nDuration: 2.6 seconds\nCategory: Foley - Props\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Handcuff Movement 19 (SFX)",
+   "title": "Handcuff Movement 19 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114776167,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 41.7,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.6,
+   "regions": {},
+   "rms_db": -19.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Amb_Industrial_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Harbor Background, Constant, Machine Idle, Chugging, Rattling, Vibrating\n\nDuration: 41.7 seconds\nCategory: Ambience - Industrial\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 42,
+   "free": true,
+   "name": "Harbor Background Constant Machine Idle 1 (SFX)",
+   "title": "Harbor Background Constant Machine Idle 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9114895897,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 46.5,
+   "format": "ogg",
+   "lead_silence": 0.55,
+   "peak_db": -3.1,
+   "regions": {
+    "Eng_Bike_Idle": {
+     "clip_ratio": 0.0,
+     "duration": 46.5,
+     "lead_silence": 0.55,
+     "peak_db": -3.1,
+     "region": [
+      4.25,
+      5.89
+     ],
+     "region_oob": false,
+     "region_rms_db": -26.2,
+     "region_steady_db": 1.8,
+     "rms_db": -18.9,
+     "seam_db": 1.3,
+     "silent_share": 0.06,
+     "trail_silence": 0.85
+    },
+    "Eng_Bike_Off": {
+     "clip_ratio": 0.0,
+     "duration": 46.5,
+     "lead_silence": 0.55,
+     "peak_db": -3.1,
+     "region": [
+      10.749,
+      15.65
+     ],
+     "region_oob": false,
+     "region_rms_db": -19.1,
+     "region_steady_db": 2.0,
+     "rms_db": -18.9,
+     "seam_db": 0.7,
+     "silent_share": 0.06,
+     "trail_silence": 0.85
+    },
+    "Eng_Bike_On": {
+     "clip_ratio": 0.0,
+     "duration": 46.5,
+     "lead_silence": 0.55,
+     "peak_db": -3.1,
+     "region": [
+      10.749,
+      15.65
+     ],
+     "region_oob": false,
+     "region_rms_db": -19.1,
+     "region_steady_db": 2.0,
+     "rms_db": -18.9,
+     "seam_db": 0.7,
+     "silent_share": 0.06,
+     "trail_silence": 0.85
+    }
+   },
+   "rms_db": -18.9,
+   "silent_share": 0.06,
+   "trail_silence": 0.85
+  },
+  "keys": [
+   "Eng_Bike_Idle",
+   "Eng_Bike_Off",
+   "Eng_Bike_On"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Kawasaki Z1000 Z1-R Motorcycle, Failed Starts, Engine Start, Long High rpm Revs, Off\n\nDuration: 46.5 seconds\nCategory: Vehicles - Motorcycles\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 46,
+   "free": true,
+   "name": "Kawasaki Z1000Z1- R Motorcycle 2 (SFX)",
+   "title": "Kawasaki Z1000Z1- R Motorcycle 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116176570,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.71,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -15.9,
+   "regions": {
+    "Ignition": {
+     "clip_ratio": 0.0,
+     "duration": 2.71,
+     "lead_silence": 0.0,
+     "peak_db": -15.9,
+     "region": [
+      0,
+      0.62
+     ],
+     "region_oob": false,
+     "region_rms_db": -37.2,
+     "region_steady_db": 6.4,
+     "rms_db": -37.2,
+     "silent_share": 0.81,
+     "trail_silence": 2.1
+    }
+   },
+   "rms_db": -37.2,
+   "silent_share": 0.81,
+   "trail_silence": 2.1
+  },
+  "keys": [
+   "Ignition"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Keys, Pull Out, Insert Into Ignition, Turn On, Movement, Handle\n\nDuration: 5.4 seconds\nCategory: Foley - Props\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Keys Insert Into Ignition 2 (SFX)",
+   "title": "Keys Insert Into Ignition 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116361236,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.52,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.4,
+   "regions": {},
+   "rms_db": -24.9,
+   "silent_share": 0.4,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Distant_Burst"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Machine Gun Bursts, Miniature M2HB .22 Cal Belt Fed, Bursts of 3, 4, 5 Shots\n\nDuration: 0.6 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Machine Gun Bursts 12 (SFX)",
+   "title": "Machine Gun Bursts 12 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116546326,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 4.17,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -2.2,
+   "regions": {
+    "Impact_Heavy1": {
+     "clip_ratio": 0.0,
+     "duration": 4.17,
+     "lead_silence": 0.15,
+     "peak_db": -2.2,
+     "region": [
+      0,
+      2.3
+     ],
+     "region_oob": false,
+     "region_rms_db": -12.4,
+     "region_steady_db": 21.2,
+     "rms_db": -13.9,
+     "silent_share": 0.28,
+     "trail_silence": 1.0
+    }
+   },
+   "rms_db": -13.9,
+   "silent_share": 0.28,
+   "trail_silence": 1.0
+  },
+  "keys": [
+   "Impact_Heavy1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Crash, Huge Impact, Debris Scattering, Squeaking, Thunderous, Hollow Metallic Hit\n\nDuration: 4.2 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Metal Crash 2 (SFX)",
+   "title": "Metal Crash 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116546358,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 4.55,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -1.4,
+   "regions": {
+    "Impact_Heavy2": {
+     "clip_ratio": 0.0,
+     "duration": 4.55,
+     "lead_silence": 0.15,
+     "peak_db": -1.4,
+     "region": [
+      0,
+      2.2
+     ],
+     "region_oob": false,
+     "region_rms_db": -11.9,
+     "region_steady_db": 21.4,
+     "rms_db": -14.0,
+     "silent_share": 0.25,
+     "trail_silence": 1.0
+    }
+   },
+   "rms_db": -14.0,
+   "silent_share": 0.25,
+   "trail_silence": 1.0
+  },
+  "keys": [
+   "Impact_Heavy2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Crash, Huge Impact, Debris Scattering, Squeaking, Thunderous, Hollow Metallic Hit\n\nDuration: 4.6 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 5,
+   "free": true,
+   "name": "Metal Crash 3 (SFX)",
+   "title": "Metal Crash 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116546593,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 4.1,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -2.5,
+   "regions": {},
+   "rms_db": -14.4,
+   "silent_share": 0.26,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Melee_Metal"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Crash, Huge Impact, Debris Scattering, Squeaking, Thunderous, Hollow Metallic Hit\n\nDuration: 4.1 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Metal Crash 4 (SFX)",
+   "title": "Metal Crash 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116547037,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 4.13,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -2.4,
+   "regions": {
+    "Impact_Heavy3": {
+     "clip_ratio": 0.0,
+     "duration": 4.13,
+     "lead_silence": 0.1,
+     "peak_db": -2.4,
+     "region": [
+      0,
+      2.3
+     ],
+     "region_oob": false,
+     "region_rms_db": -12.9,
+     "region_steady_db": 18.9,
+     "rms_db": -14.3,
+     "silent_share": 0.26,
+     "trail_silence": 0.95
+    }
+   },
+   "rms_db": -14.3,
+   "silent_share": 0.26,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Impact_Heavy3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Crash, Huge Impact, Debris Scattering, Squeaking, Thunderous, Hollow Metallic Hit\n\nDuration: 4.1 seconds\nCategory: Crashes - Metal\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Metal Crash 7 (SFX)",
+   "title": "Metal Crash 7 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9116751108,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.39,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -0.5,
+   "regions": {},
+   "rms_db": -15.4,
+   "silent_share": 0.43,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Amb_Clank2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Plate Impact, Manhole Hit\n\nDuration: 0.4 seconds\nCategory: Metal - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Metal Plate Impact Manhole Hit 2 (SFX)",
+   "title": "Metal Plate Impact Manhole Hit 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9117399029,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.41,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.3,
+   "regions": {},
+   "rms_db": -26.0,
+   "silent_share": 0.79,
+   "trail_silence": 1.85
+  },
+  "keys": [
+   "Shot_Pistol"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Pistol, Silenced 9mm, Single Shots, Ricochets, Reload, Handling, Gun\n\nDuration: 2.6 seconds\nCategory: Guns - Pistols\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Pistol Single Shots 1 (SFX)",
+   "title": "Pistol Single Shots 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9117969584,
+  "info": {
+   "clip_ratio": 0.00195,
+   "duration": 0.49,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.5,
+   "regions": {},
+   "rms_db": -12.0,
+   "silent_share": 0.33,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Bonk"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Punch Kit, Whappy Chin Sock, Beefy Hit\n\nDuration: 1.8 seconds\nCategory: Fight - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Punch Kit Beefy Hit 1 (SFX)",
+   "title": "Punch Kit Beefy Hit 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9117969687,
+  "info": {
+   "clip_ratio": 0.0014,
+   "duration": 0.62,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.5,
+   "regions": {},
+   "rms_db": -11.8,
+   "silent_share": 0.42,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "Melee_Punch1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Punch Kit, Whappy Chin Sock, Beefy Hit\n\nDuration: 1.8 seconds\nCategory: Fight - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Punch Kit Beefy Hit 2 (SFX)",
+   "title": "Punch Kit Beefy Hit 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 9117969717,
+  "info": {
+   "clip_ratio": 0.00296,
+   "duration": 0.9,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.4,
+   "regions": {},
+   "rms_db": -10.1,
+   "silent_share": 0.61,
+   "trail_silence": 0.55
+  },
+  "keys": [
+   "Melee_Punch2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Punch Kit, Whappy Chin Sock, Beefy Hit\n\nDuration: 1.8 seconds\nCategory: Fight - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Punch Kit Beefy Hit 3 (SFX)",
+   "title": "Punch Kit Beefy Hit 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118019216,
+  "info": {
+   "clip_ratio": 4e-05,
+   "duration": 3.2,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": 0.0,
+   "regions": {},
+   "rms_db": -22.3,
+   "silent_share": 0.19,
+   "trail_silence": 0.45
+  },
+  "keys": [
+   "Dispatch_Squelch1",
+   "PoliceRadio"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Radio Squelches, Walkie Talkie Turning On and Off, Open Channel Static, Fuzzy and Harsh, Clicking, Short Pulses at Tail\n\nDuration: 3.2 seconds\nCategory: Radio FX\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Radio Squelches 1 (SFX)",
+   "title": "Radio Squelches 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118021734,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.04,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -1.9,
+   "regions": {},
+   "rms_db": -28.5,
+   "silent_share": 0.2,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Dispatch_Squelch2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Radio Squelches, Walkie Talkie Turning On and Off, Open Channel Static, Fuzzy and Harsh, Clicking, Short Pulses at Tail\n\nDuration: 1.1 seconds\nCategory: Radio FX\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Radio Squelches 27 (SFX)",
+   "title": "Radio Squelches 27 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118026328,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.41,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -3.1,
+   "regions": {},
+   "rms_db": -31.6,
+   "silent_share": 0.32,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Dispatch_Squelch3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Radio Squelches, Walkie Talkie Turning On and Off, Short Pulses, Open Channel Static, Fuzzy, Clicking\n\nDuration: 1.4 seconds\nCategory: Radio FX\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Radio Squelches 12 (SFX)",
+   "title": "Radio Squelches 12 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118026602,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.69,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.3,
+   "regions": {},
+   "rms_db": -19.5,
+   "silent_share": 0.13,
+   "trail_silence": 0.35
+  },
+  "keys": [
+   "Dispatch_Static1",
+   "PoliceRadioFeed"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Radio Static, Motorola Walkie Talkie, Intermittent Radio Static, Switch On and Off, Clicks\n\nDuration: 2.7 seconds\nCategory: Radio FX\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Radio Static 1 (SFX)",
+   "title": "Radio Static 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118026930,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.36,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -10.8,
+   "regions": {
+    "RadioStatic": {
+     "clip_ratio": 0.0,
+     "duration": 1.36,
+     "lead_silence": 0.1,
+     "peak_db": -10.8,
+     "region": [
+      0.1,
+      1.36
+     ],
+     "region_oob": false,
+     "region_rms_db": -19.9,
+     "region_steady_db": 15.2,
+     "rms_db": -19.9,
+     "silent_share": 0.19,
+     "trail_silence": 0.15
+    }
+   },
+   "rms_db": -19.9,
+   "silent_share": 0.19,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "RadioStatic"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Radio Static, Motorola Walkie Talkie, Intermittent Radio Static, Switch On and Off, Clicks\n\nDuration: 1.4 seconds\nCategory: Radio FX\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Radio Static 5 (SFX)",
+   "title": "Radio Static 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118027586,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.69,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -10.8,
+   "regions": {},
+   "rms_db": -20.6,
+   "silent_share": 0.54,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Dispatch_Static2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Radio Static, Motorola Walkie Talkie, Intermittent Radio Static, Switch On and Off, Clicks\n\nDuration: 0.7 seconds\nCategory: Radio FX\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Radio Static 9 (SFX)",
+   "title": "Radio Static 9 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118168291,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.44,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -1.6,
+   "regions": {},
+   "rms_db": -18.2,
+   "silent_share": 0.25,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Whiz3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Rico, Zingy Guns, Bullet Whiz, Zippy Impacts\n\nDuration: 0.7 seconds\nCategory: Guns - Bullet Whiz\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Rico Bullet Whiz 3 (SFX)",
+   "title": "Rico Bullet Whiz 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118168612,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.67,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -2.9,
+   "regions": {},
+   "rms_db": -22.7,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Ricochet1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ricochet Metal, Bullet Impact, Clang, Clank, Ringing\n\nDuration: 1.7 seconds\nCategory: Guns - Ricochets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Ricochet Metal 1 (SFX)",
+   "title": "Ricochet Metal 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118169272,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.18,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -3.0,
+   "regions": {},
+   "rms_db": -23.3,
+   "silent_share": 0.74,
+   "trail_silence": 1.55
+  },
+  "keys": [
+   "Ricochet2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ricochet, Bullet, Reverberant\n\nDuration: 2.2 seconds\nCategory: Guns - Ricochets\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Ricochet Reverberant 3 (SFX)",
+   "title": "Ricochet Reverberant 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118173988,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.07,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.6,
+   "regions": {},
+   "rms_db": -25.7,
+   "silent_share": 0.7,
+   "trail_silence": 2.15
+  },
+  "keys": [
+   "Shot_Marksman"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Rifle, Barrett M82 .50 Cal, Single Shots, Metal Clinks, Gun, Also Known As: M107\n\nDuration: 3.5 seconds\nCategory: Guns - Machine\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Rifle Single Shots 3 (SFX)",
+   "title": "Rifle Single Shots 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118708982,
+  "info": {
+   "clip_ratio": 1e-05,
+   "duration": 17.76,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": 0.3,
+   "regions": {},
+   "rms_db": -13.6,
+   "silent_share": 0.03,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Crash"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ronking Car Crash, Impacts Against Metal, Glass Break, Grating, Heavy Shatter, Thumps, Suspension\n\nDuration: 17.8 seconds\nCategory: Vehicles - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 18,
+   "free": true,
+   "name": "Ronking Car Crash 1 (SFX)",
+   "title": "Ronking Car Crash 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118747525,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 36.01,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -14.9,
+   "regions": {},
+   "rms_db": -29.5,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "WindInterior"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Rumble Ambience, Interior Wind, Turbo Shaft, Distant, Semi Arctic Howl, Light Rumble\n\nDuration: 36.0 seconds\nCategory: Spaceships\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 36,
+   "free": true,
+   "name": "Rumble Ambience Interior Wind Turbo Shaft 1 (SFX)",
+   "title": "Rumble Ambience Interior Wind Turbo Shaft 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118858259,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.53,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -20.1,
+   "regions": {},
+   "rms_db": -35.5,
+   "silent_share": 0.41,
+   "trail_silence": 1.2
+  },
+  "keys": [
+   "Amb_Gull3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Seagull, Three Sets of Birdcalls, Squawks\n\nDuration: 3.5 seconds\nCategory: Birds - Water\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "Seagull Squawks 3 (SFX)",
+   "title": "Seagull Squawks 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118858265,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 5.19,
+   "format": "ogg",
+   "lead_silence": 0.15,
+   "peak_db": -20.2,
+   "regions": {},
+   "rms_db": -35.9,
+   "silent_share": 0.64,
+   "trail_silence": 2.9
+  },
+  "keys": [
+   "Amb_Gull2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Seagull, Three Sets of Birdcalls, Squawks\n\nDuration: 5.2 seconds\nCategory: Birds - Water\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 5,
+   "free": true,
+   "name": "Seagull Squawks 2 (SFX)",
+   "title": "Seagull Squawks 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9118858279,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 5.97,
+   "format": "ogg",
+   "lead_silence": 0.25,
+   "peak_db": -18.9,
+   "regions": {},
+   "rms_db": -34.2,
+   "silent_share": 0.58,
+   "trail_silence": 2.8
+  },
+  "keys": [
+   "Amb_Gull1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Seagull, Three Sets of Birdcalls, Squawks\n\nDuration: 6.0 seconds\nCategory: Birds - Water\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 6,
+   "free": true,
+   "name": "Seagull Squawks 1 (SFX)",
+   "title": "Seagull Squawks 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119163012,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 54.56,
+   "format": "ogg",
+   "lead_silence": 0.5,
+   "peak_db": -11.5,
+   "regions": {
+    "Amb_SirenFar2": {
+     "clip_ratio": 0.0,
+     "duration": 54.56,
+     "lead_silence": 0.5,
+     "peak_db": -11.5,
+     "region": [
+      0.4,
+      22
+     ],
+     "region_oob": false,
+     "region_rms_db": -35.0,
+     "region_steady_db": 3.9,
+     "rms_db": -27.8,
+     "silent_share": 0.07,
+     "trail_silence": 3.15
+    }
+   },
+   "rms_db": -27.8,
+   "silent_share": 0.07,
+   "trail_silence": 3.15
+  },
+  "keys": [
+   "Amb_SirenFar2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Siren Bys, Wailing, Various Rhythms and Melodies, Distant, Reverberant\n\nDuration: 54.6 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 55,
+   "free": true,
+   "name": "Siren Bys Wailing Various Rhythms Melodies 2 (SFX)",
+   "title": "Siren Bys Wailing Various Rhythms Melodies 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119163066,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 30.66,
+   "format": "ogg",
+   "lead_silence": 4.9,
+   "peak_db": -10.0,
+   "regions": {
+    "Amb_SirenFar1": {
+     "clip_ratio": 0.0,
+     "duration": 30.66,
+     "lead_silence": 4.9,
+     "peak_db": -10.0,
+     "region": [
+      4.6,
+      24
+     ],
+     "region_oob": false,
+     "region_rms_db": -26.9,
+     "region_steady_db": 7.3,
+     "rms_db": -27.7,
+     "silent_share": 0.25,
+     "trail_silence": 2.75
+    }
+   },
+   "rms_db": -27.7,
+   "silent_share": 0.25,
+   "trail_silence": 2.75
+  },
+  "keys": [
+   "Amb_SirenFar1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Siren Bys, Wailing, Various Rhythms and Melodies, Distant, Reverberant\n\nDuration: 30.7 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 31,
+   "free": true,
+   "name": "Siren Bys Wailing Various Rhythms Melodies 4 (SFX)",
+   "title": "Siren Bys Wailing Various Rhythms Melodies 4 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119165131,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 26.74,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -4.1,
+   "regions": {
+    "Siren_Tone": {
+     "clip_ratio": 0.0,
+     "duration": 26.74,
+     "lead_silence": 0.1,
+     "peak_db": -4.1,
+     "region": [
+      4.35,
+      4.75
+     ],
+     "region_oob": false,
+     "region_rms_db": -20.9,
+     "region_steady_db": 0.7,
+     "rms_db": -19.9,
+     "seam_db": 1.6,
+     "silent_share": 0.2,
+     "trail_silence": 2.1
+    }
+   },
+   "rms_db": -19.9,
+   "silent_share": 0.2,
+   "trail_silence": 2.1
+  },
+  "keys": [
+   "Siren",
+   "Siren_Tone"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Siren Wail, Start and Away, Back In and Stop, Off, Emergency, Ambulance\n\nDuration: 26.7 seconds\nCategory: Sirens\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 27,
+   "free": true,
+   "name": "Siren Wail 1 (SFX)",
+   "title": "Siren Wail 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9119676800,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 56.96,
+   "format": "ogg",
+   "lead_silence": 0.65,
+   "peak_db": -11.1,
+   "regions": {},
+   "rms_db": -31.2,
+   "silent_share": 0.04,
+   "trail_silence": 1.45
+  },
+  "keys": [
+   "Amb_Beach_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Surf, Medium CU, Moderate Air, Tide Rollup\n\nDuration: 57.0 seconds\nCategory: Water - Surf\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 57,
+   "free": true,
+   "name": "Surf Medium Cu Moderate Air Tide Rollup 3 (SFX)",
+   "title": "Surf Medium Cu Moderate Air Tide Rollup 3 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120370628,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.13,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.2,
+   "regions": {},
+   "rms_db": -20.6,
+   "silent_share": 0.59,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "DoorSlam"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Vehicle Door Bump, Slamming, Metal Door, Various Versions\n\nDuration: 1.2 seconds\nCategory: Vehicles - Doors\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Vehicle Door Bump Slamming Metal Door 1 (SFX)",
+   "title": "Vehicle Door Bump Slamming Metal Door 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120385543,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.19,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -11.2,
+   "regions": {
+    "Horn_Sedan": {
+     "clip_ratio": 0.0,
+     "duration": 1.19,
+     "lead_silence": 0.0,
+     "peak_db": -11.2,
+     "region": [
+      0,
+      0.4
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.2,
+     "region_steady_db": 13.0,
+     "rms_db": -22.2,
+     "silent_share": 0.7,
+     "trail_silence": 0.8
+    }
+   },
+   "rms_db": -22.2,
+   "silent_share": 0.7,
+   "trail_silence": 0.8
+  },
+  "keys": [
+   "Horn_Sedan"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Vehicle Horn, Short and Long Honks, Singles and Bursts, Warbled Buzz\n\nDuration: 1.2 seconds\nCategory: Vehicles - Horns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Vehicle Horn Short Long Honks 1 (SFX)",
+   "title": "Vehicle Horn Short Long Honks 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120385772,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.66,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -8.5,
+   "regions": {},
+   "rms_db": -18.1,
+   "silent_share": 0.39,
+   "trail_silence": 0.6
+  },
+  "keys": [
+   "Amb_Horn1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Vehicle Horn, Short and Long Honks, Singles and Bursts, Warbled Buzz\n\nDuration: 1.8 seconds\nCategory: Vehicles - Horns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Vehicle Horn Short Long Honks 5 (SFX)",
+   "title": "Vehicle Horn Short Long Honks 5 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120386248,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.36,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -13.3,
+   "regions": {},
+   "rms_db": -25.8,
+   "silent_share": 0.22,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Amb_Horn2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Vehicle Horn, Short and Long Honks, Singles and Bursts, Warbled Buzz\n\nDuration: 1.5 seconds\nCategory: Vehicles - Horns\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Vehicle Horn Short Long Honks 12 (SFX)",
+   "title": "Vehicle Horn Short Long Honks 12 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120447050,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 4.94,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -18.1,
+   "regions": {
+    "Horn_Compact": {
+     "clip_ratio": 0.0,
+     "duration": 4.94,
+     "lead_silence": 0.2,
+     "peak_db": -18.1,
+     "region": [
+      0.2,
+      1
+     ],
+     "region_oob": false,
+     "region_rms_db": -29.5,
+     "region_steady_db": 6.4,
+     "rms_db": -30.5,
+     "silent_share": 0.44,
+     "trail_silence": 0.4
+    }
+   },
+   "rms_db": -30.5,
+   "silent_share": 0.44,
+   "trail_silence": 0.4
+  },
+  "keys": [
+   "Horn_Compact"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Volkswagen Rabbit, Horn, Short and Long Beeps\n\nDuration: 4.9 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 5,
+   "free": true,
+   "name": "Volkswagen Rabbit 2 (SFX)",
+   "title": "Volkswagen Rabbit 2 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120704346,
+  "info": {
+   "clip_ratio": 0.00025,
+   "duration": 3.09,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": 1.2,
+   "regions": {},
+   "rms_db": -16.3,
+   "silent_share": 0.11,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Wasted"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Whoosh, Deep Booming Blast, Rumbling Destruction\n\nDuration: 3.1 seconds\nCategory: Whooshes - Bys\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Whoosh Deep Booming Blast Reversed At Tail 1 (SFX)",
+   "title": "Whoosh Deep Booming Blast Reversed At Tail 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9120962232,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.37,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.5,
+   "regions": {},
+   "rms_db": -22.7,
+   "silent_share": 0.29,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "ImpactWood"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Wood Snap, Crunches, For Bullet Impact and Splintering\n\nDuration: 0.8 seconds\nCategory: Wood - Cracks\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 0,
+   "free": true,
+   "name": "Wood Snap Bullet Impact 1 (SFX)",
+   "title": "Wood Snap Bullet Impact 1 (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125348863,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.52,
+   "format": "ogg",
+   "lead_silence": 0.75,
+   "peak_db": -1.1,
+   "regions": {
+    "Turbo_Blowoff": {
+     "clip_ratio": 0.0,
+     "duration": 3.52,
+     "lead_silence": 0.75,
+     "peak_db": -1.1,
+     "region": [
+      0.8,
+      1.4
+     ],
+     "region_oob": false,
+     "region_rms_db": -14.0,
+     "region_steady_db": 6.9,
+     "rms_db": -18.6,
+     "silent_share": 0.49,
+     "trail_silence": 0.95
+    }
+   },
+   "rms_db": -18.6,
+   "silent_share": 0.49,
+   "trail_silence": 0.95
+  },
+  "keys": [
+   "Turbo_Blowoff"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "1989 Peterbilt Semi Truck, CU, Air Brake Releases, Stress Like Squeak, Tonal Squeal, Several Versions\n\nFull Name: 1989 Peterbilt Semi Truck Cu Air Brake Releases 4\nDuration: 3.5 seconds\nCategory: Vehicles - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 4,
+   "free": true,
+   "name": "1989 Peterbilt Semi Truck Cu Air Brake Relea (SFX)",
+   "title": "1989 Peterbilt Semi Truck Cu Air Brake Relea (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125349929,
+  "info": {
+   "clip_ratio": 1e-05,
+   "duration": 72.94,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": 1.5,
+   "regions": {
+    "Eng_Truck_Idle": {
+     "clip_ratio": 1e-05,
+     "duration": 72.94,
+     "lead_silence": 0.1,
+     "peak_db": 1.5,
+     "region": [
+      8,
+      11.21
+     ],
+     "region_oob": false,
+     "region_rms_db": -36.0,
+     "region_steady_db": 0.8,
+     "rms_db": -32.0,
+     "seam_db": 0.7,
+     "silent_share": 0.02,
+     "trail_silence": 1.2
+    }
+   },
+   "rms_db": -32.0,
+   "silent_share": 0.02,
+   "trail_silence": 1.2
+  },
+  "keys": [
+   "Eng_Truck_Idle"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "2003 Dodge Ram Truck, Start Medium CU, Long Idle, Reverse, Plane\n\nFull Name: 2003 Dodge Ram Truck Start Med Cu Long Idle 1\nDuration: 72.9 seconds\nCategory: Vehicles - Modern Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 73,
+   "free": true,
+   "name": "2003 Dodge Ram Truck Start Med Cu Long Idle  (SFX)",
+   "title": "2003 Dodge Ram Truck Start Med Cu Long Idle  (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125380872,
+  "info": {
+   "clip_ratio": 7e-05,
+   "duration": 1.89,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 0.6,
+   "regions": {},
+   "rms_db": -27.7,
+   "silent_share": 0.22,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "Melee_Bat"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Baseball, Wood Bat Hits Hard Ball, Power Whacks, Solid, Resonant, Singles, Various Versions\n\nFull Name: Baseball Wood Bat Hits Hard Ball Power Whacks 5\nDuration: 3.0 seconds\nCategory: Sports\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 2,
+   "free": true,
+   "name": "Baseball Wood Bat Hits Hard Ball Power Whack (SFX)",
+   "title": "Baseball Wood Bat Hits Hard Ball Power Whack (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125404320,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.96,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.8,
+   "regions": {},
+   "rms_db": -16.2,
+   "silent_share": 0.1,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "Busted",
+   "WastedImpact"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Boom Impact, Deep Distant Thumping Hit, Booming, Long Resonant Decay with Light Rattle\n\nFull Name: Boom Impact Deep Distant Thumping Hits Booming 36\nDuration: 3.0 seconds\nCategory: Stings\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 3,
+   "free": true,
+   "name": "Boom Impact Deep Distant Thumping Hits Boomi (SFX)",
+   "title": "Boom Impact Deep Distant Thumping Hits Boomi (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125485532,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 83.14,
+   "format": "ogg",
+   "lead_silence": 0.25,
+   "peak_db": -14.8,
+   "regions": {},
+   "rms_db": -35.2,
+   "silent_share": 0.0,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Amb_Desert_Night"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Desert at Dusk, Crickets Chirping, Birds Tweeting, Dove Cooing, Distant Raspy Buzzing Calls, Chittering, Insect Buzz Bys\n\nFull Name: Desert Dusk Crickets Chirping Birds Tweeting 2\nDuration: 83.1 seconds\nCategory: Ambience - Rural\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 83,
+   "free": true,
+   "name": "Desert Dusk Crickets Chirping Birds Tweeting (SFX)",
+   "title": "Desert Dusk Crickets Chirping Birds Tweeting (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125556863,
+  "info": {
+   "clip_ratio": 0.00016,
+   "duration": 58.38,
+   "format": "ogg",
+   "lead_silence": 0.85,
+   "peak_db": 0.8,
+   "regions": {
+    "Eng_Sports_Idle": {
+     "clip_ratio": 0.00016,
+     "duration": 58.38,
+     "lead_silence": 0.85,
+     "peak_db": 0.8,
+     "region": [
+      26.304,
+      30.2
+     ],
+     "region_oob": false,
+     "region_rms_db": -13.2,
+     "region_steady_db": 1.1,
+     "rms_db": -13.0,
+     "seam_db": 0.2,
+     "silent_share": 0.02,
+     "trail_silence": 0.1
+    },
+    "Eng_Sports_Off": {
+     "clip_ratio": 0.00016,
+     "duration": 58.38,
+     "lead_silence": 0.85,
+     "peak_db": 0.8,
+     "region": [
+      5.003,
+      8.63
+     ],
+     "region_oob": false,
+     "region_rms_db": -10.8,
+     "region_steady_db": 3.0,
+     "rms_db": -13.0,
+     "seam_db": 1.3,
+     "silent_share": 0.02,
+     "trail_silence": 0.1
+    },
+    "Eng_Sports_On": {
+     "clip_ratio": 0.00016,
+     "duration": 58.38,
+     "lead_silence": 0.85,
+     "peak_db": 0.8,
+     "region": [
+      5.003,
+      8.63
+     ],
+     "region_oob": false,
+     "region_rms_db": -10.8,
+     "region_steady_db": 3.0,
+     "rms_db": -13.0,
+     "seam_db": 1.3,
+     "silent_share": 0.02,
+     "trail_silence": 0.1
+    }
+   },
+   "rms_db": -13.0,
+   "silent_share": 0.02,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Eng_Sports_Idle",
+   "Eng_Sports_Off",
+   "Eng_Sports_On"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Ferrari 308, Car, Hollow Ticking Engine, Start, Turn Off, Restart, Idle, Hard Booming Revs, Slow Movement Forward, Very Fast Away with Gear Changes, Massive Humming\n\nFull Name: Ferrari 308 Car Hollow Ticking Engine Start 2\nDuration: 58.4 seconds\nCategory: Vehicles - Classic Cars\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 58,
+   "free": true,
+   "name": "Ferrari 308 Car Hollow Ticking Engine Start  (SFX)",
+   "title": "Ferrari 308 Car Hollow Ticking Engine Start  (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9125672726,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.26,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -5.6,
+   "regions": {},
+   "rms_db": -19.7,
+   "silent_share": 0.68,
+   "trail_silence": 0.85
+  },
+  "keys": [
+   "Amb_Clank1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "SoundEffect",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Metal Impact, Sledge Hammer Hit on 5ft I-Beam, Impact, Metal Ring Off\n\nFull Name: Metal Impact Sledge Hammer Hits On 5 Ft I- Beam 13\nDuration: 1.5 seconds\nCategory: Metal - Hits\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 1,
+   "free": true,
+   "name": "Metal Impact Sledge Hammer Hits On 5 Ft I- B (SFX)",
+   "title": "Metal Impact Sledge Hammer Hits On 5 Ft I- B (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9126156741,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 31.08,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -6.0,
+   "regions": {
+    "SurfaceGravel": {
+     "clip_ratio": 0.0,
+     "duration": 31.08,
+     "lead_silence": 0.2,
+     "peak_db": -6.0,
+     "region": [
+      13.3,
+      17.02
+     ],
+     "region_oob": false,
+     "region_rms_db": -29.0,
+     "region_steady_db": 2.3,
+     "rms_db": -30.4,
+     "seam_db": 1.5,
+     "silent_share": 0.01,
+     "trail_silence": 0.05
+    }
+   },
+   "rms_db": -30.4,
+   "silent_share": 0.01,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "SurfaceGravel"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Vehicle Gravel, Tire Pass By, Constant, No Engine, Medium Slow and Slow\n\nFull Name: Vehicle Gravel Tire Pass By Constant No Engine 1\nDuration: 31.1 seconds\nCategory: Rocks - Misc\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 31,
+   "free": true,
+   "name": "Vehicle Gravel Tire Pass By Constant No Engi (SFX)",
+   "title": "Vehicle Gravel Tire Pass By Constant No Engi (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9126158749,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 31.91,
+   "format": "ogg",
+   "lead_silence": 0.75,
+   "peak_db": -1.8,
+   "regions": {
+    "TireScreech": {
+     "clip_ratio": 0.0,
+     "duration": 31.91,
+     "lead_silence": 0.75,
+     "peak_db": -1.8,
+     "region": [
+      24.95,
+      26.75
+     ],
+     "region_oob": false,
+     "region_rms_db": -22.7,
+     "region_steady_db": 0.5,
+     "rms_db": -23.6,
+     "seam_db": 0.0,
+     "silent_share": 0.13,
+     "trail_silence": 1.8
+    }
+   },
+   "rms_db": -23.6,
+   "silent_share": 0.13,
+   "trail_silence": 1.8
+  },
+  "keys": [
+   "TireScreech"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Vehicle Skidding Maneuvers, Many Tire Squeals, Peel or Burn Outs, Sliding, High Revs, Hard Accelerations, Car Drifting, Many Variations\n\nFull Name: Vehicle Skidding Maneuvers Many Tire Squeals 3\nDuration: 31.9 seconds\nCategory: Vehicles - Tires\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 32,
+   "free": true,
+   "name": "Vehicle Skidding Maneuvers Many Tire Squeals (SFX)",
+   "title": "Vehicle Skidding Maneuvers Many Tire Squeals (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 9126201834,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 53.8,
+   "format": "ogg",
+   "lead_silence": 1.0,
+   "peak_db": -11.8,
+   "regions": {},
+   "rms_db": -27.4,
+   "silent_share": 0.03,
+   "trail_silence": 0.7
+  },
+  "keys": [
+   "Amb_Beach_Day"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Pro Sound Effects",
+   "audioType": "Unknown",
+   "creator": "ProSoundEffects",
+   "creatorId": 7462895450,
+   "description": "Waves, Long, Rolling In Constantly, Heavy Surf\n\nFull Name: Waves Long Rolling In Constantly Heavy Surf 4\nDuration: 53.8 seconds\nCategory: Water - Surf\nAsset Type: Sound Effect\n\nCourtesy of Pro Sound Effects.",
+   "duration": 54,
+   "free": true,
+   "name": "Waves Long Rolling In Constantly Heavy Surf  (SFX)",
+   "title": "Waves Long Rolling In Constantly Heavy Surf  (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 10066947742,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.87,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.6,
+   "regions": {},
+   "rms_db": -31.1,
+   "silent_share": 0.41,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Purchase"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 1,
+   "free": true,
+   "name": "RBLX UI Purchase (SFX)",
+   "title": "RBLX UI Purchase (SFX)",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 15675028888,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.49,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.0,
+   "regions": {},
+   "rms_db": -18.3,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Whoosh"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 1,
+   "free": true,
+   "name": "Roblox_UI_Whoosh_02",
+   "title": "Roblox_UI_Whoosh_02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 15675032796,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.13,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.6,
+   "regions": {},
+   "rms_db": -27.8,
+   "silent_share": 0.5,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "Click"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 0,
+   "free": true,
+   "name": "Roblox_UI_Small_Click",
+   "title": "Roblox_UI_Small_Click",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 15675059323,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.37,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -3.0,
+   "regions": {},
+   "rms_db": -15.0,
+   "silent_share": 0.71,
+   "trail_silence": 0.25
+  },
+  "keys": [
+   "ClickBright"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 0,
+   "free": true,
+   "name": "Roblox_UI_Bright_Click",
+   "title": "Roblox_UI_Bright_Click",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 17208319162,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.9,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -4.0,
+   "regions": {},
+   "rms_db": -21.7,
+   "silent_share": 0.39,
+   "trail_silence": 0.35
+  },
+  "keys": [
+   "Pickup"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 1,
+   "free": true,
+   "name": "Roblox GUI - Pickup",
+   "title": "Roblox GUI - Pickup",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 17208361335,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.52,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -2.7,
+   "regions": {},
+   "rms_db": -17.1,
+   "silent_share": 0.5,
+   "trail_silence": 0.75
+  },
+  "keys": [
+   "Notify"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 2,
+   "free": true,
+   "name": "Roblox GUI - Notification High",
+   "title": "Roblox GUI - Notification High",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 70527882874881,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.96,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -8.1,
+   "regions": {},
+   "rms_db": -31.1,
+   "silent_share": 0.36,
+   "trail_silence": 0.6
+  },
+  "keys": [
+   "Tail_Gun2",
+   "Tail_Shotgun2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_gun_tail-02",
+   "title": "AS_gun_tail-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 72333449737130,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -26.0,
+   "silent_share": 0.5,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Shot_Carbine4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-04",
+   "title": "AS_rifle_shot-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [
+   "CLIP"
+  ],
+  "hard": [],
+  "id": 72710061789341,
+  "info": {
+   "clip_ratio": 0.00631,
+   "duration": 155.29,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 2.3,
+   "regions": {},
+   "rms_db": -9.4,
+   "silent_share": 0.01,
+   "trail_silence": 1.45
+  },
+  "keys": [
+   "Radio_Hyperdrive"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Queens Road",
+   "audioType": "Music",
+   "creator": "APMOfficial",
+   "creatorId": 7462718749,
+   "description": "",
+   "duration": 155,
+   "free": true,
+   "name": "Hyperdrive",
+   "title": "Hyperdrive",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 78270463799678,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 3.11,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -1.3,
+   "regions": {},
+   "rms_db": -16.8,
+   "silent_share": 0.06,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "EngineStart"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Sound of an engine starting",
+   "duration": 3,
+   "free": true,
+   "name": "Engine-Start",
+   "title": "Engine-Start",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 79289354458541,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.54,
+   "format": "ogg",
+   "lead_silence": 0.1,
+   "peak_db": -10.2,
+   "regions": {},
+   "rms_db": -32.3,
+   "silent_share": 0.52,
+   "trail_silence": 1.1
+  },
+  "keys": [
+   "Tail_Gun3",
+   "Tail_Shotgun3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 3,
+   "free": true,
+   "name": "AS_gun_tail-03",
+   "title": "AS_gun_tail-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 80317022777602,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 9.17,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.5,
+   "regions": {},
+   "rms_db": -24.6,
+   "silent_share": 0.0,
+   "trail_silence": 0.0
+  },
+  "keys": [
+   "Eng_Compact_Idle",
+   "Eng_Compact_Off",
+   "Eng_Compact_On"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Loopable sound of a car engine.",
+   "duration": 9,
+   "free": true,
+   "name": "Car-Engine-Loop",
+   "title": "Car-Engine-Loop",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 82409501948316,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.3,
+   "regions": {},
+   "rms_db": -26.2,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-02",
+   "title": "AS_shotgun_shot-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 84039532799719,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.0,
+   "regions": {},
+   "rms_db": -25.5,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-04",
+   "title": "AS_shotgun_shot-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 86903016850225,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -26.2,
+   "silent_share": 0.33,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Shot_Carbine3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-03",
+   "title": "AS_rifle_shot-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 87646813759701,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.07,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.3,
+   "regions": {},
+   "rms_db": -22.8,
+   "silent_share": 0.05,
+   "trail_silence": 0.05
+  },
+  "keys": [
+   "EngineStop"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Sound of a car engine stopping",
+   "duration": 1,
+   "free": true,
+   "name": "Engine-Stop",
+   "title": "Engine-Stop",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 90852446208160,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.31,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -7.4,
+   "regions": {},
+   "rms_db": -29.6,
+   "silent_share": 0.54,
+   "trail_silence": 0.65
+  },
+  "keys": [
+   "Tail_Gun1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 2,
+   "free": true,
+   "name": "AS_gun_tail-01",
+   "title": "AS_gun_tail-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 99008924129683,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -9.5,
+   "regions": {},
+   "rms_db": -25.5,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-01",
+   "title": "AS_shotgun_shot-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 106454770387605,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.92,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.7,
+   "regions": {},
+   "rms_db": -25.1,
+   "silent_share": 0.33,
+   "trail_silence": 0.3
+  },
+  "keys": [
+   "Shot_Shotgun3"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 1,
+   "free": true,
+   "name": "AS_shotgun_shot-03",
+   "title": "AS_shotgun_shot-03",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 109431560870225,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.5,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -6.3,
+   "regions": {},
+   "rms_db": -15.7,
+   "silent_share": 0.44,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "HitTick"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_gun_punch-01",
+   "title": "AS_gun_punch-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 111187749925677,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 2.65,
+   "format": "ogg",
+   "lead_silence": 0.05,
+   "peak_db": -8.4,
+   "regions": {},
+   "rms_db": -31.2,
+   "silent_share": 0.51,
+   "trail_silence": 1.0
+  },
+  "keys": [
+   "Tail_Gun4"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 3,
+   "free": true,
+   "name": "AS_gun_tail-04",
+   "title": "AS_gun_tail-04",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 125094987563505,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 1.22,
+   "format": "ogg",
+   "lead_silence": 0.2,
+   "peak_db": -10.9,
+   "regions": {},
+   "rms_db": -35.1,
+   "silent_share": 0.42,
+   "trail_silence": 0.2
+  },
+  "keys": [
+   "CarDoor"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox Resources",
+   "audioType": "SoundEffect",
+   "creator": "Roblox Resources",
+   "creatorId": 3529469,
+   "description": "Sound of a car door opening and closing",
+   "duration": 1,
+   "free": true,
+   "name": "Open-Close-Car-Door",
+   "title": "Open-Close-Car-Door",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 127619198178554,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -7.9,
+   "regions": {},
+   "rms_db": -26.0,
+   "silent_share": 0.5,
+   "trail_silence": 0.15
+  },
+  "keys": [
+   "Shot_Carbine2"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-02",
+   "title": "AS_rifle_shot-02",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 127645268874265,
+  "info": {
+   "clip_ratio": 0.00014,
+   "duration": 1.66,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": 1.8,
+   "regions": {},
+   "rms_db": -23.6,
+   "silent_share": 0.76,
+   "trail_silence": 1.25
+  },
+  "keys": [
+   "Coin"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Roblox",
+   "audioType": "SoundEffect",
+   "creator": "Roblox",
+   "creatorId": 1,
+   "description": "",
+   "duration": 2,
+   "free": true,
+   "name": "CoinTransfer_01",
+   "title": "CoinTransfer_01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ },
+ {
+  "flags": [],
+  "hard": [],
+  "id": 128650101411844,
+  "info": {
+   "clip_ratio": 0.0,
+   "duration": 0.34,
+   "format": "ogg",
+   "lead_silence": 0.0,
+   "peak_db": -8.3,
+   "regions": {},
+   "rms_db": -26.7,
+   "silent_share": 0.33,
+   "trail_silence": 0.1
+  },
+  "keys": [
+   "Shot_Carbine1"
+  ],
+  "meta": {
+   "approved": true,
+   "artist": "Audioscape",
+   "audioType": "SoundEffect",
+   "creator": "Audioscape",
+   "creatorId": 34159607,
+   "description": "Audio",
+   "duration": 0,
+   "free": true,
+   "name": "AS_rifle_shot-01",
+   "title": "AS_rifle_shot-01",
+   "typeId": 3,
+   "verified": true,
+   "visibility": 0
+  }
+ }
+]

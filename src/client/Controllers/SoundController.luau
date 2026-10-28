@@ -1,115 +1,93 @@
 --!strict
--- SoundController (SPEC §7): every sound the client hears.
+-- SoundController (SPEC §7, PLAN C3 · audio): every sound the client hears. A facade over client/Audio/*:
 --
---  * play(key, position?) — one-shot Config/Sounds sound. No position = UI sound (pooled Sounds in SoundService);
---    with a position = world sound (pooled Attachments on an anchored, invisible part in Workspace.HC_ClientSounds).
---    Small random pitch variation on one-shots so repeated sounds don't fatigue. Returns the Sound (or nil).
---  * playLoop(key, parent?) / stopLoop(sound) — owned looping sounds (e.g. the stolen-car alarm). The caller stops it.
---  * `Sound` remote (soundKey, worldPosition?) -> play.
---  * Engine loop: the ≤ 6 closest "Vehicle"-tagged cars that are actually being driven (a seated driver, or AI-driven
---    Traffic/Police) get a looping engine Sound in their chassis, PlaybackSpeed = 0.7 + 1.1 × speed / topSpeed
---    (topSpeed from Config/Cars by the CarId attribute, Cars.Police for police), smoothed per frame.
---  * Police sirens: the ≤ 3 closest "Police"-tagged cars within 250 studs carry a looping siren (skipped while the
---    server marks the unit Siren=false: leaving or wrecked).
---  * City ambience loop at low volume (ducked while driving).
---  * Car radio: Config/Sounds Radio_* tracks grouped into stations by their `station` field. 2D music on the music
---    channel, only while the local player drives (VehicleClient: setRadioOn / stepRadio) and the music setting is on.
---    Two decks crossfade on station changes; a finished track queues the station's next one; a track that never loads
---    is skipped. A station change retunes the label at once but starts its track only after RADIO_TUNE_DELAY without
---    another press (each start streams a 2-3 min track: mashing the buttons must not download one per press).
---    RadioChanged(station?, title?) drives the DrivingUI label.
---  * Settings: snapshot settings.sfx / settings.music drive the SoundGroups (HC_SFX, HC_Music, and HC_UI for UI
---    one-shots, which follows sfx but is never muffled); ambience counts as "music". setEnabled / setVolume let other
---    controllers (e.g. Settings menu previews) override locally.
---  * Gunfire: playGunshot (shot / tail / mech layers by distance; tails skip the one-shot cull) and
+--  * Mix (Audio/Groups + Shared/Audio/Mix): SoundGroups HC_SFX / HC_Vehicles / HC_Ambience / HC_Music / HC_UI under
+--    SoundService. Volume = settings toggle (snapshot settings.sfx gates sfx / vehicles / ambience / ui, settings.music
+--    the radio) x master slider x channel slider (pause menu SETTINGS rows: setVolume / getVolume) x ducks. Ducks fade:
+--    "bigMessage" (WASTED / BUSTED: the death muffle holds it, the stings time it), "pause" (MenuController's pause
+--    menu), "gunfire" (a shot within 80 studs: radio -6 dB), "retune" (the radio's static burst).
+--  * One-shots (Audio/Voices): play(key, position?) — pooled Sounds, no Instance.new per shot; a global cap of
+--    Mix.MAX_VOICES (playing loops count too) with priorities (UI > local car / guns > impacts / sirens > horns /
+--    world > remote cars > ambience). No position = a 2D interface sound; with a position = 3D, channel by key
+--    (Mix.channelFor). A horn played at a car becomes that car's class horn (Audio/Engines.hornNear) and follows the
+--    car. The `Sound` remote plays through here.
+--  * Local car (Audio/LocalCar): per-class engine layers on a simulated rpm / gearbox, ignition / starter / stop,
+--    pops on VehicleClient's Backfire signal, turbo hiss, limiter, tyre squeal by lateral slip, off-road rumble,
+--    wall scrape, wind (inside only), impacts by crash size (VehicleClient's Crashed signal -> playImpact).
+--  * Other cars (Audio/Engines): the 6 nearest running cars within 250 studs get 3D engines (3 layers within 60,
+--    one layer beyond), Doppler-shifted; WheelAnimator's TireScreech loops are pooled and levelled by slip.
+--  * Police (Audio/Police): siren patterns (SirenMode attribute or a wail / yelp / hi-lo machine), Doppler, the
+--    wanted siren bed + dispatch blips (no words), the helicopter rotor when a heli exists.
+--  * City (Audio/City): district beds day / night (NightFactor), freeway roar, one-shots, cover reverb.
+--  * Radio (Audio/Radio): stations + RADIO OFF, per-car memory, police start off, a live clock shared by all clients,
+--    static burst, muffled 3D copy for players outside a car (RadioTune remote -> car attribute RadioStation).
+--  * Hotwire crackle while holding a steal prompt (Audio/Hotwire).
+--  * Gunfire (gta_combat §11.6): playGunshot (shot / tail / mech layers by distance; tails skip the one-shot cull),
 --    playDistantGunshot (the DistantShot remote: a quiet low-passed tail from the shot's direction, up to 1200 studs).
---  * start(): ContentProvider:PreloadAsync of every Config/Sounds id except the radio tracks (pcall, background; the
---    music streams on demand instead of costing every phone ~10 long downloads at boot).
+--  * Doppler is manual (SoundService.DopplerScale = 0): remote engines, sirens and the heli shift by closing speed,
+--    and the local car never wobbles with the camera.
+--  * BACKLOG 5: start() preloads Sound instances for the short, latency-critical one-shots (isPreloaded: guns,
+--    impacts, foley, UI; not loops, beds, ambience or radio, which stream on first play), and TextLabels for the
+--    Theme fonts, with ContentProvider:PreloadAsync (instances, never id strings), then frees them.
+--  * The pause duck follows MenuController.PauseChanged (HUD visibility only as a fallback).
 
-local CollectionService = game:GetService("CollectionService")
 local ContentProvider = game:GetService("ContentProvider")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
-local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
 local Config = Shared:WaitForChild("Config")
 local Sounds = require(Config:WaitForChild("Sounds"))
-local Cars = require(Config:WaitForChild("Cars"))
-local Signal = require(Shared:WaitForChild("Util"):WaitForChild("Signal"))
+local AudioShared = Shared:WaitForChild("Audio")
+local Mix = require(AudioShared:WaitForChild("Mix"))
+local EngineClass = require(AudioShared:WaitForChild("EngineClass"))
+local RadioDial = require(AudioShared:WaitForChild("RadioDial"))
+
+local Audio = script.Parent.Parent:WaitForChild("Audio")
+local Apply = require(Audio:WaitForChild("Apply"))
+local Groups = require(Audio:WaitForChild("Groups"))
+local Voices = require(Audio:WaitForChild("Voices"))
+local LocalCar = require(Audio:WaitForChild("LocalCar"))
+local Engines = require(Audio:WaitForChild("Engines"))
+local Police = require(Audio:WaitForChild("Police"))
+local City = require(Audio:WaitForChild("City"))
+local Radio = require(Audio:WaitForChild("Radio"))
+local Hotwire = require(Audio:WaitForChild("Hotwire"))
 
 -- Earlier in the client ORDER, so a direct require is safe (no cycle).
 local StateController = require(script.Parent:WaitForChild("StateController"))
 
 local SoundController = {}
 
-local player = Players.LocalPlayer
-local rng = Random.new()
-
-local UI_POOL_PER_KEY = 4 -- max simultaneous copies of one UI sound
-local WORLD_POOL_SIZE = 20 -- max simultaneous positional one-shots
-local WORLD_CULL_DISTANCE = 450 -- skip positional one-shots farther than this from the camera
-local ENGINE_SLOTS = 6
-local ENGINE_RANGE = 220
-local SIREN_SLOTS = 3
-local SIREN_RANGE = 250
 local SCAN_INTERVAL = 0.25
-local PITCH_SMOOTHING = 7 -- per second
-local AMBIENCE_VOLUME_SCALE = 0.6
-local AMBIENCE_DRIVING_DUCK = 0.45
 local DEFAULT_TOP_SPEED = 100
 local RADIO_PREFIX = "Radio_"
-local RADIO_FADE = 0.8 -- seconds per crossfade half
-local RADIO_LOAD_TIMEOUT = 12 -- a track still not loaded after this is skipped
-local RADIO_TUNE_DELAY = 0.4 -- seconds after the last station press before that station's track starts
-SoundController.RADIO_TUNE_DELAY = RADIO_TUNE_DELAY
-
--- Kinds whose cars sit still (anchored displays / unclaimed) and never get an engine loop.
-local SILENT_KINDS: { [string]: boolean } = { Parked = true, Dealership = true, HotDrop = true }
--- AI-driven kinds that have no seated player but still drive around.
-local AI_KINDS: { [string]: boolean } = { Traffic = true, Police = true }
+local AMB_PREFIX = "Amb_"
+local BIG_MESSAGE_SECONDS = 5
+local LISTENER_SMOOTHING = 6
+local PRELOAD_DELAY = 3 -- s after start: the loading screen preloads first
+SoundController.RADIO_TUNE_DELAY = Radio.TUNE_DELAY
+-- VehicleClient checks this before making its own drift screech: the local car's tyres are ours (lateral slip).
+SoundController.ownsLocalTyres = true
 
 type SoundDef = Sounds.SoundDef
 
 -------------------------------------------------------------------------------------------------------------------------
--- Pure helpers (exported for tests)
+-- Pure helpers (exported for tests; the v1 engine helpers stay for the client-core specs)
 -------------------------------------------------------------------------------------------------------------------------
 
--- Engine PlaybackSpeed for a car going `speed` with top speed `topSpeed`. Ratio clamped to [0, 1.3] (nitro overshoot).
+-- v1 single-loop engine PlaybackSpeed for a car going `speed` with top speed `topSpeed` (clamped, nitro overshoot).
 function SoundController.enginePitch(speed: number, topSpeed: number): number
 	local top = if topSpeed > 1 then topSpeed else DEFAULT_TOP_SPEED
 	local ratio = math.clamp(speed / top, 0, 1.3)
 	return 0.7 + 1.1 * ratio
 end
 
--- Does a car with this Kind / driver state make engine noise?
-function SoundController.isEngineEligible(kind: any, hasDriver: boolean): boolean
-	if typeof(kind) ~= "string" then
-		return hasDriver
-	end
-	if SILENT_KINDS[kind] then
-		return false
-	end
-	return hasDriver or AI_KINDS[kind] == true
-end
-
--- Top speed for a car model's attributes.
-function SoundController.topSpeedFor(carId: any, kind: any): number
-	if kind == "Police" or carId == Cars.Police.id then
-		return Cars.Police.topSpeed
-	end
-	if typeof(carId) == "string" then
-		local def = Cars.get(carId)
-		if def then
-			return def.topSpeed
-		end
-	end
-	return DEFAULT_TOP_SPEED
-end
+SoundController.isEngineEligible = EngineClass.isEngineEligible
+SoundController.topSpeedFor = Engines.topSpeedFor
 
 -- Given candidates { {key, dist} }, returns the set of the (≤ maxSlots) closest keys. Sorts candidates in place.
 function SoundController.selectNearest(candidates: { { key: any, dist: number } }, maxSlots: number): { [any]: boolean }
@@ -123,38 +101,9 @@ function SoundController.selectNearest(candidates: { { key: any, dist: number } 
 	return chosen
 end
 
-export type RadioStation = { name: string, tracks: { string } }
+export type RadioStation = RadioDial.Station
 
--- Radio stations from a Config/Sounds-like table: every Radio_* def with a string id + station, grouped by station.
--- Stations sorted by name, tracks (Sounds keys) by key.
-function SoundController.buildStations(defs: { [string]: any }): { RadioStation }
-	local byName: { [string]: RadioStation } = {}
-	local list: { RadioStation } = {}
-	for key, def in defs do
-		if
-			typeof(key) == "string"
-			and string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX
-			and typeof(def) == "table"
-			and typeof(def.id) == "string"
-			and typeof(def.station) == "string"
-		then
-			local station = byName[def.station]
-			if not station then
-				station = { name = def.station, tracks = {} }
-				byName[def.station] = station
-				table.insert(list, station)
-			end
-			table.insert(station.tracks, key)
-		end
-	end
-	table.sort(list, function(a, b)
-		return a.name < b.name
-	end)
-	for _, station in list do
-		table.sort(station.tracks)
-	end
-	return list
-end
+SoundController.buildStations = RadioDial.buildStations
 
 -- Station index after stepping `dir` (+1 / -1) from `index` among `count` stations. Wraps; an unset index -> 1.
 function SoundController.stepIndex(index: number, dir: number, count: number): number
@@ -168,125 +117,7 @@ function SoundController.stepIndex(index: number, dir: number, count: number): n
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Groups, folders, settings
--------------------------------------------------------------------------------------------------------------------------
-
-local sfxGroup: SoundGroup? = nil
-local musicGroup: SoundGroup? = nil
--- UI one-shots (clicks, hit ticks, the WASTED / BUSTED stings) have their own group (gta_ui_language §5.16): the
--- death / weapon-wheel muffle sits on HC_SFX and must never dull them. It follows the sfx setting.
-local uiGroup: SoundGroup? = nil
-local uiFolder: Folder? = nil
-local worldAnchor: Part? = nil
-local enabled = { sfx = true, music = true }
-local volumes = { sfx = 1, music = 1 }
-
-type PoolEntry = { sound: Sound, startedAt: number }
-type WorldEntry = { attachment: Attachment, sound: Sound, startedAt: number }
-
-local uiPools: { [string]: { PoolEntry } } = {}
-local worldPool: { WorldEntry } = {}
-
-local function findOrMakeGroup(name: string): SoundGroup
-	local g = SoundService:FindFirstChild(name)
-	if g and g:IsA("SoundGroup") then
-		return g
-	end
-	local made = Instance.new("SoundGroup")
-	made.Name = name
-	made.Parent = SoundService
-	return made
-end
-
-local function ensureGroups()
-	if
-		sfxGroup
-		and sfxGroup.Parent
-		and musicGroup
-		and musicGroup.Parent
-		and uiGroup
-		and uiGroup.Parent
-		and uiFolder
-		and uiFolder.Parent
-	then
-		return
-	end
-	sfxGroup = findOrMakeGroup("HC_SFX")
-	musicGroup = findOrMakeGroup("HC_Music")
-	local ui = findOrMakeGroup("HC_UI")
-	uiGroup = ui
-	ui.Volume = if enabled.sfx then volumes.sfx else 0 -- the UI group follows the sfx setting
-	local folder = SoundService:FindFirstChild("HC_UISounds")
-	if not (folder and folder:IsA("Folder")) then
-		folder = Instance.new("Folder")
-		folder.Name = "HC_UISounds"
-		folder.Parent = SoundService
-		table.clear(uiPools) -- any pooled Sounds died with the old folder
-	end
-	uiFolder = folder :: Folder
-end
-
-local function ensureWorldAnchor(): Part
-	local anchor = worldAnchor
-	if anchor and anchor.Parent then
-		return anchor
-	end
-	local folder = Workspace:FindFirstChild("HC_ClientSounds")
-	if not folder then
-		folder = Instance.new("Folder")
-		folder.Name = "HC_ClientSounds"
-		folder.Parent = Workspace
-	end
-	local part = Instance.new("Part")
-	part.Name = "SoundAnchor"
-	part.Anchored = true
-	part.CanCollide = false
-	part.CanQuery = false
-	part.CanTouch = false
-	part.Transparency = 1
-	part.Size = Vector3.new(0.2, 0.2, 0.2)
-	part.CFrame = CFrame.new()
-	part.Parent = folder
-	worldAnchor = part
-	table.clear(worldPool) -- pooled emitters died with the old anchor
-	return part
-end
-
-local function applyGroupVolumes()
-	ensureGroups()
-	local sfx = sfxGroup :: SoundGroup
-	local music = musicGroup :: SoundGroup
-	sfx.Volume = if enabled.sfx then volumes.sfx else 0
-	music.Volume = if enabled.music then volumes.music else 0
-	local ui = uiGroup
-	if ui then
-		ui.Volume = sfx.Volume
-	end
-end
-
--- Configure a Sound instance for a def (shared by all pools). start / stop = PlaybackRegion (one transient out of a
--- multi-shot file; gta_combat §12.4), rollOff = RollOffMaxDistance for positional sounds.
-local function configure(sound: Sound, def: SoundDef, group: SoundGroup?)
-	sound.SoundId = def.id -- same-value assignment is a no-op, so pooled sounds don't reload
-	sound.Volume = def.volume
-	sound.PlaybackSpeed = def.pitch or 1
-	sound.SoundGroup = group
-	local start, stop = def.start, def.stop
-	if start ~= nil or stop ~= nil then
-		pcall(function()
-			sound.PlaybackRegionsEnabled = true
-			sound.PlaybackRegion = NumberRange.new(start or 0, stop or 600)
-		end)
-	elseif sound.PlaybackRegionsEnabled then
-		sound.PlaybackRegionsEnabled = false
-	end
-	if def.rollOff then
-		sound.RollOffMaxDistance = def.rollOff
-	end
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- One-shots
+-- Lookup
 -------------------------------------------------------------------------------------------------------------------------
 
 local warnedKeys: { [string]: boolean } = {}
@@ -303,110 +134,19 @@ local function lookup(key: string): SoundDef?
 	return def :: SoundDef
 end
 
-local function variedPitch(def: SoundDef): number
-	return (def.pitch or 1) * rng:NextNumber(0.95, 1.05)
-end
+local PRIORITY_OF: { [string]: number } = {
+	ui = Mix.PRIORITY.ui,
+	music = Mix.PRIORITY.ui,
+	vehicles = Mix.PRIORITY.horn,
+	sfx = Mix.PRIORITY.world,
+	ambience = Mix.PRIORITY.ambient,
+}
 
-local function playUI(key: string, def: SoundDef): Sound
-	ensureGroups()
-	local pool = uiPools[key]
-	if not pool then
-		pool = {}
-		uiPools[key] = pool
-	end
-	local pick: PoolEntry? = nil
-	for _, entry in pool do
-		if entry.sound.Parent and not entry.sound.IsPlaying then
-			pick = entry
-			break
-		end
-	end
-	if not pick then
-		if #pool < UI_POOL_PER_KEY then
-			local s = Instance.new("Sound")
-			s.Name = key
-			s.Parent = uiFolder
-			pick = { sound = s, startedAt = 0 }
-			table.insert(pool, pick :: PoolEntry)
-		else
-			-- steal the oldest
-			local oldest = pool[1]
-			for _, entry in pool do
-				if entry.startedAt < oldest.startedAt then
-					oldest = entry
-				end
-			end
-			pick = oldest
-		end
-	end
-	local entry = pick :: PoolEntry
-	if not entry.sound.Parent then
-		entry.sound.Parent = uiFolder
-	end
-	configure(entry.sound, def, uiGroup)
-	entry.sound.Looped = false
-	entry.sound.PlaybackSpeed = variedPitch(def)
-	entry.sound.TimePosition = 0
-	entry.sound:Play()
-	entry.startedAt = os.clock()
-	return entry.sound
-end
+local BIG_MESSAGES: { [string]: boolean } = { Wasted = true, Busted = true, WastedImpact = true }
 
--- force: skip the distance cull (gun tails are meant to carry across the city).
-local function playWorld(def: SoundDef, position: Vector3, force: boolean?): Sound?
-	local cam = Workspace.CurrentCamera
-	if not force and cam and (cam.CFrame.Position - position).Magnitude > WORLD_CULL_DISTANCE then
-		return nil
-	end
-	ensureGroups()
-	local anchor = ensureWorldAnchor()
-	local pick: WorldEntry? = nil
-	for _, entry in worldPool do
-		if entry.attachment.Parent == anchor and not entry.sound.IsPlaying then
-			pick = entry
-			break
-		end
-	end
-	if not pick then
-		if #worldPool < WORLD_POOL_SIZE then
-			local att = Instance.new("Attachment")
-			att.Name = "SoundEmitter"
-			att.Parent = anchor
-			local s = Instance.new("Sound")
-			s.RollOffMode = Enum.RollOffMode.InverseTapered
-			s.RollOffMinDistance = 12
-			s.RollOffMaxDistance = 320
-			s.Parent = att
-			pick = { attachment = att, sound = s, startedAt = 0 }
-			table.insert(worldPool, pick :: WorldEntry)
-		else
-			local oldest = worldPool[1]
-			for _, entry in worldPool do
-				if entry.startedAt < oldest.startedAt then
-					oldest = entry
-				end
-			end
-			pick = oldest
-		end
-	end
-	local entry = pick :: WorldEntry
-	if entry.attachment.Parent ~= anchor then
-		entry.attachment.Parent = anchor
-	end
-	entry.attachment.WorldPosition = position
-	entry.sound.RollOffMaxDistance = 320
-	configure(entry.sound, def, sfxGroup)
-	entry.sound.Looped = false
-	entry.sound.PlaybackSpeed = variedPitch(def)
-	entry.sound.TimePosition = def.start or 0
-	local eq = entry.sound:FindFirstChildOfClass("EqualizerSoundEffect")
-	if eq then
-		eq.Enabled = false
-	end
-	entry.sound:Play()
-	entry.startedAt = os.clock()
-	return entry.sound
-end
+-------------------------------------------------------------------------------------------------------------------------
+-- One-shots
+-------------------------------------------------------------------------------------------------------------------------
 
 -- Play a Config/Sounds key. position = world sound (3D), nil = UI sound. Returns the playing Sound or nil.
 function SoundController.play(key: string, position: Vector3?): Sound?
@@ -414,18 +154,95 @@ function SoundController.play(key: string, position: Vector3?): Sound?
 		return nil
 	end
 	local def = lookup(key)
-	if not def or not enabled.sfx then
+	if not def then
 		return nil
 	end
-	if typeof(position) == "Vector3" then
-		return playWorld(def, position)
+	local positional = typeof(position) == "Vector3"
+	local channel = Mix.channelFor(key, positional)
+	if not Groups.isOn(if channel == "music" then "music" else "sfx") then
+		return nil
 	end
-	return playUI(key, def)
+	if BIG_MESSAGES[key] then
+		Groups.duck("bigMessage", true, BIG_MESSAGE_SECONDS)
+	end
+	if positional then
+		local pos = position :: Vector3
+		if key == "CarDoor" then
+			LocalCar.door(pos) -- de-duplicated with the door LocalCar plays on getting in
+			return nil
+		end
+		local k, d = key, def
+		local car: BasePart? = nil
+		if key == "Horn" or key == "AirHorn" then
+			local classHorn, part = Engines.hornNear(pos)
+			local hd = if classHorn then lookup(classHorn) else nil
+			if classHorn and hd then
+				k, d, car = classHorn, hd, part
+			end
+		end
+		channel = Mix.channelFor(k, true)
+		local s = Voices.playAt(d, pos, Groups.get(channel), PRIORITY_OF[channel] or Mix.PRIORITY.world)
+		if car then
+			Voices.follow(s, car) -- a horn keeps up with its car instead of trailing behind it
+		end
+		return s
+	end
+	return Voices.play2D(key, def, Groups.get(channel), PRIORITY_OF[channel] or Mix.PRIORITY.ui)
+end
+
+-- A car crash of `drop` studs/s of sudden speed loss at `position` (VehicleClient: light thud / heavy crunch / glass).
+function SoundController.playImpact(drop: number, position: Vector3)
+	if typeof(drop) ~= "number" or typeof(position) ~= "Vector3" or not Groups.isOn("sfx") then
+		return
+	end
+	LocalCar.impact(drop, position, Mix.PRIORITY.localCar)
+end
+
+-- Start a looping sound the caller owns. parent = BasePart/Attachment for 3D, nil for a UI loop.
+-- channel "music" puts it on the music channel; default by key. TireScreech (WheelAnimator) comes from a pooled,
+-- slip-levelled set and may be nil when the pool is busy.
+function SoundController.playLoop(key: string, parent: Instance?, channel: string?): Sound?
+	if key == "TireScreech" and parent and parent:IsA("BasePart") then
+		return Engines.squealLoop(parent)
+	end
+	local def = lookup(key)
+	if not def then
+		return nil
+	end
+	local s = Instance.new("Sound")
+	s.Name = "Loop_" .. key
+	local ch = if channel == "music" then "music" else Mix.channelFor(key, parent ~= nil)
+	Apply.def(s, def, Groups.get(ch))
+	s.Looped = true
+	s.RollOffMode = Enum.RollOffMode.InverseTapered
+	s.RollOffMinDistance = 15
+	s.RollOffMaxDistance = def.rollOff or 300
+	s.Parent = parent or SoundService
+	s.TimePosition = Apply.startTime(def)
+	s:Play()
+	Voices.registerLoop(s) -- counts against the voice cap until stopLoop destroys it
+	return s
+end
+
+function SoundController.stopLoop(sound: Sound?)
+	if not sound then
+		return
+	end
+	if Engines.releaseLoop(sound) then
+		return
+	end
+	sound:Stop()
+	sound:Destroy()
+end
+
+-- Start (on) or release a named duck (Mix.DUCKS); seconds = release automatically.
+function SoundController.duck(reason: string, on: boolean, seconds: number?)
+	Groups.duck(reason, on, seconds)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
 -- Gunfire (gta_combat §11.6): shot (close) + tail (distance) + mech (close) layers, distance rules, near-miss whiz,
--- radio ducking, and the death / weapon-wheel muffle on the SFX group.
+-- radio ducking, and the death / weapon-wheel muffle on the world channels.
 -------------------------------------------------------------------------------------------------------------------------
 
 SoundController.GUN_TAIL_FROM = 120 -- the tail layer plays for listeners beyond this
@@ -437,8 +254,6 @@ SoundController.GUN_DISTANT_MAX = 1200 -- distant tails (DistantShot) are heard 
 SoundController.GUN_DISTANT_EMIT = 150 -- ...emitted at most this far away, on the line to the shot (keeps direction)
 
 local roundRobin: { [string]: number } = {}
-local duckUntil = 0
-local duckFactor = 1
 
 -- Next variant from a list (round robin per list head).
 function SoundController.pickVariant(list: { string }, counter: { [string]: number }?): string?
@@ -496,33 +311,15 @@ local function playLayer(key: string?, position: Vector3, volumeMult: number, lo
 		return
 	end
 	local def = lookup(key)
-	if not def or not enabled.sfx then
+	if not def or not Groups.isOn("sfx") then
 		return
 	end
-	local s = playWorld(def, position, force)
-	if not s then
-		return
-	end
-	s.Volume = def.volume * volumeMult
-	if lowpass then
-		local eq = s:FindFirstChildOfClass("EqualizerSoundEffect")
-		if not eq then
-			eq = Instance.new("EqualizerSoundEffect")
-			eq.HighGain = -18
-			eq.MidGain = -6
-			eq.LowGain = 0
-			eq.Parent = s
-		end
-		eq.Enabled = true
-	end
+	Voices.playAt(def, position, Groups.get("sfx"), Mix.PRIORITY.gunshot, volumeMult, lowpass, force)
 end
 
-function SoundController.duckRadio(seconds: number, factor: number)
-	duckUntil = math.max(duckUntil, os.clock() + seconds)
-	duckFactor = math.clamp(factor, 0, 1)
-	ensureGroups()
-	local music = musicGroup :: SoundGroup
-	music.Volume = (if enabled.music then volumes.music else 0) * duckFactor
+-- Radio ducking under nearby gunfire (-6 dB, Mix.DUCKS.gunfire). factor is kept for the v1 signature.
+function SoundController.duckRadio(seconds: number, _factor: number?)
+	Groups.duckNow("gunfire", seconds)
 end
 
 -- Only the quiet, low-passed tail of a far-away shot (beyond GUN_FAR, or relayed as DistantShot).
@@ -561,14 +358,14 @@ function SoundController.playGunshot(weaponSounds: any, position: Vector3)
 		end)
 	end
 	if d <= SoundController.GUN_DUCK_RANGE then
-		SoundController.duckRadio(1.5, 0.5) -- -6 dB
+		SoundController.duckRadio(1.5)
 	end
 end
 
 -- A gunshot far beyond the ShotFx radius (the DistantShot remote, gta_combat §11.6): only its distant tail, quiet
 -- and low-passed, from the shot's direction. Nothing beyond GUN_DISTANT_MAX.
 function SoundController.playDistantGunshot(weaponSounds: any, origin: Vector3)
-	if typeof(weaponSounds) ~= "table" or typeof(origin) ~= "Vector3" or not enabled.sfx then
+	if typeof(weaponSounds) ~= "table" or typeof(origin) ~= "Vector3" or not Groups.isOn("sfx") then
 		return
 	end
 	local listener = listenerPosition()
@@ -581,12 +378,11 @@ function SoundController.playWhiz(position: Vector3)
 	playLayer(SoundController.pickVariant(WHIZ), position, 1, false)
 end
 
--- Muffle the SFX group (death / arrest grade, weapon wheel). nil clears that reason's muffle; with several reasons
--- active the strongest (most negative) gains win. UI one-shots play through HC_UI and stay crisp.
-local muffleEq: EqualizerSoundEffect? = nil
+-- Muffle the world (death / arrest grade, weapon wheel). nil clears that reason's muffle; with several reasons
+-- active the strongest (most negative) gains win. The radio and UI one-shots stay crisp. The death grade also ducks
+-- music / ambience for the WASTED / BUSTED message.
 local muffles: { [string]: { high: number, mid: number } } = {}
 function SoundController.setMuffle(highGain: number?, midGain: number?, reason: string?)
-	ensureGroups()
 	local key = reason or "default"
 	muffles[key] = if highGain == nil then nil else { high = highGain, mid = midGain or 0 }
 	local high, mid, any = 0, 0, false
@@ -595,254 +391,64 @@ function SoundController.setMuffle(highGain: number?, midGain: number?, reason: 
 		high = math.min(high, m.high)
 		mid = math.min(mid, m.mid)
 	end
-	if not any then
-		if muffleEq then
-			muffleEq.Enabled = false
-		end
-		return
-	end
-	local group = sfxGroup :: SoundGroup
-	local eq = muffleEq
-	if not eq or eq.Parent ~= group then
-		eq = Instance.new("EqualizerSoundEffect")
-		eq.Name = "HC_Muffle"
-		eq.Parent = group
-		muffleEq = eq
-	end
-	local e = eq :: EqualizerSoundEffect
-	e.HighGain = high
-	e.MidGain = mid
-	e.LowGain = 0
-	e.Enabled = true
-end
-
-local function updateDuck()
-	if duckUntil > 0 and os.clock() >= duckUntil then
-		duckUntil = 0
-		duckFactor = 1
-		applyGroupVolumes()
-	end
-end
-
--- Start a looping sound the caller owns. parent = BasePart/Attachment for 3D, nil for a UI loop.
--- channel "music" puts it in the music group (ambience-like); default "sfx".
-function SoundController.playLoop(key: string, parent: Instance?, channel: string?): Sound?
-	local def = lookup(key)
-	if not def then
-		return nil
-	end
-	ensureGroups()
-	local s = Instance.new("Sound")
-	s.Name = "Loop_" .. key
-	configure(s, def, if channel == "music" then musicGroup else sfxGroup)
-	s.Looped = true
-	s.RollOffMode = Enum.RollOffMode.InverseTapered
-	s.RollOffMinDistance = 15
-	s.RollOffMaxDistance = 300
-	s.Parent = parent or uiFolder
-	s:Play()
-	return s
-end
-
-function SoundController.stopLoop(sound: Sound?)
-	if sound then
-		sound:Stop()
-		sound:Destroy()
+	Groups.setMuffle(if any then high else nil, mid)
+	if key == "death" then
+		Groups.duck("bigMessage", highGain ~= nil)
 	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------
--- Car radio
+-- Car radio (Audio/Radio)
 -------------------------------------------------------------------------------------------------------------------------
 
-SoundController.RadioChanged = Signal.new() -- (station: string?, title: string?) title is nil while nothing plays
+SoundController.RadioChanged = Radio.Changed -- (station: string?, title: string?) title is nil while nothing plays
 
-local stations: { RadioStation } = SoundController.buildStations(Sounds :: any)
-local radioOn = false -- the local player drives (VehicleClient)
-local radioPlaying = false -- decks are live: radioOn and the music setting is on
-local radioStation = 0 -- index into stations (0 = not picked yet: random on the first drive)
-local radioNextTrack: { [number]: number } = {} -- per station: index of the track it plays next
-local radioTitle: string? = nil
-local radioDecks: { [number]: Sound } = {}
-local radioTweens: { [number]: Tween } = {}
-local radioDeck = 1
-local radioToken = 0 -- bumped per track start / stop: stale delayed checks bail
-local radioSkips = 0 -- consecutive tracks skipped for not loading (bounded: never spin on a dead station)
-local radioTuneToken = 0 -- bumped per station press and per track start: only the latest pending tune plays
-local playNextTrack: () -> ()
-
-local function notifyRadio()
-	local station = stations[radioStation]
-	SoundController.RadioChanged:Fire(if station then station.name else nil, if radioPlaying then radioTitle else nil)
-end
-
--- Tween one deck's volume. stopAfter: Stop() it once silent, unless a newer tween took the deck over.
-local function fadeDeck(i: number, target: number, stopAfter: boolean)
-	local sound = radioDecks[i]
-	if not sound then
-		return
+local controllerCache: { [string]: any } = {}
+local function lazy(name: string): any
+	local cached = controllerCache[name]
+	if cached ~= nil then
+		return if cached == false then nil else cached
 	end
-	local previous = radioTweens[i]
-	if previous then
-		previous:Cancel()
-	end
-	local tween = TweenService:Create(
-		sound,
-		TweenInfo.new(RADIO_FADE, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-		{ Volume = target }
-	)
-	radioTweens[i] = tween
-	if stopAfter then
-		tween.Completed:Once(function(state: Enum.PlaybackState)
-			if state == Enum.PlaybackState.Completed and radioTweens[i] == tween then
-				sound:Stop()
-			end
-		end)
-	end
-	tween:Play()
-end
-
-local function ensureDeck(i: number): Sound
-	local existing = radioDecks[i]
-	if existing and existing.Parent then
-		return existing
-	end
-	ensureGroups()
-	local sound = Instance.new("Sound")
-	sound.Name = "HC_Radio" .. i
-	sound.Looped = false
-	sound.Volume = 0
-	sound.SoundGroup = musicGroup
-	sound.Parent = uiFolder
-	-- Ended = played to the end (Stop() fires Stopped instead): queue the station's next track
-	sound.Ended:Connect(function()
-		if radioPlaying and radioDecks[radioDeck] == sound then
-			radioSkips = 0
-			playNextTrack()
+	local ms = script.Parent:FindFirstChild(name)
+	local mod: any = false
+	if ms and ms:IsA("ModuleScript") then
+		local ok, res = pcall(require, ms)
+		if ok and typeof(res) == "table" then
+			mod = res
 		end
-	end)
-	radioDecks[i] = sound
-	return sound
+	end
+	controllerCache[name] = mod
+	return if mod then mod else nil
 end
 
--- Start the current station's next track on the idle deck, crossfading out whatever played before.
-playNextTrack = function()
-	local station = stations[radioStation]
-	if not (radioPlaying and station and #station.tracks > 0) then
-		return
-	end
-	radioTuneToken += 1 -- this start supersedes any pending station press
-	local count = #station.tracks
-	local index = radioNextTrack[radioStation]
-	if not index or index < 1 or index > count then
-		index = rng:NextInteger(1, count) -- each station starts at a random track
-	end
-	radioNextTrack[radioStation] = index % count + 1
-	local key = station.tracks[index]
-	local def = lookup(key)
-	if not def then
-		return
-	end
-	local from = radioDeck
-	local to = 3 - from
-	fadeDeck(from, 0, true)
-	local deckSound = ensureDeck(to)
-	local running = radioTweens[to]
-	if running then
-		running:Cancel()
-		radioTweens[to] = nil
-	end
-	radioDeck = to
-	radioToken += 1
-	local token = radioToken
-	deckSound:Stop()
-	deckSound.SoundGroup = musicGroup
-	deckSound.SoundId = def.id
-	deckSound.PlaybackSpeed = def.pitch or 1
-	deckSound.Volume = 0
-	deckSound.TimePosition = 0
-	deckSound:Play()
-	fadeDeck(to, def.volume, false)
-	radioTitle = def.title or key
-	notifyRadio()
-	-- a track that never loads (taken down / offline) would stall the station: skip it, at most once around the dial
-	task.delay(RADIO_LOAD_TIMEOUT, function()
-		if token == radioToken and radioPlaying and not deckSound.IsLoaded and radioSkips < count then
-			radioSkips += 1
-			playNextTrack()
-		end
-	end)
-end
-
--- Play or silence the radio to match (driving and music setting). Called on every change of either.
-local function refreshRadio()
-	local want = radioOn and enabled.music and #stations > 0
-	if want == radioPlaying then
-		return
-	end
-	radioPlaying = want
-	if want then
-		radioSkips = 0
-		playNextTrack()
-	else
-		radioToken += 1
-		for i in radioDecks do
-			fadeDeck(i, 0, true)
-		end
-		notifyRadio()
-	end
-end
-
--- VehicleClient: true while the local player drives. The first drive tunes a random station.
+-- VehicleClient: true while the local player drives. A new car tunes a random station (police: RADIO OFF).
 function SoundController.setRadioOn(on: boolean)
-	if typeof(on) ~= "boolean" or on == radioOn then
+	if typeof(on) ~= "boolean" then
 		return
 	end
-	radioOn = on
-	if on and radioStation == 0 and #stations > 0 then
-		radioStation = rng:NextInteger(1, #stations)
-	end
-	refreshRadio()
-	if not radioPlaying then
-		notifyRadio()
-	end
-end
-
--- Next (+1) / previous (-1) station. The label retunes at once; when playing, the station's track crossfades in
--- RADIO_TUNE_DELAY after the last press (a burst of presses streams one track, not one per press).
-function SoundController.stepRadio(dir: number)
-	if #stations == 0 then
-		return
-	end
-	local step = if typeof(dir) == "number" and dir < 0 then -1 else 1
-	radioStation = SoundController.stepIndex(radioStation, step, #stations)
-	radioSkips = 0
-	radioTitle = nil
-	notifyRadio()
-	if not radioPlaying then
-		return
-	end
-	radioTuneToken += 1
-	local tune = radioTuneToken
-	task.delay(RADIO_TUNE_DELAY, function()
-		if tune == radioTuneToken and radioPlaying then
-			playNextTrack()
+	local model: Model? = nil
+	if on then
+		local vc = lazy("VehicleClient")
+		if vc and typeof(vc.getModel) == "function" then
+			local ok, m = pcall(vc.getModel)
+			model = if ok and typeof(m) == "Instance" and m:IsA("Model") then m else nil
 		end
-	end)
+	end
+	Radio.setInCar(on, model)
 end
 
--- (station name?, track title? (nil while silent), playing)
+-- Next (+1) / previous (-1) dial position (stations, then RADIO OFF).
+function SoundController.stepRadio(dir: number)
+	Radio.step(dir)
+end
+
+-- (station name? (RADIO OFF when off), track title? (nil while silent), playing)
 function SoundController.getRadio(): (string?, string?, boolean)
-	local station = stations[radioStation]
-	return if station then station.name else nil, if radioPlaying then radioTitle else nil, radioPlaying
+	return Radio.get()
 end
 
 function SoundController.radioStations(): { string }
-	local names = {}
-	for _, station in stations do
-		table.insert(names, station.name)
-	end
-	return names
+	return Radio.stationNames()
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -861,28 +467,28 @@ function SoundController.setEnabled(a: any, b: any)
 		return
 	end
 	if channel == nil or channel == "sfx" then
-		enabled.sfx = value
+		Groups.setToggle("sfx", value)
 	end
 	if channel == nil or channel == "music" then
-		enabled.music = value
+		Groups.setToggle("music", value)
+		Radio.setMusic(value)
 	end
-	applyGroupVolumes()
-	refreshRadio()
 end
 
 function SoundController.isEnabled(channel: string): boolean
-	return if channel == "music" then enabled.music else enabled.sfx
+	return Groups.isOn(channel)
 end
 
--- Master volume (0..1) of a channel.
+-- Slider volume 0..1 of a channel: "master" | "sfx" | "vehicles" | "ambience" | "music" | "ui".
 function SoundController.setVolume(channel: string, volume: number)
-	local v = math.clamp(volume, 0, 1)
-	if channel == "music" then
-		volumes.music = v
-	else
-		volumes.sfx = v
+	if typeof(channel) ~= "string" or typeof(volume) ~= "number" then
+		return
 	end
-	applyGroupVolumes()
+	Groups.setVolume(channel, volume)
+end
+
+function SoundController.getVolume(channel: string): number
+	return Groups.getVolume(channel)
 end
 
 local function applySettings(snapshot: any)
@@ -891,274 +497,149 @@ local function applySettings(snapshot: any)
 	end
 	local s = snapshot.settings
 	if typeof(s.sfx) == "boolean" then
-		enabled.sfx = s.sfx
+		Groups.setToggle("sfx", s.sfx)
 	end
 	if typeof(s.music) == "boolean" then
-		enabled.music = s.music
-	end
-	applyGroupVolumes()
-	refreshRadio()
-end
-
--------------------------------------------------------------------------------------------------------------------------
--- Car tracking: engines + sirens
--------------------------------------------------------------------------------------------------------------------------
-
-type CarInfo = { model: Model, chassis: BasePart?, seat: VehicleSeat?, topSpeed: number, carId: any }
-type LoopSlot = { key: string, sound: Sound, holder: Model?, pitch: number, baseVolume: number }
-
-local cars: { [Model]: CarInfo } = {}
-local policeModels: { [Model]: boolean } = {}
-local engineSlots: { LoopSlot } = {}
-local sirenSlots: { LoopSlot } = {}
-local candidates: { { key: any, dist: number } } = {}
-local scanAccum = 0
-local ambience: Sound? = nil
-
-local function resolveParts(info: CarInfo)
-	local model = info.model
-	if not (info.chassis and info.chassis.Parent) then
-		local primary = model.PrimaryPart
-		local chassis = primary or model:FindFirstChild("Chassis")
-		info.chassis = if chassis and chassis:IsA("BasePart") then chassis else nil
-	end
-	if not (info.seat and info.seat.Parent) then
-		local seat = model:FindFirstChild("DriverSeat", true)
-		info.seat = if seat and seat:IsA("VehicleSeat") then seat else nil
-	end
-	local carId = model:GetAttribute("CarId")
-	if carId ~= info.carId then
-		info.carId = carId
-		info.topSpeed = SoundController.topSpeedFor(carId, model:GetAttribute("Kind"))
+		Groups.setToggle("music", s.music)
+		Radio.setMusic(s.music)
 	end
 end
 
-local function trackCar(inst: Instance)
-	if not inst:IsA("Model") or cars[inst] then
+-------------------------------------------------------------------------------------------------------------------------
+-- Integration with VehicleClient / HUDController (lazy: they load after us)
+-------------------------------------------------------------------------------------------------------------------------
+
+local function connectSignal(owner: any, field: string, fn: (...any) -> ()): boolean
+	local sig = if typeof(owner) == "table" then owner[field] else nil
+	if typeof(sig) == "table" and typeof(sig.Connect) == "function" then
+		sig:Connect(fn)
+		return true
+	end
+	return false
+end
+
+local function hookControllers()
+	local vc = lazy("VehicleClient")
+	if vc then
+		connectSignal(vc, "Entered", function(model: any, controller: any)
+			if typeof(model) == "Instance" and model:IsA("Model") then
+				LocalCar.enter(model, controller)
+			end
+		end)
+		connectSignal(vc, "Exited", function()
+			LocalCar.exit()
+		end)
+		-- integration points (VehicleClient, PLAN C3): exhaust pops with the flame VFX, crashes by size
+		LocalCar.setBackfireSignal(connectSignal(vc, "Backfire", function(big: any)
+			if Groups.isOn("sfx") then
+				LocalCar.pop(big == true)
+			end
+		end))
+		-- a car we were already driving when this ran
+		if typeof(vc.getModel) == "function" and typeof(vc.getController) == "function" then
+			local okM, m = pcall(vc.getModel)
+			local okC, c = pcall(vc.getController)
+			if okM and okC and typeof(m) == "Instance" and m:IsA("Model") then
+				LocalCar.enter(m, c)
+			end
+		end
+	end
+	-- the pause duck follows the pause menu itself (not the HUD's visibility: in streamer / photo mode the HUD is
+	-- already hidden when the menu opens, and hiding the HUD from SETTINGS would leave the duck stuck on)
+	local menu = lazy("MenuController")
+	local hookedPause = menu ~= nil
+		and connectSignal(menu, "PauseChanged", function(open: any)
+			Groups.duck("pause", open == true)
+		end)
+	if hookedPause then
+		local ok, open = pcall(menu.isPauseOpen)
+		Groups.duck("pause", ok and open == true)
 		return
 	end
-	local info: CarInfo = { model = inst, chassis = nil, seat = nil, topSpeed = DEFAULT_TOP_SPEED, carId = false }
-	cars[inst] = info
-	resolveParts(info)
-end
-
-local function untrackCar(inst: Instance)
-	if inst:IsA("Model") then
-		cars[inst] = nil
+	-- fallback (no PauseChanged signal): the HUD's pause flag
+	local hud = lazy("HUDController")
+	if hud and typeof(hud.hiddenState) == "function" then
+		local function readPause()
+			local ok, _, _, paused = pcall(hud.hiddenState)
+			Groups.duck("pause", ok and paused == true)
+		end
+		connectSignal(hud, "VisibilityChanged", readPause)
+		readPause()
 	end
 end
 
-local function trackPolice(inst: Instance)
-	if inst:IsA("Model") then
-		policeModels[inst] = true
-	end
-end
+-------------------------------------------------------------------------------------------------------------------------
+-- Preload (BACKLOG 5: instances, never id strings)
+-------------------------------------------------------------------------------------------------------------------------
 
-local function untrackPolice(inst: Instance)
-	if inst:IsA("Model") then
-		policeModels[inst] = nil
-	end
-end
-
-local function hasDriver(info: CarInfo): boolean
-	local seat = info.seat
-	if seat and seat.Occupant ~= nil then
-		return true
-	end
-	local driverId = info.model:GetAttribute("DriverUserId")
-	return typeof(driverId) == "number" and driverId > 0
-end
-
-local function newLoopSound(key: string, def: SoundDef): Sound
-	ensureGroups()
-	local s = Instance.new("Sound")
-	s.Name = "HC_" .. key
-	configure(s, def, sfxGroup)
-	s.Looped = true
-	s.RollOffMode = Enum.RollOffMode.InverseTapered
-	s.RollOffMinDistance = if key == "EngineLoop" then 10 else 25
-	s.RollOffMaxDistance = if key == "EngineLoop" then ENGINE_RANGE else SIREN_RANGE + 40
-	return s
-end
-
-local function makeSlot(key: string): LoopSlot?
-	local def = lookup(key)
-	if not def then
-		return nil
-	end
-	return { key = key, sound = newLoopSound(key, def), holder = nil, pitch = 0.7, baseVolume = def.volume }
-end
-
--- Loop Sounds live inside car chassis, so they are destroyed together with a despawned car (Parent becomes locked).
--- Re-parenting such a Sound throws: replace it with a fresh one instead.
-local function parentSlotSound(slot: LoopSlot, parent: Instance?): boolean
-	local ok = pcall(function()
-		slot.sound.Parent = parent
-	end)
-	if ok then
-		return true
-	end
-	local def = lookup(slot.key)
-	if not def then
+-- Is `key` a short, latency-critical one-shot (guns, impacts, foley, UI) worth downloading at join? Radio tracks,
+-- ambience (beds and their long one-shots), every loop (engines, sirens, beds: they fade in and can stream on first
+-- play) and `stream` keys (long files) are left out.
+function SoundController.isPreloaded(key: string, def: any): boolean
+	if typeof(def) ~= "table" or typeof(def.id) ~= "string" then
 		return false
 	end
-	slot.sound = newLoopSound(slot.key, def)
-	return pcall(function()
-		slot.sound.Parent = parent
+	if string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX or string.sub(key, 1, #AMB_PREFIX) == AMB_PREFIX then
+		return false
+	end
+	return def.looped ~= true and def.stream ~= true
+end
+
+-- The ids preloaded at join: every isPreloaded key's id once, except ids a loop also plays (a long take).
+function SoundController.preloadIds(defs: { [string]: any }): { string }
+	local long: { [string]: boolean } = {}
+	for key, def in defs do
+		if typeof(key) == "string" and typeof(def) == "table" and typeof(def.id) == "string" then
+			if not SoundController.isPreloaded(key, def) then
+				long[def.id] = true
+			end
+		end
+	end
+	local ids: { string } = {}
+	local seen: { [string]: boolean } = {}
+	for key, def in defs do
+		if typeof(key) == "string" and SoundController.isPreloaded(key, def) then
+			local id = def.id :: string
+			if not seen[id] and not long[id] then
+				seen[id] = true
+				table.insert(ids, id)
+			end
+		end
+	end
+	table.sort(ids)
+	return ids
+end
+
+local function preload()
+	local list: { Instance } = {}
+	for _, id in SoundController.preloadIds(Sounds :: any) do
+		local s = Instance.new("Sound")
+		s.SoundId = id
+		table.insert(list, s)
+	end
+	-- the Theme fonts (the loading screen preloads four; menus use the rest)
+	local okTheme, Theme = pcall(function()
+		local ui = script.Parent.Parent:FindFirstChild("UI")
+		return require((ui :: Instance):FindFirstChild("Theme") :: any)
 	end)
-end
-
-local function releaseSlot(slot: LoopSlot)
-	slot.holder = nil
-	if slot.sound.IsPlaying then
-		slot.sound:Stop()
-	end
-	parentSlotSound(slot, nil)
-end
-
-local function assignSlot(slot: LoopSlot, model: Model, chassis: BasePart)
-	if not parentSlotSound(slot, chassis) then
-		slot.holder = nil
-		return
-	end
-	slot.holder = model
-	slot.pitch = 0.7
-	slot.sound.PlaybackSpeed = slot.pitch
-	slot.sound.TimePosition = rng:NextNumber(0, 1) -- de-sync identical loops
-	slot.sound:Play()
-end
-
--- Reassign a pool of loop slots to the chosen set of models, keeping current holders where possible.
-local function distribute(slots: { LoopSlot }, chosen: { [any]: boolean }, chassisOf: (Model) -> BasePart?)
-	local held: { [Model]: boolean } = {}
-	for _, slot in slots do
-		local holder = slot.holder
-		if holder then
-			local chassis = chassisOf(holder)
-			if chosen[holder] and chassis and slot.sound.Parent == chassis then
-				held[holder] = true
-			else
-				releaseSlot(slot)
+	if okTheme and typeof(Theme) == "table" and typeof(Theme.Fonts) == "table" then
+		for _, face in Theme.Fonts do
+			if typeof(face) == "Font" then
+				local label = Instance.new("TextLabel")
+				label.FontFace = face
+				label.Text = "Aa"
+				table.insert(list, label)
 			end
 		end
 	end
-	for model in chosen do
-		if not held[model] then
-			local chassis = chassisOf(model)
-			if chassis then
-				for _, slot in slots do
-					if slot.holder == nil then
-						assignSlot(slot, model, chassis)
-						break
-					end
-				end
-			end
-		end
+	local ok, err = pcall(function()
+		ContentProvider:PreloadAsync(list)
+	end)
+	if not ok then
+		warn("[SoundController] preload failed: " .. tostring(err))
 	end
-end
-
-local function chassisOfCar(model: Model): BasePart?
-	local info = cars[model]
-	if info then
-		local chassis = info.chassis
-		if chassis and chassis.Parent then
-			return chassis
-		end
-	end
-	local primary = model.PrimaryPart
-	if primary then
-		return primary
-	end
-	local c = model:FindFirstChild("Chassis")
-	return if c and c:IsA("BasePart") then c else nil
-end
-
-local function releaseAll(slots: { LoopSlot })
-	for _, slot in slots do
-		if slot.holder then
-			releaseSlot(slot)
-		end
-	end
-end
-
-local function scan()
-	local cam = Workspace.CurrentCamera
-	if not cam then
-		return
-	end
-	local listener = cam.CFrame.Position
-
-	if not enabled.sfx then
-		releaseAll(engineSlots)
-		releaseAll(sirenSlots)
-		return
-	end
-
-	-- engines
-	table.clear(candidates)
-	for model, info in cars do
-		if model.Parent == nil then
-			cars[model] = nil
-			continue
-		end
-		resolveParts(info)
-		local chassis = info.chassis
-		if chassis and SoundController.isEngineEligible(model:GetAttribute("Kind"), hasDriver(info)) then
-			local dist = (chassis.Position - listener).Magnitude
-			if dist <= ENGINE_RANGE then
-				table.insert(candidates, { key = model, dist = dist })
-			end
-		end
-	end
-	distribute(engineSlots, SoundController.selectNearest(candidates, ENGINE_SLOTS), chassisOfCar)
-
-	-- sirens
-	table.clear(candidates)
-	for model in policeModels do
-		if model.Parent == nil then
-			policeModels[model] = nil
-			continue
-		end
-		-- PoliceService sets Siren=false on units that are leaving or wrecked (nil = on: older/unreplicated units)
-		if model:GetAttribute("Siren") == false then
-			continue
-		end
-		local chassis = chassisOfCar(model)
-		if chassis then
-			local dist = (chassis.Position - listener).Magnitude
-			if dist <= SIREN_RANGE then
-				table.insert(candidates, { key = model, dist = dist })
-			end
-		end
-	end
-	distribute(sirenSlots, SoundController.selectNearest(candidates, SIREN_SLOTS), chassisOfCar)
-
-	-- ambience: duck while the local player drives (the engine takes over)
-	local amb = ambience
-	if amb then
-		local def = lookup("CityAmbience")
-		local base = (if def then def.volume else 0.25) * AMBIENCE_VOLUME_SCALE
-		local driving = radioOn or (player ~= nil and player:GetAttribute("Driving") == true)
-		amb.Volume = if driving then base * AMBIENCE_DRIVING_DUCK else base
-	end
-end
-
-local function updateEngines(dt: number)
-	local alpha = math.min(1, dt * PITCH_SMOOTHING)
-	for _, slot in engineSlots do
-		local holder = slot.holder
-		if holder then
-			local info = cars[holder]
-			local chassis = if info then info.chassis else nil
-			if info and chassis and chassis.Parent then
-				local speed = chassis.AssemblyLinearVelocity.Magnitude
-				local target = SoundController.enginePitch(speed, info.topSpeed)
-				slot.pitch += (target - slot.pitch) * alpha
-				slot.sound.PlaybackSpeed = slot.pitch
-				local frac = math.clamp((slot.pitch - 0.7) / 1.1, 0, 1)
-				slot.sound.Volume = slot.baseVolume * (0.55 + 0.45 * frac)
-			end
-		end
+	for _, inst in list do
+		inst:Destroy()
 	end
 end
 
@@ -1166,14 +647,65 @@ end
 -- Lifecycle
 -------------------------------------------------------------------------------------------------------------------------
 
+local lisPos = Vector3.zero
+local lisVel = Vector3.zero
+local hasListener = false
+local scanAccum = 0
+local scanCount = 0
+
+local function onRender(dt: number)
+	local cam = Workspace.CurrentCamera
+	if not cam or dt <= 0 then
+		return
+	end
+	local pos = cam.CFrame.Position
+	if hasListener then
+		local raw = (pos - lisPos) / dt
+		if raw.Magnitude > 400 then
+			raw = Vector3.zero -- a camera cut / teleport is not motion
+		end
+		lisVel = lisVel:Lerp(raw, math.min(1, dt * LISTENER_SMOOTHING))
+	end
+	lisPos = pos
+	hasListener = true
+	local sfxOn = Groups.isOn("sfx")
+	local driving = LocalCar.isActive()
+
+	scanAccum += dt
+	if scanAccum >= SCAN_INTERVAL then
+		scanAccum = 0
+		scanCount += 1
+		debug.profilebegin("HC_SoundScan")
+		Engines.scan(pos, sfxOn)
+		Police.scan(pos, sfxOn)
+		if scanCount % 2 == 0 then
+			City.scan(pos, sfxOn, LocalCar.getModel())
+			Radio.scan(pos, Engines.cars(), LocalCar.getModel())
+		end
+		debug.profileend()
+	end
+
+	debug.profilebegin("HC_SoundStep")
+	Groups.step(dt)
+	Voices.step()
+	LocalCar.step(dt)
+	Engines.step(dt, pos, lisVel)
+	Police.step(dt, pos, lisVel, sfxOn, driving)
+	City.step(dt, driving)
+	Radio.stepOutside(dt)
+	debug.profileend()
+end
+
 function SoundController.init()
-	ensureGroups()
-	applyGroupVolumes()
+	Groups.apply()
+	pcall(function()
+		SoundService.DopplerScale = 0 -- manual Doppler (see header)
+	end)
 end
 
 function SoundController.start()
-	ensureGroups()
-	ensureWorldAnchor()
+	Groups.apply()
+	Voices.anchor()
 
 	-- remote
 	local ok, err = pcall(Net.listen, "Sound", function(key: any, position: any)
@@ -1185,6 +717,7 @@ function SoundController.start()
 	if not ok then
 		warn("[SoundController] Sound remote unavailable: " .. tostring(err))
 	end
+	Radio.setFire(Net.fire)
 
 	-- settings from the snapshot
 	StateController.onReady(applySettings)
@@ -1192,71 +725,16 @@ function SoundController.start()
 		applySettings(snapshot)
 	end)
 
-	-- loop pools
-	for _ = 1, ENGINE_SLOTS do
-		local slot = makeSlot("EngineLoop")
-		if slot then
-			table.insert(engineSlots, slot)
-		end
-	end
-	for i = 1, SIREN_SLOTS do
-		local slot = makeSlot(if i == 2 then "SirenAlt" else "Siren")
-		if slot then
-			table.insert(sirenSlots, slot)
-		end
-	end
+	Engines.start()
+	Police.start()
+	City.start()
+	Hotwire.start()
+	task.defer(hookControllers)
 
-	-- car tracking
-	CollectionService:GetInstanceAddedSignal("Vehicle"):Connect(trackCar)
-	CollectionService:GetInstanceRemovedSignal("Vehicle"):Connect(untrackCar)
-	for _, inst in CollectionService:GetTagged("Vehicle") do
-		trackCar(inst)
-	end
-	CollectionService:GetInstanceAddedSignal("Police"):Connect(trackPolice)
-	CollectionService:GetInstanceRemovedSignal("Police"):Connect(untrackPolice)
-	for _, inst in CollectionService:GetTagged("Police") do
-		trackPolice(inst)
-	end
+	RunService.PreRender:Connect(onRender)
 
-	-- ambience (music channel)
-	ambience = SoundController.playLoop("CityAmbience", nil, "music")
-	local amb = ambience
-	if amb then
-		amb.Volume *= AMBIENCE_VOLUME_SCALE
-	end
-
-	RunService.PreRender:Connect(function(dt: number)
-		scanAccum += dt
-		if scanAccum >= SCAN_INTERVAL then
-			scanAccum = 0
-			debug.profilebegin("HC_SoundScan")
-			scan()
-			debug.profileend()
-			updateDuck()
-		end
-		updateEngines(dt)
-	end)
-
-	-- preload everything in the background (yields; never blocks gameplay)
-	task.spawn(function()
-		local ids: { string } = {}
-		local seen: { [string]: boolean } = {}
-		for key, def in Sounds :: any do
-			if typeof(key) == "string" and string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX then
-				continue -- long music: streams when tuned in
-			end
-			if typeof(def) == "table" and typeof(def.id) == "string" and not seen[def.id] then
-				seen[def.id] = true
-				table.insert(ids, def.id)
-			end
-		end
-		local preloadOk, preloadErr = pcall(function()
-			ContentProvider:PreloadAsync(ids :: any)
-		end)
-		if not preloadOk then
-			warn("[SoundController] preload failed: " .. tostring(preloadErr))
-		end
-	end)
+	-- preload in the background (yields; never blocks gameplay)
+	task.delay(PRELOAD_DELAY, preload)
 end
 
 return SoundController

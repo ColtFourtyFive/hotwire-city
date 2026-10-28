@@ -50,6 +50,7 @@ local Util = Shared:WaitForChild("Util")
 local EconomyMath = require(Util:WaitForChild("EconomyMath"))
 local Format = require(Util:WaitForChild("Format"))
 local Signal = require(Util:WaitForChild("Signal"))
+local AudioMix = require(Shared:WaitForChild("Audio"):WaitForChild("Mix")) -- [C3 audio integration] volume rows
 
 local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
@@ -1920,6 +1921,24 @@ local function refreshSettings(tab: Tab)
 			data = { section = "settings", def = def },
 		})
 	end
+	-- [C3 audio integration] per-channel volume sliders (Shared/Audio/Mix.SLIDERS -> SoundController.setVolume)
+	local sounds = lazy("SoundController")
+	if sounds and typeof(sounds.getVolume) == "function" and typeof(sounds.setVolume) == "function" then
+		table.insert(items, { separator = true, label = "Audio" })
+		local labels = AudioMix.stepLabels()
+		for _, slider in AudioMix.SLIDERS do
+			local okVol, vol = pcall(sounds.getVolume, slider.channel)
+			local step = AudioMix.volumeToStep(if okVol and typeof(vol) == "number" then vol else 1)
+			table.insert(items, {
+				id = "vol_" .. slider.channel,
+				label = slider.label,
+				options = labels,
+				optionIndex = step,
+				desc = slider.desc,
+				data = { section = "volume", slider = slider, step = step },
+			})
+		end
+	end
 	-- C4a characters (integration point): the wardrobe (CharacterCreator) and the own-avatar switch (AppearanceService)
 	local creator = lazy("CharacterCreator")
 	if creator then
@@ -1960,10 +1979,33 @@ local function setSetting(def: SettingDef, value: boolean)
 	playSound("Click")
 end
 
+-- [C3 audio integration] apply a volume row's step (clamped at the ends: the list wraps, a slider must not)
+local function setVolumeRow(tab: Tab, item: any, step: number)
+	local d = item.data
+	local sounds = lazy("SoundController")
+	d.step = step
+	item.optionIndex = step
+	if sounds and typeof(sounds.setVolume) == "function" then
+		pcall(sounds.setVolume, d.slider.channel, AudioMix.stepToVolume(step))
+	end
+	tab.list:setItems(tab.list.items, true)
+	playSound("Click")
+end
+
 local function describeSettings(tab: Tab, item: any)
 	local f = tab.detail :: Frame
 	local d = item.data or {}
-	if d.section == "settings" then
+	if d.section == "volume" then
+		dTitle(f, d.slider.label)
+		dLine(f, d.slider.desc, C.TextDim)
+		dPair(f, "Now", ("%d%%"):format(math.floor(AudioMix.stepToVolume(d.step or AudioMix.STEPS) * 100 + 0.5)))
+		dLine(
+			f,
+			if Kit.isTouch() then "Tap the selected row to turn it up." else "Left / Right to set the level.",
+			C.TextDim,
+			if Kit.isTouch() then 16 else 12
+		)
+	elseif d.section == "settings" then
 		dTitle(f, d.def.label)
 		dLine(f, d.def.desc, C.TextDim)
 		dPair(f, "Now", if settingNow(d.def) then "ON" else "OFF", if settingNow(d.def) then C.Green else C.TextDim)
@@ -2003,7 +2045,10 @@ end
 
 local function changeSettings(tab: Tab, item: any, index: number)
 	local d = item.data or {}
-	if d.section == "settings" then
+	if d.section == "volume" then
+		setVolumeRow(tab, item, AudioMix.sliderStep(d.step or AudioMix.STEPS, index, AudioMix.STEPS))
+		redescribe(tab, true)
+	elseif d.section == "settings" then
 		setSetting(d.def, index == 2)
 		redescribe(tab, true)
 	elseif d.section == "ownAvatar" then
@@ -2013,7 +2058,12 @@ end
 
 local function selectSettings(tab: Tab, item: any)
 	local d = item.data or {}
-	if d.section == "settings" then
+	if d.section == "volume" then
+		-- Enter / tap: one step up, 100 % wraps to 0 % (touch has no Left / Right)
+		local step = d.step or AudioMix.STEPS
+		setVolumeRow(tab, item, if step >= AudioMix.STEPS then 1 else step + 1)
+		redescribe(tab, true)
+	elseif d.section == "settings" then
 		local now = settingNow(d.def)
 		item.optionIndex = if now then 1 else 2
 		setSetting(d.def, not now)
