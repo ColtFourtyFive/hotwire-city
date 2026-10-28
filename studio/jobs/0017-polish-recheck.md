@@ -9,16 +9,16 @@
 | # | Fix | What you should see |
 |---|---|---|
 | Bug 1 | Phone apps | Contacts, Jobs, Daily, Gifts and Codes open. No `attempt to call a Instance value`. |
-| Bug 2 | Shard | WASTED and BUSTED always show the black band across the middle (19.5 % of the screen height, centred at 48.8 %). WASTED always has a subtitle. Money is in red. |
-| Bug 3 | Gun shop | Rows take a mouse click; one click = one purchase. The chat window steps aside while the shop is open. |
-| Bug 4 | UI focus | With the phone, pause menu, a shop list or the gun shop open, a click that misses the menu never fires or aims the gun. |
-| Bug 5 | Bail | One arrest = one bail charge. Every bust prints one `[Bust] id=… cash=a->b bail=…` line to the **server** console. |
-| Nit | Help text | Shows for about 8 s, then fades. It comes back only for a new hint. |
-| Nit | Events | Quiet rows at the feed position above the radar: sentence case, no emoji, no "CLAIM IT!". Nothing over the crosshair. |
-| Nit | Vehicle name | On entering a car, bottom-right: the model large in script, the brand small above it. Gone after about 3 s. |
-| Nit | Gun store name | The menu header reads "Lock & Load" (the name on the building). |
-| De-Robloxify | Prompts | No grey Roblox prompt bubbles. Prompts become GTA help text top-left ("**Halden Wren** / Hold [E] to hotwire."), with a thin orange rule that fills while you hold. |
-| De-Robloxify | CoreGui | No player list. No chat bubbles over heads. The chat window sits left-middle. Esc in the first minute: closing the Roblox menu opens our pause MAP. |
+| Bug 2 | Shard | WASTED and BUSTED always show the black band across the middle (19.5 % of the screen height, centred at 48.8 %), **also at night**: the world turns grey, not black, behind it. WASTED always has a subtitle. Money is in red. |
+| Bug 3 | Gun shop | Rows take a mouse click; one click = one purchase. The chat window steps aside while the shop is open. Opening the pause menu (`P` / `M`) closes the shop, and no click on the pause menu ever buys. |
+| Bug 4 | UI focus | With the phone, the phone camera's viewfinder, the pause menu, a shop list or the gun shop open, a click that misses the menu never fires or aims the gun. |
+| Bug 5 | Bail | One arrest = one bail charge. Every bust prints one `[Bust] id=… cash=a->b bail=…` line to the **server** console. (Job 0006's -$7,200 was two separate arrests, not a double charge; the line tells arrests apart.) |
+| Nit | Help text | Shows for about 8 s, then fades. It comes back only for a new hint. A hint pushed aside by a prompt returns only for the seconds it had left. |
+| Nit | Events | Quiet rows at the feed position above the radar: sentence case, no emoji, no "CLAIM IT!". Nothing over the crosshair. The hot drop's distance comes first. Touch: timed events are timer bars top-centre. |
+| Nit | Vehicle name | On entering a car, bottom-right, on the top line of the location block: the model large in script, the brand small to its left. It never overlaps the district line. Gone after about 3 s. |
+| Nit | Gun store name | The menu header, the prompt and the "step up" error all read "Lock & Load" (the name on the building). |
+| De-Robloxify | Prompts | Keyboard and gamepad: no grey Roblox prompt bubbles. Prompts become GTA help text top-left ("**Halden Wren** / Hold [E] to hotwire."), with a thin orange rule that fills while you hold. Touch and streamer mode keep the engine's bubbles (by design, until step 10 passes). |
+| De-Robloxify | CoreGui | No player list. No chat bubbles over heads. The chat window sits left-middle. Esc in the first minute: closing the Roblox menu opens our pause MAP, but never when Esc was pressed to leave our pause menu. |
 | De-Robloxify | Feed | No "!" and no emoji in feed lines. Server events make the feed blip, not an air horn. |
 | De-Robloxify | Leaderboards | Matte black "RICH LIST" / "MOST WANTED" boards: no neon, no emoji, no bubble font. |
 
@@ -38,7 +38,7 @@
 5. Run `get_console_output` and save it as `console_start.txt`.
    - Copy the two boot lines (`[Server] Hotwire City booted with …`, `[Client] … ready with …`).
    - Flag every error and warning that mentions PromptStyle, CoreGuiSetup, UIFocus, HelpText, Shard, PhoneController, GunShopUI, NotificationController, EventsClient, DeathScreenController, WantedService or LeaderboardService.
-   - The single warning `[Shard] keystone band art not loaded yet: drawing the plain band` is expected and harmless.
+   - The keystone band sprite is switched off (`Shard.KEYSTONE_ART = false`), so no `[Shard] keystone band art` warning should appear.
 
 **Admin commands:** the same as job 0006. Use chat `/hc …`, or this with `execute_luau` on the **Client**:
 
@@ -63,7 +63,9 @@ Take every shot with `screen_capture` from the player's own view.
    - Report whether a Roblox player list is visible, where the chat window sits, and whether any name floats over a head.
    - Overhead player names belong to the characters package; just note them.
 2. **`a2_esc_bridge`**: within the first 60 s of the session, press `Esc` (the Roblox menu opens), then press `Esc` again to close it. Capture 1 s later.
-   - Expected: our pause menu is open on the **MAP** tab. Close it with `P`.
+   - Expected: our pause menu is open on the **MAP** tab.
+   - **`a2b_esc_out_of_pause`** (review fix): with the pause menu still open (still inside the first 60 s), press `Esc` (the Roblox menu opens over it and our pause menu closes), then `Esc` again to close the Roblox menu. Capture 1 s later.
+   - Expected: **no** pause menu: the game is back to normal play. Before the fix this re-opened the pause MAP every time. If the 60 s ran out first, write "window passed" and redo A2 on a fresh Play.
 3. After **60 s**, press `Esc` and close the Roblox menu again. Capture **`a3_esc_hint`**.
    - Expected: no pause menu, and the help box top-left reads "Esc opens the Roblox menu. Press [P] to pause the game, [M] for the map." It fades after about 8 s.
 
@@ -83,13 +85,19 @@ Take every shot with `screen_capture` from the player's own view.
 7. Hold `E`. Capture **`c2_prompt_hold`** about halfway through.
    - Expected: a thin orange rule under the text fills.
    - Keep holding until the hotwire completes. Report: did it complete, and did the rule reset?
-8. Walk away from the car. Capture **`c3_prompt_gone`**: the help box clears (or returns to the tutorial hint).
+8. Walk away from the car. Capture **`c3_prompt_gone`**: the help box clears (or returns to the tutorial hint for only the seconds it had left; it never starts a fresh 8 s).
 9. Run `/hc car hot_hatch`. Go into your garage (`/hc tp garage`) and stand by that car. Capture **`c4_prompt_garage`**.
    - Expected: one box with the car name, "Press [E] to drive." and "Hold [F] to sell for $X."
-10. **Optional, touch check.** If Studio's device emulator works with the MCP:
-    - Pick a phone (Test → Device), restart Play and walk up to a car. Capture **`c5_prompt_touch`**.
-    - Expected: a flat black round **HOTWIRE** button above the MAP / PHONE buttons. Tapping and holding it hotwires.
-    - If emulation isn't possible, write "skipped".
+10. **Touch check (mandatory).** Touch keeps the engine's tappable bubbles for now (`PromptStyle.TOUCH_ENABLED = false`). This step decides whether the GTA touch buttons can be switched on.
+    - Pick a phone in Studio's device emulator (Test → Device), restart Play and walk up to a car. Capture **`c5_prompt_touch_default`**.
+      - Expected: the engine's own bubble with its tap target. Tapping and holding it hotwires. No help text.
+    - Then, in Edit before the next Play, set `PromptStyle.TOUCH_ENABLED = true` in `StarterPlayer.StarterPlayerScripts.Client.UI.PromptStyle` (Rojo source: `src/client/UI/PromptStyle.luau`). Restart Play on the phone and walk up to a car. Capture **`c6_prompt_touch_gta`**.
+      - Expected: no bubble, the help text top-left, and a flat black round **HOTWIRE** button above the MAP / PHONE buttons. Tapping and holding it hotwires.
+      - Report pass or fail plainly: the lead switches `TOUCH_ENABLED` on only on a pass. Revert the edit afterwards (never save).
+    - If the emulator can't be driven through the MCP, run this step on a real phone with the published test place, or write "blocked". Touch then stays on the engine's bubbles.
+10b. **Streamer mode check.** In Pause > SETTINGS, switch the HUD off (streamer mode) and walk up to a car. Capture **`c7_prompt_streamer`**.
+    - Expected: the HUD is gone and the engine's grey bubble shows over the car (the prompts must not vanish with the help box). Hold `E`: the hotwire works.
+    - Switch the HUD back on next to the car. Expected: within a moment the bubble is replaced by the help text.
 11. **Failure check:** in the console, search for `[PromptStyle]`. "falling back to the default prompts" means the new prompts gave up. Quote any such line exactly.
 
 ### D. Phone apps (bug 1)
@@ -102,6 +110,9 @@ Take every shot with `screen_capture` from the player's own view.
     - Expected: **no shot**. The ammo is unchanged and there is no star.
     - Also hold right mouse for 1 s: the camera must not go to the aim view.
     - Close the phone (`B`). Fire once into the air: firing works again.
+
+13b. **`d3_photo_click_world`** (review fix): open the phone's **Camera** app (the viewfinder with Exit / Take photo). With the pistol drawn, left-click the world at (400, 300), away from both buttons. Capture.
+    - Expected: **no shot**; the ammo is unchanged. Leave with Exit.
 
 ### E. Pause menu and list menus (bug 4)
 
@@ -118,20 +129,30 @@ Take every shot with `screen_capture` from the player's own view.
 17. Note your cash. Left-click a row by instance path, for example `HC_GunShop.Menu.Rows.Row8` (Med Kit), or the Ammunition / Body Armor category and then a row.
     - Capture **`f2_gun_shop_click`**.
     - Expected: the click selects or buys **exactly once**. Report the cash before and after: one price, not two.
-18. With the shop open, left-click the world beside the menu. Expected: no shot. Close with Backspace.
+18. With the shop open, left-click the world beside the menu. Expected: no shot.
+18b. **`f3_shop_under_pause`** (review fix). With the shop open, note your cash and press `P`.
+    - Expected: the pause menu opens and the gun shop **closes**.
+    - Left-click the pause menu's tabs and its left list column, where the shop rows were (for example screen positions (200, 130) and (150, 250)). Capture before closing.
+    - Close the pause menu and note your cash. Expected: **unchanged**, with no purchase toast.
+    - Close the shop with Backspace if it is still open.
 
 ### G. WASTED and BUSTED (bug 2) and bail (bug 5)
 
+Job 0006's shard shots were night scenes, almost black around the title. Bug 2 is proven only if the band reads at night, so steps 19 and 21 are taken **twice**: once by day and once at night. For the night pass, run `game.Lighting.ClockTime = 0` with `execute_luau` on the **Server**. If LightingService resets it, wait for in-game night instead.
+
 19. Run `/hc wanted 0`, `/hc god off` and `/hc cash 64886`. Run **KILL** (job 0006) on the Server.
-    - Capture **`g1_wasted`** 2–3 s later.
+    - Capture **`g1_wasted`** 2–3 s later, and **`g1_wasted_night`** on the night pass.
     - Expected: the black band across the middle, a lowercase red "wasted", and a subtitle under it: "Taken to the hospital", or "Hospital bill -$X" with the amount in red.
+    - **Pass line (both passes): the band's top and bottom edges are visible against the scene.** The grade turns the world grey, not black.
     - Compare with `docs/v2/early/ui/shard_wasted_desktop.png`.
 20. After the respawn, capture **`g2_wasted_after`**: a normal picture and HUD.
 21. **Bust log check.**
     - Run `get_console_output` and note how many `[Bust]` lines exist so far: expect **0**. A death at 0 stars is not a bust.
     - Run `/hc rookie off`, `/hc wanted 2`. Stand still until an officer is within about 40 studs, then hold `H` (surrender).
-    - Capture **`g3_busted`** about 2 s after the arrest starts.
+    - Capture **`g3_busted`** about 2 s after the arrest starts, and **`g3_busted_night`** on the night pass.
     - Expected: the band, a lowercase blue "busted", and "Bail -$X" with the amount in red, plus "<car> impounded" if you had a car out.
+    - **Pass line (both passes): the band's edges are visible against the scene.**
+    - Report whether the surrender went through, or whether an officer arrested you first (full bail, `reason=police`) before the 1 s hold completed. This is routed to combat in the audit, row 7.4.
 22. After the release, capture **`g4_busted_after`**.
     - Run `get_console_output` and save it as `console_bust.txt`. Copy every `[Bust]` line into the report.
     - Expected: **exactly one** new `[Bust] id=… reason=surrender …` line, and its `cash=a->b` difference equals its `bail=`.
@@ -146,7 +167,7 @@ Take every shot with `screen_capture` from the player's own view.
 
 24. Run `/hc tp spawnplaza`, then `/hc event rushhour`, `/hc event doublecash` and `/hc hotdrop`. Wait 3 s and capture **`h1_event_rows`**.
     - Expected: quiet translucent rows stacked **above the radar** (the GTA feed position):
-      - "Hot drop lands in 0:2x" with a second grey line naming the rarity, the car and a distance **in m or km**;
+      - "Hot drop lands in 0:2x" with a second grey line that starts with the distance **in m or km**, then the rarity and the car (a long name is cut at its end, never the distance);
       - "Rush hour 1:xx";
       - "Double cash x:xx".
     - Expected: **nothing** in the middle or top-centre of the screen, no emoji, no "CLAIM IT!".
@@ -154,11 +175,14 @@ Take every shot with `screen_capture` from the player's own view.
 25. Listen when each event starts and report the sound: the expected sound is the feed's short blip, not an air horn or a car horn.
 26. Draw the pistol and aim (hold right mouse). Capture **`h2_crosshair_clear`**: nothing from the events covers the crosshair.
 27. Read every feed line that appeared since the start (`h1`, or the console if lines were logged). Quote any that still contains "!" or an emoji.
+27b. **Touch.** If step 10's phone emulator works, repeat step 24 on the phone and capture **`h3_event_touch`**.
+    - Expected: "RUSH HOUR 1:xx" and "DOUBLE CASH x:xx" as timer bars **top-centre**, under the radio line.
+    - The left column under the help box holds at most two entries: the hot drop row and one feed card. Nothing reaches the thumbstick.
 
 ### I. Vehicle name (nit)
 
 28. Run `/hc spawn hot_hatch`. Capture **`i1_vehicle_name`** within 1 s of being seated.
-    - Expected, bottom-right: the brand small on top, the model large in the script face, above the district / street lines.
+    - Expected, bottom-right, on the location block's top line: the brand small, then the model large in the script face to its right. The district / street lines sit below it and never overlap it, even when you drive into a new district while the name is up.
 29. Capture **`i2_vehicle_name_gone`** 5 s later. Expected: the name has faded out. Press `F` to exit.
 
 ### J. Leaderboards
@@ -175,7 +199,9 @@ Take every shot with `screen_capture` from the player's own view.
 
 - The commit hash, the place version, and whether Rojo was used.
 - **Bugs 1–5:** pass or fail each one, with the shot names. Quote every `[Bust]` line.
-- **Prompts:** did any grey Roblox prompt bubble appear anywhere? Did hold-to-hotwire, drive, sell and the shop prompt all work from the keyboard? Quote any `[PromptStyle]` line.
+- **Prompts:** did any grey Roblox prompt bubble appear anywhere on keyboard? Did hold-to-hotwire, drive, sell and the shop prompt all work from the keyboard? Quote any `[PromptStyle]` line.
+- **Touch (step 10):** pass, fail or blocked, for both the engine bubbles and the GTA touch buttons (`TOUCH_ENABLED = true`). **Streamer mode (step 10b):** did the bubbles show with the HUD off?
+- **Night shard (G):** do `g1_wasted_night` and `g3_busted_night` meet the pass line (band edges visible)?
 - **Nits:** help text timing, event rows (position, copy, sound), vehicle name, gun store name.
 - **CoreGui / Esc:** what you saw in A1–A3.
 - **Errors:** every error and warning from Setup step 5's list, quoted exactly.

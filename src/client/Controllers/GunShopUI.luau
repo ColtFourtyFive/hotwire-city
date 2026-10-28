@@ -1,5 +1,5 @@
 --!strict
--- GunShopUI (gta_combat §5.1, gta_ui_language §5.13): the FREEDOM ARMS counter as a GTA interaction list menu.
+-- GunShopUI (gta_combat §5.1, gta_ui_language §5.13): the Lock & Load counter as a GTA interaction list menu.
 --
 --  * Opened by the server (OpenUI "GunShop") at a gun-store counter; closes on Back at the top level, on leaving the
 --    store zone (MapLayout gunstore box), on death / respawn or on entering a car.
@@ -19,9 +19,13 @@
 --    steps aside via UI/CoreGuiSetup, and a click that misses the menu never fires the gun. A left click is also
 --    hit-tested against the row rects on UserInputService.InputBegan (which fires even when a CoreGui or another
 --    layer ate the click), so a row under the cursor always takes it; the row's own Activated then skips that click
---    (one activation per click, pure helpers _hitRow / _mouseDedupe).
+--    (one activation per click, pure helpers _hitRow / _mouseDedupe). The hit-test only runs while the shop is the
+--    only screen holding the cursor (_clickAllowed: the pause menu, MAP, phone or photo viewfinder on top of it never
+--    buy through), and a click another PlayerGui button took is left to that button (the topmost interactive object
+--    must be the shop's own). The shop closes itself when a full-screen screen opens over it (_closedBy: pause, MAP,
+--    character creator, photo viewfinder).
 -- Public: isOpen(), open(), close(); pure helpers _menu(menuId, ctx), _ammoQuote(def, reserve, full), _hitRow(pos,
--- rects), _mouseDedupe(isMouse, pressTaken).
+-- rects), _mouseDedupe(isMouse, pressTaken), _clickAllowed(openIds), _closedBy(openIds).
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -336,6 +340,33 @@ end
 -- activations always run.
 function GunShopUI._mouseDedupe(isMouse: boolean, pressTaken: boolean): boolean
 	return not (isMouse and pressTaken)
+end
+
+-- May the InputBegan hit-test take a left click (pure, tested)? Only while the gun shop is the one screen holding the
+-- cursor: with the pause menu / MAP (Layers.Pause, over the shop), the phone or the photo viewfinder up, a click over a
+-- hidden row belongs to that screen and must never buy (review: P / M opened the pause menu over the shop and its tab
+-- clicks bought the row underneath). `openIds` = UIFocus.ids().
+function GunShopUI._clickAllowed(openIds: { string }): boolean
+	local shop = false
+	for _, id in openIds do
+		if id == "gunshop" then
+			shop = true
+		else
+			return false
+		end
+	end
+	return shop
+end
+
+-- Screens that cover the whole shop: when one opens over it the shop closes (pure, tested).
+local CLOSED_BY: { [string]: boolean } = { pause = true, map = true, creator = true, photo = true }
+function GunShopUI._closedBy(openIds: { string }): boolean
+	for _, id in openIds do
+		if CLOSED_BY[id] then
+			return true
+		end
+	end
+	return false
 end
 
 -- Set on every left press: true when the hit-test took it (cleared by the row's Activated on release).
@@ -1062,6 +1093,30 @@ function GunShopUI.close()
 	current = nil
 end
 
+-- Is the topmost interactive PlayerGui object at (x, y) inside `gui` (or is there none: the click went to a CoreGui
+-- such as the chat window, which GetGuiObjectsAtPosition never lists)? Any engine error answers true: the hit-test
+-- is the job 0006 bug 3 fix and must keep working.
+local function ownsTopButton(gui: ScreenGui, x: number, y: number): boolean
+	local pg = player:FindFirstChildOfClass("PlayerGui")
+	if not pg then
+		return true
+	end
+	local ok, list = pcall(function()
+		return pg:GetGuiObjectsAtPosition(x, y)
+	end)
+	if not ok or typeof(list) ~= "table" then
+		return true
+	end
+	for _, obj in list do
+		local layer = obj:FindFirstAncestorWhichIsA("LayerCollector")
+		local shownNow = obj.Visible and (layer == nil or layer.Enabled)
+		if shownNow and (obj:IsA("GuiButton") or obj:IsA("TextBox") or obj.Active) then
+			return obj:IsDescendantOf(gui)
+		end
+	end
+	return true
+end
+
 local function inStore(): boolean
 	local char = player.Character
 	local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -1103,12 +1158,25 @@ function GunShopUI.start()
 	player.CharacterAdded:Connect(function()
 		GunShopUI.close()
 	end)
+	-- a full-screen screen (pause / MAP / creator / photo) opening over the shop closes it (GTA: one menu at a time)
+	UIFocus.Changed:Connect(function()
+		if isOpenFlag and GunShopUI._closedBy(UIFocus.ids()) then
+			GunShopUI.close()
+		end
+	end)
 	-- job 0006 bug 3: the row under a left click takes it even when something else (the CoreGui chat window, a
 	-- transparent layer) processed the click first; the row's own Activated then skips it (_mouseDedupe)
-	UserInputService.InputBegan:Connect(function(input: InputObject, _processed: boolean)
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
 		local v = view
 		if not isOpenFlag or not v or input.UserInputType ~= Enum.UserInputType.MouseButton1 or touch() then
 			return
+		end
+		pressTaken = false
+		if not GunShopUI._clickAllowed(UIFocus.ids()) then
+			return -- another screen of ours is over the shop: the click is its
+		end
+		if processed and not ownsTopButton(v.gui, input.Position.X, input.Position.Y) then
+			return -- another PlayerGui button took it (only CoreGui, e.g. the chat window, is looked through)
 		end
 		local rects: { HitRect } = {}
 		for i, rv in v.rows do

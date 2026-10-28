@@ -6,15 +6,21 @@
 --     feed host, under the newest feed cards; touch: under the help box): a translucent black row, a thin colour rule
 --     on the left, the event in sentence case ("Rush hour", "Double cash", "Cash rain at the plaza") and its time left
 --     in Kanit, red in the last 10 s. No emoji, no shouting, no pop animations.
---   * The hot drop row has a second grey line: rarity (small, in its GTA hue) + car + distance in metres, or "At the
---     drop" once you are there. The start / landing announcements are the server's Announce feed cards (EventService).
+--   * The hot drop row has a second grey line: the distance in metres first (or "At the drop" once you are there),
+--     then rarity (small, in its GTA hue) + car, so a long car name truncates before the distance does. The start /
+--     landing announcements are the server's Announce feed cards (EventService).
+--   * Touch: the feed column runs down the left side under the help box, into the thumbstick's corner, so there only
+--     the hot drop row stays in it (it counts against the feed's 2 entries: NotificationController.cardBudget) and the
+--     timed events become GTA Online timer bars (HUDController.setTimer, top-centre on touch: "RUSH HOUR 1:12").
 --   * Waypoints: WaypointController.set("hotdrop", ...) for the drop and "cashrain" on the plaza while it lasts (a
 --     soft Beam only when WaypointController is missing).
 -- Reads state from StateController when available (it caches pushes that arrived before we started), else listens
 -- to the remotes directly. Timestamps are Workspace:GetServerTimeNow() based. Presentation only.
--- Public: getBottom(): number? (v1 API, always nil now: nothing sits at the top any more).
+-- Public: getBottom(): number? (v1 API, always nil now: nothing sits at the top any more), feedRowCount(): number
+--   (event rows in the feed column right now).
 -- Pure helpers (tests): Events (alias Pills), pillText, rowView, hotDropView, hotDropPhase, distanceText, dropLine,
---   rarityColor, waypointLabel, carText, stackTop, fitScale (v1 layout maths, kept for the clientcore spec).
+--   rarityColor, waypointLabel, carText, timedAsBars, barId, stackTop, fitScale (v1 layout maths, kept for the
+--   clientcore spec).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -157,10 +163,23 @@ function EventsClient.hotDropView(state: any, t: number, distance: number?): Dro
 	return {
 		label = if phase == "countdown" then "Hot drop lands in" else "Hot drop",
 		value = Format.clock(secs),
-		sub = EventsClient.dropLine(state.carId, state.mutation) .. "  ·  " .. whereText,
+		-- the distance first: the AtEnd-truncated line cut it off behind long car names (event_feed mockups)
+		sub = whereText .. "  ·  " .. EventsClient.dropLine(state.carId, state.mutation),
 		urgent = phase == "live" and secs <= BLINK_UNDER,
 	}
 end
+
+-- Do timed events show as HUD timer bars instead of feed rows (pure)? On touch, when the HUD can draw them.
+function EventsClient.timedAsBars(touch: boolean, hudHasTimers: boolean): boolean
+	return touch and hudHasTimers
+end
+
+-- The HUD timer-bar id of a timed event (pure).
+function EventsClient.barId(name: string): string
+	return "event:" .. name
+end
+
+EventsClient.BAR_ORDER = 20 -- timer-bar LayoutOrder base: under the delivery timer (order 1)
 
 function EventsClient.waypointLabel(carId: string?): string
 	local def = if carId then Cars.get(carId) else nil
@@ -364,17 +383,56 @@ end
 
 local eventState: { [string]: number } = {}
 local hotDrop: any = { active = false }
+local bars: { [string]: boolean } = {} -- timed events shown as HUD timer bars (touch)
+
+local function clearBar(name: string)
+	if not bars[name] then
+		return
+	end
+	bars[name] = nil
+	local hud = lazyController("HUDController")
+	if hud and typeof(hud.clearTimer) == "function" then
+		pcall(hud.clearTimer, EventsClient.barId(name))
+	end
+end
+
+-- Event rows in the feed column right now (NotificationController keeps the touch feed at 2 entries with them).
+function EventsClient.feedRowCount(): number
+	local n = 0
+	for _, row in rows do
+		if not row.closing then
+			n += 1
+		end
+	end
+	return n
+end
 
 local function updateRows(t: number)
+	local hud = lazyController("HUDController")
+	local asBars = EventsClient.timedAsBars(Kit.isTouch(), hud ~= nil and typeof(hud.setTimer) == "function")
 	for name, endsAt in eventState do
 		local def = EventsClient.Events[name]
 		local view = EventsClient.rowView(name, endsAt - t)
 		if def and view and endsAt > t then
-			local row = ensureRow(name, def.order, false)
-			row.label.Text = view.label
-			row.value.Text = view.value
-			row.value.TextColor3 = if view.urgent then C.Red else C.Text
-			row.rule.BackgroundColor3 = view.color
+			if asBars then
+				closeRow(name)
+				local ok = pcall(
+					hud.setTimer,
+					EventsClient.barId(name),
+					view.label,
+					view.value,
+					if view.urgent then C.Red else nil,
+					EventsClient.BAR_ORDER + def.order
+				)
+				bars[name] = ok or nil
+			else
+				clearBar(name)
+				local row = ensureRow(name, def.order, false)
+				row.label.Text = view.label
+				row.value.Text = view.value
+				row.value.TextColor3 = if view.urgent then C.Red else C.Text
+				row.rule.BackgroundColor3 = view.color
+			end
 		end
 	end
 	for id in rows do
@@ -383,6 +441,12 @@ local function updateRows(t: number)
 			if not endsAt or endsAt <= t then
 				closeRow(id)
 			end
+		end
+	end
+	for name in bars do
+		local endsAt = eventState[name]
+		if not endsAt or endsAt <= t then
+			clearBar(name)
 		end
 	end
 	-- hot drop

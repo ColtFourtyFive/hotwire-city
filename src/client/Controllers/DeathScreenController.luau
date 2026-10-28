@@ -281,7 +281,7 @@ local function setGrade(on: boolean, time: number)
 			b.Parent = cam
 			blur = b
 		end
-		tween(g :: ColorCorrectionEffect, time, { Saturation = -1, Contrast = 0.3, Brightness = -0.05 })
+		tween(g :: ColorCorrectionEffect, time, Shard.GRADE) -- grey, not black: the band reads at night (job 0017)
 		tween(b :: BlurEffect, time, { Size = 3 })
 		muffle(true)
 	else

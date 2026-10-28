@@ -1925,6 +1925,12 @@ local function configureCoreGui()
 			clear = HUDController.clearHelp,
 			progress = HUDController.helpProgress,
 			layout = HUDController.getLayout,
+			-- streamer mode hides the help box with the HUD: the engine's own bubbles draw the prompts meanwhile
+			hidden = function(): boolean
+				local streamer = HUDController.hiddenState()
+				return streamer == true
+			end,
+			visibility = HUDController.VisibilityChanged,
 		},
 	})
 end

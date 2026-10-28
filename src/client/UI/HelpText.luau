@@ -6,7 +6,8 @@
 --   Queue.new() / Queue.push(q, entry, now) / Queue.clear(q, id, now) / Queue.tick(q, now) / Queue.current(q)
 --   entry = { id: string?, text: string, duration: number? (default 8; math.huge = until cleared), urgent: boolean? }
 --   Same id (or, without an id, the same plain text) updates the existing entry instead of queueing a copy; urgent
---   entries jump the queue and push the current one back to the front.
+--   entries jump the queue and push the current one back to the front with only the time it had left (a hint that
+--   has had all but RETURN_MIN of its time is dropped), so walking past prompts never replays an 8 s hint in full.
 -- View: HelpText.new(parent, rect) -> { show(text, opts) -> id, clear(id?), current(): string?, setWidth(w),
 --   progress(id, fraction?) }
 -- Hold progress (C4b, UI/PromptStyle): a thin Ignition Orange rule under the text while the entry `id` is on screen
@@ -21,6 +22,8 @@ local RichText = require(script.Parent.RichText)
 local HelpText = {}
 
 local DEFAULT_DURATION = 8
+-- A pushed-back entry with this little time left is dropped rather than returning for a blink (seconds).
+HelpText.RETURN_MIN = 1
 
 export type Entry = { id: string, text: string, duration: number, urgent: boolean?, shownAt: number? }
 export type Queue = { current: Entry?, waiting: { Entry } }
@@ -68,8 +71,18 @@ function Queue.push(q: Queue, entry: any, now: number): boolean
 		return true
 	end
 	if e.urgent then
+		-- the pushed-back entry keeps only the time it had left (review: every prompt brought the tutorial / Esc hint
+		-- back for another full 8 s)
+		local keep = true
+		if cur.duration ~= math.huge then
+			local left = cur.duration - math.max(0, now - (cur.shownAt or now))
+			keep = left > HelpText.RETURN_MIN
+			cur.duration = left
+		end
 		cur.shownAt = nil
-		table.insert(q.waiting, 1, cur)
+		if keep then
+			table.insert(q.waiting, 1, cur)
+		end
 		e.shownAt = now
 		q.current = e
 		return true

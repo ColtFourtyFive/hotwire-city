@@ -10,8 +10,17 @@ PromptStyle help text and touch rects). Reuses tools/ui/mockups.py for the backd
 Outputs, each at desktop 1280x720 and phone 844x390:
     shard_wasted_*.png    WASTED with the band always drawn (19.5% H at 48.8% H, 50% black), a subtitle, the bill in red
     shard_busted_*.png    BUSTED, bail in red, the impounded car named
-    event_feed_*.png      server events as quiet rows at the feed position (no mid-screen pills, crosshair clear)
-    prompt_help_*.png     a ProximityPrompt as GTA help text (PromptStyle), hold rule filling; touch: HOTWIRE button
+    shard_*_night_*.png   the same over a night street under the game's grade (Shard.GRADE: grey, not black), so the
+                          band's edges must read (review: job 0006's shard shots were night scenes)
+    event_feed_*.png      server events as quiet rows at the feed position (no mid-screen pills, crosshair clear); the
+                          hot drop's distance first; touch: timed events as GTA Online timer bars top-centre and at
+                          most 2 entries (one card + the hot drop row) in the column under the help box
+    prompt_help_*.png     a ProximityPrompt as GTA help text (PromptStyle), hold rule filling; touch: the HOTWIRE
+                          button as it draws once job 0017 step 10 turns PromptStyle.TOUCH_ENABLED on (until then
+                          touch keeps the engine's bubbles)
+And at desktop only:
+    vehicle_name_desktop.png   the car name in line 1 of the driving location block (VehicleClient.nameRect), the
+                               district / street in lines 2-3 and a delivery timer bar above: nothing overlaps
 """
 import json
 import os
@@ -19,7 +28,7 @@ import re
 import subprocess
 import sys
 
-from PIL import Image, ImageChops, ImageDraw, ImageEnhance
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mockups as mk  # noqa: E402
@@ -112,6 +121,21 @@ def vignette(m, W, H, edge_transparency):
     black = Image.new("RGBA", (sw, sh), (0, 0, 0, 255))
     black.putalpha(alpha)
     m.img.alpha_composite(black)
+
+
+def graded_backdrop(view, P, night):
+    """The street under Shard.GRADE (ColorCorrection: Saturation -1, Contrast, Brightness) plus the light blur. A night
+    pass first darkens the street to roughly a lit city at night (job 0006's shard shots)."""
+    real = view["canvas"]["real"]
+    b = mk.backdrop(real[0], real[1]).convert("RGB")
+    if night:
+        b = ImageEnhance.Brightness(b).enhance(0.28)
+        b = Image.blend(b, Image.new("RGB", b.size, (10, 16, 34)), 0.25)
+    g = P["shard"]["grade"]
+    out = ImageEnhance.Color(b).enhance(max(0.0, 1 + g["saturation"]))
+    out = ImageEnhance.Contrast(out).enhance(1 + g["contrast"])
+    out = ImageEnhance.Brightness(out).enhance(1 + g["brightness"])
+    return out.filter(ImageFilter.GaussianBlur(1.5)).convert("RGBA")
 
 
 def scene_shard(view, P, dev, kind):
@@ -221,12 +245,22 @@ def scene_events(view, P):
                                 ("E" if not touch else "HOTWIRE", "key"), (" to hotwire it.", C["text"])], touch)
     f = L["feed"]
     w = f["w"]
-    drop_sub = [("Legendary", GOLD, False), (" Rossetti Ardente Oro  ·  " + E["distance"], C["dim"], False)]
-    rows = [
-        ("Hot drop", "2:31", GOLD, drop_sub),
+    # the distance first (EventsClient.hotDropView): a long car name truncates, never the distance
+    drop_sub = [(E["distance"] + "  ·  ", C["dim"], False), ("Legendary", GOLD, False),
+                (" Rossetti Ardente Oro", C["dim"], False)]
+    timed = [
         (E["rushHour"]["label"], E["rushHour"]["value"], tuple(E["rushHour"]["color"]), None),
         (E["doubleCash"]["label"], E["doubleCash"]["value"], tuple(E["doubleCash"]["color"]), None),
     ]
+    bars = touch and E["timedAsBarsTouch"]
+    rows = [("Hot drop", "2:31", GOLD, drop_sub)] + ([] if bars else timed)
+    if bars:
+        # GTA Online timer bars (HUDController.setTimer uppercases the label), top-centre on touch
+        T = E["timer"]
+        for i, (label, value, _rule, _sub) in enumerate(timed):
+            Li = dict(L)
+            Li["timers"] = dict(L["timers"], y=L["timers"]["y"] + i * (T["h"] + T["gap"]))
+            mk.timer_bar(m, Li, label.upper(), value, False)
     line_h = 28 if touch else 26
     heights = [line_h + 16 if r[3] else line_h for r in rows]
     card_title = "HOT DROP"
@@ -254,6 +288,22 @@ def scene_events(view, P):
         mk.jump_button(m, L)
         mk.circle_button(m, L["buttons"]["phone"], "Phone", "hud.phone")
         mk.circle_button(m, L["buttons"]["map"], "Map", "hud.map")
+    return m
+
+
+def scene_vehicle_name(view, P, dev):
+    """Desktop: the name in line 1 of the driving location block, district / street in lines 2-3, a timer above."""
+    m, L, touch = base_hud(view)
+    mk.location(m, L, ["", "Downtown", "Crown Boulevard"], True, touch)
+    mk.timer_bar(m, L, "DELIVERY", "1:42", True)
+    r = P[dev]["vehicleNameRect"]
+    size = P["vehicleNameSize"]
+    cy = r["y"] + r["h"] / 2
+    right = r["x"] + r["w"]
+    m.text(right, cy, "K8", "Damion-400", size, mk.rgba(C["text"]), anchor="rm", stroke=1, stroke_fill=(0, 0, 0, 102))
+    model_w = m.measure("K8", "Damion-400", size)
+    m.text(right - model_w - 8, cy, "KRONBERG", "Oswald-500", 14, mk.rgba(C["text"], 230), anchor="rm")
+    mk.speed(m, L, 64)
     return m
 
 
@@ -286,13 +336,18 @@ def main():
         view = layout[dev]
         real = view["canvas"]["real"]
         for kind in ("wasted", "busted"):
-            m = scene_shard(view, P, dev, kind)
-            back = mk.wasted_backdrop(view)
-            back.alpha_composite(m.img.resize((real[0], real[1]), Image.LANCZOS))
-            path = os.path.join(out_dir, f"shard_{kind}_{dev}.png")
-            back.convert("RGB").save(path, optimize=True)
-            written.append(path)
-        for name, fn in (("event_feed", lambda v: scene_events(v, P)), ("prompt_help", lambda v: scene_prompt(v, P, dev))):
+            for night in (False, True):
+                m = scene_shard(view, P, dev, kind)
+                back = graded_backdrop(view, P, night)
+                back.alpha_composite(m.img.resize((real[0], real[1]), Image.LANCZOS))
+                suffix = "_night" if night else ""
+                path = os.path.join(out_dir, f"shard_{kind}{suffix}_{dev}.png")
+                back.convert("RGB").save(path, optimize=True)
+                written.append(path)
+        scenes = [("event_feed", lambda v: scene_events(v, P)), ("prompt_help", lambda v: scene_prompt(v, P, dev))]
+        if dev == "desktop":
+            scenes.append(("vehicle_name", lambda v: scene_vehicle_name(v, P, dev)))
+        for name, fn in scenes:
             # the shared v1 street render, desaturated so the UI under review reads first (it is not the v2 world)
             back = ImageEnhance.Color(mk.backdrop(real[0], real[1])).enhance(0.35)
             img = mk.compose(view, fn(view), back)

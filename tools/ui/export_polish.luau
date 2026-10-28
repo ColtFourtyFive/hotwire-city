@@ -55,11 +55,18 @@ local result = {
 		wastedSubtitle = DeathScreen._wastedSubtitle({ by = "Officer Reyes", bill = 1240 }),
 		wastedSubtitleAlone = DeathScreen._wastedSubtitle({}),
 		bustedSubtitle = DeathScreen._bustedSubtitle(3600, "Halden Wren"),
+		grade = {
+			saturation = Shard.GRADE.Saturation,
+			contrast = Shard.GRADE.Contrast,
+			brightness = Shard.GRADE.Brightness,
+		},
 	},
 	events = {
 		rushHour = plainRow(EventsClient.rowView("rushHour", 72)),
 		doubleCash = plainRow(EventsClient.rowView("doubleCash", 270)),
 		distance = EventsClient.distanceText(3950),
+		timedAsBarsTouch = EventsClient.timedAsBars(true, true),
+		timer = { h = HudLayout.TIMER.h, gap = HudLayout.TIMER.gap },
 	},
 	prompt = {
 		steal = PromptStyle.helpText({ steal }, "keyboard"),
@@ -69,6 +76,7 @@ local result = {
 		calm = RichText.calm("Your garage is full! Sell a car first!"),
 	},
 	vehicleNameHold = VehicleClient.VEHICLE_NAME_HOLD,
+	vehicleNameSize = VehicleClient.NAME_SIZE,
 }
 
 for name, c in canvases do
@@ -78,6 +86,7 @@ for name, c in canvases do
 		shardTitleScale = scale,
 		shardSubtitleMax = subtitleMax,
 		promptRects = PromptStyle.touchRects(L, 2, false),
+		vehicleNameRect = VehicleClient.nameRect(L.locationDriving, L.locationLines),
 	}
 end
 

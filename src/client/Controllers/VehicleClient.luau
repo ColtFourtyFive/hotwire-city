@@ -9,7 +9,8 @@
 --   * Driving HUD ("DrivingUI", v2 GTA language): optional small speed readout bottom-right (Settings > Speed
 --     readout), a thin car-damage rule, a quiet drift line and the touch circle buttons (HudLayout.buttons). Nitro
 --     is the third radar bar segment (HUDController), the car name fades in bottom-right on entering (GTA: the model
---     large in the script face, the brand small above it, out after VEHICLE_NAME_HOLD s; C4b) and the radio
+--     large in the script face, the brand small to its left, in line 1 of the location block, out after
+--     VEHICLE_NAME_HOLD s; C4b) and the radio
 --     station at top-centre. A one-off help text lists the controls. The CoreGui backpack hotbar is hidden while
 --     driving and restored on exit.
 --   * Feel: FOV kick with speed + nitro, camera shake on crashes, screech while drifting. Effects come from the
@@ -421,6 +422,15 @@ end
 
 -- Seconds the vehicle name holds before it fades (the lead's spec: GTA-style, out after 3 s).
 VehicleClient.VEHICLE_NAME_HOLD = 3
+VehicleClient.NAME_SIZE = 30 -- the model's script face (px), inside the location block's 32 px line 1
+
+-- The vehicle name's rect (pure, tested): line 1 of the driving location block `loc` (`lines` lines tall). The HUD
+-- packs the district / street into the bottom lines, and the timer bars sit above the block, so nothing overlaps.
+function VehicleClient.nameRect(loc: any, lines: number?): { x: number, y: number, w: number, h: number }
+	local n = if typeof(lines) == "number" and lines >= 1 then lines else 3
+	local lineH = math.floor(loc.h / n + 0.5)
+	return { x = loc.x, y = loc.y, w = loc.w, h = lineH }
+end
 
 local function hud(): any
 	return sibling("HUDController")
@@ -518,29 +528,32 @@ local function buildUI()
 		Parent = root,
 	})
 
-	-- Vehicle name (desktop: top of the bottom-right location block; the district / street lines stay below it) -----
+	-- Vehicle name (desktop: line 1 of the bottom-right location block, VehicleClient.nameRect; the HUD packs the
+	-- district / street into lines 2-3, so the two never overlap): the brand small, inline left of the model ------
 	local nameBlock = Kit.new("Frame", {
 		Name = "VehicleName",
 		BackgroundTransparency = 1,
 		Visible = false,
 		Parent = root,
+	}, {
+		Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center),
 	})
 	local brandLabel = Kit.text("", "condensedMedium", 14, {
 		Name = "Brand",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.fromScale(1, 0),
-		Size = UDim2.new(1, 0, 0, 16),
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		TextTransparency = 1,
+		LayoutOrder = 1,
 		Parent = nameBlock,
 	})
-	local modelLabel = Kit.script("", 32, {
+	local modelLabel = Kit.script("", VehicleClient.NAME_SIZE, {
 		Name = "Model",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, 0, 0, 12),
-		Size = UDim2.new(1, 0, 0, 40),
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		TextTransparency = 1,
+		LayoutOrder = 2,
 		Parent = nameBlock,
 	})
 	-- the script face over a bright street needs GTA's soft 1 px outline (faded with the text)
@@ -653,10 +666,9 @@ local function layoutDriving()
 	local L = HudLayout.compute(canvas.X, canvas.Y, isTouch)
 	place(ui.speedo, L.speed)
 	place(ui.drift, L.driftText)
-	-- the name sits in the top two lines of the driving location block (the HUD packs district / street at its
-	-- bottom), so the delivery timer bars above the block are never covered
-	local loc = L.locationDriving
-	place(ui.nameBlock, { x = loc.x, y = loc.y - 6, w = loc.w, h = 56 })
+	-- the name sits in line 1 of the driving location block (the HUD packs district / street into lines 2-3), so it
+	-- never covers the district line or the delivery timer bars above the block
+	place(ui.nameBlock, VehicleClient.nameRect(L.locationDriving, L.locationLines))
 	local b = L.buttons
 	place(ui.nitroBtn, b.nitro)
 	place(ui.driftBtn, b.drift)

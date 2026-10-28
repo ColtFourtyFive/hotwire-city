@@ -19,8 +19,8 @@
 --   CoreGuiSetup.apply(opts?)   opts = { wheel: boolean?, openPause: (() -> ())?, hint: ((string) -> ())?,
 --                               prompts: PromptStyle.Hooks? }
 --                               idempotent; safe before the CoreScripts are ready
---   Pure (tests): DISABLED, CHAT_WINDOW, CHAT_INPUT, BUBBLE, ESC_WINDOW; chatEnabledFor(hidesChat),
---   escAction(openedAt, sessionStart, hinted, menuOpen), escHint()
+--   Pure (tests): DISABLED, CHAT_WINDOW, CHAT_INPUT, BUBBLE, ESC_WINDOW, ESC_FOCUS_GRACE; chatEnabledFor(hidesChat),
+--   escAction(openedAt, sessionStart, hinted, menuOpen), menuWasOpen(anyOpen, closedAt, openedAt), escHint()
 
 local GuiService = game:GetService("GuiService")
 local StarterGui = game:GetService("StarterGui")
@@ -74,6 +74,10 @@ CoreGuiSetup.BUBBLE = {
 -- Seconds after the session starts during which closing the Roblox menu opens our pause MAP instead.
 CoreGuiSetup.ESC_WINDOW = 60
 
+-- Seconds before the Roblox menu opened during which a menu of ours still counts as "open": MenuController closes
+-- the pause menu / gear list in its own MenuOpened handler, which may run before ours.
+CoreGuiSetup.ESC_FOCUS_GRACE = 0.25
+
 -- The chat window's Enabled state for the current menus (pure).
 function CoreGuiSetup.chatEnabledFor(hidesChat: boolean): boolean
 	return not hidesChat
@@ -95,6 +99,21 @@ function CoreGuiSetup.escAction(openedAt: number, sessionStart: number, hinted: 
 		return "pause"
 	end
 	return if hinted then "none" else "hint"
+end
+
+-- Was one of our menus up when the Roblox menu opened (pure)? `anyOpen` = UIFocus.any() at MenuOpened; `closedAt` =
+-- os.clock() of the last time every screen closed (nil = never), `openedAt` = os.clock() at MenuOpened. Esc out of
+-- the pause menu (GTA habit) lands in the Roblox menu, whose MenuOpened closes the pause menu first; without this the
+-- close re-opened the pause MAP every time during the first minute (review).
+function CoreGuiSetup.menuWasOpen(anyOpen: boolean, closedAt: number?, openedAt: number): boolean
+	if anyOpen then
+		return true
+	end
+	if typeof(closedAt) ~= "number" then
+		return false
+	end
+	local since = openedAt - closedAt
+	return since == since and since >= 0 and since <= CoreGuiSetup.ESC_FOCUS_GRACE
 end
 
 -- The help line naming the game's own pause and map keys (rich text for HUDController.help).
@@ -139,10 +158,20 @@ local function bridgeEsc(openPause: (() -> ())?, hint: ((string) -> ())?)
 	end
 	local sessionStart = os.clock()
 	local openedAt: number? = nil
+	local menuWasOpen = false
 	local hinted = false
+	-- the last moment every screen of ours closed (MenuController closes them on MenuOpened, maybe before we look)
+	local closedAt: number? = nil
+	UIFocus.Changed:Connect(function(anyOpen: boolean)
+		if not anyOpen then
+			closedAt = os.clock()
+		end
+	end)
 	pcall(function()
 		GuiService.MenuOpened:Connect(function()
-			openedAt = os.clock()
+			local now = os.clock()
+			openedAt = now
+			menuWasOpen = CoreGuiSetup.menuWasOpen(UIFocus.any(), closedAt, now)
 		end)
 		GuiService.MenuClosed:Connect(function()
 			local at = openedAt
@@ -150,7 +179,7 @@ local function bridgeEsc(openPause: (() -> ())?, hint: ((string) -> ())?)
 			if at == nil then
 				return
 			end
-			local action = CoreGuiSetup.escAction(at, sessionStart, hinted, UIFocus.any())
+			local action = CoreGuiSetup.escAction(at, sessionStart, hinted, menuWasOpen or UIFocus.any())
 			if action == "none" then
 				return
 			end

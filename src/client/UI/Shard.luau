@@ -16,8 +16,9 @@
 --                no curtain over a live player, no grey grade after the respawn.
 --   Shard.hide(fast?)            fades the current shard out (also removes the grade)
 --   Shard.isShowing(): boolean / Shard.currentToken(): number   (the token Shard.show returned for the message on screen)
---   Shard.setGrade(on, seconds?) the death / arrest grade: ColorCorrection Saturation -1 / Contrast 0.3 /
---                                Brightness -0.05, a light blur, the vignette and a muffled world mix (local only:
+--   Shard.setGrade(on, seconds?) the death / arrest grade (Shard.GRADE: ColorCorrection Saturation -1, Contrast 0.1,
+--                                Brightness 0: GTA's grade is grey, not black, so the 50% band still reads over a
+--                                night street), a light blur, the vignette and a muffled world mix (local only:
 --                                effects live under workspace.CurrentCamera, the EQ on the HC_SFX / HC_Music groups)
 --   Shard.fadeBlack(on, seconds?) the HC_Fade black curtain (respawn cut); a curtain that is not lifted by the caller
 --                                lifts itself after Shard.MAX_BLACK_SECONDS
@@ -28,7 +29,10 @@
 -- Look: a full-width translucent black band across the middle (centred at 48.8% H), the title in lowercase Kanit Black,
 -- no outline; no stamps, shakes, confetti or Back easing. The band is ALWAYS drawn: a plain 19.5% Frame (gta §5.9's
 -- base recipe) is the guaranteed band; GTA's slight keystone (15.5% H at the left edge, 23% at the right: the
--- Config/UIAssets shard_band sprite) replaces it only once that image has actually loaded (ImageLabel.IsLoaded).
+-- Config/UIAssets shard_band sprite) replaces it only once that image has actually loaded (ImageLabel.IsLoaded), and
+-- only while Shard.KEYSTONE_ART is on. It is OFF until Studio job 0017 g1 / g3 pass at night: job 0006's dark night
+-- shots never proved the sprite was the missing band (it was most likely there, unreadable under the old black grade),
+-- and with it off every shard of a session draws the same band.
 -- Job 0006: the band was an ImageLabel only, and the real engine showed no band at all behind "wasted" / "busted".
 --   Shard.bandPlan(resolved, loaded) / Shard.bandHeight(plan)   pure: which band draws, and its height (screen fraction)
 
@@ -103,8 +107,12 @@ end
 -- View
 -------------------------------------------------------------------------------------------------------------------------
 
--- One-line switch for the keystone art (job 0017 re-test): false = always the plain band.
-Shard.KEYSTONE_ART = true
+-- One-line switch for the keystone art: false = always the plain band (no sprite is built or preloaded). Off until
+-- job 0017 g1 / g3 pass at night with the band edges visible; then it can be tried again.
+Shard.KEYSTONE_ART = false
+
+-- The wasted / busted world grade (ColorCorrectionEffect target; DeathScreenController uses the same numbers).
+Shard.GRADE = { Saturation = -1, Contrast = 0.1, Brightness = 0 } :: { [string]: any }
 
 -- Which band draws (pure): the keystone sprite only when its id resolved AND the image has loaded; else the Frame.
 function Shard.bandPlan(resolved: boolean, loaded: boolean): string
@@ -169,7 +177,7 @@ local function build(): Ui
 		Parent = gui,
 	})
 	local keystone: ImageLabel? = nil
-	if Kit.resolveImage("shard_band") then
+	if Shard.KEYSTONE_ART and Kit.resolveImage("shard_band") then
 		local img = Kit.image("shard_band", {
 			Name = "BandKeystone",
 			AnchorPoint = Vector2.new(0.5, 0.5),
@@ -380,7 +388,7 @@ function Shard.setGrade(on: boolean, seconds: number?)
 		blur.Name = "HC_DeathBlur"
 		blur.Size = 0
 		blur.Parent = parent
-		tween(cc, t, { Saturation = -1, Contrast = 0.3, Brightness = -0.05 }, Enum.EasingStyle.Sine)
+		tween(cc, t, Shard.GRADE, Enum.EasingStyle.Sine)
 		tween(blur, t, { Size = 3 }, Enum.EasingStyle.Sine)
 		table.insert(gradeEffects, cc)
 		table.insert(gradeEffects, blur)

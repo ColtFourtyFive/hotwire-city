@@ -1,14 +1,16 @@
 --!strict
 -- UIFocus: one shared "a menu has the mouse" state (job 0006 bug 4, C4b polish).
 --
--- Every screen that frees the cursor registers itself while it is up: the phone, the pause menu, the interaction list
--- menus (shops, garage, dealership), the gun shop and (integration point for C4a) the character creator. Then:
+-- Every screen that frees the cursor registers itself while it is up: the phone, the phone camera's viewfinder
+-- ("photo"), the pause menu, the interaction list menus (shops, garage, dealership), the gun shop and (integration
+-- point for C4a) the character creator. Then:
 --   * WeaponClient / CombatClient never fire, swing or aim from a click that missed the menu (GTA: no shooting with
 --     the phone or a menu in hand). The press is dropped, never replayed after the menu closes.
 --   * UI/CoreGuiSetup hides the Roblox chat window while a left-side menu is up: the chat sits at the left-middle
 --     (GTA Online's spot) and its CoreGui window swallowed clicks on the list rows under it (bug 3).
 --
---   UIFocus.set(id, on)            register / release a screen ("phone", "pause", "list:<id>", "gunshop", "creator")
+--   UIFocus.set(id, on)            register / release a screen ("phone", "photo", "pause", "list:<id>", "gunshop",
+--                                  "creator")
 --   UIFocus.isOpen(id): boolean    UIFocus.any(): boolean    UIFocus.ids(): { string } (sorted)
 --   UIFocus.blocksFire(): boolean  any screen open (WeaponClient / CombatClient gate)
 --   UIFocus.hidesChat(): boolean   a screen that sits under the chat window is open

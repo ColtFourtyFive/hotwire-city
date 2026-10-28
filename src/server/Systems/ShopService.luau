@@ -243,7 +243,7 @@ end
 
 local function storeGate(player: Player): (any, any)
 	if not ShopService.inGunStore(player) then
-		notify(player, "error", "Step up to a FREEDOM ARMS counter.")
+		notify(player, "error", "Step up to a Lock & Load counter.")
 		return nil, nil
 	end
 	return getData(player)
@@ -415,7 +415,7 @@ local GUNS: CounterKind = {
 	tag = ShopService.GUN_COUNTER_TAG,
 	ui = "GunShop",
 	action = "Browse",
-	object = "FREEDOM ARMS",
+	object = "Lock & Load", -- C5 vibe: the store's own name (the world's Lock & Load storefronts, CityArt sign)
 	promptName = "GunShopPrompt",
 }
 

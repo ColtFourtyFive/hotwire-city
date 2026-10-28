@@ -7,21 +7,31 @@
 --     Hold [E] to hotwire.
 -- Every prompt the engine shows is switched to Style = Custom and drawn here:
 --   * Keyboard / gamepad: the HUD help box (hooks.help, urgent: it pushes a tutorial hint back and that hint returns
---     when the prompt goes). The object is the first line, then one line per prompt in sentence case with its key cap
---     (several prompts on one car, e.g. Drive [E] + Sell [F], share the box). A thin Ignition Orange rule under the
---     text fills while a hold prompt is held (hooks.progress -> HelpText).
---   * Touch: the same help box (the caption replaces the key cap) plus one flat black circle button per prompt
---     (Kit.circleButton, gta_ui_language §7) in the right-hand cluster, above PHONE / MAP on foot and above the horn
---     row while driving. A press holds the prompt through ProximityPrompt:InputHoldBegin / InputHoldEnd.
+--     for the time it had left when the prompt goes). The object is the first line, then one line per prompt in
+--     sentence case with its key cap (several prompts on one car, e.g. Drive [E] + Sell [F], share the box). A thin
+--     Ignition Orange rule under the text fills while a hold prompt is held (hooks.progress -> HelpText).
+--   * Touch (only with PromptStyle.TOUCH_ENABLED, OFF until Studio job 0017 step 10 passes on a device): the same help
+--     box (the caption replaces the key cap) plus one flat black circle button per prompt (Kit.circleButton,
+--     gta_ui_language §7) in the right-hand cluster, above PHONE / MAP on foot and above the horn row while driving.
+--     A press holds the prompt through ProximityPrompt:InputHoldBegin / InputHoldEnd. With it off, touch players keep
+--     the engine's own tappable bubbles: a silent fault here must never block a touch hotwire.
+-- Who draws (PromptStyle.mode): this module ("custom") or the engine ("default"). The engine draws on touch (above),
+-- while the HUD is hidden in streamer mode (hooks.hidden: the help box is off, the prompts must not vanish with it),
+-- and for good after any error (giveUp, also from a failing refresh / hold). Every switch puts the prompts this module
+-- ever set to Custom on the style the new mode needs and shows the ones on screen again (ProximityPromptService off
+-- for RESHOW_FRAMES frames), because the engine's default layer only builds a bubble when a prompt is shown. The first
+-- switch at start does the same for prompts that were already up before this ran.
 -- Input stays the engine's: KeyboardKeyCode / GamepadKeyCode trigger a Custom prompt exactly as before, so a fault here
--- can never stop a hotwire. Any error puts prompts back on the default style and re-enables the engine's prompt layer.
--- While this runs the engine's default prompt layer (PlayerGui "ProximityPrompts") is disabled, so a prompt that was
--- already up when it was switched never draws twice. Hidden while a menu holds the cursor (UI/UIFocus).
+-- can never stop a hotwire. While this draws, the engine's default prompt layer (PlayerGui "ProximityPrompts") is
+-- disabled, so a prompt that was already up when it was switched never draws twice. Nothing draws while a menu or
+-- the photo viewfinder holds the cursor (UI/UIFocus).
 --
---   PromptStyle.start(hooks)   hooks = { help(text, opts) -> any, clear(id), progress(id, fraction?), layout()? }
---   PromptStyle.ENABLED        one-line kill switch (job 0017 re-test)
+--   PromptStyle.start(hooks)   hooks = { help(text, opts) -> any, clear(id), progress(id, fraction?), layout()?,
+--                              hidden()?, visibility: Signal? }
+--   PromptStyle.ENABLED        one-line kill switch (job 0017 re-test)   PromptStyle.TOUCH_ENABLED   touch drawing
 --   Pure (tests): actionPhrase(action), objectName(object), keyLabel(keyName, input), line(entry, input),
---   helpText(entries, input), touchRects(L, count, driving), holdFraction(startedAt, duration, now)
+--   helpText(entries, input), touchRects(L, count, driving), holdFraction(startedAt, duration, now),
+--   mode(failed, input, touchEnabled, hudHidden)
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -37,6 +47,11 @@ local UIFocus = require(script.Parent.UIFocus)
 local PromptStyle = {}
 
 PromptStyle.ENABLED = true
+-- Touch drawing (help box + HOTWIRE-style buttons). Off until job 0017 step 10 passes on a real device: until then touch
+-- players keep the engine's own tappable bubbles (review: a silent fault would block every touch hotwire).
+PromptStyle.TOUCH_ENABLED = false
+-- Frames the prompt service stays off for a re-show (it has to evaluate once with prompts off).
+PromptStyle.RESHOW_FRAMES = 2
 PromptStyle.HELP_ID = "prompt"
 PromptStyle.MAX_LINES = 3
 PromptStyle.TOUCH_SIZE = 64
@@ -245,6 +260,24 @@ function PromptStyle.touchRects(L: any, count: number, driving: boolean): { Rect
 	return out
 end
 
+export type Mode = "custom" | "default"
+
+-- Who draws the prompts (pure): "custom" = this module (help box, touch buttons), "default" = the engine's bubbles.
+-- The engine draws after a failure, on touch unless touch drawing is on, and while the HUD is hidden in streamer mode
+-- (the help box is off with it; the prompts must not vanish).
+function PromptStyle.mode(failed: boolean, input: string, touchEnabled: boolean, hudHidden: boolean): Mode
+	if failed then
+		return "default"
+	end
+	if input == "touch" and not touchEnabled then
+		return "default"
+	end
+	if hudHidden then
+		return "default"
+	end
+	return "custom"
+end
+
 -- How far a hold has filled (0..1; pure). A zero or bad duration reads full.
 function PromptStyle.holdFraction(startedAt: number, duration: number, now: number): number
 	if typeof(duration) ~= "number" or duration ~= duration or duration <= 0 then
@@ -262,6 +295,10 @@ export type Hooks = {
 	clear: (id: string) -> (),
 	progress: (id: string, fraction: number?) -> (),
 	layout: (() -> any)?,
+	-- true while the HUD (and its help box) is hidden in streamer mode: the engine draws the prompts then
+	hidden: (() -> boolean)?,
+	-- fires when hidden() may have changed (HUDController.VisibilityChanged)
+	visibility: any?,
 }
 
 type Shown = { order: number, conns: { RBXScriptConnection } }
@@ -270,7 +307,13 @@ local player = Players.LocalPlayer
 local hooks: Hooks? = nil
 local started = false
 local failed = false
-local shown: { [ProximityPrompt]: Shown } = {}
+local mode: Mode = "default" -- nothing is switched before start
+local shown: { [ProximityPrompt]: Shown } = {} -- every prompt on screen, in both modes
+-- Every prompt this module set to Custom (a strong set: weak Instance keys can drop while the prompt still exists).
+-- Each one goes back to Default whenever the engine has to draw (mode "default", giveUp). Pruned of removed prompts.
+local styled: { [ProximityPrompt]: boolean } = {}
+local styledCount = 0
+local pruneAt = 256
 local seq = 0
 local helpUp = false
 local held: { prompt: ProximityPrompt, startedAt: number, duration: number }? = nil
@@ -281,6 +324,7 @@ local touchPrompts: { ProximityPrompt? } = {}
 local pressInputs: { [number]: InputObject } = {}
 local defaultLayer: ScreenGui? = nil
 local refreshQueued = false
+local reshowing = false
 
 local function setDefaultLayer(enabled: boolean)
 	local layer = defaultLayer
@@ -289,6 +333,94 @@ local function setDefaultLayer(enabled: boolean)
 			layer.Enabled = enabled
 		end)
 	end
+end
+
+local function prune()
+	local n = 0
+	for prompt in styled do
+		if prompt.Parent == nil then
+			styled[prompt] = nil
+		else
+			n += 1
+		end
+	end
+	styledCount = n
+	pruneAt = math.max(256, n * 2)
+end
+
+local function setCustom(prompt: ProximityPrompt)
+	if not styled[prompt] then
+		styled[prompt] = true
+		styledCount += 1
+		if styledCount > pruneAt then
+			prune()
+		end
+	end
+	if prompt.Style ~= Enum.ProximityPromptStyle.Custom then
+		prompt.Style = Enum.ProximityPromptStyle.Custom
+	end
+end
+
+-- Back to the engine's bubble (only prompts this module switched; one the engine refuses stays in the set).
+local function restore(prompt: ProximityPrompt)
+	if not styled[prompt] then
+		return
+	end
+	local ok = pcall(function()
+		if prompt.Style == Enum.ProximityPromptStyle.Custom then
+			prompt.Style = Enum.ProximityPromptStyle.Default
+		end
+	end)
+	if ok then
+		styled[prompt] = nil
+		styledCount = math.max(0, styledCount - 1)
+	end
+end
+
+local function restoreAll()
+	local list: { ProximityPrompt } = {}
+	for prompt in styled do
+		table.insert(list, prompt)
+	end
+	for _, prompt in list do
+		restore(prompt)
+	end
+end
+
+-- Hide and show every prompt on screen again: the engine's default layer builds a bubble only on PromptShown, so a
+-- prompt whose style changed while it was up needs a fresh show. Turning the service off for RESHOW_FRAMES frames does
+-- that for all of them at once, with no per-prompt property left to fight the server over. If prompts are already off
+-- (CombatClient's stun), they show afresh when it turns them back on. A stun that starts inside the window finds the
+-- service already off and leaves it to us: it comes back on only once the stun is over.
+local function reshowAll()
+	if reshowing then
+		return
+	end
+	local on = false
+	pcall(function()
+		on = ProximityPromptService.Enabled
+	end)
+	if not on then
+		return
+	end
+	reshowing = true
+	pcall(function()
+		ProximityPromptService.Enabled = false
+	end)
+	task.spawn(function()
+		for _ = 1, PromptStyle.RESHOW_FRAMES do
+			RunService.Heartbeat:Wait()
+		end
+		while player:GetAttribute("Stunned") == true do
+			player:GetAttributeChangedSignal("Stunned"):Wait()
+		end
+		reshowing = false
+		pcall(function()
+			if not ProximityPromptService.Enabled then
+				ProximityPromptService.Enabled = true
+			end
+		end)
+	end)
 end
 
 local function order(): { ProximityPrompt }
@@ -388,13 +520,20 @@ local function onInputEnded(input: InputObject)
 	end
 end
 
-local function layoutTouch(list: { ProximityPrompt })
-	local touch = Kit.isTouch()
-	if not touch then
-		for _, b in touchButtons do
-			b.Visible = false
+local function hideTouch()
+	for i, b in touchButtons do
+		b.Visible = false
+		if pressInputs[i] then
+			holdEnd(i)
 		end
-		table.clear(touchPrompts)
+	end
+	table.clear(touchPrompts)
+	table.clear(pressInputs)
+end
+
+local function layoutTouch(list: { ProximityPrompt })
+	if not Kit.isTouch() or #list == 0 then
+		hideTouch()
 		return
 	end
 	local gui = ensureTouchGui()
@@ -441,9 +580,58 @@ local function layoutTouch(list: { ProximityPrompt })
 	end
 end
 
+-- Takes down everything this module draws (help line, hold rule, touch buttons).
+local function clearDrawn()
+	local h = hooks
+	if h and helpUp then
+		helpUp = false
+		pcall(h.clear, PromptStyle.HELP_ID)
+	end
+	if held then
+		stopHold()
+	end
+	hideTouch()
+end
+
+local function hudHidden(): boolean
+	local h = hooks
+	local fn = if h then h.hidden else nil
+	if not fn then
+		return false
+	end
+	local ok, v = pcall(fn)
+	return ok and v == true
+end
+
+-- Switches who draws (PromptStyle.mode) when the input kind, the HUD's streamer state or a failure changed it.
+local function applyMode()
+	local want = PromptStyle.mode(failed, Kit.inputKind(), PromptStyle.TOUCH_ENABLED, hudHidden())
+	if want == mode then
+		return
+	end
+	mode = want
+	if want == "custom" then
+		for prompt in shown do
+			setCustom(prompt)
+		end
+		setDefaultLayer(false)
+	else
+		clearDrawn()
+		restoreAll()
+		setDefaultLayer(true)
+	end
+	-- the engine builds a bubble only on PromptShown: show what is on screen again under the new style
+	reshowAll()
+end
+
 local function refresh()
 	local h = hooks
-	if not h or failed then
+	if not h then
+		return
+	end
+	applyMode()
+	if mode ~= "custom" then
+		clearDrawn()
 		return
 	end
 	local list = if UIFocus.any() then {} else order()
@@ -466,54 +654,60 @@ local function refresh()
 	layoutTouch(list)
 end
 
--- Coalesces bursts (several prompts showing in one frame, ActionText price ticks) into one refresh.
+local giveUp: (err: any) -> ()
+
+-- Coalesces bursts (several prompts showing in one frame, ActionText price ticks) into one refresh. A failing refresh
+-- (the whole render path: help text, touch layout) hands the prompts back to the engine for good.
 local function queueRefresh()
-	if refreshQueued then
+	if refreshQueued or failed then
 		return
 	end
 	refreshQueued = true
 	task.defer(function()
 		refreshQueued = false
+		if failed then
+			return
+		end
 		local ok, err = pcall(refresh)
 		if not ok then
-			warn("[PromptStyle] refresh failed: " .. tostring(err))
+			giveUp(err)
 		end
 	end)
 end
 
-local function giveUp(err: any)
+-- Any error: every prompt this module ever switched goes back to Default, the engine's layer comes back on and the
+-- prompts on screen are shown again, so they get their bubbles now (not after a walk away and back).
+function giveUp(err: any)
 	if failed then
 		return
 	end
 	failed = true
 	warn("[PromptStyle] falling back to the default prompts: " .. tostring(err))
-	for prompt, rec in shown do
+	pcall(clearDrawn)
+	for _, rec in shown do
 		for _, c in rec.conns do
 			c:Disconnect()
 		end
-		pcall(function()
-			prompt.Style = Enum.ProximityPromptStyle.Default
-		end)
 	end
 	table.clear(shown)
+	mode = "default"
+	restoreAll()
 	setDefaultLayer(true)
-	local h = hooks
-	if h and helpUp then
-		pcall(h.clear, PromptStyle.HELP_ID)
-	end
-	for _, b in touchButtons do
-		b.Visible = false
-	end
+	pcall(reshowAll)
 end
 
 local onHidden: (ProximityPrompt) -> ()
 
 local function onShown(prompt: ProximityPrompt)
-	if failed or shown[prompt] then
+	if shown[prompt] then
 		return
 	end
-	if prompt.Style ~= Enum.ProximityPromptStyle.Custom then
-		prompt.Style = Enum.ProximityPromptStyle.Custom
+	if mode == "custom" then
+		setCustom(prompt)
+	elseif styled[prompt] then
+		-- still Custom from an earlier custom spell: the engine draws it now
+		restore(prompt)
+		reshowAll()
 	end
 	seq += 1
 	local conns: { RBXScriptConnection } = {}
@@ -548,7 +742,7 @@ function onHidden(prompt: ProximityPrompt)
 end
 
 local function onHoldBegan(prompt: ProximityPrompt)
-	if not shown[prompt] then
+	if not shown[prompt] or mode ~= "custom" then
 		return
 	end
 	stopHold()
@@ -571,7 +765,7 @@ local function watchDefaultLayer()
 	local function consider(child: Instance)
 		if child.Name == PromptStyle.DEFAULT_LAYER and child:IsA("ScreenGui") then
 			defaultLayer = child
-			setDefaultLayer(failed)
+			setDefaultLayer(mode ~= "custom")
 		end
 	end
 	local existing = pg:FindFirstChild(PromptStyle.DEFAULT_LAYER)
@@ -581,9 +775,13 @@ local function watchDefaultLayer()
 	pg.ChildAdded:Connect(consider)
 end
 
+-- Engine events run through here. Once failed, a prompt still on Custom (this module's) goes back to Default.
 local function guarded(fn: (ProximityPrompt) -> ()): (ProximityPrompt) -> ()
 	return function(prompt: ProximityPrompt)
 		if failed then
+			if styled[prompt] then
+				restore(prompt)
+			end
 			return
 		end
 		local ok, err = pcall(fn, prompt)
@@ -606,7 +804,10 @@ function PromptStyle.start(h: Hooks)
 	ProximityPromptService.PromptHidden:Connect(guarded(onHidden))
 	ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt: ProximityPrompt, who: Player)
 		if who == player and not failed then
-			pcall(onHoldBegan, prompt)
+			local ok, err = pcall(onHoldBegan, prompt)
+			if not ok then
+				giveUp(err)
+			end
 		end
 	end)
 	ProximityPromptService.PromptButtonHoldEnded:Connect(function(prompt: ProximityPrompt, who: Player)
@@ -623,24 +824,74 @@ function PromptStyle.start(h: Hooks)
 	end)
 	UIFocus.Changed:Connect(queueRefresh)
 	UserInputService.InputEnded:Connect(onInputEnded)
+	-- the input kind decides the mode (touch) and the key caps; mouse / keyboard flicker alone changes neither
+	local lastKind = Kit.inputKind()
 	pcall(function()
 		UserInputService.LastInputTypeChanged:Connect(function()
-			if next(shown) ~= nil then
+			local kind = Kit.inputKind()
+			if kind ~= lastKind or next(shown) ~= nil then
+				lastKind = kind
 				queueRefresh()
 			end
 		end)
 	end)
+	local vis: any = h.visibility
+	if typeof(vis) == "table" and typeof(vis.Connect) == "function" then
+		pcall(function()
+			vis:Connect(queueRefresh)
+		end)
+	end
 	player:GetAttributeChangedSignal("Driving"):Connect(queueRefresh)
 	task.spawn(watchDefaultLayer)
+	-- Pick the mode now. The switch to "custom" shows what is already on screen again: a prompt shown before this ran
+	-- (a spawn next to the garage's Drive / Sell pads) would otherwise lose its bubble and never get help text.
+	task.defer(function()
+		if failed then
+			return
+		end
+		local ok, err = pcall(applyMode)
+		if not ok then
+			giveUp(err)
+		end
+	end)
 end
 
 -- Tests only.
-function PromptStyle._state(): { failed: boolean, shown: number, started: boolean }
+function PromptStyle._state(): { failed: boolean, shown: number, started: boolean, styled: number, mode: Mode }
 	local n = 0
 	for _ in shown do
 		n += 1
 	end
-	return { failed = failed, shown = n, started = started }
+	local m = 0
+	for _ in styled do
+		m += 1
+	end
+	return { failed = failed, shown = n, started = started, styled = m, mode = mode }
+end
+
+-- Tests only: the runtime without the engine (a prompt's show / hide, a failure, the HUD hooks).
+function PromptStyle._test(): any
+	return {
+		onShown = guarded(onShown),
+		onHidden = guarded(onHidden),
+		giveUp = function(err: any)
+			giveUp(err)
+		end,
+		applyMode = applyMode,
+		setHooks = function(hk: any)
+			hooks = hk
+		end,
+		reset = function()
+			failed = false
+			mode = "default"
+			table.clear(shown)
+			table.clear(styled)
+			styledCount = 0
+			helpUp = false
+			held = nil
+			reshowing = false
+		end,
+	}
 end
 
 return PromptStyle

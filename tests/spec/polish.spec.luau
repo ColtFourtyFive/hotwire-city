@@ -9,6 +9,9 @@
 --          gun-store name (the fallback counter itself is C5 vibe's)
 --   audit  CoreGui / bubbles / Esc bridge, leaderboard billboards, lock bar, config display names, kid copy, the
 --          calm feed (RichText.calm, announceSound), metres, ProximityPrompts as GTA help text (UI/PromptStyle)
+--   review the fix pass: no buying through the pause menu, PromptStyle's modes and full fallback, the Esc bridge
+--          state at MenuOpened, help-text time left, the photo viewfinder's focus, the grey death grade, the
+--          vehicle name in line 1, the touch feed budget, one gun-store name in ShopService
 local fs = require("@lune/fs")
 
 local function emojiIn(src: string): number?
@@ -110,20 +113,46 @@ return function(t)
 	-- Bug 2: the shard band
 	---------------------------------------------------------------------------------------------------------------------
 
-	t.test("bug 2: the band is always drawn (the plain 19.5% band unless the keystone art has loaded)", function()
+	t.test(
+		"bug 2: the band is always drawn (the plain 19.5% band; the keystone art stays off until job 0017)",
+		function()
+			H.setMode("client")
+			local Shard = H.require("src/client/UI/Shard")
+			t.eq(Shard.KEYSTONE_ART, false, "off until job 0017 g1 / g3 pass at night (one band per session meanwhile)")
+			t.eq(Shard.bandPlan(true, true), "frame", "loaded art is not used while the switch is off")
+			Shard.KEYSTONE_ART = true
+			t.eq(Shard.bandPlan(false, false), "frame", "no art configured")
+			t.eq(Shard.bandPlan(true, false), "frame", "art configured but not loaded: job 0006 showed no band at all")
+			t.eq(Shard.bandPlan(true, true), "keystone")
+			Shard.KEYSTONE_ART = false
+			t.near(Shard.bandHeight("frame"), 0.195, 1e-9, "gta_ui_language §5.9 base band")
+			t.near(Shard.bandHeight("keystone"), 0.23, 1e-9)
+			local src = fs.readFile("src/client/UI/Shard.luau")
+			t.ok(string.find(src, "Position = UDim2.fromScale(0.5, 0.488)", 1, true) ~= nil, "band centred at 48.8% H")
+			t.ok(string.find(src, "pickBand(u)", 1, true) ~= nil, "every shard picks its band")
+			-- wasted / busted alpha ~0.5 (re-measured 0.48-0.58)
+			local ok = string.find(src, "alpha = 0.5", 1, true) ~= nil
+				or string.find(src, "alpha = 0.50", 1, true) ~= nil
+			t.ok(ok, "wasted / busted band at ~50% black")
+			t.ok(
+				string.find(src, "if Shard.KEYSTONE_ART and Kit.resolveImage", 1, true) ~= nil,
+				"no sprite built while off"
+			)
+			H.setMode("server")
+		end
+	)
+
+	t.test("bug 2 (review): the death grade is grey, not black, so the band reads over a night street", function()
 		H.setMode("client")
 		local Shard = H.require("src/client/UI/Shard")
-		t.eq(Shard.bandPlan(false, false), "frame", "no art configured")
-		t.eq(Shard.bandPlan(true, false), "frame", "art configured but not loaded: job 0006 showed no band at all")
-		t.eq(Shard.bandPlan(true, true), "keystone")
-		t.near(Shard.bandHeight("frame"), 0.195, 1e-9, "gta_ui_language §5.9 base band")
-		t.near(Shard.bandHeight("keystone"), 0.23, 1e-9)
-		local src = fs.readFile("src/client/UI/Shard.luau")
-		t.ok(string.find(src, "Position = UDim2.fromScale(0.5, 0.488)", 1, true) ~= nil, "band centred at 48.8% H")
-		t.ok(string.find(src, "pickBand(u)", 1, true) ~= nil, "every shard picks its band")
-		-- wasted / busted alpha ~0.5 (re-measured 0.48-0.58)
-		local ok = string.find(src, "alpha = 0.5", 1, true) ~= nil or string.find(src, "alpha = 0.50", 1, true) ~= nil
-		t.ok(ok, "wasted / busted band at ~50% black")
+		t.eq(Shard.GRADE.Saturation, -1)
+		t.eq(Shard.GRADE.Brightness, 0, "no darkening")
+		t.ok(Shard.GRADE.Contrast <= 0.15, "contrast 0.15 or less")
+		for _, path in { "src/client/UI/Shard.luau", "src/client/Controllers/DeathScreenController.luau" } do
+			local src = table.concat(codeLines(path), "\n")
+			t.ok(not string.find(src, "Contrast = 0.3", 1, true), path .. ": the old black grade")
+			t.ok(string.find(src, "Shard.GRADE", 1, true) ~= nil, path .. ": one grade for both")
+		end
 		H.setMode("server")
 	end)
 
@@ -163,6 +192,43 @@ return function(t)
 		t.eq(Shop._mouseDedupe(false, true), true, "touch / gamepad activations always run")
 		local src = fs.readFile("src/client/Controllers/GunShopUI.luau")
 		for _, needle in { "Active = true", 'UIFocus.set("gunshop", true)', 'UIFocus.set("gunshop", false)' } do
+			t.ok(string.find(src, needle, 1, true) ~= nil, "GunShopUI: " .. needle)
+		end
+		H.setMode("server")
+	end)
+
+	t.test("bug 3 (review): the hit-test never buys through the pause menu, MAP, phone or viewfinder", function()
+		H.setMode("client")
+		local Shop = H.require("src/client/Controllers/GunShopUI")
+		local rects = {}
+		for i = 1, 8 do
+			rects[i] = { x = 16, y = 120 + (i - 1) * 28, w = 300, h = 28, visible = true }
+		end
+		-- P opened the pause menu (Layers.Pause 45) over the shop; its tabs / list column sit over the first rows
+		local overTab = Vector2.new(200, 130)
+		t.eq(Shop._hitRow(overTab, rects), 1, "the rect alone would take it")
+		t.eq(Shop._clickAllowed({ "gunshop", "pause" }), false, "pause open + a click on a row rect: no purchase")
+		t.eq(Shop._clickAllowed({ "gunshop" }), true, "the shop alone takes its clicks")
+		t.eq(Shop._clickAllowed({ "gunshop", "phone" }), false)
+		t.eq(Shop._clickAllowed({ "gunshop", "photo" }), false)
+		t.eq(Shop._clickAllowed({ "gunshop", "list:gear" }), false)
+		t.eq(Shop._clickAllowed({}), false, "shop closed")
+		-- full-screen screens close the shop (GTA: one menu at a time); the phone only blocks its clicks
+		for _, id in { "pause", "map", "creator", "photo" } do
+			t.eq(Shop._closedBy({ "gunshop", id }), true, id)
+		end
+		t.eq(Shop._closedBy({ "gunshop", "phone" }), false)
+		t.eq(Shop._closedBy({ "gunshop" }), false)
+		local src = table.concat(codeLines("src/client/Controllers/GunShopUI.luau"), "\n")
+		for _, needle in
+			{
+				"GunShopUI._clickAllowed(UIFocus.ids())",
+				"GunShopUI._closedBy(UIFocus.ids())",
+				"ownsTopButton(v.gui",
+				"GetGuiObjectsAtPosition",
+				"pressTaken = false",
+			}
+		do
 			t.ok(string.find(src, needle, 1, true) ~= nil, "GunShopUI: " .. needle)
 		end
 		H.setMode("server")
@@ -217,6 +283,15 @@ return function(t)
 			{ "src/client/UI/Phone.luau", { 'UIFocus.set("phone", true)', 'UIFocus.set("phone", false)' } },
 			{ "src/client/UI/PauseMenu.luau", { 'UIFocus.set("pause", true)', 'UIFocus.set("pause", false)' } },
 			{ "src/client/UI/ListMenu.luau", { 'UIFocus.set("list:" .. tostring(self.id), true)' } },
+			-- review: the phone camera's viewfinder (Exit / Take photo) also holds the cursor
+			{
+				"src/client/Controllers/PhoneController.luau",
+				{
+					'UIFocus.set("photo", true)',
+					'UIFocus.set("photo", false)',
+					"CharacterAdded:Connect(exitPhotoMode)",
+				},
+			},
 		}
 		for _, c in needles do
 			local src = fs.readFile(c[1])
@@ -497,6 +572,7 @@ return function(t)
 		t.eq(drop.label, "Hot drop")
 		t.eq(drop.value, "1:00")
 		t.ok(string.find(drop.sub, "420 m", 1, true) ~= nil, "metres, never studs: " .. drop.sub)
+		t.eq(string.sub(drop.sub, 1, 5), "420 m", "the distance first: a long car name truncates, not it")
 		local count = Events.hotDropView({ startsAt = 110, position = Vector3.new(0, 0, 0) }, 100, 10)
 		t.eq(count.label, "Hot drop lands in")
 		t.ok(string.find(count.sub, "At the drop", 1, true) ~= nil)
@@ -510,6 +586,31 @@ return function(t)
 		t.ok(emojiIn(src) == nil, "EventsClient: no emoji")
 		t.ok(not string.find(src, "CLAIM IT", 1, true), "no CLAIM IT")
 		t.ok(string.find(src, "getFeedHost", 1, true) ~= nil, "rows live in the HUD's feed host (above the radar)")
+		H.setMode("server")
+	end)
+
+	t.test("nit (review): on touch the feed column under the help box holds at most 2 entries", function()
+		H.setMode("client")
+		local Events = H.require("src/client/Controllers/EventsClient")
+		local Notes = H.require("src/client/Controllers/NotificationController")
+		local HudLayout = H.require("src/client/UI/HudLayout")
+		-- timed events become GTA Online timer bars (top-centre on touch), out of the thumbstick's corner
+		t.eq(Events.timedAsBars(true, true), true)
+		t.eq(Events.timedAsBars(false, true), false, "desktop keeps the quiet rows above the radar")
+		t.eq(Events.timedAsBars(true, false), false, "no HUD yet: rows")
+		t.eq(Events.barId("rushHour"), "event:rushHour")
+		t.ok(Events.BAR_ORDER > 1, "under the delivery timer (order 1)")
+		-- the hot drop row counts against the feed's cards
+		local touchMax = HudLayout.compute(1042, 461, true).feedMax
+		t.eq(touchMax, 2)
+		t.eq(Notes.cardBudget(touchMax, 1, true), 1, "hot drop row + 1 card")
+		t.eq(Notes.cardBudget(touchMax, 0, true), 2)
+		t.eq(Notes.cardBudget(touchMax, 3, true), 1, "a fresh card always shows")
+		t.eq(Notes.cardBudget(4, 2, false), 4, "desktop: the column above the radar has room")
+		local src = fs.readFile("src/client/Controllers/EventsClient.luau")
+		t.ok(string.find(src, "hud.setTimer", 1, true) ~= nil and string.find(src, "hud.clearTimer", 1, true) ~= nil)
+		local notes = fs.readFile("src/client/Controllers/NotificationController.luau")
+		t.ok(string.find(notes, "events.feedRowCount", 1, true) ~= nil, "NotificationController counts the rows")
 		H.setMode("server")
 	end)
 
@@ -542,6 +643,29 @@ return function(t)
 		H.setMode("server")
 	end)
 
+	t.test("nit (review): the vehicle name sits in line 1, clear of the district line and the timer bars", function()
+		H.setMode("client")
+		local VC = H.require("src/client/Controllers/VehicleClient")
+		local HudLayout = H.require("src/client/UI/HudLayout")
+		for _, size in { { 1280, 720 }, { 1920, 1080 }, { 1024, 768 }, { 1280, 662 } } do
+			local L = HudLayout.compute(size[1], size[2], false)
+			local loc = L.locationDriving
+			local lineH = loc.h / L.locationLines
+			local r = VC.nameRect(loc, L.locationLines)
+			local where = ("%dx%d"):format(size[1], size[2])
+			t.eq(r.y, loc.y, where)
+			t.ok(r.y + r.h <= loc.y + lineH + 0.5, where .. ": line 1 only")
+			-- HUDController.showLocation packs district + street into lines 2-3 now
+			local district = { x = loc.x, y = loc.y + lineH, w = loc.w, h = lineH }
+			t.ok(not HudLayout.overlaps(r, district), where .. ": clear of the district line")
+			t.ok(not HudLayout.overlaps(r, L.timersDriving), where .. ": clear of the delivery timer bars")
+			t.ok(VC.NAME_SIZE <= lineH, where .. ": the script face fits the line")
+		end
+		local src = fs.readFile("src/client/Controllers/VehicleClient.luau")
+		t.ok(string.find(src, "VehicleClient.nameRect(L.locationDriving, L.locationLines)", 1, true) ~= nil)
+		H.setMode("server")
+	end)
+
 	-- The fallback gun counter (job 0006: a black block by the road) is C5 vibe's ShopService.makeCounter on v2/vibe
 	-- (steel cabinet, wood top, kick plate, register); C4b withdrew its own version so the two never conflict.
 	t.test("nit: one gun-store name: the menu header matches the building (Lock & Load)", function()
@@ -549,6 +673,16 @@ return function(t)
 		local Gun = H.require("src/client/Controllers/GunShopUI")
 		t.eq(Gun.STORE_NAME, "Lock & Load")
 		t.ok(emojiIn(Gun.STORE_NAME) == nil)
+		-- review: the counter prompt's object line and the "step up" error carry the same name (not FREEDOM ARMS)
+		local shop = table.concat(codeLines("src/server/Systems/ShopService.luau"), "\n")
+		local object = string.match(shop, 'ui = "GunShop",%s*action = "[^"]*",%s*object = "([^"]*)"')
+		t.eq(object, Gun.STORE_NAME, "ShopService GUNS.object == GunShopUI.STORE_NAME")
+		t.ok(string.find(shop, "Step up to a " .. Gun.STORE_NAME .. " counter.", 1, true) ~= nil)
+		for _, line in codeLines("src/server/Systems/ShopService.luau") do
+			if string.find(line, "notify(", 1, true) or string.find(line, "object =", 1, true) then
+				t.ok(not string.find(string.upper(line), "FREEDOM ARMS", 1, true), "player-facing: " .. line)
+			end
+		end
 		H.setMode("server")
 	end)
 
@@ -584,6 +718,23 @@ return function(t)
 			t.eq(Core.escAction(61, 0, true, false), "none")
 			t.eq(Core.escAction(5, 0, false, true), "none", "a menu of ours is up")
 			t.eq(Core.escAction(0 / 0, 0, true, false), "none", "NaN")
+			-- review: Esc out of the pause menu lands in the Roblox menu, whose MenuOpened closes the pause menu
+			-- (MenuController.closeAll) maybe before CoreGuiSetup looks: "a menu was open" is captured at MenuOpened
+			t.eq(Core.ESC_FOCUS_GRACE, 0.25)
+			t.eq(Core.menuWasOpen(true, nil, 10), true)
+			t.eq(Core.menuWasOpen(false, nil, 10), false, "nothing was ever open")
+			t.eq(Core.menuWasOpen(false, 10, 10), true, "closed in the same frame by MenuController")
+			t.eq(Core.menuWasOpen(false, 9.8, 10), true, "inside the grace")
+			t.eq(Core.menuWasOpen(false, 9.5, 10), false, "closed well before")
+			t.eq(Core.menuWasOpen(false, 0 / 0, 10), false, "NaN")
+			-- the first-minute loop: pause open -> Esc -> Roblox menu -> close: nothing re-opens the pause MAP
+			t.eq(Core.escAction(20, 0, true, Core.menuWasOpen(false, 20, 20)), "none")
+			local core = fs.readFile("src/client/UI/CoreGuiSetup.luau")
+			t.ok(
+				string.find(core, "menuWasOpen = CoreGuiSetup.menuWasOpen(UIFocus.any(), closedAt, now)", 1, true)
+					~= nil,
+				"captured when the Roblox menu opens"
+			)
 			local hint = Core.escHint()
 			t.ok(string.find(hint, "P", 1, true) ~= nil and string.find(hint, "M", 1, true) ~= nil, hint)
 			t.ok(not string.find(hint, "!", 1, true))
@@ -728,6 +879,52 @@ return function(t)
 		H.setMode("server")
 	end)
 
+	t.test("audit (review): a hint pushed back by a prompt returns only for the time it had left", function()
+		H.setMode("client")
+		local HelpText = H.require("src/client/UI/HelpText")
+		local Q = HelpText.Queue
+		-- hint shown for 6 s, then a prompt for 3 s: the hint returns for at most 2 s
+		local q = Q.new()
+		Q.push(q, { id = "tutorial", text = "Steal a car.", duration = 8 }, 0)
+		Q.push(q, { id = "prompt", text = "Hold E to hotwire.", duration = math.huge, urgent = true }, 6)
+		t.eq(Q.current(q).id, "prompt")
+		Q.clear(q, "prompt", 9)
+		t.eq(Q.current(q).id, "tutorial", "the hint comes back")
+		t.eq(Q.tick(q, 10.9), false)
+		t.eq(Q.tick(q, 11.01), true, "gone 2 s later, not 8")
+		t.eq(Q.current(q), nil)
+		-- walking past three cars never replays it in full
+		q = Q.new()
+		Q.push(q, { id = "esc_hint", text = "Esc ...", duration = 8 }, 0)
+		local now = 0
+		for _ = 1, 3 do
+			now += 2
+			Q.push(q, { id = "prompt", text = "Hold E", duration = math.huge, urgent = true }, now)
+			now += 1
+			Q.clear(q, "prompt", now)
+		end
+		-- on screen 0-2, 3-5 and 6-8: 6 of its 8 s used by now = 9, so 2 s are left
+		t.eq(now, 9)
+		t.eq(Q.current(q).id, "esc_hint")
+		t.eq(Q.tick(q, now + 1.9), false)
+		t.eq(Q.tick(q, now + 2.01), true)
+		-- a hint with RETURN_MIN or less left is dropped instead of blinking back
+		q = Q.new()
+		Q.push(q, { id = "tutorial", text = "Steal a car.", duration = 8 }, 0)
+		Q.push(q, { id = "prompt", text = "Hold E", duration = math.huge, urgent = true }, 7.5)
+		Q.clear(q, "prompt", 9)
+		t.eq(Q.current(q), nil, "0.5 s left: dropped")
+		t.eq(HelpText.RETURN_MIN, 1)
+		-- an endless entry pushed back stays endless (a prompt under a newer urgent line)
+		q = Q.new()
+		Q.push(q, { id = "prompt", text = "Hold E", duration = math.huge, urgent = true }, 0)
+		Q.push(q, { id = "alert", text = "Wanted", duration = 3, urgent = true }, 1)
+		Q.clear(q, "alert", 2)
+		t.eq(Q.current(q).id, "prompt")
+		t.eq(Q.current(q).duration, math.huge)
+		H.setMode("server")
+	end)
+
 	t.test("audit: PromptStyle action phrases read like GTA help text", function()
 		H.setMode("client")
 		local P = H.require("src/client/UI/PromptStyle")
@@ -838,6 +1035,7 @@ return function(t)
 		t.eq(P.holdFraction(10, 0, 10), 1, "a press fills at once")
 		t.eq(P.holdFraction(10, 0 / 0, 10), 1)
 		t.eq(P.ENABLED, true)
+		t.eq(P.TOUCH_ENABLED, false, "touch keeps the engine's tappable bubbles until job 0017 step 10 on a device")
 		t.eq(P.DEFAULT_LAYER, "ProximityPrompts")
 		local core = fs.readFile("src/client/UI/CoreGuiSetup.luau")
 		t.ok(string.find(core, "PromptStyle.start", 1, true) ~= nil, "CoreGuiSetup starts PromptStyle")
@@ -859,6 +1057,105 @@ return function(t)
 		do
 			t.ok(not string.find(fs.readFile(path), "ProximityPromptStyle", 1, true), path)
 		end
+		H.setMode("server")
+	end)
+
+	t.test("audit (review): PromptStyle hands prompts to the engine on touch, in streamer mode and for good", function()
+		H.setMode("client")
+		local P = H.require("src/client/UI/PromptStyle")
+		t.eq(P.mode(false, "keyboard", false, false), "custom")
+		t.eq(P.mode(false, "gamepad", false, false), "custom")
+		t.eq(P.mode(false, "touch", false, false), "default", "touch: the engine's tappable bubbles")
+		t.eq(P.mode(false, "touch", true, false), "custom", "once job 0017 step 10 turns touch drawing on")
+		t.eq(P.mode(false, "keyboard", false, true), "default", "streamer mode: the help box is hidden with the HUD")
+		t.eq(P.mode(true, "keyboard", false, false), "default", "after a failure, for good")
+		t.eq(P.mode(true, "touch", true, false), "default")
+		H.setMode("server")
+	end)
+
+	t.test("audit (review): PromptStyle giveUp after a hide / show cycle restores every prompt it switched", function()
+		H.setMode("client")
+		local P = H.require("src/client/UI/PromptStyle")
+		local Custom, Default = Enum.ProximityPromptStyle.Custom, Enum.ProximityPromptStyle.Default
+		local function signal()
+			return {
+				Connect = function()
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		local function prompt(name)
+			local p = {
+				Name = name,
+				Parent = {},
+				Enabled = true,
+				Style = Default,
+				ActionText = "Hotwire",
+				ObjectText = "Halden Wren",
+				HoldDuration = 1.8,
+				KeyboardKeyCode = Enum.KeyCode.E,
+				GamepadKeyCode = Enum.KeyCode.ButtonX,
+				Destroying = signal(),
+			}
+			function p:GetPropertyChangedSignal()
+				return signal()
+			end
+			return p
+		end
+		local hidden = false
+		local helps = {}
+		local T = P._test()
+		T.reset()
+		T.setHooks({
+			help = function(text)
+				table.insert(helps, text)
+			end,
+			clear = function() end,
+			progress = function() end,
+			hidden = function()
+				return hidden
+			end,
+		})
+		T.applyMode()
+		t.eq(P._state().mode, "custom", "keyboard, HUD up")
+		local a, b = prompt("A"), prompt("B")
+		T.onShown(a)
+		t.eq(a.Style, Custom, "drawn by the help box")
+		T.onHidden(a) -- walked away: a stays Custom (no double draw on its next show) but is no longer on screen
+		t.eq(a.Style, Custom)
+		T.onShown(b)
+		t.eq(P._state().shown, 1)
+		t.eq(P._state().styled, 2)
+		-- streamer mode: the HUD hides, the engine draws (every prompt it switched goes back, not just the shown one)
+		hidden = true
+		T.applyMode()
+		t.eq(P._state().mode, "default")
+		t.eq(a.Style, Default, "a prompt shown earlier is back on Default too")
+		t.eq(b.Style, Default)
+		local c = prompt("C")
+		T.onShown(c)
+		t.eq(c.Style, Default, "streamer mode: new prompts stay the engine's")
+		hidden = false
+		T.applyMode()
+		t.eq(P._state().mode, "custom")
+		t.eq(b.Style, Custom, "the HUD is back: on-screen prompts are drawn by the help box again")
+		t.eq(c.Style, Custom)
+		T.onHidden(b)
+		-- a failure: every prompt this module ever switched is restored, shown or not
+		T.giveUp("boom")
+		local st = P._state()
+		t.eq(st.failed, true)
+		t.eq(st.mode, "default")
+		t.eq(st.styled, 0)
+		t.eq(st.shown, 0)
+		for _, p in { a, b, c } do
+			t.eq(p.Style, Default, p.Name .. ": back on the engine's bubble")
+		end
+		-- after the failure nothing is switched again
+		local d = prompt("D")
+		T.onShown(d)
+		t.eq(d.Style, Default)
+		T.reset()
 		H.setMode("server")
 	end)
 end

@@ -579,8 +579,10 @@ local function takePenalty(player: Player, mult: number?): number
 		local paid = false
 		if typeof(DataService.spendCash) == "function" then
 			-- one arrest, one charge (job 0006 bug 5): spendCash is the only charge. v1 fell back to addCash(-bail)
-			-- whenever spendCash did not return exactly true, which charged twice when it threw after deducting (it
-			-- deducts before markDirty) or when a DataService returns the new balance instead of true
+			-- whenever spendCash did not return exactly true. With the live DataService that never double-charged
+			-- (spendCash refuses only before deducting, and the bail never exceeds the cash): job 0006's -$7,200 was
+			-- two separate $3,600 arrests. This is hardening against a DataService that throws after deducting or
+			-- returns the new balance, plus the [Bust] line that tells arrests apart.
 			local ok2, res = pcall(DataService.spendCash, player, penalty)
 			paid = WantedService._bailPaid(ok2, res, cash, cashOf(player), penalty)
 			if not ok2 then

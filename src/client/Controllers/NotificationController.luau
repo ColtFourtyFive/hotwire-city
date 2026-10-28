@@ -104,6 +104,15 @@ function NotificationController.trimOldest<T>(list: { T }, max: number): { T }
 	return removed
 end
 
+-- How many feed cards may show (pure): the layout's feedMax, less the event rows sharing the column on touch (it runs
+-- under the help box toward the thumbstick; spec §7 allows 2 entries there). A fresh card always shows.
+function NotificationController.cardBudget(feedMax: number, eventRows: number, touch: boolean): number
+	if not touch then
+		return feedMax
+	end
+	return math.max(1, feedMax - math.max(0, eventRows))
+end
+
 -- 1234 -> "+$1.23K", -500 -> "-$500"
 function NotificationController.formatCashDelta(amount: number): string
 	if amount ~= amount then
@@ -349,6 +358,12 @@ function NotificationController.post(p: Post)
 		end
 	end
 	local host, width, max = feedHost()
+	-- touch: the hot drop row shares the column under the help box (spec §7: at most 2 entries there)
+	local events = lazyController("EventsClient")
+	if events and typeof(events.feedRowCount) == "function" then
+		local ok, n = pcall(events.feedRowCount)
+		max = NotificationController.cardBudget(max, if ok and typeof(n) == "number" then n else 0, Kit.isTouch())
+	end
 	cardOrder += 1
 	local frame = Kit.panel({
 		Name = "FeedCard",
