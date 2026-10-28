@@ -6,17 +6,25 @@
 --   * Chat window: GTA Online's spot (left-middle), Montserrat on black 45%, no stroke-heavy text. It steps aside
 --     (Enabled = false) while a left-side menu is up (UI/UIFocus.hidesChat): the CoreGui window swallowed clicks on
 --     the list rows under it (job 0006 bug 3: gun-shop rows ignored the mouse while the pause tabs worked).
---   * Bubble chat: flat black 35% boxes, square corners, no tail, Montserrat 14, shorter range: no white cartoon
---     speech balloons over heads.
+--   * Bubble chat: OFF (job 0018 VIBE row 17: no white speech balloons over heads; GTA Online keeps chat in the
+--     window). The flat black style below is kept for the day it is switched back on (BUBBLE.Enabled).
+--   * Esc (job 0018 VIBE row 20): Roblox reserves Esc for its own system menu, so a GTA player's first Esc lands
+--     there. When that menu closes within the first minute of the session the game's pause menu opens on its MAP
+--     tab, and the first close also posts a help line naming P (pause) and M (map). After that Esc is left alone.
+--     The limit: Esc itself can never open our pause menu (documented in docs/v2/DEROBLOX_AUDIT.md).
 --   * The top bar stays (it cannot be removed safely); Captures stays (the phone camera uses CaptureService).
 --
---   CoreGuiSetup.apply(opts?)     opts = { wheel: boolean? }   idempotent; safe before the CoreScripts are ready
---   Pure tables (tests): DISABLED, CHAT_WINDOW, CHAT_INPUT, BUBBLE; chatEnabledFor(hidesChat)
+--   CoreGuiSetup.apply(opts?)   opts = { wheel: boolean?, openPause: (() -> ())?, hint: ((string) -> ())? }
+--                               idempotent; safe before the CoreScripts are ready
+--   Pure (tests): DISABLED, CHAT_WINDOW, CHAT_INPUT, BUBBLE, ESC_WINDOW; chatEnabledFor(hidesChat),
+--   escAction(openedAt, sessionStart, hinted, menuOpen), escHint()
 
+local GuiService = game:GetService("GuiService")
 local StarterGui = game:GetService("StarterGui")
 local TextChatService = game:GetService("TextChatService")
 
 local Theme = require(script.Parent.Theme)
+local RichText = require(script.Parent.RichText)
 local UIFocus = require(script.Parent.UIFocus)
 
 local CoreGuiSetup = {}
@@ -46,6 +54,7 @@ CoreGuiSetup.CHAT_INPUT = {
 }
 
 CoreGuiSetup.BUBBLE = {
+	Enabled = false, -- no speech balloons over heads (VIBE row 17); the style applies if it is ever turned back on
 	BackgroundColor3 = C.Black,
 	BackgroundTransparency = 0.35,
 	TextColor3 = C.Text,
@@ -58,9 +67,35 @@ CoreGuiSetup.BUBBLE = {
 	VerticalStudsOffset = 0.5,
 }
 
+-- Seconds after the session starts during which closing the Roblox menu opens our pause MAP instead.
+CoreGuiSetup.ESC_WINDOW = 60
+
 -- The chat window's Enabled state for the current menus (pure).
 function CoreGuiSetup.chatEnabledFor(hidesChat: boolean): boolean
 	return not hidesChat
+end
+
+export type EscAction = "pause" | "hint" | "none"
+
+-- What closing the Roblox system menu does (pure). `openedAt` / `sessionStart` are os.clock() times; `hinted` = the
+-- P / M help line was already shown this session; `menuOpen` = one of our menus holds the cursor (UI/UIFocus).
+--   "pause": opened within ESC_WINDOW of the start (a new player pressed Esc for GTA's pause): open the pause MAP
+--   "hint":  later, the first time only: just name the keys
+--   "none":  otherwise, and always while one of our menus is up
+function CoreGuiSetup.escAction(openedAt: number, sessionStart: number, hinted: boolean, menuOpen: boolean): EscAction
+	if menuOpen then
+		return "none"
+	end
+	local since = openedAt - sessionStart
+	if since == since and since >= 0 and since <= CoreGuiSetup.ESC_WINDOW then
+		return "pause"
+	end
+	return if hinted then "none" else "hint"
+end
+
+-- The help line naming the game's own pause and map keys (rich text for HUDController.help).
+function CoreGuiSetup.escHint(): string
+	return `Esc opens the Roblox menu. Press {RichText.key("P")} to pause the game, {RichText.key("M")} for the map.`
 end
 
 local function setCore(name: string, on: boolean)
@@ -94,7 +129,42 @@ local function syncChat()
 	end
 end
 
-function CoreGuiSetup.apply(opts: { wheel: boolean? }?)
+local function bridgeEsc(openPause: (() -> ())?, hint: ((string) -> ())?)
+	if not openPause and not hint then
+		return
+	end
+	local sessionStart = os.clock()
+	local openedAt: number? = nil
+	local hinted = false
+	pcall(function()
+		GuiService.MenuOpened:Connect(function()
+			openedAt = os.clock()
+		end)
+		GuiService.MenuClosed:Connect(function()
+			local at = openedAt
+			openedAt = nil
+			if at == nil then
+				return
+			end
+			local action = CoreGuiSetup.escAction(at, sessionStart, hinted, UIFocus.any())
+			if action == "none" then
+				return
+			end
+			if action == "pause" and openPause then
+				-- after the Roblox menu has finished closing (it restores the mouse state on the way out)
+				task.defer(function()
+					pcall(openPause)
+				end)
+			end
+			if not hinted and hint then
+				hinted = true
+				pcall(hint, CoreGuiSetup.escHint())
+			end
+		end)
+	end)
+end
+
+function CoreGuiSetup.apply(opts: { wheel: boolean?, openPause: (() -> ())?, hint: ((string) -> ())? }?)
 	for _, name in CoreGuiSetup.DISABLED do
 		setCore(name, false)
 	end
@@ -124,6 +194,7 @@ function CoreGuiSetup.apply(opts: { wheel: boolean? }?)
 		syncChat()
 	end)
 	UIFocus.Changed:Connect(syncChat)
+	bridgeEsc(if opts then opts.openPause else nil, if opts then opts.hint else nil)
 end
 
 return CoreGuiSetup

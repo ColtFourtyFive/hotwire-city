@@ -50,7 +50,7 @@ local MIRROR_INTERVAL = 1
 local ORDERED_WRITE_RESERVE = 3 -- keep some ordered-write budget for leave writes
 local LOG_SCALE = 1e12
 
--- C4b de-Robloxify: the v1 boards were navy / hot-pink / cyan neon cards with FredokaOne, emoji medals and gradients.
+-- C4b de-Robloxify: the v1 boards were navy / hot-pink / cyan neon cards in a bubble font, emoji medals and gradients.
 -- They are matte black street billboards now, in the HUD's GTA tokens (gta_ui_language §3 / §4): a thin Ignition
 -- Orange rule, Oswald titles, Montserrat names, no emoji, no gradients, no rounded corners, lit by the world.
 local COLORS = {

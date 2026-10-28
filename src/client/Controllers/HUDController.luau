@@ -1899,7 +1899,19 @@ local function configureCoreGui()
 	local controllers = script.Parent
 	local wheel = controllers:FindFirstChild("WeaponWheelController") ~= nil
 		or controllers:FindFirstChild("WeaponWheel") ~= nil
-	CoreGuiSetup.apply({ wheel = wheel })
+	CoreGuiSetup.apply({
+		wheel = wheel,
+		-- Esc lands in the Roblox menu (job 0018 VIBE row 20): in the first minute its close opens our pause MAP
+		openPause = function()
+			local menu = lazy("MenuController")
+			if menu and typeof(menu.openPause) == "function" then
+				pcall(menu.openPause, "MAP")
+			end
+		end,
+		hint = function(text: string)
+			HUDController.help(text, { id = "esc_hint", duration = 8 })
+		end,
+	})
 end
 
 -- [VIP] chat prefix for VIP pass holders (each client tags incoming messages from senders whose VIP attribute is set).

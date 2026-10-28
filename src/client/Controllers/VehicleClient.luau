@@ -406,7 +406,8 @@ local UNIT_TEXT = 14
 local CONTROLS_HELP_ID = "drive_controls"
 
 -- Vehicle name shown on entering a car (pure, tested): (model, brand) from Config/Cars. v2 defs carry `model` /
--- `brand`; older defs split "<Brand> <Model...>" at the first space; a one-word name is all model, no brand.
+-- `brand` (the parody brand small above the model); a def without them shows its whole display name as the model
+-- and no brand (v1 names like "Soccer Mom SUV" are not "<Brand> <Model>", so they are never split).
 function VehicleClient.vehicleNameParts(def: any): (string, string)
 	if typeof(def) ~= "table" then
 		return "", ""
@@ -415,12 +416,7 @@ function VehicleClient.vehicleNameParts(def: any): (string, string)
 	if typeof(model) == "string" and model ~= "" then
 		return model, if typeof(brand) == "string" then brand else ""
 	end
-	local name = if typeof(def.name) == "string" then def.name else ""
-	local first, rest = string.match(name, "^(%S+)%s+(.+)$")
-	if first and rest then
-		return rest, first
-	end
-	return name, ""
+	return if typeof(def.name) == "string" then def.name else "", ""
 end
 
 -- Seconds the vehicle name holds before it fades (the lead's spec: GTA-style, out after 3 s).
@@ -547,10 +543,10 @@ local function buildUI()
 		TextTransparency = 1,
 		Parent = nameBlock,
 	})
+	-- the script face over a bright street needs GTA's soft 1 px outline (faded with the text)
 	local modelStroke = modelLabel:FindFirstChildOfClass("UIStroke")
-	if modelStroke then
-		modelStroke.Transparency = 1
-	end
+		or Kit.new("UIStroke", { Color = Theme.Colors.Black, Thickness = 1, Parent = modelLabel })
+	modelStroke.Transparency = 1
 
 	-- Touch buttons (HudLayout.buttons, bottom-right arc; nothing in the thumbstick zone) ------------------------
 	local touchFrame = Kit.new("Frame", {

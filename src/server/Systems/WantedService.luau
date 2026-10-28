@@ -17,8 +17,9 @@
 --   bust, without the bail), surrender(player) (<= 2 stars with police within 40 studs: busted at half the bail),
 --   getSearchArea(player): (Vector3?, number?).
 -- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickEvade, _sprayCost;
--- _formatBust (tests/spec/polish.spec.luau): every bust prints one "[Bust] id=.. user=.. reason=.. cash=a->b bail=.."
--- line (C4b, job 0006 bug 5) so a charge can always be traced to exactly one arrest.
+-- _formatBust, _bailPaid (tests/spec/polish.spec.luau): every bust prints one "[Bust] id=.. user=.. reason=..
+-- cash=a->b bail=.." line (C4b, job 0006 bug 5) so a charge can always be traced to exactly one arrest, and spendCash
+-- is the only charge (no addCash second pass).
 --
 -- Evade (replaces v1's star-by-star decay): while police can see you the timer is full (DECAY_DELAY[stars]) and
 -- your last known position (LKP) follows you. Out of sight it counts down 1x inside the search circle around the LKP
@@ -267,6 +268,19 @@ function WantedService._formatBust(r: BustRecord): string
 		car,
 		since
 	)
+end
+
+-- Did spendCash take the bail (pure, tested)? `ok` / `res` are its pcall results, `before` / `after` the wallet around
+-- the call. A plain true is trusted; anything else (a new balance, an error thrown after the deduction) is judged by
+-- what actually left the wallet, so the bail shown on the BUSTED screen is always what was charged.
+function WantedService._bailPaid(ok: boolean, res: any, before: number, after: number, penalty: number): boolean
+	if penalty <= 0 then
+		return false
+	end
+	if ok and res == true then
+		return true
+	end
+	return before - after >= penalty
 end
 
 local bustSeq = 0
@@ -564,21 +578,21 @@ local function takePenalty(player: Player, mult: number?): number
 	if penalty > 0 then
 		local paid = false
 		if typeof(DataService.spendCash) == "function" then
+			-- one arrest, one charge (job 0006 bug 5): spendCash is the only charge. v1 fell back to addCash(-bail)
+			-- whenever spendCash did not return exactly true, which charged twice when it threw after deducting (it
+			-- deducts before markDirty) or when a DataService returns the new balance instead of true
 			local ok2, res = pcall(DataService.spendCash, player, penalty)
-			if ok2 then
-				paid = res == true
-			else
-				-- spendCash threw part-way (it deducts before markDirty): count what actually left the wallet and
-				-- never charge again through addCash (job 0006 bug 5: one arrest, one bail)
-				local now = if typeof(data.cash) == "number" then data.cash else cash
-				paid = now <= cash - penalty
-				warn(("[WantedService] spendCash errored during a bust (%s); bail %s"):format(
-					tostring(res),
-					if paid then "was taken" else "skipped"
-				))
+			paid = WantedService._bailPaid(ok2, res, cash, cashOf(player), penalty)
+			if not ok2 then
+				warn(
+					("[WantedService] spendCash errored during a bust (%s); bail %s"):format(
+						tostring(res),
+						if paid then "was taken" else "skipped"
+					)
+				)
 			end
 		elseif typeof(DataService.addCash) == "function" then
-			-- only without spendCash (older DataService): a refused spendCash means "not loaded", never charge twice
+			-- only without spendCash (older DataService)
 			local ok3, res3 = pcall(DataService.addCash, player, -penalty, "busted")
 			paid = ok3 and res3 ~= nil -- addCash returns the new balance, nil when not loaded
 		end
