@@ -802,6 +802,7 @@ local function claimHotDrop(hd: HotDrop, player: Player)
 		5
 	)
 	Net.fireClient("Sound", player, "CashBig", hd.position)
+	Net.fireNear("Effect", hd.position, 400, "Confetti", { position = hd.position + Vector3.new(0, 4, 0) })
 	-- warn now (not at the drop-off) when there is nowhere to park it; the claim itself is never blocked
 	local okFree, free = call("GarageService", "freeSlots", player)
 	if okFree and typeof(free) == "number" and free <= 0 then
@@ -853,7 +854,7 @@ function addClaimPrompt(hd: HotDrop)
 	end
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "HotDropPrompt"
-	prompt.ActionText = "Hotwire"
+	prompt.ActionText = "Hotwire" -- the same verb as the addStealPrompt path
 	prompt.ObjectText = objectText
 	prompt.HoldDuration = Events.HOT_DROP_HOLD
 	prompt.MaxActivationDistance = 12
@@ -1001,7 +1002,7 @@ local function runHotDrop(hd: HotDrop)
 		"Hot drop",
 		`A {hd.rarity} {label} lands in {Events.HOT_DROP_WARNING} seconds. It's marked on your map.`,
 		color,
-		"Notify"
+		"AirHorn"
 	)
 	broadcastHotDrop()
 
@@ -1054,10 +1055,10 @@ local function runHotDrop(hd: HotDrop)
 	setBeaconLive(hd)
 	addClaimPrompt(hd)
 	local fxPos = hd.position + Vector3.new(0, 2, 0)
-	-- C4b de-Robloxify: no confetti burst over the drop (GTA: dust, the crash and a blip; nothing festive)
+	Net.fireNear("Effect", fxPos, 500, "Confetti", { position = fxPos, rarity = hd.rarity })
 	Net.fireNear("Effect", fxPos, 500, "CashBurst", { position = fxPos })
 	Net.fireNear("Sound", fxPos, 400, "Crash", fxPos)
-	announce("Hot drop", `The {label} is down. First one to hotwire it keeps it.`, color, "Notify")
+	announce("Hot drop", `The {label} is down. First one to hotwire it keeps it.`, color, "AirHorn")
 	broadcastHotDrop()
 	broadcastEventState()
 
@@ -1292,7 +1293,7 @@ function EventService.startCashRain(): boolean
 		"Cash rain",
 		"Money is coming down over the plaza for the next 45 seconds.",
 		Color3.fromRGB(70, 235, 110),
-		"Notify"
+		"CashDrop"
 	)
 	broadcastEventState()
 	nextAt.cashRain = t
@@ -1325,7 +1326,7 @@ function EventService.startRushHour(): boolean
 		"Rush hour",
 		"Heavy traffic citywide, and rarer cars parked on the street.",
 		Color3.fromRGB(255, 190, 40),
-		"Notify"
+		"Horn"
 	)
 	nextAt.rushHour = timers.rushHour + rng:NextNumber(Events.RUSH_HOUR_INTERVAL[1], Events.RUSH_HOUR_INTERVAL[2])
 	broadcastEventState()
@@ -1340,7 +1341,7 @@ function EventService.startDoubleCash(): boolean
 		"Double cash",
 		`Every garage pays double for the next {Format.clock(Events.DOUBLE_CASH_DURATION)}.`,
 		Color3.fromRGB(70, 235, 110),
-		"Notify"
+		"CashBig"
 	)
 	nextAt.doubleCash = timers.doubleCash
 		+ rng:NextNumber(Events.DOUBLE_CASH_INTERVAL[1], Events.DOUBLE_CASH_INTERVAL[2])
@@ -1358,7 +1359,7 @@ function EventService.activateServerLuck(player: Player?): boolean
 		"Server luck",
 		`{richEscape(who)} doubled the odds of rare cars for everyone. {Format.clock(left)} left.`,
 		Color3.fromRGB(80, 230, 120),
-		"Notify"
+		"CashBig"
 	)
 	broadcastEventState()
 	rerollStreet()

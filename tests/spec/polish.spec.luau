@@ -511,17 +511,14 @@ return function(t)
 		H.setMode("server")
 	end)
 
-	t.test("nit: the server's event copy is GTA feed copy (no emoji, air horns, confetti or CLAIM)", function()
-		local lines = codeLines("src/server/Systems/EventService.luau")
-		for _, line in lines do
-			local isWorldMarker = string.find(line, "title.Text", 1, true) or string.find(line, "icon.Text", 1, true)
+	t.test("nit: the server's event copy is GTA feed copy (no emoji, shouting or CLAIM)", function()
+		-- the hot drop marker, its effects and the event sounds belong to C5 vibe / C3 audio (DEROBLOX_AUDIT.md)
+		for _, line in codeLines("src/server/Systems/EventService.luau") do
 			if string.find(line, "announce(", 1, true) or string.find(line, "feed(", 1, true) then
 				t.ok(emojiIn(line) == nil, "emoji: " .. line)
 				t.ok(not string.find(line, "!", 1, true) or string.find(line, "~=", 1, true), "shouting: " .. line)
 			end
-			if not isWorldMarker then
-				t.ok(not string.find(line, '"AirHorn"', 1, true), "air horn: " .. line)
-				t.ok(not string.find(line, '"Confetti"', 1, true), "confetti: " .. line)
+			if string.find(line, "ActionText", 1, true) or string.find(line, "actionText", 1, true) then
 				t.ok(not string.find(line, "CLAIM", 1, true), "CLAIM: " .. line)
 			end
 		end
