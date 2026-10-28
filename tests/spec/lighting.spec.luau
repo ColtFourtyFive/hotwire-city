@@ -294,10 +294,16 @@ return function(t)
 		L.setClockTime(22.5)
 		t.near(Lighting.ClockTime, 3.33, 1e-6, "the hold costs no writes")
 		t.eq(Workspace:GetAttribute("NightFactor"), 1)
+		L.setClockTime(E.jumpHour - 0.01)
+		t.eq(Lighting:GetAttribute("Sky"), "night", "the evening-hold night sky up to the jump")
+		local nightFt = Lighting:FindFirstChildOfClass("Sky").SkyboxFt
 		L.setClockTime(E.jumpHour + 0.01)
 		t.near(Lighting.ClockTime, E.morningHold, 1e-3, "jumped to the morning hold")
 		t.eq(Workspace:GetAttribute("NightFactor"), 1, "still full night: NightFactor follows the game hour")
-		t.eq(Lighting:GetAttribute("Sky"), "night", "the fixed night sky is up across the jump")
+		t.eq(Lighting:GetAttribute("Sky"), "nightLate", "the morning-hold night sky comes up with the jump")
+		local ft = Lighting:FindFirstChildOfClass("Sky").SkyboxFt
+		t.ok(ft ~= nightFt and ft == Look.Skies.nightLate.faces.Ft, "its faces written in the same apply")
+		t.ok(Lighting.ExposureCompensation < Look.Presets.night.exposure - 0.2, "under the exposure dip")
 		L.setClockTime(3)
 		t.near(Lighting.ClockTime, E.morningHold, 1e-3, "morning hold")
 		-- the lab override pins the engine clock without touching the game hour
@@ -368,6 +374,17 @@ return function(t)
 			L.yawToward(Look.Skies.night.horizonGlowAzimuth, Look.SkyStyle.fixedGlowAzimuth),
 			1e-3,
 			"night city glow parked inland"
+		)
+		L.setClockTime(2)
+		t.eq(Lighting:GetAttribute("Sky"), "nightLate", "after the midnight jump: the morning-hold night sky")
+		t.eq(sky.SkyboxBk, Look.Skies.nightLate.faces.Bk, "nightLate faces")
+		t.eq(sky.SkyboxUp, Look.Skies.nightLate.faces.Up)
+		t.eq(sky.CelestialBodiesShown, false, "no engine moon over the late night")
+		t.near(
+			sky.SkyboxOrientation.Y,
+			L.yawToward(Look.Skies.nightLate.horizonGlowAzimuth, Look.SkyStyle.fixedGlowAzimuth),
+			1e-3,
+			"late-night city glow parked inland too"
 		)
 		L.setClockTime(18.8)
 		t.eq(Lighting:GetAttribute("Sky"), "blue")

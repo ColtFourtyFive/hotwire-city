@@ -990,12 +990,12 @@ Look.Decals = Decals
 local Skies: { [string]: SkyDef } = {
 	blue = {
 		faces = {
-			Bk = "rbxassetid://70683400363590",
+			Bk = "rbxassetid://97757961136617",
 			Dn = "rbxassetid://98952593275525",
-			Ft = "rbxassetid://105412262655867",
-			Lf = "rbxassetid://140732642740499",
-			Rt = "rbxassetid://117518356221659",
-			Up = "rbxassetid://101185202023069",
+			Ft = "rbxassetid://79742849062319",
+			Lf = "rbxassetid://129863789995610",
+			Rt = "rbxassetid://86621266446209",
+			Up = "rbxassetid://135650798270190",
 		},
 		glowAzimuth = 0,
 		horizonGlowAzimuth = 0,
@@ -1003,16 +1003,16 @@ local Skies: { [string]: SkyDef } = {
 		starCount = 0,
 		celestialBodiesShown = true,
 		clouds = 0,
-		hazeColor = { 30, 36, 48 },
+		hazeColor = { 28, 40, 58 },
 	},
 	dawn = {
 		faces = {
-			Bk = "rbxassetid://88297669138388",
+			Bk = "rbxassetid://98043044936404",
 			Dn = "rbxassetid://98952593275525",
-			Ft = "rbxassetid://104691054390275",
-			Lf = "rbxassetid://115868303766379",
-			Rt = "rbxassetid://137318548242974",
-			Up = "rbxassetid://115259817645274",
+			Ft = "rbxassetid://129901905692620",
+			Lf = "rbxassetid://123519574914603",
+			Rt = "rbxassetid://73235550196971",
+			Up = "rbxassetid://78912621534818",
 		},
 		glowAzimuth = 0,
 		horizonGlowAzimuth = 0,
@@ -1020,7 +1020,7 @@ local Skies: { [string]: SkyDef } = {
 		starCount = 0,
 		celestialBodiesShown = true,
 		clouds = 0,
-		hazeColor = { 29, 35, 47 },
+		hazeColor = { 27, 39, 56 },
 	},
 	day = {
 		faces = {
@@ -1062,12 +1062,12 @@ local Skies: { [string]: SkyDef } = {
 	},
 	night = {
 		faces = {
-			Bk = "rbxassetid://86999547269242",
+			Bk = "rbxassetid://94984348100656",
 			Dn = "rbxassetid://98952593275525",
-			Ft = "rbxassetid://139435704740562",
-			Lf = "rbxassetid://125463269368696",
-			Rt = "rbxassetid://99753931935148",
-			Up = "rbxassetid://109124646573605",
+			Ft = "rbxassetid://102872066736317",
+			Lf = "rbxassetid://95939202131007",
+			Rt = "rbxassetid://95896070267520",
+			Up = "rbxassetid://88812082275800",
 		},
 		glowAzimuth = 0,
 		horizonGlowAzimuth = 90,
@@ -1076,6 +1076,23 @@ local Skies: { [string]: SkyDef } = {
 		celestialBodiesShown = false,
 		clouds = 0,
 		hazeColor = { 28, 36, 52 },
+	},
+	nightLate = {
+		faces = {
+			Bk = "rbxassetid://110094107388282",
+			Dn = "rbxassetid://98952593275525",
+			Ft = "rbxassetid://93141238500720",
+			Lf = "rbxassetid://88251663305809",
+			Rt = "rbxassetid://74764785598053",
+			Up = "rbxassetid://85952127286680",
+		},
+		glowAzimuth = 0,
+		horizonGlowAzimuth = 90,
+		followSun = false,
+		starCount = 0,
+		celestialBodiesShown = false,
+		clouds = 0,
+		hazeColor = { 26, 33, 49 },
 	},
 }
 Look.Skies = Skies
