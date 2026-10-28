@@ -1,0 +1,8 @@
+[Admin] illintent1 (11686693147): /hc rookie off
+[Admin] illintent1 (11686693147): /hc wanted 2
+[Bust] id=1 user=11686693147 reason=police stars=2 peak=2 cash=153789->138411 bail=15378 mult=1 car=- sinceLast=-
+[Admin] illintent1 (11686693147): /hc wanted 2
+[Bust] id=2 user=11686693147 reason=police stars=2 peak=2 cash=138411->124570 bail=13841 mult=1 car=- sinceLast=35.1
+[Admin] illintent1 (11686693147): /hc wanted 2
+[Bust] id=3 user=11686693147 reason=police stars=2 peak=2 cash=124570->112113 bail=12457 mult=1 car=- sinceLast=39.0
+[Bust] id=4 user=11686693147 reason=police stars=2 peak=2 cash=112113->100902 bail=11211 mult=1 car=Hot_Hatch sinceLast=42.7   (G23: 0006 scenario, spawn hot_hatch / wanted 2 / drive 5 s)
