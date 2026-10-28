@@ -4,7 +4,7 @@
 -- An electronic siren is one tone swept by a pattern. Audio/PoliceAudio loops a short steady slice of a real siren
 -- tone (Config/Sounds Siren_Tone) and drives its PlaybackSpeed with pitchAt(pattern, t):
 --   wail  slow rise and fall (about 4 s per cycle)
---   yelp  fast sweep (about 3 per second); the recorded yelp loop (Siren_Yelp) can stand in for it
+--   yelp  fast sweep (about 3 per second)
 --   hilo  two-tone, alternating hi / lo
 -- choose() switches patterns during a chase the way GTA's units do: mostly wail cruising, yelp / hi-lo bursts when the
 -- unit is close to the suspect or pushing through, a new pattern every few seconds. The caller passes its own random

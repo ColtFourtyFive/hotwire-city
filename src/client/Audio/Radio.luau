@@ -45,6 +45,7 @@ Radio.OUTSIDE_RANGE = 70
 Radio.OUTSIDE_SLOTS = 2
 Radio.OUTSIDE_GAIN = 1.8 -- the muffled copy is louder before its low-pass (it is heard through the bodywork)
 Radio.REMOTE = "RadioTune"
+Radio.REPUBLISH = 2 -- s: re-send the settled station while our car's attribute still disagrees after this long
 
 Radio.Changed = Signal.new() -- (station: string?, title: string?) title nil while nothing plays
 
@@ -69,7 +70,10 @@ local tweens: { [number]: Tween } = {}
 local deck = 1
 local token = 0
 local tuneToken = 0
+local publishToken = 0
 local published: string? = nil
+local lastSent = -math.huge
+local lastChange = -math.huge
 local outside: { Outside } = {}
 local musicOn = true
 local fire: ((string, ...any) -> ())? = nil
@@ -119,17 +123,51 @@ function Radio.clockTrack(i: number, t: number): (string?, number)
 	return st.tracks[index], offset
 end
 
-local function publish()
-	local name = if inCar and not isOff() then stationName() or "" else ""
-	if name == published then
-		return
-	end
+-- What other players should hear from our car: the tuned station while we drive, "" otherwise.
+local function wanted(): string
+	return if inCar and not isOff() then stationName() or "" else ""
+end
+
+local function send(name: string)
 	published = name
+	lastSent = os.clock()
 	local f = fire
 	if f then
 		task.spawn(function()
 			pcall(f, Radio.REMOTE, name)
 		end)
+	end
+end
+
+-- Every change goes out through the TUNE_DELAY debounce (mashing R / T across RADIO OFF sends one message, well under
+-- AudioService's rate limit); checkPublished re-sends while our car's attribute disagrees (a dropped message).
+local function publish()
+	publishToken += 1
+	lastChange = os.clock()
+	local my = publishToken
+	task.delay(Radio.TUNE_DELAY, function()
+		if my == publishToken then
+			local name = wanted()
+			if name ~= published then
+				send(name)
+			end
+		end
+	end)
+end
+
+-- 2 Hz: the server writes our car's RadioStation attribute (nil = off). If it still disagrees REPUBLISH s after the
+-- last send (the message was dropped by the rate limit, or the server had not registered us as the driver yet), send
+-- the settled value again.
+local function checkPublished(localModel: Model?)
+	-- (never while the player is still turning the dial: the debounce sends that)
+	if not inCar or not localModel or os.clock() - math.max(lastSent, lastChange) < Radio.REPUBLISH then
+		return
+	end
+	local attr = localModel:GetAttribute("RadioStation")
+	local now = if typeof(attr) == "string" then attr else ""
+	local want = wanted()
+	if now ~= want then
+		send(want)
 	end
 end
 
@@ -259,10 +297,14 @@ local function refresh()
 	end
 end
 
+-- The tuning static is part of the radio: on the music channel (Radio slider), silent with Music off.
 local function staticBurst()
+	if not musicOn then
+		return
+	end
 	local d = def("RadioStatic")
 	if d then
-		Voices.play2D("RadioStatic", d, Groups.get("vehicles"), Mix.PRIORITY.ui)
+		Voices.play2D("RadioStatic", d, Groups.get(Mix.channelFor("RadioStatic", false)), Mix.PRIORITY.ui)
 	end
 	Groups.duck("retune", true, 0.35)
 end
@@ -321,16 +363,8 @@ function Radio.setInCar(on: boolean, model: Model?)
 	if not playing then
 		notify()
 	end
+	-- (the server may register us as the driver a moment after our seat event: checkPublished says it again)
 	publish()
-	if on then
-		-- the server may register us as the driver a moment after our seat event: say it again shortly
-		task.delay(1.5, function()
-			if inCar then
-				published = nil
-				publish()
-			end
-		end)
-	end
 end
 
 -- Next (+1) / previous (-1) position (through RADIO OFF). The label retunes at once; in a car the station's track
@@ -347,6 +381,7 @@ function Radio.step(dir: number)
 		return
 	end
 	staticBurst()
+	publish() -- debounced; others hear the station even when this player's music setting is off
 	local wasPlaying = playing
 	if isOff() then
 		if playing then
@@ -354,13 +389,11 @@ function Radio.step(dir: number)
 		else
 			notify()
 		end
-		publish()
 		return
 	end
 	if not wasPlaying then
 		refresh() -- coming back from OFF
 		if playing then
-			publish()
 			return
 		end
 	end
@@ -373,11 +406,8 @@ function Radio.step(dir: number)
 	tuneToken += 1
 	local tune = tuneToken
 	task.delay(Radio.TUNE_DELAY, function()
-		if tune == tuneToken then
-			if playing then
-				playClock()
-			end
-			publish() -- others hear the station even when this player's music setting is off
+		if tune == tuneToken and playing then
+			playClock()
 		end
 	end)
 end
@@ -420,25 +450,79 @@ local function ensureOutside()
 	end
 end
 
+-- Start the slot's station on its clock track; once the stream has loaded, re-seek to the clock (a stream may start
+-- at 0), the same as the decks do, so a bystander hears the driver's song at the driver's point in it.
 local function startOutside(slot: Outside)
 	local key, offset = Radio.clockTrack(slot.station, serverNow())
 	local d = def(key)
 	slot.key = key
+	slot.token += 1
 	if not d then
 		return
 	end
-	slot.token += 1
+	local my = slot.token
+	local station = slot.station
 	local s = slot.sound
 	s:Stop()
 	s.SoundId = d.id
 	s.Volume = 0
 	s.TimePosition = offset
 	s:Play()
+	task.spawn(function()
+		local waited = 0
+		while my == slot.token and not s.IsLoaded and waited < Radio.LOAD_TIMEOUT do
+			waited += task.wait(0.25)
+		end
+		if my ~= slot.token then
+			return
+		end
+		if not s.IsLoaded then
+			slot.key = nil -- never loaded: the next scan tries again
+			return
+		end
+		local k, now = Radio.clockTrack(station, serverNow())
+		if k == key and math.abs(s.TimePosition - now) > Radio.RESYNC then
+			s.TimePosition = now
+		end
+	end)
 end
 
--- 2 Hz: which nearby cars play a station (cars = Engines.cars(); localModel = our own car).
+local function clearOutside(slot: Outside)
+	slot.car = nil
+	slot.key = nil
+	slot.station = 0
+	slot.fade = 0
+	slot.token += 1
+	slot.sound:Stop()
+end
+
+-- Put `car` in a slot: the one already holding it, else a free one.
+local function placeOutside(car: any)
+	if car == nil then
+		return
+	end
+	for _, slot in outside do
+		if slot.car == car then
+			return
+		end
+	end
+	for _, slot in outside do
+		if slot.car == nil then
+			slot.car = car
+			slot.key = nil
+			slot.station = 0
+			slot.fade = 0
+			return
+		end
+	end
+end
+
+-- 2 Hz: which nearby cars play a station (cars = Engines.cars(); localModel = our own car). A car keeps its slot
+-- while it stays among the OUTSIDE_SLOTS nearest (two cars swapping order never restarts either stream); only a car
+-- that drops out frees its slot for a newcomer.
 function Radio.scan(listener: Vector3, cars: { [Model]: any }, localModel: Model?)
 	ensureOutside()
+	checkPublished(localModel)
 	local best1: any, d1 = nil, Radio.OUTSIDE_RANGE
 	local best2: any, d2 = nil, Radio.OUTSIDE_RANGE
 	if musicOn then
@@ -458,16 +542,17 @@ function Radio.scan(listener: Vector3, cars: { [Model]: any }, localModel: Model
 			end
 		end
 	end
-	for i, slot in outside do
-		local want = if i == 1 then best1 else best2
-		if slot.car ~= want then
-			slot.car = want
-			slot.key = nil
-			slot.fade = 0
-			slot.sound:Stop()
+	for _, slot in outside do
+		if slot.car ~= nil and slot.car ~= best1 and slot.car ~= best2 then
+			clearOutside(slot)
 		end
-		if want then
-			local station = RadioDial.find(stations, want.model:GetAttribute("RadioStation")) or 0
+	end
+	placeOutside(best1)
+	placeOutside(best2)
+	for _, slot in outside do
+		local car = slot.car
+		if car then
+			local station = RadioDial.find(stations, car.model:GetAttribute("RadioStation")) or 0
 			if station ~= slot.station then
 				slot.station = station
 				slot.key = nil

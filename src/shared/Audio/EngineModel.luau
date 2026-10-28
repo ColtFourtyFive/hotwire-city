@@ -11,8 +11,11 @@
 --   * load: on-throttle vs coasting, smoothed; the mixer crossfades on-load / off-load layers with it;
 --   * mix(): idle / on-load / off-load layer volumes (equal power) and per-layer PlaybackSpeed from rpm / the rpm the
 --     recording was made at (profile.idleRef / onRef / offRef), plus the shift-dip master gain.
+--   * reverse: one gear, no shifts, no pops (reverseFrac maps reverse speed below the first shift point, so a car
+--     backing up at full throttle whines in first instead of running through the gearbox).
 -- Other players' and traffic cars have no throttle input on this client: inferThrottle() guesses it from acceleration.
--- lod(distance) is the remote-engine budget rule: 3 layers close, 1 layer mid, none far.
+-- lod(distance) is the remote-engine budget rule: 3 layers close, 1 layer mid, none far; farBlend / remoteLayers
+-- crossfade between the two over FAR_FROM..FAR_TO studs so a car crossing the boundary never clicks or changes timbre.
 --
 -- Pure: no Instances, no services. step() and mix() mutate caller-owned tables and allocate nothing per frame.
 
@@ -23,6 +26,8 @@ EngineModel.SHIFTS = { 0.22, 0.42, 0.62, 0.82 }
 EngineModel.SHIFT_HYSTERESIS = 0.04
 EngineModel.FULL_RANGE = 60 -- remote engines: all three layers within this many studs
 EngineModel.MAX_RANGE = 250 -- ...a single layer up to here, nothing beyond
+EngineModel.FAR_FROM = 50 -- ...crossfading from three layers to one between these distances
+EngineModel.FAR_TO = 75
 
 export type Profile = {
 	idleRpm: number,
@@ -219,9 +224,15 @@ function EngineModel.gearFor(current: number, frac: number, shifts: { number }):
 	return current
 end
 
+-- Speed fraction for a car reversing at `speed` (studs/s) with reverse top speed `reverseMax`: kept just under the
+-- first shift point, so full reverse revs high in first gear.
+function EngineModel.reverseFrac(speed: number, reverseMax: number): number
+	return math.clamp(math.abs(speed) / math.max(reverseMax, 1), 0, 1) * (EngineModel.SHIFTS[1] - 0.01)
+end
+
 -- Advance the model. speedFrac = |speed| / topSpeed (nitro can push it past 1), throttle -1..1 (negative = brake /
 -- reverse), grounded = at least two wheels on the ground, held = the car is held in place (handbrake, or the
--- wheels are blocked: stuck against a wall).
+-- wheels are blocked: stuck against a wall), reverse = backing up (first gear only: no shifts, pops or blow-offs).
 function EngineModel.step(
 	st: State,
 	p: Profile,
@@ -229,7 +240,8 @@ function EngineModel.step(
 	speedFrac: number,
 	throttle: number,
 	grounded: boolean,
-	held: boolean
+	held: boolean,
+	reverse: boolean?
 )
 	local shifts = p.shifts or EngineModel.SHIFTS
 	local f = math.clamp(math.abs(speedFrac), 0, 1.5)
@@ -240,7 +252,9 @@ function EngineModel.step(
 
 	local free = (not grounded) or (held and f < 0.06)
 	st.free = free
-	if not free then
+	if reverse then
+		st.gear = 0
+	elseif not free then
 		local g = EngineModel.gearFor(st.gear, f, shifts)
 		if g > st.gear then
 			st.shifted = 1
@@ -371,6 +385,32 @@ function EngineModel.lod(distance: number): number
 		return 1
 	end
 	return 0
+end
+
+-- 0 (all three layers) .. 1 (one layer) for a remote engine `distance` studs away: smooth over FAR_FROM..FAR_TO.
+function EngineModel.farBlend(distance: number): number
+	local t = math.clamp((distance - EngineModel.FAR_FROM) / (EngineModel.FAR_TO - EngineModel.FAR_FROM), 0, 1)
+	return t * t * (3 - 2 * t)
+end
+
+-- Per-layer volume targets of a remote engine (before its master gain): the three-layer mix up close, crossfaded
+-- (farBlend `k`) into a single layer far away. That layer is whichever dominates the mix, so it keeps its own take and
+-- pitch (an idling car stays on its idle take, never the on-load take at pitchMin), and it carries the whole engine.
+-- Returns (idle, on, off).
+function EngineModel.remoteLayers(m: Mix, k: number): (number, number, number)
+	local near = 1 - k
+	local idle, on, off = m.idle * near, m.on * near, m.off * near
+	if k > 0 then
+		local w = math.max(m.idle, m.on, m.off) * k
+		if m.idle >= math.max(m.on, m.off) then
+			idle += w
+		elseif m.on >= m.off then
+			on += w
+		else
+			off += w
+		end
+	end
+	return idle, on, off
 end
 
 -- The profile for an engine set name (unknown -> sedan).

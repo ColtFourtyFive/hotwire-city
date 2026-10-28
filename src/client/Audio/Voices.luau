@@ -3,12 +3,18 @@
 --
 --  * play2D(key, def, group, priority)      a 2D one-shot (UI, dispatch blips, overhead planes): up to PER_KEY copies
 --                                            of one key in SoundService.HC_Voices, the oldest copy is restarted.
---  * playAt(def, pos, group, priority, volumeMult?, lowpass?, force?, rollOff?)
+--  * playAt(def, pos, group, priority, volumeMult?, lowpass?, force?, rollOff?, minDistance?)
 --                                            a 3D one-shot: WORLD_POOL emitters (Attachments on one anchored,
 --                                            invisible part in Workspace.HC_ClientSounds) moved to `pos`. Beyond CULL
 --                                            studs from the camera it is skipped unless `force` (gun tails, far sirens).
---  * Global cap: at most Mix.MAX_VOICES one-shots at once. When full, a new sound plays only by stealing an older
---    one of strictly lower priority (Mix.admit / Mix.PRIORITY); otherwise it is dropped.
+--                                            minDistance = RollOffMinDistance (default 12; City's ambient one-shots
+--                                            pass their own distance, so the def volume is the level at the listener).
+--  * follow(sound, part): a playing 3D one-shot follows a moving part until it ends (horns, exhaust pops on a car
+--    doing 70 studs/s); step() moves them every frame.
+--  * Global cap: at most Mix.MAX_VOICES sounds at once, counting every playing loop (registerLoop: engines, beds,
+--    sirens, radio, squeals...) as well as the one-shots. Loops are budgeted by their own modules and never stolen.
+--    When full, a one-shot plays only by stealing an older one-shot of strictly lower priority (Mix.admit /
+--    Mix.PRIORITY), or while fewer than Mix.MIN_ONESHOTS one-shots play; otherwise it is dropped.
 --  * Emitters (emitter() / releaseEmitter()): pooled Attachments for loops that follow a moving car or heli (the
 --    loop Sounds live on our own anchor, never inside a car: a car that despawns or streams out cannot take them
 --    with it, and nothing has to be re-created).
@@ -27,10 +33,18 @@ Voices.WORLD_POOL = 28
 Voices.PER_KEY = 4
 Voices.CULL = 450
 Voices.DEFAULT_ROLLOFF = 320
+Voices.MIN_DISTANCE = 12
 Voices.MAX = Mix.MAX_VOICES
 
 type Def = Apply.Def
-type Entry = { sound: Sound, att: Attachment?, startedAt: number, priority: number }
+type Entry = {
+	sound: Sound,
+	att: Attachment?,
+	startedAt: number,
+	priority: number,
+	follow: BasePart?,
+	offset: Vector3, -- in the followed part's space
+}
 
 local rng = Random.new()
 local folder: Folder? = nil
@@ -38,7 +52,17 @@ local anchor: Part? = nil
 local world: { Entry } = {}
 local flat: { [string]: { Entry } } = {}
 local freeEmitters: { Attachment } = {}
+local loops: { Sound } = {}
+local looped: { [Sound]: boolean } = {}
 local dropped = 0
+
+-- Count a loop Sound against the global cap while it plays audibly (idempotent).
+function Voices.registerLoop(sound: Sound)
+	if not looped[sound] then
+		looped[sound] = true
+		table.insert(loops, sound)
+	end
+end
 
 local function ensureFolder(): Folder
 	local f = folder
@@ -124,6 +148,7 @@ function Voices.loopAt(name: string): (Attachment, Sound)
 		made.Parent = att
 		s = made
 	end
+	Voices.registerLoop(s :: Sound)
 	return att, s :: Sound
 end
 
@@ -135,6 +160,7 @@ function Voices.loop2D(name: string): Sound
 	s.Looped = true
 	s.Volume = 0
 	s.Parent = f
+	Voices.registerLoop(s)
 	return s
 end
 
@@ -150,8 +176,28 @@ local function worse(e: Entry, victim: Entry?): boolean
 	return e.priority < victim.priority or (e.priority == victim.priority and e.startedAt < victim.startedAt)
 end
 
--- (playing count, lowest playing priority, the oldest entry at that priority)
-local function census(): (number, number?, Entry?)
+-- Audible loops (playing, Volume above silence); destroyed ones leave the registry.
+local function loopCount(): number
+	local n = 0
+	local i = 1
+	while i <= #loops do
+		local s = loops[i]
+		if s.Parent == nil then
+			looped[s] = nil
+			loops[i] = loops[#loops]
+			loops[#loops] = nil
+		else
+			if s.IsPlaying and s.Volume > 0.001 then
+				n += 1
+			end
+			i += 1
+		end
+	end
+	return n
+end
+
+-- (playing one-shots, playing loops, lowest playing one-shot priority, the oldest one-shot at that priority)
+local function census(): (number, number, number?, Entry?)
 	local count = 0
 	local victim: Entry? = nil
 	for _, e in world do
@@ -172,13 +218,13 @@ local function census(): (number, number?, Entry?)
 			end
 		end
 	end
-	return count, if victim then victim.priority else nil, victim
+	return count, loopCount(), if victim then victim.priority else nil, victim
 end
 
 -- May a voice of `priority` start now? Stops the victim when it steals one.
 local function admit(priority: number): boolean
-	local count, lowest, victim = census()
-	local ok, steal = Mix.admit(count, Voices.MAX, priority, lowest)
+	local oneShots, loopsPlaying, lowest, victim = census()
+	local ok, steal = Mix.admit(oneShots + loopsPlaying, Voices.MAX, priority, lowest, oneShots)
 	if not ok then
 		dropped += 1
 		return false
@@ -218,7 +264,7 @@ function Voices.play2D(key: string, def: Def, group: SoundGroup?, priority: numb
 		local s = Instance.new("Sound")
 		s.Name = key
 		s.Parent = f
-		pick = { sound = s, startedAt = 0, priority = pr }
+		pick = { sound = s, startedAt = 0, priority = pr, follow = nil, offset = Vector3.zero }
 		table.insert(list, pick :: Entry)
 	end
 	if not pick then
@@ -255,7 +301,8 @@ function Voices.playAt(
 	volumeMult: number?,
 	lowpass: boolean?,
 	force: boolean?,
-	rollOff: number?
+	rollOff: number?,
+	minDistance: number?
 ): Sound?
 	local cam = Workspace.CurrentCamera
 	if not force and cam and (cam.CFrame.Position - position).Magnitude > Voices.CULL then
@@ -277,9 +324,9 @@ function Voices.playAt(
 			att.Parent = a
 			local s = Instance.new("Sound")
 			s.RollOffMode = Enum.RollOffMode.InverseTapered
-			s.RollOffMinDistance = 12
+			s.RollOffMinDistance = Voices.MIN_DISTANCE
 			s.Parent = att
-			pick = { sound = s, att = att, startedAt = 0, priority = pr }
+			pick = { sound = s, att = att, startedAt = 0, priority = pr, follow = nil, offset = Vector3.zero }
 			table.insert(world, pick :: Entry)
 		else
 			-- pool full: the oldest of the lowest priority, if it is not above ours
@@ -308,8 +355,12 @@ function Voices.playAt(
 		att.Parent = a
 	end
 	att.WorldPosition = position
+	e.follow = nil
 	Apply.def(e.sound, def, group)
-	e.sound.RollOffMaxDistance = rollOff or def.rollOff or Voices.DEFAULT_ROLLOFF
+	local maxD = rollOff or def.rollOff or Voices.DEFAULT_ROLLOFF
+	local minD = math.clamp(minDistance or Voices.MIN_DISTANCE, 0.5, maxD * 0.9)
+	e.sound.RollOffMinDistance = minD
+	e.sound.RollOffMaxDistance = maxD
 	e.sound.Looped = false
 	e.sound.Volume = def.volume * (volumeMult or 1)
 	e.sound.PlaybackSpeed = variedPitch(def)
@@ -323,14 +374,48 @@ function Voices.playAt(
 	return e.sound
 end
 
--- (playing one-shots, pool size, one-shots refused by the cap so far): debug / tests.
-function Voices.stats(): (number, number, number)
-	local count = census()
+-- Keep a playing 3D one-shot (a Sound from playAt) on `part` (at `offset` in its space) until it ends or the part
+-- goes away.
+function Voices.follow(sound: Sound?, part: BasePart?, offset: Vector3?)
+	if not sound or not part then
+		return
+	end
+	for _, e in world do
+		if e.sound == sound then
+			e.follow = part
+			e.offset = offset or Vector3.zero
+			local att = e.att
+			if att then
+				att.WorldPosition = part.CFrame * e.offset
+			end
+			return
+		end
+	end
+end
+
+-- Per frame: one-shots that follow a part move with it (no allocation).
+function Voices.step()
+	for _, e in world do
+		local part = e.follow
+		if part then
+			local att = e.att
+			if e.sound.IsPlaying and part.Parent and att then
+				att.WorldPosition = part.CFrame * e.offset
+			else
+				e.follow = nil
+			end
+		end
+	end
+end
+
+-- (playing one-shots, pool size, one-shots refused by the cap so far, playing loops): debug / tests.
+function Voices.stats(): (number, number, number, number)
+	local count, loopsPlaying = census()
 	local size = #world
 	for _, list in flat do
 		size += #list
 	end
-	return count, size, dropped
+	return count, size, dropped, loopsPlaying
 end
 
 return Voices

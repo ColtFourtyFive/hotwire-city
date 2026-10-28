@@ -4,7 +4,8 @@
 -- The steal prompts are server-made ProximityPrompts (StreetSpawnService / TheftService "Hotwire", GarageService
 -- "StealPrompt"); this listens to ProximityPromptService's hold events on this client, so nothing in those systems
 -- changes. While a matching prompt is held, HotwireCrackle loops at the prompt (its part or attachment); it stops on
--- release, trigger, or after MAX_HOLD seconds. The ignition / starter that follow are LocalCar's.
+-- release, trigger, or after MAX_HOLD seconds. The starter that follows is LocalCar's; it skips the key click on a car
+-- entered right after a steal prompt triggered (recent()).
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Players = game:GetService("Players")
@@ -26,6 +27,7 @@ local att: Attachment? = nil
 local sound: Sound? = nil
 local holding: ProximityPrompt? = nil
 local token = 0
+local lastHotwire = -math.huge
 
 -- Is this a car-steal prompt? (pure on its two strings; exported for tests)
 function Hotwire.isStealPrompt(name: string, actionText: string): boolean
@@ -110,10 +112,23 @@ local function finish(prompt: ProximityPrompt, who: Player?)
 	end
 end
 
+local function triggered(prompt: ProximityPrompt, who: Player?)
+	if (who == nil or who == player) and Hotwire.isStealPrompt(prompt.Name, prompt.ActionText) then
+		lastHotwire = os.clock()
+	end
+	finish(prompt, who)
+end
+
+-- Did the local player just finish hotwiring a car (a steal prompt triggered within `seconds`)? LocalCar skips the
+-- key click on such a car: it was started with the wires.
+function Hotwire.recent(seconds: number): boolean
+	return os.clock() - lastHotwire <= seconds
+end
+
 function Hotwire.start()
 	ProximityPromptService.PromptButtonHoldBegan:Connect(begin)
 	ProximityPromptService.PromptButtonHoldEnded:Connect(finish)
-	ProximityPromptService.PromptTriggered:Connect(finish)
+	ProximityPromptService.PromptTriggered:Connect(triggered)
 end
 
 return Hotwire

@@ -560,7 +560,7 @@ return function(t)
 		for key, def in Sounds do
 			t.ok(type(def.id) == "string", key .. " id")
 			t.ok(def.id:match("^rbxassetid://%d+$") or def.id:match("^rbxasset://"), key .. " id format")
-			t.ok(def.volume > 0 and def.volume <= 4, key .. " volume (quiet takes compensated; Roblox max 10)")
+			t.ok(def.volume > 0 and def.volume <= 6, key .. " volume (quiet takes compensated; Roblox max 10)")
 			if def.loopStart or def.loopEnd then
 				t.ok((def.loopStart or 0) < (def.loopEnd or math.huge), key .. " loop region")
 				t.eq(def.looped, true, key .. " has a loop region and loops")
@@ -597,7 +597,7 @@ return function(t)
 	-- Runtime helpers that run headless
 	---------------------------------------------------------------------------------------------------------------
 
-	t.test("SoundController: preload list = unique non-radio ids; owns the local car's tyres", function()
+	t.test("SoundController: preload = short one-shots only (audited durations); owns the local car's tyres", function()
 		H.setMode("client")
 		local SC = H.require("src/client/Controllers/SoundController")
 		local ids = SC.preloadIds(Sounds)
@@ -606,18 +606,37 @@ return function(t)
 			t.ok(not seen[id], "unique " .. id)
 			seen[id] = true
 		end
+		local duration = {}
+		for _, row in serde.decode("json", fs.readFile("docs/v2/evidence/audio_audit.json")) do
+			duration["rbxassetid://" .. tostring(math.floor(row.id))] = row.info and row.info.duration
+		end
+		local total = 0
+		for _, id in ids do
+			local dur = duration[id]
+			if dur then
+				total += dur
+				t.ok(dur <= 6, id .. " preloaded but " .. dur .. " s long")
+			end
+		end
+		t.ok(total < 240, ("preload at join stays small: %.0f s of audio"):format(total))
 		for key, def in Sounds do
-			if key:sub(1, 6) == "Radio_" then
-				local other = false
+			local streams = key:sub(1, 6) == "Radio_" or key:sub(1, 4) == "Amb_" or def.looped == true or def.stream
+			t.eq(SC.isPreloaded(key, def), not streams, key .. (if streams then " streams" else " preloads"))
+			if streams then
+				local shared = false
 				for k2, d2 in Sounds do
-					if k2:sub(1, 6) ~= "Radio_" and d2.id == def.id then
-						other = true
+					if d2.id == def.id and SC.isPreloaded(k2, d2) then
+						shared = true
 					end
 				end
-				t.ok(other or not seen[def.id], key .. " streams instead of preloading")
-			else
-				t.ok(seen[def.id], key .. " preloaded")
+				t.ok(shared or not seen[def.id], key .. " is not downloaded at join")
 			end
+		end
+		for _, key in { "Shot_Pistol", "Impact_Heavy1", "Pop_Backfire1", "Click", "Wasted", "CarDoor" } do
+			t.ok(seen[Sounds[key].id], key .. " preloaded")
+		end
+		for _, key in { "Eng_Sedan_On", "Amb_City_Day", "Siren_Tone", "Crash", "Radio_Aura" } do
+			t.ok(not seen[Sounds[key].id], key .. " streams")
 		end
 		t.eq(SC.ownsLocalTyres, true)
 		for _, fn in { "playImpact", "setVolume", "getVolume", "duck", "setMuffle", "playLoop", "stopLoop" } do
@@ -721,5 +740,206 @@ return function(t)
 			end
 		end
 		t.eq(n, 1)
+	end)
+
+	---------------------------------------------------------------------------------------------------------------
+	-- C3 review fixes
+	---------------------------------------------------------------------------------------------------------------
+
+	local function auditRows()
+		local byId = {}
+		for _, row in serde.decode("json", fs.readFile("docs/v2/evidence/audio_audit.json")) do
+			byId["rbxassetid://" .. tostring(math.floor(row.id))] = row
+		end
+		return byId
+	end
+
+	-- measured RMS of what a key plays (its region's when it has one), from the audit
+	local function rmsOf(rows, key, def)
+		local row = rows[def.id]
+		local info = row and row.info
+		if not info then
+			return nil
+		end
+		local reg = info.regions and info.regions[key]
+		return if reg and reg.region_rms_db then reg.region_rms_db else info.rms_db
+	end
+
+	t.test("loudness: beds, ambient one-shots and radio tracks sit at their target (audited RMS)", function()
+		local rows = auditRows()
+		local byStation = {}
+		for key, def in Sounds do
+			local normalised = key:sub(1, 4) == "Amb_" or key:sub(1, 6) == "Radio_"
+			if normalised then
+				t.ok(type(def.loudness) == "number", key .. " carries a loudness target")
+			end
+			if def.loudness then
+				local rms = rmsOf(rows, key, def)
+				t.ok(rms ~= nil, key .. " measured")
+				if rms then
+					local eff = rms + 20 * math.log10(def.volume)
+					t.ok(
+						math.abs(eff - def.loudness) <= 1.5,
+						("%s effective %.1f dB vs %d"):format(key, eff, def.loudness)
+					)
+					if def.station then
+						local s = byStation[def.station] or { lo = math.huge, hi = -math.huge }
+						s.lo, s.hi = math.min(s.lo, eff), math.max(s.hi, eff)
+						byStation[def.station] = s
+					end
+				end
+			end
+		end
+		for name, s in byStation do
+			t.ok(s.hi - s.lo <= 2, name .. ": tracks within 2 dB of each other")
+		end
+		-- beds and the freeway: the freeway cuts through, one-shots sit just under the bed
+		t.ok(Sounds.Amb_Freeway.loudness > Sounds.Amb_City_Day.loudness, "freeway above the bed")
+		t.ok(Sounds.Amb_Dog1.loudness <= Sounds.Amb_City_Day.loudness, "one-shots at or under the bed")
+		-- door and key click on a level with the slam (no longer ~13 dB under it)
+		local slam = rmsOf(rows, "DoorSlam", Sounds.DoorSlam) + 20 * math.log10(Sounds.DoorSlam.volume)
+		local door = rmsOf(rows, "CarDoor", Sounds.CarDoor) + 20 * math.log10(Sounds.CarDoor.volume)
+		t.ok(math.abs(door - slam) <= 3, ("door %.1f vs slam %.1f dB"):format(door, slam))
+	end)
+
+	t.test("audit: no SEAM or LEVEL flags; no unreviewed voice in any id; the night bed has no singing", function()
+		local rows = auditRows()
+		for key, def in Sounds do
+			local row = rows[def.id]
+			if row then
+				for _, flag in row.flags or {} do
+					t.ok(flag ~= "SEAM" and flag ~= "LEVEL", key .. ": " .. flag)
+					t.ok(flag ~= "VOICE?", key .. ": a description mentions voices (content safety)")
+				end
+				if key:sub(1, 4) == "Amb_" and row.meta and row.meta.description then
+					local text = string.lower(row.meta.description)
+					for _, w in { "singing", "voices?", "walla", "talk%a*", "crowds?", "kids", "people" } do
+						t.ok(not text:find("%f[%a]" .. w .. "%f[%A]"), key .. " description mentions " .. w)
+					end
+				end
+			end
+		end
+		t.ok(Sounds.Amb_City_Night.id ~= "rbxassetid://9112759731", "the singing night bed is gone")
+		t.ok(Sounds.TireScreech.id ~= "rbxassetid://9120398722", "the squeal is no longer a wet skid")
+		t.eq(Sounds.Siren_Yelp, nil, "the unused yelp take is gone")
+		local wildDay = rows[Sounds.Amb_Wild_Day.id]
+		t.ok(wildDay and string.lower(wildDay.meta.description):find("wind", 1, true), "the hills day bed has wind")
+	end)
+
+	t.test("EngineModel: reverse stays in first gear (no shifts, pops or blow-offs), below the limiter", function()
+		local p = EngineModel.PROFILES.sports
+		local st = EngineModel.newState(p)
+		local shifted, pops, blow, limiter = false, false, false, false
+		for i = 1, 180 do
+			local speed = math.min(45, i * 0.5)
+			local frac = EngineModel.reverseFrac(speed, 45)
+			t.ok(frac < EngineModel.SHIFTS[1], "below the first shift point")
+			EngineModel.step(st, p, 1 / 60, frac, 1, true, false, true)
+			shifted = shifted or st.shifted ~= 0
+			pops = pops or st.pop
+			blow = blow or st.blowoff
+			limiter = limiter or st.limiter
+		end
+		t.eq(st.gear, 0)
+		t.ok(not shifted and not pops and not blow and not limiter, "no gearbox events backing up")
+		t.ok(st.rpm > p.idleRpm + (p.shiftRpm - p.idleRpm) * 0.8, "full reverse revs high in first")
+		-- the same throttle going forwards runs through the box
+		local fwd = EngineModel.newState(p)
+		local up = false
+		for i = 1, 180 do
+			EngineModel.step(fwd, p, 1 / 60, math.min(1, i * 0.005), 1, true, false)
+			up = up or fwd.shifted == 1
+		end
+		t.ok(up, "forwards still shifts")
+	end)
+
+	t.test("EngineModel: remote engines crossfade three layers into the dominant one over 50-75 studs", function()
+		t.eq(EngineModel.farBlend(EngineModel.FAR_FROM), 0)
+		t.eq(EngineModel.farBlend(EngineModel.FAR_TO), 1)
+		local mid = EngineModel.farBlend((EngineModel.FAR_FROM + EngineModel.FAR_TO) / 2)
+		t.ok(mid > 0.3 and mid < 0.7, "smooth in between")
+		local m = { idle = 0.9, on = 0.1, off = 0.2, idlePitch = 1, onPitch = 0.55, offPitch = 0.55, gain = 1 }
+		local i0, o0, f0 = EngineModel.remoteLayers(m, 0)
+		t.ok(i0 == 0.9 and o0 == 0.1 and f0 == 0.2, "close: the full mix")
+		local i1, o1, f1 = EngineModel.remoteLayers(m, 1)
+		t.ok(i1 == 0.9 and o1 == 0 and f1 == 0, "far: an idling car stays on its idle take")
+		m.idle, m.on, m.off = 0, 0.8, 0.3
+		local _, on1, off1 = EngineModel.remoteLayers(m, 1)
+		t.ok(on1 == 0.8 and off1 == 0, "far: a car on throttle keeps the on-load take")
+		-- continuous across the blend: no level step at any distance
+		local prev = nil
+		for d = 40, 90 do
+			local a, b, c = EngineModel.remoteLayers(m, EngineModel.farBlend(d))
+			local total = a + b + c
+			if prev then
+				t.ok(math.abs(total - prev) < 0.05, "no jump at " .. d)
+			end
+			prev = total
+		end
+	end)
+
+	t.test("Ambience: one-shots are quieter at the far end of their range; pickOneShot returns the gain", function()
+		t.eq(Ambience.distanceGain(30, 30, 120), 1)
+		t.near(Ambience.distanceGain(120, 30, 120), Ambience.FAR_GAIN, 1e-9)
+		t.eq(Ambience.distanceGain(0, 0, 0), 1, "2D")
+		local s = Ambience.newScheduler(0, seq({ 0.5 }))
+		local key, dist, gain = Ambience.pickOneShot(s, 1000, "City", false, seq({ 0.1, 0.9, 0.3 }))
+		t.ok(key ~= nil, "something is due")
+		t.ok(gain >= Ambience.FAR_GAIN and gain <= 1, "gain in range")
+		t.ok(dist >= 0, "distance")
+	end)
+
+	t.test("Mix: crash tiers, bump threshold, one crash heard once", function()
+		local l, h = Mix.impactLayers(45)
+		t.ok(l and not h, "a 40-55 crash is a thud, not a crunch")
+		l, h = Mix.impactLayers(Mix.HEAVY_FROM)
+		t.ok(not l and h, "heavy from HEAVY_FROM")
+		t.ok(Mix.BUMP_DROP < Mix.CRASH_DROP, "bumps below VehicleClient's crash threshold")
+		local bumped = Mix.suddenDrop(60, 35, 1 / 60, Mix.BUMP_DROP)
+		t.eq(bumped, true, "a 25 drop is a bump")
+		t.eq((Mix.suddenDrop(60, 35, 1 / 60)), false, "...but not a crash")
+		local memo = Mix.newImpactMemo()
+		local pos = Vector3.new(0, 0, 0)
+		local a, b, c = Mix.dedupeImpact(memo, 10, pos, false, true, false)
+		t.ok(not a and b and not c, "first report plays")
+		a, b, c = Mix.dedupeImpact(memo, 10.1, pos + Vector3.new(5, 0, 0), false, true, false)
+		t.ok(not a and not b and not c, "the rammed car's report of the same crash is silent")
+		a, b, c = Mix.dedupeImpact(memo, 10.2, pos, false, true, true)
+		t.ok(not b and c, "a bigger report adds only its glass")
+		a, b = Mix.dedupeImpact(memo, 11, pos, false, true, false)
+		t.ok(b, "a later crash plays again")
+		a, b = Mix.dedupeImpact(memo, 11.1, pos + Vector3.new(100, 0, 0), false, true, false)
+		t.ok(b, "a crash elsewhere plays")
+	end)
+
+	t.test("Mix: loops count against the cap, but one-shots always get MIN_ONESHOTS voices", function()
+		local ok, steal = Mix.admit(Mix.MAX_VOICES, Mix.MAX_VOICES, Mix.PRIORITY.ui, nil, 2)
+		t.ok(ok and not steal, "loops fill the cap: a UI click still plays")
+		ok = Mix.admit(Mix.MAX_VOICES, Mix.MAX_VOICES, Mix.PRIORITY.ambient, Mix.PRIORITY.ambient, Mix.MIN_ONESHOTS)
+		t.eq(ok, false, "full with enough one-shots: an equal priority is refused")
+		ok, steal =
+			Mix.admit(Mix.MAX_VOICES, Mix.MAX_VOICES, Mix.PRIORITY.gunshot, Mix.PRIORITY.ambient, Mix.MIN_ONESHOTS)
+		t.ok(ok and steal, "a gunshot steals an ambient one-shot")
+		t.ok(not Mix.SLIDERS[2].desc:lower():find("footstep", 1, true), "no footsteps promised")
+	end)
+
+	t.test("Groups: an untimed duck is a hold that an older timer cannot release", function()
+		H.setMode("client")
+		local Groups = H.require("src/client/Audio/Groups")
+		Groups.duck("bigMessage", true) -- the death muffle
+		Groups.duck("bigMessage", true, 0) -- the WASTED sting's timed duck, expiring at once
+		Groups.step(1 / 60)
+		t.eq(Groups.isDucked("bigMessage"), true, "still held during the death screen")
+		Groups.duck("bigMessage", false)
+		t.eq(Groups.isDucked("bigMessage"), false, "released on respawn")
+		Groups.duck("retune", true, 0)
+		Groups.step(1 / 60)
+		t.eq(Groups.isDucked("retune"), false, "a timed duck alone releases itself")
+	end)
+
+	t.test("Hotwire.recent: false until a steal prompt triggers", function()
+		H.setMode("client")
+		local Hotwire = H.require("src/client/Audio/Hotwire")
+		t.eq(Hotwire.recent(2.5), false)
 	end)
 end

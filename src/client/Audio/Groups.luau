@@ -2,7 +2,8 @@
 -- Groups (PLAN C3 · audio): the mixer at runtime. One flat SoundGroup per channel under SoundService (HC_SFX,
 -- HC_Vehicles, HC_Ambience, HC_Music, HC_UI; UI/UISound finds HC_UI by name), volumes from Shared/Audio/Mix:
 -- settings toggles x master x channel slider x ducks. Ducks fade in / out (step(dt), called by SoundController's
--- render loop); a timed duck releases itself. Volumes are written only when they change.
+-- render loop); a timed duck releases itself unless the same reason is also held (an untimed duck). Volumes are written
+-- only when they change.
 
 local SoundService = game:GetService("SoundService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,6 +20,7 @@ local toggles: Mix.Toggles = { sfx = true, music = true }
 local duckTarget: { [string]: number } = {}
 local duckFade: { [string]: number } = {}
 local duckUntil: { [string]: number } = {}
+local duckHeld: { [string]: boolean } = {}
 local groups: { [string]: SoundGroup } = {}
 local applied: { [string]: number } = {}
 local CHANNELS = { "sfx", "vehicles", "ambience", "music", "ui" }
@@ -85,7 +87,9 @@ function Groups.getVolume(channel: string): number
 	return volumes[channel] or 1
 end
 
--- Start (on = true) or release a duck. seconds: release automatically after that long.
+-- Start (on = true) or release a duck. seconds: release automatically after that long. An untimed `on` is a hold: a
+-- timer armed by a timed duck of the same reason (the WASTED sting during the death muffle) never releases it; only
+-- duck(reason, false) does.
 function Groups.duck(reason: string, on: boolean, seconds: number?)
 	duckTarget[reason] = if on then 1 else 0
 	if duckFade[reason] == nil then
@@ -93,9 +97,17 @@ function Groups.duck(reason: string, on: boolean, seconds: number?)
 	end
 	if on and seconds then
 		duckUntil[reason] = os.clock() + seconds
-	elseif not on then
+	elseif on then
+		duckHeld[reason] = true
+	else
 		duckUntil[reason] = nil
+		duckHeld[reason] = nil
 	end
+end
+
+-- Is a duck reason currently pulling its channels down (target on)?
+function Groups.isDucked(reason: string): boolean
+	return (duckTarget[reason] or 0) > 0
 end
 
 -- Immediate duck depth (no fade): gunfire ducks are short and must bite at once.
@@ -112,8 +124,10 @@ function Groups.step(dt: number)
 		local untilAt = duckUntil[reason]
 		if untilAt and now >= untilAt then
 			duckUntil[reason] = nil
-			duckTarget[reason] = 0
-			target = 0
+			if not duckHeld[reason] then
+				duckTarget[reason] = 0
+				target = 0
+			end
 		end
 		local cur = duckFade[reason] or 0
 		if cur ~= target then
@@ -158,7 +172,7 @@ end
 
 -- Snapshot for tests / debug.
 function Groups.state(): { [string]: any }
-	return { volumes = volumes, toggles = toggles, ducks = duckFade }
+	return { volumes = volumes, toggles = toggles, ducks = duckFade, targets = duckTarget, held = duckHeld }
 end
 
 return Groups

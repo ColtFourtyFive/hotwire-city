@@ -8,8 +8,10 @@
 -- "music" gates music. Per-channel volume sliders (pause menu SETTINGS) are 0..100 % in 10 % steps.
 -- Ducks: named reasons with per-channel gains (big WASTED / BUSTED messages, the pause menu, nearby gunfire, a radio
 -- retune); several active reasons multiply, each scaled by its own 0..1 fade.
--- Voices: a global cap on simultaneous one-shots with priorities (a low-priority sound is refused when the budget is
--- full; a higher one may steal the oldest lower one).
+-- Voices: a global cap on simultaneous sounds with priorities. Every playing loop (engines, beds, sirens, radio...)
+-- counts against it as well as the one-shots; loops are budgeted by their own modules and are never stolen, so when
+-- the cap is full a one-shot may only steal an older one-shot of strictly lower priority, and MIN_ONESHOTS one-shots
+-- are always allowed (UI and gunshots are never starved by loops).
 -- Reverb: the AmbientReverb preset for where the listener is (open, under cover, tunnel, garage).
 
 local Mix = {}
@@ -28,7 +30,8 @@ Mix.TOGGLE = { sfx = "sfx", vehicles = "sfx", ambience = "sfx", ui = "sfx", musi
 Mix.BASE = { sfx = 1, vehicles = 0.9, ambience = 0.75, music = 0.85, ui = 0.9 }
 
 Mix.STEPS = 11 -- 0 %, 10 %, ... 100 %
-Mix.MAX_VOICES = 40
+Mix.MAX_VOICES = 40 -- playing loops + one-shots
+Mix.MIN_ONESHOTS = 12 -- one-shots always admitted while fewer than this play, whatever the loops
 
 export type Volumes = { [string]: number }
 export type Toggles = { sfx: boolean, music: boolean }
@@ -155,8 +158,18 @@ Mix.PRIORITY = {
 	ambient = 1,
 }
 
-function Mix.admit(active: number, cap: number, priority: number, lowestActive: number?): (boolean, boolean)
+-- oneShots: how many of `active` are one-shots (the rest are loops); below MIN_ONESHOTS a one-shot is always admitted.
+function Mix.admit(
+	active: number,
+	cap: number,
+	priority: number,
+	lowestActive: number?,
+	oneShots: number?
+): (boolean, boolean)
 	if active < cap then
+		return true, false
+	end
+	if oneShots ~= nil and oneShots < Mix.MIN_ONESHOTS then
 		return true, false
 	end
 	if lowestActive ~= nil and priority > lowestActive then
@@ -182,14 +195,20 @@ function Mix.reverbFor(hits: number, rays: number, inTunnel: boolean, inGarage: 
 	return "NoReverb"
 end
 
--- Impact layers for a crash of `impulse` (studs/s of sudden speed loss): light thud / heavy crunch / glass.
+-- Impact layers for a crash of `impulse` (studs/s of sudden speed loss): light thud (a bump, BUMP_DROP..HEAVY_FROM) /
+-- heavy crunch (HEAVY_FROM+) / glass (GLASS_FROM+). VehicleClient reports crashes from its CRASH_DROP (40); LocalCar's
+-- own bump detector covers BUMP_DROP..40.
+Mix.BUMP_DROP = 18
+Mix.HEAVY_FROM = 55
+Mix.GLASS_FROM = 85
+
 function Mix.impactLayers(impulse: number): (boolean, boolean, boolean, number)
-	if impulse < 18 then
+	if impulse < Mix.BUMP_DROP then
 		return false, false, false, 0
 	end
-	local light = impulse < 55
-	local heavy = impulse >= 40
-	local glass = impulse >= 85
+	local light = impulse < Mix.HEAVY_FROM
+	local heavy = impulse >= Mix.HEAVY_FROM
+	local glass = impulse >= Mix.GLASS_FROM
 	local gain = math.clamp(0.35 + impulse / 120, 0.35, 1.25)
 	return light, heavy, glass, gain
 end
@@ -221,7 +240,7 @@ export type Slider = { channel: string, label: string, desc: string }
 
 Mix.SLIDERS = {
 	{ channel = "master", label = "Master volume", desc = "Everything you hear." },
-	{ channel = "sfx", label = "Effects volume", desc = "Guns, impacts and footsteps." },
+	{ channel = "sfx", label = "Effects volume", desc = "Guns, impacts and crashes." },
 	{ channel = "vehicles", label = "Vehicle volume", desc = "Engines, tyres, horns and sirens." },
 	{ channel = "ambience", label = "City volume", desc = "Traffic, the sea, the wind and the city at night." },
 	{ channel = "music", label = "Radio volume", desc = "The car radio." },
@@ -284,17 +303,54 @@ function Mix.scrapeLevel(touching: boolean, speed: number): number
 end
 
 -- Crash detection for cars we only see move (other players, traffic): a sudden speed loss against a decaying recent
--- maximum (the same rule VehicleClient uses for its own car). Returns (crashed, drop, newRecentMax).
+-- maximum (the same rule VehicleClient uses for its own car). threshold defaults to CRASH_DROP (LocalCar's bump
+-- detector passes BUMP_DROP). Returns (crashed, drop, newRecentMax).
 Mix.CRASH_DROP = 40
 Mix.CRASH_DECAY = 300
 
-function Mix.suddenDrop(recentMax: number, speed: number, dt: number): (boolean, number, number)
+function Mix.suddenDrop(recentMax: number, speed: number, dt: number, threshold: number?): (boolean, number, number)
 	local peak = math.max(speed, recentMax - Mix.CRASH_DECAY * dt)
 	local drop = peak - speed
-	if drop > Mix.CRASH_DROP then
+	if drop > (threshold or Mix.CRASH_DROP) then
 		return true, drop, speed
 	end
 	return false, drop, peak
+end
+
+-- One crash is heard once. A car ramming another is reported twice (VehicleClient for ours, the held remote car's
+-- suddenDrop), and a bump detected a frame before the full crash is the same event: within IMPACT_WINDOW s and
+-- IMPACT_RADIUS studs of the last impact only the layers that have not played yet are left (a bigger crash still adds
+-- its heavy crunch / glass). `memo` is caller-owned and updated in place.
+Mix.IMPACT_WINDOW = 0.4
+Mix.IMPACT_RADIUS = 25
+
+export type ImpactMemo = { at: number, pos: Vector3, light: boolean, heavy: boolean, glass: boolean }
+
+function Mix.newImpactMemo(): ImpactMemo
+	return { at = -math.huge, pos = Vector3.zero, light = false, heavy = false, glass = false }
+end
+
+function Mix.dedupeImpact(
+	memo: ImpactMemo,
+	now: number,
+	pos: Vector3,
+	light: boolean,
+	heavy: boolean,
+	glass: boolean
+): (boolean, boolean, boolean)
+	if now - memo.at < Mix.IMPACT_WINDOW and (pos - memo.pos).Magnitude < Mix.IMPACT_RADIUS then
+		light = light and not memo.light
+		heavy = heavy and not memo.heavy
+		glass = glass and not memo.glass
+		memo.light = memo.light or light
+		memo.heavy = memo.heavy or heavy
+		memo.glass = memo.glass or glass
+	else
+		memo.at = now
+		memo.pos = pos
+		memo.light, memo.heavy, memo.glass = light, heavy, glass
+	end
+	return light, heavy, glass
 end
 
 return Mix

@@ -10,7 +10,8 @@
 --    (Ambience.buildSegments over the WorldLayout freeway edges, built once on first use).
 --  * One-shots: Ambience.ONESHOTS (distant sirens, dog barks, car alarms, planes, gulls, coyotes, clanks, train horns,
 --    horns) with per-kind cooldowns and a global gap, played in 3D at a random bearing from the listener (overhead
---    planes and trains in 2D).
+--    planes and trains in 2D), at their normalised level (no roll-off loss at the listener; quieter at the far end
+--    of their distance range, Ambience.distanceGain).
 --  * Reverb: five rays straight up from the listener (every SCAN): a roof over every ray (a garage, a tunnel, a
 --    parking structure) = ParkingLot, over most = Alley (under a freeway deck), else open air. A garage plot
 --    (WorldQuery.plotAt) under a roof counts as a garage. Written to SoundService.AmbientReverb only on change.
@@ -225,19 +226,22 @@ local function sampleCover(listener: Vector3, carModel: Model?): number
 	return hits
 end
 
-local function playOneShot(key: string, dist: number, listener: Vector3)
+-- A one-shot `dist` studs away at a random bearing (0 = overhead / 2D). Its RollOffMinDistance is its own distance, so
+-- the listener hears the def volume (normalised against the beds, Config/Sounds AMB_ONESHOT) times `gain` (quieter at
+-- the far end of its range) with the direction kept; walking away from it still fades it.
+local function playOneShot(key: string, dist: number, gain: number, listener: Vector3)
 	local d = def(key)
 	if not d then
 		return
 	end
 	local group = Groups.get("ambience")
 	if dist <= 0 then
-		Voices.play2D(key, d, group, Mix.PRIORITY.ambient)
+		Voices.play2D(key, d, group, Mix.PRIORITY.ambient, gain)
 		return
 	end
 	local a = rng:NextNumber(0, 2 * math.pi)
 	local at = listener + Vector3.new(math.cos(a) * dist, 12, math.sin(a) * dist)
-	Voices.playAt(d, at, group, Mix.PRIORITY.ambient, 1, false, true, dist * 2.4)
+	Voices.playAt(d, at, group, Mix.PRIORITY.ambient, gain, false, true, dist * 2.4, (at - listener).Magnitude)
 end
 
 -- Load the world data off the render path (the layout may be building on first require).
@@ -297,9 +301,9 @@ function City.scan(listener: Vector3, enabled: boolean, carModel: Model?)
 		s = Ambience.newScheduler(now, rand)
 		scheduler = s
 	end
-	local key, dist = Ambience.pickOneShot(s :: Ambience.Scheduler, now, bed, Ambience.isNight(nightFactor), rand)
+	local key, dist, gain = Ambience.pickOneShot(s :: Ambience.Scheduler, now, bed, Ambience.isNight(nightFactor), rand)
 	if key then
-		playOneShot(key, dist, listener)
+		playOneShot(key, dist, gain, listener)
 	end
 end
 

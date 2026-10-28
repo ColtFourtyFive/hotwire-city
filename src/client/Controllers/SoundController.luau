@@ -4,12 +4,13 @@
 --  * Mix (Audio/Groups + Shared/Audio/Mix): SoundGroups HC_SFX / HC_Vehicles / HC_Ambience / HC_Music / HC_UI under
 --    SoundService. Volume = settings toggle (snapshot settings.sfx gates sfx / vehicles / ambience / ui, settings.music
 --    the radio) x master slider x channel slider (pause menu SETTINGS rows: setVolume / getVolume) x ducks. Ducks fade:
---    "bigMessage" (WASTED / BUSTED: the death muffle and the stings), "pause" (HUDController's pause state), "gunfire"
---    (a shot within 80 studs: radio -6 dB), "retune" (the radio's static burst).
+--    "bigMessage" (WASTED / BUSTED: the death muffle holds it, the stings time it), "pause" (MenuController's pause
+--    menu), "gunfire" (a shot within 80 studs: radio -6 dB), "retune" (the radio's static burst).
 --  * One-shots (Audio/Voices): play(key, position?) — pooled Sounds, no Instance.new per shot; a global cap of
---    Mix.MAX_VOICES with priorities (UI > local car / guns > impacts / sirens > horns / world > remote cars > ambience).
---    No position = a 2D interface sound; with a position = 3D, channel by key (Mix.channelFor). A horn played at a car
---    becomes that car's class horn (Audio/Engines.hornNear). The `Sound` remote plays through here.
+--    Mix.MAX_VOICES (playing loops count too) with priorities (UI > local car / guns > impacts / sirens > horns /
+--    world > remote cars > ambience). No position = a 2D interface sound; with a position = 3D, channel by key
+--    (Mix.channelFor). A horn played at a car becomes that car's class horn (Audio/Engines.hornNear) and follows the
+--    car. The `Sound` remote plays through here.
 --  * Local car (Audio/LocalCar): per-class engine layers on a simulated rpm / gearbox, ignition / starter / stop,
 --    pops on VehicleClient's Backfire signal, turbo hiss, limiter, tyre squeal by lateral slip, off-road rumble,
 --    wall scrape, wind (inside only), impacts by crash size (VehicleClient's Crashed signal -> playImpact).
@@ -25,8 +26,10 @@
 --    playDistantGunshot (the DistantShot remote: a quiet low-passed tail from the shot's direction, up to 1200 studs).
 --  * Doppler is manual (SoundService.DopplerScale = 0): remote engines, sirens and the heli shift by closing speed,
 --    and the local car never wobbles with the camera.
---  * BACKLOG 5: start() preloads Sound instances for every non-radio Config/Sounds id, and TextLabels for the Theme
---    fonts, with ContentProvider:PreloadAsync (instances, never id strings), then frees them.
+--  * BACKLOG 5: start() preloads Sound instances for the short, latency-critical one-shots (isPreloaded: guns,
+--    impacts, foley, UI; not loops, beds, ambience or radio, which stream on first play), and TextLabels for the
+--    Theme fonts, with ContentProvider:PreloadAsync (instances, never id strings), then frees them.
+--  * The pause duck follows MenuController.PauseChanged (HUD visibility only as a fallback).
 
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -62,6 +65,7 @@ local SoundController = {}
 local SCAN_INTERVAL = 0.25
 local DEFAULT_TOP_SPEED = 100
 local RADIO_PREFIX = "Radio_"
+local AMB_PREFIX = "Amb_"
 local BIG_MESSAGE_SECONDS = 5
 local LISTENER_SMOOTHING = 6
 local PRELOAD_DELAY = 3 -- s after start: the loading screen preloads first
@@ -168,15 +172,20 @@ function SoundController.play(key: string, position: Vector3?): Sound?
 			return nil
 		end
 		local k, d = key, def
+		local car: BasePart? = nil
 		if key == "Horn" or key == "AirHorn" then
-			local classHorn = Engines.hornNear(pos)
+			local classHorn, part = Engines.hornNear(pos)
 			local hd = if classHorn then lookup(classHorn) else nil
 			if classHorn and hd then
-				k, d = classHorn, hd
+				k, d, car = classHorn, hd, part
 			end
 		end
 		channel = Mix.channelFor(k, true)
-		return Voices.playAt(d, pos, Groups.get(channel), PRIORITY_OF[channel] or Mix.PRIORITY.world)
+		local s = Voices.playAt(d, pos, Groups.get(channel), PRIORITY_OF[channel] or Mix.PRIORITY.world)
+		if car then
+			Voices.follow(s, car) -- a horn keeps up with its car instead of trailing behind it
+		end
+		return s
 	end
 	return Voices.play2D(key, def, Groups.get(channel), PRIORITY_OF[channel] or Mix.PRIORITY.ui)
 end
@@ -211,6 +220,7 @@ function SoundController.playLoop(key: string, parent: Instance?, channel: strin
 	s.Parent = parent or SoundService
 	s.TimePosition = Apply.startTime(def)
 	s:Play()
+	Voices.registerLoop(s) -- counts against the voice cap until stopLoop destroys it
 	return s
 end
 
@@ -534,6 +544,19 @@ local function hookControllers()
 			end
 		end
 	end
+	-- the pause duck follows the pause menu itself (not the HUD's visibility: in streamer / photo mode the HUD is
+	-- already hidden when the menu opens, and hiding the HUD from SETTINGS would leave the duck stuck on)
+	local menu = lazy("MenuController")
+	local hookedPause = menu ~= nil
+		and connectSignal(menu, "PauseChanged", function(open: any)
+			Groups.duck("pause", open == true)
+		end)
+	if hookedPause then
+		local ok, open = pcall(menu.isPauseOpen)
+		Groups.duck("pause", ok and open == true)
+		return
+	end
+	-- fallback (no PauseChanged signal): the HUD's pause flag
 	local hud = lazy("HUDController")
 	if hud and typeof(hud.hiddenState) == "function" then
 		local function readPause()
@@ -549,17 +572,38 @@ end
 -- Preload (BACKLOG 5: instances, never id strings)
 -------------------------------------------------------------------------------------------------------------------------
 
--- Every non-radio Config/Sounds id once (radio tracks stream when tuned: 2-3 min each).
+-- Is `key` a short, latency-critical one-shot (guns, impacts, foley, UI) worth downloading at join? Radio tracks,
+-- ambience (beds and their long one-shots), every loop (engines, sirens, beds: they fade in and can stream on first
+-- play) and `stream` keys (long files) are left out.
+function SoundController.isPreloaded(key: string, def: any): boolean
+	if typeof(def) ~= "table" or typeof(def.id) ~= "string" then
+		return false
+	end
+	if string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX or string.sub(key, 1, #AMB_PREFIX) == AMB_PREFIX then
+		return false
+	end
+	return def.looped ~= true and def.stream ~= true
+end
+
+-- The ids preloaded at join: every isPreloaded key's id once, except ids a loop also plays (a long take).
 function SoundController.preloadIds(defs: { [string]: any }): { string }
+	local long: { [string]: boolean } = {}
+	for key, def in defs do
+		if typeof(key) == "string" and typeof(def) == "table" and typeof(def.id) == "string" then
+			if not SoundController.isPreloaded(key, def) then
+				long[def.id] = true
+			end
+		end
+	end
 	local ids: { string } = {}
 	local seen: { [string]: boolean } = {}
 	for key, def in defs do
-		if typeof(key) == "string" and string.sub(key, 1, #RADIO_PREFIX) == RADIO_PREFIX then
-			continue
-		end
-		if typeof(def) == "table" and typeof(def.id) == "string" and not seen[def.id] then
-			seen[def.id] = true
-			table.insert(ids, def.id)
+		if typeof(key) == "string" and SoundController.isPreloaded(key, def) then
+			local id = def.id :: string
+			if not seen[id] and not long[id] then
+				seen[id] = true
+				table.insert(ids, id)
+			end
 		end
 	end
 	table.sort(ids)
@@ -643,6 +687,7 @@ local function onRender(dt: number)
 
 	debug.profilebegin("HC_SoundStep")
 	Groups.step(dt)
+	Voices.step()
 	LocalCar.step(dt)
 	Engines.step(dt, pos, lisVel)
 	Police.step(dt, pos, lisVel, sfxOn, driving)

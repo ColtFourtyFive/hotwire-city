@@ -7,11 +7,15 @@
 --    handbrake on or in the air, bounces off the limiter, crackles on lift-off. Ignition click, starter, then the
 --    engine fades in; the engine-off clunk when you get out.
 --  * Pops: upshift / nitro pops are played on VehicleClient's Backfire signal (the exhaust-flame VFX), so sound and
---    flame land together; limiter and lift-off crackles come from the engine model; turbo cars hiss on upshifts.
+--    flame land together, but only on engine sets whose profile pops (a sedan never does; a nitro start always
+--    does); limiter and lift-off crackles come from the engine model; turbo cars hiss on upshifts. Pops and hisses
+--    follow the exhaust (Voices.follow).
+--  * Reverse: first gear only (EngineModel.reverseFrac), no shifts, pops or blow-offs.
 --  * Foley: tyre squeal from lateral slip (Mix.squealLevel, the drift VFX's input), off-road rumble on the materials
 --    that throw dust (Mix.RUMBLE ~ Config/VFX.SurfaceDust), a scrape loop while a side grinds along a wall, wind noise
 --    at speed (2D: heard inside the car only), impacts scaled by the crash's speed loss (light thud / heavy crunch /
---    glass) from VehicleClient's Crashed signal.
+--    glass) from VehicleClient's crash report, plus our own bump detector for the kerbs and fenders below its crash
+--    threshold (Mix.BUMP_DROP). One crash is heard once (Mix.dedupeImpact). A car started by hotwiring gets no key click.
 -- Every loop lives on a pooled emitter that follows the chassis (Voices.loopAt), never inside the car model. step()
 -- runs every frame from SoundController and allocates nothing.
 
@@ -23,6 +27,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AudioShared = Shared:WaitForChild("Audio")
 local Sounds = require(Shared:WaitForChild("Config"):WaitForChild("Sounds"))
 local Cars = require(Shared:WaitForChild("Config"):WaitForChild("Cars"))
+local Tuning = require(Shared:WaitForChild("Config"):WaitForChild("Vehicle"))
 local EngineModel = require(AudioShared:WaitForChild("EngineModel"))
 local EngineClass = require(AudioShared:WaitForChild("EngineClass"))
 local Mix = require(AudioShared:WaitForChild("Mix"))
@@ -30,6 +35,7 @@ local Mix = require(AudioShared:WaitForChild("Mix"))
 local Apply = require(script.Parent:WaitForChild("Apply"))
 local Groups = require(script.Parent:WaitForChild("Groups"))
 local Voices = require(script.Parent:WaitForChild("Voices"))
+local Hotwire = require(script.Parent:WaitForChild("Hotwire"))
 
 local LocalCar = {}
 
@@ -40,6 +46,7 @@ LocalCar.SURFACE_EVERY = 0.2 -- s between ground-material rays
 LocalCar.SCRAPE_EVERY = 0.1 -- s between side rays
 LocalCar.POP_GAP = 0.09 -- s between two crackle pops
 LocalCar.LOOP_RESPONSE = 9 -- per second, loop volume smoothing
+LocalCar.HOTWIRE_GRACE = 2.5 -- s after a steal prompt triggers during which getting in skips the key click
 
 type Def = Apply.Def
 type Layer = { sound: Sound, def: Def?, vol: number, pitch: number }
@@ -64,6 +71,9 @@ local scrapeT = 0
 local surfaceName: string? = nil
 local touchingWall = false
 local hasBackfireSignal = false
+local reversing = false
+local bumpPeak = 0
+local impactMemo = Mix.newImpactMemo()
 
 local emitter: Attachment? = nil
 local idle: Layer? = nil
@@ -105,6 +115,7 @@ local function ensureLoops()
 			made.Parent = att
 			s = made
 		end
+		Voices.registerLoop(s :: Sound)
 		return newLayer(s :: Sound)
 	end
 	idle = make("EngIdle", 30)
@@ -147,6 +158,7 @@ local function pointLayer(layer: Layer?, key: string)
 	end
 	layer.sound.Volume = 0
 	layer.vol = 0
+	layer.pitch = -1 -- Apply.def reset PlaybackSpeed: the next drive() must write the pitch
 end
 
 local function stopLayer(layer: Layer?)
@@ -188,16 +200,26 @@ local function drive(layer: Layer?, target: number, pitch: number, dt: number)
 	end
 end
 
-local function oneShot(key: string, position: Vector3?, volumeMult: number?, priority: number?)
+local function oneShot(key: string, position: Vector3?, volumeMult: number?, priority: number?): Sound?
 	local d = def(key)
 	if not d then
-		return
+		return nil
 	end
 	if position then
-		Voices.playAt(d, position, Groups.get("vehicles"), priority or Mix.PRIORITY.localCar, volumeMult)
-	else
-		Voices.play2D(key, d, Groups.get("vehicles"), priority or Mix.PRIORITY.localCar, volumeMult)
+		return Voices.playAt(d, position, Groups.get("vehicles"), priority or Mix.PRIORITY.localCar, volumeMult)
 	end
+	return Voices.play2D(key, d, Groups.get("vehicles"), priority or Mix.PRIORITY.localCar, volumeMult)
+end
+
+-- A one-shot at the exhaust that keeps up with the car (pops, turbo hiss).
+local function exhaustShot(key: string, volumeMult: number?)
+	local c = chassis
+	if not c or c.Parent == nil then
+		return
+	end
+	local offset = Vector3.new(0, -0.4, c.Size.Z * 0.5)
+	local s = oneShot(key, c.CFrame * offset, volumeMult)
+	Voices.follow(s, c, offset)
 end
 
 local POPS = { "Pop_Backfire1", "Pop_Backfire2" }
@@ -207,14 +229,6 @@ local GLASS = { "Impact_Glass1", "Impact_Glass2" }
 
 local function pick(list: { string }): string
 	return list[rng:NextInteger(1, #list)]
-end
-
-local function exhaustPosition(): Vector3?
-	local c = chassis
-	if not c or c.Parent == nil then
-		return nil
-	end
-	return c.CFrame * Vector3.new(0, -0.4, c.Size.Z * 0.5)
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -251,9 +265,13 @@ function LocalCar.setBackfireSignal(present: boolean)
 	hasBackfireSignal = present
 end
 
--- An exhaust pop (VehicleClient.Backfire: big = nitro start).
+-- An exhaust pop (VehicleClient.Backfire: big = nitro start). VehicleClient fires on every upshift under throttle for
+-- every car; only engine sets whose profile pops answer it (a nitro start always pops).
 function LocalCar.pop(big: boolean?)
-	if not active or not profile then
+	if not active or not profile or reversing then
+		return
+	end
+	if not big and not profile.pops then
 		return
 	end
 	local now = os.clock()
@@ -261,15 +279,17 @@ function LocalCar.pop(big: boolean?)
 		return
 	end
 	lastPop = now
-	local at = exhaustPosition()
-	if at then
-		oneShot(pick(POPS), at, if big then 1.4 else 1)
-	end
+	exhaustShot(pick(POPS), if big then 1.4 else 1)
 end
 
--- A crash of `drop` studs/s of sudden speed loss at `position` (VehicleClient.Crashed, or a remote car's).
+-- A crash of `drop` studs/s of sudden speed loss at `position` (VehicleClient's crash report, our bump detector, or
+-- a remote car's). The same crash reported twice plays once (Mix.dedupeImpact).
 function LocalCar.impact(drop: number, position: Vector3, priority: number?)
 	local light, heavy, glass, gain = Mix.impactLayers(drop)
+	if not (light or heavy or glass) then
+		return
+	end
+	light, heavy, glass = Mix.dedupeImpact(impactMemo, os.clock(), position, light, heavy, glass)
 	local pr = priority or Mix.PRIORITY.impact
 	local group = Groups.get("sfx")
 	if light then
@@ -313,6 +333,8 @@ function LocalCar.enter(m: Model, ctrl: any)
 	enteredAt = os.clock()
 	surfaceName = nil
 	touchingWall = false
+	reversing = false
+	bumpPeak = 0
 	active = true
 	local params = rayParams or RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
@@ -324,11 +346,13 @@ function LocalCar.enter(m: Model, ctrl: any)
 	end
 	params.FilterDescendantsInstances = filter
 	rayParams = params
-	-- door, key click, then the starter
+	-- door, key click (not on a car we just hotwired: the wires started it), then the starter
 	if chassis then
 		LocalCar.door(chassis.Position)
 	end
-	oneShot("Ignition", nil, 1, Mix.PRIORITY.ui)
+	if not Hotwire.recent(LocalCar.HOTWIRE_GRACE) then
+		oneShot("Ignition", nil, 1, Mix.PRIORITY.ui)
+	end
 	task.delay(LocalCar.IGNITION_DELAY, function()
 		if active and model == m and chassis then
 			oneShot("EngineStart", chassis.Position)
@@ -341,6 +365,7 @@ function LocalCar.exit()
 		return
 	end
 	active = false
+	reversing = false
 	local c = chassis
 	if c and c.Parent then
 		oneShot("EngineStop", c.Position)
@@ -409,17 +434,26 @@ function LocalCar.step(dt: number)
 	local top = if carDef and typeof(carDef.topSpeed) == "number" then carDef.topSpeed else 100
 	local frac = speed / math.max(top, 1)
 
-	-- throttle the engine sees: braking while rolling forward = off load; reversing = throttle
+	-- throttle the engine sees: braking while rolling forward = off load; reversing = throttle, in first gear only
 	local thr = throttleIn
+	reversing = forward < -1
 	if thr < 0 then
-		thr = if forward < -1 or speed < 2 then -thr else 0
+		thr = if reversing or speed < 2 then -thr else 0
 	end
 	if ctrl.boosting == true then
 		thr = 1
 	end
+	local engineFrac = if reversing then EngineModel.reverseFrac(speed, Tuning.REVERSE_MAX_SPEED) else frac
 	local held = handbrake or (player ~= nil and player:GetAttribute("Stunned") == true)
-	EngineModel.step(state, profile, dt, frac, thr, grounded, held)
+	EngineModel.step(state, profile, dt, engineFrac, thr, grounded, held, reversing)
 	EngineModel.mix(state, profile, mix)
+
+	-- kerb / fender bumps below VehicleClient's crash threshold (bigger ones arrive as crashes; dedupeImpact merges)
+	local bumped, drop, peak = Mix.suddenDrop(bumpPeak, speed, dt, Mix.BUMP_DROP)
+	bumpPeak = peak
+	if bumped and not c.Anchored and os.clock() - enteredAt > 1 then -- (an anchored car reads speed 0: not a bump)
+		LocalCar.impact(drop, c.Position, Mix.PRIORITY.localCar)
+	end
 
 	-- engine fade-in after the starter
 	local since = os.clock() - enteredAt
@@ -429,12 +463,9 @@ function LocalCar.step(dt: number)
 	drive(on, mix.on * g, mix.onPitch, dt)
 	drive(off, mix.off * g, mix.offPitch, dt)
 
-	-- events from the engine model
+	-- events from the engine model (pops already follow profile.pops there)
 	if state.blowoff then
-		local at = exhaustPosition()
-		if at then
-			oneShot("Turbo_Blowoff", at)
-		end
+		exhaustShot("Turbo_Blowoff")
 	end
 	if state.pop and (state.shifted ~= 1 or not hasBackfireSignal) then
 		LocalCar.pop(false)

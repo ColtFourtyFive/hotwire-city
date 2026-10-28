@@ -21,7 +21,8 @@ return function(t)
 				count += 1
 				t.ok(def.id:match("^rbxassetid://%d+$") ~= nil, key .. " id")
 				t.eq(def.looped, false, key .. " not looped (the station queues the next track)")
-				t.ok(def.volume > 0 and def.volume <= 0.4, key .. " low 2D volume")
+				-- C3 audio: loudness-normalised per track (quiet masters get up to ~0.56; audio.spec checks the levels)
+				t.ok(def.volume > 0 and def.volume <= 0.6, key .. " low 2D volume")
 				t.ok(type(def.station) == "string" and #def.station > 0, key .. " station")
 				t.ok(type(def.title) == "string" and #def.title > 0, key .. " title")
 			else

@@ -2,8 +2,9 @@
 -- Ambience (PLAN C3 · audio): the city's sound beds, pure.
 --
 -- * District -> bed (WORLD_SPEC §4 district ids): downtown / midtown = city traffic hum and distant horns, beach =
---   waves and gulls, hills = wildland birds by day / crickets by night, cactus / mesa = desert air, southgate =
---   suburbs, foundry / rust = industrial hum and clanks, port = harbour, airport = distant traffic and jets.
+--   waves and gulls, hills = hilltop wind, birds and leaves over the city's distant wash by day / crickets by night,
+--   cactus / mesa = desert air, southgate = suburbs, foundry / rust = industrial hum and clanks, port = harbour,
+--   airport = distant traffic and jets.
 --   Every bed has a day and a night loop (Config/Sounds Amb_<Bed>_Day / _Night), weighted by the lighting's
 --   NightFactor (Workspace attribute from LightingService) with an equal-power crossfade.
 -- * Freeway roar: a third layer whose level follows the distance to the nearest freeway segment
@@ -234,16 +235,29 @@ function Ambience.newScheduler(now: number, rand: () -> number): Scheduler
 	return s
 end
 
--- The next one-shot due now in this bed / time of day: (sound key, distance) or nil. Arms the cooldowns.
+Ambience.FAR_GAIN = 0.6 -- a one-shot at the far end of its distance range plays at this share of its level
+
+-- Level multiplier of a one-shot `d` studs away within its { min, max } distance range: 1 at the near end, FAR_GAIN
+-- at the far end (the def volume is its level at the listener; City.playOneShot adds no roll-off loss of its own).
+function Ambience.distanceGain(d: number, minD: number, maxD: number): number
+	if maxD <= minD then
+		return 1
+	end
+	local t = math.clamp((d - minD) / (maxD - minD), 0, 1)
+	return 1 - (1 - Ambience.FAR_GAIN) * t
+end
+
+-- The next one-shot due now in this bed / time of day: (sound key, distance, level multiplier) or nil. Arms the
+-- cooldowns.
 function Ambience.pickOneShot(
 	s: Scheduler,
 	now: number,
 	bed: string,
 	night: boolean,
 	rand: () -> number
-): (string?, number)
+): (string?, number, number)
 	if now < s.globalAt then
-		return nil, 0
+		return nil, 0, 0
 	end
 	local count = #Ambience.ONESHOTS
 	local start = math.floor(rand() * count)
@@ -256,10 +270,10 @@ function Ambience.pickOneShot(
 			s.globalAt = now + Ambience.GLOBAL_GAP
 			local variant = o.keys[math.floor(rand() * #o.keys) + 1] or o.keys[1]
 			local d = o.dist[1] + rand() * (o.dist[2] - o.dist[1])
-			return variant, d
+			return variant, d, Ambience.distanceGain(d, o.dist[1], o.dist[2])
 		end
 	end
-	return nil, 0
+	return nil, 0, 0
 end
 
 return Ambience

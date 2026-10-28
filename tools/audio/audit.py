@@ -20,8 +20,10 @@ What it checks per id:
     PlaybackRegion (start / stop) or LoopRegion (loopStart / loopEnd): region inside the file, region RMS, loop seam
     jump (dB between the region's last and first 50 ms) and region steadiness.
   * Flags: MISSING (no details), PRIVATE, NOT_APPROVED, NOT_FREE, DL_FAIL, DECODE_FAIL, SILENT, CLIP, LONG,
-    LEAD_SILENCE, REGION_OOB, QUIET_REGION, SEAM, THIRD_PARTY, VOICE? (description mentions speech: content-safety
-    review; our rule is no voices saying names / numbers / real agencies).
+    LEAD_SILENCE, REGION_OOB, QUIET_REGION, SEAM (a loop seam jumps more than SEAM_DB), LEVEL (a key normalised to a
+    `loudness` target sits more than LEVEL_TOL dB from it, or an Amb_ / Radio_ key has no target), THIRD_PARTY,
+    VOICE? (the description mentions speech, singing, crowds or people: content-safety review; our rule is no voices
+    saying names / numbers / real agencies, and no singing or walla in ambience beds).
 
 Downloads go to a temporary directory that is deleted at the end (disk is tight); nothing is cached.
 No uploads happen here.
@@ -67,15 +69,34 @@ LICENSED = {
 # Soft flags a human reviewed and accepted, with the reason (shown in the report; the flag stays in the table so a
 # changed file is still visible). Keyed by Config/Sounds key; "Radio_*" covers every radio track.
 REVIEWED = {
-    "Radio_*": {"CLIP": "APM masters are loud (inter-sample overs after lossy decode); played at Volume 0.26-0.32 on "
-                        "HC_Music under a 0.85 group base, > 10 dB of headroom in the mix."},
+    "Radio_*": {"CLIP": "APM masters are loud (inter-sample overs after lossy decode); every track is normalised to "
+                        "-21 dBFS (Volume 0.22-0.32 for the clipping ones) on HC_Music under a 0.85 group base, so the "
+                        "peaks sit about 10 dB under full scale in the mix."},
     "Melee_Punch2": {"CLIP": "0.3 % of samples on a punch transient; played at 0.62, inaudible."},
     "HotwireCrackle": {"QUIET_REGION": "a soft electrical-arcing take (-41 dB RMS); compensated with Volume 3.0."},
-    "Amb_Plane1": {"QUIET_REGION": "a distant overhead plane: meant to sit under the bed; Volume raised to 0.7.",
+    "Amb_Plane1": {"QUIET_REGION": "a distant overhead plane, normalised to the -31 dBFS ambient one-shot level "
+                                   "(Volume 2.95).",
                    "LONG": "34 s PlaybackRegion of a 76 s fly-over: an overhead pass is long by nature."},
 }
-VOICE_WORDS = re.compile(r"\b(voice|voices|talk|talking|speech|speaks?|dispatcher|announcer|chatter|vocal|says|"
-                         r"spoken|conversation|walla|crowd talk|scanner)\b", re.I)
+VOICE_WORDS = re.compile(r"\b(voice|voices|talk|talking|speech|speaks?|dispatcher|announcer|chatter|vocals?|says|"
+                         r"spoken|conversation|walla|crowds?|scanner|sing|sings|singing|singer|songs?|lyrics?|"
+                         r"shout|shouts|shouting|yell|yells|yelling|laugh|laughs|laughing|laughter|people|kids|"
+                         r"children|child|male|female)\b", re.I)
+# Checks only a listener can make (written into the report until a Studio listening pass signs them off).
+LISTENING = [
+    "Loop seams of every engine set, the siren tone, the heli rotor, the scrape, gravel and squeal loops (no clicks).",
+    "Engine pitch ranges per class: idle at a standstill, launch, each upshift dip, the limiter, reverse in first gear.",
+    "Remote engines crossing 50-75 studs (no timbre change) and passing at speed (Doppler).",
+    "TireScreech (PSE drift take 9126158749 24.95-26.75 s): a clean slide squeal with no engine revs in it.",
+    "Beds at -30 dBFS against each other on a district crossfade; the freeway roar audible near a freeway; the new "
+    "night city (9112891623) and hills day (9112771303, wind) beds.",
+    "Ambient one-shots audible over their bed (distant sirens, dogs, gulls, horns, clanks, planes, train).",
+    "Police heli rotor (live on main: PoliceService tags PoliceHeli) against the sirens, up to HELI_RANGE 900 studs.",
+    "Radio: tracks of one station at one level; a bystander hears the driver's song at the same point, muffled.",
+    "Crash tiers: kerb bump (thud), 40-55 (thud), 55+ (crunch), 85+ (glass); ramming a car plays one set.",
+]
+SEAM_DB = 2.0  # loop seam: level jump (dB) between a LoopRegion's last and first 50 ms frame
+LEVEL_TOL = 1.5  # dB a normalised key may sit from its `loudness` target
 TOOLBOX_DETAILS = "https://apis.roblox.com/toolbox-service/v1/items/details?assetIds={ids}"
 TOOLBOX_SEARCH = "https://apis.roblox.com/toolbox-service/v2/assets:search?searchCategoryType=Audio&query={q}" \
                  "&maxPageSize={n}{tok}"
@@ -318,9 +339,28 @@ def flags_for(meta, info, def_):
         f.append("REGION_OOB")
     if info.get("region_rms_db") is not None and info["region_rms_db"] < -40:
         f.append("QUIET_REGION")
-    if info.get("seam_db") is not None and info["seam_db"] > 6:
+    if info.get("seam_db") is not None and info["seam_db"] > SEAM_DB:
         f.append("SEAM")
+    lv = level_of(def_, info)
+    if lv is not None and (lv["target"] is None or abs(lv["delta"]) > LEVEL_TOL):
+        f.append("LEVEL")
     return f
+
+
+def level_of(def_, info):
+    """Effective level of a key (measured RMS of what it plays + 20 log10 Volume) against its `loudness` target.
+    None for keys that are not normalised (no target, and not an Amb_ / Radio_ key)."""
+    if not def_ or not info or info.get("rms_db") is None:
+        return None
+    key = def_.get("key") or ""
+    target = def_.get("loudness")
+    if target is None and not (key.startswith("Amb_") or key.startswith("Radio_")):
+        return None
+    rms = info.get("region_rms_db", info["rms_db"])
+    vol = float(def_.get("volume") or 0)
+    eff = rms + 20.0 * math.log10(max(vol, 1e-6))
+    return {"key": key, "rms": rms, "volume": vol, "effective": round(eff, 1), "target": target,
+            "delta": round(eff - target, 1) if target is not None else None}
 
 
 def dump_sounds(tmp):
@@ -396,6 +436,7 @@ def run_config(args):
         print(f"auditing {len(ids)} ids ({len(rows)} keys, {len(builtin)} built-in rbxasset sounds)", flush=True)
         meta, infos = audit_ids(ids, tmp, regions)
         report = []
+        levels = []
         bad = 0
         for aid in ids:
             m = meta.get(aid)
@@ -408,13 +449,16 @@ def run_config(args):
                 if reg:
                     sub.update({k: v for k, v in reg.items() if k.startswith("region") or k == "seam_db"})
                 fl.update(flags_for(m, sub if info else None, d))
+                lv = level_of(d, sub if info else None)
+                if lv is not None:
+                    levels.append(lv)
             hard = fl & {"MISSING", "PRIVATE", "NOT_APPROVED", "NOT_FREE", "DL_FAIL", "DECODE_FAIL", "SILENT",
                          "REGION_OOB"}
             if hard:
                 bad += 1
             report.append({"id": aid, "keys": [d["key"] for d in keys], "meta": m, "info": info,
                            "flags": sorted(fl), "hard": sorted(hard)})
-        write_report(report, builtin, bad)
+        write_report(report, builtin, bad, levels)
         print(f"{len(ids)} ids, {bad} with hard failures -> {os.path.relpath(OUT_MD, ROOT)}")
         for r in report:
             if r["flags"]:
@@ -424,7 +468,7 @@ def run_config(args):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def write_report(report, builtin, bad):
+def write_report(report, builtin, bad, levels=None):
     lines = []
     lines.append("# Audio audit (Config/Sounds)")
     lines.append("")
@@ -444,8 +488,10 @@ def write_report(report, builtin, bad):
                  " PlaybackRegion / LoopRegion used by that key with its RMS, steadiness (std dB) and loop seam jump.")
     lines.append("")
     lines.append("Flag legend: hard = MISSING, PRIVATE, NOT_APPROVED, NOT_FREE, DL_FAIL, DECODE_FAIL, SILENT, REGION_OOB"
-                 " (must be fixed); soft = CLIP, LONG, LEAD_SILENCE, QUIET_REGION, SEAM, THIRD_PARTY (not a licensed"
-                 " publisher: human check), VOICE? (description mentions speech: content-safety check).")
+                 " (must be fixed); soft = CLIP, LONG, LEAD_SILENCE, QUIET_REGION, SEAM (loop seam jump over"
+                 f" {SEAM_DB:g} dB), LEVEL (more than {LEVEL_TOL:g} dB from its loudness target), THIRD_PARTY (not a"
+                 " licensed publisher: human check), VOICE? (description mentions speech, singing, crowds or people:"
+                 " content-safety check).")
     lines.append("")
     lines.append(fmt_row(["id", "keys", "title (creator)", "dur", "peak", "RMS", "clip", "lead", "regions", "flags"]))
     lines.append(fmt_row(["---"] * 10))
@@ -468,6 +514,18 @@ def write_report(report, builtin, bad):
     lines.append("")
     lines.append("Built-in engine sounds (not audited): " + ", ".join(f"`{b['key']}`" for b in builtin))
     lines.append("")
+    if levels:
+        lines.append("## Loudness-normalised keys")
+        lines.append("")
+        lines.append("Effective level = measured RMS of what the key plays (its region if it has one) + 20 log10 Volume,"
+                     f" against the key's `loudness` target in Config/Sounds (LEVEL beyond ±{LEVEL_TOL:g} dB).")
+        lines.append("")
+        lines.append(fmt_row(["key", "RMS", "Volume", "effective", "target", "delta"]))
+        lines.append(fmt_row(["---"] * 6))
+        for lv in sorted(levels, key=lambda r: r["key"]):
+            lines.append(fmt_row([lv["key"], lv["rms"], lv["volume"], lv["effective"],
+                                  lv["target"] if lv["target"] is not None else "none", lv["delta"]]))
+        lines.append("")
     # reviewed soft flags (REVIEWED): which flagged keys a human accepted, and why
     reviewed = []
     for r in report:
@@ -493,6 +551,13 @@ def write_report(report, builtin, bad):
             if not covered:
                 open_soft.append(f"{r['id']} {flag} ({', '.join(r['keys'])})")
     lines.append(f"Unreviewed flags: {len(open_soft)}" + (": " + "; ".join(open_soft) if open_soft else "."))
+    lines.append("")
+    lines.append("## Still to check by ear (Studio listening pass, not run yet)")
+    lines.append("")
+    lines.append("This audit measures files; it cannot hear them. Until a Studio session signs these off they are open:")
+    lines.append("")
+    for item in LISTENING:
+        lines.append(f"- {item}")
     lines.append("")
     os.makedirs(os.path.dirname(OUT_MD), exist_ok=True)
     with open(OUT_MD, "w") as f:

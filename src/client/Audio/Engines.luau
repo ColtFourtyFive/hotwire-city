@@ -6,14 +6,19 @@
 --    EngineClass attribute, police, the catalog class / style, else sedan), re-read when its CarId changes.
 --  * Budget: every SCAN seconds the SLOTS nearest running cars within EngineModel.MAX_RANGE (250 studs) hold an
 --    engine slot (three pooled loops on one emitter). LOD by distance every frame: idle / on-load / off-load layers
---    within EngineModel.FULL_RANGE (60), a single layer beyond, nothing past MAX_RANGE.
+--    up close, crossfading over EngineModel.FAR_FROM..FAR_TO (50..75 studs) into the single dominant layer at its own
+--    pitch (EngineModel.remoteLayers), nothing past MAX_RANGE. Layer volumes are smoothed; a layer that reaches
+--    silence is stopped (no silent streams) and restarted at a random point of its loop when it is needed again.
 --  * Each held car runs its own EngineModel: speed from the "Speed" attribute (v2 traffic), else the chassis velocity
 --    (physics cars) or the position change (anchored / kinematic cars); throttle from the "Throttle" attribute, else
 --    guessed from acceleration (EngineModel.inferThrottle). Pitch carries a manual Doppler shift from the closing
 --    speed (SoundService.DopplerScale is 0: SoundController owns Doppler so the local car never wobbles).
 --  * Physics cars that lose speed suddenly crash audibly (Mix.suddenDrop -> LocalCar.impact) when close.
 --  * Tyre squeal for WheelAnimator: playLoop("TireScreech", chassis) hands out one of SQUEALS pooled loops that follows
---    that chassis and is levelled by its lateral slip (Mix.squealLevel); stopLoop returns it.
+--    that chassis and is levelled by its lateral slip (Mix.squealLevel); stopLoop returns it. A squeal whose chassis
+--    vanished is muted but stays reserved (orphan) until its owner's stopLoop, so one Sound never has two owners.
+--  * Horns: hornNear(position) names the class horn of the car at `position` and that car's chassis, so the horn can
+--    follow the car (Voices.follow).
 -- step() runs every frame and allocates nothing; scan() runs at 4 Hz and reuses its buffers.
 
 local CollectionService = game:GetService("CollectionService")
@@ -38,6 +43,7 @@ local Engines = {}
 Engines.TAGS = { "Vehicle", "Traffic", "Police" }
 Engines.SLOTS = 6
 Engines.SQUEALS = 4
+Engines.ORPHAN_TIMEOUT = 10 -- s an orphaned squeal stays reserved for its owner's stopLoop
 Engines.HORN_RADIUS = 16 -- a horn played within this of a car uses that car's class horn
 Engines.IMPACT_RANGE = 220
 Engines.DEFAULT_TOP_SPEED = 100
@@ -64,7 +70,7 @@ export type Car = {
 	vel: Vector3,
 }
 
-type Layer = { sound: Sound, def: Def? }
+type Layer = { sound: Sound, def: Def?, vol: number }
 type Slot = {
 	att: Attachment,
 	idle: Layer,
@@ -77,7 +83,7 @@ type Slot = {
 	fade: number,
 	leaving: boolean, -- fading out before the slot is freed (no clicks when a car drops out of the budget)
 }
-type Squeal = { att: Attachment, sound: Sound, chassis: BasePart?, vol: number }
+type Squeal = { att: Attachment, sound: Sound, chassis: BasePart?, vol: number, orphan: boolean, orphanAt: number }
 type Cand = { key: any, dist: number }
 
 local cars: { [Model]: Car } = {}
@@ -199,16 +205,18 @@ local function hasDriver(car: Car): boolean
 	return typeof(driverId) == "number" and driverId > 0
 end
 
--- The class horn for a horn played at `position` (the nearest car within HORN_RADIUS), else nil.
-function Engines.hornNear(position: Vector3): string?
+-- The class horn for a horn played at `position` (the nearest car within HORN_RADIUS) and that car's chassis (the
+-- horn follows it), else nil.
+function Engines.hornNear(position: Vector3): (string?, BasePart?)
 	local localModel = LocalCar.getModel()
 	local best, bestD = nil :: string?, Engines.HORN_RADIUS
+	local part: BasePart? = nil
 	if localModel then
 		local primary = localModel.PrimaryPart
 		if primary then
 			local d = (primary.Position - position).Magnitude
 			if d <= bestD then
-				best, bestD = EngineClass.hornFor(LocalCar.getEngineSet()), d
+				best, bestD, part = EngineClass.hornFor(LocalCar.getEngineSet()), d, primary
 			end
 		end
 	end
@@ -217,11 +225,11 @@ function Engines.hornNear(position: Vector3): string?
 		if c and c.Parent then
 			local d = (c.Position - position).Magnitude
 			if d < bestD then
-				best, bestD = EngineClass.hornFor(car.set), d
+				best, bestD, part = EngineClass.hornFor(car.set), d, c
 			end
 		end
 	end
-	return best
+	return best, part
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -237,7 +245,8 @@ local function newLayer(att: Attachment, name: string): Layer
 	s.RollOffMinDistance = 12
 	s.RollOffMaxDistance = EngineModel.MAX_RANGE
 	s.Parent = att
-	return { sound = s, def = nil }
+	Voices.registerLoop(s)
+	return { sound = s, def = nil, vol = 0 }
 end
 
 local function ensureSlots()
@@ -272,17 +281,11 @@ local function point(layer: Layer, key: string)
 		layer.sound.RollOffMaxDistance = EngineModel.MAX_RANGE
 	end
 	layer.sound.Volume = 0
-end
-
-local function startLayer(layer: Layer)
-	local d = layer.def
-	if d and not layer.sound.IsPlaying then
-		layer.sound.TimePosition = Apply.startTime(d) + rng:NextNumber(0, 1) -- de-sync identical loops
-		layer.sound:Play()
-	end
+	layer.vol = 0
 end
 
 local function stopLayer(layer: Layer)
+	layer.vol = 0
 	layer.sound.Volume = 0
 	if layer.sound.IsPlaying then
 		layer.sound:Stop()
@@ -310,9 +313,10 @@ local function assign(slot: Slot, car: Car)
 	slot.leaving = false
 	car.hasPrev = false
 	car.recentMax = 0 -- a stale peak from an earlier hold would read as a crash
-	startLayer(slot.idle)
-	startLayer(slot.on)
-	startLayer(slot.off)
+	-- layers start in stepSlot when their level rises above silence
+	stopLayer(slot.idle)
+	stopLayer(slot.on)
+	stopLayer(slot.off)
 end
 
 local function byDist(a: Cand, b: Cand): boolean
@@ -326,6 +330,14 @@ function Engines.scan(listener: Vector3, enabled: boolean)
 		for _, slot in slots do
 			if slot.holder then
 				release(slot)
+			end
+		end
+		-- engines are off, but Radio still needs the chassis of cars that stream in meanwhile (muffled radios)
+		for model, car in cars do
+			if model.Parent == nil then
+				cars[model] = nil
+			else
+				resolveChassis(car)
 			end
 		end
 		return
@@ -395,13 +407,29 @@ end
 -- Per frame
 -------------------------------------------------------------------------------------------------------------------------
 
-local function setLayer(layer: Layer, volume: number, pitch: number)
+Engines.LAYER_RESPONSE = 6 -- per second: layer volume smoothing (LOD crossfades, dominant-layer swaps far away)
+
+-- Drive one layer toward `target` (share of its def volume) at `pitch`: started when it rises above silence (at a
+-- random point of its loop: identical loops never phase), stopped when it reaches silence.
+local function setLayer(layer: Layer, target: number, pitch: number, dt: number)
 	local d = layer.def
 	if not d then
 		return
 	end
-	layer.sound.Volume = d.volume * volume
-	layer.sound.PlaybackSpeed = (d.pitch or 1) * pitch
+	layer.vol = Mix.approach(layer.vol, target, Engines.LAYER_RESPONSE, dt)
+	local s = layer.sound
+	if layer.vol > 0.002 then
+		if not s.IsPlaying then
+			s.TimePosition = Apply.startTime(d) + rng:NextNumber(0, 1)
+			s:Play()
+		end
+		s.Volume = d.volume * layer.vol
+		s.PlaybackSpeed = (d.pitch or 1) * pitch
+	elseif s.IsPlaying then
+		layer.vol = 0
+		s.Volume = 0
+		s:Stop()
+	end
 end
 
 local function stepSlot(slot: Slot, car: Car, dt: number, listener: Vector3, lisVel: Vector3)
@@ -437,32 +465,25 @@ local function stepSlot(slot: Slot, car: Car, dt: number, listener: Vector3, lis
 	EngineModel.step(slot.st, p, dt, car.speed / math.max(car.topSpeed, 1), car.thr, true, false)
 	local m = EngineModel.mix(slot.st, p, slot.mix)
 	local dist = (pos - listener).Magnitude
-	local lod = EngineModel.lod(dist)
 	local doppler = Siren.doppler(Siren.closingSpeed(pos, vel, listener, lisVel))
 	if slot.leaving then
 		slot.fade = math.max(0, slot.fade - dt * 4)
-		if slot.fade <= 0 then
-			release(slot)
-			return
-		end
 	else
 		slot.fade = math.min(1, slot.fade + dt * 2)
 	end
-	local g = m.gain * slot.fade
-	if lod >= 3 then
-		setLayer(slot.idle, m.idle * g, m.idlePitch * doppler)
-		setLayer(slot.on, m.on * g, m.onPitch * doppler)
-		setLayer(slot.off, m.off * g, m.offPitch * doppler)
-	elseif lod >= 1 then
-		-- one layer: the on-load loop carries the whole engine at a distance
-		local w = math.max(m.on, m.off, m.idle * 0.85)
-		setLayer(slot.on, w * g, m.onPitch * doppler)
-		slot.idle.sound.Volume = 0
-		slot.off.sound.Volume = 0
-	else
-		slot.idle.sound.Volume = 0
-		slot.on.sound.Volume = 0
-		slot.off.sound.Volume = 0
+	-- three layers close, crossfading into the dominant one far away; silence past MAX_RANGE
+	local g = if EngineModel.lod(dist) > 0 then m.gain * slot.fade else 0
+	local idle, on, off = EngineModel.remoteLayers(m, EngineModel.farBlend(dist))
+	setLayer(slot.idle, idle * g, m.idlePitch * doppler, dt)
+	setLayer(slot.on, on * g, m.onPitch * doppler, dt)
+	setLayer(slot.off, off * g, m.offPitch * doppler, dt)
+	if
+		slot.leaving
+		and slot.fade <= 0
+		and not (slot.idle.sound.IsPlaying or slot.on.sound.IsPlaying or slot.off.sound.IsPlaying)
+	then
+		release(slot) -- faded all the way out: free the slot without a click
+		return
 	end
 	slot.att.WorldPosition = pos
 	car.prevPos = pos
@@ -472,9 +493,18 @@ end
 local function stepSqueals(dt: number)
 	for _, sq in squeals do
 		local c = sq.chassis
-		if c then
-			if c.Parent == nil then
+		if sq.orphan then
+			if os.clock() - sq.orphanAt > Engines.ORPHAN_TIMEOUT then
+				sq.orphan = false -- its owner never called stopLoop (it went away with the car): reuse it
 				sq.chassis = nil
+			end
+		elseif c then
+			if c.Parent == nil then
+				-- the car is gone but WheelAnimator still holds this Sound until its stopLoop: mute it and keep the
+				-- slot reserved, so it is never handed to a second owner (releaseLoop frees it)
+				sq.orphan = true
+				sq.orphanAt = os.clock()
+				sq.vol = 0
 				sq.sound.Volume = 0
 				sq.sound:Stop()
 			else
@@ -518,7 +548,7 @@ function Engines.squealLoop(chassis: Instance?): Sound?
 	end
 	local free: Squeal? = nil
 	for _, sq in squeals do
-		if sq.chassis == nil and sq.att.Parent then
+		if sq.chassis == nil and not sq.orphan and sq.att.Parent then
 			free = sq
 			break
 		end
@@ -531,7 +561,7 @@ function Engines.squealLoop(chassis: Instance?): Sound?
 			s.Looped = true
 		end
 		s.RollOffMaxDistance = 220
-		free = { att = att, sound = s, chassis = nil, vol = 0 }
+		free = { att = att, sound = s, chassis = nil, vol = 0, orphan = false, orphanAt = 0 }
 		table.insert(squeals, free :: Squeal)
 	end
 	if not free then
@@ -539,6 +569,7 @@ function Engines.squealLoop(chassis: Instance?): Sound?
 	end
 	local sq = free :: Squeal
 	sq.chassis = chassis
+	sq.orphan = false
 	sq.vol = 0
 	sq.sound.Volume = 0
 	sq.att.WorldPosition = chassis.Position
@@ -553,6 +584,7 @@ function Engines.releaseLoop(sound: Sound): boolean
 	for _, sq in squeals do
 		if sq.sound == sound then
 			sq.chassis = nil
+			sq.orphan = false
 			sq.vol = 0
 			sound.Volume = 0
 			sound:Stop()

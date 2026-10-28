@@ -5,7 +5,13 @@
 -- is docs/v2/evidence/audio_audit.md. If one ever goes private, swap it here only and re-run the audit.
 --
 -- Fields
---   volume / pitch            base Sound.Volume / PlaybackSpeed (loudness-normalised by the audit's RMS figures)
+--   volume / pitch            base Sound.Volume / PlaybackSpeed
+--   loudness                  the dBFS level a key is normalised to (beds, freeway, ambient one-shots, radio tracks,
+--                             door / ignition): volume = 10^((loudness - rms) / 20) from the take's measured RMS
+--                             (audio_audit.md; the region's RMS for a region). audit.py flags LEVEL when the measured
+--                             effective level (rms + 20 log10 volume) is more than 1.5 dB off. Keys without it are
+--                             levelled by ear against their neighbours (engines, guns, UI).
+--   stream                    a long file that is not preloaded at join (it streams on first play)
 --   looped                    loops (beds, engines, sirens, foley loops)
 --   start / stop              PlaybackRegion seconds: one event out of a longer file (one-shots)
 --   loopStart / loopEnd       LoopRegion seconds: the steady part of a long PSE take (engines, sirens, foley loops;
@@ -32,10 +38,25 @@ export type SoundDef = {
 	rollOff: number?,
 	pitchVar: number?,
 	length: number?,
+	loudness: number?,
+	stream: boolean?,
 }
 
 local function a(id: number): string
 	return "rbxassetid://" .. tostring(id)
+end
+
+-- Loudness targets (dBFS, un-weighted active RMS, the audit's measure) per kind of sound.
+local BED = -30 -- district beds, day and night
+local FREEWAY = -28 -- the freeway roar is added on top of a bed and has to cut through it
+local AMB_ONESHOT = -31 -- ambient one-shots at the listener (City.playOneShot keeps them free of roll-off loss)
+local RADIO = -21 -- every radio track, so a station never jumps in level between songs
+
+-- `def` with its Volume normalised to `target` dBFS from the take's measured RMS `rms` (audio_audit.md).
+local function at(def: SoundDef, rms: number, target: number): SoundDef
+	def.volume = math.floor(10 ^ ((target - rms) / 20) * 100 + 0.5) / 100
+	def.loudness = target
+	return def
 end
 
 -- Gun / impact layers (gta_combat §12.4): Pro Sound Effects (public, waveform-checked) first, Audioscape "AS_*".
@@ -79,8 +100,17 @@ local function one(id: number, volume: number, extra: { [string]: any }?): Sound
 end
 
 -- length = the track's measured duration (audio_audit.md): the station's live clock (Audio/RadioDial.trackAt) needs it.
-local function radio(id: number, station: string, title: string, length: number, volume: number?): SoundDef
-	return { id = a(id), volume = volume or 0.28, looped = false, station = station, title = title, length = length }
+-- rms = its measured loudness: every track is normalised to RADIO.
+local function radio(id: number, station: string, title: string, length: number, rms: number): SoundDef
+	return at({ id = a(id), volume = 0, looped = false, station = station, title = title, length = length }, rms, RADIO)
+end
+
+-- A district bed / ambient one-shot normalised from its measured RMS.
+local function bed(id: number, rms: number, target: number?): SoundDef
+	return at(loop(id, 0), rms, target or BED)
+end
+local function amb(id: number, rms: number, extra: { [string]: any }?): SoundDef
+	return at(one(id, 0, extra), rms, AMB_ONESHOT)
 end
 
 local Sounds = {
@@ -93,21 +123,22 @@ local Sounds = {
 	Eng_Compact_On = loop(80317022777602, 0.85),
 	Eng_Compact_Off = loop(80317022777602, 0.6, nil, nil, { lowpass = true }),
 	-- sedan: 1964 Cadillac convertible, constant drive (PSE)
+	-- (loop regions re-picked with `audit.py --loop`: every seam jumps < 2 dB, audio_audit.md)
 	Eng_Sedan_Idle = loop(9112734195, 0.33, 25.602, 27.9),
-	Eng_Sedan_On = loop(9112734195, 0.35, 0.596, 5.868),
-	Eng_Sedan_Off = loop(9112734195, 0.3, 0.596, 5.868, { lowpass = true }),
+	Eng_Sedan_On = loop(9112734195, 0.35, 0.752, 5.418),
+	Eng_Sedan_Off = loop(9112734195, 0.3, 0.752, 5.418, { lowpass = true }),
 	-- muscle: 1969 Chevelle on-board exterior idle / revs, interior cruise as the off-load burble (PSE)
-	Eng_Muscle_Idle = loop(9112735119, 0.68, 6.498, 10.516),
-	Eng_Muscle_On = loop(9112735119, 0.61, 28.004, 34.082),
+	Eng_Muscle_Idle = loop(9112735119, 0.68, 7.253, 10.494),
+	Eng_Muscle_On = loop(9112735119, 0.61, 29.304, 33.432),
 	Eng_Muscle_Off = loop(9112734376, 0.32, 1.002, 5.345, { lowpass = true }),
 	-- sports: Ferrari 308 idle / booming revs (PSE)
-	Eng_Sports_Idle = loop(9125556863, 0.23, 26.002, 30.405),
+	Eng_Sports_Idle = loop(9125556863, 0.23, 26.304, 30.205),
 	Eng_Sports_On = loop(9125556863, 0.18, 5.003, 8.635),
 	Eng_Sports_Off = loop(9125556863, 0.16, 5.003, 8.635, { lowpass = true }),
 	-- super: race-car engine idle / constant high rpm (PSE)
 	Eng_Super_Idle = loop(9112782019, 0.55, 26.751, 28.452),
-	Eng_Super_On = loop(9112782186, 0.53, 5.0, 9.711),
-	Eng_Super_Off = loop(9112782186, 0.45, 5.0, 9.711, { lowpass = true }),
+	Eng_Super_On = loop(9112782186, 0.53, 5.0, 9.01),
+	Eng_Super_Off = loop(9112782186, 0.45, 5.0, 9.01, { lowpass = true }),
 	-- truck: diesel pickup long idle, dump-truck constant drive (PSE)
 	Eng_Truck_Idle = loop(9125349929, 1.5, 8.0, 11.209),
 	Eng_Truck_On = loop(9112735582, 0.15, 15.0, 18.738),
@@ -117,8 +148,8 @@ local Sounds = {
 	Eng_Bike_On = loop(9114895897, 0.45, 10.749, 15.649),
 	Eng_Bike_Off = loop(9114895897, 0.38, 10.749, 15.649, { lowpass = true }),
 	-- police interceptor: big V8 (muscle idle, sedan cruise)
-	Eng_Police_Idle = loop(9112735119, 0.6, 6.498, 10.516, { pitch = 0.94 }),
-	Eng_Police_On = loop(9112734195, 0.38, 0.596, 5.868),
+	Eng_Police_Idle = loop(9112735119, 0.6, 7.253, 10.494, { pitch = 0.94 }),
+	Eng_Police_On = loop(9112734195, 0.38, 0.752, 5.418),
 	Eng_Police_Off = loop(9112734376, 0.3, 1.002, 5.345, { lowpass = true }),
 
 	-------------------------------------------------------------------------------------------------------------------
@@ -126,16 +157,17 @@ local Sounds = {
 	-------------------------------------------------------------------------------------------------------------------
 	EngineStart = { id = a(78270463799678), volume = 0.6 },
 	EngineStop = { id = a(87646813759701), volume = 0.5 },
-	Ignition = one(9116176570, 1.0, { start = 0, stop = 0.62 }), -- keys into the ignition
-	CarDoor = { id = a(125094987563505), volume = 0.6 },
+	Ignition = at(one(9116176570, 0, { start = 0, stop = 0.62 }), -37.2, -32), -- keys into the ignition
+	CarDoor = at(one(125094987563505, 0), -35.1, -27), -- on a level with DoorSlam
 	DoorSlam = one(9120370628, 0.55, { rollOff = 90 }),
 	HotwireCrackle = loop(9114238020, 3.0, 2.0, 15.379), -- soft electrical arcing (a -41 dB take: high Volume)
-	TireScreech = loop(9120398722, 0.3, 25.5, 29.709), -- sustained tyre squeal (lateral slip)
+	-- sustained dry tyre squeal (lateral slip): the steady slide of a PSE drift take ("Car Drifting")
+	TireScreech = loop(9126158749, 0.75, 24.95, 26.75),
 	PeelOut = { id = a(9113661285), volume = 0.5 },
-	SurfaceGravel = loop(9126156741, 1.2, 12.5, 17.139), -- tyres on dirt / gravel / sand
+	SurfaceGravel = loop(9126156741, 1.2, 13.3, 17.021), -- tyres on dirt / gravel / sand
 	ScrapeLoop = loop(9112832551, 0.42, 4.0, 10.87), -- metal dragging on asphalt (grinding a wall)
 	WindInterior = loop(9118747525, 0.8), -- wind at speed, heard inside the car only
-	Crash = { id = a(9118708982), volume = 0.7 },
+	Crash = { id = a(9118708982), volume = 0.7, stream = true }, -- v1 key (an 18 s take): EventService's crash
 	GlassBreak = one(9114590297, 0.5, { start = 0.7 }),
 	Impact_Light1 = one(9113267435, 0.75, { rollOff = 140, pitchVar = 0.06 }),
 	Impact_Light2 = one(9113267039, 0.6, { rollOff = 140, pitchVar = 0.06 }),
@@ -162,7 +194,6 @@ local Sounds = {
 	-------------------------------------------------------------------------------------------------------------------
 	-- a steady slice at the top of a real siren's sweep: Audio/Siren drives its pitch (wail / yelp / hi-lo)
 	Siren_Tone = loop(9119165131, 0.6, 4.35, 4.75),
-	Siren_Yelp = loop(9119165419, 0.55, 14.999, 17.189), -- recorded yelp cycle
 	Siren_Distant = loop(9112871822, 1.4), -- group of units wailing far away (wanted layer)
 	Siren = { id = a(9119165131), volume = 0.5, looped = true }, -- v1 keys (stolen-car alarm)
 	-- dispatch radio: squelch, static and beeps only (no talk)
@@ -252,68 +283,71 @@ local Sounds = {
 
 	-------------------------------------------------------------------------------------------------------------------
 	-- Ambience (Audio/Ambience): district beds (day / night), the freeway layer, one-shots. Beds are PSE location
-	-- recordings marked as loops; one-shots play at a distance in the listener's direction.
+	-- recordings marked as loops; one-shots play at a distance in the listener's direction. The second argument is the
+	-- take's measured RMS (dBFS, audio_audit.md): beds are normalised to BED, the freeway to FREEWAY, one-shots to
+	-- AMB_ONESHOT. Descriptions are read for voices (audit VOICE?: no singing, talk or walla in any bed).
 	-------------------------------------------------------------------------------------------------------------------
-	Amb_City_Day = loop(9112891671, 0.55), -- urban traffic, overhead perspective, horns
-	Amb_City_Night = loop(9112759731, 0.65), -- city night, distant traffic wash
-	Amb_Beach_Day = loop(9126201834, 0.5), -- waves rolling in constantly
-	Amb_Beach_Night = loop(9119676800, 0.45), -- surf, tide roll-up
-	Amb_Wild_Day = loop(9112831284, 0.55), -- birds
-	Amb_Wild_Night = loop(9112765304, 0.5), -- crickets, rural night
-	Amb_Desert_Day = loop(9112865610, 0.7), -- desert air
-	Amb_Desert_Night = loop(9125485532, 0.5), -- desert dusk crickets
-	Amb_Suburb_Day = loop(9112904460, 0.6), -- California neighbourhood presence
-	Amb_Suburb_Night = loop(9112764346, 0.55), -- crickets, distant city rumble
-	Amb_Industrial_Day = loop(9114776167, 0.55), -- constant machine idle
-	Amb_Industrial_Night = loop(9112791278, 0.55), -- feed mill by a river at night
-	Amb_Port_Day = loop(9112868658, 0.55), -- harbour, terminal island
-	Amb_Port_Night = loop(9112789988, 0.6), -- night docks
-	Amb_Airport_Day = loop(9112772101, 0.55), -- distant freeway wash, freight trucks
-	Amb_Airport_Night = loop(9112772108, 0.55), -- distant traffic, a few crickets
-	Amb_Freeway = loop(9112784654, 0.6), -- Southern California freeway traffic (near freeways)
-	-- one-shots
-	Amb_SirenFar1 = one(9119163066, 0.35, { start = 4.6, stop = 24 }), -- 4.9 s lead silence trimmed (audit)
-	Amb_SirenFar2 = one(9119163012, 0.35, { start = 0.4, stop = 22 }),
-	Amb_Horn1 = one(9120385772, 0.35, { pitchVar = 0.08 }),
-	Amb_Horn2 = one(9120386248, 0.35, { pitchVar = 0.08 }),
-	Amb_Horn3 = one(9114661198, 0.3, { pitchVar = 0.05 }),
-	Amb_Dog1 = one(9113955372, 0.3, { pitch = 0.92, pitchVar = 0.06 }),
-	Amb_Dog2 = one(9113956178, 0.3, { pitch = 0.92, pitchVar = 0.06 }),
-	Amb_Dog3 = one(9113955086, 0.3, { pitch = 0.92, pitchVar = 0.06 }),
-	Amb_CarAlarm = one(9113719289, 0.25),
-	Amb_Plane1 = one(9113864890, 0.7, { start = 2.0, stop = 34 }), -- quiet, distant take: louder
-	Amb_Plane2 = one(9113864886, 0.5, { start = 2.1, stop = 26 }),
-	Amb_Gull1 = one(9118858279, 0.35, { pitchVar = 0.06 }),
-	Amb_Gull2 = one(9118858265, 0.35, { pitchVar = 0.06 }),
-	Amb_Gull3 = one(9118858259, 0.35, { pitchVar = 0.06 }),
-	Amb_Coyote = one(9113950627, 0.35, { start = 0.3 }),
-	Amb_Clank1 = one(9125672726, 0.3, { pitchVar = 0.1 }),
-	Amb_Clank2 = one(9116751108, 0.35, { pitchVar = 0.1 }),
-	Amb_TrainHorn = one(9112772271, 0.4, { stop = 26 }),
+	Amb_City_Day = bed(9112891671, -24.0), -- urban traffic, overhead perspective, horns
+	Amb_City_Night = bed(9112891623, -30.1), -- urban traffic, overhead, diffuse and muted, distant horns
+	Amb_Beach_Day = bed(9126201834, -27.4), -- waves rolling in constantly
+	Amb_Beach_Night = bed(9119676800, -31.2), -- surf, tide roll-up
+	Amb_Wild_Day = bed(9112771303, -25.1), -- LA hilltop: wind, birds, leaves rustling, quiet wash of the city below
+	Amb_Wild_Night = bed(9112765304, -34.1), -- crickets, rural night
+	Amb_Desert_Day = bed(9112865610, -41.7), -- desert air
+	Amb_Desert_Night = bed(9125485532, -35.2), -- desert dusk crickets
+	Amb_Suburb_Day = bed(9112904460, -30.3), -- California neighbourhood presence
+	Amb_Suburb_Night = bed(9112764346, -20.1), -- crickets, distant city rumble
+	Amb_Industrial_Day = bed(9114776167, -19.6), -- constant machine idle
+	Amb_Industrial_Night = bed(9112791278, -21.6), -- feed mill by a river at night
+	Amb_Port_Day = bed(9112868658, -32.4), -- harbour, terminal island
+	Amb_Port_Night = bed(9112789988, -34.6), -- night docks
+	Amb_Airport_Day = bed(9112772101, -36.9), -- distant freeway wash, freight trucks
+	Amb_Airport_Night = bed(9112772108, -38.5), -- distant traffic, a few crickets
+	Amb_Freeway = bed(9112784654, -40.2, FREEWAY), -- Southern California freeway traffic (near freeways)
+	-- one-shots (RMS of the played region where there is one)
+	Amb_SirenFar1 = amb(9119163066, -26.9, { start = 4.6, stop = 24 }), -- 4.9 s lead silence trimmed (audit)
+	Amb_SirenFar2 = amb(9119163012, -35.0, { start = 0.4, stop = 22 }),
+	Amb_Horn1 = amb(9120385772, -18.1, { pitchVar = 0.08 }),
+	Amb_Horn2 = amb(9120386248, -25.8, { pitchVar = 0.08 }),
+	Amb_Horn3 = amb(9114661198, -13.8, { pitchVar = 0.05 }),
+	Amb_Dog1 = amb(9113955372, -36.2, { pitch = 0.92, pitchVar = 0.06 }),
+	Amb_Dog2 = amb(9113956178, -39.1, { pitch = 0.92, pitchVar = 0.06 }),
+	Amb_Dog3 = amb(9113955086, -37.4, { pitch = 0.92, pitchVar = 0.06 }),
+	Amb_CarAlarm = amb(9113719289, -19.9),
+	Amb_Plane1 = amb(9113864890, -40.4, { start = 2.0, stop = 34 }), -- quiet, distant take
+	Amb_Plane2 = amb(9113864886, -33.8, { start = 2.1, stop = 26 }),
+	Amb_Gull1 = amb(9118858279, -34.2, { pitchVar = 0.06 }),
+	Amb_Gull2 = amb(9118858265, -35.9, { pitchVar = 0.06 }),
+	Amb_Gull3 = amb(9118858259, -35.5, { pitchVar = 0.06 }),
+	Amb_Coyote = amb(9113950627, -31.9, { start = 0.3 }),
+	Amb_Clank1 = amb(9125672726, -19.7, { pitchVar = 0.1 }),
+	Amb_Clank2 = amb(9116751108, -15.4, { pitchVar = 0.1 }),
+	Amb_TrainHorn = amb(9112772271, -32.4, { stop = 26 }),
 
 	-------------------------------------------------------------------------------------------------------------------
 	-- Car radio: 2D music on the music channel while the local player drives (muffled 3D for people outside the car).
 	-- Public, free APM Music tracks (toolbox-service: creator APMOfficial, audioType Music, free; audio_audit.md).
 	-- Station names are our own parodies; titles show on the HUD. looped = false: the station queues its next track.
+	-- The last argument is the track's measured RMS (dBFS, audio_audit.md): every track is normalised to RADIO.
 	-------------------------------------------------------------------------------------------------------------------
-	Radio_Hyperdrive = radio(72710061789341, "BASS DROP 101", "Hyperdrive", 155.29, 0.26),
-	Radio_PartyTime = radio(1847692770, "BASS DROP 101", "EDM Party Time", 160.7, 0.26),
-	Radio_Aura = radio(1837664025, "BASS DROP 101", "Aura", 183.52, 0.26),
-	Radio_CityLights = radio(9046863579, "CHILL WAVES", "City Lights", 120.1, 0.32),
-	Radio_Poolside = radio(9046863253, "CHILL WAVES", "Poolside", 165.24, 0.32),
-	Radio_BeachCushions = radio(9047104411, "CHILL WAVES", "Beach Cushions", 156.68, 0.32),
-	Radio_FatElectroFunk = radio(1836160527, "FUNKY DRIVE", "Fat Electro Funk", 154.07),
-	Radio_TheStickup = radio(1841268296, "FUNKY DRIVE", "The Stickup", 153.91),
-	Radio_DiscoSapiens = radio(1835725225, "FUNKY DRIVE", "Disco Sapiens", 155.14),
-	Radio_AllGood = radio(9044508438, "HEIST HOP", "All Good", 127.99, 0.3),
-	Radio_UrbanJungleDrive = radio(1836021107, "HEIST HOP", "Urban Jungle Drive", 177.1),
-	Radio_WestCoastHop = radio(1835563783, "HEIST HOP", "West Coast Hop", 180.27),
-	Radio_NeonLights = radio(1837115816, "NEON FM", "Neon Lights", 153.44),
-	Radio_OutrunArcade = radio(1837301807, "NEON FM", "Outrun Arcade", 198.31),
-	Radio_DeletedMemory = radio(1837115853, "NEON FM", "Deleted Memory", 109.8),
-	Radio_SurfRock = radio(1847233991, "PALMERA ROCK 104", "Surf Rock", 175.73),
-	Radio_TheRenegade = radio(1837413931, "PALMERA ROCK 104", "The Renegade", 139.98),
-	Radio_SurfingRocking = radio(1837299865, "PALMERA ROCK 104", "Surfing 'n' Rocking", 122.54),
+	Radio_Hyperdrive = radio(72710061789341, "BASS DROP 101", "Hyperdrive", 155.29, -9.4),
+	Radio_PartyTime = radio(1847692770, "BASS DROP 101", "EDM Party Time", 160.7, -10.3),
+	Radio_Aura = radio(1837664025, "BASS DROP 101", "Aura", 183.52, -11.1),
+	Radio_CityLights = radio(9046863579, "CHILL WAVES", "City Lights", 120.1, -9.9),
+	Radio_Poolside = radio(9046863253, "CHILL WAVES", "Poolside", 165.24, -10.4),
+	Radio_BeachCushions = radio(9047104411, "CHILL WAVES", "Beach Cushions", 156.68, -9.1),
+	Radio_FatElectroFunk = radio(1836160527, "FUNKY DRIVE", "Fat Electro Funk", 154.07, -8.1),
+	Radio_TheStickup = radio(1841268296, "FUNKY DRIVE", "The Stickup", 153.91, -10.2),
+	Radio_DiscoSapiens = radio(1835725225, "FUNKY DRIVE", "Disco Sapiens", 155.14, -10.5),
+	Radio_AllGood = radio(9044508438, "HEIST HOP", "All Good", 127.99, -16.0),
+	Radio_UrbanJungleDrive = radio(1836021107, "HEIST HOP", "Urban Jungle Drive", 177.1, -8.0),
+	Radio_WestCoastHop = radio(1835563783, "HEIST HOP", "West Coast Hop", 180.27, -8.3),
+	Radio_NeonLights = radio(1837115816, "NEON FM", "Neon Lights", 153.44, -15.1),
+	Radio_OutrunArcade = radio(1837301807, "NEON FM", "Outrun Arcade", 198.31, -8.4),
+	Radio_DeletedMemory = radio(1837115853, "NEON FM", "Deleted Memory", 109.8, -15.0),
+	Radio_SurfRock = radio(1847233991, "PALMERA ROCK 104", "Surf Rock", 175.73, -10.6),
+	Radio_TheRenegade = radio(1837413931, "PALMERA ROCK 104", "The Renegade", 139.98, -9.7),
+	Radio_SurfingRocking = radio(1837299865, "PALMERA ROCK 104", "Surfing 'n' Rocking", 122.54, -10.6),
 	-- the static burst between stations
 	RadioStatic = one(9118026930, 0.3, { start = 0.1 }),
 } :: { [string]: SoundDef }
