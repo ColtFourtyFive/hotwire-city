@@ -181,8 +181,8 @@ def main() -> int:
         skin = tuple(s["skin"])
         d.ellipse([cx + 32, top + 14, cx + 76, top + 58], fill=skin, outline=(240, 240, 240), width=2)
         d.text((cx + 86, top + 16), f"{lab['skin']} skin", font=f_small, fill=TEXT)
-        d.text((cx + 86, top + 36), f"{lab['body']} frame", font=f_small, fill=DIM)
-        cap = "catalog render of the frame's bundle; in game: the head + outfit below"
+        d.text((cx + 86, top + 36), f"{lab['body']} build  ·  {lab['face']} face", font=f_small, fill=DIM)
+        cap = "catalog render of the build's bundle; in game: the items below"
         d.text((body_box[0] + 10, top + 300 - 22), cap, font=f_tag, fill=DIM)
         # items: head, hair, garments, shoes
         items = [("HEAD", s["head"])]
@@ -206,9 +206,10 @@ def main() -> int:
         e = eng.get(lk["key"]) or {}
         if e.get("ok"):
             h = e.get("height") or 0
-            line = (f"Engine: {e.get('got')}/{e.get('want')} accessories loaded  ·  body {h:.1f} studs "
+            typed = "" if e.get("missingGroups") else ", types ok"
+            line = (f"Engine: {e.get('got')}/{e.get('want')} loaded{typed}  ·  body {h:.1f} studs "
                     f"({h * STUD_M:.2f} m)")
-            colour = GREEN if e.get("got") == e.get("want") else ACCENT
+            colour = GREEN if e.get("got") == e.get("want") and not e.get("missingGroups") else ACCENT
         else:
             line, colour = "Engine: not checked", DIM
         d.text((cx + 18, fy + 22), line, font=f_small, fill=colour)

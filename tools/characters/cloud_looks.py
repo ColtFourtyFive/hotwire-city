@@ -6,7 +6,9 @@ Roblox server of the latest saved place version, builds R15 models with Players:
   * every accessory alone (did it load? is it layered: a WrapLayer under its handle?),
   * every body part set and dynamic head (did the meshes change from the default rig? FaceControls on the head?),
   * every walk style (does the model's Animate script carry the pack's animations?),
-  * the 8 lineup looks and the level 1 / 2 fallbacks of the first (accessories loaded vs asked, model height).
+  * the 8 lineup looks and the level 1 / 2 fallbacks of the first (accessories loaded vs asked, model height),
+  * the AccessoryType every loaded accessory reports (AppearanceService's per-group check: hair / garments / shoes,
+    DescriptionSpec.missingGroups, relies on it), per item and per look, compared with the kind we asked for.
 Paid third-party items cannot be downloaded anonymously (verify_looks.py gets 401), so this is where their load is
 proven. Writes the JSON report (default docs/v2/evidence/characters_engine_check.json).
 
@@ -61,6 +63,20 @@ local function countAccessories(m)
 	return n, wraps
 end
 
+-- AccessoryType names the loaded accessories report ("Unknown" when unset)
+local function accessoryTypes(m)
+	local t = {}
+	for _, c in m:GetChildren() do
+		if c:IsA("Accessory") then
+			local ok, at = pcall(function()
+				return c.AccessoryType
+			end)
+			table.insert(t, if ok and typeof(at) == "EnumItem" then at.Name else "Unknown")
+		end
+	end
+	return t
+end
+
 local function meshOf(m, name)
 	local p = m:FindFirstChild(name)
 	if p and p:IsA("MeshPart") then
@@ -110,6 +126,12 @@ local function runBatched(list, fn, sink)
 	end
 end
 
+-- the experience's avatar type (player looks are R15-only; AppearanceService shows an R6 body as is, with a warning)
+local okAvatar, avatarType = pcall(function()
+	return game:GetService("StarterPlayer").GameSettingsAvatar
+end)
+out.notes.avatarType = if okAvatar then tostring(avatarType) else ("unreadable: " .. tostring(avatarType))
+
 -- baseline: the default R15 rig
 local okBase, base = make(Instance.new("HumanoidDescription"))
 local baseTorso = okBase and meshOf(base, "UpperTorso") or ""
@@ -127,6 +149,7 @@ runBatched(DATA.items, function(it)
 	local r = { id = it.id, kind = it.kind, set = okSet, setError = if okSet then nil else tostring(setErr), ok = ok }
 	if ok then
 		r.count, r.wraps = countAccessories(m)
+		r.types = accessoryTypes(m)
 		local names = {}
 		for _, c in m:GetChildren() do
 			if c:IsA("Accessory") then table.insert(names, c.Name) end
@@ -242,6 +265,7 @@ local function lookCheck(entry)
 	local r = { key = entry.key, level = s.level, ok = ok, seconds = os.clock() - t0, want = #s.accessories }
 	if ok then
 		r.got, r.wraps = countAccessories(m)
+		r.types = accessoryTypes(m)
 		-- joints only solve in the workspace: park the model (root anchored) far above the map for a moment
 		local root = m:FindFirstChild("HumanoidRootPart")
 		if root and root:IsA("BasePart") then
@@ -265,6 +289,30 @@ runBatched(DATA.fallbacks, lookCheck, out.fallbacks)
 
 return HttpService:JSONEncode(out)
 '''
+
+
+CRITICAL_GROUPS = {  # mirrors DescriptionSpec.CRITICAL_GROUPS
+    "hair": ("Hair",),
+    "garments": ("TShirt", "Shirt", "Sweater", "Jacket", "Pants", "Shorts", "DressSkirt"),
+    "shoes": ("LeftShoe", "RightShoe"),
+}
+GROUP_OF = {k: g for g, kinds in CRITICAL_GROUPS.items() for k in kinds}
+
+
+def missing_groups(asked_kinds, loaded_types):
+    """DescriptionSpec.missingGroups over what the engine reported (untyped accessories may fill any gap)."""
+    want, got = {}, {}
+    for k in asked_kinds:
+        if k in GROUP_OF:
+            want[GROUP_OF[k]] = want.get(GROUP_OF[k], 0) + 1
+    unknown = 0
+    for k in loaded_types:
+        if k == "Unknown":
+            unknown += 1
+        elif k in GROUP_OF:
+            got[GROUP_OF[k]] = got.get(GROUP_OF[k], 0) + 1
+    short = {g: n - got.get(g, 0) for g, n in want.items() if n > got.get(g, 0)}
+    return sorted(short) if sum(short.values()) > unknown else []
 
 
 def main() -> int:
@@ -305,6 +353,21 @@ def main() -> int:
     bad_anims = [r for r in res.get("anims") or [] if not (r.get("ok") and r.get("changed"))]
     looks = (res.get("lineup") or []) + (res.get("fallbacks") or [])
     bad_looks = [r for r in looks if not (r.get("ok") and r.get("got") == r.get("want"))]
+    # the per-group check, as AppearanceService runs it after an apply, on what the engine really loaded
+    asked = {}
+    for entry in (data.get("lineup") or []) + (data.get("fallbacks") or []):
+        s = entry.get("spec") or entry
+        asked[(entry.get("key"), s.get("level"))] = [a["kind"] for a in s.get("accessories") or []]
+    false_alarms = []
+    for r in looks:
+        if r.get("ok"):
+            r["missingGroups"] = missing_groups(asked.get((r.get("key"), r.get("level")), []), r.get("types") or [])
+            if r["missingGroups"] and r.get("got") == r.get("want"):
+                false_alarms.append(r)
+    typed = [r for r in items if r.get("ok") and r.get("count") == 1]
+    type_match = [r for r in typed if (r.get("types") or ["?"])[0] == r.get("kind")]
+    type_unknown = [r for r in typed if (r.get("types") or ["Unknown"])[0] == "Unknown"]
+    type_other = [r for r in typed if r not in type_match and r not in type_unknown]
     summary = {
         "generated": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "placeVersion": task_path.split("/versions/")[1].split("/")[0],
@@ -319,6 +382,11 @@ def main() -> int:
         "walkStylesFailed": len(bad_anims),
         "looks": len(looks),
         "looksIncomplete": len(bad_looks),
+        "itemTypeMatches": len(type_match),
+        "itemTypeUnknown": len(type_unknown),
+        "itemTypeOther": len(type_other),
+        "groupCheckFalseAlarms": len(false_alarms),
+        "avatarType": (res.get("notes") or {}).get("avatarType"),
     }
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     with open(out_path, "w") as f:
@@ -332,7 +400,12 @@ def main() -> int:
         print("FAIL", r)
     for r in bad_looks:
         print("LOOK", r)
-    return 1 if (bad_items or bad_bodies or bad_faces or bad_anims or bad_looks) else 0
+    for r in type_other:
+        print("ITEM TYPE", r.get("id"), "asked", r.get("kind"), "engine says", r.get("types"))
+    for r in false_alarms:
+        print("GROUP CHECK FALSE ALARM", r.get("key"), r.get("level"), r.get("missingGroups"), r.get("types"))
+    failed = bad_items or bad_bodies or bad_faces or bad_anims or bad_looks or false_alarms
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

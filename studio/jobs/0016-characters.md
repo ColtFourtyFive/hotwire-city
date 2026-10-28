@@ -144,7 +144,7 @@ this section if the MCP cannot drive two clients, and say so.
 
 ## Snippets (Server, `execute_luau`)
 
-**LINEUP** (six of the looks on `docs/v2/evidence/characters_lineup.jpg`):
+**LINEUP** (the eight looks on `docs/v2/evidence/characters_lineup.jpg`, in order):
 
 ```lua
 local Players = game:GetService("Players")
@@ -152,9 +152,12 @@ local RS = game:GetService("ReplicatedStorage")
 local LookCodec = require(RS.Shared.Appearance.LookCodec)
 local DescriptionSpec = require(RS.Shared.Appearance.DescriptionSpec)
 local AS = require(game:GetService("ServerScriptService").Server.Systems.AppearanceService)
-local KEYS = { "3.8.2.5.2.2.4.3", "10.6.9.2.3.1.3.1", "6.6.6.10.3.4.2.1", "12.10.7.12.1.3.1.1", "1.3.1.4.2.5.1.2", "9.2.8.1.3.3.3.1" }
+local KEYS = {
+	"3.8.2.5.2.2.4.3", "10.6.9.2.3.1.3.1", "6.6.6.10.3.4.2.1", "12.10.7.12.1.3.1.1",
+	"1.3.1.4.2.5.1.2", "9.2.8.1.3.3.3.1", "4.4.5.9.3.1.4.4", "11.1.10.3.1.5.2.1",
+}
 local p = Players:GetPlayers()[1]
-local base = p.Character.HumanoidRootPart.CFrame * CFrame.new(-7.5, 0, -14)
+local base = p.Character.HumanoidRootPart.CFrame * CFrame.new(-10.5, 0, -14)
 local folder = workspace:FindFirstChild("C4aLineup") or Instance.new("Folder")
 folder.Name = "C4aLineup"
 folder.Parent = workspace

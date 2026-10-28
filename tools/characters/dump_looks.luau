@@ -101,10 +101,6 @@ for _, p in packs do
 		add(p[slot], name, "anim:" .. p.key)
 	end
 end
-for _, f in L.IdleFidgets or {} do
-	add(f.anim, "Animation", "fidget:" .. f.key)
-	add(f.emote, "Emote", "fidget-emote:" .. f.key)
-end
 if L.MOOD and L.MOOD > 0 then
 	add(L.MOOD, "Mood", "mood")
 end
