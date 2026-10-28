@@ -330,7 +330,7 @@ All POIs are snapped to a street frontage. Each footprint is verified clear of e
 | Spray (lose stars) | **Fresh Coat**: Midtown, Southgate, Foundry, Sunwood, Coastside. |
 | Chop | **Rusty's Chop Shop** (Rust Flats junkyard) and **Dockside Salvage** (port). |
 | Armored trucks | **Stackhouse Security Depot** (Rust Flats). |
-| Landmarks with lots | **Pinnacle Tower** (760 studs, about 213 m, roof helipad), **Lucky Seven Casino** (future heist), **Iron Bay Arena** (superblock), **Starview Observatory**. |
+| Landmarks with lots | **Pinnacle Tower** (760 studs, about 213 m, roof helipad), **Grand Meridian Hotel** (luxury tower; future heist target), **Iron Bay Arena** (superblock), **Starview Observatory**. |
 | Other | HCI Terminal, Iron Bay Harbor Master, Muscle Beach Gym, Sleepy Cactus Motel, Rattlesnake Diner. |
 
 ### 6.3 Landmarks, zones, events
