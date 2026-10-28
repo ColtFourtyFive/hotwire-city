@@ -1,0 +1,14 @@
+=== SERVER (job 0012 Play session, ContentId lines removed: 49) ===
+[MessageOutput] [MaterialOverrides] server: 16 active (0 set, 16 already)
+[MessageOutput] [Server] Hotwire City booted with 30 systems
+[MessageWarning] [AssetLibrary] Props/flower_bed unavailable; using procedural fallback
+[MessageWarning] [ShopService] no part tagged GunStoreCounter; placing fallback FREEDOM ARMS counters (MapLayout)
+
+=== CLIENT ===
+[MessageOutput] [MaterialOverrides] client: 16 active (0 set, 16 already)
+[MessageOutput] [Client] illintent1 ready with 31 controllers
+[MessageWarning] [MinimapController] slow GPS route: 7.7 / 5.1 / 6.9 / 8.2 / 11.7 / 6.5 / 7.4 / 19.5 / 6.2 / 6.1 / 12.6 / 5.3 / 6.3 ms (13 lines)
+63 unique ContentId failures: 62x "Asset type does not match requested type" (same ids as job 0017 console_end.txt, less a few), 1x 4542793421 "User is not authorized".
+No sky id (job 0012 table) appears in any log line. GetAssetFetchStatus = Success for all 21 sky ids.
+
+Previous session (job 0017, same place): ContentId: rbxassetid://88812082275800 failed due to: HTTP 502 (x3)  <- night Up face
