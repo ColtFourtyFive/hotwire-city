@@ -173,6 +173,27 @@ function LookCodec.key(look: Look): string
 	return table.concat(parts, ".")
 end
 
+-- The inverse of `key` (the replicated "HC_Look" player attribute): a validated Look, or nil for anything malformed.
+function LookCodec.parseKey(s: any): Look?
+	if typeof(s) ~= "string" or #s > 64 then
+		return nil
+	end
+	local parts = string.split(s, ".")
+	if #parts ~= #LookCodec.FIELDS then
+		return nil
+	end
+	local payload: { [string]: number } = {}
+	for i, f in LookCodec.FIELDS do
+		local n = tonumber(parts[i])
+		if n == nil then
+			return nil
+		end
+		payload[f] = n
+	end
+	local look = LookCodec.validate(payload)
+	return look
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- Keys <-> indices
 -------------------------------------------------------------------------------------------------------------------------
