@@ -8,6 +8,8 @@
 --   framing(origin, headY, focus, touch, yaw) -> (CFrame, fov)
 --                               the orbit camera: full body or a head close-up, the character pushed right of the
 --                               desktop list (or up, above the touch bottom sheet); yaw orbits round the character
+--                               (clamped to +-MAX_YAW by the controller) and the lens is pulled in along its own
+--                               line whenever it would leave the room (LENS_MARGIN inside every wall)
 --   standCFrame(origin, hip)    where the body stands (facing +Z, toward the camera)
 --   studio()                    the local studio set: a lineup room with a height chart (parts + lights, offsets from
 --                               the floor centre = the HC_Creator position the server hands out)
@@ -26,6 +28,11 @@ CreatorModel.PITCH = math.rad(4) -- looking slightly down
 CreatorModel.LATERAL = 0.16 -- desktop: the character sits this fraction of the view width right of centre
 CreatorModel.TOUCH_LIFT = 0.18 -- touch: the character sits this fraction of the view height above centre
 CreatorModel.FOOT = 0.3048 / 0.28 -- studs per foot
+CreatorModel.MAX_YAW = math.rad(100) -- orbit limit either side: past this the full-body lens would reach the back wall
+CreatorModel.LENS_MARGIN = 1.5 -- studs the lens always keeps inside every wall, the floor and the ceiling
+-- The back wall's face that looks into the room. The wall part has an identity rotation and the room (character,
+-- camera) is on its +Z side, which is Roblox's Back face (Front = -Z, toward the outside).
+CreatorModel.CHART_FACE = "Back"
 
 export type Mode = "first" | "wardrobe"
 export type Focus = "face" | "body"
@@ -53,7 +60,7 @@ CreatorModel.LABELS = {
 } :: { [string]: string }
 
 CreatorModel.DESCS = {
-	body = "Height and build. Every frame is a realistic body.",
+	body = "Height and build.",
 	face = "The head and its features.",
 	skin = "Skin tone.",
 	hair = "Haircut.",
@@ -165,7 +172,32 @@ function CreatorModel.framing(
 		* CFrame.Angles(0, yaw, 0)
 		* CFrame.Angles(-CreatorModel.PITCH, 0, 0)
 		* CFrame.new(lateral, lift, dist)
+	-- keep the lens inside the room: shorten the target -> lens line (the framing stays centred the same way, only
+	-- closer) until it is LENS_MARGIN inside every wall
+	local t = CreatorModel.lensFit(origin, target, cf.Position - target)
+	if t < 1 then
+		local pos = target + (cf.Position - target) * t
+		cf = cf + (pos - cf.Position)
+	end
 	return cf, fov
+end
+
+-- The largest t in (0, 1] for which target + offset * t stays LENS_MARGIN inside the studio room around `origin`.
+function CreatorModel.lensFit(origin: Vector3, target: Vector3, offset: Vector3): number
+	local R = CreatorModel.ROOM
+	local m = CreatorModel.LENS_MARGIN
+	local t = 1
+	local function axis(c: number, o: number, lo: number, hi: number)
+		if o > 1e-9 then
+			t = math.min(t, (hi - c) / o)
+		elseif o < -1e-9 then
+			t = math.min(t, (lo - c) / o)
+		end
+	end
+	axis(target.X, offset.X, origin.X - R.halfW + m, origin.X + R.halfW - m)
+	axis(target.Y, offset.Y, origin.Y + m, origin.Y + R.height - m)
+	axis(target.Z, offset.Z, origin.Z + R.back + m, origin.Z + R.front - m)
+	return math.clamp(t, 0.05, 1)
 end
 
 -- Where the body stands: feet on the floor at `origin`, facing +Z. `hip` = root height above the floor.

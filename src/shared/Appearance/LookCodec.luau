@@ -376,4 +376,22 @@ function LookCodec.storedIsNewer(stored: any, mine: Record): boolean
 		and stored.changedAt > mine.changedAt
 end
 
+-- The record to write when this server never read the stored look (its load failed) and the player only flipped the
+-- own-avatar switch: the stored look (its raw keys, as written) is kept and only `own` / `changedAt` change. nil =
+-- keep the stored record untouched (it is newer). Nothing usable stored -> `mine`.
+function LookCodec.mergeOwn(stored: any, mine: Record): Record?
+	if LookCodec.storedIsNewer(stored, mine) then
+		return nil
+	end
+	if typeof(stored) ~= "table" or typeof(stored.look) ~= "table" then
+		return mine
+	end
+	return {
+		v = if typeof(stored.v) == "number" then stored.v else LookCodec.RECORD_VERSION,
+		look = table.clone(stored.look),
+		own = mine.own,
+		changedAt = mine.changedAt,
+	}
+end
+
 return LookCodec

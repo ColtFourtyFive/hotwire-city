@@ -4,11 +4,15 @@
 -- AppearanceService sets every player Humanoid's DisplayDistanceType None + HealthDisplayType AlwaysOff).
 --
 --   * Small white Montserrat text (FootTuning.TAG_SIZE px) a little above the head, no panel, no health bar.
---   * Only within FootTuning.TAG_DISTANCE (40) studs, fading out over the last quarter; walls hide it (not AlwaysOnTop).
+--   * Only within FootTuning.TAG_DISTANCE (40) studs of YOUR CHARACTER (not the camera, which sits ~11 studs behind
+--     it), fading out over the last quarter; walls hide it (not AlwaysOnTop). The engine's MaxDistance (measured
+--     from the camera) is set wide enough that it never cuts a tag our own check shows.
 --   * None while you are in combat (InCombat attribute) or have a gun drawn, none in streamer mode / photo mode
 --     (HUDController.isHidden), none on a player in the character creator studio (HC_Creator).
--- One BillboardGui per other player, kept in PlayerGui (adornee = their Head), rebuilt on respawn. Visibility is
--- re-evaluated 10x a second (FootTuning.tagVisible / tagFade); only changed properties are written.
+-- One BillboardGui per other player, parented straight to PlayerGui with ResetOnSpawn off (a plain Folder there is
+-- cleared when the LOCAL player respawns), adornee = their Head, rebuilt on their respawn and whenever it lost its
+-- parent. Visibility is re-evaluated 10x a second (FootTuning.tagVisible / tagFade); only changed properties are
+-- written.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -29,11 +33,12 @@ local C = Theme.Colors
 
 NameTags.HEIGHT = 1.35 -- studs above the head's centre
 NameTags.TICK = 0.1
+-- BillboardGui.MaxDistance (camera -> tag): our range is from the character, and the camera can be DIST_MAX behind it
+NameTags.MAX_DISTANCE = FootTuning.TAG_DISTANCE + FootTuning.DIST_MAX + 6
 
 type Tag = { gui: BillboardGui, label: TextLabel, head: BasePart, shown: boolean, fade: number }
 
 local tags: { [Player]: Tag } = {}
-local folder: Folder? = nil
 
 local lazyCache: { [string]: any } = {}
 local function lazy(name: string): any
@@ -64,18 +69,6 @@ local function call(name: string, fn: string, ...: any): any
 	return nil
 end
 
-local function getFolder(): Folder
-	local f = folder
-	if f and f.Parent then
-		return f
-	end
-	local nf = Instance.new("Folder")
-	nf.Name = "HC_NameTags"
-	nf.Parent = player:WaitForChild("PlayerGui")
-	folder = nf
-	return nf
-end
-
 local function drop(p: Player)
 	local t = tags[p]
 	if t then
@@ -87,12 +80,12 @@ end
 local function build(p: Player, head: BasePart)
 	drop(p)
 	local gui = Instance.new("BillboardGui")
-	gui.Name = "Tag_" .. tostring(p.UserId)
+	gui.Name = "HC_NameTag_" .. tostring(p.UserId)
 	gui.Adornee = head
 	gui.AlwaysOnTop = false
 	gui.LightInfluence = 0
-	gui.MaxDistance = FootTuning.TAG_DISTANCE + 2
-	gui.ResetOnSpawn = false
+	gui.MaxDistance = NameTags.MAX_DISTANCE
+	gui.ResetOnSpawn = false -- kept in PlayerGui when the local player respawns
 	gui.Size = UDim2.fromOffset(220, FootTuning.TAG_SIZE + 6)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, NameTags.HEIGHT, 0)
 	gui.Enabled = false
@@ -109,7 +102,7 @@ local function build(p: Player, head: BasePart)
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = gui,
 	})
-	gui.Parent = getFolder()
+	gui.Parent = player:WaitForChild("PlayerGui")
 	tags[p] = { gui = gui, label = label, head = head, shown = false, fade = 0 }
 end
 
@@ -156,19 +149,36 @@ local function localBlocked(): boolean
 	return call("HUDController", "isHidden") == true or call("CharacterCreator", "isOpen") == true
 end
 
-local function refresh()
+-- Where the range is measured from: the local character's root (the camera when there is no body).
+local function viewerPosition(): Vector3?
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if root and root:IsA("BasePart") then
+		return root.Position
+	end
 	local cam = Workspace.CurrentCamera
-	if not cam then
+	return if cam then cam.CFrame.Position else nil
+end
+
+local function refresh()
+	local from = viewerPosition()
+	if not from then
 		return
 	end
-	local camPos = cam.CFrame.Position
 	local blocked = localBlocked()
+	local rebuild: { Player }? = nil
 	for p, t in tags do
 		if not p.Parent or not t.head.Parent then
 			drop(p)
 			continue
 		end
-		local d = (t.head.Position - camPos).Magnitude
+		if t.gui.Parent == nil then
+			-- the tag lost its parent (PlayerGui reset or destroyed): build it again on the same head (after the loop)
+			rebuild = rebuild or {}
+			table.insert(rebuild :: { Player }, p)
+			continue
+		end
+		local d = (t.head.Position - from).Magnitude
 		local targetHidden = p:GetAttribute("HC_Creator") ~= nil
 		local show = FootTuning.tagVisible(d, false, blocked, targetHidden)
 		if show ~= t.shown then
@@ -181,6 +191,14 @@ local function refresh()
 				t.fade = fade
 				t.label.TextTransparency = fade
 				t.label.TextStrokeTransparency = 0.55 + 0.45 * fade
+			end
+		end
+	end
+	if rebuild then
+		for _, p in rebuild do
+			local t = tags[p]
+			if t then
+				build(p, t.head)
 			end
 		end
 	end

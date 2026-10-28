@@ -192,8 +192,13 @@ return function(t)
 		local d2, r2 = hit(F.FALL_RAGDOLL + 4)
 		t.ok(d2 > d1 and d2 < 100, "hurts")
 		t.ok(r2 >= F.RAGDOLL_MIN and r2 <= F.RAGDOLL_MAX, "brief ragdoll")
-		local d3 = hit(F.FALL_LETHAL + 1)
+		local d3, _, lethal3 = hit(F.FALL_LETHAL + 1)
 		t.eq(d3, 100, "lethal")
+		t.ok(lethal3, "flagged lethal")
+		local _, _, lethal2 = hit(F.FALL_RAGDOLL + 4)
+		t.ok(not lethal2, "a survivable fall is not")
+		local DM = H.require("src/shared/Combat/DamageModel")
+		t.eq(F.FALL_THROUGH_ARMOR, DM.MAX_HEALTH + DM.MAX_ARMOR, "a lethal fall deals health + armor")
 		t.near(F.dropFromSpeed(F.speedFromDrop(20, g), g), 20, 1e-9, "inverse")
 		t.eq(F.landingImpact(-5, 0, g), 0, "slow landing ignored")
 		local fast = -F.speedFromDrop(30, g)
@@ -207,6 +212,7 @@ return function(t)
 		local damage = {}
 		local delayed = {}
 		local water = false
+		local waterChar = nil
 		local now = 1000
 		FS._setHooks({
 			gravity = function()
@@ -219,7 +225,8 @@ return function(t)
 				table.insert(damage, amount)
 				return amount >= 100
 			end,
-			inWater = function()
+			inWater = function(_pos, c)
+				waterChar = c
 				return water
 			end,
 			delay = function(s, fn)
@@ -259,7 +266,14 @@ return function(t)
 				return {}
 			end,
 		}
-		local p = { Name = "Faller", Character = char }
+		local pattrs = {}
+		local p = {
+			Name = "Faller",
+			Character = char,
+			GetAttribute = function(_, k)
+				return pattrs[k]
+			end,
+		}
 		FS._track(p)
 		local function fall(h, t0)
 			root.AssemblyLinearVelocity = V3.new(0, -F.speedFromDrop(h, 196.2), 0)
@@ -289,9 +303,24 @@ return function(t)
 		water = true
 		fall(40, 40)
 		t.eq(#damage, 1, "water landing is free")
+		t.eq(waterChar, char, "the water check is told whose body to ignore")
 		water = false
 		fall(F.FALL_LETHAL + 5, 50)
-		t.eq(damage[#damage], 100, "lethal fall")
+		t.eq(damage[#damage], F.FALL_THROUGH_ARMOR, "lethal fall goes through armor")
+		-- in the creator studio (its teleports stop the body dead) and just after: no landing
+		local before = #damage
+		pattrs.HC_Creator = V3.new(-12000, 2400, -12000)
+		t.eq(fall(40, 60), 0, "in the studio")
+		pattrs.HC_Creator = nil
+		FS._sample(p, 60.5)
+		t.eq(fall(40, 60.6), 0, "grace after the studio")
+		t.eq(#damage, before, "no damage from the studio teleports")
+		local src = fs.readFile("src/server/Systems/FootService.luau")
+		t.ok(
+			src:find("FilterDescendantsInstances = if char then { char } else {}", 1, true) ~= nil,
+			"own body excluded"
+		)
+		t.ok(src:find("ReadVoxels", 1, true) ~= nil, "terrain water at the root")
 		H.setMode("server")
 	end)
 
@@ -329,6 +358,18 @@ return function(t)
 		end
 		t.ok(armed.y + armed.h <= rects.fire.y, "above FIRE")
 		t.ok(HudLayout.inside(armed, L.w, L.h) and HudLayout.inside(un, L.w, L.h), "on screen")
+		-- the FIRE rect is in use for ANYTHING in hand (FIRE gun, HIT melee / fists, STUN taser): SPRINT moves up
+		t.ok(HudLayout.overlaps(un, rects.fire), "(the empty-hands spot is where FIRE / HIT / STUN go)")
+		t.ok(not F.fireRectInUse(nil), "empty hands")
+		for _, id in { "pistol", "bat", "fists", "taser" } do
+			t.ok(F.fireRectInUse(id), id .. " uses the FIRE rect")
+		end
+		local fm = fs.readFile("src/client/Controllers/FootMovement.luau")
+		t.ok(
+			fm:find('F%a*%.fireRectInUse%(call%("WeaponClient", "equipped"%)%)') ~= nil,
+			"FootMovement asks equipped()"
+		)
+		t.ok(not fm:find('"isGunDrawn"', 1, true), "not only guns")
 		H.setMode("server")
 	end)
 
@@ -343,6 +384,51 @@ return function(t)
 		t.ok(F.tagFade(35) > 0 and F.tagFade(35) < 1, "fading")
 		t.eq(F.tagFade(40), 1, "gone at the edge")
 		t.ok(F.TAG_SIZE <= 14, "small text")
+		-- measured from the local character; the engine's camera-based MaxDistance never cuts a tag sooner
+		H.setMode("client")
+		local NT = H.require("src/client/Controllers/NameTags")
+		H.setMode("server")
+		t.ok(NT.MAX_DISTANCE >= F.TAG_DISTANCE + F.DIST_MAX, "MaxDistance covers the camera's distance")
+		local src = fs.readFile("src/client/Controllers/NameTags.luau")
+		t.ok(src:find('player:WaitForChild("PlayerGui")', 1, true) ~= nil, "tags parented straight to PlayerGui")
+		t.ok(not src:find('Instance.new("Folder")', 1, true), "no Folder (cleared on the local respawn)")
+		t.ok(src:find("t.gui.Parent == nil", 1, true) ~= nil, "a tag that lost its parent is rebuilt")
+		t.ok(src:find('FindFirstChild("HumanoidRootPart")', 1, true) ~= nil, "range from the character")
+	end)
+
+	t.test("emotes: /e and /emote are swallowed; default emote tracks are stopped", function()
+		H.setMode("client")
+		local FM = H.require("src/client/Controllers/FootMovement")
+		H.setMode("server")
+		for _, e in { "wave", "point", "dance", "dance2", "dance3", "laugh", "cheer" } do
+			t.ok(FM.DEFAULT_EMOTES[e], e .. " stopped")
+		end
+		local src = fs.readFile("src/client/Controllers/FootMovement.luau")
+		t.ok(src:find('cmd.PrimaryAlias = "/e"', 1, true) ~= nil, "/e swallowed")
+		t.ok(src:find('cmd.SecondaryAlias = "/emote"', 1, true) ~= nil, "/emote swallowed")
+		t.ok(src:find("AnimationPlayed", 1, true) ~= nil, "tracks watched")
+		t.ok(src:find("OWN_SPEEDS", 1, true) ~= nil, "no per-frame speed table")
+		t.ok(F.isThin(V3.new(0.3, 0.3, 9)), "isThin still right without its table")
+		t.ok(not F.isThin(V3.new(0.3, 9, 9)), "one thin axis is a wall")
+	end)
+
+	t.test("mouse: captured on foot (desktop), handed to the shoulder cam, freed for any Modal UI", function()
+		H.setMode("client")
+		local FC = H.require("src/client/Controllers/FootCamera")
+		H.setMode("server")
+		t.eq(FC.mouseCaptured(), false, "not captured before start")
+		FC.setCursor("test", true)
+		FC.setCursor("test", false)
+		local src = fs.readFile("src/client/Controllers/FootCamera.luau")
+		t.ok(src:find("Enum.MouseBehavior.LockCenter", 1, true) ~= nil, "LockCenter on foot")
+		t.ok(src:find("MouseIconEnabled = false", 1, true) ~= nil, "no cursor on foot")
+		t.ok(src:find("Modal == true", 1, true) ~= nil, "Modal buttons free it")
+		t.ok(src:find("MenuIsOpen", 1, true) ~= nil, "Roblox's menu frees it")
+		t.ok(src:find("if shoulderEngaged() then", 1, true) ~= nil, "the shoulder cam owns it while a gun is out")
+		t.ok(src:find("UserInputService.MouseEnabled and UserInputService.KeyboardEnabled", 1, true) ~= nil)
+		for _, f in { "src/client/UI/PauseMenu.luau", "src/client/UI/Phone.luau", "src/client/UI/ListMenu.luau" } do
+			t.ok(fs.readFile(f):find("Modal = true", 1, true) ~= nil, f .. " carries a Modal button")
+		end
 	end)
 
 	-- CLIENT CONTROLLERS ------------------------------------------------------------------------------------------

@@ -2588,6 +2588,16 @@ function MenuController.start()
 			cam.CFrame = MenuController.cameraCFrame(cf.Position, size, VIEW_FOV, preview.yaw, CARD_PITCH)
 		end
 	end)
+	-- C4a characters (integration point): the "Use my Roblox avatar" row follows the server's answer
+	local creator = lazy("CharacterCreator")
+	if creator and typeof(creator.OwnChanged) == "table" and typeof(creator.OwnChanged.Connect) == "function" then
+		creator.OwnChanged:Connect(function()
+			local tab = activeTab()
+			if tab and tab.id == "SETTINGS" then
+				refreshSettings(tab)
+			end
+		end)
+	end
 	while true do
 		task.wait(1)
 		local tab = activeTab()

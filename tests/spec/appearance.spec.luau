@@ -531,7 +531,13 @@ return function(t)
 				or cls == "Instance"
 		end
 		o.IsDescendantOf = function()
-			return true
+			return o._outside ~= true
+		end
+		o.FindFirstAncestorWhichIsA = function(_, cls)
+			if cls == "Tool" then
+				return o._tool
+			end
+			return nil
 		end
 		return o
 	end
@@ -539,7 +545,11 @@ return function(t)
 	local function fakeCharacter()
 		local char = fake("Character", "Model", { DescendantAdded = signal() })
 		local hum = fake("Humanoid", "Humanoid", { Health = 100, SeatPart = nil })
-		local root = fake("HumanoidRootPart", "Part", { Transparency = 1, CFrame = CF.new(0, 3, 0) })
+		local root = fake(
+			"HumanoidRootPart",
+			"Part",
+			{ Transparency = 1, CFrame = CF.new(0, 3, 0), AssemblyLinearVelocity = V3.zero }
+		)
 		local torso = fake("UpperTorso", "MeshPart", { Transparency = 0 })
 		local head = fake("Head", "MeshPart", { Transparency = 0 })
 		local face = fake("face", "Decal", { Transparency = 0 })
@@ -590,6 +600,7 @@ return function(t)
 	local applied = {}
 	local applyFailLevels = {} -- apply call number -> true: that apply errors
 	local accessoriesPerApply = 12 -- accessories the fake engine "loads" per apply
+	local loadKinds = nil -- (apply number) -> { AccessoryType names } the fake engine loads instead (typed accessories)
 	local function installHooks(store)
 		table.clear(applied)
 		AS._setHooks({
@@ -616,14 +627,28 @@ return function(t)
 							table.remove(char._children, i)
 						end
 					end
-					for i = 1, accessoriesPerApply do
-						table.insert(char._children, fake("Acc" .. i, "Accessory"))
+					local kinds = loadKinds and loadKinds(#applied)
+					if kinds then
+						for i, k in kinds do
+							table.insert(
+								char._children,
+								fake("Acc" .. i, "Accessory", { AccessoryType = H.roblox.Enum.AccessoryType[k] })
+							)
+						end
+					else
+						for i = 1, accessoriesPerApply do
+							table.insert(char._children, fake("Acc" .. i, "Accessory"))
+						end
 					end
 				end
 			end,
 			userDescription = function()
 				return Instance.new("HumanoidDescription")
 			end,
+			isRagdolled = function()
+				return false
+			end,
+			clock = os.clock,
 		})
 	end
 
@@ -855,5 +880,408 @@ return function(t)
 		t.ok(not src:find("DataService", 1, true) or not src:find("require%(.-DataService"), "no DataService require")
 		local project = fs.readFile("default.project.json")
 		t.ok(project:find('"LoadCharacterAppearance": false', 1, true) ~= nil, "LoadCharacterAppearance off")
+	end)
+
+	-- C4a FIX PASS --------------------------------------------------------------------------------------------------
+
+	t.test("fix: a quick open -> Back gets through the rate limits; so does a quick own-avatar On -> Off", function()
+		local Net = H.require("src/shared/Net")
+		local p = fakePlayer()
+		t.ok(Net._allow(p, "AppearanceCreator", AS.RATE_CREATOR), "open")
+		t.ok(Net._allow(p, "AppearanceCreator", AS.RATE_CREATOR), "an instant Back is not dropped")
+		t.ok(Net._allow(p, "AppearanceSetOwn", AS.RATE_SET_OWN), "own avatar On")
+		t.ok(Net._allow(p, "AppearanceSetOwn", AS.RATE_SET_OWN), "an instant Off is not dropped")
+		local src = fs.readFile("src/server/Systems/AppearanceService.luau")
+		t.ok(
+			src:find(
+				'Net.on("AppearanceCreator", AppearanceService._onCreator, AppearanceService.RATE_CREATOR)',
+				1,
+				true
+			)
+		)
+		t.ok(
+			src:find('Net.on("AppearanceSetOwn", AppearanceService._onSetOwn, AppearanceService.RATE_SET_OWN)', 1, true)
+		)
+		-- the client: a lost answer is asked again, then the body walks home before the studio floor goes
+		local cc = fs.readFile("src/client/Controllers/CharacterCreator.luau")
+		t.ok(cc:find("local function awaitServer", 1, true) ~= nil, "close / save retried once")
+		t.ok(cc:find("pcall(char.PivotTo, char, home)", 1, true) ~= nil, "give-up path walks the body home")
+		t.ok(cc:find('elseif phase == "closed" then', 1, true) ~= nil, "a late studio slot is handed back")
+	end)
+
+	t.test(
+		"fix: nothing a player sends is acted on before their record loaded (no overwrite of a saved look)",
+		function()
+			AS._reset()
+			local store = makeStore()
+			installHooks(store)
+			local gate = true
+			local realGet = store.GetAsync
+			function store:GetAsync(key)
+				while gate do
+					task.wait()
+				end
+				return realGet(self, key)
+			end
+			local p = fakePlayer()
+			local saved = LookCodec.seeded(4242)
+			store.data[tostring(p.UserId)] = LookCodec.encodeRecord(saved, false, 10)
+			AS._onPlayerAdded(p)
+			task.wait()
+			AS._onSetOwn(p, true)
+			AS._onCreator(p, true)
+			settle()
+			t.eq(p:GetAttribute("HC_LookOwn"), false, "switch ignored until loaded")
+			t.ok(p:GetAttribute("HC_Creator") == nil, "no studio until loaded")
+			t.eq(AS.creatorBlocked(p), "loading", "creator gate says loading")
+			t.eq(store.updates, 0, "nothing written over the stored look")
+			gate = false
+			settle()
+			t.eq(p:GetAttribute("HC_Look"), LookCodec.key(saved), "the saved look is worn")
+			AS._onSetOwn(p, true)
+			settle()
+			t.eq(p:GetAttribute("HC_LookOwn"), true, "now honoured")
+			AS._onPlayerRemoving(p)
+		end
+	)
+
+	t.test("fix: after a FAILED load the own-avatar switch only merges `own` into the stored record", function()
+		local stored = LookCodec.encodeRecord(LookCodec.seeded(77), false, 50)
+		stored.look.walk = "some_future_walk" -- raw keys this server does not know are kept as written
+		local mine = LookCodec.encodeRecord(LookCodec.seeded(1), true, 60)
+		local merged = LookCodec.mergeOwn(stored, mine)
+		t.eq(merged.own, true, "own merged")
+		t.eq(merged.changedAt, 60, "changedAt merged")
+		t.eq(merged.look.walk, "some_future_walk", "stored look kept as written")
+		t.eq(merged.look.outfit, stored.look.outfit, "stored outfit kept")
+		t.ok(
+			LookCodec.mergeOwn(LookCodec.encodeRecord(LookCodec.seeded(2), false, 99), mine) == nil,
+			"newer stored wins"
+		)
+		t.eq(LookCodec.mergeOwn(nil, mine), mine, "nothing stored -> ours")
+
+		AS._reset()
+		local store = makeStore()
+		installHooks(store)
+		local p = fakePlayer()
+		local key = tostring(p.UserId)
+		store.data[key] = LookCodec.encodeRecord(LookCodec.seeded(31337), false, 10)
+		local before = table.clone(store.data[key].look)
+		store.getFails = 99
+		p.Character = fakeCharacter()
+		AS._onPlayerAdded(p)
+		settle()
+		store.getFails = 0
+		AS._onSetOwn(p, true)
+		settle()
+		AS._flush(AS._state(p))
+		local rec = store.data[key]
+		t.eq(rec.own, true, "own stored")
+		for k, v in before do
+			t.eq(rec.look[k], v, "stored look field " .. k .. " untouched")
+		end
+		AS._onPlayerRemoving(p)
+	end)
+
+	t.test(
+		"fix: own avatar on -> the lineup shows the realistic look; Back restores the avatar; Save wears it",
+		function()
+			AS._reset()
+			local store = makeStore()
+			installHooks(store)
+			local p = fakePlayer()
+			p.Character = fakeCharacter()
+			AS._onPlayerAdded(p)
+			settle()
+			AS._onSetOwn(p, true)
+			settle()
+			t.eq(p:GetAttribute("HC_LookLevel"), -1, "own avatar worn")
+			AS._onCreator(p, true)
+			settle()
+			t.eq(typeof(p:GetAttribute("HC_Creator")), "Vector3", "in the studio")
+			t.eq(p:GetAttribute("HC_LookLevel"), 0, "the studio shows the realistic look")
+			AS._onCreator(p, false)
+			settle()
+			t.eq(p:GetAttribute("HC_LookLevel"), -1, "Back: the Roblox avatar again")
+			t.eq(p:GetAttribute("HC_LookOwn"), true, "still on")
+			AS._onCreator(p, true)
+			settle()
+			local look = AS.getLook(p)
+			AS._onSave(p, look) -- the same look: the body must still leave the Roblox avatar
+			settle()
+			t.eq(p:GetAttribute("HC_LookOwn"), false, "saving a look switches the own avatar off")
+			t.eq(p:GetAttribute("HC_LookLevel"), 0, "and wears the realistic look")
+			AS._onPlayerRemoving(p)
+		end
+	)
+
+	t.test("fix: creator gates for falling / ragdolled bodies; a failed avatar read is retried", function()
+		AS._reset()
+		local store = makeStore()
+		installHooks(store)
+		local ragdolled = false
+		AS._setHooks({
+			isRagdolled = function()
+				return ragdolled
+			end,
+		})
+		local p = fakePlayer()
+		local char, _, root = fakeCharacter()
+		p.Character = char
+		AS._onPlayerAdded(p)
+		settle()
+		root.AssemblyLinearVelocity = V3.new(0, -40, 0)
+		t.eq(AS.creatorBlocked(p), "falling", "mid-fall")
+		root.AssemblyLinearVelocity = V3.zero
+		ragdolled = true
+		t.eq(AS.creatorBlocked(p), "ragdolled", "ragdolled")
+		ragdolled = false
+		t.ok(AS.creatorBlocked(p) == nil, "standing: allowed")
+
+		-- the Roblox avatar read fails once: realistic look meanwhile, read again after OWN_RETRY
+		local now = 1000
+		local fails = 1
+		AS._setHooks({
+			clock = function()
+				return now
+			end,
+			userDescription = function()
+				if fails > 0 then
+					fails -= 1
+					error("HTTP 500")
+				end
+				return Instance.new("HumanoidDescription")
+			end,
+		})
+		local st = AS._state(p)
+		st.ownDesc = nil
+		st.ownTriedAt = -math.huge
+		t.eq(AS._applyOnce(st, st.look, true), 0, "avatar unreadable: realistic look")
+		t.eq(AS._applyOnce(st, st.look, true), 0, "not hammered before OWN_RETRY")
+		now += AS.OWN_RETRY + 1
+		t.eq(AS._applyOnce(st, st.look, true), -1, "read again later: own avatar")
+		AS._setHooks({ clock = os.clock })
+		AS._onPlayerRemoving(p)
+	end)
+
+	t.test("fix: a missing garment group drops a level; untyped accessories never trigger it", function()
+		local look = LookCodec.seeded(8)
+		local spec = DescriptionSpec.build(look, 0)
+		local kinds = {}
+		for _, a in spec.accessories do
+			kinds[a.kind] = (kinds[a.kind] or 0) + 1
+		end
+		t.eq(#DescriptionSpec.missingGroups(spec, kinds, 0), 0, "everything loaded")
+		local noGarment = table.clone(kinds)
+		local dropped
+		for k in noGarment do
+			if table.find(DescriptionSpec.CRITICAL_GROUPS.garments, k) then
+				noGarment[k] -= 1
+				dropped = k
+				break
+			end
+		end
+		t.ok(dropped ~= nil, "the look has a garment")
+		t.eq(DescriptionSpec.missingGroups(spec, noGarment, 0)[1], "garments", "a garment missing")
+		t.eq(#DescriptionSpec.missingGroups(spec, noGarment, 1), 0, "an untyped accessory may be it")
+		local noBrows = table.clone(kinds)
+		noBrows.Eyebrow = nil
+		t.eq(#DescriptionSpec.missingGroups(spec, noBrows, 0), 0, "brows are not critical")
+
+		-- in the service: level 0 loads all but one garment (typed) -> level 1
+		AS._reset()
+		local store = makeStore()
+		installHooks(store)
+		local p = fakePlayer()
+		p.Character = fakeCharacter()
+		AS._onPlayerAdded(p)
+		settle()
+		local st = AS._state(p)
+		local function kindList(s, skipOne)
+			local out = {}
+			local skipped = false
+			for _, a in s.accessories do
+				if skipOne and not skipped and table.find(DescriptionSpec.CRITICAL_GROUPS.garments, a.kind) then
+					skipped = true
+				else
+					table.insert(out, a.kind)
+				end
+			end
+			return out
+		end
+		table.clear(applied)
+		loadKinds = function(n)
+			return kindList(DescriptionSpec.build(look, n - 1), n == 1)
+		end
+		t.eq(AS._applyOnce(st, look, false), 1, "missing trousers at level 0 -> level 1")
+		t.eq(#applied, 2, "two applies")
+		table.clear(applied)
+		loadKinds = function(n)
+			return kindList(DescriptionSpec.build(look, n - 1), false)
+		end
+		t.eq(AS._applyOnce(st, look, false), 0, "complete look stays at level 0")
+		loadKinds = nil
+		AS._onPlayerRemoving(p)
+	end)
+
+	t.test("fix: tools are never hidden; reveal restores parts that left the body; R6 is shown as is", function()
+		local char = fake("Character", "Model")
+		local tool = fake("Pistol", "Tool")
+		local handle = fake("Handle", "Part", { Transparency = 0, _tool = tool, Parent = tool })
+		local arm = fake("LeftUpperArm", "MeshPart", { Transparency = 0, Parent = char })
+		table.insert(char._children, arm)
+		table.insert(char._children, handle)
+		local list = AS._hideCharacter(char)
+		t.eq(handle.Transparency, 0, "the gun's handle is not hidden")
+		t.eq(arm.Transparency, 1, "the body is")
+		-- the arm moved out of the body meanwhile (still in the game): it comes back anyway
+		arm._outside = true
+		local st = { hidden = { [char] = list } }
+		AS._reveal(st, char)
+		t.eq(arm.Transparency, 0, "restored")
+
+		AS._reset()
+		local store = makeStore()
+		installHooks(store)
+		local p = fakePlayer()
+		local c6, hum6, _, head6 = fakeCharacter()
+		hum6.RigType = H.roblox.Enum.HumanoidRigType.R6
+		p.Character = c6
+		AS._onPlayerAdded(p)
+		settle()
+		t.eq(head6.Transparency, 0, "R6 body never hidden")
+		t.eq(#applied, 0, "no realistic apply on an R6 rig")
+		AS._onPlayerRemoving(p)
+	end)
+
+	t.test("fix: shutdown waits for a save PlayerRemoving already started", function()
+		AS._reset()
+		local store = makeStore()
+		installHooks(store)
+		AS._setHooks({
+			wait = function(s)
+				task.wait(math.min(s, 0.2)) -- (the 7 s save debounce wakes early: the player is gone by then)
+			end,
+		})
+		local release = false
+		local realUpdate = store.UpdateAsync
+		function store:UpdateAsync(key, fn)
+			while not release do
+				task.wait()
+			end
+			return realUpdate(self, key, fn)
+		end
+		local p = fakePlayer()
+		p.Character = fakeCharacter()
+		AS._onPlayerAdded(p)
+		settle()
+		AS._onCreator(p, true)
+		local pick = LookCodec.seeded(9090)
+		local st = AS._state(p)
+		st.lastSaveAt = os.clock() -- the debounced save has not run yet: PlayerRemoving flushes it
+		AS._onSave(p, pick)
+		task.spawn(AS._onPlayerRemoving, p)
+		task.wait()
+		t.ok(AS._inflight() >= 1, "a save is in flight after the player left")
+		task.delay(0.05, function()
+			release = true
+		end)
+		AS._shutdown(5)
+		t.eq(AS._inflight(), 0, "shutdown waited for it")
+		local rec = store.data[tostring(p.UserId)]
+		t.ok(rec ~= nil and LookCodec.equal(LookCodec.fromKeys(rec.look), pick), "the last look was written")
+		AS._setHooks({
+			wait = function() end,
+		})
+	end)
+
+	t.test("fix: the creator lens stays inside the room over the whole orbit; the height chart faces in", function()
+		local origin = V3.new(-12000, 2400, -12000)
+		local R = CreatorModel.ROOM
+		local m = CreatorModel.LENS_MARGIN - 1e-6
+		for _, focus in { "body", "face" } do
+			for _, touch in { false, true } do
+				for deg = -180, 180, 5 do
+					local cf = CreatorModel.framing(origin, origin.Y + 5.6, focus, touch, math.rad(deg))
+					local rel = cf.Position - origin
+					local where = focus .. (if touch then " touch " else " desktop ") .. deg
+					t.ok(rel.Z >= R.back + m and rel.Z <= R.front - m, "z inside the room: " .. where)
+					t.ok(math.abs(rel.X) <= R.halfW - m, "x inside the room: " .. where)
+					t.ok(rel.Y >= m and rel.Y <= R.height - m, "y inside the room: " .. where)
+				end
+			end
+		end
+		-- inside the orbit limit the full-body framing is never pulled in (it stays a full-body shot)
+		for _, touch in { false, true } do
+			for deg = -100, 100, 5 do
+				local headY = origin.Y + 5.6
+				local target = V3.new(origin.X, origin.Y + (headY - origin.Y + 0.7) * 0.5, origin.Z)
+				local free = CreatorModel.framing(origin, headY, "body", touch, math.rad(deg))
+				local want = CreatorModel.bodyDistance(headY - origin.Y + 0.7, CreatorModel.FOV)
+				t.ok((free.Position - target).Magnitude >= want * 0.98, "full body at " .. deg)
+			end
+		end
+		t.near(CreatorModel.MAX_YAW, math.rad(100), 1e-9, "orbit limit")
+		-- the height chart is on the back wall's face toward the room (+Z = Roblox's Back face)
+		t.eq(CreatorModel.CHART_FACE, "Back", "chart face")
+		local parts = CreatorModel.studio()
+		for _, p in parts do
+			if p.name == "BackWall" then
+				t.ok(p.offset.Z < 0, "the back wall is behind the character (-Z)")
+				local cam = CreatorModel.framing(V3.zero, 5.6, "body", false, 0)
+				t.ok(cam.Position.Z > p.offset.Z, "the camera looks at its +Z (Back) face")
+			end
+		end
+		local cc = fs.readFile("src/client/Controllers/CharacterCreator.luau")
+		t.ok(cc:find("CreatorModel.CHART_FACE", 1, true) ~= nil, "the client uses that face")
+		t.ok(cc:find("CreatorModel.MAX_YAW", 1, true) ~= nil, "the client clamps to the limit")
+	end)
+
+	t.test("fix: the creator sinks gameplay hotkeys but keeps the list menu's keys", function()
+		H.setMode("client")
+		local CC = H.require("src/client/Controllers/CharacterCreator")
+		H.setMode("server")
+		local K = H.roblox.Enum.KeyCode
+		local blocked = {}
+		for _, k in CC.BLOCKED_KEYS do
+			blocked[k.Name] = true
+		end
+		for _, k in { K.One, K.Two, K.Five, K.Eight, K.Zero, K.Tab, K.Q, K.R, K.H, K.P, K.B, K.M, K.ButtonSelect } do
+			t.ok(blocked[k.Name], "sunk: " .. k.Name)
+		end
+		for _, k in
+			{ K.Up, K.Down, K.Left, K.Right, K.Return, K.Backspace, K.DPadUp, K.DPadDown, K.ButtonA, K.ButtonB, K.Z }
+		do
+			t.ok(not blocked[k.Name], "kept for the creator: " .. k.Name)
+		end
+		local cc = fs.readFile("src/client/Controllers/CharacterCreator.luau")
+		t.ok(cc:find('call("WeaponClient", "holster")', 1, true) ~= nil, "anything drawn is holstered again")
+		local plot = fs.readFile("src/server/Systems/PlotService.luau")
+		t.ok(plot:find('player:GetAttribute("HC_Creator") ~= nil', 1, true) ~= nil, "no cab out of the studio")
+	end)
+
+	t.test("fix: copy reads as a game, not a catalog (build names, walk styles, no keyframed packs)", function()
+		local seen = {}
+		for _, b in L.Bodies do
+			t.ok(not seen[b.name], "unique build name " .. b.name)
+			seen[b.name] = true
+			for _, f in L.Faces do
+				t.ok(not b.name:find(f.name, 1, true), "build " .. b.name .. " is not a person's name")
+			end
+			t.ok(not b.name:lower():find("city life", 1, true), "no bundle names")
+		end
+		t.eq(CreatorModel.DESCS.body, "Height and build.", "build description")
+		for _, w in L.WalkStyles do
+			for _, brand in { "adidas", "roblox", "e.l.f", "mocap", "pack" } do
+				t.ok(not w.desc:lower():find(brand, 1, true), w.key .. " desc has no '" .. brand .. "'")
+			end
+			t.ok(w.bundle ~= 83 and w.bundle ~= 48, w.key .. ": no keyframed 2017 pack")
+		end
+		t.ok(L.IdleFidgets == nil, "no dead idle-fidget config")
+		-- a look saved with a removed walk style still loads (falls back per field)
+		local keys = LookCodec.toKeys(LookCodec.seeded(3))
+		keys.walk = "stylish"
+		local back = LookCodec.fromKeys(keys)
+		t.ok(back.walk >= 1 and back.walk <= #L.WalkStyles, "removed walk key falls back")
 	end)
 end

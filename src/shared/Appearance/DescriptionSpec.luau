@@ -256,6 +256,57 @@ function DescriptionSpec.assetIds(spec: Spec): { number }
 	return out
 end
 
+-- Accessory groups whose shortfall makes a look wrong after an apply (a deleted garment = no trousers, a deleted hair
+-- = a bald head). Kinds are grouped so an item the engine reports under a neighbouring garment kind still counts.
+-- Eyebrows / eyelashes are not critical (the dynamic head still reads as a face without them).
+DescriptionSpec.CRITICAL_GROUPS = {
+	hair = { "Hair" },
+	garments = { "TShirt", "Shirt", "Sweater", "Jacket", "Pants", "Shorts", "DressSkirt" },
+	shoes = { "LeftShoe", "RightShoe" },
+} :: { [string]: { string } }
+
+local GROUP_OF: { [string]: string } = {}
+for group, kinds in DescriptionSpec.CRITICAL_GROUPS do
+	for _, k in kinds do
+		GROUP_OF[k] = group
+	end
+end
+
+-- The critical groups a character is short of after applying `spec`. `loaded` = AccessoryType name -> how many
+-- Accessories of that type the character holds; `unknown` = loaded Accessories that report no AccessoryType (they
+-- may fill any gap, so a shortfall they could cover is not reported). Returns the group names (sorted), empty when
+-- nothing is (provably) missing.
+function DescriptionSpec.missingGroups(spec: Spec, loaded: { [string]: number }, unknown: number?): { string }
+	local want: { [string]: number } = {}
+	for _, a in spec.accessories do
+		local g = GROUP_OF[a.kind]
+		if g then
+			want[g] = (want[g] or 0) + 1
+		end
+	end
+	local got: { [string]: number } = {}
+	for kind, n in loaded do
+		local g = GROUP_OF[kind]
+		if g and typeof(n) == "number" then
+			got[g] = (got[g] or 0) + n
+		end
+	end
+	local out: { string } = {}
+	local deficit = 0
+	for g, n in want do
+		local short = n - (got[g] or 0)
+		if short > 0 then
+			deficit += short
+			table.insert(out, g)
+		end
+	end
+	if deficit <= math.max(0, unknown or 0) then
+		return {}
+	end
+	table.sort(out)
+	return out
+end
+
 -- Own-avatar mode: what we force on the player's own description.
 export type OwnOverrides = { anims: Anims, clamp: typeof(DescriptionSpec.OWN_CLAMP) }
 

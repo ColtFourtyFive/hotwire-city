@@ -115,10 +115,13 @@ export type AnimPack = {
 
 local BASE_FACES = { "addison", "harper", "robin", "dawson", "rene", "andi", "jordan", "billie" }
 
+-- Build names describe the shape (the creator's Build row); the catalog bundle each frame comes from is only kept
+-- in `key` / `bundle` (saved looks store the key, so renaming a build never changes a look). Person names stay on the
+-- Face row, as GTA Online's heritage faces do.
 PlayerLooks.Bodies = {
 	{
 		key = "harper",
-		name = "Harper",
+		name = "Average 1",
 		bundle = 989,
 		parts = {
 			torso = 11702749784,
@@ -133,7 +136,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "andi",
-		name = "Andi",
+		name = "Average 2",
 		bundle = 993,
 		parts = {
 			torso = 11715264057,
@@ -148,7 +151,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "billie",
-		name = "Billie",
+		name = "Average 3",
 		bundle = 995,
 		parts = {
 			torso = 11748986529,
@@ -163,7 +166,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "dawson",
-		name = "Dawson",
+		name = "Average 4",
 		bundle = 991,
 		parts = {
 			torso = 11709869073,
@@ -178,7 +181,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "addison",
-		name = "Addison",
+		name = "Average 5",
 		bundle = 988,
 		parts = {
 			torso = 11702287641,
@@ -193,7 +196,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "robin",
-		name = "Robin",
+		name = "Average 6",
 		bundle = 990,
 		parts = {
 			torso = 11709146274,
@@ -208,7 +211,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "rene",
-		name = "Rene",
+		name = "Average 7",
 		bundle = 992,
 		parts = {
 			torso = 11714041015,
@@ -223,7 +226,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "jordan",
-		name = "Jordan",
+		name = "Average 8",
 		bundle = 994,
 		parts = {
 			torso = 11740060397,
@@ -238,7 +241,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "oliver",
-		name = "Oliver (athletic)",
+		name = "Athletic",
 		bundle = 573,
 		parts = {
 			torso = 3963871432,
@@ -253,7 +256,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "summer",
-		name = "Summer (athletic)",
+		name = "Lean athletic",
 		bundle = 572,
 		parts = {
 			torso = 3963485362,
@@ -268,7 +271,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "denny",
-		name = "Denny (broad)",
+		name = "Broad",
 		bundle = 722,
 		parts = {
 			torso = 6445268819,
@@ -283,7 +286,7 @@ PlayerLooks.Bodies = {
 	},
 	{
 		key = "citylife",
-		name = "City Life",
+		name = "Slim",
 		bundle = 337,
 		parts = {
 			torso = 2492674027,
@@ -808,14 +811,18 @@ PlayerLooks.Outfits = {
 } :: { Outfit }
 
 -------------------------------------------------------------------------------------------------------------------------
--- Walk styles: catalog avatar-animation packs set on the HumanoidDescription (no ownership needed, gta_assets §3.2)
+-- Walk styles: catalog avatar-animation packs set on the HumanoidDescription (no ownership needed, gta_assets §3.2).
+-- Motion-capture packs only: the keyframed 2017-era Roblox packs (Stylish 83, Elder 48) read as cartoon and are not
+-- offered. A saved look whose walk key is gone falls back per field (LookCodec.fromKeys). `desc` is player-facing
+-- copy (the creator's description panel); the source pack is noted in the comment above each entry.
 -------------------------------------------------------------------------------------------------------------------------
 
 PlayerLooks.WalkStyles = {
+	-- adidas Community animation pack (bundle 2623795)
 	{
 		key = "community",
 		name = "Natural",
-		desc = "adidas Community mocap: relaxed, natural steps.",
+		desc = "Relaxed, natural steps.",
 		bundle = 2623795,
 		idle = 126354114956642,
 		walk = 106810508343012,
@@ -826,10 +833,11 @@ PlayerLooks.WalkStyles = {
 		swim = 106537993816942,
 		weight = 0.6,
 	},
+	-- adidas Sports animation pack (bundle 427999)
 	{
 		key = "sports",
 		name = "Athletic",
-		desc = "adidas Sports mocap: a quicker, sporty stride.",
+		desc = "A quicker, sporty stride.",
 		bundle = 427999,
 		idle = 18538150608,
 		walk = 18538146480,
@@ -840,10 +848,11 @@ PlayerLooks.WalkStyles = {
 		swim = 18538158932,
 		weight = 0.25,
 	},
+	-- Roblox Realistic set (the Base Body bundles' own animations)
 	{
 		key = "realistic",
 		name = "Casual",
-		desc = "Roblox Realistic set (the Base Body animations).",
+		desc = "An easy, everyday walk.",
 		bundle = 988,
 		idle = 11600321661,
 		walk = 11600331426,
@@ -854,11 +863,11 @@ PlayerLooks.WalkStyles = {
 		swim = 11600329588,
 		weight = 0.15,
 	},
-	-- scout_platforms §4.2 (catalog bundle details 2026-10-27)
+	-- adidas aura animation pack (bundle 4294795; scout_platforms §4.2, catalog bundle details 2026-10-27)
 	{
 		key = "aura",
 		name = "Young",
-		desc = "adidas aura mocap: light, young and athletic.",
+		desc = "Light on your feet, young and athletic.",
 		bundle = 4294795,
 		idle = 73137983344853,
 		walk = 75183215343859,
@@ -869,44 +878,22 @@ PlayerLooks.WalkStyles = {
 		swim = 119007025452432,
 		weight = 0.15,
 	},
+	-- Bold Animation Pack by e.l.f. (bundle 331856, gta_assets §3.2; catalog bundle details 2026-10-28)
 	{
-		key = "stylish",
-		name = "Swagger",
-		desc = "Roblox Stylish pack: a downtown strut.",
-		bundle = 83,
-		idle = 619511648,
-		walk = 619512767,
-		run = 619512153,
-		jump = 619511974,
-		fall = 619511417,
-		climb = 619509955,
-		swim = 619512450,
+		key = "bold",
+		name = "Confident",
+		desc = "A confident downtown stride.",
+		bundle = 331856,
+		idle = 16744209868,
+		walk = 16744219182,
+		run = 16744214662,
+		jump = 16744212581,
+		fall = 16744207822,
+		climb = 16744204409,
+		swim = 16744217055,
 		weight = 0.1,
 	},
-	{
-		key = "elder",
-		name = "Weathered",
-		desc = "Roblox Elder pack: a slower, heavier gait.",
-		bundle = 48,
-		idle = 892268340,
-		walk = 892267099,
-		run = 892265784,
-		jump = 892267917,
-		fall = 892267521,
-		climb = 892269341,
-		swim = 892268710,
-		weight = 0, -- offered in the creator, never rolled at random
-	},
 } :: { AnimPack }
-
--- Idle variety (scout_platforms §4.1): Roblox-owned emotes played now and then while the player stands still on foot
--- (FootMovement). `anim` is the INNER Animation id (what Animator:LoadAnimation takes); `emote` the catalog item.
-export type Fidget = { key: string, emote: number, anim: number, weight: number }
-PlayerLooks.IdleFidgets = {
-	{ key = "bored", emote = 5230661597, anim = 10713992055, weight = 0.5 },
-	{ key = "tilt", emote = 0, anim = 10714338461, weight = 0.3 },
-	{ key = "shrug", emote = 3576968026, anim = 10714374484, weight = 0.2 },
-} :: { Fidget }
 
 -- Level-1 fallback for any walk style, and the level-2 safe set: Roblox-made, free.
 PlayerLooks.ANIM_FALLBACK = "realistic"

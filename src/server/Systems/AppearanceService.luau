@@ -4,8 +4,10 @@
 --   * StarterPlayer.LoadCharacterAppearance = false (default.project.json); on CharacterAdded the body is hidden at
 --     once (no blocky-avatar flash), the saved look is turned into a HumanoidDescription (Appearance/DescriptionSpec)
 --     and applied with Humanoid:ApplyDescriptionAsync, then the body is revealed. A failed apply walks the fallback
---     levels (0 as chosen -> 1 Roblox-made fallbacks -> 2 SAFE), and a level-0 apply that loads fewer accessories
---     than asked is retried at level 1 (an item went off sale / was deleted).
+--     levels (0 as chosen -> 1 Roblox-made fallbacks -> 2 SAFE), and an apply that loads fewer accessories than asked
+--     (overall, or in a critical group: hair, garments, shoes; DescriptionSpec.missingGroups) is retried one level
+--     down (an item went off sale / was deleted). Tools (a gun drawn while the look loads) are never hidden.
+--   * R15 only: an R6 body (universe set to Player Choice) is shown as is, with one warning.
 --   * A player with no saved look wears a random realistic look seeded by their userId (the same everywhere) until
 --     they save one in the character creator (client CharacterCreator).
 --   * "Use my Roblox avatar" (off by default): the player's own HumanoidDescription, still with the realistic walk
@@ -16,21 +18,27 @@
 -- Persistence: its own DataStore HC_Appearance_v1, key = tostring(userId), value = LookCodec.Record (list KEYS, so
 -- reordering PlayerLooks never scrambles a look). Load: GetAsync with retries. Save: UpdateAsync that keeps a stored
 -- record changed later than ours (the player saved on another server meanwhile), with retries; debounced
--- (SAVE_DEBOUNCE s per player), flushed on leave and on BindToClose. Studio without API access -> memory, one warning.
+-- (SAVE_DEBOUNCE s per player), flushed on leave and on BindToClose (which waits for flushes still in flight). Studio
+-- without API access -> memory, one warning. After a FAILED load nothing is written unless the player changes
+-- something, and an own-avatar switch alone only merges `own` into the stored record (LookCodec.mergeOwn): the
+-- stored look this server never read is kept. Nothing a player sends is acted on before their record has loaded.
 -- DataService is NOT touched (the loop v2 data cutover owns its schema).
 --
 -- Character creator (studio): AppearanceCreator(true) puts the player in a creator slot. The slot is a far-away
 -- studio position (HC_Creator player attribute, a Vector3) where the CLIENT builds a local lineup room and moves its
 -- own character (client physics owns it, so the local floor holds it); the server records where they stood and puts
--- them back there on AppearanceCreator(false) / AppearanceSave. Only on foot, alive, not wanted, not in combat.
+-- them back there on AppearanceCreator(false) / AppearanceSave. Only once the look has loaded, on foot, alive, not
+-- falling or ragdolled, not wanted, not in combat. With "Use my Roblox avatar" on, the lineup room shows the
+-- realistic look the rows describe, and leaving without saving puts the Roblox avatar back.
 --
 -- Replicated player attributes (read by CharacterCreator / NameTags / tests):
 --   HC_LookLoaded (bool), HC_LookSaved (bool: a look was saved; false = first join, the creator opens),
 --   HC_Look (LookCodec.key string of the look being worn: saved, or the creator preview), HC_LookOwn (bool),
 --   HC_LookLevel (number: fallback level of the last apply), HC_Creator (Vector3 while in the creator, else nil).
 --
--- Remotes (all validated, rate-limited): AppearanceCreator(open: boolean), AppearancePreview(look),
---   AppearanceSave(look), AppearanceSetOwn(on: boolean). `look` = LookCodec indices only (LookCodec.validate).
+-- Remotes (all validated, rate-limited): AppearanceCreator(open: boolean; 4/s so a quick open -> Back is never
+--   dropped), AppearancePreview(look), AppearanceSave(look), AppearanceSetOwn(on: boolean; 2/s).
+--   `look` = LookCodec indices only (LookCodec.validate).
 -- API: getLook(player): Look, isOwn(player): boolean, inCreator(player): boolean, toDescription(spec),
 --   reapply(player), Applied: Signal(player, level).
 
@@ -56,6 +64,10 @@ AppearanceService.STUDIO_PITCH = 120 -- studs between creator slots (rooms are 4
 AppearanceService.MAX_SLOTS = 64
 AppearanceService.MIN_ACCESSORY_SHARE = 0.75 -- a level-0 apply loading fewer than this share of accessories retries
 AppearanceService.HIDE_MAX = 8 -- seconds a new body may stay hidden while its look loads (a stalled apply shows it)
+AppearanceService.OWN_RETRY = 30 -- seconds between attempts to read a player's Roblox avatar after one failed
+AppearanceService.FALLING_VY = -20 -- studs/s: falling faster than this blocks opening the creator
+AppearanceService.RATE_CREATOR = 4 -- AppearanceCreator per second (open + a quick Back must both get through)
+AppearanceService.RATE_SET_OWN = 2 -- AppearanceSetOwn per second (On -> Off within a second is honoured)
 
 AppearanceService.Applied = Signal.new() -- (player, level)
 
@@ -69,6 +81,7 @@ type PState = {
 	loadFailed: boolean,
 	hasSaved: boolean,
 	look: Look, -- the saved (or seeded) look
+	lookEdited: boolean, -- a look was saved on THIS server (after a failed load only then is the look itself written)
 	own: boolean,
 	changedAt: number,
 	dirty: boolean,
@@ -81,11 +94,13 @@ type PState = {
 	hidden: { [Model]: { [Instance]: number } }, -- parts / decals hidden until the look is on -> their transparency
 	spawned: Model?, -- the character whose spawn apply has been queued
 	ownDesc: HumanoidDescription?,
-	ownFetched: boolean,
+	ownTriedAt: number, -- clock of the last failed read of the Roblox avatar (-inf: never tried)
 }
 
 local states: { [Player]: PState } = {}
 local slots: { [number]: Player } = {}
+local inflight = 0 -- DataStore flushes running now (BindToClose waits for them)
+local warnedR6 = false
 
 -- Test seams ------------------------------------------------------------------------------------------------------------
 
@@ -110,6 +125,12 @@ local hooks = {
 	delay = function(seconds: number, fn: () -> ())
 		task.delay(seconds, fn)
 	end,
+	-- FootService's fall ragdoll (the character attribute it sets, in server time)
+	isRagdolled = function(player: Player): boolean
+		local char = player.Character
+		local untilT = char and char:GetAttribute("HC_RagdollUntil")
+		return typeof(untilT) == "number" and untilT > workspace:GetServerTimeNow()
+	end,
 	backoff = 1,
 }
 
@@ -126,6 +147,11 @@ end
 function AppearanceService._reset()
 	table.clear(states)
 	table.clear(slots)
+	inflight = 0
+end
+
+function AppearanceService._inflight(): number
+	return inflight
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -339,22 +365,32 @@ function AppearanceService._load(key: string): (boolean, any)
 	return false, nil
 end
 
+-- The value to store over `old` (nil = keep `old`). ownOnly: only the own-avatar switch changed and this server never
+-- read the stored look, so the stored look is kept (LookCodec.mergeOwn).
+local function transform(old: any, rec: LookCodec.Record, ownOnly: boolean?): any
+	if ownOnly then
+		return LookCodec.mergeOwn(old, rec)
+	end
+	if LookCodec.storedIsNewer(old, rec) then
+		return nil -- keep the newer look saved on another server
+	end
+	return rec
+end
+
 -- Writes `rec` unless the stored record is newer. Returns true when the store holds `rec` or something newer.
-function AppearanceService._save(key: string, rec: LookCodec.Record): boolean
+function AppearanceService._save(key: string, rec: LookCodec.Record, ownOnly: boolean?): boolean
 	for attempt = 1, AppearanceService.RETRIES do
 		local store = getStore()
 		if not store then
-			if not LookCodec.storedIsNewer(memory[key], rec) then
-				memory[key] = rec
+			local v = transform(memory[key], rec, ownOnly)
+			if v ~= nil then
+				memory[key] = v
 			end
 			return true
 		end
 		local ok, err = pcall(function()
 			store:UpdateAsync(key, function(old: any): any
-				if LookCodec.storedIsNewer(old, rec) then
-					return nil -- keep the newer look saved on another server
-				end
-				return rec
+				return transform(old, rec, ownOnly)
 			end)
 		end)
 		if ok then
@@ -362,7 +398,10 @@ function AppearanceService._save(key: string, rec: LookCodec.Record): boolean
 		end
 		if hooks.isStudio() and isApiAccessError(err) then
 			useMemory(tostring(err))
-			memory[key] = rec
+			local v = transform(memory[key], rec, ownOnly)
+			if v ~= nil then
+				memory[key] = v
+			end
 			return true
 		end
 		warn(("[AppearanceService] save %s failed (attempt %d): %s"):format(key, attempt, tostring(err)))
@@ -380,7 +419,15 @@ local function flush(st: PState): boolean
 	st.dirty = false
 	st.lastSaveAt = hooks.clock()
 	local rec = LookCodec.encodeRecord(st.look, st.own, st.changedAt)
-	local ok = AppearanceService._save(keyOf(st.player), rec)
+	-- after a failed load this server never saw the stored look: unless a look was saved here, only `own` is merged
+	local ownOnly = st.loadFailed and not st.lookEdited
+	inflight += 1
+	local okCall, ok = pcall(AppearanceService._save, keyOf(st.player), rec, ownOnly)
+	inflight -= 1
+	if not okCall then
+		warn("[AppearanceService] save errored: " .. tostring(ok))
+		ok = false
+	end
 	if not ok then
 		st.dirty = true -- retried by the next change, on leave or on shutdown
 	end
@@ -410,9 +457,10 @@ end
 -- Applying looks
 -------------------------------------------------------------------------------------------------------------------------
 
--- Hides one part / decal (remembering its transparency) while the character's look is not on yet.
+-- Hides one part / decal (remembering its transparency) while the character's look is not on yet. Tools are left
+-- alone: a gun drawn during the load would otherwise keep its hidden handle in the Backpack.
 local function hideOne(list: { [Instance]: number }, d: Instance)
-	if list[d] ~= nil then
+	if list[d] ~= nil or d:IsA("Tool") or d:FindFirstAncestorWhichIsA("Tool") ~= nil then
 		return
 	end
 	if d:IsA("BasePart") then
@@ -445,7 +493,9 @@ local function reveal(st: PState, char: Model)
 	end
 	st.hidden[char] = nil
 	for inst, was in list do
-		if inst:IsDescendantOf(char) then
+		-- anything still in the game comes back (also a part that moved out of the body meanwhile); destroyed (replaced
+		-- by the apply) instances have no parent
+		if inst.Parent ~= nil or inst:IsDescendantOf(char) then
 			if inst:IsA("BasePart") then
 				inst.Transparency = was
 			elseif inst:IsA("Decal") then
@@ -463,14 +513,25 @@ local function reveal(st: PState, char: Model)
 end
 AppearanceService._reveal = reveal
 
-local function countAccessories(char: Model): number
-	local n = 0
+-- The character's accessories: (AccessoryType name -> count, total, how many report no type).
+local function loadedAccessories(char: Model): ({ [string]: number }, number, number)
+	local kinds: { [string]: number } = {}
+	local total, unknown = 0, 0
 	for _, c in char:GetChildren() do
 		if c:IsA("Accessory") then
-			n += 1
+			total += 1
+			local ok, t = pcall(function()
+				return (c :: any).AccessoryType
+			end)
+			local name = if ok and typeof(t) == "EnumItem" then t.Name else "Unknown"
+			if name == "Unknown" then
+				unknown += 1
+			else
+				kinds[name] = (kinds[name] or 0) + 1
+			end
 		end
 	end
-	return n
+	return kinds, total, unknown
 end
 
 -- Removes classic face decals from a dynamic head (realistic looks only).
@@ -491,17 +552,31 @@ local function tryApply(hum: Humanoid, desc: HumanoidDescription): (boolean, str
 	return ok, if ok then nil else tostring(err)
 end
 
+local requestApply: (st: PState, look: Look, own: boolean) -> ()
+
+-- The player's own HumanoidDescription (cached once read). A failed read is retried, at most every OWN_RETRY s; the
+-- body wears the realistic look meanwhile and switches once the avatar could be read.
 local function ownBase(st: PState): HumanoidDescription?
-	if not st.ownFetched then
-		st.ownFetched = true
-		local ok, res = pcall(hooks.userDescription, st.player.UserId)
-		if ok and typeof(res) == "Instance" and res:IsA("HumanoidDescription") then
-			st.ownDesc = res
-		else
-			warn("[AppearanceService] could not read the Roblox avatar of " .. st.player.Name .. ": " .. tostring(res))
-		end
+	if st.ownDesc then
+		return st.ownDesc
 	end
-	return st.ownDesc
+	local now = hooks.clock()
+	if now - st.ownTriedAt < AppearanceService.OWN_RETRY then
+		return nil
+	end
+	local ok, res = pcall(hooks.userDescription, st.player.UserId)
+	if ok and typeof(res) == "Instance" and res:IsA("HumanoidDescription") then
+		st.ownDesc = res
+		return res
+	end
+	st.ownTriedAt = now
+	warn("[AppearanceService] could not read the Roblox avatar of " .. st.player.Name .. ": " .. tostring(res))
+	hooks.delay(AppearanceService.OWN_RETRY, function()
+		if states[st.player] == st and st.own and st.ownDesc == nil and st.creator == nil then
+			requestApply(st, st.look, true)
+		end
+	end)
+	return nil
 end
 
 -- Applies a look to the player's current character. Returns the level used (-1 = own avatar, nil = failed).
@@ -536,19 +611,18 @@ local function applyOnce(st: PState, look: Look, own: boolean): number?
 			local ok, err = tryApply(hum, AppearanceService.toDescription(spec))
 			if ok then
 				local want = #spec.accessories
-				local got = countAccessories(char)
-				if
-					level < DescriptionSpec.MAX_LEVEL
-					and want > 0
-					and got < want * AppearanceService.MIN_ACCESSORY_SHARE
-				then
+				local kinds, got, unknown = loadedAccessories(char)
+				local missing = DescriptionSpec.missingGroups(spec, kinds, unknown)
+				local short = want > 0 and got < want * AppearanceService.MIN_ACCESSORY_SHARE
+				if level < DescriptionSpec.MAX_LEVEL and (short or #missing > 0) then
 					warn(
-						("[AppearanceService] %s: look %s level %d loaded %d of %d accessories; trying level %d"):format(
+						("[AppearanceService] %s: look %s level %d loaded %d of %d accessories%s; trying level %d"):format(
 							player.Name,
 							LookCodec.key(look),
 							level,
 							got,
 							want,
+							if #missing > 0 then " (missing " .. table.concat(missing, ", ") .. ")" else "",
 							level + 1
 						)
 					)
@@ -583,7 +657,7 @@ end
 AppearanceService._applyOnce = applyOnce
 
 -- Queue an apply (latest wins; one apply at a time per player).
-local function requestApply(st: PState, look: Look, own: boolean)
+function requestApply(st: PState, look: Look, own: boolean)
 	st.pending = { look = look, own = own }
 	if st.applying then
 		return
@@ -650,14 +724,25 @@ function AppearanceService.creatorBlocked(player: Player): string?
 	if st.creator then
 		return "already open"
 	end
+	if not st.loaded then
+		return "loading" -- the saved look is not known yet: nothing may overwrite it
+	end
 	local char = player.Character
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	local root = char and char:FindFirstChild("HumanoidRootPart")
-	if not hum or not root or hum.Health <= 0 then
+	if not hum or not root or not root:IsA("BasePart") or hum.Health <= 0 then
 		return "not alive"
 	end
 	if hum.SeatPart ~= nil or player:GetAttribute("Driving") == true then
 		return "in a vehicle"
+	end
+	-- the studio teleport would stop a fall dead (FootService would read a landing) and the way back would drop them
+	-- mid-air again
+	if root.AssemblyLinearVelocity.Y < AppearanceService.FALLING_VY then
+		return "falling"
+	end
+	if hooks.isRagdolled(player) then
+		return "ragdolled"
 	end
 	if attrNumber(player, "Wanted") > 0 then
 		return "wanted"
@@ -687,7 +772,9 @@ local function closeCreator(st: PState, saved: boolean)
 		root.AssemblyLinearVelocity = Vector3.zero
 		pcall(char.PivotTo, char, c.returnCF)
 	end
-	if not saved and not LookCodec.equal(st.worn, st.look) then
+	-- leaving without saving: the saved look back (the Roblox avatar too, when that is on: the studio showed the
+	-- realistic look)
+	if not saved and (st.own or not LookCodec.equal(st.worn, st.look)) then
 		requestApply(st, st.look, st.own)
 	end
 	st.worn = LookCodec.copy(st.look)
@@ -725,6 +812,10 @@ function AppearanceService._onCreator(player: Player, open: any)
 	st.creator = { slot = slot, returnCF = root.CFrame, first = not st.hasSaved }
 	st.worn = LookCodec.copy(st.look)
 	publish(st)
+	if st.own then
+		-- "Use my Roblox avatar" is on: the lineup room shows the realistic look the rows describe
+		requestApply(st, st.look, false)
+	end
 end
 
 function AppearanceService._onPreview(player: Player, payload: any)
@@ -753,12 +844,14 @@ function AppearanceService._onSave(player: Player, payload: any)
 	if not look then
 		return
 	end
-	local changed = not st.hasSaved or st.own or not LookCodec.equal(look, st.look)
+	local wasOwn = st.own
+	local changed = not st.hasSaved or wasOwn or not LookCodec.equal(look, st.look)
 	st.look = look
+	st.lookEdited = true
 	st.hasSaved = true
 	st.own = false -- the creator edits the realistic look: saving one wears it
 	st.changedAt = hooks.now()
-	if not LookCodec.equal(look, st.worn) then
+	if wasOwn or not LookCodec.equal(look, st.worn) then
 		requestApply(st, look, false)
 	end
 	st.worn = LookCodec.copy(look)
@@ -771,6 +864,10 @@ end
 function AppearanceService._onSetOwn(player: Player, on: any)
 	local st = states[player]
 	if not st or typeof(on) ~= "boolean" or st.creator then
+		return
+	end
+	if not st.loaded then
+		publish(st) -- the stored record is not known yet: a save now could overwrite the real look
 		return
 	end
 	if on == st.own then
@@ -812,12 +909,24 @@ local function onCharacter(player: Player, char: Model)
 		st.worn = LookCodec.copy(st.look)
 		publish(st)
 	end
-	st.hidden[char] = hideCharacter(char)
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if hum then
 		hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 		hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+		if hum.RigType == Enum.HumanoidRigType.R6 then
+			-- the realistic bodies, dynamic heads and layered clothing are R15-only: show the body as it is
+			if not warnedR6 then
+				warnedR6 = true
+				warn(
+					"[AppearanceService] "
+						.. player.Name
+						.. " spawned as R6: player looks need the universe avatar type set to R15 (MorphToR15)."
+				)
+			end
+			return
+		end
 	end
+	st.hidden[char] = hideCharacter(char)
 	char.DescendantAdded:Connect(function(d: Instance)
 		-- late default parts AND the look's own parts stay hidden until the whole look is on (no half-dressed frame)
 		local list = st.hidden[char]
@@ -858,6 +967,7 @@ local function onPlayerAdded(player: Player)
 		loadFailed = false,
 		hasSaved = false,
 		look = seeded,
+		lookEdited = false,
 		own = false,
 		changedAt = 0,
 		dirty = false,
@@ -870,7 +980,7 @@ local function onPlayerAdded(player: Player)
 		hidden = {},
 		spawned = nil,
 		ownDesc = nil,
-		ownFetched = false,
+		ownTriedAt = -math.huge,
 	}
 	states[player] = st
 	publish(st)
@@ -884,7 +994,9 @@ local function onPlayerAdded(player: Player)
 		end
 		if ok then
 			local rec, look = LookCodec.decodeRecord(raw)
-			if rec and look then
+			-- (nothing a player sends is acted on before this point, so memory never holds a newer change; kept as a
+			-- guard should that ever change)
+			if rec and look and st.changedAt <= rec.changedAt then
 				st.look = look
 				st.own = rec.own
 				st.changedAt = rec.changedAt
@@ -920,7 +1032,9 @@ local function onPlayerRemoving(player: Player)
 	end
 	freeSlot(player)
 	states[player] = nil
-	-- (after a failed load only explicit changes are dirty; UpdateAsync still keeps a newer stored look)
+	-- (after a failed load only explicit changes are dirty, and an own-avatar switch alone only merges `own` into the
+	-- stored record; UpdateAsync still keeps a newer stored look). flush counts itself in `inflight`, so a shutdown
+	-- that starts meanwhile waits for it.
 	if st.dirty then
 		flush(st)
 	end
@@ -942,10 +1056,24 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 
 function AppearanceService.init()
-	Net.on("AppearanceCreator", AppearanceService._onCreator, 1)
+	Net.on("AppearanceCreator", AppearanceService._onCreator, AppearanceService.RATE_CREATOR)
 	Net.on("AppearancePreview", AppearanceService._onPreview, 8)
 	Net.on("AppearanceSave", AppearanceService._onSave, 1)
-	Net.on("AppearanceSetOwn", AppearanceService._onSetOwn, 0.5)
+	Net.on("AppearanceSetOwn", AppearanceService._onSetOwn, AppearanceService.RATE_SET_OWN)
+end
+
+-- BindToClose: flush every dirty state and wait (up to `timeout` s) until no flush is in flight, including the ones
+-- PlayerRemoving started for players already gone from `states`.
+function AppearanceService._shutdown(timeout: number)
+	for _, st in states do
+		if st.dirty then
+			task.spawn(flush, st)
+		end
+	end
+	local deadline = os.clock() + timeout
+	while inflight > 0 and os.clock() < deadline do
+		hooks.wait(0.1)
+	end
 end
 
 function AppearanceService.start()
@@ -955,20 +1083,7 @@ function AppearanceService.start()
 		task.spawn(onPlayerAdded, p)
 	end
 	game:BindToClose(function()
-		local pending = 0
-		for _, st in states do
-			if st.dirty then
-				pending += 1
-				task.spawn(function()
-					pcall(flush, st)
-					pending -= 1
-				end)
-			end
-		end
-		local deadline = os.clock() + 20
-		while pending > 0 and os.clock() < deadline do
-			task.wait(0.1)
-		end
+		AppearanceService._shutdown(25)
 	end)
 end
 

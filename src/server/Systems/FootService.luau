@@ -3,10 +3,13 @@
 --
 --   * Detection is server-side (nothing to trust from the client): every Heartbeat the root's replicated vertical
 --     velocity is sampled per player; a sample falling faster than the safe-drop speed followed by one that has
---     (nearly) stopped is a landing (FootTuning.landingImpact). Seated / dead / already-ragdolled players, landings
---     in water and the first seconds after a spawn are ignored.
+--     (nearly) stopped is a landing (FootTuning.landingImpact). Seated / dead / already-ragdolled players, players in
+--     the character creator studio (HC_Creator: its teleports stop a body dead), landings in water (terrain water
+--     voxels around the root, or water the first thing under it once the player's own body is excluded) and the
+--     first seconds after a spawn, a seat or the creator are ignored.
 --   * Damage: FootTuning.fallDamage (none under ~4 m, lethal from ~17 m), applied through DamageService.applyDamage as
---     world damage (no source: protection rules for player attacks do not apply, armor absorbs first as for any hit).
+--     world damage (no source: protection rules for player attacks do not apply). Armor absorbs a survivable fall
+--     first, as for any hit; a lethal fall deals FootTuning.FALL_THROUGH_ARMOR (health + armor) and always kills.
 --   * Ragdoll: drops of ~7 m+ that do not kill ragdoll the body for 1.4-2.6 s with Shared/Combat/Ragdoll (joints
 --     intact, motors disabled), RequiresNeck off meanwhile. The character attribute HC_RagdollUntil (server time)
 --     tells the owner's client (FootMovement) to hold the humanoid in Physics, then stand up.
@@ -66,9 +69,32 @@ local hooks = {
 		end
 		return false
 	end,
-	inWater = function(pos: Vector3): boolean
+	-- Did this landing end in water? The root's own terrain cell holds water (the body has already plunged in: a ray
+	-- cast from inside water does not see it), or water is the first thing under the root once the player's own body
+	-- (legs, feet, trousers) is excluded. Only the root's cell is read, so a pier deck above the sea still hurts.
+	inWater = function(pos: Vector3, char: Model?): boolean
+		local okVox, hasWater = pcall(function()
+			local half = Vector3.new(0.5, 0.5, 0.5)
+			local region = Region3.new(pos - half, pos + half):ExpandToGrid(4)
+			local materials, occupancies = Workspace.Terrain:ReadVoxels(region, 4)
+			local size = materials.Size
+			for x = 1, size.X do
+				for y = 1, size.Y do
+					for z = 1, size.Z do
+						if materials[x][y][z] == Enum.Material.Water and occupancies[x][y][z] >= 0.5 then
+							return true
+						end
+					end
+				end
+			end
+			return false
+		end)
+		if okVox and hasWater then
+			return true
+		end
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.FilterDescendantsInstances = if char then { char } else {}
 		params.IgnoreWater = false
 		local hit = Workspace:Raycast(pos, Vector3.new(0, -9, 0), params)
 		return hit ~= nil and hit.Material == Enum.Material.Water
@@ -136,14 +162,15 @@ end
 
 -- A hard landing: damage, maybe a ragdoll. Returns the damage dealt.
 function FootService._land(player: Player, impactSpeed: number, position: Vector3?): number
-	if position and hooks.inWater(position) then
+	if position and hooks.inWater(position, player.Character) then
 		return 0
 	end
-	local damage, rag = FootTuning.fallDamage(impactSpeed, hooks.gravity())
+	local damage, rag, lethal = FootTuning.fallDamage(impactSpeed, hooks.gravity())
 	if damage <= 0 then
 		return 0
 	end
-	local killed = hooks.damage(player, damage)
+	-- a lethal fall goes through body armor (health + armor), a survivable one is absorbed like any hit
+	local killed = hooks.damage(player, if lethal then FootTuning.FALL_THROUGH_ARMOR else damage)
 	FootService.Landed:Fire(player, impactSpeed, damage)
 	if not killed and rag > 0 then
 		FootService.ragdoll(player, rag)
@@ -167,7 +194,8 @@ function FootService._sample(player: Player, now: number): number
 		st.spawnedAt = now
 		st.prevVy = 0
 	end
-	if hum.SeatPart ~= nil then
+	-- seated, or in the creator studio (its teleports in and out stop the body dead): held, then a short grace
+	if hum.SeatPart ~= nil or player:GetAttribute("HC_Creator") ~= nil then
 		st.seatedAt = now
 		st.prevVy = 0
 		return 0

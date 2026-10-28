@@ -13,12 +13,23 @@
 -- indices only; the server validates them against PlayerLooks, rate-limits, and dresses the body), Randomize rolls
 -- a realistic look, Save sends AppearanceSave (the server stores and wears it, then frees the slot), Skip (first
 -- join) saves the look already worn, Back cancels (the wardrobe: the saved look comes back) or, on first join, skips.
--- Drag (mouse / finger) or the right stick orbits; Z (or the ZOOM button) toggles the close-up.
+-- Drag (mouse / finger) or the right stick orbits (+-CreatorModel.MAX_YAW, the lens never leaves the room); Z (or the
+-- ZOOM button) toggles the close-up.
+-- While it is open every gameplay hotkey is sunk (weapon slots, the weapon wheel, reload, surrender, the pause menu,
+-- the phone, the map: HC_CreatorBlock through ContextActionService, so their UserInputService handlers see the key as
+-- processed) and anything drawn anyway is holstered again.
+-- Leaving: the server takes the body back. If its answer does not come (a dropped remote, a lost packet) the request
+-- is sent again after SAVE_TIMEOUT; after a second SAVE_TIMEOUT we leave anyway and walk the body back to where it
+-- stood ourselves (our client owns its physics) before the local floor goes, so nobody falls out of the sky.
+-- A studio slot the server hands out after we stopped waiting is handed straight back (AppearanceCreator false).
 --
 -- Fast path: a new player is in the city in a few seconds with Skip; the whole thing never waits on the store.
--- A cinematic intro that is playing (CinematicController.isPlaying, if present) is let finish first.
--- API: open(mode?) -> boolean, close(), isOpen(), isPending() (the first-join creator is due / open), Closed: Signal.
+-- A cinematic intro that is playing (CinematicController.isPlaying, if present) is let finish first. A first-join
+-- creator that could not open (in a car, the server said no) is offered again every AUTO_RETRY s until it opens.
+-- API: open(mode?) -> boolean, close(), isOpen(), isPending() (the first-join creator is due / open), Closed: Signal,
+-- ownAvatar(), setOwnAvatar(on), OwnChanged: Signal (the own-avatar setting changed: Settings redraws).
 
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -45,8 +56,43 @@ local player = Players.LocalPlayer
 local C = Theme.Colors
 
 CharacterCreator.Closed = Signal.new() -- (saved: boolean)
+CharacterCreator.OwnChanged = Signal.new() -- (on: boolean) the own-avatar setting (as shown) changed
 CharacterCreator.REQUEST_TIMEOUT = 4 -- seconds to wait for the studio slot
-CharacterCreator.SAVE_TIMEOUT = 6 -- seconds to wait for the server to take us back after Save
+CharacterCreator.SAVE_TIMEOUT = 6 -- seconds to wait for the server to take us back (then once more, then we leave)
+CharacterCreator.AUTO_RETRY = 4 -- seconds between first-join creator attempts that could not open
+CharacterCreator.HOLSTER_CHECK = 0.5 -- seconds between checks that nothing was drawn in the studio
+CharacterCreator.OWN_DEBOUNCE = 0.35 -- seconds a run of own-avatar toggles settles before one is sent
+CharacterCreator.BLOCK_ACTION = "HC_CreatorBlock"
+-- Gameplay hotkeys sunk while the creator is open (the list menu keeps the arrows, Enter, Backspace, the D-pad, A, B)
+CharacterCreator.BLOCKED_KEYS = {
+	Enum.KeyCode.One,
+	Enum.KeyCode.Two,
+	Enum.KeyCode.Three,
+	Enum.KeyCode.Four,
+	Enum.KeyCode.Five,
+	Enum.KeyCode.Six,
+	Enum.KeyCode.Seven,
+	Enum.KeyCode.Eight,
+	Enum.KeyCode.Nine,
+	Enum.KeyCode.Zero,
+	Enum.KeyCode.Tab, -- weapon wheel
+	Enum.KeyCode.Q,
+	Enum.KeyCode.E,
+	Enum.KeyCode.R, -- reload
+	Enum.KeyCode.F,
+	Enum.KeyCode.G,
+	Enum.KeyCode.H, -- surrender
+	Enum.KeyCode.P, -- pause menu
+	Enum.KeyCode.B, -- phone
+	Enum.KeyCode.M, -- map
+	Enum.KeyCode.ButtonL1,
+	Enum.KeyCode.ButtonR1,
+	Enum.KeyCode.ButtonL2,
+	Enum.KeyCode.ButtonR2,
+	Enum.KeyCode.ButtonX,
+	Enum.KeyCode.ButtonY,
+	Enum.KeyCode.ButtonSelect,
+}
 CharacterCreator.PREVIEW_DEBOUNCE = 0.18
 CharacterCreator.CINEMATIC_WAIT = 45
 CharacterCreator.ORBIT_DEG_PER_PX = 0.35
@@ -77,11 +123,15 @@ type Session = {
 	controlsOff: boolean,
 	rng: Random,
 	saved: boolean, -- the pending close is a save (false: a wardrobe cancel)
+	returnCF: CFrame?, -- where the body stood before the studio (the way home if the server never answers)
+	blocked: boolean, -- the hotkey sink is bound
+	holsterAt: number,
 }
 
 local phase: Phase = "closed"
 local session: Session? = nil
 local pendingMode: CreatorModel.Mode = "wardrobe"
+local requestToken = 0 -- each open() request; a timeout only cancels its own request
 local fadeGui: ScreenGui? = nil
 local fadeFrame: Frame? = nil
 local autoOpened = false
@@ -186,7 +236,7 @@ end
 local function buildChart(wall: BasePart)
 	local sg = Instance.new("SurfaceGui")
 	sg.Name = "HeightChart"
-	sg.Face = Enum.NormalId.Front
+	sg.Face = (Enum.NormalId :: any)[CreatorModel.CHART_FACE] -- the face toward the room (+Z), not the outside
 	sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	sg.PixelsPerStud = 40
 	sg.LightInfluence = 1
@@ -318,7 +368,7 @@ local function stepCamera(s: Session, dt: number)
 	if math.abs(s.stick) > 0.15 then
 		s.yaw -= math.rad(CharacterCreator.ORBIT_STICK_DEG) * s.stick * dt
 	end
-	s.yaw = math.clamp(s.yaw, -math.rad(150), math.rad(150))
+	s.yaw = math.clamp(s.yaw, -CreatorModel.MAX_YAW, CreatorModel.MAX_YAW)
 	local item = s.menu and s.menu:getSelected()
 	local focus: CreatorModel.Focus = if s.zoomFace == nil
 		then CreatorModel.focusFor(item and item.data and item.data.field)
@@ -378,6 +428,24 @@ end
 
 local finish: (saved: boolean) -> ()
 
+-- Wait for the server to free the slot (HC_Creator -> nil: onCreatorAttr finishes). No answer after SAVE_TIMEOUT:
+-- `send` again (a dropped or lost remote); still none after another SAVE_TIMEOUT: leave on our own (finish() walks
+-- the body back to where it stood before the floor goes).
+local function awaitServer(s: Session, send: () -> ())
+	send()
+	task.delay(CharacterCreator.SAVE_TIMEOUT, function()
+		if phase ~= "saving" or session ~= s then
+			return
+		end
+		send()
+		task.delay(CharacterCreator.SAVE_TIMEOUT, function()
+			if phase == "saving" and session == s then
+				finish(s.saved)
+			end
+		end)
+	end)
+end
+
 local function save(s: Session)
 	if phase ~= "open" then
 		return
@@ -385,14 +453,12 @@ local function save(s: Session)
 	phase = "saving"
 	s.saved = true
 	s.previewDue = false
-	Net.fire("AppearanceSave", LookCodec.copy(s.look))
-	pcall(UISound.play, "Click")
-	task.delay(CharacterCreator.SAVE_TIMEOUT, function()
-		if phase == "saving" and session == s then
-			-- the server never answered: leave anyway (it puts us back on the next spawn at the latest)
-			finish(true)
-		end
+	local look = LookCodec.copy(s.look)
+	-- (a repeated save is harmless: the server ignores one once the slot is freed)
+	awaitServer(s, function()
+		Net.fire("AppearanceSave", look)
 	end)
+	pcall(UISound.play, "Click")
 end
 
 local function cancel(s: Session)
@@ -404,12 +470,32 @@ local function cancel(s: Session)
 		return
 	end
 	phase = "saving"
-	Net.fire("AppearanceCreator", false)
-	task.delay(CharacterCreator.SAVE_TIMEOUT, function()
-		if phase == "saving" and session == s then
-			finish(false)
-		end
+	awaitServer(s, function()
+		Net.fire("AppearanceCreator", false)
 	end)
+end
+
+-- Gameplay hotkeys do nothing in the studio (see BLOCKED_KEYS).
+local function sinkAction(): Enum.ContextActionResult
+	return Enum.ContextActionResult.Sink
+end
+
+local function setBlocked(s: Session, on: boolean)
+	if on == s.blocked then
+		return
+	end
+	s.blocked = on
+	if on then
+		ContextActionService:BindActionAtPriority(
+			CharacterCreator.BLOCK_ACTION,
+			sinkAction,
+			false,
+			Enum.ContextActionPriority.High.Value + 50,
+			table.unpack(CharacterCreator.BLOCKED_KEYS)
+		)
+	else
+		ContextActionService:UnbindAction(CharacterCreator.BLOCK_ACTION)
+	end
 end
 
 local function buildMenu(s: Session)
@@ -542,6 +628,7 @@ local function enter(origin: Vector3)
 	local mode = pendingMode
 	local current = LookCodec.parseKey(player:GetAttribute("HC_Look")) or LookCodec.default()
 	local cam = Workspace.CurrentCamera
+	local _, _, root0 = characterParts()
 	local s: Session = {
 		mode = mode,
 		origin = origin,
@@ -564,9 +651,14 @@ local function enter(origin: Vector3)
 		controlsOff = false,
 		rng = Random.new(),
 		saved = false,
+		-- where we stand now, before anything moves us (the server keeps its own copy and normally takes us back)
+		returnCF = if root0 and (root0.Position - origin).Magnitude > 60 then root0.CFrame else nil,
+		blocked = false,
+		holsterAt = 0,
 	}
 	session = s
 	phase = "open"
+	setBlocked(s, true)
 	fade(1, 0.25)
 	if session ~= s then
 		return
@@ -594,13 +686,23 @@ local function enter(origin: Vector3)
 			stepCamera(s, dt)
 		end)
 	)
-	-- keep the body on the studio floor if physics or a late apply moves it off
+	-- keep the body on the studio floor if physics or a late apply moves it off; nothing stays drawn in the studio
 	table.insert(
 		s.conns,
 		RunService.Heartbeat:Connect(function()
+			if session ~= s then
+				return
+			end
 			local _, _, root = characterParts()
-			if session == s and root and (root.Position - s.origin).Magnitude > 12 and phase == "open" then
+			if root and (root.Position - s.origin).Magnitude > 12 and phase == "open" then
 				placeBody(s.origin)
+			end
+			local now = os.clock()
+			if now - s.holsterAt >= CharacterCreator.HOLSTER_CHECK then
+				s.holsterAt = now
+				if call("WeaponClient", "equipped") ~= nil then
+					call("WeaponClient", "holster")
+				end
 			end
 		end)
 	)
@@ -619,8 +721,20 @@ finish = function(saved: boolean)
 		c:Disconnect()
 	end
 	table.clear(s.conns)
+	setBlocked(s, false)
 	task.spawn(function()
 		fade(1, 0.2)
+		-- still in the studio (the server never took us back, or not yet): walk the body home ourselves before its
+		-- floor goes, and hand the slot back should the server still hold it
+		local char, _, root = characterParts()
+		local home = s.returnCF
+		if char and root and home and (root.Position - s.origin).Magnitude < 60 then
+			root.AssemblyLinearVelocity = Vector3.zero
+			pcall(char.PivotTo, char, home)
+		end
+		if typeof(player:GetAttribute("HC_Creator")) == "Vector3" then
+			Net.fire("AppearanceCreator", false)
+		end
 		if s.menu then
 			pcall(function()
 				s.menu:destroy()
@@ -663,6 +777,10 @@ local function onCreatorAttr()
 	if typeof(v) == "Vector3" then
 		if phase == "requesting" then
 			task.spawn(enter, v)
+		elseif phase == "closed" then
+			-- a slot for a request we already gave up on: hand it straight back (the server would otherwise keep us
+			-- "in the creator": no wardrobe, no own-avatar switch, a hidden name tag)
+			Net.fire("AppearanceCreator", false)
 		end
 	elseif phase == "open" or phase == "saving" then
 		-- the server freed the slot: saved, cancelled, or we respawned
@@ -685,36 +803,65 @@ function CharacterCreator.isPending(): boolean
 	return player:GetAttribute("HC_LookLoaded") == true and player:GetAttribute("HC_LookSaved") == false
 end
 
+local maybeAutoOpen: () -> ()
+
+-- Why the creator cannot open right now (client-side view of the server's gates), or nil.
+local function localBlock(): string?
+	local _, hum, root = characterParts()
+	if not hum or not root or hum.Health <= 0 then
+		return ""
+	end
+	if player:GetAttribute("HC_LookLoaded") ~= true then
+		return "Your look is still loading."
+	end
+	if hum.SeatPart ~= nil then
+		return "Get out of the vehicle to change your look."
+	end
+	local wanted = player:GetAttribute("Wanted")
+	if typeof(wanted) == "number" and wanted > 0 then
+		return "Lose the cops before you change your look."
+	end
+	if player:GetAttribute("InCombat") == true then
+		return "You can't change your look in the middle of a fight."
+	end
+	if root.AssemblyLinearVelocity.Y < -20 or hum.FloorMaterial == Enum.Material.Air then
+		return "Get your feet on the ground first."
+	end
+	return nil
+end
+
 -- Ask for the creator ("first" = the first-join flow with Skip, "wardrobe" = Settings). Returns false when it cannot
--- open right now (the reason is shown as help text).
+-- open right now (the reason is shown as help text; never for the automatic first-join attempts).
 function CharacterCreator.open(mode: CreatorModel.Mode?): boolean
 	if phase ~= "closed" then
 		return false
 	end
-	local _, hum = characterParts()
-	if not hum or hum.Health <= 0 then
+	local m: CreatorModel.Mode = mode or "wardrobe"
+	local quiet = m == "first"
+	local why = localBlock()
+	if why ~= nil then
+		if why ~= "" and not quiet then
+			help(why)
+		end
 		return false
 	end
-	if hum.SeatPart ~= nil then
-		help("Get out of the vehicle to change your look.")
-		return false
-	end
-	local wanted = player:GetAttribute("Wanted")
-	if typeof(wanted) == "number" and wanted > 0 then
-		help("Lose the cops before you change your look.")
-		return false
-	end
-	if player:GetAttribute("InCombat") == true then
-		help("You can't change your look in the middle of a fight.")
-		return false
-	end
-	pendingMode = mode or "wardrobe"
+	pendingMode = m
 	phase = "requesting"
+	requestToken += 1
+	local token = requestToken
 	Net.fire("AppearanceCreator", true)
 	task.delay(CharacterCreator.REQUEST_TIMEOUT, function()
-		if phase == "requesting" then
+		if phase == "requesting" and requestToken == token then
 			phase = "closed"
-			help("You can't change your look right now.")
+			if m == "first" then
+				-- the server said no (or never answered): offer the first-join creator again shortly
+				autoOpened = false
+				task.delay(CharacterCreator.AUTO_RETRY, function()
+					maybeAutoOpen()
+				end)
+			else
+				help("You can't change your look right now.")
+			end
 		end
 	end)
 	if typeof(player:GetAttribute("HC_Creator")) == "Vector3" then
@@ -730,9 +877,11 @@ function CharacterCreator.close()
 	end
 end
 
--- Settings > "Use my Roblox avatar" (MenuController's SETTINGS tab): the value now (an optimistic local value for a
--- few seconds after a change, then the server's HC_LookOwn) and the switch.
+-- Settings > "Use my Roblox avatar" (MenuController's SETTINGS tab): the value now (an optimistic local value from a
+-- change until a few seconds after it was sent, then the server's HC_LookOwn) and the switch. A run of quick toggles
+-- settles for OWN_DEBOUNCE s and only the last value is sent; OwnChanged fires whenever the shown value may differ.
 local ownOverride: { value: boolean, at: number }? = nil
+local ownSendToken = 0
 CharacterCreator.OWN_OVERRIDE_TTL = 4
 
 function CharacterCreator.ownAvatar(): boolean
@@ -744,12 +893,27 @@ function CharacterCreator.ownAvatar(): boolean
 end
 
 function CharacterCreator.setOwnAvatar(on: boolean)
-	ownOverride = { value = on == true, at = os.clock() }
-	Net.fire("AppearanceSetOwn", on == true)
+	local value = on == true
+	ownOverride = { value = value, at = os.clock() + CharacterCreator.OWN_DEBOUNCE }
+	ownSendToken += 1
+	local token = ownSendToken
+	CharacterCreator.OwnChanged:Fire(value)
+	task.delay(CharacterCreator.OWN_DEBOUNCE, function()
+		if ownSendToken == token then
+			Net.fire("AppearanceSetOwn", value)
+		end
+	end)
+	-- once the optimistic value lapses the server's value shows: redraw then
+	task.delay(CharacterCreator.OWN_DEBOUNCE + CharacterCreator.OWN_OVERRIDE_TTL + 0.05, function()
+		if ownSendToken == token then
+			CharacterCreator.OwnChanged:Fire(CharacterCreator.ownAvatar())
+		end
+	end)
 end
 
--- First join: open once the look has loaded and none was saved (after any intro cinematic).
-local function maybeAutoOpen()
+-- First join: open once the look has loaded and none was saved (after any intro cinematic). An attempt that cannot
+-- open (in a car, wanted, mid-air, or the server refused: see open) is retried every AUTO_RETRY s.
+function maybeAutoOpen()
 	if autoOpened or phase ~= "closed" then
 		return
 	end
@@ -771,9 +935,12 @@ local function maybeAutoOpen()
 			end
 			task.wait(0.2)
 		end
-		if player:GetAttribute("HC_LookSaved") == false then
+		if player:GetAttribute("HC_LookSaved") == false and phase == "closed" then
 			if not CharacterCreator.open("first") then
-				autoOpened = false -- try again on the next attribute change (e.g. after leaving a car)
+				autoOpened = false
+				task.delay(CharacterCreator.AUTO_RETRY, function()
+					maybeAutoOpen()
+				end)
 			end
 		end
 	end)
@@ -785,6 +952,9 @@ function CharacterCreator.start()
 	player:GetAttributeChangedSignal("HC_Creator"):Connect(onCreatorAttr)
 	player:GetAttributeChangedSignal("HC_LookLoaded"):Connect(maybeAutoOpen)
 	player:GetAttributeChangedSignal("HC_LookSaved"):Connect(maybeAutoOpen)
+	player:GetAttributeChangedSignal("HC_LookOwn"):Connect(function()
+		CharacterCreator.OwnChanged:Fire(CharacterCreator.ownAvatar())
+	end)
 	player.CharacterAdded:Connect(function()
 		if phase ~= "closed" then
 			finish(false)

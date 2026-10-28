@@ -2269,6 +2269,10 @@ local function cabRefusal(player: Player, index: number): (string?, string?)
 	if hum.SeatPart or player:GetAttribute("Driving") == true then
 		return "error", "Get out of the car first."
 	end
+	-- C4a characters (integration point): never teleport (or charge) a player out of the character creator studio
+	if player:GetAttribute("HC_Creator") ~= nil then
+		return "error", "Finish changing your look first."
+	end
 	local wanted = player:GetAttribute("Wanted")
 	if typeof(wanted) == "number" and wanted > 0 then
 		return "error", "No cab will pick you up with the cops on your tail."

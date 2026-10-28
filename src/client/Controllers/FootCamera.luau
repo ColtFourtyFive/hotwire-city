@@ -19,12 +19,20 @@
 -- eases in over BLEND_IN s instead of cutting. ShoulderCamera's setSuspended API is untouched.
 -- Zoom: CameraMaxZoomDistance = DIST_MAX on foot, CAR_MAX_ZOOM seated (set before the default camera runs each frame,
 -- so the chase cam's initial zoom has room); each new body starts at DIST_DEFAULT.
+-- Mouse (keyboard + mouse only): on foot the mouse is captured (MouseBehavior LockCenter, no cursor), so moving it
+-- turns the view as in GTA, with no right button held; drawing a gun no longer changes how the mouse behaves
+-- (ShoulderCamera owns it then, and hands it back). The cursor comes back whenever a cursor UI is up: a visible Modal
+-- button (the pause menu, phone, list menus, gun shop all carry one), Roblox's own menu, setCursor(reason, true), a
+-- seat, the creator, death or any Scriptable camera. Not on touch-only devices.
 --
--- API: isActive(), setSuspended(reason, on), snap() (after a teleport; big jumps snap on their own).
+-- API: isActive(), setSuspended(reason, on), snap() (after a teleport; big jumps snap on their own),
+-- setCursor(reason, on) (a UI without a Modal button that needs the mouse), mouseCaptured().
 
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -38,6 +46,7 @@ FootCamera.PRE_BIND = "HC_FootCameraPre"
 FootCamera.POST_BIND = "HC_FootCamera"
 FootCamera.PIN_FRAMES = 3 -- frames each new body's zoom is pinned to DIST_DEFAULT
 FootCamera.CAST_TRIES = 3 -- spherecasts per frame (thin occluders are skipped and the cast repeated)
+FootCamera.CURSOR_SCAN = 0.2 -- seconds between checks for an open cursor UI (a visible Modal button)
 
 type State = {
 	active: boolean,
@@ -86,6 +95,25 @@ local st: State = {
 local castParams: RaycastParams? = nil
 local castDirty = true
 local CAST_EXCLUDE = { ClientFX = true, Effects = true, NPCs = true }
+
+-- one context table, refilled every frame (no per-frame allocation)
+local camCtx: FootTuning.CamCtx = {
+	cameraType = "Custom",
+	alive = false,
+	seated = false,
+	shoulderEngaged = false,
+	creatorOpen = false,
+	subjectIsHumanoid = false,
+}
+
+-- mouse capture (see the header)
+local mouse = {
+	captured = false, -- we set LockCenter / hid the icon and must give them back
+	cursorNeeded = false,
+	checkAt = 0,
+	reasons = {} :: { [string]: boolean },
+	modal = setmetatable({}, { __mode = "k" }) :: { [Instance]: boolean }, -- GuiButtons with Modal = true
+}
 
 local lazyCache: { [string]: any } = {}
 local function lazy(name: string): any
@@ -192,6 +220,92 @@ local function shoulderEngaged(): boolean
 	return call("ShoulderCamera", "isEngaged") == true
 end
 
+-- MOUSE ----------------------------------------------------------------------------------------------------------------
+
+-- Is a GUI object actually on screen (it and every GuiObject above it visible, its LayerCollector enabled)?
+local function onScreen(g: Instance): boolean
+	local node: Instance? = g
+	while node do
+		if node:IsA("GuiObject") then
+			if not node.Visible then
+				return false
+			end
+		elseif node:IsA("LayerCollector") then
+			return node.Enabled
+		end
+		node = node.Parent
+	end
+	return false
+end
+
+local function cursorUiOpen(): boolean
+	if next(mouse.reasons) ~= nil then
+		return true
+	end
+	local okMenu, menuOpen = pcall(function()
+		return GuiService.MenuIsOpen
+	end)
+	if okMenu and menuOpen then
+		return true
+	end
+	for b in mouse.modal do
+		if b.Parent ~= nil and (b :: any).Modal == true and onScreen(b) then
+			return true
+		end
+	end
+	return false
+end
+
+local function watchModal(d: Instance)
+	if d:IsA("GuiButton") then
+		-- deferred: the creating code sets Modal / parents the tree first
+		task.defer(function()
+			if d.Parent ~= nil and (d :: any).Modal == true then
+				mouse.modal[d] = true
+			end
+		end)
+	end
+end
+
+-- Capture the mouse on foot (LockCenter, no icon) or give it back. Runs before the default camera each frame.
+local function stepMouse(now: number)
+	if not (UserInputService.MouseEnabled and UserInputService.KeyboardEnabled) then
+		return -- touch / console: nothing to capture
+	end
+	if shoulderEngaged() then
+		mouse.captured = false -- ShoulderCamera owns the mouse while a gun is out (and restores it when it lets go)
+		return
+	end
+	if now >= mouse.checkAt then
+		mouse.checkAt = now + FootCamera.CURSOR_SCAN
+		mouse.cursorNeeded = cursorUiOpen()
+	end
+	local cam = Workspace.CurrentCamera
+	local _, hum = characterParts()
+	local want = cam ~= nil
+		and hum ~= nil
+		and hum.Health > 0
+		and hum.SeatPart == nil
+		and cam.CameraType == Enum.CameraType.Custom
+		and cam.CameraSubject == hum
+		and not isSuspended()
+		and not creatorOpen()
+		and not mouse.cursorNeeded
+	if want then
+		if UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
+			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+		end
+		if UserInputService.MouseIconEnabled then
+			UserInputService.MouseIconEnabled = false
+		end
+		mouse.captured = true
+	elseif mouse.captured then
+		mouse.captured = false
+		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+		UserInputService.MouseIconEnabled = true
+	end
+end
+
 -- Before the default camera: the zoom limits for this frame (seated or on foot), and the spawn pin.
 local function preStep()
 	local _, hum = characterParts()
@@ -201,6 +315,7 @@ local function preStep()
 		st.pin -= 1
 		mn, mx = FootTuning.DIST_DEFAULT, FootTuning.DIST_DEFAULT
 	end
+	stepMouse(os.clock())
 	if player.CameraMaxZoomDistance ~= mx then
 		-- raise the max first so min <= max holds at every step
 		if mx > player.CameraMaxZoomDistance then
@@ -239,17 +354,16 @@ local function update(dt: number)
 	if seated then
 		st.seatedAt = now
 	end
-	local active = hum ~= nil
-		and root ~= nil
-		and not isSuspended()
-		and FootTuning.footCamActive({
-			cameraType = cam.CameraType.Name,
-			alive = hum.Health > 0,
-			seated = seated,
-			shoulderEngaged = shoulderEngaged(),
-			creatorOpen = creatorOpen(),
-			subjectIsHumanoid = cam.CameraSubject == hum,
-		})
+	local active = false
+	if hum ~= nil and root ~= nil and not isSuspended() then
+		camCtx.cameraType = cam.CameraType.Name
+		camCtx.alive = hum.Health > 0
+		camCtx.seated = seated
+		camCtx.shoulderEngaged = shoulderEngaged()
+		camCtx.creatorOpen = creatorOpen()
+		camCtx.subjectIsHumanoid = cam.CameraSubject == hum
+		active = FootTuning.footCamActive(camCtx)
+	end
 	if not active or not hum or not root then
 		deactivate(now, cam)
 		return
@@ -383,6 +497,17 @@ function FootCamera.snap()
 	st.blendT = 1
 end
 
+-- A UI without a Modal button that needs the mouse cursor on foot (reason-keyed).
+function FootCamera.setCursor(reason: string, on: boolean)
+	mouse.reasons[reason] = if on then true else nil
+	mouse.checkAt = 0
+end
+
+-- Is the mouse captured on foot right now (LockCenter, no icon)?
+function FootCamera.mouseCaptured(): boolean
+	return mouse.captured
+end
+
 function FootCamera.init() end
 
 function FootCamera.start()
@@ -411,6 +536,16 @@ function FootCamera.start()
 	Workspace.ChildAdded:Connect(function(child: Instance)
 		if CAST_EXCLUDE[child.Name] then
 			castDirty = true
+		end
+	end)
+	-- cursor UIs: every Modal button that appears in PlayerGui (menus, phone, shops)
+	task.spawn(function()
+		local gui = player:WaitForChild("PlayerGui", 30)
+		if gui then
+			gui.DescendantAdded:Connect(watchModal)
+			for _, d in gui:GetDescendants() do
+				watchModal(d)
+			end
 		end
 	end)
 end

@@ -11,11 +11,15 @@
 --     writes only while the humanoid still holds a value it wrote (FootTuning.mayWrite) and never while "Stunned".
 --   * Falls: the server (FootService) deals the damage and may ragdoll the body (character attribute HC_RagdollUntil);
 --     the owning client holds the humanoid in the Physics state meanwhile, then gets up.
---   * No Roblox emotes: the chat "/e" emote command is switched off (the emote wheel CoreGui is already off in
---     HUDController, and AppearanceService clears the description's emotes).
+--   * No Roblox emotes: the chat "/e" emote command is switched off and replaced by a silent one (HC_NoEmotes, aliases
+--     /e and /emote) that swallows the text, so the default Animate script's own chat hook never sees "/e dance";
+--     should a default emote track start anyway (wave, point, dance, dance2, dance3, laugh, cheer: the Animate
+--     script's emote entries) it is stopped at once. The emote wheel CoreGui is already off in HUDController, and
+--     AppearanceService clears the description's emotes.
 --   * Touch: a SPRINT button on the shared HUD touch layout (FootTuning.sprintRect from WeaponClient.touchLayoutFor):
---     left of the jump button where FIRE goes, and above FIRE while a gun is drawn. Hidden when driving, dead, in the
---     creator or with the HUD hidden.
+--     left of the jump button where FIRE goes, and above FIRE whenever that rect is in use (anything in hand: a gun,
+--     a melee weapon, fists mode or a gadget: HIT / STUN sit there too). Hidden when driving, dead, in the creator or
+--     with the HUD hidden.
 -- API: isSprinting(), getStamina(), mode() -> "walk" | "jog" | "sprint".
 
 local Players = game:GetService("Players")
@@ -39,6 +43,21 @@ local C = Theme.Colors
 
 FootMovement.STAMINA_ATTR = "Stamina"
 FootMovement.RAGDOLL_ATTR = "HC_RagdollUntil"
+FootMovement.EMOTE_COMMAND = "HC_NoEmotes"
+-- The default Animate script's chat emotes (its StringValue children of these names hold the Animations)
+FootMovement.DEFAULT_EMOTES = {
+	wave = true,
+	point = true,
+	dance = true,
+	dance2 = true,
+	dance3 = true,
+	laugh = true,
+	cheer = true,
+} :: { [string]: boolean }
+
+-- built once (the step runs every Heartbeat)
+local OWN_SPEEDS = FootTuning.ownSpeeds()
+local OWN_JUMPS = { FootTuning.JUMP_HEIGHT }
 
 type State = {
 	mode: FootTuning.MoveMode,
@@ -141,7 +160,7 @@ local function publishStamina()
 end
 
 local function writeSpeed(hum: Humanoid, speed: number)
-	if not FootTuning.mayWrite(hum.WalkSpeed, st.lastSpeed, FootTuning.ownSpeeds()) then
+	if not FootTuning.mayWrite(hum.WalkSpeed, st.lastSpeed, OWN_SPEEDS) then
 		return
 	end
 	if math.abs(hum.WalkSpeed - speed) > 0.01 then
@@ -154,7 +173,7 @@ local function writeJump(hum: Humanoid, height: number)
 	if hum.UseJumpPower then
 		hum.UseJumpPower = false
 	end
-	if not FootTuning.mayWrite(hum.JumpHeight, st.lastJump, { FootTuning.JUMP_HEIGHT }) then
+	if not FootTuning.mayWrite(hum.JumpHeight, st.lastJump, OWN_JUMPS) then
 		return
 	end
 	if math.abs(hum.JumpHeight - height) > 0.01 then
@@ -283,7 +302,8 @@ local function placeTouch()
 		if typeof(wc.FIRE_BUTTON) == "number" then
 			fireSize = wc.FIRE_BUTTON
 		end
-		armed = call("WeaponClient", "isGunDrawn") == true
+		-- the FIRE rect is in use for anything in hand: FIRE (gun), HIT (melee / fists), STUN (the taser gadget)
+		armed = FootTuning.fireRectInUse(call("WeaponClient", "equipped"))
 	end
 	if not edge or not bottom then
 		local canvas = Kit.canvasSize(gui)
@@ -317,7 +337,30 @@ local function disableChatEmotes()
 		if emote and emote:IsA("TextChatCommand") then
 			emote.Enabled = false
 		end
+		-- a silent command on the same aliases: "/e dance" is swallowed instead of being sent as a chat message (which
+		-- the default Animate script's own Chatted hook would still turn into the Roblox dance)
+		local parent = cmds or TextChatService
+		if not parent:FindFirstChild(FootMovement.EMOTE_COMMAND) then
+			local cmd = Instance.new("TextChatCommand")
+			cmd.Name = FootMovement.EMOTE_COMMAND
+			cmd.PrimaryAlias = "/e"
+			cmd.SecondaryAlias = "/emote"
+			cmd.Triggered:Connect(function() end)
+			cmd.Parent = parent
+		end
 	end)
+end
+
+-- Is this track one of the default Animate script's chat emotes?
+local function isDefaultEmote(track: AnimationTrack, char: Model): boolean
+	local anim = track.Animation
+	local holder = anim and anim.Parent
+	local script_ = holder and holder.Parent
+	return holder ~= nil
+		and FootMovement.DEFAULT_EMOTES[holder.Name] == true
+		and script_ ~= nil
+		and script_.Name == "Animate"
+		and script_:IsDescendantOf(char)
 end
 
 local function onCharacter(char: Model)
@@ -335,6 +378,15 @@ local function onCharacter(char: Model)
 			st.landedAt = os.clock()
 		end
 	end)
+	-- no Roblox dance, wave or cheer, whichever way it was asked for
+	local animator = hum:FindFirstChildOfClass("Animator") or hum:WaitForChild("Animator", 10)
+	if animator and animator:IsA("Animator") then
+		animator.AnimationPlayed:Connect(function(track: AnimationTrack)
+			if isDefaultEmote(track, char) then
+				track:Stop(0)
+			end
+		end)
+	end
 end
 
 function FootMovement.init() end

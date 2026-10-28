@@ -76,7 +76,8 @@ function FootTuning.mayWrite(current: number, lastWritten: number?, ours: { numb
 	return false
 end
 
--- The speeds FootMovement itself writes (and the StarterPlayer spawn default, = JOG).
+-- The speeds FootMovement itself writes (and the StarterPlayer spawn default, = JOG). A new table per call: callers
+-- that run every frame keep their own copy (FootMovement builds it once).
 function FootTuning.ownSpeeds(): { number }
 	return { FootTuning.WALK, FootTuning.JOG, FootTuning.SPRINT, FootTuning.AIM_WALK }
 end
@@ -267,12 +268,8 @@ end
 
 -- Is an occluder thin (a pole / post / sign) on at least two axes?
 function FootTuning.isThin(size: Vector3): boolean
-	local n = 0
-	for _, v in { size.X, size.Y, size.Z } do
-		if v < FootTuning.THIN then
-			n += 1
-		end
-	end
+	local t = FootTuning.THIN
+	local n = (if size.X < t then 1 else 0) + (if size.Y < t then 1 else 0) + (if size.Z < t then 1 else 0)
 	return n >= 2
 end
 
@@ -296,6 +293,9 @@ FootTuning.FALL_RAGDOLL = 24 -- studs (~7 m): a brief ragdoll on landing (when i
 FootTuning.RAGDOLL_MIN = 1.4 -- seconds
 FootTuning.RAGDOLL_MAX = 2.6
 FootTuning.FALL_MAX_HP = 100
+-- What a LETHAL fall deals: full health + full armor (Combat/DamageModel MAX_HEALTH + MAX_ARMOR), so body armor
+-- never turns a five-storey drop into a ragdoll.
+FootTuning.FALL_THROUGH_ARMOR = 200
 
 -- Drop height (studs) that produces an impact speed under gravity g.
 function FootTuning.dropFromSpeed(impactSpeed: number, gravity: number): number
@@ -310,11 +310,12 @@ function FootTuning.speedFromDrop(h: number, gravity: number): number
 	return math.sqrt(2 * g * math.max(0, h))
 end
 
--- (damage 0..100, ragdoll seconds 0..) for a landing at impactSpeed (studs/s, downward, positive).
-function FootTuning.fallDamage(impactSpeed: number, gravity: number): (number, number)
+-- (damage 0..100, ragdoll seconds 0.., lethal) for a landing at impactSpeed (studs/s, downward, positive). `lethal`
+-- = the drop is at least FALL_LETHAL (the caller deals FALL_THROUGH_ARMOR so armor cannot save it).
+function FootTuning.fallDamage(impactSpeed: number, gravity: number): (number, number, boolean)
 	local h = FootTuning.dropFromSpeed(impactSpeed, gravity)
 	if h < FootTuning.FALL_SAFE then
-		return 0, 0
+		return 0, 0, false
 	end
 	local t = math.clamp((h - FootTuning.FALL_SAFE) / (FootTuning.FALL_LETHAL - FootTuning.FALL_SAFE), 0, 1)
 	-- eased: small drops sting, the top of the range kills
@@ -327,7 +328,7 @@ function FootTuning.fallDamage(impactSpeed: number, gravity: number): (number, n
 		local k = math.clamp((h - FootTuning.FALL_RAGDOLL) / (FootTuning.FALL_LETHAL - FootTuning.FALL_RAGDOLL), 0, 1)
 		rag = FootTuning.RAGDOLL_MIN + (FootTuning.RAGDOLL_MAX - FootTuning.RAGDOLL_MIN) * k
 	end
-	return damage, rag
+	return damage, rag, h >= FootTuning.FALL_LETHAL
 end
 
 -- Landing detector over server samples of the root's vertical velocity: the previous sample was falling faster than
@@ -374,9 +375,15 @@ FootTuning.SPRINT_GAP = 12
 
 export type Rect = { x: number, y: number, w: number, h: number }
 
+-- Is WeaponClient's FIRE rect in use? It shows for anything in hand (WeaponClient.equipped: a gun -> FIRE, a melee
+-- weapon or fists mode -> HIT, the taser gadget -> CombatClient's STUN in the same rect); nil = empty hands.
+function FootTuning.fireRectInUse(equipped: any): boolean
+	return typeof(equipped) == "string" and equipped ~= ""
+end
+
 -- `edge`: the left-most x of the jump / phone / map buttons (WeaponClient.touchRects uses the same edge for FIRE);
 -- `bottom`: the jump button's bottom; `fireSize`: the combat FIRE button. Unarmed: left of the jump button on the
--- bottom row (where FIRE goes when a gun is out). Armed: above the FIRE button.
+-- bottom row (where FIRE goes when something is in hand). Armed (fireRectInUse): above the FIRE button.
 function FootTuning.sprintRect(edge: number, bottom: number, armed: boolean, fireSize: number): Rect
 	local S, G = FootTuning.SPRINT_BUTTON, FootTuning.SPRINT_GAP
 	local x = edge - G - S
