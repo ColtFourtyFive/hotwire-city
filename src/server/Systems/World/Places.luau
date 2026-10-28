@@ -443,18 +443,11 @@ local function plaza(ctx: Ctx, m: Model, F: CFrame, poi: POI)
 		board:SetAttribute("Face", "Front")
 		CollectionService:AddTag(board, "LeaderboardBoard")
 		-- a plain dark metal bezel (no neon outline: the kill list bans neon stripes on edges)
-		Kit.part(
-			ctx,
-			"BoardFrame",
-			Vector3.new(25.4, 16.4, 0.5),
-			cf * CFrame.new(0, 0, 0.4),
-			Kit.style("metal_dark"),
-			{
-				parent = m,
-				collide = false,
-				shadow = false,
-			}
-		)
+		Kit.part(ctx, "BoardFrame", Vector3.new(25.4, 16.4, 0.5), cf * CFrame.new(0, 0, 0.4), Kit.style("metal_dark"), {
+			parent = m,
+			collide = false,
+			shadow = false,
+		})
 		Kit.part(ctx, "BoardLeg", Vector3.new(1.2, 7, 1.2), cf * CFrame.new(0, -10.5, 0.3), Kit.style("metal_grey"), {
 			parent = m,
 		})
