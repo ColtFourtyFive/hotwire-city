@@ -14,7 +14,7 @@
 
 | # | Vibe breaker (0018 rank) | Owner package | Concrete target (GTA V) |
 |---|---|---|---|
-| 1 | Roads and sidewalks buried under sand terrain (#1) | **world** | **FIXED** by the lead in `v2/world` fe0523c (`Terrain.ENGINE_LIFT`: the engine surfaces terrain RES/2 above the written occupancy, measured by an engine probe). The world package re-verifies in its preview and evidence. |
+| 1 | Roads and sidewalks buried under sand terrain (#1) | **world** | **FIXED** by the lead in `v2/world` fe0523c (`Terrain.ENGINE_LIFT`: the engine surfaces terrain RES/2 above the written occupancy, measured by an engine probe). The world package re-verifies in its preview and evidence. **Verified in Studio job 0018b (v34): roads visible, street shots 2→4–5.** Residual z-fighting in downtown and port (Concrete terrain snaps to 12.0, flush with the roads): fixed in `v2/terrain-fix2` f7654ac (urban leftover ground → Asphalt). The lead merges it after wave A. |
 | 2 | Player spawns inside the neon tycoon garage (#2) | **vibe** (PlotService) + **world** (`MapLayout.spawnCFrame`) | First spawn on a street at the downtown spawn point (WorldLayout). The garage becomes a dim, grimy concrete safehouse garage with fluorescent tubes. |
 | 3 | Hot-pink neon outline trim on garage exteriors (#3, scan rows 11–14, 21) | **vibe** | Muted stucco or brick, a painted sign and a steel roll-up door. Remove `ACCENTS[1]` pink and every `neon()`/`deco()` outline. |
 | 4 | Blocky default avatar, default camera, default jump (#4) | **characters** | Realistic bodies, the creator, the GTA foot camera, a heavier jump |
