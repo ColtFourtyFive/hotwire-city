@@ -123,9 +123,12 @@ def main() -> int:
         dl = delivery(aid)
         r["delivery"] = dl
         if not dl["ok"]:
-            # 401: paid avatar animations cannot be downloaded anonymously; they still work in HumanoidDescription
-            if dl.get("code") == 401 and eco.get("ok") and it["type"] in (48, 50, 51, 52, 53, 54, 55):
-                r["notes"] = "file needs auth to download (paid avatar animation); type + creator verified"
+            # 401: paid catalog items (avatar animations, third-party clothing) cannot be downloaded anonymously. They
+            # still work in a HumanoidDescription without ownership; type + creator are verified here and the load
+            # itself in the real engine (tools/characters/cloud_looks.py -> characters_engine_check.json).
+            if dl.get("code") == 401 and eco.get("ok") and eco.get("type") == it["type"]:
+                kind = "avatar animation" if it["type"] in (48, 50, 51, 52, 53, 54, 55) else "catalog item"
+                r["notes"] = f"file needs auth to download (paid {kind}); type + creator verified, engine load checked"
             else:
                 r["problems"].append(f"assetdelivery failed ({dl.get('code')}: {dl.get('message')})")
         elif dl.get("archived"):
@@ -153,7 +156,13 @@ def main() -> int:
         r = by_id[aid]
         entry = refs.get(path) or {}
         if not entry.get("ok"):
-            r["problems"].append(f"file did not open: {entry.get('error')}")
+            head = open(path, "rb").read(32)
+            if head.startswith(b"Kaydara FBX"):
+                # some 2022 Base Body accessories deliver their "source" FBX here; the engine still builds the
+                # accessory from it (characters_engine_check.json loads every accessory alone)
+                r.setdefault("warnings", []).append("delivered source is an FBX, not a model: refs not scanned")
+            else:
+                r["problems"].append(f"file did not open: {entry.get('error')}")
             continue
         r["layered"] = entry.get("layered", False)
         if r["expectedType"] in ACCESSORY_TYPES and not r["layered"]:
@@ -168,8 +177,13 @@ def main() -> int:
             if not ref_cache[rid]["ok"]:
                 bad.append({"id": rid, **ref_cache[rid]})
         if bad:
-            r["problems"].append(f"{len(bad)} referenced content id(s) do not resolve")
             r["badRefs"] = bad
+            missing = [b for b in bad if b.get("code") != 401]
+            if missing:
+                r["problems"].append(f"{len(missing)} referenced content id(s) do not resolve")
+            else:
+                # 401 = exists but needs auth to download (newer Roblox-made heads); the engine loads them
+                r.setdefault("warnings", []).append(f"{len(bad)} referenced content id(s) need auth to download")
 
     failed = 0
     for r in results:
@@ -183,7 +197,9 @@ def main() -> int:
         "failed": failed,
         "contentRefsChecked": len(ref_cache),
         "contentRefsBad": sum(1 for v in ref_cache.values() if not v["ok"]),
-        "authOnlyAnimations": sum(1 for r in results if r.get("notes")),
+        "authOnlyDownloads": sum(1 for r in results if r.get("notes")),
+        "warnings": sum(1 for r in results if r.get("warnings")),
+        "engineCheck": "docs/v2/evidence/characters_engine_check.json (tools/characters/cloud_looks.py)",
     }
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     with open(out_path, "w") as f:

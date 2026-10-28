@@ -57,6 +57,35 @@ function FootTuning.modeFor(
 	return "jog"
 end
 
+-- Arbitration with the other client writers of Humanoid.WalkSpeed / JumpHeight (CombatClient's stun freeze writes 0
+-- and restores what it saved; WeaponWheel halves the speed while open): FootMovement writes only while the humanoid
+-- still holds the value it wrote last, or one of its own values / the spawn default (someone restored ours). Any other
+-- value is another system's temporary override and is left alone until they put ours back.
+function FootTuning.mayWrite(current: number, lastWritten: number?, ours: { number }): boolean
+	if lastWritten == nil then
+		return true
+	end
+	if math.abs(current - lastWritten) < 0.01 then
+		return true
+	end
+	for _, v in ours do
+		if math.abs(current - v) < 0.01 then
+			return true
+		end
+	end
+	return false
+end
+
+-- The speeds FootMovement itself writes (and the StarterPlayer spawn default, = JOG).
+function FootTuning.ownSpeeds(): { number }
+	return { FootTuning.WALK, FootTuning.JOG, FootTuning.SPRINT, FootTuning.AIM_WALK }
+end
+
+-- JumpHeight now: 0 during the landing cooldown, else JUMP_HEIGHT.
+function FootTuning.jumpHeightFor(sinceLanded: number): number
+	return if sinceLanded < FootTuning.JUMP_COOLDOWN then 0 else FootTuning.JUMP_HEIGHT
+end
+
 -- One stamina step. Returns (stamina, exhausted, sinceSprint).
 function FootTuning.stepStamina(
 	stamina: number,
@@ -106,6 +135,12 @@ FootTuning.RECENTER_RATE = 2.2 -- 1/s exponential
 FootTuning.RECENTER_MIN_SPEED = 13 -- studs/s (jogging or faster)
 FootTuning.RECENTER_PITCH = math.rad(-11) -- pitch it eases toward while running
 FootTuning.RECENTER_PITCH_RATE = 0.8
+FootTuning.RECENTER_MAX_ANGLE = math.rad(110) -- running back toward the camera never flips it round
+FootTuning.ZOOM_SMOOTH = 0.18 -- smooth time of a zoom change (wheel, pinch, leaving a car)
+FootTuning.BLEND_IN = 0.3 -- seconds to ease in after another camera (aim, death cam, creator) lets go
+FootTuning.SEAT_FOV_HOLD = 0.6 -- seconds after leaving a seat with no FOV writes (VehicleClient's restore tween)
+FootTuning.CAR_MAX_ZOOM = 60 -- CameraMaxZoomDistance while seated (the chase cam needs room)
+FootTuning.INPUT_EPS = 1e-4 -- radians of look change between frames that count as the player's own camera input
 
 -- Critically damped spring (same integrator as ShoulderCamera._smoothDamp). Returns (value, velocity).
 function FootTuning.smoothDamp(
@@ -144,11 +179,62 @@ function FootTuning.recenterYaw(camYaw: number, heading: number, dt: number): nu
 	return camYaw + FootTuning.angleDelta(camYaw, heading) * k
 end
 
--- Should the camera recentre now?
-function FootTuning.shouldRecenter(speed: number, sinceInput: number, firstPerson: boolean): boolean
-	return not firstPerson
-		and speed >= FootTuning.RECENTER_MIN_SPEED
-		and sinceInput >= FootTuning.RECENTER_DELAY
+-- Should the camera recentre now? `offAngle` (optional) = |angle| between the camera yaw and the heading: running
+-- back toward the lens (beyond RECENTER_MAX_ANGLE) never swings the camera round.
+function FootTuning.shouldRecenter(speed: number, sinceInput: number, firstPerson: boolean, offAngle: number?): boolean
+	if offAngle and math.abs(offAngle) > FootTuning.RECENTER_MAX_ANGLE then
+		return false
+	end
+	return not firstPerson and speed >= FootTuning.RECENTER_MIN_SPEED and sinceInput >= FootTuning.RECENTER_DELAY
+end
+
+-- Pitch (radians) of a look vector's Y component.
+function FootTuning.pitchOf(lookY: number): number
+	return math.asin(math.clamp(lookY, -0.999, 0.999))
+end
+
+-- Did the look change between the camera we wrote last frame and what the default camera produced this frame (the
+-- player turned the camera)? Angles in radians.
+function FootTuning.lookInput(lastYaw: number?, lastPitch: number?, yaw: number, pitch: number): boolean
+	if lastYaw == nil or lastPitch == nil then
+		return false
+	end
+	return math.abs(FootTuning.angleDelta(lastYaw, yaw)) > FootTuning.INPUT_EPS
+		or math.abs(pitch - lastPitch) > FootTuning.INPUT_EPS
+end
+
+-- Shoulder offset (studs to the right) at a camera distance: full from DIST_MIN out, fading to 0 by first person
+-- (a close camera centred on the head, as GTA's).
+function FootTuning.shoulderAt(dist: number): number
+	local k = math.clamp((dist - FootTuning.FIRST_PERSON) / (FootTuning.DIST_MIN - FootTuning.FIRST_PERSON), 0, 1)
+	return FootTuning.SHOULDER * k
+end
+
+-- The camera's zoom limits for the current state: (min, max). Seated -> the car's room; on foot -> the GTA range.
+function FootTuning.zoomLimits(seated: boolean): (number, number)
+	if seated then
+		return 0.5, FootTuning.CAR_MAX_ZOOM
+	end
+	return 0.5, FootTuning.DIST_MAX
+end
+
+-- Who drives the on-foot camera this frame. FootCamera only post-processes the default camera: anything else that
+-- holds the view (a Scriptable camera: aim, death, cinematics, the creator; a seat: VehicleClient) wins.
+export type CamCtx = {
+	cameraType: string, -- Enum.CameraType name
+	alive: boolean,
+	seated: boolean,
+	shoulderEngaged: boolean,
+	creatorOpen: boolean,
+	subjectIsHumanoid: boolean,
+}
+function FootTuning.footCamActive(c: CamCtx): boolean
+	return c.cameraType == "Custom"
+		and c.alive
+		and not c.seated
+		and not c.shoulderEngaged
+		and not c.creatorOpen
+		and c.subjectIsHumanoid
 end
 
 -- Camera distance this frame: desired (from the zoom), the free distance the collision cast found (nil = clear) and
@@ -261,7 +347,12 @@ end
 FootTuning.TAG_DISTANCE = 40 -- studs
 FootTuning.TAG_SIZE = 13 -- px, Montserrat
 
-function FootTuning.tagVisible(distance: number, localInCombat: boolean, hudHidden: boolean, targetHidden: boolean): boolean
+function FootTuning.tagVisible(
+	distance: number,
+	localInCombat: boolean,
+	hudHidden: boolean,
+	targetHidden: boolean
+): boolean
 	return distance <= FootTuning.TAG_DISTANCE and not localInCombat and not hudHidden and not targetHidden
 end
 

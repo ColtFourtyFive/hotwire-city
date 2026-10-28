@@ -55,6 +55,7 @@ AppearanceService.STUDIO_BASE = Vector3.new(-12000, 2400, -12000) -- far off the
 AppearanceService.STUDIO_PITCH = 120 -- studs between creator slots (rooms are 40 wide and closed)
 AppearanceService.MAX_SLOTS = 64
 AppearanceService.MIN_ACCESSORY_SHARE = 0.75 -- a level-0 apply loading fewer than this share of accessories retries
+AppearanceService.HIDE_MAX = 8 -- seconds a new body may stay hidden while its look loads (a stalled apply shows it)
 
 AppearanceService.Applied = Signal.new() -- (player, level)
 
@@ -105,6 +106,9 @@ local hooks = {
 	end,
 	isStudio = function(): boolean
 		return RunService:IsStudio()
+	end,
+	delay = function(seconds: number, fn: () -> ())
+		task.delay(seconds, fn)
 	end,
 	backoff = 1,
 }
@@ -208,8 +212,8 @@ function AppearanceService.toDescription(spec: DescriptionSpec.Spec): HumanoidDe
 		(d :: any):SetAccessories(AppearanceService.accessoryEntries(spec), false)
 	end)
 	pcall(function()
-		(d :: any):SetEmotes({})
-		;(d :: any):SetEquippedEmotes({})
+		(d :: any):SetEmotes({});
+		(d :: any):SetEquippedEmotes({})
 	end)
 	return d
 end
@@ -237,8 +241,8 @@ function AppearanceService.ownDescription(base: HumanoidDescription, look: Look)
 		setProp(d, prop, DescriptionSpec.clampScale(name, if okGet then v else nil))
 	end
 	pcall(function()
-		(d :: any):SetEmotes({})
-		;(d :: any):SetEquippedEmotes({})
+		(d :: any):SetEmotes({});
+		(d :: any):SetEquippedEmotes({})
 	end)
 	return d
 end
@@ -533,7 +537,11 @@ local function applyOnce(st: PState, look: Look, own: boolean): number?
 			if ok then
 				local want = #spec.accessories
 				local got = countAccessories(char)
-				if level < DescriptionSpec.MAX_LEVEL and want > 0 and got < want * AppearanceService.MIN_ACCESSORY_SHARE then
+				if
+					level < DescriptionSpec.MAX_LEVEL
+					and want > 0
+					and got < want * AppearanceService.MIN_ACCESSORY_SHARE
+				then
 					warn(
 						("[AppearanceService] %s: look %s level %d loaded %d of %d accessories; trying level %d"):format(
 							player.Name,
@@ -815,6 +823,12 @@ local function onCharacter(player: Player, char: Model)
 		local list = st.hidden[char]
 		if list then
 			hideOne(list, d)
+		end
+	end)
+	hooks.delay(AppearanceService.HIDE_MAX, function()
+		if states[player] == st and st.hidden[char] then
+			warn("[AppearanceService] " .. player.Name .. "'s look is still loading: showing the body")
+			reveal(st, char)
 		end
 	end)
 	task.spawn(function()

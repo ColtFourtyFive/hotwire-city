@@ -1,0 +1,8476 @@
+{
+ "summary": {
+  "generated": "2026-10-28T02:13:19+00:00",
+  "total": 253,
+  "ok": 253,
+  "failed": 0,
+  "contentRefsChecked": 856,
+  "contentRefsBad": 2,
+  "authOnlyDownloads": 36,
+  "warnings": 2,
+  "engineCheck": "docs/v2/evidence/characters_engine_check.json (tools/characters/cloud_looks.py)"
+ },
+ "items": [
+  {
+   "id": 11702749784,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Harper - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:01:22.4Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327773319",
+    "18948419147",
+    "18948419176",
+    "18948419225",
+    "18948419268"
+   ]
+  },
+  {
+   "id": 11702744222,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Harper - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:00:10.687Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327758216",
+    "13327758221",
+    "13327758222",
+    "13327758268",
+    "13327758270",
+    "13327758281",
+    "13327773319"
+   ]
+  },
+  {
+   "id": 11702746286,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Harper - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:00:36.813Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327758250",
+    "13327758252",
+    "13327758253",
+    "13327758300",
+    "13327758301",
+    "13327758306",
+    "13327773319"
+   ]
+  },
+  {
+   "id": 11702745067,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": " Harper - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:00:22.69Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327758217",
+    "13327758218",
+    "13327758219",
+    "13327758272",
+    "13327758276",
+    "13327758277",
+    "13327773319"
+   ]
+  },
+  {
+   "id": 11702748396,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Harper - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:01:03.857Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327758249",
+    "13327758251",
+    "13327758254",
+    "13327758302",
+    "13327758303",
+    "13327758308",
+    "13327773319"
+   ]
+  },
+  {
+   "id": 11715264057,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Andi - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:22:05.077Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "13326756100",
+    "13326757317",
+    "13326758542",
+    "13326759810",
+    "18948278179",
+    "18948278216",
+    "18948278244",
+    "18948278267"
+   ]
+  },
+  {
+   "id": 11715257112,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Andi - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:20:32.38Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13326667008",
+    "13326667010",
+    "13326667011",
+    "13326667104",
+    "13326667113",
+    "13326667115",
+    "13326756100",
+    "13326757317",
+    "13326758542",
+    "13326759810"
+   ]
+  },
+  {
+   "id": 11715260558,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Andi - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:21:23.5Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13326667046",
+    "13326667049",
+    "13326667058",
+    "13326667152",
+    "13326667162",
+    "13326667172",
+    "13326756100",
+    "13326757317",
+    "13326758542",
+    "13326759810"
+   ]
+  },
+  {
+   "id": 11715258659,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Andi - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:20:57.887Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13326667009",
+    "13326667014",
+    "13326667016",
+    "13326667107",
+    "13326667119",
+    "13326667120",
+    "13326756100",
+    "13326757317",
+    "13326758542",
+    "13326759810"
+   ]
+  },
+  {
+   "id": 11715262273,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Andi - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:21:44.24Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13326667045",
+    "13326667047",
+    "13326667071",
+    "13326667151",
+    "13326667171",
+    "13326667189",
+    "13326756100",
+    "13326757317",
+    "13326758542",
+    "13326759810"
+   ]
+  },
+  {
+   "id": 11748986529,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Billie - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:40:44.393Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844",
+    "18948329218",
+    "18948329280",
+    "18948329322",
+    "18948329352"
+   ]
+  },
+  {
+   "id": 11748981874,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Billie - Left arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:39:15.043Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13327083426",
+    "13327083428",
+    "13327083430",
+    "13327083493",
+    "13327083495",
+    "13327083497",
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844"
+   ]
+  },
+  {
+   "id": 11748984354,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Billie - Right arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:40:02.84Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13327083456",
+    "13327083458",
+    "13327083476",
+    "13327083515",
+    "13327083517",
+    "13327083521",
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844"
+   ]
+  },
+  {
+   "id": 11748983268,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Billie - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:39:41.91Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13327083427",
+    "13327083429",
+    "13327083431",
+    "13327083494",
+    "13327083496",
+    "13327083505",
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844"
+   ]
+  },
+  {
+   "id": 11748985458,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Billie - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:40:23.31Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13327083455",
+    "13327083459",
+    "13327083466",
+    "13327083524",
+    "13327083527",
+    "13327083531",
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844"
+   ]
+  },
+  {
+   "id": 11709869073,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Dawson - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:55:17.797Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "11467224224",
+    "11697033415",
+    "11697033601",
+    "11697033786",
+    "18938673734",
+    "18938673746",
+    "18938673767",
+    "18938673847"
+   ]
+  },
+  {
+   "id": 11709862883,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Dawson - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:53:59.8Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "11709577581",
+    "11709577584",
+    "11709577586",
+    "11709577631",
+    "11709577638",
+    "11709577644",
+    "15507475346",
+    "15507475999",
+    "15507476931",
+    "15507477809"
+   ]
+  },
+  {
+   "id": 11709865568,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Dawson - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:54:37.45Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "11709577582",
+    "11709577583",
+    "11709577585",
+    "11709577612",
+    "11709577626",
+    "11709577629",
+    "15507475346",
+    "15507475999",
+    "15507476931",
+    "15507477809"
+   ]
+  },
+  {
+   "id": 11709864101,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Dawson - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:54:15.41Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "11709577590",
+    "11709577606",
+    "11709577607",
+    "11709577651",
+    "11709577653",
+    "11709577658",
+    "15507475346",
+    "15507475999",
+    "15507476931",
+    "15507477809"
+   ]
+  },
+  {
+   "id": 11709867346,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Dawson - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:54:59.16Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "11709577589",
+    "11709577605",
+    "11709577608",
+    "11709577630",
+    "11709577632",
+    "11709577652",
+    "15507475346",
+    "15507475999",
+    "15507476931",
+    "15507477809"
+   ]
+  },
+  {
+   "id": 11702287641,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Addison - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:25:00.907Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "15507470767",
+    "15507471828",
+    "15507472454",
+    "15507473362",
+    "18938198620",
+    "18938198638",
+    "18938198657",
+    "18938198728"
+   ]
+  },
+  {
+   "id": 11702279057,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Addison - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:23:27.743Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13396860793",
+    "13396860795",
+    "13396860799",
+    "13396860854",
+    "13396860856",
+    "13396860860",
+    "15507470767",
+    "15507471828",
+    "15507472454",
+    "15507473362"
+   ]
+  },
+  {
+   "id": 11702284438,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Addison - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:24:20.207Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13396860823",
+    "13396860824",
+    "13396860826",
+    "13396860879",
+    "13396860884",
+    "13396860891",
+    "15507470767",
+    "15507471828",
+    "15507472454",
+    "15507473362"
+   ]
+  },
+  {
+   "id": 11702282072,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Addison - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:23:56.177Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13396860794",
+    "13396860796",
+    "13396860798",
+    "13396860858",
+    "13396860864",
+    "13396860873",
+    "15507470767",
+    "15507471828",
+    "15507472454",
+    "15507473362"
+   ]
+  },
+  {
+   "id": 11702286099,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Addison - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:24:40.11Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13396860822",
+    "13396860825",
+    "13396860828",
+    "13396860881",
+    "13396860886",
+    "13396860890",
+    "15507470767",
+    "15507471828",
+    "15507472454",
+    "15507473362"
+   ]
+  },
+  {
+   "id": 11709146274,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Robin - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:23:59.68Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328225755",
+    "18948457546",
+    "18948457645",
+    "18948457727",
+    "18948457809"
+   ]
+  },
+  {
+   "id": 11709138329,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Robin - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:22:25.64Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328218810",
+    "13328218812",
+    "13328218835",
+    "13328218889",
+    "13328218898",
+    "13328218907",
+    "13328225755"
+   ]
+  },
+  {
+   "id": 11709143116,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Robin - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:23:19.41Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328218854",
+    "13328218857",
+    "13328218892",
+    "13328218928",
+    "13328218939",
+    "13328218948",
+    "13328225755"
+   ]
+  },
+  {
+   "id": 11709141448,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Robin - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:22:59.63Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328218813",
+    "13328218834",
+    "13328218838",
+    "13328218895",
+    "13328218896",
+    "13328218920",
+    "13328225755"
+   ]
+  },
+  {
+   "id": 11709144753,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Robin - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:23:39.813Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328218853",
+    "13328218858",
+    "13328218878",
+    "13328218926",
+    "13328218929",
+    "13328218943",
+    "13328225755"
+   ]
+  },
+  {
+   "id": 11714041015,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Rene - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:28:22.803Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "15507483276",
+    "15507483889",
+    "15507484952",
+    "15507485767",
+    "18939706624",
+    "18939706681",
+    "18939706714",
+    "18939706749"
+   ]
+  },
+  {
+   "id": 11714033534,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Rene - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:27:08.327Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13621666567",
+    "13621666568",
+    "13621666571",
+    "13621666607",
+    "13621666609",
+    "13621666617",
+    "15507483276",
+    "15507483889",
+    "15507484952",
+    "15507485767"
+   ]
+  },
+  {
+   "id": 11714037276,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Rene - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:27:46.86Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13621666586",
+    "13621666587",
+    "13621666589",
+    "13621666627",
+    "13621666630",
+    "13621666637",
+    "15507483276",
+    "15507483889",
+    "15507484952",
+    "15507485767"
+   ]
+  },
+  {
+   "id": 11714035598,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Rene - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:27:27.467Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13621666564",
+    "13621666565",
+    "13621666566",
+    "13621666605",
+    "13621666612",
+    "13621666616",
+    "15507483276",
+    "15507483889",
+    "15507484952",
+    "15507485767"
+   ]
+  },
+  {
+   "id": 11714039415,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Rene - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:28:07.223Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13621666588",
+    "13621666591",
+    "13621666592",
+    "13621666631",
+    "13621666632",
+    "13621666635",
+    "15507483276",
+    "15507483889",
+    "15507484952",
+    "15507485767"
+   ]
+  },
+  {
+   "id": 11740060397,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Jordan - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:44:25.53Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "15507489731",
+    "15507490492",
+    "15507491640",
+    "15507492445",
+    "18939409664",
+    "18939409698",
+    "18939409724",
+    "18939409814"
+   ]
+  },
+  {
+   "id": 11740050465,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Jordan - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:42:56.603Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "13413830049",
+    "13413830063",
+    "13413830064",
+    "13413830120",
+    "13413830128",
+    "13413830141",
+    "15507489731",
+    "15507490492",
+    "15507491640",
+    "15507492445"
+   ]
+  },
+  {
+   "id": 11740055375,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Jordan - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:43:41.113Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "13413830085",
+    "13413830088",
+    "13413830108",
+    "13413830163",
+    "13413830170",
+    "13413830177",
+    "15507489731",
+    "15507490492",
+    "15507491640",
+    "15507492445"
+   ]
+  },
+  {
+   "id": 11740052832,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Jordan - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:43:17.217Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "13413830050",
+    "13413830059",
+    "13413830062",
+    "13413830117",
+    "13413830130",
+    "13413830146",
+    "15507489731",
+    "15507490492",
+    "15507491640",
+    "15507492445"
+   ]
+  },
+  {
+   "id": 11740057815,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Jordan - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:44:01.57Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "13413830083",
+    "13413830087",
+    "13413830098",
+    "13413830157",
+    "13413830178",
+    "13413830183",
+    "15507489731",
+    "15507490492",
+    "15507491640",
+    "15507492445"
+   ]
+  },
+  {
+   "id": 3963871432,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Oliver - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T20:03:23.757Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "3869440963",
+    "3941085342",
+    "3941085409",
+    "3941085484",
+    "8665390840",
+    "8665390852"
+   ]
+  },
+  {
+   "id": 3963861732,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Oliver - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T20:01:26.123Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "3869432166",
+    "3941085278",
+    "3941085279",
+    "3941085280",
+    "3941085311",
+    "8665390743",
+    "8665390774",
+    "8665390861"
+   ]
+  },
+  {
+   "id": 3963867514,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Oliver - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T20:02:36.83Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "3869436442",
+    "3941085282",
+    "3941085304",
+    "3941085311",
+    "3941085317",
+    "8665390773",
+    "8665390777",
+    "8665390860"
+   ]
+  },
+  {
+   "id": 3963864909,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Oliver - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T20:02:04.433Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "3869434320",
+    "3941085371",
+    "3941085372",
+    "3941085373",
+    "3941085394",
+    "8665390703",
+    "8665390705",
+    "8665390709"
+   ]
+  },
+  {
+   "id": 3963869770,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Oliver - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T20:03:04.83Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "3869438579",
+    "3941085397",
+    "3941085428",
+    "3941085429",
+    "3941085464",
+    "8665390776",
+    "8665390783",
+    "8665390856"
+   ]
+  },
+  {
+   "id": 3963485362,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Summer - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T18:46:12.003Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "3877403232",
+    "3878645709",
+    "3878645746",
+    "3878645753",
+    "8665513835",
+    "8665513950"
+   ]
+  },
+  {
+   "id": 3963476651,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Summer - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T18:44:29.167Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "3877395096",
+    "3878645688",
+    "3878645689",
+    "3878645691",
+    "3878645712",
+    "8665513906",
+    "8665513974",
+    "8665513975"
+   ]
+  },
+  {
+   "id": 3963481369,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Summer - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T18:45:24.473Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "3877399421",
+    "3878645690",
+    "3878645707",
+    "3878645708",
+    "3878645710",
+    "8665513731",
+    "8665513899",
+    "8665513969"
+   ]
+  },
+  {
+   "id": 3963479563,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Summer - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T18:45:02.393Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "3877397147",
+    "3878645721",
+    "3878645733",
+    "3878645734",
+    "3878645771",
+    "8665514022",
+    "8665514033",
+    "8665514040"
+   ]
+  },
+  {
+   "id": 3963483107,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Summer - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2019-09-23T18:45:45.35Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "3877401496",
+    "3878645735",
+    "3878645736",
+    "3878645738",
+    "3878645771",
+    "8665513897",
+    "8665513915",
+    "8665513977"
+   ]
+  },
+  {
+   "id": 6445268819,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:denny"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "Denny - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-02-26T01:26:21.63Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "6190922225",
+    "6246225410",
+    "6445089011",
+    "6445089012",
+    "7278855348",
+    "7278855355"
+   ]
+  },
+  {
+   "id": 6445260402,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:denny"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "Denny - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-02-26T01:23:36.34Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "6190917562",
+    "6246222689",
+    "6445088931",
+    "6445088941",
+    "6445088960",
+    "7278855347",
+    "7278855352",
+    "7278855354"
+   ]
+  },
+  {
+   "id": 6445263379,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:denny"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "Denny - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-02-26T01:24:31.617Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "6190919623",
+    "6246224052",
+    "6445088976",
+    "6445088979",
+    "6445088984",
+    "7278855421",
+    "7278855423",
+    "7278855424"
+   ]
+  },
+  {
+   "id": 6445262286,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:denny"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "Denny - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-02-26T01:24:12.227Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "6190918675",
+    "6246223469",
+    "6445088933",
+    "6445088937",
+    "6445088945",
+    "7278855349",
+    "7278855396",
+    "7278855413"
+   ]
+  },
+  {
+   "id": 6445265102,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:denny"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "Denny - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-02-26T01:25:03.027Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "6190920834",
+    "6246224788",
+    "6445088978",
+    "6445088981",
+    "6445089002",
+    "7278855435",
+    "7278855443",
+    "7278855454"
+   ]
+  },
+  {
+   "id": 2492674027,
+   "slot": "Torso",
+   "expectedType": 27,
+   "roles": [
+    "body:citylife"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 27,
+    "name": "City Life Woman - Torso",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-16T14:43:19.42Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 27
+   },
+   "layered": false,
+   "refs": [
+    "18148864239",
+    "18148864309",
+    "18148864389",
+    "18148864451",
+    "2492432849",
+    "2492443316"
+   ]
+  },
+  {
+   "id": 2492667589,
+   "slot": "LeftArm",
+   "expectedType": 29,
+   "roles": [
+    "body:citylife"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 29,
+    "name": "City Life Woman - Left Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-16T19:40:29.257Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 29
+   },
+   "layered": false,
+   "refs": [
+    "18148864182",
+    "18148864184",
+    "18148864199",
+    "18148864345",
+    "18148864366",
+    "18148864380",
+    "2492422587",
+    "2492441787"
+   ]
+  },
+  {
+   "id": 2492669375,
+   "slot": "RightArm",
+   "expectedType": 28,
+   "roles": [
+    "body:citylife"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 28,
+    "name": "City Life Woman - Right Arm",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-16T19:41:15.65Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 28
+   },
+   "layered": false,
+   "refs": [
+    "18148864186",
+    "18148864225",
+    "18148864228",
+    "18148864396",
+    "18148864403",
+    "18148864430",
+    "2492427199",
+    "2492442684"
+   ]
+  },
+  {
+   "id": 2492671662,
+   "slot": "LeftLeg",
+   "expectedType": 30,
+   "roles": [
+    "body:citylife"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 30,
+    "name": "City Life Woman - Left Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-16T19:42:22.273Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 30
+   },
+   "layered": false,
+   "refs": [
+    "18148864242",
+    "18148864256",
+    "18148864264",
+    "18148864338",
+    "18148864375",
+    "18148864392",
+    "2492427814",
+    "2492442348"
+   ]
+  },
+  {
+   "id": 2492670347,
+   "slot": "RightLeg",
+   "expectedType": 31,
+   "roles": [
+    "body:citylife"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 31,
+    "name": "City Life Woman - Right Leg",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-16T19:41:40.26Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 31
+   },
+   "layered": false,
+   "refs": [
+    "18148864323",
+    "18148864331",
+    "18148864337",
+    "18148864394",
+    "18148864427",
+    "18148864440",
+    "2492432351",
+    "2492442941"
+   ]
+  },
+  {
+   "id": 11702751287,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Harper - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:01:44.313Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "13327675564",
+    "13327758287"
+   ]
+  },
+  {
+   "id": 11702755085,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Harper - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:02:27.883Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327773319",
+    "13327787441",
+    "13327787452",
+    "13327787453"
+   ]
+  },
+  {
+   "id": 11702757409,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:harper"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Harper - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T00:02:59.72Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13327675564",
+    "13327677344",
+    "13327727815",
+    "13327773319",
+    "13327788078",
+    "13327788108",
+    "13327788109"
+   ]
+  },
+  {
+   "id": 11715265417,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Andi - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:22:26.853Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "13326667141",
+    "13326756100"
+   ]
+  },
+  {
+   "id": 11715267394,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Andi - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:22:51.397Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "warnings": [
+    "delivered source is an FBX, not a model: refs not scanned"
+   ]
+  },
+  {
+   "id": 11715268504,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:andi"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Andi - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T22:23:08.767Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "11465782351",
+    "11497383219",
+    "11697375737",
+    "11697413087",
+    "11746966990",
+    "11746967002",
+    "11746967004"
+   ]
+  },
+  {
+   "id": 11748988354,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Billie - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:41:17.617Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "13327083507",
+    "13327909578"
+   ]
+  },
+  {
+   "id": 11748989953,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Billie - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:41:47.97Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "13327084744",
+    "13327084769",
+    "13327084787",
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844"
+   ]
+  },
+  {
+   "id": 11748991080,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:billie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Billie - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-05T05:42:07.65Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13327085890",
+    "13327085905",
+    "13327085906",
+    "13327909578",
+    "13327911186",
+    "13327912785",
+    "13327913844"
+   ]
+  },
+  {
+   "id": 11709871094,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Dawson - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:55:45.547Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "11697033786",
+    "18938673844"
+   ]
+  },
+  {
+   "id": 11709883139,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Dawson - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:58:21.5Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "11467224224",
+    "11536550163",
+    "11536550171",
+    "11536550172",
+    "11697033415",
+    "11697033601",
+    "11697033786"
+   ]
+  },
+  {
+   "id": 11709884954,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:dawson"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Dawson - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T01:58:45.477Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13399015077",
+    "13399015800",
+    "13399016527",
+    "13399017284",
+    "13399040121",
+    "13399040125",
+    "13399040128"
+   ]
+  },
+  {
+   "id": 11702291006,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Addison - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:25:38.247Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "13396860859",
+    "15507470767"
+   ]
+  },
+  {
+   "id": 11702295477,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Addison - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:26:32.41Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "13396883984",
+    "13396885918",
+    "13396887192",
+    "13396888383",
+    "13396932959",
+    "13396932979",
+    "13396932980"
+   ]
+  },
+  {
+   "id": 11702297008,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:addison"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Addison - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-29T22:26:55.287Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13396883984",
+    "13396885918",
+    "13396887192",
+    "13396888383",
+    "13396934778",
+    "13396934802",
+    "13396934812"
+   ]
+  },
+  {
+   "id": 11709148634,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Robin - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:24:23.7Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "13328218915",
+    "13328225755"
+   ]
+  },
+  {
+   "id": 11709149939,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Robin - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:24:45.133Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328225755",
+    "13328243856",
+    "13328243867",
+    "13328243868"
+   ]
+  },
+  {
+   "id": 11709152004,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:robin"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Robin - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-11-30T23:25:11.907Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13328096487",
+    "13328097058",
+    "13328098616",
+    "13328225755",
+    "13328244306",
+    "13328244307",
+    "13328244314"
+   ]
+  },
+  {
+   "id": 11714044513,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Rene - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:28:52.44Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "13621666615",
+    "15507483276"
+   ]
+  },
+  {
+   "id": 11714047676,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Rene - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:29:24.34Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "13629129624",
+    "13629132457",
+    "13629134006",
+    "13629135285",
+    "13629167366",
+    "13629167392",
+    "13629167402"
+   ]
+  },
+  {
+   "id": 11714050380,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:rene"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Rene - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-01T18:29:47.78Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13629129624",
+    "13629132457",
+    "13629134006",
+    "13629135285",
+    "13629168584",
+    "13629168604",
+    "13629168626"
+   ]
+  },
+  {
+   "id": 11740063830,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Jordan - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:44:50.987Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "132152333177791",
+    "15507489731"
+   ]
+  },
+  {
+   "id": 11740066767,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Jordan - Eyebrows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:45:15.483Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "13413861802",
+    "13413862844",
+    "13413863657",
+    "13413864551",
+    "13413875577",
+    "13413875585",
+    "13413875591"
+   ]
+  },
+  {
+   "id": 11740069153,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:jordan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Jordan - Eyelashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-12-04T07:45:34.853Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "13413861802",
+    "13413862844",
+    "13413863657",
+    "13413864551",
+    "13413876723",
+    "13413876728",
+    "13413876734"
+   ]
+  },
+  {
+   "id": 12778883791,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Oliver - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2023-03-13T20:33:11.11Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "138613509291638",
+    "80672956859186"
+   ],
+   "badRefs": [
+    {
+     "id": "138613509291638",
+     "ok": false,
+     "code": 401,
+     "message": "Authentication required to access Asset."
+    },
+    {
+     "id": "80672956859186",
+     "ok": false,
+     "code": 401,
+     "message": "Authentication required to access Asset."
+    }
+   ],
+   "warnings": [
+    "2 referenced content id(s) need auth to download"
+   ]
+  },
+  {
+   "id": 12778888565,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:oliver"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Oliver - Brows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2023-03-13T20:33:48.183Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "12778689455",
+    "12778689509",
+    "12778689515"
+   ]
+  },
+  {
+   "id": 12853000475,
+   "slot": "DynamicHead",
+   "expectedType": 79,
+   "roles": [
+    "face:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 79,
+    "name": "Summer - Head",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2023-03-21T04:52:47.383Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 79
+   },
+   "layered": false,
+   "refs": [
+    "12852929757",
+    "12852929846"
+   ]
+  },
+  {
+   "id": 12853002044,
+   "slot": "Eyebrow",
+   "expectedType": 76,
+   "roles": [
+    "face:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 76,
+    "name": "Summer - Brows",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2023-03-21T04:53:12.27Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 76
+   },
+   "layered": true,
+   "refs": [
+    "14840292204",
+    "14840292226",
+    "14840292231"
+   ]
+  },
+  {
+   "id": 12853004141,
+   "slot": "Eyelash",
+   "expectedType": 77,
+   "roles": [
+    "face:summer"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 77,
+    "name": "Summer - Lashes",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2023-03-21T04:53:44Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 77
+   },
+   "layered": true,
+   "refs": [
+    "14840296583",
+    "14840296590",
+    "14840296599"
+   ]
+  },
+  {
+   "id": 7193419595,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sidepart:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Side Part - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:40:57.643Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12732707931",
+    "12732708117",
+    "12732708232",
+    "12732708776",
+    "6938280167",
+    "6938280174",
+    "6938280175",
+    "6938280185"
+   ]
+  },
+  {
+   "id": 7193386173,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sidepart:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Side Part - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:32:05.697Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12732707931",
+    "12732708117",
+    "12732708232",
+    "12778676262",
+    "6938280167",
+    "6938280174",
+    "6938280175",
+    "6938280185"
+   ]
+  },
+  {
+   "id": 9244021842,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sidepart:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Side Part - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:43:00.15Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12732707931",
+    "12732708117",
+    "12732708232",
+    "12732708565",
+    "6938280167",
+    "6938280174",
+    "6938280175",
+    "6938280185"
+   ]
+  },
+  {
+   "id": 9244024443,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sidepart:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Side Part - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:43:22.123Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12732707931",
+    "12732708117",
+    "12732708232",
+    "12732708401",
+    "6938280167",
+    "6938280174",
+    "6938280175",
+    "6938280185"
+   ]
+  },
+  {
+   "id": 9243976603,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fringe:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Fringe - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:36:30.217Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726188320",
+    "12726380703",
+    "12726380842",
+    "12726381423",
+    "6938183147",
+    "6938183156",
+    "6938183160",
+    "6938183162"
+   ]
+  },
+  {
+   "id": 7193397693,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fringe:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Fringe - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:35:09.693Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726188320",
+    "12726380703",
+    "12726380842",
+    "12778562399",
+    "6938183147",
+    "6938183156",
+    "6938183160",
+    "6938183162"
+   ]
+  },
+  {
+   "id": 7193401217,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fringe:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Fringe - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:36:07.247Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726188320",
+    "12726380703",
+    "12726380842",
+    "12726381291",
+    "6938183147",
+    "6938183156",
+    "6938183160",
+    "6938183162"
+   ]
+  },
+  {
+   "id": 9243983205,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fringe:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Fringe - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:37:28.353Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726188320",
+    "12726380703",
+    "12726380842",
+    "12726381035",
+    "6938183147",
+    "6938183156",
+    "6938183160",
+    "6938183162"
+   ]
+  },
+  {
+   "id": 6993758617,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sleek:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short and Sleek - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-06-23T16:49:32.143Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726758441",
+    "12726758537",
+    "12726758588",
+    "12726762894",
+    "6938205353",
+    "6938205357",
+    "6938205366",
+    "6938205367"
+   ]
+  },
+  {
+   "id": 9243987340,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sleek:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short and Sleek - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:38:00.433Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726758441",
+    "12726758537",
+    "12726758588",
+    "12778662947",
+    "6938205353",
+    "6938205357",
+    "6938205366",
+    "6938205367"
+   ]
+  },
+  {
+   "id": 9243992729,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sleek:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short and Sleek - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:38:45.583Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726758441",
+    "12726758537",
+    "12726758588",
+    "12726765047",
+    "6938205353",
+    "6938205357",
+    "6938205366",
+    "6938205367"
+   ]
+  },
+  {
+   "id": 9243995099,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:sleek:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short and Sleek - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:39:06.577Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12726758441",
+    "12726758537",
+    "12726758588",
+    "12726764949",
+    "6938205353",
+    "6938205357",
+    "6938205366",
+    "6938205367"
+   ]
+  },
+  {
+   "id": 9244010432,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fade:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Fade - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:41:22.24Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12727090337",
+    "12727090442",
+    "12727090520",
+    "12727090791",
+    "6938246999",
+    "6938247011",
+    "6938247013",
+    "6938247024"
+   ]
+  },
+  {
+   "id": 9244008307,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fade:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Fade - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:40:57.63Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12727090337",
+    "12727090442",
+    "12727090520",
+    "12778668044",
+    "6938246999",
+    "6938247011",
+    "6938247013",
+    "6938247024"
+   ]
+  },
+  {
+   "id": 7193405096,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fade:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Fade - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:37:05.73Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12727090337",
+    "12727090442",
+    "12727090520",
+    "12727090676",
+    "6938246999",
+    "6938247011",
+    "6938247013",
+    "6938247024"
+   ]
+  },
+  {
+   "id": 9244014391,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:fade:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Fade - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:41:56.703Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12727090337",
+    "12727090442",
+    "12727090520",
+    "12727090593",
+    "6938246999",
+    "6938247011",
+    "6938247013",
+    "6938247024"
+   ]
+  },
+  {
+   "id": 9244137452,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:curls:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Curls - Cool Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:59:03.683Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778450036",
+    "12778450271",
+    "12778450447",
+    "12778461547",
+    "7142599429",
+    "7142599439",
+    "7142599446",
+    "7142599468"
+   ]
+  },
+  {
+   "id": 9244134513,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:curls:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Curls - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:58:39.027Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778445315",
+    "12778450036",
+    "12778450271",
+    "12778450447",
+    "7142599429",
+    "7142599439",
+    "7142599446",
+    "7142599468"
+   ]
+  },
+  {
+   "id": 7193452166,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:curls:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Curls - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:50:05.877Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778450036",
+    "12778450271",
+    "12778450447",
+    "12778461386",
+    "7142599429",
+    "7142599439",
+    "7142599446",
+    "7142599468"
+   ]
+  },
+  {
+   "id": 9244145658,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:curls:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Short Curls - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T17:00:12.413Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778450036",
+    "12778450271",
+    "12778450447",
+    "12778461195",
+    "7142599429",
+    "7142599439",
+    "7142599446",
+    "7142599468"
+   ]
+  },
+  {
+   "id": 9244033194,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:surfer:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Surfer - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:44:30.83Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778212063",
+    "12778212342",
+    "12778212514",
+    "12778213275",
+    "6938294794",
+    "6938294798",
+    "6938294801",
+    "6938294819"
+   ]
+  },
+  {
+   "id": 9244029916,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:surfer:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Surfer - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:44:03.6Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778212063",
+    "12778212342",
+    "12778212514",
+    "12778213554",
+    "6938294794",
+    "6938294798",
+    "6938294801",
+    "6938294819"
+   ]
+  },
+  {
+   "id": 9174353649,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:surfer:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Surfer - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-23T06:33:35.11Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778212063",
+    "12778212342",
+    "12778212514",
+    "12778213022",
+    "6938294794",
+    "6938294798",
+    "6938294801",
+    "6938294819"
+   ]
+  },
+  {
+   "id": 9244038785,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:surfer:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Surfer - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:45:18.01Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12778212063",
+    "12778212342",
+    "12778212514",
+    "12778212732",
+    "6938294794",
+    "6938294798",
+    "6938294801",
+    "6938294819"
+   ]
+  },
+  {
+   "id": 7193437847,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:middlepart:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Medium Middle Part - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:46:05.83Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12715509682",
+    "12715509852",
+    "12715509954",
+    "12715669371",
+    "6933936443",
+    "6933936461",
+    "6933936462",
+    "6933936481"
+   ]
+  },
+  {
+   "id": 7193424874,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:middlepart:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Medium Middle Part - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:42:25.033Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12715509682",
+    "12715509852",
+    "12715509954",
+    "12778406124",
+    "6933936443",
+    "6933936461",
+    "6933936462",
+    "6933936481"
+   ]
+  },
+  {
+   "id": 9244089488,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:middlepart:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Medium Middle Part - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:52:21.747Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12715509682",
+    "12715509852",
+    "12715509954",
+    "12715669155",
+    "6933936443",
+    "6933936461",
+    "6933936462",
+    "6933936481"
+   ]
+  },
+  {
+   "id": 9244091757,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:middlepart:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Medium Middle Part - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:52:44.997Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12715509682",
+    "12715509852",
+    "12715509954",
+    "12715669023",
+    "6933936443",
+    "6933936461",
+    "6933936462",
+    "6933936481"
+   ]
+  },
+  {
+   "id": 7193448258,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:wavy:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Wavy Middle Part - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:48:55.933Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12717256616",
+    "12717256774",
+    "12717642467",
+    "12717642862",
+    "6937034645",
+    "6937034655",
+    "6937034657",
+    "6937034669"
+   ]
+  },
+  {
+   "id": 7193445686,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:wavy:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Wavy Middle Part - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:48:12.38Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12717256616",
+    "12717256774",
+    "12717642467",
+    "12777826719",
+    "6937034645",
+    "6937034655",
+    "6937034657",
+    "6937034669"
+   ]
+  },
+  {
+   "id": 9244111257,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:wavy:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Wavy Middle Part - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:55:16.26Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12717256616",
+    "12717256774",
+    "12717642467",
+    "12717642743",
+    "6937034645",
+    "6937034655",
+    "6937034657",
+    "6937034669"
+   ]
+  },
+  {
+   "id": 9244114211,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:wavy:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Wavy Middle Part - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:55:37.41Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12717256616",
+    "12717256774",
+    "12717642467",
+    "12717642607",
+    "6937034645",
+    "6937034655",
+    "6937034657",
+    "6937034669"
+   ]
+  },
+  {
+   "id": 7193449810,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:bangs:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Straight Bangs - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:49:26.21Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12724275558",
+    "12724275733",
+    "12724275920",
+    "12724276407",
+    "6937111331",
+    "6937111339",
+    "6937111355",
+    "6937111364"
+   ]
+  },
+  {
+   "id": 7193448988,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:bangs:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Straight Bangs - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:49:10.003Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12724275558",
+    "12724275733",
+    "12724275920",
+    "12778420927",
+    "6937111331",
+    "6937111339",
+    "6937111355",
+    "6937111364"
+   ]
+  },
+  {
+   "id": 6993754725,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:bangs:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Straight Bangs - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-06-23T16:48:31.963Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12724275558",
+    "12724275733",
+    "12724275920",
+    "12724276244",
+    "6432987332",
+    "6432987412",
+    "6432987589",
+    "6937111331",
+    "6937111339",
+    "6937111355",
+    "6937111364",
+    "6994113918"
+   ]
+  },
+  {
+   "id": 9244122897,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:bangs:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Straight Bangs - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:56:48.473Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12724275558",
+    "12724275733",
+    "12724275920",
+    "12724276100",
+    "6432987332",
+    "6432987412",
+    "6432987498",
+    "6937111331",
+    "6937111339",
+    "6937111355",
+    "6937111364",
+    "6994113918"
+   ]
+  },
+  {
+   "id": 9244097555,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:ponytail:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Pony Tail - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:53:35.92Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12716991205",
+    "12716991364",
+    "12716991442",
+    "12716991842",
+    "6934021070",
+    "6934021080",
+    "6934021106"
+   ]
+  },
+  {
+   "id": 9244095135,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:ponytail:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Pony Tail - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:53:16.893Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12716991205",
+    "12716991364",
+    "12716991442",
+    "12778410597",
+    "6934021070",
+    "6934021080",
+    "6934021106"
+   ]
+  },
+  {
+   "id": 7193442167,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:ponytail:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Pony Tail - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:47:15.607Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12716991205",
+    "12716991364",
+    "12716991442",
+    "12716991702",
+    "6934021070",
+    "6934021080",
+    "6934021106"
+   ]
+  },
+  {
+   "id": 7193444640,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:ponytail:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Pony Tail - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:47:56.02Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12716991205",
+    "12716991364",
+    "12716991442",
+    "12716991562",
+    "6934021070",
+    "6934021080",
+    "6934021106"
+   ]
+  },
+  {
+   "id": 9244150641,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:braids:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Braided Hair - Cool Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T17:00:51.543Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725830239",
+    "12725830378",
+    "12725830456",
+    "12725830977",
+    "7167534509",
+    "7167534522",
+    "7167534536",
+    "7167534554"
+   ]
+  },
+  {
+   "id": 9244148336,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:braids:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Braided Hair - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T17:00:33.52Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725830239",
+    "12725830378",
+    "12725830456",
+    "12778470861",
+    "7167534509",
+    "7167534522",
+    "7167534536",
+    "7167534554"
+   ]
+  },
+  {
+   "id": 7193454569,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:braids:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Braided Hair - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:50:48.723Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725830239",
+    "12725830378",
+    "12725830456",
+    "12725830778",
+    "7167534509",
+    "7167534522",
+    "7167534536",
+    "7167534554"
+   ]
+  },
+  {
+   "id": 7193455510,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:braids:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Braided Hair - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:51:02.677Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725830239",
+    "12725830378",
+    "12725830456",
+    "12725830592",
+    "7167534509",
+    "7167534522",
+    "7167534536",
+    "7167534554"
+   ]
+  },
+  {
+   "id": 7193451306,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:afro:brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Afro - Cool Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:49:51.963Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725457523",
+    "12725457700",
+    "12725457826",
+    "12725566942",
+    "6937130923",
+    "6937130937",
+    "6937130939",
+    "6937130952"
+   ]
+  },
+  {
+   "id": 9244125859,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:afro:blonde"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Afro - Blonde",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:57:17.65Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725457523",
+    "12725457700",
+    "12725457826",
+    "12778423881",
+    "6937130923",
+    "6937130937",
+    "6937130939",
+    "6937130952"
+   ]
+  },
+  {
+   "id": 7193450455,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:afro:black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Afro - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T21:49:37.597Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725457523",
+    "12725457700",
+    "12725457826",
+    "12725566756",
+    "6937130923",
+    "6937130937",
+    "6937130939",
+    "6937130952"
+   ]
+  },
+  {
+   "id": 9244131570,
+   "slot": "Hair",
+   "expectedType": 41,
+   "roles": [
+    "hair:afro:red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 41,
+    "name": "Curly Afro - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T16:58:14.077Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 41
+   },
+   "layered": true,
+   "refs": [
+    "12725457523",
+    "12725457700",
+    "12725457826",
+    "12725566592",
+    "6937130923",
+    "6937130937",
+    "6937130939",
+    "6937130952"
+   ]
+  },
+  {
+   "id": 9482987287,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:sneakers_white"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Sneakers - White - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-04-27T22:16:34.15Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7018365844",
+    "7018365864",
+    "7018365873",
+    "7479517027",
+    "7479517166",
+    "7479517271",
+    "7479517678"
+   ]
+  },
+  {
+   "id": 9482991343,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:sneakers_white"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Sneakers - White - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-04-27T22:17:23.673Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7018365851",
+    "7018365871",
+    "7018365890",
+    "7479517027",
+    "7479517166",
+    "7479517271",
+    "7479517678"
+   ]
+  },
+  {
+   "id": 9481782649,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:canvas_white"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Canvas Shoes - White - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-04-27T18:48:57.37Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7019479218",
+    "7019479241",
+    "7019479247",
+    "7479482736",
+    "7479482846",
+    "7479482917",
+    "7479482999"
+   ]
+  },
+  {
+   "id": 9481786623,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:canvas_white"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Canvas Shoes - White - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-04-27T18:49:34.273Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7019479217",
+    "7019479244",
+    "7019479245",
+    "7479482736",
+    "7479482846",
+    "7479482917",
+    "7479482999"
+   ]
+  },
+  {
+   "id": 9483690316,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:canvas_gray"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Canvas Shoes - Gray - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-04-28T00:11:53.87Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7019479218",
+    "7019479241",
+    "7019479247",
+    "7479482736",
+    "7479482846",
+    "7479482917",
+    "7479483438"
+   ]
+  },
+  {
+   "id": 9483697460,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:canvas_gray"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Canvas Shoes - Gray - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-04-28T00:12:59.367Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7019479217",
+    "7019479244",
+    "7019479245",
+    "7479482736",
+    "7479482846",
+    "7479482917",
+    "7479483438"
+   ]
+  },
+  {
+   "id": 9614791602,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:hightops_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "High Tops - Black - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-05-13T06:42:58.273Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7018793116",
+    "7018793143",
+    "7018793159",
+    "7018795656",
+    "7018795807",
+    "7479565604",
+    "7479566095"
+   ]
+  },
+  {
+   "id": 9614793581,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:hightops_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "High Tops - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-05-13T06:43:25.33Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7018793112",
+    "7018793129",
+    "7018793144",
+    "7018795656",
+    "7018795807",
+    "7479565604",
+    "7479566095"
+   ]
+  },
+  {
+   "id": 8044823721,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:dress_brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Dress Shoes - Brown - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-11-20T00:04:11.143Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7019145029",
+    "7019145058",
+    "7019145065",
+    "7019149538",
+    "7019149612",
+    "7479222854",
+    "7479223165"
+   ]
+  },
+  {
+   "id": 8044826993,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:dress_brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Dress Shoes - Brown - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-11-20T00:04:41.32Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7019145031",
+    "7019145045",
+    "7019145066",
+    "7019149538",
+    "7019149612",
+    "7479222854",
+    "7479223165"
+   ]
+  },
+  {
+   "id": 9542395442,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:boots_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Work Boots - Black - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-05-04T16:30:51.373Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "6686123839",
+    "6686123934",
+    "6686124019",
+    "6955378306",
+    "6955378338",
+    "6955378339",
+    "7479609911"
+   ]
+  },
+  {
+   "id": 9542450828,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:boots_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Work Boots - Black - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-05-04T16:39:33.127Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "6686123839",
+    "6686123934",
+    "6686124019",
+    "6955378303",
+    "6955378322",
+    "6955378341",
+    "7479609911"
+   ]
+  },
+  {
+   "id": 7193170137,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:boots_tan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Shoes-Workboots-Left-Tan",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-08-02T20:40:02.113Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "6686123839",
+    "6686123934",
+    "6686124019",
+    "6686124220",
+    "6955378306",
+    "6955378338",
+    "6955378339"
+   ]
+  },
+  {
+   "id": 7193171232,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:boots_tan"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Shoes-Workboots-Right-Tan",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-08-02T20:40:16.92Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "6686123839",
+    "6686123934",
+    "6686124019",
+    "6686124220",
+    "6955378303",
+    "6955378322",
+    "6955378341"
+   ]
+  },
+  {
+   "id": 9614836327,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:military_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Military Boots - Black - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-05-13T06:54:07.097Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7017890128",
+    "7017890144",
+    "7017890156",
+    "7017898556",
+    "7017898665",
+    "7479393024",
+    "7650626339"
+   ]
+  },
+  {
+   "id": 9614841343,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:military_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Military Boots - Black - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-05-13T06:55:20.687Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7017890124",
+    "7017890162",
+    "7017890165",
+    "7017898556",
+    "7017898665",
+    "7479393024",
+    "7650626339"
+   ]
+  },
+  {
+   "id": 8044843668,
+   "slot": "LeftShoe",
+   "expectedType": 70,
+   "roles": [
+    "shoes:dress_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 70,
+    "name": "Dress Shoes - Black - Left",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-11-20T00:07:30.08Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 70
+   },
+   "layered": true,
+   "refs": [
+    "7019145029",
+    "7019145058",
+    "7019145065",
+    "7019149538",
+    "7019149612",
+    "7479222997",
+    "7479223296"
+   ]
+  },
+  {
+   "id": 8044852814,
+   "slot": "RightShoe",
+   "expectedType": 71,
+   "roles": [
+    "shoes:dress_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 71,
+    "name": "Dress Shoes - Black - Right",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2021-11-20T00:08:59.183Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 71
+   },
+   "layered": true,
+   "refs": [
+    "7019145031",
+    "7019145045",
+    "7019145066",
+    "7019149538",
+    "7019149612",
+    "7479222997",
+    "7479223296"
+   ]
+  },
+  {
+   "id": 7192553841,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:street_hoodie",
+    "fallback:street_hooded",
+    "fallback:street_teal"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Zip Hoodie - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T18:18:11.783Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6685422200",
+    "6685422271",
+    "6685422328",
+    "7271870785",
+    "8861766183",
+    "8861766322",
+    "8861766325",
+    "8861766679"
+   ]
+  },
+  {
+   "id": 8516620262,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "fallback:street_hoodie",
+    "outfit:street_hooded",
+    "fallback:street_denim",
+    "fallback:work_parka"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Hooded Jacket - Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-11T23:33:54.18Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "7477865069",
+    "7477865264",
+    "7477865337",
+    "7477865486",
+    "8917454991",
+    "8917455036",
+    "8917455040",
+    "8917455115"
+   ]
+  },
+  {
+   "id": 132094497182540,
+   "slot": "TShirt",
+   "expectedType": 64,
+   "roles": [
+    "outfit:street_hoodie",
+    "outfit:street_teal",
+    "outfit:biker_brown",
+    "outfit:beach_red",
+    "outfit:beach_trunks"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 64,
+    "name": "Plain White T-Shirt",
+    "creator": "exactly ablimity",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2025-12-06T04:30:39.36Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 9112474888,
+   "slot": "TShirt",
+   "expectedType": 64,
+   "roles": [
+    "fallback:street_hoodie",
+    "fallback:street_hooded",
+    "outfit:street_denim",
+    "fallback:street_teal",
+    "fallback:business_suit",
+    "fallback:business_coat",
+    "fallback:business_pinstripe",
+    "fallback:biker_black",
+    "fallback:biker_brown",
+    "outfit:biker_collar",
+    "fallback:beach_floral",
+    "fallback:beach_red",
+    "fallback:beach_trunks",
+    "outfit:work_vest_green",
+    "fallback:work_vest_orange"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 64,
+    "name": "Basic T-Shirt - Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-16T00:35:36.267Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 64
+   },
+   "layered": true,
+   "refs": [
+    "6689524965",
+    "6689525073",
+    "6710430741",
+    "6972953058",
+    "9112420524",
+    "9112420535",
+    "9112420543"
+   ]
+  },
+  {
+   "id": 85947788964178,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:street_hoodie",
+    "outfit:street_knit",
+    "outfit:biker_collar",
+    "outfit:work_vest_orange"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Navy Straight Leg Jeans",
+    "creator": "Kool closet",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2026-03-09T17:47:03.903Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 6984740059,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "fallback:street_hoodie",
+    "fallback:street_hooded",
+    "fallback:street_denim",
+    "fallback:street_teal",
+    "fallback:street_knit",
+    "fallback:business_coat",
+    "fallback:business_tie",
+    "fallback:business_trench",
+    "fallback:biker_brown",
+    "fallback:biker_collar",
+    "outfit:work_vest_green",
+    "fallback:work_vest_orange",
+    "outfit:work_parka",
+    "fallback:work_flannel"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Cargo Pants - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-06-21T16:21:38.227Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 66
+   },
+   "layered": true,
+   "refs": [
+    "6685638887",
+    "6685639016",
+    "6685639089",
+    "6685639391",
+    "6897040144",
+    "6897040145",
+    "6897040152"
+   ]
+  },
+  {
+   "id": 104803779228359,
+   "slot": "TShirt",
+   "expectedType": 64,
+   "roles": [
+    "outfit:street_hooded",
+    "outfit:business_pinstripe",
+    "outfit:biker_black",
+    "outfit:work_vest_orange"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 64,
+    "name": "Plain Black T-Shirt",
+    "creator": "exactly ablimity",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2025-12-06T04:41:38.69Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 128896444649642,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:street_hooded",
+    "outfit:biker_black"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Black Slim Jeans",
+    "creator": "Kool closet",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2026-03-09T17:45:47.03Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8516609675,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:street_denim"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Denim Jacket - Light Wash",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-11T23:31:56.31Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "7390615521",
+    "7390615859",
+    "7390615982",
+    "7390616287",
+    "8917459520",
+    "8917459593",
+    "8917459638"
+   ]
+  },
+  {
+   "id": 9120031517,
+   "slot": "TShirt",
+   "expectedType": 64,
+   "roles": [
+    "fallback:street_denim",
+    "fallback:biker_collar",
+    "fallback:work_vest_green"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 64,
+    "name": "Baseball Long Sleeve - B&W",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-16T23:03:21.313Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 64
+   },
+   "layered": true,
+   "refs": [
+    "6689499972",
+    "6689500119",
+    "6689500212",
+    "7480365717",
+    "9110433666",
+    "9110433667",
+    "9110433680"
+   ]
+  },
+  {
+   "id": 122004327092802,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:street_denim",
+    "outfit:work_flannel"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Slate Gray Slim Jeans",
+    "creator": "Kool closet",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2026-02-20T18:32:42.66Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8648389231,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:street_teal"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Zip Hoodie - Teal",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-26T18:28:08.747Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6685422200",
+    "6685422271",
+    "6685422328",
+    "6685422423",
+    "8861766183",
+    "8861766322",
+    "8861766325",
+    "8861766679"
+   ]
+  },
+  {
+   "id": 85259263998312,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:street_teal"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Straight Light Blue Jeans",
+    "creator": "Kool closet",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2026-03-09T17:43:33.827Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 6984769289,
+   "slot": "Sweater",
+   "expectedType": 68,
+   "roles": [
+    "outfit:street_knit"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 68,
+    "name": "Knit Sweater - Beige",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-06-21T16:28:46.563Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 68
+   },
+   "layered": true,
+   "refs": [
+    "6686554261",
+    "6686554370",
+    "6686554429",
+    "6686554570",
+    "9245502453",
+    "9245502456",
+    "9245502469"
+   ]
+  },
+  {
+   "id": 9240758221,
+   "slot": "Sweater",
+   "expectedType": 68,
+   "roles": [
+    "fallback:street_knit",
+    "fallback:business_trench",
+    "outfit:work_parka"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 68,
+    "name": "Knit Sweater - Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T06:12:20.423Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 68
+   },
+   "layered": true,
+   "refs": [
+    "6686554261",
+    "6686554370",
+    "6686554429",
+    "7480149745",
+    "9245502453",
+    "9245502456",
+    "9245502469"
+   ]
+  },
+  {
+   "id": 12300764586,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:business_suit"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Black Business Tuxedo Blazer",
+    "creator": "Eternos Digital",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2023-01-28T14:20:27.397Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8516638468,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "fallback:business_suit",
+    "outfit:business_coat",
+    "fallback:business_pinstripe",
+    "fallback:business_tie",
+    "fallback:business_trench"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Business Coat - Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-11T23:37:11.653Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6972753412",
+    "6972753459",
+    "7478204165",
+    "7478204684",
+    "8917451193",
+    "8917451243",
+    "8917451250"
+   ]
+  },
+  {
+   "id": 16993920746,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "outfit:business_suit",
+    "outfit:business_coat"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Plain White Shirt",
+    "creator": "Clarity of Magic",
+    "creatorVerified": false,
+    "forSale": true,
+    "price": 60,
+    "created": "2024-04-03T10:17:41.813Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 12331823194,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:business_suit"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Black Business Tuxedo Pants",
+    "creator": "Eternos Digital",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2023-01-30T23:16:43.227Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 13958227340,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "fallback:business_suit",
+    "outfit:business_pinstripe"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Black Chinos",
+    "creator": "Eternos Digital",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2023-07-04T22:23:30.687Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8516648620,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "fallback:business_coat",
+    "outfit:business_pinstripe"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Business Coat - Striped Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-11T23:38:54.513Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6972753412",
+    "6972753459",
+    "7478204165",
+    "7478204422",
+    "8917451193",
+    "8917451243",
+    "8917451250"
+   ]
+  },
+  {
+   "id": 13958225096,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:business_coat"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Grey Chinos",
+    "creator": "Eternos Digital",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2023-07-04T22:23:09.05Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8721985925,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "fallback:business_pinstripe",
+    "fallback:biker_black",
+    "outfit:biker_brown",
+    "fallback:work_vest_green",
+    "fallback:work_parka"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Motorcycle Pants - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-02-03T21:25:39.643Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 66
+   },
+   "layered": true,
+   "refs": [
+    "10380186199",
+    "10380186237",
+    "10380186361",
+    "6994733508",
+    "6994733598",
+    "7478700702",
+    "7478701225",
+    "7478701331"
+   ]
+  },
+  {
+   "id": 121486536255417,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "outfit:business_tie"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Black Blazer w/ Shirt & Tie",
+    "creator": "ANGVLI",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 65,
+    "created": "2025-01-25T16:25:08.067Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 13958229751,
+   "slot": "Pants",
+   "expectedType": 66,
+   "roles": [
+    "outfit:business_tie",
+    "outfit:business_trench"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 66,
+    "name": "Navy Blue Chinos",
+    "creator": "Eternos Digital",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 75,
+    "created": "2023-07-04T22:23:51.323Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8648380153,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:business_trench"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Trench Coat - White",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-26T18:26:52.887Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6972878073",
+    "7478216589",
+    "7478216818",
+    "7478216972",
+    "8917457749",
+    "8917457801",
+    "8917457910",
+    "8917457955"
+   ]
+  },
+  {
+   "id": 9240757332,
+   "slot": "Sweater",
+   "expectedType": 68,
+   "roles": [
+    "outfit:business_trench",
+    "fallback:work_parka"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 68,
+    "name": "Knit Sweater - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-31T06:12:06.07Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 68
+   },
+   "layered": true,
+   "refs": [
+    "6686554261",
+    "6686554370",
+    "6686554429",
+    "7480149864",
+    "9245502453",
+    "9245502456",
+    "9245502469"
+   ]
+  },
+  {
+   "id": 7192549218,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:biker_black",
+    "fallback:biker_brown"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Leather Jacket - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T18:17:06.597Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6685591883",
+    "6685592036",
+    "6685592120",
+    "6685592194",
+    "8917438041",
+    "8917438073",
+    "8917438203",
+    "8917438270"
+   ]
+  },
+  {
+   "id": 6984767443,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "fallback:biker_black",
+    "outfit:biker_brown",
+    "fallback:biker_collar"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Leather Jacket - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-06-21T16:28:19.66Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6685591883",
+    "6685592036",
+    "6685592120",
+    "6685592308",
+    "8917438041",
+    "8917438073",
+    "8917438203",
+    "8917438270"
+   ]
+  },
+  {
+   "id": 7192547628,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:biker_collar"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Collared Leather Jacket - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T18:16:44.723Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6972067012",
+    "6972067094",
+    "7478098575",
+    "7478098982",
+    "8917447015",
+    "8917447037",
+    "8917447117"
+   ]
+  },
+  {
+   "id": 9728267998,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "outfit:beach_floral",
+    "fallback:beach_red",
+    "fallback:beach_turquoise"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Floral Button Down - Forest",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 105,
+    "created": "2022-05-26T07:00:22.153Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 65
+   },
+   "layered": true,
+   "refs": [
+    "7391102242",
+    "7391102364",
+    "7391102481",
+    "7391102621",
+    "9793789146",
+    "9793789166",
+    "9793789207"
+   ]
+  },
+  {
+   "id": 9174391966,
+   "slot": "Shorts",
+   "expectedType": 69,
+   "roles": [
+    "outfit:beach_floral",
+    "fallback:beach_red",
+    "fallback:beach_turquoise"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 69,
+    "name": "Bermuda Shorts - Black",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-03-23T06:44:05.78Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 69
+   },
+   "layered": true,
+   "refs": [
+    "6998568863",
+    "7479625769",
+    "7479625936",
+    "7479626289",
+    "9246820048",
+    "9246820066",
+    "9246820078"
+   ]
+  },
+  {
+   "id": 9274635732,
+   "slot": "Shorts",
+   "expectedType": 69,
+   "roles": [
+    "fallback:beach_floral",
+    "outfit:beach_red",
+    "fallback:beach_trunks"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 69,
+    "name": "Floral Swim Trunks - White",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-04-03T18:55:30.357Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 69
+   },
+   "layered": true,
+   "refs": [
+    "6686519097",
+    "6686519177",
+    "6686519243",
+    "7479875744",
+    "9246401590",
+    "9246401607",
+    "9246401618"
+   ]
+  },
+  {
+   "id": 9342978533,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "outfit:beach_red"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Red Hawaiian Open Shirt ",
+    "creator": "KelvinBlues1",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2022-04-11T19:41:13.34Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 65
+   },
+   "layered": true,
+   "refs": [
+    "9023099500",
+    "9023099944",
+    "9058090764",
+    "9342133453",
+    "9342133457",
+    "9342133476"
+   ]
+  },
+  {
+   "id": 9342985332,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "outfit:beach_turquoise"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Turquoise Hawaiian Open Shirt",
+    "creator": "KelvinBlues1",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2022-04-11T19:42:12.833Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 65
+   },
+   "layered": true,
+   "refs": [
+    "9023099500",
+    "9023100343",
+    "9058090764",
+    "9342133453",
+    "9342133457",
+    "9342133476"
+   ]
+  },
+  {
+   "id": 7192687500,
+   "slot": "Shorts",
+   "expectedType": 69,
+   "roles": [
+    "outfit:beach_turquoise"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 69,
+    "name": "Jean Shorts - Light Wash",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 65,
+    "created": "2021-08-02T18:48:04.963Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 69
+   },
+   "layered": true,
+   "refs": [
+    "6686398227",
+    "6686398298",
+    "6686398364",
+    "6959469419",
+    "6959469431",
+    "6959469433",
+    "7479681864"
+   ]
+  },
+  {
+   "id": 7192685245,
+   "slot": "Shorts",
+   "expectedType": 69,
+   "roles": [
+    "outfit:beach_trunks"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 69,
+    "name": "Floral Swim Trunks - Blue",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2021-08-02T18:47:34.35Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 69
+   },
+   "layered": true,
+   "refs": [
+    "6686519097",
+    "6686519177",
+    "6686519243",
+    "6686519381",
+    "9246401590",
+    "9246401607",
+    "9246401618"
+   ]
+  },
+  {
+   "id": 18863624639,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:work_vest_green",
+    "fallback:work_vest_orange"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Neon Green Construction Vest",
+    "creator": "Builder_Boy UGC Fashion House",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2024-08-08T18:43:49.46Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18863614932,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "fallback:work_vest_green",
+    "outfit:work_vest_orange"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Orange Construction Vest",
+    "creator": "Builder_Boy UGC Fashion House",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 70,
+    "created": "2024-08-08T18:42:55.453Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid catalog item); type + creator verified, engine load checked"
+  },
+  {
+   "id": 8648397446,
+   "slot": "Jacket",
+   "expectedType": 67,
+   "roles": [
+    "outfit:work_parka"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 67,
+    "name": "Parka - Brown",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2022-01-26T18:29:18.777Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 67
+   },
+   "layered": true,
+   "refs": [
+    "6972155508",
+    "6972155571",
+    "7478171111",
+    "7478171247",
+    "8917453096",
+    "8917453097",
+    "8917453125"
+   ]
+  },
+  {
+   "id": 7178744611,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "outfit:work_flannel"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Flannel - Red",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 65,
+    "created": "2021-07-31T01:18:21.867Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 65
+   },
+   "layered": true,
+   "refs": [
+    "6995432479",
+    "6995432544",
+    "6998310027",
+    "6998310053",
+    "6998310054",
+    "7271846993",
+    "7271847769"
+   ]
+  },
+  {
+   "id": 7178743190,
+   "slot": "Shirt",
+   "expectedType": 65,
+   "roles": [
+    "fallback:work_flannel"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 65,
+    "name": "Flannel - Green",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 65,
+    "created": "2021-07-31T01:17:57.387Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 65
+   },
+   "layered": true,
+   "refs": [
+    "6995432479",
+    "6995432544",
+    "6998310027",
+    "6998310053",
+    "6998310054",
+    "7271846993",
+    "7271847659"
+   ]
+  },
+  {
+   "id": 11625093004,
+   "slot": "TShirt",
+   "expectedType": 64,
+   "roles": [
+    "safe"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 64,
+    "name": "Tank Top - Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-21T06:31:16.06Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 64
+   },
+   "layered": true,
+   "refs": [
+    "11505595755",
+    "11505596966",
+    "11505598104",
+    "11582831352",
+    "11582831364",
+    "11582831367",
+    "11599875650"
+   ]
+  },
+  {
+   "id": 11625096506,
+   "slot": "Shorts",
+   "expectedType": 69,
+   "roles": [
+    "safe"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 69,
+    "name": "Shorts - Gray",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-21T06:32:17.903Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 69
+   },
+   "layered": true,
+   "refs": [
+    "11505585660",
+    "11505586658",
+    "11505588030",
+    "11506919246",
+    "11506919261",
+    "11506919267",
+    "11506919295",
+    "11625072331"
+   ]
+  },
+  {
+   "id": 126354114956642,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:15:49.763Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 106810508343012,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:16:17.963Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 124765145869332,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:18:55.797Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 115715495289805,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:19:27.35Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 93993406355955,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:14:56.127Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 123695349157584,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:14:41.477Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 106537993816942,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:community"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "adidas Community Animation Pack",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-06-06T16:16:04.287Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538150608,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "adidas Sports - Idle",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:45:41.353Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538146480,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "adidas Sports - Walk",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:45:17.76Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538133604,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "adidas Sports - Run",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:44:09.91Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538153691,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "adidas Sports - Jump",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:45:57.117Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538164337,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "adidas Sports - Fall",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:46:50.103Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538170170,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "adidas Sports - Climb",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:47:20.143Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 18538158932,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:sports"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "adidas Sports - Swim",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2024-07-17T20:46:21.2Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 11600321661,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "Realistic - Idle",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:46:49.777Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 51
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 11600331426,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "Realistic - Walk",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:48:09.843Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 55
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 11600327265,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "Realistic - Run",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:47:31.617Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 53
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 11600324801,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "Realistic - Jump",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:47:12.13Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 52
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 11600319649,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "Realistic - Fall",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:46:30.843Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 50
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 11600317961,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "Realistic - Climb",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:46:13.59Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 48
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 11600329588,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:realistic"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "Realistic - Swim",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": 0,
+    "created": "2022-11-19T00:47:52.647Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 54
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 73137983344853,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "adidas aura - idle",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T18:00:01.607Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 75183215343859,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "adidas aura - walk",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T18:00:55.627Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 123973978164540,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "adidas aura - run",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T17:59:39.693Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 129527230938281,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "adidas aura - jump",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T17:58:59.273Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 99457463463495,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "adidas aura - fall",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T17:58:36.11Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 140398319728398,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "adidas aura - climb",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T17:58:12.77Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 119007025452432,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:aura"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "adidas aura - swim",
+    "creator": "adidas",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2025-12-17T18:00:23.33Z"
+   },
+   "delivery": {
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
+   },
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
+  },
+  {
+   "id": 619511648,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "Stylish Idle",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T19:59:13.203Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 51
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 619512767,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "Stylish Walk",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T20:01:10.697Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 55
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 619512153,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "Stylish Run",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T20:00:10.66Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 53
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 619511974,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "Stylish Jump",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T19:59:48.143Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 52
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 619511417,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "Stylish Fall",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T19:58:51.64Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 50
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 619509955,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "Stylish Climb",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T19:56:42.44Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 48
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 619512450,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:stylish"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "Stylish Swim",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-01-19T20:00:39.63Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 54
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892268340,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "Elder Idle",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:14:07.52Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 51
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892267099,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "Elder Walk",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:13:20.533Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 55
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892265784,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "Elder Run",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:12:22.677Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 53
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892267917,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "Elder Jump",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:13:53.127Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 52
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892267521,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "Elder Fall",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:13:36.707Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 50
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892269341,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "Elder Climb",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:14:46.363Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 48
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 892268710,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:elder"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "Elder Swim",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2017-07-01T00:14:20.363Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 54
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510235063,
+   "slot": "Idle",
+   "expectedType": 51,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 51,
+    "name": "Rthro Idle",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:40:53.18Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 51
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510242378,
+   "slot": "Walk",
+   "expectedType": 55,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 55,
+    "name": "Rthro Walk",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:42:53.147Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 55
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510238627,
+   "slot": "Run",
+   "expectedType": 53,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 53,
+    "name": "Rthro Run",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:41:49.013Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 53
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510236649,
+   "slot": "Jump",
+   "expectedType": 52,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 52,
+    "name": "Rthro Jump",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:41:18.887Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 52
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510233257,
+   "slot": "Fall",
+   "expectedType": 50,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 50,
+    "name": "Rthro Fall",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:40:22.863Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 50
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510230574,
+   "slot": "Climb",
+   "expectedType": 48,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 48,
+    "name": "Rthro Climb",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:39:35.777Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 48
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 2510240941,
+   "slot": "Swim",
+   "expectedType": 54,
+   "roles": [
+    "anim:rthro"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 54,
+    "name": "Rthro Swim",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2018-10-23T18:42:26.207Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 54
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 10713992055,
+   "slot": "Animation",
+   "expectedType": 24,
+   "roles": [
+    "fidget:bored"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 24,
+    "name": "Emote_Bored",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-08-25T17:43:38.21Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 24
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 5230661597,
+   "slot": "Emote",
+   "expectedType": 61,
+   "roles": [
+    "fidget-emote:bored"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 61,
+    "name": "Bored",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 55,
+    "created": "2020-06-24T23:26:43.77Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 61
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 10714338461,
+   "slot": "Animation",
+   "expectedType": 24,
+   "roles": [
+    "fidget:tilt"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 24,
+    "name": "Tilt Face",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-08-25T18:25:38.477Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 24
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 10714374484,
+   "slot": "Animation",
+   "expectedType": 24,
+   "roles": [
+    "fidget:shrug"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 24,
+    "name": "Shrug Face",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": false,
+    "price": null,
+    "created": "2022-08-25T18:29:50.977Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 24
+   },
+   "layered": false,
+   "refs": []
+  },
+  {
+   "id": 3576968026,
+   "slot": "Emote",
+   "expectedType": 61,
+   "roles": [
+    "fidget-emote:shrug"
+   ],
+   "status": "ok",
+   "problems": [],
+   "economy": {
+    "ok": true,
+    "type": 61,
+    "name": "Shrug",
+    "creator": "Roblox",
+    "creatorVerified": true,
+    "forSale": true,
+    "price": 0,
+    "created": "2019-08-01T21:21:36.41Z"
+   },
+   "delivery": {
+    "ok": true,
+    "archived": false,
+    "type": 61
+   },
+   "layered": false,
+   "refs": []
+  }
+ ]
+}

@@ -15,7 +15,10 @@
 --   * Every id below was resolved through economy.roblox.com/v2/assets/<id>/details and
 --     assetdelivery.roblox.com/v2/assetId/<id>, and the downloaded accessory files were opened to check that every
 --     mesh / texture / cage they reference resolves too: tools/characters/verify_looks.py ->
---     docs/v2/evidence/characters_catalog_verify.json (re-run it after editing this file).
+--     docs/v2/evidence/characters_catalog_verify.json. Paid third-party items cannot be downloaded anonymously, so
+--     every accessory, body, head, walk style and sample look is also built in the REAL engine
+--     (CreateHumanoidModelFromDescriptionAsync in an Open Cloud Luau task): tools/characters/cloud_looks.py ->
+--     docs/v2/evidence/characters_engine_check.json. Re-run both after editing this file.
 --   * The 2023 Roblox hair line, eyebrows, eyelashes, shoes and all clothing here are LAYERED (their Handle carries a
 --     WrapLayer; checked in the downloaded files), so they go into HumanoidDescription:SetAccessories with
 --     IsLayered = true and an Order from LAYER_ORDER.
@@ -329,7 +332,14 @@ PlayerLooks.Faces = {
 		eyebrows = 11702295477,
 		eyelashes = 11702297008,
 	},
-	{ key = "robin", name = "Robin", bundle = 990, head = 11709148634, eyebrows = 11709149939, eyelashes = 11709152004 },
+	{
+		key = "robin",
+		name = "Robin",
+		bundle = 990,
+		head = 11709148634,
+		eyebrows = 11709149939,
+		eyelashes = 11709152004,
+	},
 	{ key = "rene", name = "Rene", bundle = 992, head = 11714044513, eyebrows = 11714047676, eyelashes = 11714050380 },
 	{
 		key = "jordan",
@@ -475,9 +485,27 @@ PlayerLooks.Shoes = {
 	},
 	canvas_white = { key = "canvas_white", name = "White canvas", bundle = 894, left = 9481782649, right = 9481786623 },
 	canvas_gray = { key = "canvas_gray", name = "Grey canvas", bundle = 905, left = 9483690316, right = 9483697460 },
-	dress_black = { key = "dress_black", name = "Black dress shoes", bundle = 907, left = 8044843668, right = 8044852814 },
-	dress_brown = { key = "dress_brown", name = "Brown dress shoes", bundle = 925, left = 8044823721, right = 8044826993 },
-	boots_black = { key = "boots_black", name = "Black work boots", bundle = 916, left = 9542395442, right = 9542450828 },
+	dress_black = {
+		key = "dress_black",
+		name = "Black dress shoes",
+		bundle = 907,
+		left = 8044843668,
+		right = 8044852814,
+	},
+	dress_brown = {
+		key = "dress_brown",
+		name = "Brown dress shoes",
+		bundle = 925,
+		left = 8044823721,
+		right = 8044826993,
+	},
+	boots_black = {
+		key = "boots_black",
+		name = "Black work boots",
+		bundle = 916,
+		left = 9542395442,
+		right = 9542450828,
+	},
 	boots_tan = { key = "boots_tan", name = "Tan work boots", bundle = 882, left = 7193170137, right = 7193171232 },
 	military_black = {
 		key = "military_black",
