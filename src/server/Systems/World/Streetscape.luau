@@ -26,12 +26,27 @@ type Place = WorldLayout.Place
 
 local Streetscape = {}
 
-Streetscape.LIGHT_SHARE = 0.4
 Streetscape.TAG_LIGHT = "StreetLight"
 
+-- Real light pools at night (VIBE_ROUTING #12). Every lamp head glows (NightGlow); a SpotLight pointing down makes the
+-- pool on the asphalt. Lights are budgeted per 512-stud streaming cell (World/Kit cells), so a client never holds more
+-- than LIGHT_BUDGET lights per cell it has streamed in: freeway heads first (the deck is otherwise pitch black), then
+-- street lamps in a deterministic order, no two lit street lamps closer than LIGHT_SPACING. The densest cell has 23
+-- heads, so most cells light every lamp.
+Streetscape.LIGHT_BUDGET = 16
+Streetscape.LIGHT_SPACING = 55
+-- range / brightness / cone angle; `drop` puts the source that far under the head (an Attachment) so a tall freeway
+-- mast still throws a full pool on the deck within the engine's 60-stud light range
+Streetscape.LIGHT = {
+	street = { range = 48, brightness = 3, angle = 120, drop = 0.6 },
+	freeway = { range = 56, brightness = 4.5, angle = 116, drop = 10 },
+}
+-- High-pressure sodium on the freeways, industry, suburbs and countryside; warm white in the core and the beach.
+Streetscape.SODIUM = Color3.fromRGB(255, 160, 76)
+Streetscape.WARM_WHITE = Color3.fromRGB(255, 222, 182)
+Streetscape.WARM_DISTRICTS = { downtown = true, midtown = true, beach = true, hills = true } :: { [string]: boolean }
+
 local LAMP_DAY = Color3.fromRGB(196, 196, 186)
-local LAMP_NIGHT = Color3.fromRGB(255, 214, 160)
-local SODIUM = Color3.fromRGB(255, 196, 132)
 
 local AD_TEXTS = {
 	"NITRO COLA",
@@ -56,18 +71,111 @@ local function ellipsoid(ctx: Ctx, cat: string, size: Vector3, cf: CFrame, style
 	return p
 end
 
-local function addLight(head: BasePart, range: number, brightness: number)
+-- Lamp colour by where it stands: sodium on freeways and outside the core, warm white in the core and the beach.
+function Streetscape.lampColor(kind: string, p: Place): Color3
+	if kind == "freeway_lamp" then
+		return Streetscape.SODIUM
+	end
+	local e = p.edge and WorldLayout.Edges[p.edge]
+	local district = if e then e.district else WorldLayout.districtAt(p.pos.X, p.pos.Z)
+	if e and (e.class == "freeway" or e.class == "ramp" or e.class == "highway") then
+		return Streetscape.SODIUM
+	end
+	return if Streetscape.WARM_DISTRICTS[district] then Streetscape.WARM_WHITE else Streetscape.SODIUM
+end
+
+export type LightPlan = { lamp: { [number]: boolean }, freeway_lamp: { [number]: boolean }, perCell: { [string]: number } }
+local planCache: LightPlan? = nil
+
+-- Which lamps carry a real light (deterministic; independent of build order and of the near / far boot split).
+function Streetscape.lightPlan(): LightPlan
+	local cached = planCache
+	if cached then
+		return cached
+	end
+	local S = WorldLayout.Streetscape
+	type Cand = { kind: string, index: number, pos: Vector3, rank: number, cost: number }
+	local byCell: { [string]: { Cand } } = {}
+	local function add(kind: string, index: number, pos: Vector3, rank: number, cost: number)
+		local key = math.floor(pos.X / Kit.CELL) .. "_" .. math.floor(pos.Z / Kit.CELL)
+		local list = byCell[key]
+		if not list then
+			list = {}
+			byCell[key] = list
+		end
+		table.insert(list, { kind = kind, index = index, pos = pos, rank = rank, cost = cost })
+	end
+	for i, p in S.freeway_lamp or {} do
+		add("freeway_lamp", i, p.pos, Kit.hash(i, 91, 4401), 2) -- two heads per mast
+	end
+	for i, p in S.lamp or {} do
+		if p.light ~= false then
+			add("lamp", i, p.pos, 1 + Kit.hash(i, 77, 4401), 1)
+		end
+	end
+	local plan: LightPlan = { lamp = {}, freeway_lamp = {}, perCell = {} }
+	local keys: { string } = {}
+	for key in byCell do
+		table.insert(keys, key)
+	end
+	table.sort(keys)
+	local spacing2 = Streetscape.LIGHT_SPACING * Streetscape.LIGHT_SPACING
+	for _, key in keys do
+		local list = byCell[key]
+		table.sort(list, function(a: Cand, b: Cand): boolean
+			if a.rank ~= b.rank then
+				return a.rank < b.rank
+			end
+			return a.index < b.index
+		end)
+		local used = 0
+		local lit: { Vector3 } = {}
+		for _, c in list do
+			if used + c.cost > Streetscape.LIGHT_BUDGET then
+				continue
+			end
+			local ok = true
+			if c.kind == "lamp" then
+				for _, q in lit do
+					local dx, dz = q.X - c.pos.X, q.Z - c.pos.Z
+					if dx * dx + dz * dz < spacing2 and math.abs(q.Y - c.pos.Y) < 12 then
+						ok = false
+						break
+					end
+				end
+			end
+			if ok then
+				used += c.cost
+				plan[c.kind][c.index] = true
+				if c.kind == "lamp" then
+					table.insert(lit, c.pos)
+				end
+			end
+		end
+		plan.perCell[key] = used
+	end
+	planCache = plan
+	return plan
+end
+
+-- A downward SpotLight under `head` (in an Attachment `drop` studs below it), off by day: LightingService switches
+-- every "StreetLight"-tagged instance's lights at night.
+local function addLight(head: BasePart, spec: { range: number, brightness: number, angle: number, drop: number }, color: Color3)
+	local att = Instance.new("Attachment")
+	att.Name = "LightPool"
+	att.CFrame = head.CFrame:ToObjectSpace(CFrame.new(head.Position - Vector3.new(0, spec.drop, 0)))
+	att.Parent = head
 	local l = Instance.new("SpotLight")
 	l.Name = "Light"
 	l.Face = Enum.NormalId.Bottom
-	l.Angle = 120
-	l.Range = range
-	l.Brightness = brightness
-	l.Color = SODIUM
+	l.Angle = spec.angle
+	l.Range = spec.range
+	l.Brightness = spec.brightness
+	l.Color = color
 	l.Shadows = false
 	l.Enabled = false
-	l.Parent = head
-	CollectionService:AddTag(head, Streetscape.TAG_LIGHT)
+	l.Parent = att
+	CollectionService:AddTag(att, Streetscape.TAG_LIGHT)
 end
 
 -- Cobra-head lamp: pole at pos, the head reaching toward the road (yaw = facing the road).
@@ -86,14 +194,31 @@ local function lamp(ctx: Ctx, p: Place, index: number)
 		{ collide = false, shadow = false }
 	)
 	head.Color = LAMP_DAY
-	Kit.nightGlow(head, LAMP_NIGHT)
-	-- the lamp budget: a deterministic share carries a real light
-	if p.light ~= false and Kit.hash(index, 77, 4401) < Streetscape.LIGHT_SHARE then
-		addLight(head, 48, 2.2)
+	local color = Streetscape.lampColor("lamp", p)
+	Kit.nightGlow(head, color)
+	if Streetscape.lightPlan().lamp[index] then
+		-- the pool comes from the lens at the street end of the head
+		local lens = head.CFrame * CFrame.new(0, -0.4, -(reach + 1) / 2 + 1)
+		local att = Instance.new("Attachment")
+		att.Name = "LightPool"
+		att.CFrame = head.CFrame:ToObjectSpace(CFrame.new(lens.Position))
+		att.Parent = head
+		local spec = Streetscape.LIGHT.street
+		local l = Instance.new("SpotLight")
+		l.Name = "Light"
+		l.Face = Enum.NormalId.Bottom
+		l.Angle = spec.angle
+		l.Range = spec.range
+		l.Brightness = spec.brightness
+		l.Color = color
+		l.Shadows = false
+		l.Enabled = false
+		l.Parent = att
+		CollectionService:AddTag(att, Streetscape.TAG_LIGHT)
 	end
 end
 
-local function freewayLamp(ctx: Ctx, p: Place)
+local function freewayLamp(ctx: Ctx, p: Place, index: number)
 	local h = p.h or 34
 	local cf = yawCF(p.pos, p.yaw)
 	local pole = Kit.post(ctx, "FwLampPole", p.pos, h, 1.2, Kit.style("metal_grey"), { shadow = false })
@@ -107,6 +232,7 @@ local function freewayLamp(ctx: Ctx, p: Place)
 		Kit.style("metal_grey"),
 		{ collide = false, shadow = false }
 	)
+	local lit = Streetscape.lightPlan().freeway_lamp[index] == true
 	for _, side in { -1, 1 } do
 		local head = Kit.part(
 			ctx,
@@ -117,9 +243,9 @@ local function freewayLamp(ctx: Ctx, p: Place)
 			{ collide = false, shadow = false }
 		)
 		head.Color = LAMP_DAY
-		Kit.nightGlow(head, LAMP_NIGHT)
-		if p.light then
-			addLight(head, 60, 2.4)
+		Kit.nightGlow(head, Streetscape.SODIUM)
+		if lit then
+			addLight(head, Streetscape.LIGHT.freeway, Streetscape.SODIUM)
 		end
 	end
 end
