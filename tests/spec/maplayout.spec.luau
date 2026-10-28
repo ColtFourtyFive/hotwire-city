@@ -50,6 +50,57 @@ return function(t)
 		end
 	end)
 
+	t.test("first spawn: on a downtown sidewalk, mid-block, clear, facing the skyline (VIBE_ROUTING #2)", function()
+		local cf = MapLayout.spawnCFrame()
+		local feet = cf.Position - Vector3.new(0, MapLayout.SPAWN_ROOT, 0)
+		t.near(feet.Y, MapLayout.CURB_TOP, 0.05, "feet on the sidewalk top")
+		t.eq(WorldLayout.districtAt(feet.X, feet.Z), "downtown", "in Pinnacle Heights")
+		t.ok(not WorldQuery.isOnRoad(feet), "not on the asphalt")
+		local plaza = WorldQuery.poi("HotwirePlaza")
+		local e = WorldLayout.Edges[plaza.edge]
+		local p, ei = WorldQuery.nearestRoadPoint(feet, { maxDistance = 200 })
+		t.eq(ei, plaza.edge, "beside the plaza's street")
+		local off = flatDist(feet, p)
+		t.ok(
+			off > e.width / 2 and off < e.width / 2 + e.sidewalk,
+			("on its sidewalk (%.1f from the centreline)"):format(off)
+		)
+		-- not inside the plaza, another POI, a plot or a building parcel
+		for _, poi in WorldLayout.POIs do
+			t.ok(not inFootprint(poi, feet), "inside POI " .. poi.id)
+		end
+		for i = 1, MapLayout.plotCount() do
+			t.ok(MapLayout.plotAt(feet + Vector3.new(0, 3, 0)) ~= i, "inside garage " .. i)
+		end
+		t.ok(WorldQuery.parcelAt(feet) == nil, "inside a building parcel")
+		-- mid-block: outside every junction box
+		for _, it in WorldLayout.Intersections do
+			t.ok(flatDist(it.pos, feet) > it.radius + 10, "in junction " .. it.id)
+		end
+		-- nothing of the streetscape to spawn into
+		for kind, list in WorldLayout.Streetscape do
+			for _, pl in list do
+				t.ok(flatDist(pl.pos, feet) > 4, ("%s %.1f studs from the spawn"):format(kind, flatDist(pl.pos, feet)))
+			end
+		end
+		-- facing along the boulevard, toward the tall towers (the parcels ahead are taller than the ones behind)
+		local _, tan = WorldQuery.edgePoint(plaza.edge, MapLayout.SPAWN_S)
+		t.ok(math.abs(cf.LookVector:Dot(tan)) > 0.99, "looks along the street")
+		local ahead, behind = 0, 0
+		for _, parcel in WorldLayout.Parcels do
+			local d = parcel.cframe.Position - feet
+			if d.Magnitude < 900 and parcel.size.Y > 0 then
+				if d:Dot(cf.LookVector) > 0 then
+					ahead = math.max(ahead, parcel.size.Y)
+				else
+					behind = math.max(behind, parcel.size.Y)
+				end
+			end
+		end
+		t.ok(ahead > behind, ("skyline ahead (%d) taller than behind (%d)"):format(ahead, behind))
+		t.ok(flatDist(feet, WorldLayout.Spawns.default.Position) < 300, "a few steps from Hotwire Plaza")
+	end)
+
 	t.test("plots: v1 plot-local layout on the v2 plot frames", function()
 		t.eq(MapLayout.plotCount(), #WorldLayout.Plots)
 		t.eq(MapLayout.plotCount(), 8)
@@ -104,7 +155,7 @@ return function(t)
 			t.ok(c.X > WorldLayout.Bounds.playMinX and c.X < WorldLayout.Bounds.playMaxX, name .. " in bounds")
 		end
 		local plaza = WorldQuery.poi("HotwirePlaza")
-		t.ok(inFootprint(plaza, MapLayout.spawnCFrame().Position), "spawn on Hotwire Plaza")
+		t.ok(inFootprint(plaza, WorldLayout.Spawns.default.Position), "hub point on Hotwire Plaza")
 		local hq = WorldQuery.poi("PoliceHQ")
 		t.ok(flatDist(MapLayout.bustedReleaseCFrame().Position, hq.cframe.Position) < 200, "release at HQ")
 	end)

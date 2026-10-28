@@ -136,6 +136,7 @@ Minimap.GPS = {
 	SELECT_INTERVAL = 0.25, -- seconds between picks of the active GPS target
 	ARRIVE_RADIUS = 30, -- the custom map waypoint clears itself within this many studs
 	MIN_ROUTE = 24, -- closer than this to the target: no route line
+	ROUTE_BUDGET_MS = 4, -- a RoadGraph.route slower than this is logged (VIBE_ROUTING #22)
 	WIDTH = 6, -- route line (design px, radar)
 	OUTLINE = 2.5, -- dark outline each side (design px)
 	MAP_WIDTH = 7, -- route line on the fullscreen map

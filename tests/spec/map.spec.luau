@@ -371,7 +371,11 @@ return function(t)
 		local plaza = folder.POIs.HotwirePlaza
 		local spawn = plaza:FindFirstChildOfClass("SpawnLocation")
 		t.ok(spawn and spawn.Neutral, "fallback SpawnLocation")
-		t.ok(flatDist(spawn.CFrame.Position, WorldLayout.Spawns.default.Position) < 1, "at Spawns.default")
+		local first = MapLayout.spawnCFrame()
+		t.ok(flatDist(spawn.CFrame.Position, first.Position) < 1, "at MapLayout.spawnCFrame (the street spawn)")
+		t.near(spawn.CFrame.Position.Y + spawn.Size.Y / 2, MapLayout.CURB_TOP, 0.05, "flush with the sidewalk")
+		t.eq(spawn.Transparency, 1, "no visible spawn plate")
+		t.ok(spawn.CFrame.LookVector:Dot(first.LookVector) > 0.99, "faces the spawn heading")
 		local boards = tagged("LeaderboardBoard")
 		t.eq(#boards, 2, "two leaderboards")
 		for _, b in boards do

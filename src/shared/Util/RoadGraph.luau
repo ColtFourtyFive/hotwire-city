@@ -12,7 +12,14 @@
 --
 -- No instances, no services: the same answers on the server (police / traffic routing) and the client (GPS).
 -- Deterministic (ties break on the lower index) and fast: spatial hashing for lookups, a binary-heap A* with
--- generation-stamped scratch arrays, so a route on the current city takes well under a millisecond.
+-- generation-stamped scratch arrays, so a route on the v1 grid takes well under a millisecond.
+--
+-- v2 world graphs (fromWorld) route on the junction network instead (~700 nodes, not the ~4,400 polyline vertices) and
+-- by travel time (road class speed + the expected wait at each junction, WorldQuery.route's cost), so the GPS line
+-- takes the freeway. The search runs backward from the goal as an A* aimed at the start (straight-line distance at
+-- the fastest road speed: admissible and consistent) and is kept per goal (RoadGraph.TREE_CACHE goals): a re-route to
+-- the same objective re-aims the open frontier at the new start and continues, so it settles only what it has not
+-- settled before. Budget: < 4 ms per cold route (VIBE_ROUTING #22; roadgraph.spec measures it).
 --
 -- API
 --   RoadGraph.build(segments?) -> Graph        fresh graph (from the layout when segments is nil)
@@ -81,6 +88,46 @@ type GraphData = {
 	gen: number,
 	heapNode: { number },
 	heapF: { number },
+	-- v2 world graphs only (RoadGraph.fromWorld): the junction-level network the GPS routes on
+	net: WorldNet?,
+}
+
+-- The v2 junction network (one node per WorldLayout node, one arc per drivable direction of a WorldLayout edge) and
+-- the per-goal search cache. Arc costs are seconds (length / AI speed + the expected wait at the junction you arrive
+-- at), the same cost WorldQuery.route uses, so the GPS takes the freeway the way GTA's does.
+type WorldNet = {
+	W: any,
+	n: number,
+	x: { number },
+	z: { number },
+	inFrom: { { number } }, -- node v -> the nodes u with an arc u -> v
+	inCost: { { number } },
+	inEdge: { { number } }, -- signed world edge of that arc (+ei: a -> b, -ei: b -> a)
+	k: { number }, -- seconds per stud on world edge ei
+	delayA: { number }, -- seconds lost arriving at edge ei's a / b end
+	delayB: { number },
+	hScale: number, -- 1 / the fastest speed (admissible, consistent heuristic)
+	fineEdge: { number }, -- fine edge -> world edge
+	fineS0: { number }, -- arc length along the world edge at the fine edge's a end
+	cum: { [number]: { number } }, -- lazily: cumulative arc length per world edge polyline vertex
+	trees: { [string]: Tree },
+	treeOrder: { string },
+}
+
+-- One goal's backward A* (from the goal toward the asking start, resumable): settled nodes carry their exact cost to
+-- the goal and the arc to take; the open frontier is kept, so the next route to the same goal (a re-route after the
+-- player left the line) continues from it instead of starting over.
+type Tree = {
+	edge: number,
+	s: number,
+	g: { number }, -- seconds to the goal (exact once settled; an upper bound while open)
+	succ: { number }, -- signed world edge to take from the node toward the goal; 0 = finish along the goal edge
+	state: { number }, -- 0 unseen, 1 open, 2 settled
+	heapNode: { number },
+	heapF: { number },
+	size: number,
+	hx: number, -- the heuristic's target (the current start)
+	hz: number,
 }
 
 local Graph = {}
@@ -438,15 +485,18 @@ function RoadGraph.fromWorld(world: any?): Graph
 	local nodes: { Vector3 } = {}
 	local nodeLevel: { number } = {}
 	local edges: { Edge } = {}
+	local fineEdge: { number } = {}
+	local fineS0: { number } = {}
 	for i, n in W.Nodes do
 		nodes[i] = n.pos
 		nodeLevel[i] = 0
 	end
-	for _, e in W.Edges do
+	for ei, e in W.Edges do
 		local pts = e.points
 		local class = RoadGraph.WORLD_CLASS[e.class] or "street"
 		local lanes = math.max(e.lanesF, e.lanesB, 1)
 		local prev = e.a
+		local s = 0
 		nodeLevel[e.a] = math.max(nodeLevel[e.a], e.layer)
 		nodeLevel[e.b] = math.max(nodeLevel[e.b], e.layer)
 		for k = 2, #pts do
@@ -471,11 +521,84 @@ function RoadGraph.fromWorld(world: any?): Graph
 					level = e.layer,
 					name = e.name,
 				})
+				fineEdge[#edges] = ei
+				fineS0[#edges] = s
 			end
+			s += len
 			prev = cur
 		end
 	end
-	return RoadGraph._finalize(nodes, nodeLevel, edges)
+	local g = RoadGraph._finalize(nodes, nodeLevel, edges)
+	g.net = RoadGraph._worldNet(W, fineEdge, fineS0)
+	return g
+end
+
+-- Seconds lost arriving at `node` along world edge ei (signals always; stop / all-way / yield on the stop approaches).
+local function arrivalDelay(W: any, ei: number, node: number): number
+	local id = W.Nodes[node].intersection
+	if id == nil then
+		return 0
+	end
+	local it = W.Intersections[id]
+	local delays = W.JunctionDelay or {}
+	if it.control == "signal" then
+		return delays.signal or 0
+	elseif it.control == "merge" or it.control == "none" then
+		return 0
+	end
+	for _, k in it.stopApproaches do
+		if it.approaches[k].edge == ei then
+			return delays[it.control] or 0
+		end
+	end
+	return 0
+end
+
+-- The junction network of a v2 world (see WorldNet).
+function RoadGraph._worldNet(W: any, fineEdge: { number }, fineS0: { number }): WorldNet
+	local n = #W.Nodes
+	local x, z = table.create(n, 0), table.create(n, 0)
+	local inFrom, inCost, inEdge = table.create(n), table.create(n), table.create(n)
+	for i, node in W.Nodes do
+		x[i], z[i] = node.pos.X, node.pos.Z
+		inFrom[i], inCost[i], inEdge[i] = {}, {}, {}
+	end
+	local k, delayA, delayB = {}, {}, {}
+	local fastest = 5
+	for ei, e in W.Edges do
+		local speed = math.max(e.speed or 40, 5)
+		fastest = math.max(fastest, speed)
+		k[ei] = 1 / speed
+		delayA[ei] = arrivalDelay(W, ei, e.a)
+		delayB[ei] = arrivalDelay(W, ei, e.b)
+		-- forward arc a -> b (stored on b's incoming list for the backward search)
+		table.insert(inFrom[e.b], e.a)
+		table.insert(inCost[e.b], e.length * k[ei] + delayB[ei])
+		table.insert(inEdge[e.b], ei)
+		if not e.oneWay then
+			table.insert(inFrom[e.a], e.b)
+			table.insert(inCost[e.a], e.length * k[ei] + delayA[ei])
+			table.insert(inEdge[e.a], -ei)
+		end
+	end
+	return {
+		W = W,
+		n = n,
+		x = x,
+		z = z,
+		inFrom = inFrom,
+		inCost = inCost,
+		inEdge = inEdge,
+		k = k,
+		delayA = delayA,
+		delayB = delayB,
+		hScale = 1 / fastest,
+		fineEdge = fineEdge,
+		fineS0 = fineS0,
+		cum = {},
+		trees = {},
+		treeOrder = {},
+	}
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -616,8 +739,7 @@ local function heapLess(fa: number, na: number, fb: number, nb: number): boolean
 	return fa < fb or (fa == fb and na < nb)
 end
 
-local function heapPush(self: Graph, size: number, node: number, f: number): number
-	local hn, hf = self.heapNode, self.heapF
+local function heapPush(hn: { number }, hf: { number }, size: number, node: number, f: number): number
 	size += 1
 	local i = size
 	while i > 1 do
@@ -633,8 +755,7 @@ local function heapPush(self: Graph, size: number, node: number, f: number): num
 	return size
 end
 
-local function heapPop(self: Graph, size: number): (number, number, number)
-	local hn, hf = self.heapNode, self.heapF
+local function heapPop(hn: { number }, hf: { number }, size: number): (number, number, number)
 	local topNode, topF = hn[1], hf[1]
 	local lastNode, lastF = hn[size], hf[size]
 	size -= 1
@@ -690,13 +811,274 @@ local function simplify(points: { Vector3 }): { Vector3 }
 	return out
 end
 
+-------------------------------------------------------------------------------------------------------------------------
+-- v2 world routing: backward A* on the junction network, resumable and cached per goal
+-------------------------------------------------------------------------------------------------------------------------
+
+RoadGraph.TREE_CACHE = 6 -- goals whose search is kept (GPS objective, custom waypoint, police targets...)
+RoadGraph.GOAL_SNAP = 2 -- studs: goals this close together on one edge share a cached search
+
+-- Cumulative arc length at every polyline vertex of world edge ei (cached).
+local function cumOf(net: WorldNet, ei: number): { number }
+	local c = net.cum[ei]
+	if c then
+		return c
+	end
+	local pts = net.W.Edges[ei].points
+	local out = table.create(#pts, 0)
+	for i = 2, #pts do
+		out[i] = out[i - 1] + (pts[i] - pts[i - 1]).Magnitude
+	end
+	net.cum[ei] = out
+	return out
+end
+
+-- Point at arc s along world edge ei.
+local function pointAt(net: WorldNet, ei: number, s: number): Vector3
+	local pts = net.W.Edges[ei].points
+	local cum = cumOf(net, ei)
+	local n = #pts
+	if s <= 0 then
+		return pts[1]
+	elseif s >= cum[n] then
+		return pts[n]
+	end
+	local lo, hi = 1, n
+	while hi - lo > 1 do
+		local mid = (lo + hi) // 2
+		if cum[mid] <= s then
+			lo = mid
+		else
+			hi = mid
+		end
+	end
+	local seg = cum[hi] - cum[lo]
+	return lerpExact(pts[lo], pts[hi], if seg > EPS then (s - cum[lo]) / seg else 0)
+end
+
+-- Append world edge ei's vertices strictly between arc s0 and s1 (travelling s0 -> s1), then the point at s1 (or
+-- `last`).
+local function appendSlice(net: WorldNet, ei: number, s0: number, s1: number, out: { Vector3 }, last: Vector3?)
+	local pts = net.W.Edges[ei].points
+	local cum = cumOf(net, ei)
+	if s0 <= s1 then
+		for i = 1, #pts do
+			if cum[i] > s0 + 0.01 and cum[i] < s1 - 0.01 then
+				table.insert(out, pts[i])
+			end
+		end
+	else
+		for i = #pts, 1, -1 do
+			if cum[i] < s0 - 0.01 and cum[i] > s1 + 0.01 then
+				table.insert(out, pts[i])
+			end
+		end
+	end
+	table.insert(out, last or pointAt(net, ei, s1))
+end
+
+-- The cached search toward (edge E, arc s), most recently used last; a new one seeds the goal edge's ends.
+local function treeFor(net: WorldNet, E: number, s: number): Tree
+	local key = E .. ":" .. math.round(s / RoadGraph.GOAL_SNAP)
+	local order = net.treeOrder
+	local tr = net.trees[key]
+	if tr then
+		local i = table.find(order, key)
+		if i and i < #order then
+			table.remove(order, i)
+			table.insert(order, key)
+		end
+		return tr
+	end
+	local n = net.n
+	local fresh: Tree = {
+		edge = E,
+		s = s,
+		g = table.create(n, math.huge),
+		succ = table.create(n, 0),
+		state = table.create(n, 0),
+		heapNode = {},
+		heapF = {},
+		size = 0,
+		hx = math.huge,
+		hz = math.huge,
+	}
+	local e = net.W.Edges[E]
+	-- reach the goal from E.a driving a -> b (always allowed), or from E.b driving b -> a (two-way only)
+	fresh.g[e.a] = s * net.k[E]
+	fresh.state[e.a] = 1
+	if not e.oneWay then
+		local c = (e.length - s) * net.k[E]
+		if c < fresh.g[e.b] then
+			fresh.g[e.b] = c
+			fresh.state[e.b] = 1
+		end
+	end
+	net.trees[key] = fresh
+	table.insert(order, key)
+	while #order > RoadGraph.TREE_CACHE do
+		net.trees[table.remove(order, 1) :: string] = nil
+	end
+	return fresh
+end
+
+-- Point the search's heuristic at a new start (x, z): re-key the open frontier (settled costs stay exact).
+local function retarget(net: WorldNet, tr: Tree, x: number, z: number)
+	tr.hx, tr.hz = x, z
+	local hn, hf = tr.heapNode, tr.heapF
+	local size = 0
+	local state, g, nx, nz, hs = tr.state, tr.g, net.x, net.z, net.hScale
+	for v = 1, net.n do
+		if state[v] == 1 then
+			local dx, dz = nx[v] - x, nz[v] - z
+			size = heapPush(hn, hf, size, v, g[v] + math.sqrt(dx * dx + dz * dz) * hs)
+		end
+	end
+	tr.size = size
+end
+
+-- Resume the backward A* until no open node can beat the best start seed. seedA / seedB: the (up to two) nodes the
+-- start reaches directly, with what it costs to get there (0 = no such seed). Returns (best total seconds, 1 = leave
+-- by seedA / 2 = by seedB / 0 = unreachable).
+local function searchTree(
+	net: WorldNet,
+	tr: Tree,
+	x: number,
+	z: number,
+	seedA: number,
+	costA: number,
+	seedB: number,
+	costB: number
+): (number, number)
+	if tr.hx ~= x or tr.hz ~= z then
+		retarget(net, tr, x, z)
+	end
+	local g, state, succ = tr.g, tr.state, tr.succ
+	local hn, hf = tr.heapNode, tr.heapF
+	local nx, nz, hs = net.x, net.z, net.hScale
+	local inFrom, inCost, inEdge = net.inFrom, net.inCost, net.inEdge
+	local function bestSeed(): (number, number)
+		local b, which = math.huge, 0
+		if seedA > 0 and g[seedA] < math.huge then
+			b, which = costA + g[seedA], 1
+		end
+		if seedB > 0 and g[seedB] < math.huge and costB + g[seedB] < b then
+			b, which = costB + g[seedB], 2
+		end
+		return b, which
+	end
+	local best, which = bestSeed()
+	local size = tr.size
+	while size > 0 and hf[1] < best do
+		local v
+		v, _, size = heapPop(hn, hf, size)
+		if state[v] ~= 2 then
+			state[v] = 2
+			local gv = g[v]
+			local from, cost, edge = inFrom[v], inCost[v], inEdge[v]
+			for i = 1, #from do
+				local u = from[i]
+				if state[u] ~= 2 then
+					local ng = gv + cost[i]
+					if ng < g[u] then
+						g[u] = ng
+						succ[u] = edge[i]
+						state[u] = 1
+						local dx, dz = nx[u] - x, nz[u] - z
+						size = heapPush(hn, hf, size, u, ng + math.sqrt(dx * dx + dz * dz) * hs)
+						if u == seedA or u == seedB then
+							best, which = bestSeed()
+						end
+					end
+				end
+			end
+		end
+	end
+	tr.size = size
+	return best, which
+end
+
+-- Fastest drivable polyline on a v2 world graph (seconds: speed per road class + junction waits).
+local function worldRoute(
+	net: WorldNet,
+	P: Vector3,
+	Q: Vector3,
+	e1: number,
+	t1: number,
+	e2: number,
+	t2: number,
+	fineLen1: number,
+	fineLen2: number
+): { Vector3 }?
+	local Edges = net.W.Edges
+	local E1, E2 = net.fineEdge[e1], net.fineEdge[e2]
+	local s1 = net.fineS0[e1] + t1 * fineLen1
+	local s2 = net.fineS0[e2] + t2 * fineLen2
+	local ed1, ed2 = Edges[E1], Edges[E2]
+	local direct = math.huge
+	if E1 == E2 and (s2 >= s1 or not ed1.oneWay) then
+		direct = math.abs(s2 - s1) * net.k[E1]
+	end
+	local tr = treeFor(net, E2, s2)
+	-- leave P forward to E1.b (always allowed) or back to E1.a (two-way only)
+	local costFwd = (ed1.length - s1) * net.k[E1] + net.delayB[E1]
+	local backNode, costBack = 0, math.huge
+	if not ed1.oneWay then
+		backNode, costBack = ed1.a, s1 * net.k[E1] + net.delayA[E1]
+	end
+	local best, which = searchTree(net, tr, P.X, P.Z, ed1.b, costFwd, backNode, costBack)
+	local out: { Vector3 } = { P }
+	if direct <= best then
+		appendSlice(net, E1, s1, s2, out, Q)
+		return simplify(out)
+	end
+	if which == 0 then
+		return nil
+	end
+	-- leave E1 toward the chosen end, follow the tree's arcs, finish along E2
+	appendSlice(net, E1, s1, if which == 1 then ed1.length else 0, out)
+	local node = if which == 1 then ed1.b else ed1.a
+	local guard = net.n + 1
+	while guard > 0 do
+		guard -= 1
+		local se = tr.succ[node]
+		if se == 0 then
+			break
+		end
+		local ei = math.abs(se)
+		local e = Edges[ei]
+		if se > 0 then
+			appendSlice(net, ei, 0, e.length, out)
+			node = e.b
+		else
+			appendSlice(net, ei, e.length, 0, out)
+			node = e.a
+		end
+	end
+	appendSlice(net, E2, if node == ed2.a then 0 else ed2.length, s2, out, Q)
+	local simple = simplify(out)
+	if #simple == 1 then
+		table.insert(simple, Q)
+	end
+	return simple
+end
+
 -- Shortest drivable polyline from fromPos to toPos (both snapped onto the nearest road centerline). nil when the
--- graph is empty or toPos can't be reached (one-way traps / disconnected islands).
+-- graph is empty or toPos can't be reached (one-way traps / disconnected islands). On a v2 world graph the route is
+-- the fastest one (see worldRoute).
 function Graph.route(self: Graph, fromPos: Vector3, toPos: Vector3): { Vector3 }?
 	local P, e1, t1 = self:nearestPoint(fromPos)
 	local Q, e2, t2 = self:nearestPoint(toPos)
 	if not (P and Q and e1 and e2 and t1 and t2) then
 		return nil
+	end
+	local net = self.net
+	if net then
+		local r = worldRoute(net, P, Q, e1, t1, e2, t2, self.edges[e1].length, self.edges[e2].length)
+		if r and #r == 1 then
+			table.insert(r, Q) -- start and goal on the same spot: still a valid 2-point polyline
+		end
+		return r
 	end
 	local edges, nodes = self.edges, self.nodes
 	local E1, E2 = edges[e1], edges[e2]
@@ -733,7 +1115,7 @@ function Graph.route(self: Graph, fromPos: Vector3, toPos: Vector3): { Vector3 }
 			openGen[node] = gen
 			g[node] = cost
 			parentArc[node] = arc
-			size = heapPush(self, size, node, cost + (nodes[node] - Q).Magnitude)
+			size = heapPush(self.heapNode, self.heapF, size, node, cost + (nodes[node] - Q).Magnitude)
 		end
 	end
 	-- start: leave P toward E1.b (a->b, always allowed) or toward E1.a (two-way only)
@@ -744,7 +1126,7 @@ function Graph.route(self: Graph, fromPos: Vector3, toPos: Vector3): { Vector3 }
 
 	while size > 0 do
 		local node, f
-		node, f, size = heapPop(self, size)
+		node, f, size = heapPop(self.heapNode, self.heapF, size)
 		if f >= best then
 			break
 		end
@@ -797,6 +1179,15 @@ end
 -- Debug / tests.
 function Graph.stats(self: Graph): (number, number)
 	return #self.nodes, #self.edges
+end
+
+-- Forget the cached per-goal searches (v2 world graphs; tests measure cold routes with it).
+function Graph.clearRouteCache(self: Graph)
+	local net = self.net
+	if net then
+		net.trees = {}
+		net.treeOrder = {}
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------------

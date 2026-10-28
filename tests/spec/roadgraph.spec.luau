@@ -294,19 +294,124 @@ return function(t)
 		t.ok(checked > 0, "checked deck nodes")
 	end)
 
-	t.test("v2: GPS routes are fast enough on the world graph", function()
+	-- sample road points across the whole island (every 7th edge's midpoint, nudged off the centerline)
+	local samples = {}
+	for i, e in WorldLayout.Edges do
+		if i % 7 == 0 then
+			table.insert(samples, e.points[(#e.points + 1) // 2] + Vector3.new(3, 0, 2))
+		end
+	end
+	local function polyLen(r)
+		local s = 0
+		for i = 2, #r do
+			s += (r[i] - r[i - 1]).Magnitude
+		end
+		return s
+	end
+
+	t.test("v2: a cold GPS route takes < 4 ms (VIBE_ROUTING #22), re-routes to a cached goal far less", function()
+		-- best of 3 cold runs per route (cache cleared each run): the test machine is shared
+		local worst, total = 0, 0
+		for i = 1, #samples do
+			local j = (i * 37) % #samples + 1
+			local best = math.huge
+			for _ = 1, 3 do
+				world:clearRouteCache()
+				local t0 = os.clock()
+				local r = world:route(samples[i], samples[j])
+				best = math.min(best, os.clock() - t0)
+				t.ok(r ~= nil and #r >= 2, "route " .. i)
+			end
+			worst = math.max(worst, best)
+			total += best
+		end
+		t.ok(worst < 0.004, ("worst cold route %.2f ms"):format(worst * 1000))
+		t.ok(total / #samples < 0.0015, ("average cold route %.2f ms"):format(total / #samples * 1000))
+		-- one goal, many starts (the GPS re-routing as the player drives off the line)
+		world:clearRouteCache()
+		local goal = samples[5]
+		local reWorst = 0
+		for i = 1, #samples do
+			local best = math.huge
+			for _ = 1, 2 do
+				local t0 = os.clock()
+				world:route(samples[i], goal)
+				best = math.min(best, os.clock() - t0)
+			end
+			reWorst = math.max(reWorst, best)
+		end
+		t.ok(reWorst < 0.004, ("worst re-route %.2f ms"):format(reWorst * 1000))
 		local plots = WorldLayout.Plots
-		local worst = 0
+		local plotWorst = 0
 		for i = 1, #plots do
 			for j = 1, #plots do
 				if i ~= j then
-					local t0 = os.clock()
-					RoadGraph.route(plots[i].door, plots[j].door)
-					worst = math.max(worst, os.clock() - t0)
+					local best = math.huge
+					for _ = 1, 3 do
+						world:clearRouteCache()
+						local t0 = os.clock()
+						RoadGraph.route(plots[i].door, plots[j].door)
+						best = math.min(best, os.clock() - t0)
+					end
+					plotWorst = math.max(plotWorst, best)
 				end
 			end
 		end
-		t.ok(worst < 0.05, ("worst route %.1f ms"):format(worst * 1000))
+		t.ok(plotWorst < 0.004, ("worst garage-to-garage route %.2f ms"):format(plotWorst * 1000))
 		local _ = MapLayout
+	end)
+
+	t.test("v2: GPS routes are the fastest (WorldQuery's time cost) and stay on the roads", function()
+		world:clearRouteCache()
+		for i = 1, #samples, 3 do
+			local j = (i * 37) % #samples + 1
+			local r = world:route(samples[i], samples[j])
+			local _, ql = WorldQuery.route(samples[i], samples[j])
+			t.ok(r ~= nil, "route " .. i)
+			-- same cost model: the drawn line is never much longer than the AI's route
+			t.ok(polyLen(r) <= ql * 1.1 + 30, ("route %d: %.0f studs vs WorldQuery %.0f"):format(i, polyLen(r), ql))
+			for k = 2, #r - 1 do
+				local _, _, _, d = WorldQuery.nearestRoadPoint(r[k], { maxDistance = 80 })
+				t.ok(d ~= nil and d < 2, ("route %d vertex %d off the centerline"):format(i, k))
+			end
+		end
+	end)
+
+	t.test("v2: the cached search gives the same route as a cold one", function()
+		local goal = samples[11]
+		for i = 1, #samples, 5 do
+			world:clearRouteCache()
+			local cold = world:route(samples[i], goal)
+			-- warm the goal's cache from other starts, then ask again
+			world:clearRouteCache()
+			for k = 2, #samples, 9 do
+				world:route(samples[k], goal)
+			end
+			local warm = world:route(samples[i], goal)
+			t.ok(cold and warm, "routes " .. i)
+			t.near(polyLen(warm), polyLen(cold), 0.5, "same length " .. i)
+			t.eq(warm[1], cold[1], "same start " .. i)
+			t.eq(warm[#warm], cold[#cold], "same end " .. i)
+		end
+	end)
+
+	t.test("v2: one-way streets: never driven against the flow", function()
+		world:clearRouteCache()
+		for i = 1, #samples, 4 do
+			local j = (i * 13) % #samples + 1
+			local r = world:route(samples[i], samples[j])
+			for k = 2, #r - 1 do
+				local mid = (r[k] + r[k + 1]) / 2
+				local _, ei, s = WorldQuery.nearestRoadPoint(mid, { maxDistance = 60 })
+				local e = ei and WorldLayout.Edges[ei]
+				if e and e.oneWay and (r[k + 1] - r[k]).Magnitude > 4 then
+					local _, tan = WorldQuery.edgePoint(ei, s)
+					t.ok(
+						(r[k + 1] - r[k]).Unit:Dot(tan) > -0.5,
+						("route %d leg %d against one-way %s"):format(i, k, e.name)
+					)
+				end
+			end
+		end
 	end)
 end

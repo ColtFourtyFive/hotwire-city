@@ -9,7 +9,7 @@
 --   gunshop      walk-in store; "GunStoreCounter" (weapons) + "GearShopCounter" (gear) counters 12 in from the front
 --   spray/customs/chop   a drive-in bay open to the street: box (0, 13, -D/2 + 30), size (W - 20, 26, 50)
 --   dealership   showroom at the back, 8 "DealerPad" discs on the front lot (MapLayout.dealerPads)
---   plaza        Hotwire Plaza: the fallback SpawnLocation at Spawns.default, 2 "LeaderboardBoard" boards, fountain
+--   plaza        Hotwire Plaza: 2 "LeaderboardBoard" boards, fountain; the SpawnLocation out on its sidewalk
 --   police / hospital / bank / ...   massing + entrance canopy + branded sign
 --
 -- Plots: a level garage pad (140 x 150 at the plot frame) with a driveway apron; PlotService builds the garage on it
@@ -377,16 +377,17 @@ end
 local function plaza(ctx: Ctx, m: Model, F: CFrame, poi: POI)
 	local W, D = poi.size.X, poi.size.Z
 	box(ctx, m, "Plaza", F, 0, CURB - LOT_T / 2 + 0.01, 0, W, LOT_T, D, Kit.style("terrazzo"))
-	-- SpawnLocation (fallback spawn; PlotService moves players into their garages)
-	local spawnCf = WorldLayout.Spawns.default
+	-- SpawnLocation: the first spawn out on the boulevard sidewalk in front of the plaza (MapLayout.spawnCFrame,
+	-- VIBE_ROUTING #2). An invisible pad sunk flush into the sidewalk: no glowing spawn plate in the street.
+	local spawnCf = MapLayout.spawnCFrame()
 	local sp = Instance.new("SpawnLocation")
 	sp.Name = "SpawnLocation"
 	sp.Anchored = true
-	sp.Size = Vector3.new(12, 1, 12)
-	local spawnPos = Vector3.new(spawnCf.Position.X, F.Position.Y + CURB + 0.5, spawnCf.Position.Z)
-	sp.CFrame = CFrame.new(spawnPos) * spawnCf.Rotation
-	sp.Color = Color3.fromRGB(255, 52, 140)
-	sp.Material = Enum.Material.SmoothPlastic
+	sp.Size = Vector3.new(6, 1, 6)
+	local top = spawnCf.Position.Y - MapLayout.SPAWN_ROOT
+	sp.CFrame = CFrame.new(spawnCf.Position.X, top - 0.5, spawnCf.Position.Z) * spawnCf.Rotation
+	sp.Color = Color3.fromRGB(150, 147, 140)
+	sp.Material = Enum.Material.Concrete
 	sp.TopSurface = Enum.SurfaceType.Smooth
 	sp.BottomSurface = Enum.SurfaceType.Smooth
 	sp.Neutral = true
@@ -394,7 +395,9 @@ local function plaza(ctx: Ctx, m: Model, F: CFrame, poi: POI)
 	sp.Enabled = true
 	sp.AllowTeamChangeOnTouch = false
 	sp.CanTouch = false
-	sp.Transparency = 0.2
+	sp.CanQuery = false
+	sp.CastShadow = false
+	sp.Transparency = 1
 	sp.Parent = m
 	ctx.counts.SpawnLocation = (ctx.counts.SpawnLocation or 0) + 1
 	ctx.parts += 1
@@ -418,8 +421,8 @@ local function plaza(ctx: Ctx, m: Model, F: CFrame, poi: POI)
 	)
 	water.Name = "FountainWater"
 	box(ctx, m, "FountainSpire", F, fx, CURB + 6, fz, 2.4, 10, 2.4, Kit.style("terrazzo"))
-	-- leaderboards facing the spawn
-	local spawnLocal = F:PointToObjectSpace(spawnPos)
+	-- leaderboards facing the plaza's hub point (Spawns.default)
+	local spawnLocal = F:PointToObjectSpace(WorldLayout.Spawns.default.Position)
 	for i, b in
 		{
 			{ stat = "totalEarned", x = W * 0.22 },

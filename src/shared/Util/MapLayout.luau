@@ -13,6 +13,8 @@
 --   roads       isOnRoad / nearestLane = WorldQuery; laneCFrame / roadCFrame keep the v1 (axis, line, along, dir)
 --               signature and snap the grid point to the nearest real lane heading that way; roadSegments feeds
 --               RoadGraph (which uses RoadGraph.fromWorld for the v2 world)
+--   spawn       spawnCFrame = the first spawn, on the Crown Boulevard sidewalk in front of Hotwire Plaza, facing the
+--               downtown skyline (VIBE_ROUTING #2); Spawns.default (the plaza centre) stays the hub / fallback point
 --   combat      hospitals / hospitalCFrame / gunStores / safeZones / safeZoneAt (v2/combat's API)
 --   grid        blockCenter / blockAt / lineCoord keep v1's 160-stud cells for the systems not migrated yet
 --               (NPC wandering); CURB_TOP is the city grade + curb (12.6)
@@ -270,8 +272,49 @@ function MapLayout.poiCenter(name: string): Vector3
 	return lm.cframe.Position
 end
 
+-- First spawn (VIBE_ROUTING #2): out on a downtown street, never inside a garage or on the plaza's terrazzo. The spot
+-- is the sidewalk of the street Hotwire Plaza fronts (Crown Boulevard), SPAWN_S studs along it (mid-block, clear of
+-- the junction boxes and of the streetscape: lamps, trees, hydrants), facing along the boulevard into the Pinnacle
+-- Heights core (the downtown district's centroid), so the first frame is the skyline down a GTA avenue. The CFrame is
+-- the character root (+3 over the sidewalk top), like Spawns.default; World/Places puts the SpawnLocation under it.
+MapLayout.SPAWN_POI = "HotwirePlaza"
+MapLayout.SPAWN_S = 125
+MapLayout.SPAWN_ROOT = 3
+local spawnCache: CFrame? = nil
 function MapLayout.spawnCFrame(): CFrame
-	return WorldLayout.Spawns.default
+	local c = spawnCache
+	if c then
+		return c
+	end
+	local poi = WorldQuery.poi(MapLayout.SPAWN_POI)
+	local cf: CFrame = WorldLayout.Spawns.default
+	if poi then
+		local ei = poi.edge
+		local e = WorldLayout.Edges[ei]
+		local s = math.clamp(MapLayout.SPAWN_S, 0, e.length)
+		local p, tan = WorldQuery.edgePoint(ei, s)
+		-- the plaza's side of the street (right of a -> b is +1)
+		local right = Vector3.new(-tan.Z, 0, tan.X)
+		local side = if (poi.cframe.Position - p):Dot(right) >= 0 then 1 else -1
+		local walk = WorldQuery.sidewalkCFrame(ei, side, s)
+		if walk then
+			local core = WorldQuery.district("downtown")
+			local look = -tan
+			if core then
+				local sx, sz = 0, 0
+				for _, q in core.polygon do
+					sx += q.X
+					sz += q.Z
+				end
+				local toCore = Vector3.new(sx / #core.polygon, 0, sz / #core.polygon) - walk.Position
+				look = if toCore:Dot(tan) >= 0 then tan else -tan
+			end
+			local pos = walk.Position + Vector3.new(0, MapLayout.SPAWN_ROOT, 0)
+			cf = CFrame.lookAt(pos, pos + look)
+		end
+	end
+	spawnCache = cf
+	return cf
 end
 
 -- Drive-in bay of a spray / customs / chop POI: box (0, 13, -D/2 + 30) in the POI frame, size (W - 20, 26, 50); the

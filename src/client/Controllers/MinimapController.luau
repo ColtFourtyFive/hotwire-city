@@ -1147,6 +1147,10 @@ end
 local function computeRoute(pos: Vector3, id: string, target: Vector3, color: Color3)
 	local t0 = os.clock()
 	local ok, pts = pcall(RoadGraph.route, pos, target)
+	local ms = (os.clock() - t0) * 1000
+	if ms > GPS.ROUTE_BUDGET_MS then
+		warn(("[MinimapController] slow GPS route: %.1f ms"):format(ms))
+	end
 	lastRouteAt = clock
 	if not ok or not pts then
 		clearRoute()
@@ -1180,10 +1184,6 @@ local function computeRoute(pos: Vector3, id: string, target: Vector3, color: Co
 	redrawRoute(pos)
 	updateRemaining(pos)
 	MinimapController.RouteChanged:Fire()
-	local ms = (os.clock() - t0) * 1000
-	if ms > 5 then
-		warn(("[MinimapController] slow GPS route: %.1f ms"):format(ms))
-	end
 end
 
 -- Slow tick: pick the target, decide whether to re-route, arrival check, wanted bookkeeping, owners.
