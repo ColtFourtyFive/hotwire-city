@@ -3,7 +3,9 @@
 **Authority.**
 1. `docs/v2/research/00_LEAD_DIRECTION.md` and `original_brief.md` are binding.
 2. Specs: world `docs/v2/world/WORLD_SPEC.md`, loop `docs/v2/design/LOOP_V2.md`, combat `research/gta_combat.md`, UI `research/gta_ui_language.md`, engine `research/roblox_tech.md`, realism `research/gta_realism_gap.md`, lighting `research/lighting_lab.md`, sky `research/sky_orientation.md`.
-3. Asset sources: `research/cc0_assets.md`, `research/SOURCES_UNLOCKED.md`, `docs/v2/sourcing/*` and the Studio scout evidence in `docs/v2/evidence/`.
+3. Asset sources: `research/scout_platforms.md` (about 330 verified candidates ranked by GTA impact: Roblox-owned packs, emote animations, PSE, APM and Sonniss audio, ambientCG, Poly Haven, Wally libraries; **check it first**), `research/cc0_assets.md`, `research/SOURCES_UNLOCKED.md`, `docs/v2/sourcing/*` and the Studio scout evidence in `docs/v2/evidence/`.
+
+**Owner direction (2026-10-27, binding):** every part of the experience must feel like stepping into GTA V: world, players, buildings, surroundings, UI/UX, cinematics, audio. Nothing may read as a cartoonish, standard Roblox game: no neon or pink, no blocky avatars, no kid-simulator copy. **`docs/v2/VIBE_ROUTING.md` assigns every remaining GTA-vibe breaker found in Studio job 0018 to an owning package. Read your rows and close them.**
 
 **North star.** Grounded GTA V realism on Roblox: a real-scale island city, realistic cars and NPCs, gunplay with no gore (rated Moderate, 13+), and GTA presentation. The user's loop sits inside it: steal → escape → deliver → garage income; the garage is a bank and the street is a casino; per-car progression; crimes, heists and crews. Every visual milestone is verified in the real engine.
 
