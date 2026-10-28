@@ -126,7 +126,7 @@
       "glowAzimuth": 0.0,
       "glowElevation": -3.0,
       "grading": {
-        "clipped_share": 0.03361,
+        "clipped_share": 0.00214,
         "engine": {
           "bg_high": 0.52,
           "bg_low": 0.72,
@@ -141,7 +141,7 @@
           "rg_far": 2.78,
           "rg_near": 2.3
         },
-        "exposure": 0.625,
+        "exposure": 0.971,
         "grade": {
           "contrast": 0.12,
           "saturation": -0.07892580791989051,
@@ -157,23 +157,23 @@
         "reference_hour": 18.9
       },
       "hazeColor": [
-        30,
-        36,
-        48
+        28,
+        40,
+        58
       ],
       "hdri": null,
       "horizonGlowAzimuth": 0.0,
       "sha1": {
-        "bk": "e539fc92cc78c0a5b79ab9a62f6935e999cac3b6",
+        "bk": "5885f0780397dc1e53b11fc667edb8f812240609",
         "dn": "bebb52cca82da55a7dd1dba05f908f9be33f5341",
-        "ft": "5b8180d33610b98703d4f3ed4f8fbf400db24a79",
-        "lf": "1c24a5ce79a69a75cc066524bb90c387108479d5",
-        "rt": "580e5925d393c72ccdf2911ef2ccb6725f8226a1",
-        "up": "2888b91a0fcae3b4b9a020490febeb7eda5059a1"
+        "ft": "ab1564e7c9604d5c6d8d1e726e3db6903f7ae00b",
+        "lf": "601f7e5447f7b3de8592e7502e0de1479ff1cbe7",
+        "rt": "03471d14449bda19f588a7f2de53a8775dcfe072",
+        "up": "9316e89172cece705551071947ed7c6ffbba2fd3"
       },
       "source": "procedural (tools/look/procedural_sky.py), no third-party source",
       "starCount": 0,
-      "use": "18:21-19:30 dusk: amber glow on the sun side, mauve belt opposite, deep blue zenith"
+      "use": "18:21-19:30 dusk: amber glow on the sun side, clear blue mid-sky, deep blue zenith"
     },
     "dawn": {
       "celestialBodiesShown": true,
@@ -190,7 +190,7 @@
       "glowAzimuth": 0.0,
       "glowElevation": -3.0,
       "grading": {
-        "clipped_share": 0.11666,
+        "clipped_share": 2e-05,
         "engine": {
           "bg_high": 0.52,
           "bg_low": 0.72,
@@ -205,7 +205,7 @@
           "rg_far": 2.78,
           "rg_near": 2.3
         },
-        "exposure": 0.548,
+        "exposure": 0.886,
         "grade": {
           "contrast": 0.12,
           "saturation": -0.081875,
@@ -221,23 +221,23 @@
         "reference_hour": 5.3
       },
       "hazeColor": [
-        29,
-        35,
-        47
+        27,
+        39,
+        56
       ],
       "hdri": null,
       "horizonGlowAzimuth": 0.0,
       "sha1": {
-        "bk": "2c9e6b2e2d4b2bf323bc25c97896894cd6a0c184",
+        "bk": "26797dc8a05aa72e4afd220a3817a8ca64c018e8",
         "dn": "bebb52cca82da55a7dd1dba05f908f9be33f5341",
-        "ft": "11ed7efed004e3ceafd215136ba01a3b9276ee8f",
-        "lf": "ac25867e0abbc01a288fda9f68e81d2b14f7fc67",
-        "rt": "b9a87c9f4a5775df2ff3789b8d29919ba0edf7a5",
-        "up": "cd976896f2689e58cfadd71cfcf5688efd8b1301"
+        "ft": "7be7d9b0c1ccdb11c31551ceba47d4b263f8fee7",
+        "lf": "5d9a67cc65ebe15d56fc5afe401c9b1bcc36baf0",
+        "rt": "f530505479c58f9d1807845d08e70e0be69a81dc",
+        "up": "da076ecfa1cf6125167fb260070458284d1c0555"
       },
       "source": "procedural (tools/look/procedural_sky.py), no third-party source",
       "starCount": 0,
-      "use": "05:00-05:39 dawn: pale peach-gold glow on the sun side, deep blue zenith"
+      "use": "05:00-05:39 dawn: pale peach-gold glow on the sun side, clear blue mid-sky, deep blue zenith"
     },
     "day": {
       "celestialBodiesShown": true,
@@ -365,7 +365,7 @@
       "glowAzimuth": 0.0,
       "glowElevation": -3.0,
       "grading": {
-        "clipped_share": 0.02243,
+        "clipped_share": 0.02965,
         "engine": {
           "bg_high": 0.52,
           "bg_low": 0.72,
@@ -391,8 +391,7 @@
           ]
         },
         "reference_clocks": [
-          18.2,
-          5.8
+          18.2
         ],
         "reference_hour": 22.5
       },
@@ -404,16 +403,80 @@
       "hdri": null,
       "horizonGlowAzimuth": 90.0,
       "sha1": {
-        "bk": "eb00ad59b9f7afb3da6e3607aa68432236fa4b00",
+        "bk": "82f25dfb5493e8f7b503a7d6e94225096267e316",
         "dn": "bebb52cca82da55a7dd1dba05f908f9be33f5341",
-        "ft": "f385c8da09213e44a5dd291029e450b787e7bb63",
-        "lf": "3e3e349b7052f89ad99c5a5ff2cf3345ccadd5ce",
-        "rt": "dd7b836883057731bc1f06d0d6c6bf01ffac7e7b",
-        "up": "922c4c5b757879aa5c7f409cc4b7d62e543ea80f"
+        "ft": "fbf46d997753509d5c21bb4a2f3077663346eae0",
+        "lf": "97b95b9fa0de3561e464d7826aee89c6b8f717e8",
+        "rt": "d5cbe0b314018b34de27c11c50defafe1e83d8c1",
+        "up": "14ef1b6e23150a11335e030c4de65c7aa99c1ef3"
       },
       "source": "procedural (tools/look/procedural_sky.py), no third-party source",
       "starCount": 0,
-      "use": "19:30-05:00 night: blue-black sky, cool horizon, subtle stars, faint warm city glow at +X"
+      "use": "19:30-00:00 night: blue-black sky, cool horizon, subtle stars, faint warm city glow at +X"
+    },
+    "nightLate": {
+      "celestialBodiesShown": false,
+      "clouds": 0.0,
+      "files": {
+        "bk": "assets/sky/nightLate/bk.png",
+        "dn": "assets/sky/shared/dn_twilight.png",
+        "ft": "assets/sky/nightLate/ft.png",
+        "lf": "assets/sky/nightLate/lf.png",
+        "rt": "assets/sky/nightLate/rt.png",
+        "up": "assets/sky/nightLate/up.png"
+      },
+      "followSun": false,
+      "glowAzimuth": 0.0,
+      "glowElevation": -3.0,
+      "grading": {
+        "clipped_share": 0.00064,
+        "engine": {
+          "bg_high": 0.52,
+          "bg_low": 0.72,
+          "bg_scale": 26.0,
+          "g_high": 0.1,
+          "g_low": 0.027,
+          "g_scale": 25.0,
+          "gamma": 1.2,
+          "psi0": 40.0,
+          "psi1": 75.0,
+          "ref_ev": 2.0,
+          "rg_far": 2.78,
+          "rg_near": 2.3
+        },
+        "exposure": 0.8,
+        "grade": {
+          "contrast": 0.12,
+          "saturation": -0.2,
+          "tint": [
+            212.0,
+            226.0,
+            255.0
+          ]
+        },
+        "reference_clocks": [
+          5.8
+        ],
+        "reference_hour": 2.0
+      },
+      "hazeColor": [
+        26,
+        33,
+        49
+      ],
+      "hdri": null,
+      "horizonGlowAzimuth": 90.0,
+      "sha1": {
+        "bk": "cd71dd8771c6cac8fd4e7d436f2cde6de68ddf2e",
+        "dn": "bebb52cca82da55a7dd1dba05f908f9be33f5341",
+        "ft": "e2914fb636953d0c7e17ab5e6543962f784d8217",
+        "lf": "f83d0d3dce992075eca7e1aee7eaaa408c38e1ca",
+        "rt": "af8499af6c8f9e1e7e6d8da30abe8d42c0ded395",
+        "up": "90bb6c3d2185cc4e5dd1565b2fe914b35d049c6e"
+      },
+      "source": "procedural (tools/look/procedural_sky.py), no third-party source",
+      "starCount": 0,
+      "use": "00:00-05:00 late night (morning hold): deeper blue-black, fainter city glow, more stars"
     }
   }
 }

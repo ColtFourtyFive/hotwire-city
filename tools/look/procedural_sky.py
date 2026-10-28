@@ -20,18 +20,23 @@ Why procedural and why pre-compensated
 
   Unmeasured, so hedged: the zenith (B/G continues its measured fall to bg_high) and the sun's side (< 75 deg from the
   sun, R/G rg_near = 2.3 instead of 2.8: an error either way turns the dusk glow orange or yellow, never olive). The
-  night sky is one texture for both holds (sun west before midnight, east after): built for the geometric mean of the
-  two casts. Job 0012 shoots every one of these regions; add its shots to sky_calibration.json and re-run `fit`.
+  night has one sky per hold (sun west before midnight: `night`; east after it: `nightLate`), swapped with the clock
+  jump. Job 0012 shoots every one of these regions; add its shots to sky_calibration.json and re-run `fit`.
+  A third check: job 0018's n02 (place v33, v2 world) shows the old night HDRI at (5, 1, 1), and the model of those
+  faces at that view predicts (0-7, 0, 0): the "dark reddish-brown" night is that near-black red cast.
 
-  The ceiling: a white face renders at most ~(80, 50, 40) at the night zenith and less at dusk (G and B are the
-  limits). Targets stay under it; a pixel that would still clip is scaled down as a whole (hue kept).
+  The ceiling: a white face renders at most ~(65, 40, 32) at the night zenith and ~(74, 47, 59) at the horizon; at the
+  blue hour's EV +1.0 ~(77, 43, 29) and ~(87, 51, 62) (G and B are the limits; `ceiling` prints the table). Targets stay
+  under it; a pixel that would still clip is scaled down as a whole (hue kept).
 
 Skies (six 1024 px faces each, the engine-verified mapping of hdri_to_skybox.py; one shared Dn face):
-  night  clear night: blue-black zenith, cool blue-grey horizon, subtle stars, faint warm city glow at sky azimuth 90
-         (= +X: the night sky does not follow the sun; LightingService parks horizonGlowAzimuth on +X, inland)
-  blue   dusk: amber glow on the sun side (sky azimuth 0 = glowAzimuth, kept on the engine sun), mauve belt opposite,
-         deep blue zenith, a few first stars
-  dawn   dawn: the same build, pale peach-gold instead of amber
+  night      clear night (evening hold): blue-black zenith, cool blue-grey horizon, subtle stars, faint warm city glow
+             at sky azimuth 90 (= +X: the night sky does not follow the sun; LightingService parks horizonGlowAzimuth
+             on +X, inland)
+  nightLate  the same for the morning hold (00:00-05:00): a touch deeper, a fainter glow, more stars
+  blue       dusk: amber glow on the sun side (sky azimuth 0 = glowAzimuth, kept on the engine sun), pale teal above
+             it, a clear blue mid-sky, deep blue zenith, a few first stars
+  dawn       dawn: the same build, pale peach-gold instead of amber
 
 Commands
   python3 -I tools/look/procedural_sky.py [--only night,blue] [--evidence]
@@ -42,6 +47,8 @@ Commands
   python3 -I tools/look/procedural_sky.py calibrate --shot <png> --faces <dir> --yaw <deg> --exposure <EV>
       --tint R,G,B --contrast C --saturation S [--camera x,y,z,lx,ly,lz] [--clock 18.2]
       one shot's transfer per region (diagnostic table)
+  python3 -I tools/look/procedural_sky.py ceiling [--hours 18.9,22.5,2,5.3]
+      what a WHITE face renders as (the brightest any texture can be) per elevation and side, at those game hours
 """
 
 import argparse
@@ -56,7 +63,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import numpy as np  # noqa: E402
-from PIL import Image  # noqa: E402
+from PIL import Image, ImageFilter  # noqa: E402
 
 import hdri_to_skybox as hs  # noqa: E402
 import lookcommon as lc  # noqa: E402
@@ -350,56 +357,106 @@ def splat_stars(face, sv, samp, n=FACE, sigma=0.62):
     return layer
 
 
+# Colour mixing happens in Oklab (perceptual), not in linear light: a linear-light blend of a warm glow and a cool
+# blue passes through mauve / dull purple (R and B both stay up while G sags), and this dark that reads as the
+# "reddish-brown" the sky must lose. In Oklab the same blend goes through a neutral grey.
+_M1 = np.array([[0.4122214708, 0.5363325363, 0.0514459929], [0.2119034982, 0.6806995451, 0.1073969566],
+                [0.0883024619, 0.2817188376, 0.6299787005]], np.float32)
+_M2 = np.array([[0.2104542553, 0.7936177850, -0.0040720468], [1.9779984951, -2.4285922050, 0.4505937099],
+                [0.0259040371, 0.7827717662, -0.8086757660]], np.float32)
+_M2I = np.linalg.inv(_M2).astype(np.float32)
+_M1I = np.linalg.inv(_M1).astype(np.float32)
+
+
+def oklab(lin):
+    return np.cbrt(np.clip(lin, 0, None) @ _M1.T) @ _M2.T
+
+
+def from_oklab(lab):
+    return np.clip(((lab @ _M2I.T) ** 3) @ _M1I.T, 0, None)
+
+
+def mix(a_lin, b_lin, w):
+    """Blend two linear colours by w (0 = a, 1 = b) in Oklab."""
+    a, b = oklab(a_lin), oklab(b_lin)
+    return from_oklab(a + (b - a) * w)
+
+
+def stop_profile(el, stops):
+    """Vertical gradient through (elevation, display sRGB colour) stops, smoothstepped in Oklab; returns Oklab."""
+    e = np.clip(el, 0, 90)[..., None]
+    out = np.broadcast_to(oklab(L(stops[0][1])), e.shape[:-1] + (3,)).astype(np.float32)
+    for (e0, _), (e1, c1) in zip(stops[:-1], stops[1:]):
+        t = smoothstep(e0, e1, e)
+        out = out + (oklab(L(c1)) - out) * t
+    return out
+
+
 # Control colours (display sRGB 0..255: what the frame should show at the sky's reference state). GTA V's clear night
 # over the city: a deep blue (not black) zenith, a lighter cool blue-grey band at the horizon, stars, and a dim
-# sodium glow only just above the city; its dusk: amber on the sun's side under a pale teal band, deep blue overhead,
-# a cool mauve belt over the blue-grey earth shadow opposite. Both are far darker here than in GTA: the engine caps the
-# sky at about G 50 / B 40 at night (module docstring), so the targets keep the hue relations, not GTA's brightness.
-NIGHT = dict(
-    zenith=(6, 10, 24),  # blue-black (the B ceiling there is ~32; stars need headroom)
-    mid=(12, 18, 36),  # at 12 deg
-    horizon=(28, 36, 52),  # cool blue-grey
-    glow=(72, 50, 32),  # warm sodium city glow the horizon blends toward, centred on glow_az ...
-    glow_mix=0.75,  # ... at most this much, right at the horizon, gone by ~8 deg
-    glow_az=90.0,
-)
+# sodium glow only just above the city; its dusk: amber on the sun's side, a warm-grey then pale blue band above it,
+# a clear blue mid-sky, deep blue overhead, a lighter blue earth shadow opposite. Both are far darker here than in GTA:
+# the engine caps the sky at about G 45-55 / B 30-65 (module docstring), so the targets keep GTA's hue relations and
+# use most of that ceiling, not GTA's brightness. `ceiling` prints it per region.
+NIGHTS = {
+    # 19:30-00:00 under the EVENING hold (engine sun -3 deg in the west)
+    "night": dict(
+        zenith=(6, 10, 24),  # blue-black (the B ceiling there is ~32; stars need headroom)
+        mid=(12, 18, 36),  # at 12 deg
+        horizon=(28, 36, 52),  # cool blue-grey
+        glow=(70, 50, 28),  # warm sodium city glow the horizon blends toward (Oklab), centred on glow_az ...
+        glow_mix=0.75,  # ... at most this much, right at the horizon, gone by ~8 deg
+        glow_az=90.0,
+        stars=1.0,
+    ),
+    # 00:00-05:00 under the MORNING hold (engine sun -3 deg in the east, on the city-glow side: cast less red there).
+    # The late night: a slightly deeper dome, the city glow fainter (the city sleeps), a few more stars.
+    "nightLate": dict(
+        zenith=(5, 9, 22),
+        mid=(11, 16, 33),
+        horizon=(26, 33, 49),
+        glow=(66, 48, 28),
+        glow_mix=0.55,
+        glow_az=90.0,
+        stars=1.3,
+    ),
+}
+NIGHT = NIGHTS["night"]
+# Twilight: vertical stops (elevation deg, colour) on the sun side, right under the sun (core) and opposite (anti),
+# blended by azimuth in Oklab. Job 0018 / 0011: the first build (zenith (5, 10, 22), mid (11, 21, 36), amber
+# (70, 40, 16) at EV +0.6, mixed in linear light) read as night with a thin brown line and a dull purple belt. Now, at
+# the blue hour's EV +1.0 (Config/Look), each band sits at ~85-95 % of the ceiling at its elevation (B ~65 at the
+# horizon, ~44 at 30 deg, ~34 overhead), and the sequence is GTA's: amber -> warm grey -> pale blue -> clear blue ->
+# deep blue. Overhead it stays about the night's zenith, so blue -> night is mostly the glow going.
 TWILIGHT = {
     "blue": dict(
-        # deep blue overhead, about the night's zenith: the blue -> night swap at 19:30 (under its exposure dip) is
-        # mostly the sun-side glow going, not a jump of the whole dome
-        zenith=(5, 10, 22),  # (the B ceiling there is ~26 at dusk)
-        mid=(11, 21, 36),  # 12 deg, away from the sun
-        mid_sun=(20, 30, 38),  # 12 deg on the sun's side: a paler, slightly teal blue above the glow
-        anti=(30, 36, 48),  # anti-sun horizon: blue-grey earth shadow
-        belt=(40, 33, 46),  # the cool mauve belt just above it
-        sun=(70, 40, 16),  # sun-side horizon: saturated amber-orange (at the R and G ceilings there)
-        core=(72, 41, 16),  # right under the sun
-        warm=(60, 42, 30),  # sun side at ~5 deg: peach-orange, between the amber and the blue
+        sun=((0, (78, 49, 18)), (3.5, (72, 47, 24)), (8, (54, 46, 40)), (14, (25, 35, 48)), (30, (11, 22, 36)),
+             (50, (8, 17, 30)), (90, (6, 12, 25))),
+        core=((0, (80, 50, 17)), (3.5, (75, 48, 22)), (8, (56, 47, 40)), (14, (25, 35, 48)), (30, (11, 22, 36)),
+              (50, (8, 17, 30)), (90, (6, 12, 25))),
+        anti=((0, (28, 40, 58)), (5, (31, 38, 56)), (12, (17, 30, 47)), (30, (11, 22, 36)), (50, (8, 17, 30)),
+              (90, (6, 12, 25))),
     ),
-    "dawn": dict(
-        zenith=(5, 10, 21),
-        mid=(10, 20, 35),
-        mid_sun=(21, 31, 39),  # a touch more cyan than dusk
-        anti=(29, 35, 47),
-        belt=(38, 32, 45),
-        sun=(64, 43, 22),  # pale peach-gold: softer and less orange than dusk (pink reads maroon this dark)
-        core=(66, 44, 22),
-        warm=(56, 45, 34),
+    "dawn": dict(  # pale peach-gold: softer and less orange than dusk (pink reads maroon this dark)
+        sun=((0, (70, 48, 24)), (3.5, (66, 47, 30)), (8, (51, 46, 42)), (14, (24, 35, 46)), (30, (11, 21, 34)),
+             (50, (8, 16, 29)), (90, (6, 12, 24))),
+        core=((0, (72, 49, 23)), (3.5, (68, 48, 29)), (8, (52, 47, 42)), (14, (24, 35, 46)), (30, (11, 21, 34)),
+              (50, (8, 16, 29)), (90, (6, 12, 24))),
+        anti=((0, (27, 39, 56)), (5, (30, 37, 54)), (12, (16, 29, 45)), (30, (11, 21, 34)), (50, (8, 16, 29)),
+              (90, (6, 12, 24))),
     ),
 }
 
 
-def night_target(dirs):
+def night_target(dirs, T=NIGHT):
     el, az = elevation(dirs), azimuth(dirs)
-    T = NIGHT
     c = two_scale(el, L(T["zenith"]), L(T["mid"]), L(T["horizon"]))
     d = np.abs((az - T["glow_az"] + 180) % 360 - 180)
     e = np.clip(el, 0, None)
     glow = 0.8 * np.exp(-(d / 30) ** 2) * np.exp(-e / 3.0) + 0.2 * np.exp(-(d / 70) ** 2) * np.exp(-e / 7.0)
-    w = (T["glow_mix"] * glow)[..., None]
-    c = c * (1 - w) + L(T["glow"]) * w
+    c = mix(c, L(T["glow"]), (T["glow_mix"] * glow)[..., None])
     c = c * (1 + 0.05 * soft_noise(dirs, 11))[..., None]
-    star_w = smoothstep(3, 22, el) * (1 - 0.85 * np.clip(glow, 0, 1))
+    star_w = T.get("stars", 1.0) * smoothstep(3, 22, el) * (1 - 0.85 * np.clip(glow, 0, 1))
     return c, star_w
 
 
@@ -407,23 +464,12 @@ def twilight_target(dirs, T):
     """Sky-local: the sun glow at azimuth 0 (= glowAzimuth), just below the horizon."""
     el, az = elevation(dirs), azimuth(dirs)
     d = np.abs((az + 180) % 360 - 180)  # 0 = sun side, 180 = anti-sun
-    e = np.clip(el, 0, None)
     w_sun = np.exp(-(d / 62) ** 2)[..., None]
     w_core = np.exp(-(d / 24) ** 2)[..., None]
-    w_anti = smoothstep(95, 165, d)[..., None]
-    hor = L(T["anti"]) + (L(T["sun"]) - L(T["anti"])) * w_sun + (L(T["core"]) - L(T["sun"])) * w_core
-    mid = L(T["mid"]) + (L(T["mid_sun"]) - L(T["mid"])) * w_sun
-    # the warm side climbs higher than the anti-sun side
-    ca = two_scale(el, L(T["zenith"]), mid, hor, a=3.5, b=20.0)
-    cb = two_scale(el, L(T["zenith"]), mid, hor, a=6.0, b=24.0)
-    c = ca * (1 - w_sun) + cb * w_sun
-    # peach band on the sun side, ~2-9 deg, between the amber horizon and the blue (the engine's own haze band covers
-    # 0-2 deg at dusk, job 0011 D, so the warmth has to reach above it; higher or wider, this dark, it reads brown)
-    band = (w_sun * np.exp(-((e - 5) / 4) ** 2)[..., None]) * 0.4
-    c = c * (1 - band) + L(T["warm"]) * band
-    # the belt of Venus opposite the sun, ~3-9 deg over the blue-grey earth shadow
-    belt = (w_anti * np.exp(-((e - 6) / 3.5) ** 2)[..., None]) * 0.55
-    c = c * (1 - belt) + L(T["belt"]) * belt
+    sun, core, anti = (stop_profile(el, T[k]) for k in ("sun", "core", "anti"))
+    lab = anti + (sun - anti) * w_sun
+    lab = lab + (core - lab) * w_core
+    c = from_oklab(lab)
     c = c * (1 + 0.04 * soft_noise(dirs, 21))[..., None]
     star_w = 0.35 * smoothstep(38, 70, el) * smoothstep(70, 150, d)
     return c, star_w
@@ -433,16 +479,20 @@ def twilight_target(dirs, T):
 # Building a sky
 # ---------------------------------------------------------------------------------------------------------------
 
-# The night sky does not follow the sun (its city glow stays inland), but the engine's cast does: the held sun is in the
-# west until the midnight jump and in the east after it. Where the cast differs (only the hedged sun side, < 75 deg
-# from the sun), the night is built for the geometric mean of both holds: one texture all night, no swap at the jump.
+# The night skies do not follow the sun (their city glow stays inland), but the engine's cast does: the held sun is in
+# the west until the midnight jump and in the east after it (the sun side, < 75 deg from it, is cast less red). So
+# there are two night skies, each built for its own hold, swapped in the same tick as the clock jump (Look.SkySchedule):
+# `night` for the evening hold and `nightLate` for the morning hold. (A sky with several `clocks` would be built for
+# the geometric mean of their casts; the first build did that for one all-night sky, and it was exact for neither.)
 SKY_DEFS = {
-    "night": dict(kind="night", hour=22.5, clocks=(18.2, 5.8), follow=False, celestial=False,
-                  use="19:30-05:00 night: blue-black sky, cool horizon, subtle stars, faint warm city glow at +X"),
+    "night": dict(kind="night", palette="night", hour=22.5, clocks=(18.2,), follow=False, celestial=False,
+                  use="19:30-00:00 night: blue-black sky, cool horizon, subtle stars, faint warm city glow at +X"),
+    "nightLate": dict(kind="night", palette="nightLate", hour=2.0, clocks=(5.8,), follow=False, celestial=False,
+                      use="00:00-05:00 late night (morning hold): deeper blue-black, fainter city glow, more stars"),
     "blue": dict(kind="twilight", palette="blue", hour=18.9, clocks=(18.2,), follow=True, celestial=True,
-                 use="18:21-19:30 dusk: amber glow on the sun side, mauve belt opposite, deep blue zenith"),
+                 use="18:21-19:30 dusk: amber glow on the sun side, clear blue mid-sky, deep blue zenith"),
     "dawn": dict(kind="twilight", palette="dawn", hour=5.3, clocks=(5.8,), follow=True, celestial=True,
-                 use="05:00-05:39 dawn: pale peach-gold glow on the sun side, deep blue zenith"),
+                 use="05:00-05:39 dawn: pale peach-gold glow on the sun side, clear blue mid-sky, deep blue zenith"),
 }
 
 
@@ -480,7 +530,7 @@ def build(name, star_field):
     for k in ("ft", "bk", "lf", "rt", "up"):
         dirs = hs.face_dirs(k, FACE, 1)
         if sdef["kind"] == "night":
-            tgt, star_w = night_target(dirs)
+            tgt, star_w = night_target(dirs, NIGHTS[sdef["palette"]])
         else:
             tgt, star_w = twilight_target(dirs, TWILIGHT[sdef["palette"]])
         tgt = tgt + splat_stars(k, sv, samp) * star_w[..., None]
@@ -506,10 +556,10 @@ def write_sky(name, faces, st, clip):
     meta_all = lc.read_json(meta_path, {}) or {}
     skies = meta_all.get("skies", {})
     if sdef["kind"] == "night":
-        hz = NIGHT["horizon"]
-        glow_az, horizon_az = 0.0, NIGHT["glow_az"]
+        hz = NIGHTS[sdef["palette"]]["horizon"]
+        glow_az, horizon_az = 0.0, NIGHTS[sdef["palette"]]["glow_az"]
     else:
-        hz = TWILIGHT[sdef["palette"]]["anti"]
+        hz = TWILIGHT[sdef["palette"]]["anti"][0][1]  # the anti-sun horizon stop
         glow_az, horizon_az = 0.0, 0.0
     skies[name] = dict(
         hdri=None, source="procedural (tools/look/procedural_sky.py), no third-party source", use=sdef["use"],
@@ -561,12 +611,32 @@ def load_faces(ref):
 # Evidence: what the frame should show (the forward model), from the job 0009 / 0011 / 0012 cameras
 # ---------------------------------------------------------------------------------------------------------------
 
+# Job 0012's cameras on the v2 world (job 0018's t02 / t13 framings; studio/jobs/0012-night-sky.md CAMERA). Only the
+# view directions matter for a sky-only render.
 CAMERAS = {
-    "downtown_street": ((60, 12, 160), (60, 40, 0)),
-    "overview_low_sw": ((-700, 180, -700), (0, 20, 0)),
-    "look_up": ((60, 12, 160), (60, 1000, 160)),  # image top = -Z (job 0012: CFrame.lookAt(pos, pos + Y, -Z))
+    "downtown_street": ((-342, 20.6, -222), (-100, 40, -222)),  # Crown Blvd, facing +X (east, toward the city glow)
+    "overview_low_sw": ((-1400, 260, 1400), (-250, 30, -150)),  # the low south-west aerial (job 0018 t13 / g13)
+    "sky_up": ((-330, 18, -222), (-330, 1018, -222)),  # straight up; image top = -Z (north)
 }
-JOB_HOURS = (19.0, 20.5, 22.5, 2.0, 5.5)  # studio/jobs/0012-night-sky.md
+JOB_HOURS = (19.0, 20.5, 22.5, 2.0, 5.5)  # studio/jobs/0012-night-sky.md (17.6 is under the day HDRI, not modelled)
+
+# Real-engine frames whose sky is replaced by the model's render of the NEW faces (in-context previews). `faces` /
+# `yaw` / `exposure` / grade describe what was on screen then; `mask` picks the old sky pixels: geometry (elevation
+# above `min_el`), outside the HUD boxes, inside `box`, and the old sky's colour rule. `ev_now` is the exposure the
+# current preset gives that hour (the city is rescaled by 2 ** (ev_now - exposure), linear; approximate).
+CONTEXT_SHOTS = [
+    dict(name="job 0018 n02_downtown_street (v2 world, 22.5)", sky="night", hour=22.5,
+         shot="git:origin/studio-results:studio/results/0018/n02_downtown_street.png", exposure=0.8,
+         # a chase camera ~12 back / 4 up facing +X, pitched ~17.6 deg down (the street's vanishing point at y ~295)
+         camera=(-342, 20.6, -222, 658, 20.6 - 1000 * math.tan(math.radians(17.6)), -222), fov=70.0,
+         box=(700, 0, 940, 292), rule="dark", hud=[]),
+    dict(name="job 0011 B_n_default_overview_low_sw (v1 world, 22.5)", sky="night", hour=22.5,
+         shot="git:origin/studio-results:studio/results/0011/B_n_default_overview_low_sw.png", exposure=0.8,
+         camera=(-700, 180, -700, 0, 20, 0), fov=70.0, box=None, rule="reddish", hud=[[0, 400, 380, 1080]]),
+    dict(name="job 0011 D_b_default_overview_low_sw (v1 world, blue hour 18.8)", sky="blue", hour=18.8,
+         shot="git:origin/studio-results:studio/results/0011/D_b_default_overview_low_sw.png", exposure=0.6,
+         camera=(-700, 180, -700, 0, 20, 0), fov=70.0, box=None, rule="reddish", hud=[[0, 405, 375, 690]]),
+]
 
 
 def camera_dirs(w, h, pos, look, fov=70.0):
@@ -692,6 +762,88 @@ def mean_sky(faces, yaw, st, n=96):
     return (img * wts).sum((0, 1)) / wts.sum() * 255
 
 
+def old_name(name):
+    """The HDRI sky at OLD_REV that a procedural sky replaced (before / after)."""
+    return "night" if NIGHTS.get(name) else "blue"
+
+
+def region_table(built):
+    """Mean rendered colour (display 0..255) per sky region at each sky's reference state: the numbers behind "is it
+    brown / does the gradient read". Sky-local azimuth 0 = the sun side (twilight) or the city-glow side (night)."""
+    rows = []
+    regions = (("zenith (60-90 deg)", 60, 90, None), ("mid, away (12-30)", 12, 30, "away"),
+               ("mid, glow side (12-30)", 12, 30, "toward"), ("low, away (3-8)", 3, 8, "away"),
+               ("low, glow side (3-8)", 3, 8, "toward"), ("horizon, glow side (0.5-3)", 0.5, 3, "toward"),
+               ("horizon, away (0.5-3)", 0.5, 3, "away"))
+    for nm, faces in built.items():
+        sdef = SKY_DEFS[nm]
+        st = state(sdef["hour"], sdef["clocks"][0])
+        yaw = sky_yaw(nm, st)
+        glow_world = (NIGHTS[nm]["glow_az"] - yaw) if nm in NIGHTS else sun_azimuth(st)
+        for label, lo, hi, side in regions:
+            az = (np.arange(180) + 0.5) * 2 - 180
+            el = lo + (np.arange(24) + 0.5) / 24 * (hi - lo)
+            A, E = np.meshgrid(az, el)
+            rel = np.abs((A - glow_world + 180) % 360 - 180)
+            keep = np.ones_like(rel, bool) if side is None else (rel < 45 if side == "toward" else rel > 135)
+            dirs = dir_from(A[keep], E[keep])
+            img = haze_overlay(forward(sample_faces(faces, rot_y(dirs, yaw)), engine_gain(dirs, st["sun"], st["ev"]),
+                                       st["grade"]), dirs, st)
+            c = img.mean(0) * 255
+            h, s, v = colorsys_hsv(c / 255)
+            rows.append("%-10s %-28s rgb (%5.1f %5.1f %5.1f)  hue %3.0f  sat %.2f  val %3.0f" % (
+                nm, label, c[0], c[1], c[2], h * 360, s, v * 255))
+    return rows
+
+
+def colorsys_hsv(c):
+    import colorsys
+    return colorsys.rgb_to_hsv(*[float(x) for x in c])
+
+
+def context_mask(img, dirs, spec):
+    el = elevation(dirs)
+    m = el > 0.4
+    if spec["box"]:
+        x0, y0, x1, y1 = spec["box"]
+        box = np.zeros_like(m)
+        box[y0:y1, x0:x1] = True
+        m &= box
+    for x0, y0, x1, y1 in spec["hud"]:
+        m[y0:y1, x0:x1] = False
+    r, g, b = img[..., 0], img[..., 1], img[..., 2]
+    if spec["rule"] == "dark":
+        m &= (img.max(-1) < 16 / 255) & (r >= g - 1 / 255) & (r >= b - 1 / 255)
+    else:  # the maroon sky of jobs 0009 / 0011 (dark: the HUD's bright red / orange / magenta stays)
+        m &= (r >= 1.08 * g) & (r >= b) & (img.max(-1) < 0.33)
+    return m
+
+
+def context_composite(spec, faces):
+    """Real frame, sky pixels replaced by the model's render of `faces` at the CURRENT preset for that hour (the rest
+    rescaled to the current exposure, linear, approximate)."""
+    real = load_image(spec["shot"])
+    h, w = real.shape[:2]
+    c = spec["camera"]
+    dirs = camera_dirs(w, h, c[:3], c[3:], spec["fov"])
+    m = context_mask(real, dirs, spec)
+    st = state(spec["hour"])
+    new_sky = render_dirs(faces, dirs, sky_yaw(spec["sky"], st), st)
+    gain = 2.0 ** (st["ev"] - spec["exposure"])
+    city = lc.linear_to_srgb(np.clip(lc.srgb_to_linear(real) * gain, 0, 1))
+    soft = np.asarray(Image.fromarray(lc.to_u8(m.astype(np.float32))).filter(ImageFilter.GaussianBlur(1.2)),
+                      np.float32)[..., None] / 255.0
+    out = city * (1 - soft) + new_sky * soft
+    old_mean = real[m].mean(0) * 255 if m.any() else np.zeros(3)
+    new_mean = new_sky[m].mean(0) * 255 if m.any() else np.zeros(3)
+    return real, out, m, old_mean, new_mean, st
+
+
+def render_dirs(faces, dirs, yaw, st):
+    tex = sample_faces(faces, rot_y(dirs, yaw))
+    return haze_overlay(forward(tex, engine_gain(dirs, st["sun"], st["ev"]), st["grade"]), dirs, st)
+
+
 def evidence(built):
     out = []
     old = {"night": load_faces("git:%s:assets/sky/night" % OLD_REV), "blue": load_faces("git:%s:assets/sky/blue" % OLD_REV)}
@@ -701,7 +853,7 @@ def evidence(built):
     for hour in JOB_HOURS:
         name = sky_at(hour)
         st = state(hour)
-        for cam in ("downtown_street", "overview_low_sw", "look_up"):
+        for cam in ("downtown_street", "overview_low_sw", "sky_up"):
             imgs.append(render_view(built[name], CAMERAS[cam], sky_yaw(name, st), st))
             labs.append("%04.1f  %s  sky %s  EV %+.2f  clock %.2f" % (hour, cam, name, st["ev"], st["clock"]))
     out.append(tile(imgs, labs, 3, "Job 0012 preview: the NEW skies SIMULATED in-game (fitted engine transfer + the "
@@ -709,11 +861,11 @@ def evidence(built):
                     0.75, notes=(hud,)))
     # 2. before / after at the same hours
     imgs, labs = [], []
-    for hour in (19.0, 22.5, 5.5):
+    for hour in (19.0, 22.5, 2.0, 5.5):
         name = sky_at(hour)
-        oname = "night" if name == "night" else "blue"
+        oname = old_name(name)
         st = state(hour)
-        for cam in ("overview_low_sw", "look_up"):
+        for cam in ("overview_low_sw", "sky_up"):
             imgs.append(render_view(old[oname], CAMERAS[cam], sky_yaw(oname, st, old=True), st))
             labs.append("BEFORE %04.1f %s (HDRI '%s' faces)" % (hour, cam, oname))
             imgs.append(render_view(built[name], CAMERAS[cam], sky_yaw(name, st), st))
@@ -731,8 +883,8 @@ def evidence(built):
             cam = ((0, 30, 0), (1000 * math.sin(a), 30 + 1000 * math.tan(math.radians(12)), -1000 * math.cos(a)))
             imgs.append(render_view(built[nm], cam, yaw, st))
             labs.append("%s  %s  (game %.1f, EV %+.2f)" % (nm, lab, hour, st["ev"]))
-        imgs.append(render_view(built[nm], CAMERAS["look_up"], yaw, st))
-        labs.append("%s  look_up" % nm)
+        imgs.append(render_view(built[nm], CAMERAS["sky_up"], yaw, st))
+        labs.append("%s  sky_up" % nm)
     out.append(tile(imgs, labs, 3, "Dusk ('blue') and dawn skies, SIMULATED in-game at the engine hold (sun -3 deg)",
                     os.path.join(EVIDENCE_DIR, "twilight_sim_views.png"), 0.75, notes=(hud,)))
     # 4. panoramas, simulated vs raw texture
@@ -767,21 +919,48 @@ def evidence(built):
         labs.append("MODEL: same faces / yaw / exposure %+.1f / grade, fitted transfer (sky only)" % s["exposure"])
     out.append(tile(imgs, labs, 2, "The fitted engine transfer reproduces the reddish-brown sky of both real-engine "
                     "shots (tools/look/sky_calibration.json)", os.path.join(EVIDENCE_DIR, "model_validation.png"), 0.8))
-    # 6. cross sheets
+    # 6. in context: real engine frames (jobs 0011 / 0018) with the old sky replaced by the model's render of the new
+    imgs, labs, notes = [], [], []
+    for spec in CONTEXT_SHOTS:
+        real, comp, m, old_mean, new_mean, st = context_composite(spec, built[spec["sky"]])
+        h, w = real.shape[:2]
+        size = (w // 2, h // 2)
+        imgs.append(np.asarray(Image.fromarray(lc.to_u8(real)).resize(size, Image.LANCZOS)) / 255.0)
+        labs.append("REAL  " + spec["name"])
+        imgs.append(np.asarray(Image.fromarray(lc.to_u8(comp)).resize(size, Image.LANCZOS)) / 255.0)
+        labs.append("NEW SKY '%s' (model), EV %+.2f now" % (spec["sky"], st["ev"]))
+        notes.append("%s: old sky pixels mean (%.0f, %.0f, %.0f) -> new (%.0f, %.0f, %.0f), %d px" % (
+            spec["name"], *old_mean, *new_mean, int(m.sum())))
+        print("context", notes[-1])
+    out.append(tile(imgs, labs, 2, "In context: real engine frames, the sky pixels replaced by the model's render of the "
+                    "new faces at the current preset (rest of the frame rescaled to the new exposure; approximate)",
+                    os.path.join(EVIDENCE_DIR, "in_context.png"), 0.85, notes=notes))
+    # 7. cross sheets
     for nm, faces in built.items():
         sdef = SKY_DEFS[nm]
         st = state(sdef["hour"], sdef["clocks"][0])
         p = os.path.join(EVIDENCE_DIR, "cross_%s.png" % nm)
         hs.cross_sheet(nm, faces, render_pano(faces, 0.0, st, w=1024), dict(hdri="procedural"), p)
         out.append(p)
-    # 7. the swap steps (printed; job 0012 judges them)
-    if {"night", "blue", "dawn"} <= set(built):
-        for hour, a, b in ((19.5, "blue", "night"), (5.0, "night", "dawn")):
-            st = state(hour)
-            ma = mean_sky(built[a], sky_yaw(a, st), st)
-            mb = mean_sky(built[b], sky_yaw(b, st), st)
-            print("swap %04.1f %s -> %s: mean sky %s -> %s (EV dip %.2f)" % (hour, a, b, ma.round(1), mb.round(1),
-                                                                            swap_dip(hour)))
+    # 8. the swap steps (printed; job 0012 judges them): what is on screen just before and just after each swap
+    lines = []
+    if set(SKY_DEFS) <= set(built):
+        for hour, a, b in ((19.5, "blue", "night"), (0.0, "night", "nightLate"), (5.0, "nightLate", "dawn")):
+            sa, sb = state(hour - 0.002), state(hour + 0.002)
+            ma = mean_sky(built[a], sky_yaw(a, sa), sa)
+            mb = mean_sky(built[b], sky_yaw(b, sb), sb)
+            lines.append("swap %04.1f %s -> %s: mean sky %s -> %s (EV dip %.2f; engine clock %.2f -> %.2f)" % (
+                hour, a, b, ma.round(1), mb.round(1), swap_dip(hour), sa["clock"], sb["clock"]))
+    # 9. the region table
+    lines += region_table(built)
+    p = os.path.join(EVIDENCE_DIR, "regions.txt")
+    with open(p, "w") as f:
+        f.write("Rendered sky colours (model) per region at each sky's reference state; written by "
+                "tools/look/procedural_sky.py --evidence\n")
+        f.write("\n".join(lines) + "\n")
+    for ln in lines:
+        print(ln)
+    out.append(p)
     return out
 
 
@@ -912,7 +1091,30 @@ def calibrate(a):
 # ---------------------------------------------------------------------------------------------------------------
 
 
+def ceiling(a):
+    """Rendered display colour of a white face (the engine's ceiling) per elevation and side of the held sun."""
+    for hour in (float(h) for h in a.hours.split(",")):
+        st = state(hour)
+        name = sky_at(hour)
+        print("game %.2f  sky %s  EV %+.2f  engine clock %.2f  tint %s" % (hour, name, st["ev"], st["clock"],
+                                                                         np.round(st["grade"]["tint"], 1).tolist()))
+        sa = sun_azimuth(st)
+        for el in (1, 5, 10, 20, 35, 60, 89):
+            cells = []
+            for rel in (0, 60, 120, 180):
+                d = dir_from(np.float32(sa + rel), np.float32(el))[None]
+                c = forward(np.ones((1, 3), np.float32), engine_gain(d, st["sun"], st["ev"]), st["grade"])[0] * 255
+                cells.append("(%3.0f %3.0f %3.0f)" % tuple(c))
+            print("  el %2d   %s" % (el, "  ".join(cells)))
+        print("  (columns: 0 / 60 / 120 / 180 deg of azimuth from the held sun)")
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "ceiling":
+        ap = argparse.ArgumentParser(prog="procedural_sky.py ceiling")
+        ap.add_argument("--hours", default="18.9,22.5,2,5.3")
+        ceiling(ap.parse_args(sys.argv[2:]))
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "fit":
         ap = argparse.ArgumentParser(prog="procedural_sky.py fit")
         ap.add_argument("--spec", default=SPEC)
@@ -940,7 +1142,7 @@ def main():
     ap.add_argument("--evidence", action="store_true")
     a = ap.parse_args()
     only = set(filter(None, a.only.split(",")))
-    drop_skies([n for n in ("nightLate", "nightMild") if n not in SKY_DEFS])
+    drop_skies([n for n in ("nightMild",) if n not in SKY_DEFS])
     star_field = stars(6500, 7)
     built = {}
     for name in SKY_DEFS:
