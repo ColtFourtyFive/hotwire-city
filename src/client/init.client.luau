@@ -22,6 +22,11 @@ local ORDER = {
 	"CombatClient",
 	-- combat v2 (gta_combat §13.1)
 	"ShoulderCamera",
+	-- C4a characters: GTA on-foot camera / movement, name tags, the character creator
+	"FootCamera",
+	"FootMovement",
+	"NameTags",
+	"CharacterCreator",
 	"ShotFxController",
 	"WeaponClient",
 	"WeaponWheel",

@@ -64,6 +64,11 @@ Remotes.ClientToServer = {
 	"SetPassive", -- (on: boolean)
 	"Surrender", -- ()
 	"SetWeaponTint", -- (weaponId: string, tintId: string) buys the tint if needed
+	-- characters (C4a, AppearanceService; `look` = Appearance/LookCodec indices, validated server-side)
+	"AppearanceCreator", -- (open: boolean) enter / leave the character creator studio (on foot, not wanted / in combat)
+	"AppearancePreview", -- (look) wear a look while in the creator (not saved)
+	"AppearanceSave", -- (look) save + wear the look, leave the creator
+	"AppearanceSetOwn", -- (on: boolean) Settings > "Use my Roblox avatar"
 }
 
 -- UnreliableRemoteEvents: server -> client cosmetic traffic (payloads stay under 900 bytes)

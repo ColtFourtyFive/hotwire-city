@@ -14,6 +14,7 @@ local ORDER = {
 	"MapDresser",
 	"LightingService",
 	"DataService",
+	"AppearanceService", -- C4a characters: realistic player looks (own DataStore HC_Appearance_v1), creator studio
 	"MonetizationService",
 	"PlotService",
 	"VehicleService",
@@ -28,6 +29,7 @@ local ORDER = {
 	"CombatService",
 	"HitboxHistory", -- combat v2 (gta_combat §13): lag-compensation history
 	"DamageService", -- health / armor authority, PvP rules, WASTED
+	"FootService", -- C4a characters: fall damage + brief ragdoll on big falls
 	"WeaponService", -- inventory, tools, shot validation, melee
 	"PoliceCombatService", -- on-foot officers, firing director, roadblocks
 	"EventService",
