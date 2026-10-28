@@ -10,6 +10,8 @@
 --  * feed(richText)                   EventFeed remote: server rich text (bold names etc.) as a plain card.
 --  * announce(title, subtitle?, color?, sound?)   Announce remote (other players' big moments, server events): a feed
 --      card with the title as the sender line. The big centre shard is reserved for your own moments (UI/Shard).
+--      C4b: the feed blip, never the server's air horn (announceSound); toast / feed / announce text is calmed
+--      (RichText.calm: no "!").
 --  * cashPopup(amount, worldPos?)     CashPopup remote: the HUD cash delta covers the number; with a world position
 --      (collect pad, cash pickups) a small Montserrat "+$1,200" rises there and fades.
 --  * offlineEarnings(amount, seconds) OfflineEarnings remote: an email from Garage Security ("Garage income while you
@@ -20,7 +22,7 @@
 --  Streamer mode: the feed lives in the HUD's screen, so it hides with it.
 --  Public: post, toast, feed, announce, cashPopup, offlineEarnings, carStolenAlert, isAlertActive(),
 --  getAlertBottom(): number? (nil: no banner any more), isOfflineOpen() (false: no modal any more).
---  Pure helpers (tests): kindStyle, trimOldest, formatCashDelta, richEscape, carLabel, stolenAlertText, alertSubtitle,
+--  Pure helpers (tests): kindStyle, announceSound, trimOldest, formatCashDelta, richEscape, carLabel, stolenAlertText, alertSubtitle,
 --  bannerHold, toastAnchor, pickStolenCar, mergeKey.
 
 local CollectionService = game:GetService("CollectionService")
@@ -82,6 +84,17 @@ function NotificationController.kindStyle(kind: any): KindStyle
 	return KIND_STYLES[if typeof(kind) == "string" then kind else "info"] or KIND_STYLES.info
 end
 
+-- The sound an announcement card makes (C4b de-Robloxify). Server events name v1 sounds (air horns, cash fanfares,
+-- car horns); GTA's feed gives every card the same quiet blip, so anything outside this short list plays "Notify".
+-- "" stays silent.
+NotificationController.ANNOUNCE_SOUNDS = { Notify = true, Click = true } :: { [string]: boolean }
+function NotificationController.announceSound(sound: string?): string
+	if sound == "" then
+		return ""
+	end
+	return if typeof(sound) == "string" and NotificationController.ANNOUNCE_SOUNDS[sound] then sound else "Notify"
+end
+
 -- Removes the oldest entries (front of the list) until #list <= max. Returns the removed entries, oldest first.
 function NotificationController.trimOldest<T>(list: { T }, max: number): { T }
 	local removed: { T } = {}
@@ -89,6 +102,15 @@ function NotificationController.trimOldest<T>(list: { T }, max: number): { T }
 		table.insert(removed, table.remove(list, 1) :: T)
 	end
 	return removed
+end
+
+-- How many feed cards may show (pure): the layout's feedMax, less the event rows sharing the column on touch (it runs
+-- under the help box toward the thumbstick; spec §7 allows 2 entries there). A fresh card always shows.
+function NotificationController.cardBudget(feedMax: number, eventRows: number, touch: boolean): number
+	if not touch then
+		return feedMax
+	end
+	return math.max(1, feedMax - math.max(0, eventRows))
 end
 
 -- 1234 -> "+$1.23K", -500 -> "-$500"
@@ -336,6 +358,12 @@ function NotificationController.post(p: Post)
 		end
 	end
 	local host, width, max = feedHost()
+	-- touch: the hot drop row shares the column under the help box (spec §7: at most 2 entries there)
+	local events = lazyController("EventsClient")
+	if events and typeof(events.feedRowCount) == "function" then
+		local ok, n = pcall(events.feedRowCount)
+		max = NotificationController.cardBudget(max, if ok and typeof(n) == "number" then n else 0, Kit.isTouch())
+	end
 	cardOrder += 1
 	local frame = Kit.panel({
 		Name = "FeedCard",
@@ -433,11 +461,11 @@ function NotificationController.post(p: Post)
 	playSound(if p.sound == nil then "Notify" elseif p.sound == "" then nil else p.sound, 0.25)
 end
 
--- v1 API: Notify remote.
+-- v1 API: Notify remote. Server copy is calmed first (RichText.calm: GTA's feed never shouts; C4b).
 function NotificationController.toast(kind: string, text: string, duration: number?)
 	local style = NotificationController.kindStyle(kind)
 	NotificationController.post({
-		body = text,
+		body = RichText.calm(text),
 		color = style.color,
 		sound = style.sound or "",
 		duration = duration,
@@ -446,16 +474,16 @@ end
 
 -- EventFeed remote (server rich text: bold names, rarity colours).
 function NotificationController.feed(richText: string)
-	NotificationController.post({ body = richText, sound = "", duration = 7 })
+	NotificationController.post({ body = RichText.calm(richText), sound = "", duration = 7 })
 end
 
 -- Announce remote: other players' big moments / server events, as a sender-line card (the shard is for your own).
 function NotificationController.announce(title: string, subtitle: string?, color: Color3?, sound: string?)
 	NotificationController.post({
-		title = string.upper(Kit.sanitize(title)),
-		body = subtitle or "",
+		title = string.upper(Kit.sanitize(RichText.calm(title))),
+		body = RichText.calm(subtitle or ""),
 		titleColor = color,
-		sound = sound,
+		sound = NotificationController.announceSound(sound),
 		duration = 6,
 	})
 end

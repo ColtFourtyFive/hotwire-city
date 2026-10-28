@@ -16,7 +16,10 @@
 --   pins the last known position), clearOnWasted(player) (a WASTED death clears the stars and fails a theft like a
 --   bust, without the bail), surrender(player) (<= 2 stars with police within 40 studs: busted at half the bail),
 --   getSearchArea(player): (Vector3?, number?).
--- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickEvade, _sprayCost
+-- Pure helpers (tested in tests/spec/police.spec.luau): _penalty, _adjustHeat, _decayDelay, _tickEvade, _sprayCost;
+-- _formatBust, _bailPaid (tests/spec/polish.spec.luau): every bust prints one "[Bust] id=.. user=.. reason=..
+-- cash=a->b bail=.." line (C4b, job 0006 bug 5) so a charge can always be traced to exactly one arrest, and spendCash
+-- is the only charge (no addCash second pass).
 --
 -- Evade (replaces v1's star-by-star decay): while police can see you the timer is full (DECAY_DELAY[stars]) and
 -- your last known position (LKP) follows you. Out of sight it counts down 1x inside the search circle around the LKP
@@ -89,6 +92,7 @@ type State = {
 	sprayCostAt: number, -- next SprayCost refresh (clock)
 	respawnAtHQ: number?, -- clock time of a died-while-wanted bust (consumed by PlotService on respawn)
 	busting: boolean,
+	lastBustAt: number?, -- clock time of this player's previous bust (bust log: sinceLast)
 	evadeLeft: number, -- seconds of evade timer left (v2: all stars clear at 0)
 	lkp: Vector3?, -- last known position
 	lkpShown: Vector3?,
@@ -128,6 +132,10 @@ local hooks = {
 	end,
 	fireNear = function(name: string, position: Vector3, radius: number, ...: any)
 		Net.fireNear(name, position, radius, ...)
+	end,
+	-- structured bust log sink (tests capture it; live servers print one line per bust)
+	log = function(line: string)
+		print(line)
 	end,
 	-- shared clock for client countdowns (WantedDecayAt)
 	serverNow = function(): number
@@ -226,6 +234,67 @@ function WantedService._carLabel(car: any): string?
 		return mut.label .. " " .. name
 	end
 	return name
+end
+
+-- One structured line per bust (job 0006 bug 5: -$7,200 across two arrests and no server log to tell them apart).
+-- Pure (tested). Keys are stable for log scraping: id, user, reason, stars, peak, cash (before -> after), bail,
+-- mult, car, sinceLast (seconds since this player's previous bust, "-" for the first).
+export type BustRecord = {
+	id: number,
+	userId: number,
+	reason: string,
+	stars: number,
+	peak: number,
+	cashBefore: number,
+	cashAfter: number,
+	bail: number,
+	mult: number,
+	car: string?,
+	sinceLast: number?,
+}
+function WantedService._formatBust(r: BustRecord): string
+	local since = if typeof(r.sinceLast) == "number" then ("%.1f"):format(r.sinceLast) else "-"
+	local car = if r.car and r.car ~= "" then (r.car:gsub("%s+", "_")) else "-"
+	return ("[Bust] id=%d user=%d reason=%s stars=%d peak=%d cash=%d->%d bail=%d mult=%s car=%s sinceLast=%s"):format(
+		r.id,
+		r.userId,
+		r.reason,
+		r.stars,
+		r.peak,
+		math.floor(r.cashBefore),
+		math.floor(r.cashAfter),
+		math.floor(r.bail),
+		tostring(r.mult),
+		car,
+		since
+	)
+end
+
+-- Did spendCash take the bail (pure, tested)? `ok` / `res` are its pcall results, `before` / `after` the wallet around
+-- the call. A plain true is trusted; anything else (a new balance, an error thrown after the deduction) is judged by
+-- what actually left the wallet, so the bail shown on the BUSTED screen is always what was charged.
+function WantedService._bailPaid(ok: boolean, res: any, before: number, after: number, penalty: number): boolean
+	if penalty <= 0 then
+		return false
+	end
+	if ok and res == true then
+		return true
+	end
+	return before - after >= penalty
+end
+
+local bustSeq = 0
+
+local function cashOf(player: Player): number
+	local DataService = sys("DataService")
+	if not DataService or typeof(DataService.get) ~= "function" then
+		return 0
+	end
+	local ok, data = pcall(DataService.get, player)
+	if ok and typeof(data) == "table" and typeof(data.cash) == "number" then
+		return data.cash
+	end
+	return 0
 end
 
 -- STATE -------------------------------------------------------------------------------------------------
@@ -509,10 +578,23 @@ local function takePenalty(player: Player, mult: number?): number
 	if penalty > 0 then
 		local paid = false
 		if typeof(DataService.spendCash) == "function" then
+			-- one arrest, one charge (job 0006 bug 5): spendCash is the only charge. v1 fell back to addCash(-bail)
+			-- whenever spendCash did not return exactly true. With the live DataService that never double-charged
+			-- (spendCash refuses only before deducting, and the bail never exceeds the cash): job 0006's -$7,200 was
+			-- two separate $3,600 arrests. This is hardening against a DataService that throws after deducting or
+			-- returns the new balance, plus the [Bust] line that tells arrests apart.
 			local ok2, res = pcall(DataService.spendCash, player, penalty)
-			paid = ok2 and res == true
-		end
-		if not paid and typeof(DataService.addCash) == "function" then
+			paid = WantedService._bailPaid(ok2, res, cash, cashOf(player), penalty)
+			if not ok2 then
+				warn(
+					("[WantedService] spendCash errored during a bust (%s); bail %s"):format(
+						tostring(res),
+						if paid then "was taken" else "skipped"
+					)
+				)
+			end
+		elseif typeof(DataService.addCash) == "function" then
+			-- only without spendCash (older DataService)
 			local ok3, res3 = pcall(DataService.addCash, player, -penalty, "busted")
 			paid = ok3 and res3 ~= nil -- addCash returns the new balance, nil when not loaded
 		end
@@ -625,6 +707,8 @@ function WantedService.bust(player: Player, reason: string?): boolean
 	local died = reason == "died"
 	local surrendered = reason == "surrender"
 	local peak = math.max(st.peak, st.stars)
+	local starsAtBust = st.stars
+	local cashBefore = cashOf(player)
 
 	local carLabel: string? = nil
 	local ok, err = pcall(function()
@@ -635,10 +719,30 @@ function WantedService.bust(player: Player, reason: string?): boolean
 	end
 
 	local lost = 0
-	local okP, res = pcall(takePenalty, player, if surrendered then Economy.SURRENDER_PENALTY_MULT else 1)
+	local mult = if surrendered then Economy.SURRENDER_PENALTY_MULT else 1
+	local okP, res = pcall(takePenalty, player, mult)
 	if okP and typeof(res) == "number" then
 		lost = res
 	end
+	bustSeq += 1
+	local nowClock = hooks.clock()
+	pcall(
+		hooks.log,
+		WantedService._formatBust({
+			id = bustSeq,
+			userId = player.UserId,
+			reason = reason or "police",
+			stars = starsAtBust,
+			peak = peak,
+			cashBefore = cashBefore,
+			cashAfter = cashOf(player),
+			bail = lost,
+			mult = mult,
+			car = carLabel,
+			sinceLast = if st.lastBustAt then nowClock - st.lastBustAt else nil,
+		})
+	)
+	st.lastBustAt = nowClock
 
 	-- armor is confiscated (WeaponService takes half the reserve ammo on the Busted signal)
 	local DamageService = sys("DamageService")

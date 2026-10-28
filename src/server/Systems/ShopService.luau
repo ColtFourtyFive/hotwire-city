@@ -138,13 +138,13 @@ function ShopService.buyUpgrade(player: Player, upgradeId: any): (boolean, strin
 	end
 	local price = priceOrReason :: number
 	if not DataService.spendCash(player, price) then
-		notify(player, "error", `Not enough cash! {def.name} costs {Format.cash(price)}`)
+		notify(player, "error", `Not enough cash. {def.name} costs {Format.cash(price)}.`)
 		return false, "cash"
 	end
 	data.upgrades[upgradeId] = level + 1
 	DataService.markDirty(player)
 	local maxed = level + 1 >= def.maxLevel
-	notify(player, "success", `⬆️ {def.name} upgraded to Lv.{level + 1}{if maxed then " (MAX)" else ""}!`)
+	notify(player, "success", `{def.name} upgraded to level {level + 1}{if maxed then " (max)" else ""}.`)
 	Net.fireClient("Sound", player, "Purchase")
 	return true, nil
 end
@@ -161,7 +161,7 @@ function ShopService.buyTool(player: Player, toolId: any): (boolean, string?)
 	local def = Economy.Tools[toolId]
 	local owned = data.tools[toolId] == true or (toolId == "taser" and hasPass(player, "taser"))
 	if owned then
-		notify(player, "error", `You already own the {def.name}!`)
+		notify(player, "error", `You already own the {def.name}.`)
 		return false, "owned"
 	end
 	local ok, priceOrReason = ShopService._toolQuote(toolId, data.tools)
@@ -170,7 +170,7 @@ function ShopService.buyTool(player: Player, toolId: any): (boolean, string?)
 	end
 	local price = priceOrReason :: number
 	if price > 0 and not DataService.spendCash(player, price) then
-		notify(player, "error", `Not enough cash! The {def.name} costs {Format.cash(price)}`)
+		notify(player, "error", `Not enough cash. The {def.name} costs {Format.cash(price)}.`)
 		return false, "cash"
 	end
 	data.tools[toolId] = true
@@ -243,7 +243,7 @@ end
 
 local function storeGate(player: Player): (any, any)
 	if not ShopService.inGunStore(player) then
-		notify(player, "error", "Step up to a FREEDOM ARMS counter.")
+		notify(player, "error", "Step up to a Lock & Load counter.")
 		return nil, nil
 	end
 	return getData(player)
@@ -415,7 +415,7 @@ local GUNS: CounterKind = {
 	tag = ShopService.GUN_COUNTER_TAG,
 	ui = "GunShop",
 	action = "Browse",
-	object = "FREEDOM ARMS",
+	object = "Lock & Load", -- C5 vibe: the store's own name (the world's Lock & Load storefronts, CityArt sign)
 	promptName = "GunShopPrompt",
 }
 

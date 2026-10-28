@@ -10,12 +10,14 @@
 --   * pad visuals from server pad attributes (lock + price, next unlock, STOLEN!/OUT states) + "Unlock $X" prompt;
 --     +2 Slots pass pads read "MAX SLOTS" while the pass isn't on sale (id 0)
 --   * collect pad glow pulse + floating total while the owner has uncollected cash
---   * LOCK button / countdown pill (touch friendly) while inside your garage or while it's locked (stacked above
---     HUDController's HOME button outside); hidden in streamer mode (HUDController.VisibilityChanged); flashes
---     "LOCK NOW!" for a few seconds after the plot's IntruderAt stamp (someone started hotwiring, F3)
+--   * LOCK button / countdown (touch friendly) while inside your garage or while it's locked (stacked above
+--     HUDController's HOME button outside); hidden in streamer mode (HUDController.VisibilityChanged). C4b (job 0018
+--     VIBE row 18): a flat GTA instruction bar (black translucent, Oswald, a thin state rule), never a red pill: no
+--     emoji, no pulsing; for a few seconds after the plot's IntruderAt stamp (someone started hotwiring, F3) the rule
+--     turns red and it reads "INTRUDER  ·  LOCK GARAGE" (_lockView)
 -- The server re-checks everything; this module is presentation only.
 -- Public: getLockTop() (design px of the pill's top edge while it shows; TutorialController stacks above it).
--- Pure helpers (tests): _freeSlots, _stealBlock, _lockedPadLabel, _tagsNear, _intruderFlash, _lockTop.
+-- Pure helpers (tests): _freeSlots, _stealBlock, _lockedPadLabel, _tagsNear, _intruderFlash, _lockTop, _lockView.
 
 local CollectionService = game:GetService("CollectionService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -45,7 +47,7 @@ local GarageClient = {}
 
 local OWN_LASER = Color3.fromRGB(0, 214, 255) -- your own lock reads "friendly" (and lets you through)
 local LOCK_BOTTOM = 112 -- design px from the screen bottom to the LOCK pill's bottom edge (at least)
-local LOCK_HEIGHT = 58 -- design px
+local LOCK_HEIGHT = 44 -- design px (C4b: was a 58 px pill)
 local INTRUDER_FLASH = 6 -- seconds the LOCK pill flashes after the server's IntruderAt stamp (someone hotwiring)
 local TAG_NEAR = 150 -- studs (camera -> garage interior center) within which a plot's car billboards exist / show
 local PULSE = TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
@@ -84,7 +86,6 @@ local collectFx: CollectFx? = nil
 local lockButton: TextButton? = nil
 local lockScreen: ScreenGui? = nil
 local lockState = "hidden"
-local lockPulseAt = 0 -- os.clock() of the last intruder flash pop
 local hudHidden = false -- streamer mode (HUDController)
 local freeSlots: number? = nil -- my free garage slots from the snapshot (nil = unknown)
 
@@ -188,6 +189,22 @@ end
 -- Is the LOCK pill flashing for an intruder? intruderAt / now are Workspace:GetServerTimeNow() times.
 function GarageClient._intruderFlash(intruderAt: number, now: number): boolean
 	return intruderAt > 0 and now >= intruderAt - 1 and now - intruderAt < INTRUDER_FLASH
+end
+
+export type LockState = "ready" | "intruder" | "locked" | "cooldown"
+
+-- What the lock bar says, and its rule colour (a Theme.Colors key), for a state (pure, tested). `seconds` is the lock
+-- time left ("locked") or the recharge left ("cooldown"). Uppercase like every Kit.button; no emoji, no "!".
+function GarageClient._lockView(state: LockState, seconds: number?): (string, string)
+	local secs = math.max(0, math.ceil(seconds or 0))
+	if state == "locked" then
+		return "LOCKED  " .. Format.clock(secs), "Blue"
+	elseif state == "cooldown" then
+		return "LOCK READY IN " .. secs .. " S", "TextDim"
+	elseif state == "intruder" then
+		return "INTRUDER  ·  LOCK GARAGE", "Red"
+	end
+	return "LOCK GARAGE", "TextDim"
 end
 
 -- Design px from the screen bottom to the LOCK pill's top edge while it shows (nil when hidden).
@@ -871,21 +888,19 @@ end
 
 local function buildLockUI()
 	local screen = Kit.screen("GarageHUD", Theme.Layers.HUD + 1)
-	local btn = Kit.button("🔒 LOCK GARAGE", Theme.Colors.Danger, {
+	local btn = Kit.button("LOCK GARAGE", Theme.Colors.Red, {
 		Name = "LockButton",
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 1, -LOCK_BOTTOM),
-		Size = UDim2.fromOffset(250, 58),
+		Size = UDim2.fromOffset(240, LOCK_HEIGHT),
 		Visible = false,
 	})
 	btn.Parent = screen
 	btn.Activated:Connect(function()
 		if lockState == "ready" then
 			Net.fire("LockGarage")
-			Kit.pop(btn, 1.15)
 		else
-			-- locked / recharging: the pill shows the countdown; acknowledge the tap instead of ignoring it
-			Kit.pop(btn, 0.9)
+			-- locked / recharging: the bar shows the countdown; acknowledge the tap instead of ignoring it
 			local sound = controller("SoundController")
 			if sound and typeof(sound.play) == "function" then
 				pcall(sound.play, "Click")
@@ -940,25 +955,25 @@ local function updateLockUI()
 			btn.Position = UDim2.new(0.5, 0, 1, -bottom)
 		end
 	end
+	local barState: LockState, seconds: number? = "ready", nil
 	if locked then
 		lockState = "locked"
-		btn.Text = "🔒 LOCKED " .. Format.clock(endsAt - now)
-		btn.BackgroundColor3 = Theme.Colors.Secondary
+		barState, seconds = "locked", endsAt - now
 	elseif readyAt > now then
 		lockState = "cooldown"
-		btn.Text = "⏳ LOCK IN " .. math.ceil(readyAt - now) .. "s"
-		btn.BackgroundColor3 = Theme.Colors.Disabled
+		barState, seconds = "cooldown", readyAt - now
 	else
 		lockState = "ready"
-		-- someone is hotwiring one of your cars (GarageService stamps IntruderAt): flash the pill (F3)
+		-- someone is hotwiring one of your cars (GarageService stamps IntruderAt): the rule turns red (F3)
 		local intruder = GarageClient._intruderFlash(num(view.model:GetAttribute("IntruderAt"), 0), now)
-		btn.Text = if intruder then "🚨 LOCK NOW!" else "🔒 LOCK GARAGE"
-		btn.BackgroundColor3 = Theme.Colors.Danger
-		local clock = os.clock()
-		if intruder and btn.Visible and not hudHidden and clock - lockPulseAt >= 0.6 then
-			lockPulseAt = clock
-			Kit.pop(btn, 1.15)
-		end
+		barState = if intruder then "intruder" else "ready"
+	end
+	local text, ruleKey = GarageClient._lockView(barState, seconds)
+	btn.Text = text
+	local rule = btn:FindFirstChild("Rule")
+	if rule and rule:IsA("Frame") then
+		local col = (Theme.Colors :: any)[ruleKey]
+		rule.BackgroundColor3 = if typeof(col) == "Color3" then col else Theme.Colors.Text
 	end
 end
 

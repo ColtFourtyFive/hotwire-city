@@ -50,6 +50,7 @@ local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local Style = require(UI:WaitForChild("CombatStyle"))
 local HudLayout = require(UI:WaitForChild("HudLayout"))
+local UIFocus = require(UI:WaitForChild("UIFocus"))
 
 local ShoulderCamera = require(script.Parent:WaitForChild("ShoulderCamera"))
 local ShotFxController = require(script.Parent:WaitForChild("ShotFxController"))
@@ -148,6 +149,13 @@ function WeaponClient._canFire(
 		return false
 	end
 	return true
+end
+
+-- Does a fire / aim press count (pure, tested)? A GUI-processed press never does, nor does any press while a menu holds
+-- the cursor (UI/UIFocus: phone, pause, list menus, gun shop, character creator): a click that misses the menu must
+-- not fire the gun (job 0006 bug 4: a click outside the phone fired a round, earned a star and an arrest).
+function WeaponClient._triggerAllowed(processed: boolean, menuOpen: boolean): boolean
+	return not processed and not menuOpen
 end
 
 -- Is a press made at `at` still wanted at `now` (pure, tested)? Older presses are stale: they never fire.
@@ -713,7 +721,7 @@ local function tryFire()
 		dropTrigger()
 		return
 	end
-	if player:GetAttribute("Stunned") == true or wheelOpen() or inBlockedZone() then
+	if player:GetAttribute("Stunned") == true or wheelOpen() or inBlockedZone() or UIFocus.blocksFire() then
 		dropTrigger()
 		return
 	end
@@ -1345,9 +1353,16 @@ local function onInputBegan(input: InputObject, processed: boolean)
 	local t = input.UserInputType
 	local key = input.KeyCode
 	if t == Enum.UserInputType.MouseButton1 or key == Enum.KeyCode.ButtonR2 then
+		if not WeaponClient._triggerAllowed(processed, UIFocus.blocksFire()) then
+			dropTrigger()
+			return
+		end
 		firing = true
 		pressedAt = os.clock()
 	elseif t == Enum.UserInputType.MouseButton2 or key == Enum.KeyCode.ButtonL2 then
+		if not WeaponClient._triggerAllowed(processed, UIFocus.blocksFire()) then
+			return
+		end
 		startAim(true)
 	elseif key == Enum.KeyCode.R or key == Enum.KeyCode.ButtonX then
 		WeaponClient.reload()
@@ -1446,6 +1461,16 @@ function WeaponClient.start()
 	pcall(Net.listen, "AmmoState", applyAmmo)
 	UserInputService.InputBegan:Connect(onInputBegan)
 	UserInputService.InputEnded:Connect(onInputEnded)
+	-- a menu that opens mid-burst / mid-aim takes the trigger and the aim with it (UI/UIFocus)
+	UIFocus.Changed:Connect(function(anyOpen: boolean)
+		if anyOpen then
+			dropTrigger()
+			if aiming then
+				aimToggle = false
+				startAim(false)
+			end
+		end
+	end)
 	if UserInputService.TouchEnabled then
 		buildTouchUI()
 	end

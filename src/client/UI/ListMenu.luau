@@ -33,6 +33,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Theme = require(script.Parent.Theme)
 local Kit = require(script.Parent.Kit)
 local HudLayout = require(script.Parent.HudLayout)
+local UIFocus = require(script.Parent.UIFocus)
 local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"):WaitForChild("Signal"))
 
 local ListMenu = {}
@@ -742,6 +743,9 @@ function ListMenu:open()
 	if self.gui then
 		openScreens[self] = self.screenWidth or 0
 		fireScreens()
+		-- own-screen lists sit top-left under the chat window and free the cursor: UI/UIFocus hides the chat and
+		-- keeps a missed click from firing the gun (job 0006 bugs 3 / 4); embedded pause lists ride on "pause"
+		UIFocus.set("list:" .. tostring(self.id), true)
 	end
 end
 
@@ -760,6 +764,7 @@ function ListMenu:close()
 		openScreens[self] = nil
 		fireScreens()
 	end
+	UIFocus.set("list:" .. tostring(self.id), false)
 	self.Closed:Fire()
 end
 
@@ -774,6 +779,7 @@ function ListMenu:destroy()
 		openScreens[self] = nil
 		fireScreens()
 	end
+	UIFocus.set("list:" .. tostring(self.id), false)
 	if self.gui then
 		self.gui:Destroy()
 	elseif self.root then

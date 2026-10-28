@@ -6,8 +6,12 @@
 --   Queue.new() / Queue.push(q, entry, now) / Queue.clear(q, id, now) / Queue.tick(q, now) / Queue.current(q)
 --   entry = { id: string?, text: string, duration: number? (default 8; math.huge = until cleared), urgent: boolean? }
 --   Same id (or, without an id, the same plain text) updates the existing entry instead of queueing a copy; urgent
---   entries jump the queue and push the current one back to the front.
--- View: HelpText.new(parent, rect) -> { show(text, opts) -> id, clear(id?), current(): string?, setWidth(w) }
+--   entries jump the queue and push the current one back to the front with only the time it had left (a hint that
+--   has had all but RETURN_MIN of its time is dropped), so walking past prompts never replays an 8 s hint in full.
+-- View: HelpText.new(parent, rect) -> { show(text, opts) -> id, clear(id?), current(): string?, setWidth(w),
+--   progress(id, fraction?) }
+-- Hold progress (C4b, UI/PromptStyle): a thin Ignition Orange rule under the text while the entry `id` is on screen
+-- (GTA Online's hold bars); nil hides it. Pure: HelpText.progressFor(currentId, progressId, fraction).
 
 local TweenService = game:GetService("TweenService")
 
@@ -18,6 +22,8 @@ local RichText = require(script.Parent.RichText)
 local HelpText = {}
 
 local DEFAULT_DURATION = 8
+-- A pushed-back entry with this little time left is dropped rather than returning for a blink (seconds).
+HelpText.RETURN_MIN = 1
 
 export type Entry = { id: string, text: string, duration: number, urgent: boolean?, shownAt: number? }
 export type Queue = { current: Entry?, waiting: { Entry } }
@@ -65,8 +71,18 @@ function Queue.push(q: Queue, entry: any, now: number): boolean
 		return true
 	end
 	if e.urgent then
+		-- the pushed-back entry keeps only the time it had left (review: every prompt brought the tutorial / Esc hint
+		-- back for another full 8 s)
+		local keep = true
+		if cur.duration ~= math.huge then
+			local left = cur.duration - math.max(0, now - (cur.shownAt or now))
+			keep = left > HelpText.RETURN_MIN
+			cur.duration = left
+		end
 		cur.shownAt = nil
-		table.insert(q.waiting, 1, cur)
+		if keep then
+			table.insert(q.waiting, 1, cur)
+		end
 		e.shownAt = now
 		q.current = e
 		return true
@@ -130,6 +146,18 @@ function HelpText.fadeAction(visible: boolean, fadingOut: boolean, hasText: bool
 	return "none"
 end
 
+-- The hold rule's fill (0..1) for what is on screen, or nil to hide it (pure): only while the entry that asked for it
+-- is the current one, and only for a real fraction.
+function HelpText.progressFor(currentId: string?, progressId: string?, fraction: number?): number?
+	if currentId == nil or progressId == nil or currentId ~= progressId then
+		return nil
+	end
+	if typeof(fraction) ~= "number" or fraction ~= fraction then
+		return nil
+	end
+	return math.clamp(fraction, 0, 1)
+end
+
 -------------------------------------------------------------------------------------------------------------------------
 -- View
 -------------------------------------------------------------------------------------------------------------------------
@@ -142,6 +170,7 @@ export type View = {
 	clear: (id: string?) -> (),
 	current: () -> string?,
 	step: () -> (),
+	progress: (id: string, fraction: number?) -> (),
 	onBeep: (() -> ())?,
 }
 
@@ -155,6 +184,7 @@ function HelpText.new(parent: Instance, x: number, y: number, width: number, tex
 		Parent = parent,
 	})
 	Kit.padding(10, 12).Parent = box
+	Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Left).Parent = box
 	local label = Kit.text("", "body", textSize or 16, {
 		Name = "Text",
 		Size = UDim2.fromScale(1, 0),
@@ -163,11 +193,41 @@ function HelpText.new(parent: Instance, x: number, y: number, width: number, tex
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
 		LineHeight = 1.1,
+		LayoutOrder = 1,
 		Parent = box,
 	})
+	-- hold rule (hidden unless a prompt is being held; the list layout gives it no room while hidden)
+	local track = Kit.new("Frame", {
+		Name = "Progress",
+		Size = UDim2.new(1, 0, 0, 3),
+		BackgroundColor3 = Theme.Colors.TextDisabled,
+		BackgroundTransparency = 0.3,
+		BorderSizePixel = 0,
+		LayoutOrder = 2,
+		Visible = false,
+		Parent = box,
+	})
+	local fill = Kit.new("Frame", {
+		Name = "Fill",
+		Size = UDim2.fromScale(0, 1),
+		BackgroundColor3 = Theme.Colors.Accent,
+		BorderSizePixel = 0,
+		Parent = track,
+	})
+	local progressId: string? = nil
+	local progressValue: number? = nil
 	local queue = Queue.new()
 	local view: View
 	local shownText: string? = nil
+
+	local function renderProgress()
+		local cur = queue.current
+		local f = HelpText.progressFor(if cur then cur.id else nil, progressId, progressValue)
+		track.Visible = f ~= nil
+		if f then
+			fill.Size = UDim2.fromScale(f, 1)
+		end
+	end
 	-- A message can arrive while the box is still fading out (it stays Visible for those 0.3 s): it must fade back
 	-- in, or the running fade-out leaves it on screen fully transparent.
 	local fadingOut = false
@@ -176,6 +236,7 @@ function HelpText.new(parent: Instance, x: number, y: number, width: number, tex
 	local function render()
 		local cur = queue.current
 		local text = if cur then cur.text else nil
+		renderProgress()
 		if text == shownText then
 			return
 		end
@@ -233,6 +294,16 @@ function HelpText.new(parent: Instance, x: number, y: number, width: number, tex
 			if Queue.tick(queue, os.clock()) then
 				render()
 			end
+		end,
+		progress = function(id: string, fraction: number?)
+			if fraction == nil then
+				if progressId == id then
+					progressId, progressValue = nil, nil
+				end
+			else
+				progressId, progressValue = id, fraction
+			end
+			renderProgress()
 		end,
 	}
 	return view

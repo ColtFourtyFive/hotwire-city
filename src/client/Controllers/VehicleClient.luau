@@ -8,7 +8,9 @@
 --     "Hotwire [E]" prompt on a passing car can't throw the driver out). Auto-accelerate setting.
 --   * Driving HUD ("DrivingUI", v2 GTA language): optional small speed readout bottom-right (Settings > Speed
 --     readout), a thin car-damage rule, a quiet drift line and the touch circle buttons (HudLayout.buttons). Nitro
---     is the third radar bar segment (HUDController), the car name comes in on the location lines and the radio
+--     is the third radar bar segment (HUDController), the car name fades in bottom-right on entering (GTA: the model
+--     large in the script face, the brand small to its left, in line 1 of the location block, out after
+--     VEHICLE_NAME_HOLD s; C4b) and the radio
 --     station at top-centre. A one-off help text lists the controls. The CoreGui backpack hotbar is hidden while
 --     driving and restored on exit.
 --   * Feel: FOV kick with speed + nitro, camera shake on crashes, screech while drifting. Effects come from the
@@ -404,6 +406,32 @@ local SPEED_TEXT = 34 -- Kanit numerals (design px)
 local UNIT_TEXT = 14
 local CONTROLS_HELP_ID = "drive_controls"
 
+-- Vehicle name shown on entering a car (pure, tested): (model, brand) from Config/Cars. v2 defs carry `model` /
+-- `brand` (the parody brand small above the model); a def without them shows its whole display name as the model
+-- and no brand (v1 names like "Soccer Mom SUV" are not "<Brand> <Model>", so they are never split).
+function VehicleClient.vehicleNameParts(def: any): (string, string)
+	if typeof(def) ~= "table" then
+		return "", ""
+	end
+	local model, brand = def.model, def.brand
+	if typeof(model) == "string" and model ~= "" then
+		return model, if typeof(brand) == "string" then brand else ""
+	end
+	return if typeof(def.name) == "string" then def.name else "", ""
+end
+
+-- Seconds the vehicle name holds before it fades (the lead's spec: GTA-style, out after 3 s).
+VehicleClient.VEHICLE_NAME_HOLD = 3
+VehicleClient.NAME_SIZE = 30 -- the model's script face (px), inside the location block's 32 px line 1
+
+-- The vehicle name's rect (pure, tested): line 1 of the driving location block `loc` (`lines` lines tall). The HUD
+-- packs the district / street into the bottom lines, and the timer bars sit above the block, so nothing overlaps.
+function VehicleClient.nameRect(loc: any, lines: number?): { x: number, y: number, w: number, h: number }
+	local n = if typeof(lines) == "number" and lines >= 1 then lines else 3
+	local lineH = math.floor(loc.h / n + 0.5)
+	return { x = loc.x, y = loc.y, w = loc.w, h = lineH }
+end
+
 local function hud(): any
 	return sibling("HUDController")
 end
@@ -500,6 +528,39 @@ local function buildUI()
 		Parent = root,
 	})
 
+	-- Vehicle name (desktop: line 1 of the bottom-right location block, VehicleClient.nameRect; the HUD packs the
+	-- district / street into lines 2-3, so the two never overlap): the brand small, inline left of the model ------
+	local nameBlock = Kit.new("Frame", {
+		Name = "VehicleName",
+		BackgroundTransparency = 1,
+		Visible = false,
+		Parent = root,
+	}, {
+		Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center),
+	})
+	local brandLabel = Kit.text("", "condensedMedium", 14, {
+		Name = "Brand",
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextTransparency = 1,
+		LayoutOrder = 1,
+		Parent = nameBlock,
+	})
+	local modelLabel = Kit.script("", VehicleClient.NAME_SIZE, {
+		Name = "Model",
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextTransparency = 1,
+		LayoutOrder = 2,
+		Parent = nameBlock,
+	})
+	-- the script face over a bright street needs GTA's soft 1 px outline (faded with the text)
+	local modelStroke = modelLabel:FindFirstChildOfClass("UIStroke")
+		or Kit.new("UIStroke", { Color = Theme.Colors.Black, Thickness = 1, Parent = modelLabel })
+	modelStroke.Transparency = 1
+
 	-- Touch buttons (HudLayout.buttons, bottom-right arc; nothing in the thumbstick zone) ------------------------
 	local touchFrame = Kit.new("Frame", {
 		Name = "Touch",
@@ -534,6 +595,9 @@ local function buildUI()
 		healthTrack = healthTrack,
 		healthFill = healthFill,
 		drift = drift,
+		nameBlock = nameBlock,
+		brandLabel = brandLabel,
+		modelLabel = modelLabel,
 		touchFrame = touchFrame,
 		nitroBtn = nitroBtn,
 		driftBtn = driftBtn,
@@ -565,6 +629,7 @@ local function applyDrivingVisibility()
 	ui.speedo.Visible = speedoWanted() and not hudHidden
 	if hudHidden then
 		ui.drift.Visible = false
+		ui.nameBlock.Visible = false
 	end
 	ui.touchFrame.Visible = Kit.isTouch() and not touchHidden
 end
@@ -601,6 +666,9 @@ local function layoutDriving()
 	local L = HudLayout.compute(canvas.X, canvas.Y, isTouch)
 	place(ui.speedo, L.speed)
 	place(ui.drift, L.driftText)
+	-- the name sits in line 1 of the driving location block (the HUD packs district / street into lines 2-3), so it
+	-- never covers the district line or the delivery timer bars above the block
+	place(ui.nameBlock, VehicleClient.nameRect(L.locationDriving, L.locationLines))
 	local b = L.buttons
 	place(ui.nitroBtn, b.nitro)
 	place(ui.driftBtn, b.drift)
@@ -701,6 +769,46 @@ local function restoreBackpack()
 	end
 end
 
+local nameToken = 0
+
+local function showVehicleName(def: any)
+	local model, brand = VehicleClient.vehicleNameParts(def)
+	if model == "" then
+		return
+	end
+	if Kit.isTouch() or not ui then
+		local h = hud()
+		if h and typeof(h.showLocation) == "function" then
+			pcall(h.showLocation, if brand ~= "" then brand .. " " .. model else model, nil, nil)
+		end
+		return
+	end
+	nameToken += 1
+	local my = nameToken
+	local block, brandLabel, modelLabel = ui.nameBlock, ui.brandLabel, ui.modelLabel
+	brandLabel.Text = string.upper(Kit.sanitize(brand))
+	modelLabel.Text = Kit.sanitize(model)
+	block.Visible = not hudHidden
+	local fadeIn = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+	TweenService:Create(brandLabel, fadeIn, { TextTransparency = 0.1 }):Play()
+	TweenService:Create(modelLabel, fadeIn, { TextTransparency = 0 }):Play()
+	local stroke = modelLabel:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		TweenService:Create(stroke, fadeIn, { Transparency = 0.6 }):Play()
+	end
+	task.delay(0.3 + VehicleClient.VEHICLE_NAME_HOLD, function()
+		if my ~= nameToken then
+			return
+		end
+		local out = TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+		TweenService:Create(brandLabel, out, { TextTransparency = 1 }):Play()
+		TweenService:Create(modelLabel, out, { TextTransparency = 1 }):Play()
+		if stroke then
+			TweenService:Create(stroke, out, { Transparency = 1 }):Play()
+		end
+	end)
+end
+
 local function showUI(s: Session)
 	hideBackpack()
 	if not ui then
@@ -713,11 +821,9 @@ local function showUI(s: Session)
 	layoutDriving() -- after Enabled: measured on the live DrivingUI canvas
 	readHudHidden()
 	updateHealthUI(s, false)
-	-- GTA: the vehicle name fades in bottom-right with the location lines, the station name at top-centre
-	local h = hud()
-	if h and typeof(h.showLocation) == "function" then
-		pcall(h.showLocation, s.def.name, nil, nil)
-	end
+	-- GTA: the vehicle name fades in bottom-right (desktop: our own model / brand block, so a district change can't
+	-- wipe it; touch: the HUD's one-line location slot at top-centre), the station name at top-centre
+	showVehicleName(s.def)
 	updateRadioUI(radioCall("getRadio"))
 	showControlsHelp()
 end

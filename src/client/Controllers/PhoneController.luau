@@ -45,6 +45,7 @@ local UI = script.Parent.Parent:WaitForChild("UI")
 local Kit = require(UI:WaitForChild("Kit"))
 local Theme = require(UI:WaitForChild("Theme"))
 local Phone = require(UI:WaitForChild("Phone"))
+local UIFocus = require(UI:WaitForChild("UIFocus"))
 local UISound = require(UI:WaitForChild("UISound"))
 
 local StateController = require(script.Parent:WaitForChild("StateController"))
@@ -719,6 +720,7 @@ local function exitPhotoMode()
 		return
 	end
 	photoMode = false
+	UIFocus.set("photo", false)
 	pcall(function()
 		game:GetService("ContextActionService"):UnbindAction(PHOTO_ACTION)
 	end)
@@ -797,6 +799,8 @@ end
 local function enterPhotoMode()
 	PhoneController.close()
 	photoMode = true
+	-- the viewfinder holds the cursor: a click that misses Exit / Take photo must not fire the gun (job 0006 bug 4)
+	UIFocus.set("photo", true)
 	local hud = lazy("HUDController")
 	if hud and typeof(hud.setLocalHidden) == "function" then
 		pcall(hud.setLocalHidden, true)
@@ -1034,6 +1038,8 @@ function PhoneController.start()
 	ensurePhone()
 	ridesSeen = player:GetAttribute("CabRides")
 	player:GetAttributeChangedSignal("CabRides"):Connect(onCabRides)
+	-- a respawn ends photo mode (it holds UIFocus "photo", which keeps the gun from firing)
+	player.CharacterAdded:Connect(exitPhotoMode)
 	StateController.Changed:Connect(function(snap: any)
 		if typeof(snap) == "table" and typeof(snap.playtime) == "table" then
 			playtimeBase = snap.playtime
