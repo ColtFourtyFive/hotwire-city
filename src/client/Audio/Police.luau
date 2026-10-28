@@ -241,9 +241,10 @@ local function startSiren(slot: any, unit: any)
 end
 
 local function startHeli(slot: any, heli: any)
-	slot.holder = heli
+	local h: Heli = heli
+	slot.holder = h
 	slot.fade = 0
-	(heli :: Heli).hasPrev = false
+	h.hasPrev = false
 	local s = slot.sound :: Sound
 	if not s.IsPlaying then
 		s:Play()

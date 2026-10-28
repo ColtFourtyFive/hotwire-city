@@ -373,9 +373,11 @@ function Radio.step(dir: number)
 	tuneToken += 1
 	local tune = tuneToken
 	task.delay(Radio.TUNE_DELAY, function()
-		if tune == tuneToken and playing then
-			playClock()
-			publish()
+		if tune == tuneToken then
+			if playing then
+				playClock()
+			end
+			publish() -- others hear the station even when this player's music setting is off
 		end
 	end)
 end

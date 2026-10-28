@@ -75,6 +75,7 @@ type Slot = {
 	st: EngineModel.State,
 	mix: EngineModel.Mix,
 	fade: number,
+	leaving: boolean, -- fading out before the slot is freed (no clicks when a car drops out of the budget)
 }
 type Squeal = { att: Attachment, sound: Sound, chassis: BasePart?, vol: number }
 type Cand = { key: any, dist: number }
@@ -257,6 +258,7 @@ local function ensureSlots()
 			st = EngineModel.newState(p),
 			mix = EngineModel.newMix(),
 			fade = 0,
+			leaving = false,
 		})
 	end
 end
@@ -305,7 +307,9 @@ local function assign(slot: Slot, car: Car)
 	EngineModel.reset(slot.st, EngineModel.profileFor(car.set))
 	slot.holder = car
 	slot.fade = 0
+	slot.leaving = false
 	car.hasPrev = false
+	car.recentMax = 0 -- a stale peak from an earlier hold would read as a crash
 	startLayer(slot.idle)
 	startLayer(slot.on)
 	startLayer(slot.off)
@@ -365,10 +369,13 @@ function Engines.scan(listener: Vector3, enabled: boolean)
 	for _, slot in slots do
 		local car = slot.holder
 		if car then
-			if chosen[car] and car.chassis and car.chassis.Parent then
-				held[car] = true
-			else
+			if not (car.chassis and car.chassis.Parent) then
 				release(slot)
+			elseif chosen[car] then
+				held[car] = true
+				slot.leaving = false
+			else
+				slot.leaving = true -- stepSlot fades it out, then frees it
 			end
 		end
 	end
@@ -432,7 +439,15 @@ local function stepSlot(slot: Slot, car: Car, dt: number, listener: Vector3, lis
 	local dist = (pos - listener).Magnitude
 	local lod = EngineModel.lod(dist)
 	local doppler = Siren.doppler(Siren.closingSpeed(pos, vel, listener, lisVel))
-	slot.fade = math.min(1, slot.fade + dt * 2)
+	if slot.leaving then
+		slot.fade = math.max(0, slot.fade - dt * 4)
+		if slot.fade <= 0 then
+			release(slot)
+			return
+		end
+	else
+		slot.fade = math.min(1, slot.fade + dt * 2)
+	end
 	local g = m.gain * slot.fade
 	if lod >= 3 then
 		setLayer(slot.idle, m.idle * g, m.idlePitch * doppler)
