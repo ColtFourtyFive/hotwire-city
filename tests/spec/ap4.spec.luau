@@ -14,7 +14,7 @@ return function(t)
 	local Sounds = H.require("src/shared/Config/Sounds")
 	local SoundController = H.require("src/client/Controllers/SoundController")
 
-	t.test("radio tracks: 6-10 public music ids, one-shot, quiet, named station + title", function()
+	t.test("radio tracks: 6-24 public music ids, one-shot, quiet, named station + title", function()
 		local count = 0
 		for key, def in Sounds do
 			if key:sub(1, 6) == "Radio_" then
@@ -28,7 +28,8 @@ return function(t)
 				t.eq(def.station, nil, key .. " is not a radio track")
 			end
 		end
-		t.ok(count >= 6 and count <= 10, "radio track count " .. count)
+		-- C3 audio: 6 stations x 3 tracks (Roblox-licensed APM, audited); a cap keeps the stream budget sane
+		t.ok(count >= 6 and count <= 24, "radio track count " .. count)
 	end)
 
 	t.test("SoundController.buildStations groups Radio_* by station (sorted) and ignores the rest", function()

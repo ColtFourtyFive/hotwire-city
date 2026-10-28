@@ -66,6 +66,19 @@ EngineClass.HORNS = {
 	police = "Horn_Muscle",
 }
 
+-- Config/Sounds keys of each engine set's layers ("sports" -> Eng_Sports_Idle / _On / _Off), built once.
+export type LayerKeys = { idle: string, on: string, off: string }
+EngineClass.KEYS = {} :: { [string]: LayerKeys }
+for _, s in EngineClass.SETS do
+	local cap = string.upper(string.sub(s, 1, 1)) .. string.sub(s, 2)
+	EngineClass.KEYS[s] =
+		{ idle = "Eng_" .. cap .. "_Idle", on = "Eng_" .. cap .. "_On", off = "Eng_" .. cap .. "_Off" }
+end
+
+function EngineClass.keysFor(engineSet: string): LayerKeys
+	return EngineClass.KEYS[engineSet] or EngineClass.KEYS[EngineClass.DEFAULT]
+end
+
 local function set(name: any): string?
 	if typeof(name) ~= "string" then
 		return nil
@@ -120,6 +133,22 @@ function EngineClass.resolve(explicit: any, kind: any, def: any): string
 		end
 	end
 	return EngineClass.DEFAULT
+end
+
+-- Kinds whose cars sit still (anchored displays / unclaimed) and never run an engine; AI kinds drive without a
+-- seated player.
+EngineClass.SILENT_KINDS = { Parked = true, Dealership = true, HotDrop = true } :: { [string]: boolean }
+EngineClass.AI_KINDS = { Traffic = true, Police = true } :: { [string]: boolean }
+
+-- Does a car with this Kind / driver state make engine noise?
+function EngineClass.isEngineEligible(kind: any, hasDriver: boolean): boolean
+	if typeof(kind) ~= "string" then
+		return hasDriver
+	end
+	if EngineClass.SILENT_KINDS[kind] then
+		return false
+	end
+	return hasDriver or EngineClass.AI_KINDS[kind] == true
 end
 
 function EngineClass.hornFor(engineSet: string): string

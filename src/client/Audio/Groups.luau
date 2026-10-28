@@ -127,6 +127,35 @@ function Groups.step(dt: number)
 	end
 end
 
+-- The world muffle (death / arrest grade, weapon wheel): one low-pass EQ on each world channel (sfx, vehicles,
+-- ambience). The radio and the interface stay clear. nil highGain switches it off.
+local WORLD = { "sfx", "vehicles", "ambience" }
+local muffleEqs: { [string]: EqualizerSoundEffect } = {}
+function Groups.setMuffle(highGain: number?, midGain: number?)
+	for _, channel in WORLD do
+		local g = Groups.get(channel)
+		local eq = muffleEqs[channel]
+		if highGain == nil then
+			if eq then
+				eq.Enabled = false
+			end
+		else
+			if not eq or eq.Parent ~= g then
+				local made = Instance.new("EqualizerSoundEffect")
+				made.Name = "HC_Muffle"
+				made.LowGain = 0
+				made.Parent = g
+				muffleEqs[channel] = made
+				eq = made
+			end
+			local e = eq :: EqualizerSoundEffect
+			e.HighGain = highGain
+			e.MidGain = midGain or 0
+			e.Enabled = true
+		end
+	end
+end
+
 -- Snapshot for tests / debug.
 function Groups.state(): { [string]: any }
 	return { volumes = volumes, toggles = toggles, ducks = duckFade }

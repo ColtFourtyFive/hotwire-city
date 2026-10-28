@@ -12,7 +12,8 @@
 --                             picked with `audit.py --loop`, seams snapped to zero crossings)
 --   lowpass                   play through a low-pass EqualizerSoundEffect (off-load engine layers)
 --   rollOff                   RollOffMaxDistance for world sounds; pitchVar: random pitch spread (+-) per play
---   station / title           car-radio tracks only (Radio_* keys; titles show in the HUD, keep them clean)
+--   station / title / length  car-radio tracks only (Radio_* keys; titles show in the HUD, keep them clean; length =
+--                             measured seconds, the station's live clock needs it)
 --
 -- Content safety (docs/v2/CONTENT_SAFETY.md): no voices saying names / numbers / agencies. The police dispatch keys are
 -- squelch, static and beeps only (no talk); ambience beds were picked from descriptions without speech.
@@ -30,6 +31,7 @@ export type SoundDef = {
 	lowpass: boolean?,
 	rollOff: number?,
 	pitchVar: number?,
+	length: number?,
 }
 
 local function a(id: number): string
@@ -49,7 +51,13 @@ local function gun(id: number, volume: number, rollOff: number, extra: { [string
 end
 
 -- A looping region of a long take.
-local function loop(id: number, volume: number, loopStart: number?, loopEnd: number?, extra: { [string]: any }?): SoundDef
+local function loop(
+	id: number,
+	volume: number,
+	loopStart: number?,
+	loopEnd: number?,
+	extra: { [string]: any }?
+): SoundDef
 	local def: SoundDef = { id = a(id), volume = volume, looped = true, loopStart = loopStart, loopEnd = loopEnd }
 	if extra then
 		for k, v in extra do
@@ -70,8 +78,9 @@ local function one(id: number, volume: number, extra: { [string]: any }?): Sound
 	return def
 end
 
-local function radio(id: number, station: string, title: string, volume: number?): SoundDef
-	return { id = a(id), volume = volume or 0.28, looped = false, station = station, title = title }
+-- length = the track's measured duration (audio_audit.md): the station's live clock (Audio/RadioDial.trackAt) needs it.
+local function radio(id: number, station: string, title: string, length: number, volume: number?): SoundDef
+	return { id = a(id), volume = volume or 0.28, looped = false, station = station, title = title, length = length }
 end
 
 local Sounds = {
@@ -294,24 +303,24 @@ local Sounds = {
 	-- Public, free APM Music tracks (toolbox-service: creator APMOfficial, audioType Music, free; audio_audit.md).
 	-- Station names are our own parodies; titles show on the HUD. looped = false: the station queues its next track.
 	-------------------------------------------------------------------------------------------------------------------
-	Radio_Hyperdrive = radio(72710061789341, "BASS DROP 101", "Hyperdrive", 0.26),
-	Radio_PartyTime = radio(1847692770, "BASS DROP 101", "EDM Party Time", 0.26),
-	Radio_Aura = radio(1837664025, "BASS DROP 101", "Aura", 0.26),
-	Radio_CityLights = radio(9046863579, "CHILL WAVES", "City Lights", 0.32),
-	Radio_Poolside = radio(9046863253, "CHILL WAVES", "Poolside", 0.32),
-	Radio_BeachCushions = radio(9047104411, "CHILL WAVES", "Beach Cushions", 0.32),
-	Radio_FatElectroFunk = radio(1836160527, "FUNKY DRIVE", "Fat Electro Funk"),
-	Radio_TheStickup = radio(1841268296, "FUNKY DRIVE", "The Stickup"),
-	Radio_DiscoSapiens = radio(1835725225, "FUNKY DRIVE", "Disco Sapiens"),
-	Radio_AllGood = radio(9044508438, "HEIST HOP", "All Good", 0.3),
-	Radio_UrbanJungleDrive = radio(1836021107, "HEIST HOP", "Urban Jungle Drive"),
-	Radio_WestCoastHop = radio(1835563783, "HEIST HOP", "West Coast Hop"),
-	Radio_NeonLights = radio(1837115816, "NEON FM", "Neon Lights"),
-	Radio_OutrunArcade = radio(1837301807, "NEON FM", "Outrun Arcade"),
-	Radio_DeletedMemory = radio(1837115853, "NEON FM", "Deleted Memory"),
-	Radio_SurfRock = radio(1847233991, "PALMERA ROCK 104", "Surf Rock"),
-	Radio_TheRenegade = radio(1837413931, "PALMERA ROCK 104", "The Renegade"),
-	Radio_SurfingRocking = radio(1837299865, "PALMERA ROCK 104", "Surfing 'n' Rocking"),
+	Radio_Hyperdrive = radio(72710061789341, "BASS DROP 101", "Hyperdrive", 155.29, 0.26),
+	Radio_PartyTime = radio(1847692770, "BASS DROP 101", "EDM Party Time", 160.7, 0.26),
+	Radio_Aura = radio(1837664025, "BASS DROP 101", "Aura", 183.52, 0.26),
+	Radio_CityLights = radio(9046863579, "CHILL WAVES", "City Lights", 120.1, 0.32),
+	Radio_Poolside = radio(9046863253, "CHILL WAVES", "Poolside", 165.24, 0.32),
+	Radio_BeachCushions = radio(9047104411, "CHILL WAVES", "Beach Cushions", 156.68, 0.32),
+	Radio_FatElectroFunk = radio(1836160527, "FUNKY DRIVE", "Fat Electro Funk", 154.07),
+	Radio_TheStickup = radio(1841268296, "FUNKY DRIVE", "The Stickup", 153.91),
+	Radio_DiscoSapiens = radio(1835725225, "FUNKY DRIVE", "Disco Sapiens", 155.14),
+	Radio_AllGood = radio(9044508438, "HEIST HOP", "All Good", 127.99, 0.3),
+	Radio_UrbanJungleDrive = radio(1836021107, "HEIST HOP", "Urban Jungle Drive", 177.1),
+	Radio_WestCoastHop = radio(1835563783, "HEIST HOP", "West Coast Hop", 180.27),
+	Radio_NeonLights = radio(1837115816, "NEON FM", "Neon Lights", 153.44),
+	Radio_OutrunArcade = radio(1837301807, "NEON FM", "Outrun Arcade", 198.31),
+	Radio_DeletedMemory = radio(1837115853, "NEON FM", "Deleted Memory", 109.8),
+	Radio_SurfRock = radio(1847233991, "PALMERA ROCK 104", "Surf Rock", 175.73),
+	Radio_TheRenegade = radio(1837413931, "PALMERA ROCK 104", "The Renegade", 139.98),
+	Radio_SurfingRocking = radio(1837299865, "PALMERA ROCK 104", "Surfing 'n' Rocking", 122.54),
 	-- the static burst between stations
 	RadioStatic = one(9118026930, 0.3, { start = 0.1 }),
 } :: { [string]: SoundDef }

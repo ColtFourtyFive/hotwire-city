@@ -235,7 +235,13 @@ function Ambience.newScheduler(now: number, rand: () -> number): Scheduler
 end
 
 -- The next one-shot due now in this bed / time of day: (sound key, distance) or nil. Arms the cooldowns.
-function Ambience.pickOneShot(s: Scheduler, now: number, bed: string, night: boolean, rand: () -> number): (string?, number)
+function Ambience.pickOneShot(
+	s: Scheduler,
+	now: number,
+	bed: string,
+	night: boolean,
+	rand: () -> number
+): (string?, number)
 	if now < s.globalAt then
 		return nil, 0
 	end

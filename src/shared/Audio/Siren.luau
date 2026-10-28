@@ -80,6 +80,43 @@ function Siren.doppler(relSpeed: number): number
 	return math.clamp(c / (c - v), Siren.DOPPLER_MIN, Siren.DOPPLER_MAX)
 end
 
+-- The pattern a unit's SirenMode attribute asks for (PoliceDriving, v2 traffic: "wail" | "yelp" | "hilo" | "lights").
+-- Returns (known, pattern): "lights" = lights only, no sound (known, nil); a missing / unknown value = not known (the
+-- client runs its own Siren.step machine).
+function Siren.fromAttr(mode: any): (boolean, string?)
+	if mode == "wail" or mode == "yelp" or mode == "hilo" then
+		return true, mode
+	elseif mode == "lights" or mode == "off" then
+		return true, nil
+	end
+	return false, nil
+end
+
+-- Is a police unit's siren sounding? Siren == false (leaving / wrecked, v1 contract) or SirenOn == false (v2) silence
+-- it; nil = on (older / unreplicated units).
+function Siren.isOn(sirenAttr: any, sirenOnAttr: any): boolean
+	return sirenAttr ~= false and sirenOnAttr ~= false
+end
+
+-- Distant siren bed while wanted: louder with stars, and it gets out of the way of real sirens close by
+-- (nearestUnit = studs to the closest sounding unit, math.huge when none).
+function Siren.distantLevel(stars: number, nearestUnit: number): number
+	if stars <= 0 then
+		return 0
+	end
+	local base = math.clamp(0.25 + 0.15 * stars, 0, 1)
+	local near = math.clamp((nearestUnit - 60) / 180, 0, 1) -- 0 with a unit within 60 studs, 1 beyond 240
+	return base * (0.25 + 0.75 * near)
+end
+
+-- Seconds until the next dispatch-radio blip (squelch / static / beeps, no words) while wanted: busier with stars.
+function Siren.dispatchGap(stars: number, rand: () -> number): number
+	local s = math.clamp(stars, 1, 5)
+	local lo = 9 - s -- 8 .. 4
+	local hi = 20 - 2 * s -- 18 .. 10
+	return lo + rand() * (hi - lo)
+end
+
 -- Closing speed between a source and a listener (positive when approaching).
 function Siren.closingSpeed(srcPos: Vector3, srcVel: Vector3, lisPos: Vector3, lisVel: Vector3): number
 	local off = lisPos - srcPos

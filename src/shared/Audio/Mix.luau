@@ -55,6 +55,48 @@ function Mix.stepLabels(): { string }
 	return out
 end
 
+-- Which channel a Config/Sounds key plays on (SoundController.play). 2D sounds are interface sounds unless they belong
+-- to the car radio; positional ones go by prefix: cars and police -> vehicles, Amb_ -> ambience, the rest -> sfx.
+Mix.VEHICLE_PREFIXES = {
+	"Eng_",
+	"Engine",
+	"Horn",
+	"AirHorn",
+	"Siren",
+	"Tire",
+	"PeelOut",
+	"Pop_",
+	"Turbo",
+	"Car",
+	"Door",
+	"Hotwire",
+	"Surface",
+	"Scrape",
+	"Wind",
+	"Heli",
+	"Dispatch",
+	"PoliceRadio",
+	"Ignition",
+}
+
+function Mix.channelFor(key: string, positional: boolean): string
+	if string.sub(key, 1, 6) == "Radio_" or key == "RadioStatic" then
+		return "music"
+	end
+	if string.sub(key, 1, 4) == "Amb_" or key == "CityAmbience" or key == "Traffic" then
+		return "ambience"
+	end
+	if not positional then
+		return "ui"
+	end
+	for _, prefix in Mix.VEHICLE_PREFIXES do
+		if string.sub(key, 1, #prefix) == prefix then
+			return "vehicles"
+		end
+	end
+	return "sfx"
+end
+
 -- Ducks: reason -> per-channel gain at full depth.
 Mix.DUCKS = {
 	bigMessage = { music = 0.2, ambience = 0.3, vehicles = 0.45, sfx = 0.7 }, -- WASTED / BUSTED shard
@@ -169,6 +211,90 @@ end
 function Mix.windLevel(speed: number, topSpeed: number): number
 	local f = speed / math.max(topSpeed, 1)
 	return math.clamp((f - 0.45) / 0.55, 0, 1.2)
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Settings sliders (pause menu SETTINGS rows, added by MenuController from this list)
+-------------------------------------------------------------------------------------------------------------------------
+
+export type Slider = { channel: string, label: string, desc: string }
+
+Mix.SLIDERS = {
+	{ channel = "master", label = "Master volume", desc = "Everything you hear." },
+	{ channel = "sfx", label = "Effects volume", desc = "Guns, impacts and footsteps." },
+	{ channel = "vehicles", label = "Vehicle volume", desc = "Engines, tyres, horns and sirens." },
+	{ channel = "ambience", label = "City volume", desc = "Traffic, the sea, the wind and the city at night." },
+	{ channel = "music", label = "Radio volume", desc = "The car radio." },
+	{ channel = "ui", label = "Interface volume", desc = "Menus, the phone and messages." },
+} :: { Slider }
+
+-- ListMenu option rows wrap around (100 % -> 0 % on one more Right press). A volume slider clamps at its ends instead:
+-- the new index the list reports, corrected.
+function Mix.sliderStep(prev: number, nextIndex: number, steps: number): number
+	if steps <= 1 then
+		return 1
+	end
+	if prev >= steps and nextIndex == 1 then
+		return steps
+	end
+	if prev <= 1 and nextIndex == steps then
+		return 1
+	end
+	return math.clamp(math.floor(nextIndex + 0.5), 1, steps)
+end
+
+-------------------------------------------------------------------------------------------------------------------------
+-- Car foley levels
+-------------------------------------------------------------------------------------------------------------------------
+
+-- Off-road surfaces (raycast Material.Name) and how hard they rumble: the same materials that throw dust in the VFX
+-- (Config/VFX.SurfaceDust), so you hear gravel exactly where you see dust.
+Mix.RUMBLE = {
+	Grass = 0.8,
+	LeafyGrass = 0.8,
+	Ground = 1,
+	Mud = 0.9,
+	Sand = 1.1,
+	Sandstone = 0.9,
+	Snow = 0.6,
+	Salt = 0.8,
+	Limestone = 0.9,
+	Pebble = 1.1,
+	Rock = 0.7,
+	Slate = 0.7,
+	Basalt = 0.7,
+	CrackedLava = 0.7,
+} :: { [string]: number }
+
+-- Surface rumble level for the material under the car at `speed` (studs/s): 0 on paved roads and when stopped.
+function Mix.rumbleLevel(materialName: string?, speed: number): number
+	local k = if materialName then Mix.RUMBLE[materialName] else nil
+	if not k or speed < 4 then
+		return 0
+	end
+	return k * math.clamp((speed - 4) / 50, 0.15, 1)
+end
+
+-- Scrape loop level while the car's side is against a wall: speed along the wall (studs/s) above a crawl.
+function Mix.scrapeLevel(touching: boolean, speed: number): number
+	if not touching or speed < 6 then
+		return 0
+	end
+	return math.clamp((speed - 6) / 40, 0.25, 1.1)
+end
+
+-- Crash detection for cars we only see move (other players, traffic): a sudden speed loss against a decaying recent
+-- maximum (the same rule VehicleClient uses for its own car). Returns (crashed, drop, newRecentMax).
+Mix.CRASH_DROP = 40
+Mix.CRASH_DECAY = 300
+
+function Mix.suddenDrop(recentMax: number, speed: number, dt: number): (boolean, number, number)
+	local peak = math.max(speed, recentMax - Mix.CRASH_DECAY * dt)
+	local drop = peak - speed
+	if drop > Mix.CRASH_DROP then
+		return true, drop, speed
+	end
+	return false, drop, peak
 end
 
 return Mix

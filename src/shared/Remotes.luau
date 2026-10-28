@@ -50,6 +50,7 @@ Remotes.ClientToServer = {
 	"RerollContract", -- (contractId: string) free daily swap of one contract
 	"AdminCommand", -- (text: string) only works for admins
 	"VehicleFx", -- (boost: boolean, honk: boolean) driver's cosmetic nitro state change / horn; relayed as VehicleFxState
+	"RadioTune", -- (station: string) driver's car radio station ("" = off); AudioService sets car attr RadioStation
 	-- combat v2 (every payload re-validated server-side; see Shared/Combat/ShotValidation)
 	"WeaponFire", -- (shots: { ShotPacket }) <= 4 shots per packet, <= 20 packets/s
 	"WeaponReload", -- (weaponId: string)

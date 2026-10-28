@@ -181,6 +181,21 @@ function EngineModel.newState(p: Profile): State
 	}
 end
 
+-- Reset a state in place for a new car (pooled remote-engine slots reuse their tables: no allocation).
+function EngineModel.reset(st: State, p: Profile, rpm: number?)
+	st.rpm = rpm or p.idleRpm
+	st.gear = 0
+	st.load = 0
+	st.dipT = 0
+	st.limiter = false
+	st.limPhase = 0
+	st.free = true
+	st.shifted = 0
+	st.pop = false
+	st.blowoff = false
+	st.prevThrottle = 0
+end
+
 -- 0..1 position of rpm between idle and redline.
 function EngineModel.rpm01(st: State, p: Profile): number
 	return math.clamp((st.rpm - p.idleRpm) / math.max(p.redline - p.idleRpm, 1), 0, 1)
@@ -207,7 +222,15 @@ end
 -- Advance the model. speedFrac = |speed| / topSpeed (nitro can push it past 1), throttle -1..1 (negative = brake /
 -- reverse), grounded = at least two wheels on the ground, held = the car is held in place (handbrake, or the
 -- wheels are blocked: stuck against a wall).
-function EngineModel.step(st: State, p: Profile, dt: number, speedFrac: number, throttle: number, grounded: boolean, held: boolean)
+function EngineModel.step(
+	st: State,
+	p: Profile,
+	dt: number,
+	speedFrac: number,
+	throttle: number,
+	grounded: boolean,
+	held: boolean
+)
 	local shifts = p.shifts or EngineModel.SHIFTS
 	local f = math.clamp(math.abs(speedFrac), 0, 1.5)
 	local thr = math.clamp(throttle, 0, 1)
