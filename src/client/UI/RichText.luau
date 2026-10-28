@@ -13,6 +13,7 @@
 --   stripEmoji(text) / clean(text)                   the kill list bans emoji anywhere: server toasts, car names and
 --                                                    player text pass through this before display
 --   escape(text) / plain(text)                       escape < > & for RichText labels / drop every tag
+--   calm(text)                                       no shouting in the feed: "!" -> "." (C4b)
 
 local RichText = {}
 
@@ -136,6 +137,22 @@ function RichText.format(text: string): string
 	if open > 0 then
 		s ..= string.rep("</font>", open)
 	end
+	return s
+end
+
+-- GTA's feed never shouts (C4b de-Robloxify): "!" ends a sentence with "." ("Your garage is full!" -> "Your garage is
+-- full.", "?!" -> "?", "!!!" -> ".", ".!" / "…!" -> "." / "…"). For server copy the feed shows (toasts, event feed,
+-- announcements); contact texts keep their voice.
+function RichText.calm(text: string): string
+	if typeof(text) ~= "string" then
+		return ""
+	end
+	if not string.find(text, "!", 1, true) then
+		return text
+	end
+	local s = text:gsub("([%?%.])!+", "%1")
+	s = s:gsub("\226\128\166!+", "\226\128\166")
+	s = s:gsub("!+", ".")
 	return s
 end
 

@@ -13,8 +13,11 @@
 --     tab, and the first close also posts a help line naming P (pause) and M (map). After that Esc is left alone.
 --     The limit: Esc itself can never open our pause menu (documented in docs/v2/DEROBLOX_AUDIT.md).
 --   * The top bar stays (it cannot be removed safely); Captures stays (the phone camera uses CaptureService).
+--   * ProximityPrompts: the engine's grey key-circle bubbles become GTA help text (UI/PromptStyle) when the HUD
+--     passes `prompts` hooks.
 --
---   CoreGuiSetup.apply(opts?)   opts = { wheel: boolean?, openPause: (() -> ())?, hint: ((string) -> ())? }
+--   CoreGuiSetup.apply(opts?)   opts = { wheel: boolean?, openPause: (() -> ())?, hint: ((string) -> ())?,
+--                               prompts: PromptStyle.Hooks? }
 --                               idempotent; safe before the CoreScripts are ready
 --   Pure (tests): DISABLED, CHAT_WINDOW, CHAT_INPUT, BUBBLE, ESC_WINDOW; chatEnabledFor(hidesChat),
 --   escAction(openedAt, sessionStart, hinted, menuOpen), escHint()
@@ -26,6 +29,7 @@ local TextChatService = game:GetService("TextChatService")
 local Theme = require(script.Parent.Theme)
 local RichText = require(script.Parent.RichText)
 local UIFocus = require(script.Parent.UIFocus)
+local PromptStyle = require(script.Parent.PromptStyle)
 
 local CoreGuiSetup = {}
 
@@ -164,7 +168,12 @@ local function bridgeEsc(openPause: (() -> ())?, hint: ((string) -> ())?)
 	end)
 end
 
-function CoreGuiSetup.apply(opts: { wheel: boolean?, openPause: (() -> ())?, hint: ((string) -> ())? }?)
+function CoreGuiSetup.apply(opts: {
+	wheel: boolean?,
+	openPause: (() -> ())?,
+	hint: ((string) -> ())?,
+	prompts: PromptStyle.Hooks?,
+}?)
 	for _, name in CoreGuiSetup.DISABLED do
 		setCore(name, false)
 	end
@@ -195,6 +204,13 @@ function CoreGuiSetup.apply(opts: { wheel: boolean?, openPause: (() -> ())?, hin
 	end)
 	UIFocus.Changed:Connect(syncChat)
 	bridgeEsc(if opts then opts.openPause else nil, if opts then opts.hint else nil)
+	local prompts = if opts then opts.prompts else nil
+	if prompts then
+		local ok, err = pcall(PromptStyle.start, prompts)
+		if not ok then
+			warn("[CoreGuiSetup] PromptStyle did not start: " .. tostring(err))
+		end
+	end
 end
 
 return CoreGuiSetup

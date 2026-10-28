@@ -660,6 +660,8 @@ return function(t)
 				"src/client/UI/Shard.luau",
 				"src/client/UI/UIFocus.luau",
 				"src/client/UI/CoreGuiSetup.luau",
+				"src/client/UI/PromptStyle.luau",
+				"src/client/UI/HelpText.luau",
 				"src/client/UI/ListMenu.luau",
 				"src/client/UI/PauseMenu.luau",
 				"src/client/Controllers/EventsClient.luau",
@@ -675,5 +677,206 @@ return function(t)
 			t.ok(not string.find(src, "Fredoka", 1, true), path .. ": FredokaOne")
 			t.ok(not string.find(src, "Material.Neon", 1, true), path .. ": neon")
 		end
+	end)
+
+	---------------------------------------------------------------------------------------------------------------------
+	-- De-Robloxify, round 2: the feed's voice, comic words, metres, ProximityPrompts as GTA help text
+	---------------------------------------------------------------------------------------------------------------------
+
+	t.test("audit: the feed never shouts (RichText.calm) and announcements use the feed blip", function()
+		H.setMode("client")
+		local RichText = H.require("src/client/UI/RichText")
+		t.eq(RichText.calm("Your garage is full!"), "Your garage is full.")
+		t.eq(RichText.calm("STOLEN!!!"), "STOLEN.")
+		t.eq(RichText.calm("Really?!"), "Really?")
+		t.eq(RichText.calm("Done.!"), "Done.")
+		t.eq(RichText.calm("Nobody came\u{2026}!"), "Nobody came\u{2026}")
+		t.eq(RichText.calm("Nice! You got it"), "Nice. You got it")
+		t.eq(
+			RichText.calm('<b>Ann</b> took it: <font color="#D6B563">Gold</font>!'),
+			'<b>Ann</b> took it: <font color="#D6B563">Gold</font>.'
+		)
+		t.eq(RichText.calm("Already calm."), "Already calm.")
+		t.eq(RichText.calm(nil), "")
+		local Notif = H.require("src/client/Controllers/NotificationController")
+		t.eq(Notif.announceSound("AirHorn"), "Notify", "no air horn for a server event")
+		t.eq(Notif.announceSound("Horn"), "Notify")
+		t.eq(Notif.announceSound("CashDrop"), "Notify")
+		t.eq(Notif.announceSound(nil), "Notify")
+		t.eq(Notif.announceSound(""), "", "silent stays silent")
+		t.eq(Notif.announceSound("Notify"), "Notify")
+		local src = fs.readFile("src/client/Controllers/NotificationController.luau")
+		t.ok(string.find(src, "body = RichText.calm(text)", 1, true) ~= nil, "toasts are calmed")
+		t.ok(string.find(src, "body = RichText.calm(richText)", 1, true) ~= nil, "the event feed is calmed")
+		t.ok(string.find(src, "sound = NotificationController.announceSound(sound)", 1, true) ~= nil, "announce sound")
+		H.setMode("server")
+	end)
+
+	t.test("audit: no comic KAPOW / BONK / ZAP words over the world, no sparkle emoji on paint labels", function()
+		H.setMode("client")
+		local Effects = H.require("src/client/Controllers/EffectsController")
+		t.eq(Effects.COMIC_TEXT, false)
+		local src = fs.readFile("src/client/Controllers/EffectsController.luau")
+		t.ok(string.find(src, "if not EffectsController.COMIC_TEXT then", 1, true) ~= nil, "showComic is gated")
+		for _, line in codeLines("src/client/Controllers/EffectsController.luau") do
+			if string.find(line, "mut.Text", 1, true) then
+				t.ok(emojiIn(line) == nil, "paint label: " .. line)
+			end
+		end
+		H.setMode("server")
+	end)
+
+	t.test("audit: player-facing copy says metres, never studs", function()
+		for id, def in Economy.Tools do
+			t.ok(not string.find(string.lower(def.description), "stud", 1, true), id .. ": " .. def.description)
+		end
+		t.ok(string.find(Economy.Tools.taser.description, "17 metres", 1, true) ~= nil, "60 studs x 0.28")
+	end)
+
+	t.test("audit: help box hold rule only for the entry that asked for it", function()
+		H.setMode("client")
+		local HelpText = H.require("src/client/UI/HelpText")
+		t.eq(HelpText.progressFor("prompt", "prompt", 0.4), 0.4)
+		t.eq(HelpText.progressFor("prompt", "prompt", 1.7), 1, "clamped")
+		t.eq(HelpText.progressFor("prompt", "prompt", -1), 0)
+		t.eq(HelpText.progressFor("tutorial", "prompt", 0.4), nil, "another message is on screen")
+		t.eq(HelpText.progressFor(nil, "prompt", 0.4), nil)
+		t.eq(HelpText.progressFor("prompt", nil, 0.4), nil)
+		t.eq(HelpText.progressFor("prompt", "prompt", nil), nil)
+		t.eq(HelpText.progressFor("prompt", "prompt", 0 / 0), nil, "NaN")
+		H.setMode("server")
+	end)
+
+	t.test("audit: PromptStyle action phrases read like GTA help text", function()
+		H.setMode("client")
+		local P = H.require("src/client/UI/PromptStyle")
+		t.eq(P.actionPhrase("Hotwire"), "hotwire")
+		t.eq(P.actionPhrase("Carjack"), "carjack")
+		t.eq(P.actionPhrase("Get in"), "get in")
+		t.eq(P.actionPhrase("Recover!"), "recover", "no shouting")
+		t.eq(P.actionPhrase("Sell $1.2K"), "sell for $1.2K")
+		t.eq(P.actionPhrase("Buy $12,500"), "buy for $12,500")
+		t.eq(P.actionPhrase("UNLOCK $1.5K"), "unlock for $1.5K", "caps calmed, price kept")
+		t.eq(P.actionPhrase("Gear Shop"), "open Gear Shop", "a place, not a verb")
+		t.eq(P.actionPhrase("Browse"), "browse")
+		t.eq(P.actionPhrase(""), "interact")
+		t.eq(P.actionPhrase(nil), "interact")
+		t.eq(P.objectName("FREEDOM ARMS"), "Freedom Arms", "a shouting sign in title case")
+		t.eq(P.objectName("Halden Wren"), "Halden Wren")
+		t.eq(P.objectName("Upgrades & Tools"), "Upgrades & Tools")
+		t.eq(P.objectName(nil), "")
+		t.eq(P.keyLabel("E", "keyboard"), "E")
+		t.eq(P.keyLabel("ButtonX", "gamepad"), "X")
+		t.eq(P.keyLabel("ButtonR1", "gamepad"), "RB")
+		t.eq(P.keyLabel(nil, "keyboard"), "E")
+		t.eq(P.keyLabel("Unknown", "gamepad"), "X")
+		H.setMode("server")
+	end)
+
+	t.test("audit: PromptStyle help text (object once, one line per prompt, key caps, touch captions)", function()
+		H.setMode("client")
+		local P = H.require("src/client/UI/PromptStyle")
+		local steal = { action = "Hotwire", object = "Halden Wren", hold = 1.8, key = "E", pad = "ButtonX" }
+		t.eq(P.helpText({ steal }, "keyboard"), "<b>Halden Wren</b>\nHold <key>E</key> to hotwire.")
+		t.eq(P.helpText({ steal }, "gamepad"), "<b>Halden Wren</b>\nHold <key>X</key> to hotwire.")
+		t.eq(P.helpText({ steal }, "touch"), "<b>Halden Wren</b>\nHold <b>HOTWIRE</b>.")
+		local drive = { action = "Drive", object = "Kronberg K8", hold = 0, key = "E", pad = "ButtonX" }
+		local sell = { action = "Sell $4,250", object = "Kronberg K8", hold = 1, key = "F", pad = "ButtonY" }
+		t.eq(
+			P.helpText({ drive, sell }, "keyboard"),
+			"<b>Kronberg K8</b>\nPress <key>E</key> to drive.\nHold <key>F</key> to sell for $4,250.",
+			"one object line for both prompts"
+		)
+		local shop = { action = "Browse", object = "FREEDOM ARMS", hold = 0, key = "E" }
+		t.eq(P.helpText({ shop }, "keyboard"), "<b>Freedom Arms</b>\nPress <key>E</key> to browse.")
+		t.eq(P.helpText({}, "keyboard"), nil)
+		local many = {}
+		for i = 1, 5 do
+			many[i] = { action = "Drive", object = "Car " .. i, hold = 0, key = "E" }
+		end
+		local text = P.helpText(many, "keyboard")
+		local _, lines = string.gsub(text, "to drive", "")
+		t.eq(lines, P.MAX_LINES, "at most MAX_LINES instructions")
+		local evil = { action = "<b>Hack</b>", object = "<font>X</font>", hold = 0, key = "E" }
+		local safe = P.helpText({ evil }, "keyboard")
+		t.ok(not string.find(safe, "<font>", 1, true), "object text is escaped: " .. safe)
+		for _, e in { steal, drive, sell, shop } do
+			local s = P.helpText({ e }, "keyboard")
+			t.ok(emojiIn(s) == nil and not string.find(s, "!", 1, true), s)
+		end
+		H.setMode("server")
+	end)
+
+	t.test(
+		"audit: PromptStyle touch buttons sit in the right-hand cluster, clear of every other touch button",
+		function()
+			H.setMode("client")
+			local P = H.require("src/client/UI/PromptStyle")
+			local HudLayout = H.require("src/client/UI/HudLayout")
+			for _, size in { { 1280, 720 }, { 844, 390 }, { 1024, 768 }, { 2000, 900 } } do
+				local L = HudLayout.compute(size[1], size[2], true)
+				local jump = HudLayout.jumpButton(L.w, L.h, 1)
+				for _, driving in { false, true } do
+					local rects = P.touchRects(L, 3, driving)
+					t.eq(#rects, 3)
+					for i, r in rects do
+						local where = ("%dx%d driving=%s #%d"):format(size[1], size[2], tostring(driving), i)
+						t.ok(HudLayout.inside(r, L.w, L.h), where .. ": on screen")
+						t.ok(r.x >= L.w * 0.5, where .. ": right half (the thumbstick owns the left)")
+						-- on foot only: the driving cluster (NITRO / DRIFT) already owns the jump button's corner in a car
+						t.ok(driving or not HudLayout.overlaps(r, jump), where .. ": clear of the jump button")
+						for name, b in L.buttons do
+							local relevant = if driving
+								then name ~= "phone" and name ~= "map"
+								else name == "phone" or name == "map"
+							if relevant then
+								t.ok(not HudLayout.overlaps(r, b), where .. ": clear of " .. name)
+							end
+						end
+						for j, other in rects do
+							if j ~= i then
+								t.ok(not HudLayout.overlaps(r, other), where .. ": clear of prompt " .. j)
+							end
+						end
+					end
+				end
+			end
+			t.eq(#P.touchRects(nil, 2, false), 2, "no layout: still placed")
+			t.eq(#P.touchRects({}, 0, false), 0)
+			H.setMode("server")
+		end
+	)
+
+	t.test("audit: PromptStyle hold fill, kill switch and wiring", function()
+		H.setMode("client")
+		local P = H.require("src/client/UI/PromptStyle")
+		t.near(P.holdFraction(10, 2, 11), 0.5, 1e-9)
+		t.eq(P.holdFraction(10, 2, 13), 1)
+		t.eq(P.holdFraction(10, 2, 9), 0)
+		t.eq(P.holdFraction(10, 0, 10), 1, "a press fills at once")
+		t.eq(P.holdFraction(10, 0 / 0, 10), 1)
+		t.eq(P.ENABLED, true)
+		t.eq(P.DEFAULT_LAYER, "ProximityPrompts")
+		local core = fs.readFile("src/client/UI/CoreGuiSetup.luau")
+		t.ok(string.find(core, "PromptStyle.start", 1, true) ~= nil, "CoreGuiSetup starts PromptStyle")
+		local hud = fs.readFile("src/client/Controllers/HUDController.luau")
+		t.ok(string.find(hud, "progress = HUDController.helpProgress", 1, true) ~= nil, "HUD passes the hooks")
+		t.ok(string.find(hud, "function HUDController.helpProgress", 1, true) ~= nil)
+		-- input is never ours: the prompt keys stay the engine's, the touch button only holds / releases
+		local src = fs.readFile("src/client/UI/PromptStyle.luau")
+		t.ok(string.find(src, "InputHoldBegin", 1, true) ~= nil and string.find(src, "InputHoldEnd", 1, true) ~= nil)
+		t.ok(not string.find(src, "KeyboardKeyCode =", 1, true), "never rebinds a prompt key")
+		t.ok(emojiIn(src) == nil)
+		-- nothing else in the client styles prompts (one owner)
+		for _, path in
+			{
+				"src/client/Controllers/EffectsController.luau",
+				"src/client/Controllers/DealershipClient.luau",
+				"src/client/Controllers/VehicleClient.luau",
+			}
+		do
+			t.ok(not string.find(fs.readFile(path), "ProximityPromptStyle", 1, true), path)
+		end
+		H.setMode("server")
 	end)
 end

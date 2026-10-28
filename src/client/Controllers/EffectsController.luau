@@ -688,7 +688,14 @@ local POP_IN = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.O
 local POP_OUT = TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In)
 local FLOAT = TweenInfo.new(1.0, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
+-- C4b de-Robloxify (docs/v2/DEROBLOX_AUDIT.md): no comic "KAPOW!" / "BONK!" / "ZAP!" / "POP!" / "BIG STEAL!" words over
+-- the world (kid-simulator copy; GTA never writes sound effects on screen). The particles, flashes and sounds stay.
+EffectsController.COMIC_TEXT = false
+
 local function showComic(position: Vector3, text: string, textColor: Color3, burstColor: Color3, size: number)
+	if not EffectsController.COMIC_TEXT then
+		return
+	end
 	local c = acquireComic()
 	c.token += 1
 	local token = c.token
@@ -1139,7 +1146,7 @@ local function styleTag(rec: TagRec, gui: BillboardGui, carId: string, mutation:
 	local mdef = Rarity.getMutation(mutation :: any)
 	if mdef.id ~= "None" then
 		mut.Visible = true
-		mut.Text = `✨ {mdef.label} ✨`
+		mut.Text = mdef.label -- C4b: no sparkle emoji around the paint name
 		mut.TextColor3 = mdef.color or Theme.Colors.Primary
 	else
 		mut.Visible = false

@@ -1516,6 +1516,14 @@ function HUDController.clearHelp(id: string?)
 	end
 end
 
+-- C4b (UI/PromptStyle): the thin hold rule under help message `id` (0..1); nil hides it.
+function HUDController.helpProgress(id: string, fraction: number?)
+	local u = ui
+	if u then
+		u.help.progress(id, fraction)
+	end
+end
+
 -- Id of the help message on screen right now (nil = none).
 function HUDController.currentHelp(): string?
 	local u = ui
@@ -1911,6 +1919,13 @@ local function configureCoreGui()
 		hint = function(text: string)
 			HUDController.help(text, { id = "esc_hint", duration = 8 })
 		end,
+		-- the engine's prompt bubbles become GTA help text in this HUD's help box (UI/PromptStyle)
+		prompts = {
+			help = HUDController.help,
+			clear = HUDController.clearHelp,
+			progress = HUDController.helpProgress,
+			layout = HUDController.getLayout,
+		},
 	})
 end
 
