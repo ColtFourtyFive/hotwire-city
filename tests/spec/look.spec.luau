@@ -577,7 +577,7 @@ return function(t)
 		t.ok(L.OVERRIDE_ATTRIBUTES.SkyOverride ~= nil, "documented with the other lab overrides")
 	end)
 
-	t.test("night skies: night under the evening hold, nightLate under the morning hold, swapped in the jump's tick", function()
+	t.test("night skies: each under its own engine hold, night -> nightLate in the jump's tick", function()
 		local E = Look.EngineClock
 		-- every scheduled night hour: the night sky built for the hold the engine is actually at
 		for h = 0, 23.95, 0.05 do

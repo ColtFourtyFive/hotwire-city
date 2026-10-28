@@ -117,8 +117,12 @@ shots). Evidence: `docs/v2/evidence/look_night/`. Job 0012 (`studio/jobs/0012-ni
    - The raw faces are pale cyan-blue; the engine turns them back into deep blue.
    - Targets stay under the ceiling, with a soft roll-off near it.
    - The stars are painted into the faces (`StarCount` 0).
-   - The night is one texture for both holds, built for the geometric mean of the evening and morning casts. There
-     is no swap at the midnight jump.
+   - **Two night skies, one per hold** (job 0018 follow-up): `night` is built for the evening hold (sun west) and
+     `nightLate` for the morning hold (sun east, on the city-glow side, where the cast is less red). `nightLate` swaps
+     in at midnight in the same tick as the engine-clock jump, under its exposure dip (0.3 EV). The first build used
+     one texture for both holds (the geometric mean of the two casts), which was exact for neither.
+   - Colours are mixed in Oklab, not linear light: a linear blend of the warm glow and the blue sky passed through
+     mauve, which reads as dull purple-brown this dark.
 5. **Not measured yet; job 0012 must shoot these.** They are hedged in `procedural_sky.py`:
    - **The zenith** (above 30°). B/G there is assumed 0.54, between the fit's extrapolation (0.44) and a flat
      continuation (0.79).
@@ -127,5 +131,27 @@ shots). Evidence: `docs/v2/evidence/look_night/`. Job 0012 (`studio/jobs/0012-ni
    - Whether the 2.78 cast also holds at −1.5° (the start of dusk and the end of dawn).
    - The engine's dusk haze band (0–2°, blue-grey at Haze 0.7) sits over the bottom of the warm glow. That is why the
      glow reaches about 8°.
-6. **Swaps.** blue → night at 19.5 and night → dawn at 5.0 change the sun-side glow and little else. The rendered mean
-   sky moves from about (7, 13, 24) to (6, 10, 23). Both swaps get a 0.35 EV dip; the day ↔ twilight swaps keep 0.2.
+6. **Swaps.** blue → night at 19.5 and nightLate → dawn at 5.0 change the sun-side glow and little else; the
+   rendered mean sky moves between about (8, 15, 26) and (6, 11, 25). Both get a 0.35 EV dip; night → nightLate at
+   the jump gets 0.3 and the day ↔ twilight swaps keep 0.2 (`regions.txt` has the numbers).
+
+# Lighting lab, round 6 (analysis of job 0018 on place v33, the v2 world; no new Studio run)
+
+Sources: `docs/v2/evidence/vibe_0018_report.md` (shots g13, n02, n04) and `docs/v2/VIBE_ROUTING.md` rows 12 and 13.
+Evidence: `docs/v2/evidence/look_night/in_context.png` and `regions.txt`. Job 0012 verifies.
+
+1. **A third check of the round 5 transfer.** In 0018's `n02` (22.5) the sky between the towers is (5, 1, 1), and
+   `n04` is (0, 0, 0). The fitted model of the old night faces at that view predicts (0–7, 0, 0). So the "dark
+   reddish-brown" night was the old dark HDRI under the engine's cast: near-black with a red tint, not a grade problem.
+2. **Blue hour was darker than the night.** At Exposure +0.6 the dusk sky's ceiling sat below the night's (+0.8). The
+   blue presets now run at **+1.0**: the sky ceiling scales as 2^(1.2 · EV), and the city gets about 0.4 EV brighter,
+   which job 0011 judged "dusk / early night" at night +1.2. The dusk and dawn faces were rebuilt as Oklab gradient
+   stops at 85–95 % of the ceiling: amber → warm grey → pale blue → clear blue → deep blue.
+3. **The ceiling is the limit.** At the held −3° sun a white face renders at most about (77, 43, 29) overhead and
+   (87, 51, 62) at the horizon at the blue hour's EV +1.0. No texture can reach GTA V's dusk brightness. The next
+   lever is a higher dusk hold (sun −1.5° or −0.75°); job 0012 step 6 measures it.
+4. **Golden-hour haze wall (`g13`, 17.6, Automatic quality).** Mostly draw distance (round 4, item 2), but the empty
+   far band takes the Atmosphere's Decay hue facing away from the low sun, and (126, 126, 134) under Haze 0.8 read as
+   smog. The golden presets now have their own Atmosphere (`Look.GoldenAtmosphere`): Density 0.13, Haze 0.5, Offset
+   0.4, Glare 0.8 / 0.7, a light warm-cream Color and a light rose-grey Decay. The day lock (round 2) is unchanged.
+   SLIM / StreamingMesh for the far skyline is still the streaming wave's job.

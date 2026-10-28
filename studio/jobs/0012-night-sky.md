@@ -16,7 +16,7 @@ Judge only the sky, the haze and how they sit with the city's light. Do not judg
 1. **Open the place.**
    - Close the current place without saving. Run **File → Open from Roblox → Hotwire City** and use the version the lead names. Write the version in the report.
    - **Do not connect Rojo**; live-sync confounded jobs 0007 and 0009. Run only **one** Play session.
-   - Run **PROBE** in Edit. Expect `nightLate@0.00` first in the schedule, and the night Ft id from the table below.
+   - Run **PROBE** in Edit. Expect `nightLate@0.00` first in the schedule and night Ft `rbxassetid://102872066736317`.
 2. **Start Play (solo)** and wait **90 s**; the v2 world builds in chunks.
    - On the **Client**, run `settings().Rendering.QualityLevel = Enum.QualityLevel.Level21`. Everything below is at Level 21 unless it says Automatic.
 3. **Shoot the six lock hours.** For each hour t below:
@@ -74,7 +74,14 @@ The night, dusk and dawn shots are calibration data too. The lead adds them to `
 
 ## Sky ids (Image assets)
 
-<!-- SKY_IDS -->
+| Sky | Ft | Bk | Lf | Rt | Up | Dn |
+|---|---|---|---|---|---|---|
+| night | 102872066736317 | 94984348100656 | 95939202131007 | 95896070267520 | 88812082275800 | shared |
+| nightLate | 93141238500720 | 110094107388282 | 88251663305809 | 74764785598053 | 85952127286680 | shared |
+| blue | 79742849062319 | 97757961136617 | 129863789995610 | 86621266446209 | 135650798270190 | shared |
+| dawn | 129901905692620 | 98043044936404 | 123519574914603 | 73235550196971 | 78912621534818 | shared |
+
+The shared Dn is `98952593275525` (unchanged). All the others were uploaded on 2026-10-28 as Image assets and read `Reviewing` at upload. The first build's night, blue and dawn ids (night Ft `139435704740562`) are superseded: if PROBE shows one of them, the place is stale.
 
 ## CAMERA (Client)
 
