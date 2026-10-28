@@ -25,8 +25,8 @@
 | 9 | Emoji in world text (#9) | **vibe** (Plot); **polish** (Leaderboard) | No emoji in the world; numbers live in the HUD or phone |
 | 10 | HOT DROP panel and event pills pinned centre-top in every shot (#10) | **polish** | A small blip plus a brief subtitle and a feed line, never persistent mid-screen |
 | 11 | Empty civic boxes: gun store, police HQ and hospital are grey slabs (#11) | **vibe** (shopfront and precinct dressing) + **buildings** (POI templates) | An Ammu-Nation-style storefront with window posters; a precinct with steps, flags and cruisers; a hospital with an ambulance bay |
-| 12 | Night sky reddish-brown; freeway pitch black with lamps that light nothing (#12) | **look-night** (sky and grade) + **world** (Freeways lamps: real light pools) | A blue-black sky with city glow; sodium-orange pools of light on the deck |
-| 13 | Golden-hour haze wall from the low aerial (#13) | **look-night** (Look golden density / haze) | A warm, clear long view |
+| 12 | **[sky merged to main: `v2/look-night` f764725, pending Studio job 0012; freeway lamps still with world]** Night sky reddish-brown; freeway pitch black with lamps that light nothing (#12) | **look-night** (sky and grade) + **world** (Freeways lamps: real light pools) | A blue-black sky with city glow; sodium-orange pools of light on the deck |
+| 13 | **[merged to main: golden preset retuned, pending Studio job 0012]** Golden-hour haze wall from the low aerial (#13) | **look-night** (Look golden density / haze) | A warm, clear long view |
 | 14 | Rail yard and port are bare (#14) | **world** (rail sleepers and ballast; port dressing using the v2/props-setpieces cranes, containers and ship) | Freight cars, containers, cranes, warehouses, chain-link |
 | 15 | Lollipop sphere trees (#15) | **world** (Streetscape tree kit) + **props** (v2/props vegetation) | Real street trees (palms, plane trees, jacaranda) with alpha leaves |
 | 16 | Candy-striped awnings and toy-town brick rows in the hills (#16) | **buildings** | Muted canvas awnings and hillside mansions with gates and hedges |
