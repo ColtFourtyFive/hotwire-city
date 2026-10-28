@@ -1,12 +1,12 @@
 {
  "summary": {
-  "generated": "2026-10-28T02:13:19+00:00",
-  "total": 253,
-  "ok": 253,
+  "generated": "2026-10-28T03:39:46+00:00",
+  "total": 241,
+  "ok": 241,
   "failed": 0,
   "contentRefsChecked": 856,
   "contentRefsBad": 2,
-  "authOnlyDownloads": 36,
+  "authOnlyDownloads": 43,
   "warnings": 2,
   "engineCheck": "docs/v2/evidence/characters_engine_check.json (tools/characters/cloud_looks.py)"
  },
@@ -7771,382 +7771,186 @@
    "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619511648,
+   "id": 16744209868,
    "slot": "Idle",
    "expectedType": 51,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 51,
-    "name": "Stylish Idle",
-    "creator": "Roblox",
+    "name": "Bold Idle",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T19:59:13.203Z"
+    "created": "2024-03-14T19:58:02.263Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 51
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619512767,
+   "id": 16744219182,
    "slot": "Walk",
    "expectedType": 55,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 55,
-    "name": "Stylish Walk",
-    "creator": "Roblox",
+    "name": "Bold Walk",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T20:01:10.697Z"
+    "created": "2024-03-14T19:59:07.557Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 55
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619512153,
+   "id": 16744214662,
    "slot": "Run",
    "expectedType": 53,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 53,
-    "name": "Stylish Run",
-    "creator": "Roblox",
+    "name": "Bold Run",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T20:00:10.66Z"
+    "created": "2024-03-14T19:58:37.873Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 53
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619511974,
+   "id": 16744212581,
    "slot": "Jump",
    "expectedType": 52,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 52,
-    "name": "Stylish Jump",
-    "creator": "Roblox",
+    "name": "Bold Jump",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T19:59:48.143Z"
+    "created": "2024-03-14T19:58:21.623Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 52
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619511417,
+   "id": 16744207822,
    "slot": "Fall",
    "expectedType": 50,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 50,
-    "name": "Stylish Fall",
-    "creator": "Roblox",
+    "name": "Bold Fall",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T19:58:51.64Z"
+    "created": "2024-03-14T19:57:47.95Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 50
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619509955,
+   "id": 16744204409,
    "slot": "Climb",
    "expectedType": 48,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 48,
-    "name": "Stylish Climb",
-    "creator": "Roblox",
+    "name": "Bold Climb",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T19:56:42.44Z"
+    "created": "2024-03-14T19:57:24.03Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 48
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
-   "id": 619512450,
+   "id": 16744217055,
    "slot": "Swim",
    "expectedType": 54,
    "roles": [
-    "anim:stylish"
+    "anim:bold"
    ],
    "status": "ok",
    "problems": [],
    "economy": {
     "ok": true,
     "type": 54,
-    "name": "Stylish Swim",
-    "creator": "Roblox",
+    "name": "Bold Swim",
+    "creator": "elfup",
     "creatorVerified": true,
     "forSale": false,
     "price": null,
-    "created": "2017-01-19T20:00:39.63Z"
+    "created": "2024-03-14T19:58:53.503Z"
    },
    "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 54
+    "ok": false,
+    "code": 401,
+    "message": "Authentication required to access Asset."
    },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892268340,
-   "slot": "Idle",
-   "expectedType": 51,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 51,
-    "name": "Elder Idle",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:14:07.52Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 51
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892267099,
-   "slot": "Walk",
-   "expectedType": 55,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 55,
-    "name": "Elder Walk",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:13:20.533Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 55
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892265784,
-   "slot": "Run",
-   "expectedType": 53,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 53,
-    "name": "Elder Run",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:12:22.677Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 53
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892267917,
-   "slot": "Jump",
-   "expectedType": 52,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 52,
-    "name": "Elder Jump",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:13:53.127Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 52
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892267521,
-   "slot": "Fall",
-   "expectedType": 50,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 50,
-    "name": "Elder Fall",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:13:36.707Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 50
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892269341,
-   "slot": "Climb",
-   "expectedType": 48,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 48,
-    "name": "Elder Climb",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:14:46.363Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 48
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 892268710,
-   "slot": "Swim",
-   "expectedType": 54,
-   "roles": [
-    "anim:elder"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 54,
-    "name": "Elder Swim",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2017-07-01T00:14:20.363Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 54
-   },
-   "layered": false,
-   "refs": []
+   "notes": "file needs auth to download (paid avatar animation); type + creator verified, engine load checked"
   },
   {
    "id": 2510235063,
@@ -8333,141 +8137,6 @@
     "ok": true,
     "archived": false,
     "type": 54
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 10713992055,
-   "slot": "Animation",
-   "expectedType": 24,
-   "roles": [
-    "fidget:bored"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 24,
-    "name": "Emote_Bored",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2022-08-25T17:43:38.21Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 24
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 5230661597,
-   "slot": "Emote",
-   "expectedType": 61,
-   "roles": [
-    "fidget-emote:bored"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 61,
-    "name": "Bored",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": true,
-    "price": 55,
-    "created": "2020-06-24T23:26:43.77Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 61
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 10714338461,
-   "slot": "Animation",
-   "expectedType": 24,
-   "roles": [
-    "fidget:tilt"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 24,
-    "name": "Tilt Face",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2022-08-25T18:25:38.477Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 24
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 10714374484,
-   "slot": "Animation",
-   "expectedType": 24,
-   "roles": [
-    "fidget:shrug"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 24,
-    "name": "Shrug Face",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": false,
-    "price": null,
-    "created": "2022-08-25T18:29:50.977Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 24
-   },
-   "layered": false,
-   "refs": []
-  },
-  {
-   "id": 3576968026,
-   "slot": "Emote",
-   "expectedType": 61,
-   "roles": [
-    "fidget-emote:shrug"
-   ],
-   "status": "ok",
-   "problems": [],
-   "economy": {
-    "ok": true,
-    "type": 61,
-    "name": "Shrug",
-    "creator": "Roblox",
-    "creatorVerified": true,
-    "forSale": true,
-    "price": 0,
-    "created": "2019-08-01T21:21:36.41Z"
-   },
-   "delivery": {
-    "ok": true,
-    "archived": false,
-    "type": 61
    },
    "layered": false,
    "refs": []
