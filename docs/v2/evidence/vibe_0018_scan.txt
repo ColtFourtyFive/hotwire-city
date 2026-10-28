@@ -1,0 +1,72 @@
+# Job 0018 section B: neon and "Roblox-y" scan, Server at noon, 74,608 instances scanned.
+# Pass 1 is the job's script verbatim (grouped by the top-level child of workspace). It ran as a yielding background task
+# because one execute_luau call timed out.
+10698  Workspace.Map  [Neon=2035, bigSmoothPlastic=7323, cartoonFont=42, loudColor=1256, loudText=34, nonAscii/emoji:💰  TOP EARNERS  💰=1, nonAscii/emoji:🚗  TOP THIEVES  🚗=1, nonAscii/emoji:🥇=2, nonAscii/emoji:🥈=2, nonAscii/emoji:🥉=2]  e.g. Workspace.Map.Cells.c_-9_-2.StopBar
+ 1935  Workspace.Plots  [Neon=424, bigSmoothPlastic=344, cartoonFont=624, loudColor=280, loudText=80, exclaim:#2..#8 • Join to claim!=7, exclaim:Step on the pad!=8, nonAscii/emoji:(pad/sign labels)…]  e.g. (truncated by the MCP return size)
+ (3 more small groups: Dealership, Vehicles/NPCs. The full line text was cut off by the tool's return limit.)
+
+# Pass 2: the same tests, grouped by part name across all map cells and plots (Map.Cells.*.<name>, Plots.Plot*.<name>,
+# Map.Buildings.<kit>:<name>, Map.<sub>.<model>). 6,196 groups. Top 70:
+ 1706  Map.Cells.*.SignalLens  [Neon=867, loudColor=839] rgb(255,52,40)
+ 1008  Map.Cells.*.StopBar  [bigSmoothPlastic=1008] rgb(228,228,222)
+  856  Map.Skeleton.Skeleton  [bigSmoothPlastic=856] rgb(255,255,255)
+  409  Map.Cells.*.StopSign  [loudColor=409] rgb(178,36,32)
+  330  Map.Cells.*.Wire  [bigSmoothPlastic=330] rgb(22,22,24)
+  192  Plots.Plot*.PadGui/Icon  [cartoonFont:FredokaOne=96, emoji=96]
+  160  Plots.Plot*.Emitter  [Neon=80, loudColor=80] rgb(255,30,50)
+  152  Plots.Plot*.SignGui/Status  [cartoonFont:FredokaOne=104, loudText=48]
+  120  Plots.Plot*.Pilaster  [bigSmoothPlastic=120] rgb(206,198,180)
+   96  Plots.Plot*.PadGui/Number  [cartoonFont:FredokaOne=96]
+   96  Plots.Plot*.SignGui/Number  [cartoonFont:FredokaOne=96]
+   96  Plots.Plot*.PadGui/Price  [cartoonFont:FredokaOne=96]
+   60  Plots.Plot*.WallStrip  [Neon=40, loudColor=20] rgb(255,52,140)
+   48  Plots.Plot*.Parapet  [bigSmoothPlastic=32, loudColor=16] rgb(255,52,140)
+   48  Plots.Plot*.TrimStrip  [Neon=32, loudColor=16] rgb(255,52,140)
+   48  Plots.Plot*.SignGui/Title  [cartoonFont:FredokaOne=16, emoji=16, loudText=16]
+   48  Plots.Plot*.SignTrim  [Neon=32, loudColor=16] rgb(255,52,140)
+   46  Map.Cells.*.Billboard  [bigSmoothPlastic=46] rgb(255,255,255)
+   40  Plots.Plot*.Wainscot  [bigSmoothPlastic=40] rgb(40,42,56)
+   40  Map.POIs.HotwirePlaza/Value  [cartoonFont:FredokaOne=20, loudText=20]
+   40  Plots.Plot*.Plinth  [bigSmoothPlastic=40] rgb(52,55,70)
+   36  Plots.Plot*.Mural/Label  [cartoonFont:FredokaOne=24, loudText=12]
+   32  Plots.Plot*.DropoffEdge  [Neon=32] rgb(255,200,40)
+   32  Plots.Plot*.Chevron  [Neon=32] rgb(255,200,40)
+   32  Plots.Plot*.BannerGui/Icon  [cartoonFont:FredokaOne=16, emoji=16]
+   27  Map.Landmarks.SunwoodSign  [bigSmoothPlastic=27] rgb(236,236,230)
+   26  Map.Cells.*.PowerLine  [bigSmoothPlastic=26] rgb(22,22,24)
+   26  Map.POIs.HotwirePlaza/Rank  [cartoonFont:FredokaOne=20, emoji=6]
+   24  Plots.Plot*.LightBar  [Neon=24] rgb(255,246,225)
+   24  Plots.Plot*.WindowSill  [Neon=16, loudColor=8] rgb(255,52,140)
+   24  Plots.Plot*.Roof  [bigSmoothPlastic=24] rgb(88,92,110)
+   24  Plots.Plot*.AisleLine  [Neon=16, loudColor=8] rgb(255,52,140)
+   24  Plots.Plot*.DrivewayLine  [Neon=16, loudColor=8] rgb(255,52,140)
+   24  Plots.Plot*.PadGui/Label  [cartoonFont:FredokaOne=16, emoji=8]
+   24  Plots.Plot*.CornerPillar  [Neon=16, loudColor=8] rgb(255,52,140)
+   21  Map.Cells.*.GantrySign  [bigSmoothPlastic=21] rgb(20,92,52)
+   19  Plots.Plot*.SignGui/Stats  [emoji=8, exclaim=7, loudText=4]
+   16  Plots.Plot*.Beam1..Beam5  [Neon=8, loudColor=8] rgb(255,30,50)   (each)
+   16  Plots.Plot*.CountdownGuiBack/Time, CountdownGui/Time  [cartoonFont:FredokaOne=8, emoji=8]   (each)
+   16  Plots.Plot*.CollectPad  [Neon=8, loudColor=8] rgb(70,235,110)
+   16  Plots.Plot*.SignGui/Label  [cartoonFont:FredokaOne=8, emoji=8]
+   16  Plots.Plot*.SignGui/Amount  [cartoonFont:FredokaOne=8, exclaim=8]
+   16  Map.POIs.Dealership  [Neon=1, bigSmoothPlastic=14, loudColor=1] rgb(228,228,222)
+   16  Plots.Plot*.BannerGui/Text  [cartoonFont:FredokaOne=16]
+   16  Plots.Plot*.Gate  [Neon=8, loudColor=8] rgb(255,30,50)
+   16  Plots.Plot*.LockButton  [Neon=8, loudColor=8] rgb(255,60,70)
+   16  Plots.Plot*.StatusLight  [Neon=8, loudColor=8] rgb(70,235,110)
+   12  Plots.Plot*.DriveOutRing  [Neon=8, loudColor=4] rgb(255,52,140)
+   12  Plots.Plot*.SignLogoTrim  [Neon=8, loudColor=4] rgb(255,52,140)
+    8  Dealership.Dressing.FlagCap  [Neon=4, loudColor=4] rgb(255,52,140)
+    8  Dealership.Dressing.RoofBannerBase  [Neon=4, loudColor=4] rgb(255,52,140)
+    8  Plots.Plot*.Banner / PosterFrame  [loudColor=8] rgb(255,52,140)
+    8  Plots.Plot*.Dropoff  [bigSmoothPlastic=8] rgb(255,200,40)
+   (the rest: Plot wall slabs, DropoffMark, DoorHeader, etc. as bigSmoothPlastic)
+# Pass 1 fine grouping by map cell: every Map.Cells.c_x_y holds 19–36 hits of the same kinds (SignalLens, StopBar,
+# Wire, StopSign); Workspace.Dealership.Dressing = 20 (Neon 10, loud 10; e.g. PlanterTrim).
+
+# Subtree totals
+Map.Buildings (all v2 building models): Neon=1164 loudColor=0 emojiText=0 cartoonFont=0
+Map.POIs: Neon=4 loudColor=36 emojiText=8 cartoonFont=42
+Map.Landmarks: Neon=0 loudColor=8
+Dealership: Neon=22 loudColor=22 emojiText=2 cartoonFont=3
+Vehicles / Effects: 0 / 0; NPCs: loudColor 1
